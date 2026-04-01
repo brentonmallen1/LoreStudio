@@ -40,6 +40,10 @@ export interface StoryStructureTemplate {
   user_id: string | null;
 }
 
+export interface SegmentMeta {
+  purpose?: string;
+}
+
 export interface StructureNode {
   id: string;
   story_id: string;
@@ -52,6 +56,7 @@ export interface StructureNode {
   position: number;
   word_count: number;
   status: "draft" | "revised" | "final";
+  metadata_: SegmentMeta;
   created_at: string;
   updated_at: string;
   children: StructureNode[];

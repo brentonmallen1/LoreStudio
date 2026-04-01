@@ -17,7 +17,7 @@ import styles from "./StoryWorkspace.module.css";
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { setActiveStory, setStructure, setCharacters } = useStoryStore();
+  const { setActiveStory, setStructure, setCharacters, setActiveTemplate } = useStoryStore();
   const { interviewPanelOpen, activeInterview, focusMode, viewMode } = useUIStore();
   const [loading, setLoading] = useState(true);
 
@@ -28,15 +28,18 @@ export default function StoryWorkspacePage() {
       api.getStory(storyId),
       api.getStructure(storyId),
       api.listCharacters(storyId),
+      api.listStructureTemplates(),
     ])
-      .then(([story, structure, characters]) => {
+      .then(([story, structure, characters, templates]) => {
         setActiveStory(story);
         setStructure(structure);
         setCharacters(characters);
+        const tmpl = templates.find((t) => t.id === story.structure_template_id) ?? null;
+        setActiveTemplate(tmpl);
       })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [storyId, setActiveStory, setStructure, setCharacters, navigate]);
+  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, navigate]);
 
   if (loading) {
     return <div className={styles.loading}>Loading…</div>;

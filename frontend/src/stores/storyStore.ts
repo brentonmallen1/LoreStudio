@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Story, StructureNode, Character } from "../types";
+import type { Story, StructureNode, Character, StoryStructureTemplate } from "../types";
 
 interface StoryState {
   stories: Story[];
@@ -9,6 +9,9 @@ interface StoryState {
 
   activeStory: Story | null;
   setActiveStory: (story: Story | null) => void;
+
+  activeTemplate: StoryStructureTemplate | null;
+  setActiveTemplate: (template: StoryStructureTemplate | null) => void;
 
   structure: StructureNode[];
   setStructure: (nodes: StructureNode[]) => void;
@@ -35,6 +38,9 @@ export const useStoryStore = create<StoryState>((set) => ({
 
   activeStory: null,
   setActiveStory: (story) => set({ activeStory: story }),
+
+  activeTemplate: null,
+  setActiveTemplate: (template) => set({ activeTemplate: template }),
 
   structure: [],
   setStructure: (nodes) => set({ structure: nodes }),

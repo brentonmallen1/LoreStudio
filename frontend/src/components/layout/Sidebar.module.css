@@ -151,30 +151,94 @@
 }
 
 /* ── Node item ── */
+.nodeRowWrap {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius);
+  transition: background var(--transition);
+  padding-right: 0.25rem;
+}
+
+.nodeRowWrap:hover {
+  background: var(--color-surface-2);
+}
+
+.nodeRowWrapActive {
+  background: var(--color-accent);
+}
+
+.nodeRowWrapActive:hover {
+  background: var(--color-accent);
+}
+
 .nodeRow {
   display: flex;
   align-items: center;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   text-align: left;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: var(--radius);
   padding: 0.3rem 0.375rem;
   font-size: 0.82rem;
   font-family: inherit;
   color: var(--color-text);
-  transition: background var(--transition);
   gap: 0.25rem;
 }
 
-.nodeRow:hover {
-  background: var(--color-surface-2);
+.nodeRowWrapActive .nodeRow {
+  color: var(--color-accent-fg);
 }
 
-.nodeRow.nodeActive {
+.nodeActive {
+  /* kept for character list rows which use nodeRow directly */
   background: var(--color-accent);
   color: var(--color-accent-fg);
+  border-radius: var(--radius);
+}
+
+.nodeTypeIcon {
+  flex-shrink: 0;
+  /* color applied via inline style; active state overrides below */
+}
+
+.nodeRowWrapActive .nodeTypeIcon {
+  color: var(--color-accent-fg) !important;
+  opacity: 0.85;
+}
+
+.nodeAddChildBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nodeRowWrap:hover .nodeAddChildBtn {
+  display: flex;
+}
+
+.nodeAddChildBtn:hover {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+}
+
+.nodeRowWrapActive .nodeAddChildBtn {
+  color: var(--color-accent-fg);
+  opacity: 0.7;
+}
+
+.childAddRow {
+  padding: 0.2rem 0.375rem 0.2rem 0;
 }
 
 .chevron {
@@ -184,6 +248,16 @@
   align-items: center;
   justify-content: center;
   opacity: 0.6;
+  cursor: default;
+}
+
+.chevron[role="button"] {
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.chevron[role="button"]:hover {
+  opacity: 1;
 }
 
 .nodeLabel {
@@ -252,4 +326,27 @@
 .addBtn:hover {
   background: var(--color-surface-2);
   color: var(--color-text-muted);
+}
+
+.charAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: 0.68rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.roleBadge {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 99px;
+  background: var(--color-surface-2);
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
 }

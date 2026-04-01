@@ -1,9 +1,11 @@
+import uuid
 from sqlalchemy.orm import Session
 from ..database import engine
 from ..models.user import User
 from ..models.story import Story
 from ..models.character import Character
 from ..models.structure import StoryStructureTemplate, StructureNode
+from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -99,6 +101,23 @@ def seed_demo_story():
             description="A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
             structure_template_id="three-act",
             intent="A quiet, atmospheric story about solitude, memory, and the things we keep hidden.",
+            # Story Bible fields
+            genre="Literary Fiction",
+            tone="Atmospheric, melancholic, quietly tense",
+            themes=["solitude", "memory", "secrets", "grief", "identity"],
+            central_conflict="Eleanor's need to protect her carefully constructed isolation versus the truth that threatens to surface",
+            target_audience="Adult literary fiction readers",
+            # Narrative grounding
+            narrative_intent="Explore how self-imposed isolation can be both sanctuary and prison, and how the past finds us regardless of where we hide.",
+            premise="A solitary lighthouse keeper on a dying island must confront her buried past when a mysterious stranger arrives seeking answers she's spent years avoiding.",
+            logline="When a mysterious historian arrives during a storm, a reclusive lighthouse keeper must decide whether to protect her secrets or finally face what she buried.",
+            # Story goals checklist
+            goals=[
+                {"id": str(uuid.uuid4()), "text": "Establish Eleanor's isolated routine and her relationship with the lighthouse", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Introduce the Visitor and create tension around their true purpose", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Reveal what happened to Eleanor's father", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Force Eleanor to choose between truth and solitude", "completed": False},
+            ],
         )
         db.add(story)
         db.flush()
@@ -120,6 +139,15 @@ def seed_demo_story():
                 "Tell me about your father.",
             ],
             traits={"Occupation": "Lighthouse keeper", "Home": "Harrow Island", "Skill": "Cartography"},
+            narrative_intent="Eleanor serves as the reader's lens into the isolated world. Her guardedness creates mystery while her observant nature provides rich sensory detail. She represents the universal tension between safety and connection.",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Established in her routine — the lighthouse, the log, the solitude", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "First crack in her armor: lets the Visitor in from the storm", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Discovers the missing log entries from five years ago", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Confronts the truth about what happened to her father", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Makes a choice: stay with her secrets or step into the open", "completed": False},
+            ],
         )
         db.add(eleanor)
 
@@ -138,8 +166,44 @@ def seed_demo_story():
                 "Why this island, why now?",
             ],
             traits={"Known as": "The Visitor", "Carries": "Leather notebook"},
+            narrative_intent="Functions as a catalyst and mirror for Eleanor. Their questions force her to examine the story she tells herself. The mystery of their identity keeps tension high throughout the second act.",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Arrives with an apparent purpose (historical research)", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Gains Eleanor's grudging trust through patience and honesty about small things", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "True purpose revealed — and its connection to Eleanor's past", "completed": False},
+            ],
         )
         db.add(visitor)
+        db.flush()
+
+        # Plot threads
+        thread_logs = PlotThread(
+            story_id=story.id,
+            name="The Missing Logs",
+            description="Several entries from five years ago are missing or damaged. What was recorded there — and why were they removed?",
+            status="open",
+            color="#3b82f6",
+        )
+        db.add(thread_logs)
+
+        thread_identity = PlotThread(
+            story_id=story.id,
+            name="The Visitor's Identity",
+            description="Who is this 'historian' really, and why do they know so much about Harrow Island and the Vance family?",
+            status="developing",
+            color="#8b5cf6",
+        )
+        db.add(thread_identity)
+
+        thread_father = PlotThread(
+            story_id=story.id,
+            name="Eleanor's Father",
+            description="What really happened in the final months of Thomas Vance's life? Eleanor's account has gaps she won't examine.",
+            status="open",
+            color="#ef4444",
+        )
+        db.add(thread_father)
         db.flush()
 
         # Structure: Act 1
@@ -151,6 +215,7 @@ def seed_demo_story():
             title="Act 1: The Arrival",
             synopsis="The storm arrives and so does the stranger. Eleanor's solitary world is interrupted.",
             position=0,
+            metadata_={"purpose": "Establish Eleanor's world and the fragile equilibrium she's built. Introduce the Visitor as a disruption. End with Eleanor's curiosity overcoming her guardedness — she lets the stranger in."},
         )
         db.add(act1)
         db.flush()
@@ -163,6 +228,7 @@ def seed_demo_story():
             title="Chapter 1: Storm Warning",
             synopsis="Eleanor monitors the approaching storm and prepares the lighthouse.",
             position=0,
+            metadata_={"purpose": "Ground the reader in Eleanor's routine and sensory relationship with the lighthouse. Establish the log as a central object before its gaps become significant. Foreshadow disruption through the approaching storm."},
         )
         db.add(ch1)
         db.flush()
@@ -176,6 +242,7 @@ def seed_demo_story():
             synopsis="Eleanor climbs to the lamp room as the storm rolls in.",
             position=0,
             status="revised",
+            metadata_={"purpose": "Open in Eleanor's element — she is competent and alone by choice. The barometer and the log establish her observational nature and her father's lingering presence. The boat at the end pivots the scene: something is coming that she can't control."},
             content=(
                 "<p>The barometer had been falling since noon.</p>"
                 "<p>Eleanor noted it in the log — <em>1012, 1008, 1003</em> — each reading a quiet sentence in a language she'd learned to read before she could properly read words. Her father had taught her that. <em>The glass doesn't lie,</em> he'd said. <em>People lie. Weather lies sometimes too, but the glass is always honest about what it knows.</em></p>"
@@ -186,6 +253,19 @@ def seed_demo_story():
             word_count=187,
         )
         db.add(scene1)
+        db.flush()
+
+        # Link plot threads to scene1
+        db.add(PlotThreadAppearance(
+            thread_id=thread_logs.id,
+            node_id=scene1.id,
+            note="Eleanor writes in the log — establishes it as a central object and habit before we learn entries are missing.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_father.id,
+            node_id=scene1.id,
+            note="'Her father had taught her that' — first mention of Thomas Vance, plants his presence before his absence becomes relevant.",
+        ))
 
         ch2 = StructureNode(
             story_id=story.id,
@@ -195,6 +275,7 @@ def seed_demo_story():
             title="Chapter 2: The Stranger",
             synopsis="The visitor arrives at Eleanor's door, soaked and inexplicably calm.",
             position=1,
+            metadata_={"purpose": "Make the Visitor's arrival concrete and strange. Eleanor is on her own ground but the Visitor seems unsurprised to be here. Seed the first question about their identity without making them overtly threatening."},
         )
         db.add(ch2)
         db.flush()
@@ -207,8 +288,16 @@ def seed_demo_story():
             title="Knock at the Door",
             synopsis="Eleanor opens the door to find the Visitor standing in the rain.",
             position=0,
+            metadata_={"purpose": "First direct encounter between Eleanor and the Visitor. Establish Eleanor's suspicion without hostility — she lets them in against her better judgment. The Visitor's calm is the first signal that something about their story doesn't add up."},
         )
         db.add(scene2)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_identity.id,
+            node_id=scene2.id,
+            note="The Visitor introduces themselves as a historian. Eleanor notices their calm is studied, not natural.",
+        ))
 
         # Structure: Act 2
         act2 = StructureNode(
@@ -219,6 +308,7 @@ def seed_demo_story():
             title="Act 2: The Discovery",
             synopsis="As the storm traps them together, Eleanor begins to suspect the visitor's true purpose.",
             position=1,
+            metadata_={"purpose": "The storm keeps them together long enough for Eleanor to see through the Visitor's story. Surface the missing log entries as a physical object of investigation. Begin closing the distance between the Visitor's true purpose and Eleanor's buried past."},
         )
         db.add(act2)
         db.flush()
@@ -231,6 +321,7 @@ def seed_demo_story():
             title="Chapter 3: Old Records",
             synopsis="The visitor asks to see the lighthouse logs. Eleanor shows them — and notices what's missing.",
             position=0,
+            metadata_={"purpose": "The log request exposes the Visitor's real interest. Eleanor showing them the logs — then noticing the gaps — is both a breach of her guardedness and a realization she'd been avoiding. The chapter should feel like a key turning in a lock."},
         )
         db.add(ch3)
 
@@ -243,6 +334,7 @@ def seed_demo_story():
             title="Act 3: Resolution",
             synopsis="The truth surfaces. Eleanor must decide what to do with it.",
             position=2,
+            metadata_={"purpose": "Force Eleanor to a choice she can no longer defer. The truth about her father and the Visitor's identity should feel inevitable in retrospect. Eleanor's decision — whatever it is — must come from character, not plot convenience."},
         )
         db.add(act3)
 

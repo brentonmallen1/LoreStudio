@@ -15,6 +15,8 @@ class StructureNodeCreate(BaseModel):
 
 class StructureNodeUpdate(BaseModel):
     title: str | None = None
+    level: int | None = None
+    level_type: str | None = None
     synopsis: str | None = None
     content: str | None = None
     position: int | None = None
@@ -35,6 +37,7 @@ class StructureNodeOut(BaseModel):
     position: int
     word_count: int
     status: str
+    metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
     children: list["StructureNodeOut"] = []

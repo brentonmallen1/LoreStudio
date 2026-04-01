@@ -11,6 +11,17 @@
   --color-text: #1a1916;
   --color-text-muted: #6b6860;
   --color-text-subtle: #9a9890;
+  --color-section-title: #4a4843;
+
+  /* ── Segment type colors ── */
+  --segment-act:     #c94f1e;
+  --segment-chapter: #b07c10;
+  --segment-scene:   #2668c4;
+  --segment-section: #5a6a82;
+  --segment-beat:    #1a9272;
+  --segment-part:    #7040b8;
+  --segment-stage:   #b83670;
+
   --color-accent: #4a7c59;
   --color-accent-hover: #3d6a4a;
   --color-accent-fg: #ffffff;
@@ -43,6 +54,17 @@
   --color-text: #f0ede6;
   --color-text-muted: #8c8a84;
   --color-text-subtle: #5e5c56;
+  --color-section-title: #a8a59e;
+
+  /* ── Segment type colors ── */
+  --segment-act:     #f07050;
+  --segment-chapter: #e0a830;
+  --segment-scene:   #5b9fe0;
+  --segment-section: #8a9ab0;
+  --segment-beat:    #35c498;
+  --segment-part:    #b07ae0;
+  --segment-stage:   #e0608a;
+
   --color-accent: #6aab7c;
   --color-accent-hover: #7dbf8e;
   --color-accent-fg: #0c1f12;
