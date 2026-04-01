@@ -164,6 +164,10 @@ export const api = {
     });
   },
 
+  // Story-level relationships (all relationships for all characters in a story)
+  listStoryRelationships: (storyId: string) =>
+    request<import("../types").CharacterRelationship[]>(`/stories/${storyId}/relationships`),
+
   // Relationships
   listRelationships: (characterId: string) =>
     request<import("../types").CharacterRelationship[]>(`/characters/${characterId}/relationships`),

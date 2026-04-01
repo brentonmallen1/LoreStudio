@@ -21,6 +21,62 @@
   margin-bottom: 1.5rem;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Visualization wrapper ── */
+.vizWrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.vizHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  gap: 0.15rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: 0.15rem;
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: calc(var(--radius) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.viewBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.viewActive {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
+}
+
 .title {
   font-size: 1.2rem;
   font-weight: 300;

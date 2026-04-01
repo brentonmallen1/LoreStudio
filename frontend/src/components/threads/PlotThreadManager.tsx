@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, List, Network } from "lucide-react";
 import { api } from "../../api/client";
 import type { PlotThread } from "../../types";
+import ThreadVisualization from "./ThreadVisualization";
 import styles from "./PlotThreadManager.module.css";
 
 interface Props {
@@ -21,6 +22,7 @@ const PRESET_COLORS = [
 ];
 
 export default function PlotThreadManager({ storyId }: Props) {
+  const [view, setView] = useState<"list" | "viz">("list");
   const [threads, setThreads] = useState<PlotThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -66,14 +68,48 @@ export default function PlotThreadManager({ storyId }: Props) {
 
   if (loading) return <p className={styles.loading}>Loading…</p>;
 
+  const viewToggle = (
+    <div className={styles.viewToggle}>
+      <button
+        className={`${styles.viewBtn} ${view === "list" ? styles.viewActive : ""}`}
+        onClick={() => setView("list")}
+        title="List view"
+      >
+        <List size={13} />
+      </button>
+      <button
+        className={`${styles.viewBtn} ${view === "viz" ? styles.viewActive : ""}`}
+        onClick={() => setView("viz")}
+        title="Thread weave"
+      >
+        <Network size={13} />
+      </button>
+    </div>
+  );
+
+  if (view === "viz") {
+    return (
+      <div className={styles.vizWrap}>
+        <div className={styles.vizHeader}>
+          <h2 className={styles.title}>Plot Threads</h2>
+          {viewToggle}
+        </div>
+        <ThreadVisualization storyId={storyId} />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.manager}>
       <div className={styles.header}>
         <h2 className={styles.title}>Plot Threads</h2>
-        <button onClick={() => setCreating(true)} className={styles.addBtn}>
-          <Plus size={13} />
-          New thread
-        </button>
+        <div className={styles.headerRight}>
+          {viewToggle}
+          <button onClick={() => setCreating(true)} className={styles.addBtn}>
+            <Plus size={13} />
+            New thread
+          </button>
+        </div>
       </div>
 
       {creating && (

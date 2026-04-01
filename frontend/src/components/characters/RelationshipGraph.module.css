@@ -1,0 +1,104 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.svgWrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+svg {
+  display: block;
+}
+
+/* ── Reset / zoom controls ── */
+.resetBtn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition), color var(--transition);
+}
+
+.resetBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.zoomLabel {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 3rem;
+  font-size: 0.7rem;
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.2rem 0.45rem;
+  box-shadow: var(--shadow-xs);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.loading,
+.empty {
+  padding: 3rem 2rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Shown inside svgWrap so the div is always mounted for the wheel listener */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Legend ── */
+.legend {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.625rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+.legendDot {
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+}

@@ -7,7 +7,9 @@ from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
+from ..models.character import Character, CharacterRelationship
 from ..schemas.story import StoryCreate, StoryUpdate, StoryOut, StoryGoalCreate, StoryGoalUpdate
+from ..schemas.character import RelationshipOut
 from ..services.llm.ollama import ollama_provider
 from ..services.llm.prompts import build_story_summary_prompt, build_relationship_suggestion_prompt
 from ..schemas.structure import StructureNodeCreate, StructureNodeOut
@@ -182,6 +184,19 @@ def list_characters(story_id: str, db: Session = Depends(get_db), current_user: 
         raise HTTPException(status_code=404, detail="Story not found")
     characters = db.query(Character).filter(Character.story_id == story_id).order_by(Character.name).all()
     return [CharacterOut.model_validate(c) for c in characters]
+
+
+@router.get("/{story_id}/relationships", response_model=list[RelationshipOut])
+def list_story_relationships(
+    story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    char_ids = [c.id for c in db.query(Character).filter(Character.story_id == story_id).all()]
+    if not char_ids:
+        return []
+    return db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(char_ids)).all()
 
 
 @router.post("/{story_id}/characters", status_code=status.HTTP_201_CREATED)

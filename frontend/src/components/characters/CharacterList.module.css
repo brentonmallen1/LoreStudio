@@ -49,6 +49,62 @@
   gap: 0.5rem;
 }
 
+/* ── Graph view layout ── */
+.graphPage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.graphHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  gap: 0.15rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: 0.15rem;
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: calc(var(--radius) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), opacity var(--transition);
+}
+
+.viewBtn:hover:not(:disabled) {
+  background: var(--color-surface-3, var(--color-surface-2));
+  color: var(--color-text);
+}
+
+.viewBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.viewActive {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
+}
+
 .suggestBtn {
   display: flex;
   align-items: center;
