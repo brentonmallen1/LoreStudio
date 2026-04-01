@@ -1,0 +1,38 @@
+from datetime import datetime
+from pydantic import BaseModel
+
+
+class InterviewCreate(BaseModel):
+    title: str = ""
+
+
+class InterviewMessageRequest(BaseModel):
+    content: str
+
+
+class MessageOut(BaseModel):
+    role: str
+    content: str
+    timestamp: str
+
+
+class InterviewOut(BaseModel):
+    id: str
+    character_id: str
+    title: str
+    messages: list[MessageOut]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class InterviewSummaryOut(BaseModel):
+    id: str
+    character_id: str
+    title: str
+    message_count: int
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

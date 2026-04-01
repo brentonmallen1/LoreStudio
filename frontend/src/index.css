@@ -1,0 +1,88 @@
+@tailwind base;
+
+/* ── Design tokens ─────────────────────────────── */
+:root {
+  --color-bg: #f7f6f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0efe9;
+  --color-surface-3: #e8e7e0;
+  --color-border: #e0ded7;
+  --color-border-light: #ebe9e2;
+  --color-text: #1a1916;
+  --color-text-muted: #6b6860;
+  --color-text-subtle: #9a9890;
+  --color-accent: #4a7c59;
+  --color-accent-hover: #3d6a4a;
+  --color-accent-fg: #ffffff;
+  --color-danger: #b83232;
+  --color-danger-bg: #fdf2f2;
+  --color-warning: #c47a1e;
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow:    0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+
+  --transition: 120ms ease;
+  --transition-md: 180ms ease;
+  --transition-lg: 260ms ease;
+}
+
+.dark {
+  --color-bg: #111110;
+  --color-surface: #1c1b18;
+  --color-surface-2: #242320;
+  --color-surface-3: #2c2b27;
+  --color-border: #2e2d29;
+  --color-border-light: #272622;
+  --color-text: #f0ede6;
+  --color-text-muted: #8c8a84;
+  --color-text-subtle: #5e5c56;
+  --color-accent: #6aab7c;
+  --color-accent-hover: #7dbf8e;
+  --color-accent-fg: #0c1f12;
+  --color-danger: #e05454;
+  --color-danger-bg: #1f1212;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow:    0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Base resets ───────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

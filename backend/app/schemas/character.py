@@ -1,0 +1,60 @@
+from datetime import datetime
+from pydantic import BaseModel
+
+
+class CharacterCreate(BaseModel):
+    name: str
+    role: str = "supporting"
+    personality: str = ""
+    motivation: str = ""
+    background: str = ""
+    appearance: str = ""
+    arc_notes: str = ""
+    interview_prompts: list[str] = []
+    traits: dict = {}
+
+
+class CharacterUpdate(BaseModel):
+    name: str | None = None
+    role: str | None = None
+    personality: str | None = None
+    motivation: str | None = None
+    background: str | None = None
+    appearance: str | None = None
+    arc_notes: str | None = None
+    interview_prompts: list[str] | None = None
+    traits: dict | None = None
+
+
+class CharacterOut(BaseModel):
+    id: str
+    story_id: str
+    name: str
+    role: str
+    personality: str
+    motivation: str
+    background: str
+    appearance: str
+    arc_notes: str
+    interview_prompts: list[str]
+    traits: dict
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class RelationshipCreate(BaseModel):
+    related_character_id: str
+    relationship_type: str = "acquaintance"
+    description: str = ""
+
+
+class RelationshipOut(BaseModel):
+    id: str
+    character_id: str
+    related_character_id: str
+    relationship_type: str
+    description: str
+
+    model_config = {"from_attributes": True}

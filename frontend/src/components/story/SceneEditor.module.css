@@ -1,0 +1,167 @@
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ── Top bar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 52px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.nodeTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.statusBadge {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.statusBadge.final {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.statusBadge.revised {
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 22%, transparent);
+}
+
+.metaGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wordCount {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.focusBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.focusBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+/* ── Scroll area ── */
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ── Editor content ── */
+.editorWrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+/* Tiptap prose styles */
+.editorWrap :global(.ProseMirror) {
+  outline: none;
+  font-family: "Merriweather", Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.95;
+  color: var(--color-text);
+}
+
+.editorWrap :global(.ProseMirror p) {
+  margin-bottom: 1.25em;
+}
+
+.editorWrap :global(.ProseMirror p.is-editor-empty:first-child::before) {
+  content: attr(data-placeholder);
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+.editorWrap :global(.ProseMirror h1) {
+  font-size: 1.5rem;
+  font-weight: 300;
+  margin-bottom: 0.75em;
+  color: var(--color-text);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.editorWrap :global(.ProseMirror h2) {
+  font-size: 1.15rem;
+  font-weight: 400;
+  margin-bottom: 0.6em;
+  color: var(--color-text);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.editorWrap :global(.ProseMirror blockquote) {
+  border-left: 2px solid var(--color-border);
+  padding-left: 1.25em;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 1.5em 0;
+}
+
+.editorWrap :global(.ProseMirror em) {
+  font-style: italic;
+}
+
+.editorWrap :global(.ProseMirror strong) {
+  font-weight: 600;
+}
+
+/* ── Empty state ── */
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: var(--color-text-subtle);
+}
