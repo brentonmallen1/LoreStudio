@@ -1,0 +1,98 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.67rem;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem 0.1rem 0.5rem;
+  border-radius: 99px;
+  border: 1px solid;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.removeBadge {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  padding: 0;
+  transition: opacity var(--transition);
+}
+
+.removeBadge:hover {
+  opacity: 1;
+}
+
+.addWrap {
+  position: relative;
+}
+
+.addBadgeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.addBadgeBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md, 0 4px 20px rgba(0,0,0,0.2));
+  z-index: 50;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.pickerItem:hover {
+  background: var(--color-surface-2);
+}
+
+.pickerDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

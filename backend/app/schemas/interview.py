@@ -16,11 +16,22 @@ class MessageOut(BaseModel):
     timestamp: str
 
 
+class InterviewUpdate(BaseModel):
+    interview_notes: str | None = None
+    title: str | None = None
+
+
+class InterviewApplyRequest(BaseModel):
+    fields: list[str]  # e.g. ["personality", "motivation", "background"]
+    content: dict[str, str]  # field_name -> text to set/append
+
+
 class InterviewOut(BaseModel):
     id: str
     character_id: str
     title: str
     messages: list[MessageOut]
+    interview_notes: str
     created_at: datetime
     updated_at: datetime
 

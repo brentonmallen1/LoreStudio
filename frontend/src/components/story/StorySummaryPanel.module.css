@@ -1,0 +1,143 @@
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+}
+
+.icon {
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.styleToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.styleBtn {
+  padding: 0.3rem 0.625rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: background var(--transition), color var(--transition);
+}
+
+.styleBtn.styleActive {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.scopeLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.checkbox {
+  cursor: pointer;
+}
+
+.generateBtn {
+  margin-left: auto;
+  padding: 0.35rem 0.875rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.generateBtn:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.generateBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.result {
+  padding: 0.875rem 1rem;
+}
+
+.resultHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.resultLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-subtle);
+}
+
+.copyBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 0.15rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition);
+}
+
+.copyBtn:hover {
+  color: var(--color-accent);
+}
+
+.resultText {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.hint {
+  padding: 0.875rem 1rem;
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+}

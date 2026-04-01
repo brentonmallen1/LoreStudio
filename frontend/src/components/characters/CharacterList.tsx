@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, UserCircle2, Trash2 } from "lucide-react";
+import { Plus, UserCircle2, Trash2, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import CharacterFormDialog from "./CharacterFormDialog";
+import RelationshipSuggestionDialog from "./RelationshipSuggestionDialog";
 import styles from "./CharacterList.module.css";
 
 interface Props {
@@ -15,6 +16,7 @@ export default function CharacterList({ storyId }: Props) {
   const { characters, removeCharacter } = useStoryStore();
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showRelSuggestions, setShowRelSuggestions] = useState(false);
 
   async function handleDelete(id: string, name: string, e: React.MouseEvent) {
     e.stopPropagation();
@@ -36,10 +38,18 @@ export default function CharacterList({ storyId }: Props) {
       <div className={styles.inner}>
         <div className={styles.header}>
           <h1 className={styles.title}>Characters</h1>
-          <button onClick={() => setCreating(true)} className={styles.addBtn}>
-            <Plus size={14} />
-            Add character
-          </button>
+          <div className={styles.headerActions}>
+            {characters.length >= 2 && (
+              <button onClick={() => setShowRelSuggestions(true)} className={styles.suggestBtn}>
+                <Sparkles size={13} />
+                Suggest relationships
+              </button>
+            )}
+            <button onClick={() => setCreating(true)} className={styles.addBtn}>
+              <Plus size={14} />
+              Add character
+            </button>
+          </div>
         </div>
 
         {characters.length === 0 ? (
@@ -82,6 +92,12 @@ export default function CharacterList({ storyId }: Props) {
       </div>
 
       {creating && <CharacterFormDialog storyId={storyId} onClose={() => setCreating(false)} />}
+      {showRelSuggestions && (
+        <RelationshipSuggestionDialog
+          storyId={storyId}
+          onClose={() => setShowRelSuggestions(false)}
+        />
+      )}
     </div>
   );
 }

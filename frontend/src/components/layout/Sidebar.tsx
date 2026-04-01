@@ -8,6 +8,11 @@ import {
   ArrowLeft,
   BookOpen,
   Maximize2,
+  Scroll,
+  MessageSquareMore,
+  GitBranch,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -38,7 +43,7 @@ function NodeItem({ node, depth = 0 }: { node: StructureNode; depth?: number }) 
         </span>
         <span className={styles.nodeLabel}>{node.title}</span>
         {node.status !== "draft" && (
-          <span className={styles.nodeStatus}>
+          <span className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}>
             {node.status === "final" ? "✓" : "~"}
           </span>
         )}
@@ -58,10 +63,10 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const { activeStory, structure, setStructure } = useStoryStore();
-  const { toggleFocusMode } = useUIStore();
+  const { toggleFocusMode, viewMode, setViewMode } = useUIStore();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [tab, setTab] = useState<"story" | "characters">("story");
+  const [tab, setTab] = useState<"story" | "characters" | "bible" | "panels" | "threads">("story");
 
   async function addTopLevelNode() {
     if (!storyId || !newTitle.trim()) return;
@@ -99,21 +104,43 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.tabs}>
-        {(["story", "characters"] as const).map((t) => (
+        {(["story", "characters", "bible", "panels", "threads"] as const).map((t) => (
           <button
             key={t}
             onClick={() => {
               setTab(t);
               if (t === "characters") navigate(`/stories/${storyId}/characters`);
+              else if (t === "bible") navigate(`/stories/${storyId}/bible`);
+              else if (t === "panels") navigate(`/stories/${storyId}/panels`);
+              else if (t === "threads") navigate(`/stories/${storyId}/threads`);
               else navigate(`/stories/${storyId}`);
             }}
             className={`${styles.tab} ${tab === t ? styles.activeTab : ""}`}
+            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "bible" ? "Bible" : t === "panels" ? "Group Interviews" : "Plot Threads"}
           >
-            {t === "story" ? <BookOpen size={12} /> : <Users size={12} />}
-            {t === "story" ? "Structure" : "Characters"}
+            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "bible" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : <GitBranch size={12} />}
           </button>
         ))}
       </div>
+
+      {tab === "story" && (
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewBtn} ${viewMode === "tree" ? styles.viewActive : ""}`}
+            onClick={() => setViewMode("tree")}
+            title="Tree view"
+          >
+            <List size={12} />
+          </button>
+          <button
+            className={`${styles.viewBtn} ${viewMode === "corkboard" ? styles.viewActive : ""}`}
+            onClick={() => setViewMode("corkboard")}
+            title="Corkboard view"
+          >
+            <LayoutGrid size={12} />
+          </button>
+        </div>
+      )}
 
       <div className={styles.tree}>
         {tab === "story" && (

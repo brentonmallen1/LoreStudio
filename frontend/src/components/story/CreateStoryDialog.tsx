@@ -1,9 +1,10 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { X } from "lucide-react";
+import { X, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StoryStructureTemplate } from "../../types";
+import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import styles from "./CreateStoryDialog.module.css";
 
 interface Props {
@@ -16,6 +17,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
   const [templateId, setTemplateId] = useState("freeform");
   const [templates, setTemplates] = useState<StoryStructureTemplate[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
   const { upsertStory } = useStoryStore();
   const navigate = useNavigate();
 
@@ -39,6 +41,13 @@ export default function CreateStoryDialog({ onClose }: Props) {
   const selectedTemplate = templates.find((t) => t.id === templateId);
 
   return (
+    <>
+    {showTemplateManager && (
+      <TemplateManagerDialog
+        onClose={() => setShowTemplateManager(false)}
+        onTemplatesChanged={() => api.listStructureTemplates().then(setTemplates).catch(() => {})}
+      />
+    )}
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div className={styles.dialogHead}>
@@ -71,7 +80,18 @@ export default function CreateStoryDialog({ onClose }: Props) {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Story structure</label>
+            <div className={styles.labelRow}>
+              <label className={styles.label}>Story structure</label>
+              <button
+                type="button"
+                onClick={() => setShowTemplateManager(true)}
+                className={styles.manageTemplatesBtn}
+                title="Manage custom templates"
+              >
+                <Settings2 size={12} />
+                Manage
+              </button>
+            </div>
             <select
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
@@ -79,7 +99,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
             >
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.name}
+                  {t.name}{!t.is_system ? " (custom)" : ""}
                 </option>
               ))}
             </select>
@@ -103,5 +123,6 @@ export default function CreateStoryDialog({ onClose }: Props) {
         </form>
       </div>
     </div>
+    </>
   );
 }

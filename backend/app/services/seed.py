@@ -63,8 +63,10 @@ def seed_structure_templates():
         for template_data in STRUCTURE_TEMPLATES:
             existing = db.get(StoryStructureTemplate, template_data["id"])
             if not existing:
-                template = StoryStructureTemplate(**template_data)
+                template = StoryStructureTemplate(**template_data, is_system=True)
                 db.add(template)
+            elif not existing.is_system:
+                existing.is_system = True
         db.commit()
 
 

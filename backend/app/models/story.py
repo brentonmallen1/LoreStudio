@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
@@ -14,6 +14,21 @@ class Story(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     intent: Mapped[str] = mapped_column(Text, default="")  # System-level LLM context
     structure_template_id: Mapped[str] = mapped_column(String, default="freeform")
+
+    # Story Bible fields
+    genre: Mapped[str] = mapped_column(String, default="")
+    tone: Mapped[str] = mapped_column(String, default="")
+    themes: Mapped[list] = mapped_column(JSON, default=list)
+    central_conflict: Mapped[str] = mapped_column(Text, default="")
+    target_audience: Mapped[str] = mapped_column(String, default="")
+
+    # Narrative grounding
+    narrative_intent: Mapped[str] = mapped_column(Text, default="")
+    premise: Mapped[str] = mapped_column(Text, default="")
+    logline: Mapped[str] = mapped_column(String, default="")
+
+    # Story goals checklist
+    goals: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -33,4 +48,10 @@ class Story(Base):
     )
     notes: Mapped[list["StoryNote"]] = relationship(
         "StoryNote", back_populates="story", cascade="all, delete-orphan"
+    )
+    panel_interviews: Mapped[list["PanelInterview"]] = relationship(
+        "PanelInterview", back_populates="story", cascade="all, delete-orphan"
+    )
+    plot_threads: Mapped[list["PlotThread"]] = relationship(
+        "PlotThread", back_populates="story", cascade="all, delete-orphan"
     )

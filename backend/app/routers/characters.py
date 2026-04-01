@@ -1,12 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.character import Character, CharacterRelationship
-from ..schemas.character import CharacterCreate, CharacterUpdate, CharacterOut, RelationshipCreate, RelationshipOut
+from ..schemas.character import (
+    CharacterCreate, CharacterUpdate, CharacterOut,
+    RelationshipCreate, RelationshipOut,
+    ArcMilestone,
+)
 from ..auth.dependencies import get_current_user
+from ..services.llm.ollama import ollama_provider
+from ..services.llm.prompts import build_attribute_generation_prompt
 
 router = APIRouter()
 
@@ -73,6 +81,76 @@ def create_relationship(
     db.commit()
     db.refresh(rel)
     return rel
+
+
+@router.post("/{character_id}/generate-attributes")
+async def generate_attributes(
+    character_id: str,
+    attribute_type: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream AI-generated attribute suggestions for a character."""
+    character = _verify_character_access(character_id, db, current_user)
+    system_prompt = build_attribute_generation_prompt(character, attribute_type)
+    llm_messages = [{"role": "user", "content": "Please provide your suggestions."}]
+
+    async def stream():
+        async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+            yield token
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+@router.post("/{character_id}/milestones", response_model=CharacterOut)
+def add_milestone(
+    character_id: str,
+    body: ArcMilestone,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    character = _verify_character_access(character_id, db, current_user)
+    milestones = list(character.arc_milestones or [])
+    milestones.append({"id": str(uuid.uuid4()), "text": body.text, "completed": False})
+    character.arc_milestones = milestones
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.patch("/{character_id}/milestones/{milestone_id}", response_model=CharacterOut)
+def update_milestone(
+    character_id: str,
+    milestone_id: str,
+    body: ArcMilestone,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    character = _verify_character_access(character_id, db, current_user)
+    milestones = list(character.arc_milestones or [])
+    for m in milestones:
+        if m["id"] == milestone_id:
+            if body.text:
+                m["text"] = body.text
+            m["completed"] = body.completed
+    character.arc_milestones = milestones
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.delete("/{character_id}/milestones/{milestone_id}", response_model=CharacterOut)
+def delete_milestone(
+    character_id: str,
+    milestone_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    character = _verify_character_access(character_id, db, current_user)
+    character.arc_milestones = [m for m in (character.arc_milestones or []) if m["id"] != milestone_id]
+    db.commit()
+    db.refresh(character)
+    return character
 
 
 @router.delete("/relationships/{relationship_id}", status_code=status.HTTP_204_NO_CONTENT)

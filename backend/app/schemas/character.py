@@ -1,5 +1,12 @@
+import uuid
 from datetime import datetime
 from pydantic import BaseModel
+
+
+class ArcMilestone(BaseModel):
+    id: str
+    text: str
+    completed: bool = False
 
 
 class CharacterCreate(BaseModel):
@@ -12,6 +19,8 @@ class CharacterCreate(BaseModel):
     arc_notes: str = ""
     interview_prompts: list[str] = []
     traits: dict = {}
+    narrative_intent: str = ""
+    narrative_intent_hidden: bool = True
 
 
 class CharacterUpdate(BaseModel):
@@ -24,6 +33,8 @@ class CharacterUpdate(BaseModel):
     arc_notes: str | None = None
     interview_prompts: list[str] | None = None
     traits: dict | None = None
+    narrative_intent: str | None = None
+    narrative_intent_hidden: bool | None = None
 
 
 class CharacterOut(BaseModel):
@@ -38,6 +49,9 @@ class CharacterOut(BaseModel):
     arc_notes: str
     interview_prompts: list[str]
     traits: dict
+    narrative_intent: str
+    narrative_intent_hidden: bool
+    arc_milestones: list[ArcMilestone]
     created_at: datetime
     updated_at: datetime
 

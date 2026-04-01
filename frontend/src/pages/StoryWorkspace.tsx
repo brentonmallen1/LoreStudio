@@ -8,13 +8,17 @@ import InterviewPanel from "../components/layout/InterviewPanel";
 import SceneEditor from "../components/story/SceneEditor";
 import CharacterSheet from "../components/characters/CharacterSheet";
 import CharacterList from "../components/characters/CharacterList";
+import StoryBiblePanel from "../components/story/StoryBiblePanel";
+import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
+import PlotThreadManager from "../components/threads/PlotThreadManager";
+import CorkboardView from "../components/story/CorkboardView";
 import styles from "./StoryWorkspace.module.css";
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveStory, setStructure, setCharacters } = useStoryStore();
-  const { interviewPanelOpen, activeInterview, focusMode } = useUIStore();
+  const { interviewPanelOpen, activeInterview, focusMode, viewMode } = useUIStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,9 +48,12 @@ export default function StoryWorkspacePage() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path="/" element={<SceneEditor />} />
+          <Route path="/" element={viewMode === "corkboard" ? <CorkboardView /> : <SceneEditor />} />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
           <Route path="/characters/:characterId" element={<CharacterSheet />} />
+          <Route path="/bible" element={<StoryBiblePanel storyId={storyId!} />} />
+          <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
+          <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
         </Routes>
       </main>
 

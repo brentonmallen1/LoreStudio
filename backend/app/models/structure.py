@@ -1,20 +1,22 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
 
 class StoryStructureTemplate(Base):
-    """Defines available story structure frameworks (seeded, not user-editable in MVP)."""
+    """Defines available story structure frameworks (system-seeded + user-created)."""
 
     __tablename__ = "story_structure_templates"
 
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     levels: Mapped[list] = mapped_column(JSON, nullable=False)
     # levels format: [{"name": "Act", "plural": "Acts"}, {"name": "Chapter", ...}, ...]
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False)
+    user_id: Mapped[str | None] = mapped_column(String, ForeignKey("users.id"), nullable=True, default=None)
 
 
 class StructureNode(Base):

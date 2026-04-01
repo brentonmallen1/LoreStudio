@@ -9,10 +9,13 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.character import Character
 from ..models.interview import CharacterInterview
-from ..schemas.interview import InterviewCreate, InterviewMessageRequest, InterviewOut, InterviewSummaryOut
+from ..schemas.interview import (
+    InterviewCreate, InterviewMessageRequest, InterviewOut, InterviewSummaryOut,
+    InterviewUpdate, InterviewApplyRequest,
+)
 from ..auth.dependencies import get_current_user
 from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import build_character_interview_system_prompt
+from ..services.llm.prompts import build_character_interview_system_prompt, build_interview_summary_prompt
 
 router = APIRouter()
 
@@ -119,6 +122,71 @@ async def send_message(
                 db.commit()
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
+
+
+@router.patch("/{interview_id}", response_model=InterviewOut)
+def update_interview(
+    interview_id: str,
+    body: InterviewUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    interview = _verify_interview_access(interview_id, db, current_user)
+    for key, value in body.model_dump(exclude_none=True).items():
+        setattr(interview, key, value)
+    db.commit()
+    db.refresh(interview)
+    return interview
+
+
+@router.post("/{interview_id}/summarize")
+async def summarize_interview(
+    interview_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    interview = _verify_interview_access(interview_id, db, current_user)
+    character = db.get(Character, interview.character_id)
+
+    if not interview.messages:
+        from fastapi.responses import Response
+        return Response("No messages to summarize.", media_type="text/plain")
+
+    system_prompt = build_interview_summary_prompt(character, list(interview.messages))
+    # Use a single user message asking for the summary
+    llm_messages = [{"role": "user", "content": "Please provide your analysis."}]
+
+    async def stream_and_persist():
+        full_response = []
+        try:
+            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+                full_response.append(token)
+                yield token
+        finally:
+            if full_response:
+                interview.interview_notes = "".join(full_response)
+                db.commit()
+
+    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+
+
+@router.post("/{interview_id}/apply-to-character", response_model=None)
+def apply_interview_to_character(
+    interview_id: str,
+    body: InterviewApplyRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from ..models.character import Character as CharacterModel
+    from ..schemas.character import CharacterOut
+    interview = _verify_interview_access(interview_id, db, current_user)
+    character = db.get(CharacterModel, interview.character_id)
+    for field in body.fields:
+        if field in body.content and hasattr(character, field):
+            setattr(character, field, body.content[field])
+    db.commit()
+    db.refresh(character)
+    return CharacterOut.model_validate(character)
 
 
 @router.delete("/{interview_id}", status_code=status.HTTP_204_NO_CONTENT)

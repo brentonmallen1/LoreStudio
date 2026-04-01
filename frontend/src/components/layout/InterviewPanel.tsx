@@ -1,21 +1,29 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Minus, Send, User2 } from "lucide-react";
+import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
+import { useStoryStore } from "../../stores/storyStore";
 import type { InterviewMessage } from "../../types";
 import styles from "./InterviewPanel.module.css";
 
 export default function InterviewPanel() {
   const { activeInterview, activeInterviewCharacter, closeInterviewPanel, collapseInterviewPanel, setActiveInterview } =
     useUIStore();
+  const { upsertCharacter } = useStoryStore();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<InterviewMessage[]>(activeInterview?.messages ?? []);
   const [streaming, setStreaming] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
+  const [summaryText, setSummaryText] = useState(activeInterview?.interview_notes ?? "");
+  const [showNotes, setShowNotes] = useState(false);
+  const [showApply, setShowApply] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMessages(activeInterview?.messages ?? []);
+    setSummaryText(activeInterview?.interview_notes ?? "");
+    setShowNotes(!!(activeInterview?.interview_notes));
   }, [activeInterview?.id]);
 
   useEffect(() => {
@@ -73,6 +81,45 @@ export default function InterviewPanel() {
       setStreaming(false);
       inputRef.current?.focus();
     }
+  }
+
+  async function captureInsights() {
+    if (!activeInterview || summarizing || messages.length === 0) return;
+    setSummarizing(true);
+    setSummaryText("");
+    setShowNotes(true);
+    try {
+      const res = await api.summarizeInterview(activeInterview.id);
+      if (!res.ok || !res.body) throw new Error("Failed");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let full = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        full += decoder.decode(value, { stream: true });
+        setSummaryText(full);
+      }
+      const updated = await api.getInterview(activeInterview.id);
+      setActiveInterview(updated);
+    } catch {
+      setSummaryText("⚠ Error generating summary.");
+    } finally {
+      setSummarizing(false);
+    }
+  }
+
+  async function applyToCharacter(fields: string[]) {
+    if (!activeInterview || !activeInterviewCharacter || !summaryText) return;
+    const content: Record<string, string> = {};
+    const char = activeInterviewCharacter;
+    for (const f of fields) {
+      const existing = (char as Record<string, unknown>)[f] as string ?? "";
+      content[f] = existing ? `${existing}\n\n[From interview ${new Date().toLocaleDateString()}]:\n${summaryText}` : summaryText;
+    }
+    const updated = await api.applyInterviewToCharacter(activeInterview.id, fields, content);
+    upsertCharacter(updated);
+    setShowApply(false);
   }
 
   const character = activeInterviewCharacter;
@@ -149,6 +196,42 @@ export default function InterviewPanel() {
         <div ref={bottomRef} />
       </div>
 
+      {/* ── Insights notes ── */}
+      {showNotes && (
+        <div className={styles.notesArea}>
+          <div className={styles.notesHeader}>
+            <span className={styles.notesLabel}>Captured Insights</span>
+            <div className={styles.notesActions}>
+              {summaryText && !summarizing && (
+                <button
+                  className={styles.applyBtn}
+                  onClick={() => setShowApply((s) => !s)}
+                  title="Apply insights to character"
+                >
+                  Apply to character…
+                </button>
+              )}
+              <button className={styles.notesToggle} onClick={() => setShowNotes(false)} title="Hide notes">
+                <ChevronDown size={12} />
+              </button>
+            </div>
+          </div>
+          <div className={styles.notesText}>
+            {summarizing && !summaryText ? <span className={styles.summarizing}>Analyzing interview…</span> : summaryText}
+          </div>
+          {showApply && (
+            <div className={styles.applyPanel}>
+              <p className={styles.applyLabel}>Apply notes to which fields?</p>
+              {(["arc_notes", "background", "motivation", "personality"] as const).map((f) => (
+                <button key={f} className={styles.applyField} onClick={() => applyToCharacter([f])}>
+                  {f.replace("_", " ")} →
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className={styles.inputArea}>
         <div className={styles.inputRow}>
           <textarea
@@ -174,7 +257,20 @@ export default function InterviewPanel() {
             <Send size={14} />
           </button>
         </div>
-        <p className={styles.hint}>Shift+Enter for newline</p>
+        <div className={styles.hintRow}>
+          <p className={styles.hint}>Shift+Enter for newline</p>
+          {messages.length > 0 && (
+            <button
+              className={styles.captureBtn}
+              onClick={showNotes ? () => setShowNotes(true) : captureInsights}
+              disabled={summarizing || messages.length === 0}
+              title="Capture insights from this interview"
+            >
+              {showNotes ? <ChevronUp size={11} /> : <Sparkles size={11} />}
+              {summarizing ? "Analyzing…" : showNotes ? "Show notes" : "Capture insights"}
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );

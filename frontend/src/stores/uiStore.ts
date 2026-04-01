@@ -23,6 +23,10 @@ interface UIState {
   // Focus mode
   focusMode: boolean;
   toggleFocusMode: () => void;
+
+  // Story view mode
+  viewMode: "tree" | "corkboard";
+  setViewMode: (mode: "tree" | "corkboard") => void;
 }
 
 function applyTheme(theme: Theme) {
@@ -64,4 +68,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   focusMode: false,
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
+
+  viewMode: "tree",
+  setViewMode: (mode) => set({ viewMode: mode }),
 }));

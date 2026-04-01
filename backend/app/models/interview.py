@@ -13,6 +13,7 @@ class CharacterInterview(Base):
     title: Mapped[str] = mapped_column(String, default="")
     messages: Mapped[list] = mapped_column(JSON, default=list)
     # messages format: [{"role": "user"|"assistant", "content": str, "timestamp": str}]
+    interview_notes: Mapped[str] = mapped_column(Text, default="")  # Captured insights summary
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

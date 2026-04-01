@@ -41,6 +41,13 @@
   color: var(--color-text-muted);
   text-transform: capitalize;
   letter-spacing: 0.02em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.statusBadge:hover {
+  opacity: 0.8;
 }
 
 .statusBadge.final {
@@ -84,6 +91,13 @@
 .focusBtn:hover {
   background: var(--color-surface-2);
   color: var(--color-text-muted);
+}
+
+/* ── Summary panel ── */
+.summaryWrap {
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
 }
 
 /* ── Scroll area ── */

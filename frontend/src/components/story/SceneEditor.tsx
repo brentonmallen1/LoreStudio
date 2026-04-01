@@ -1,19 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { StructureNode } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { Maximize2, Minimize2, BookOpen } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import StorySummaryPanel from "./StorySummaryPanel";
+import SceneThreadBadges from "../threads/SceneThreadBadges";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode } = useStoryStore();
+  const { activeNode, setActiveNode, activeStory } = useStoryStore();
   const { focusMode, toggleFocusMode } = useUIStore();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -53,6 +57,16 @@ export default function SceneEditor() {
     );
   }
 
+  const STATUS_CYCLE: StructureNode["status"][] = ["draft", "revised", "final"];
+
+  async function cycleStatus() {
+    if (!activeNode) return;
+    const idx = STATUS_CYCLE.indexOf(activeNode.status);
+    const next = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+    const updated = await api.updateNode(activeNode.id, { status: next });
+    setActiveNode({ ...activeNode, status: updated.status });
+  }
+
   const statusClass =
     activeNode.status === "final"
       ? styles.final
@@ -65,12 +79,28 @@ export default function SceneEditor() {
       <div className={styles.topbar}>
         <div className={styles.titleGroup}>
           <span className={styles.nodeTitle}>{activeNode.title}</span>
-          <span className={`${styles.statusBadge} ${statusClass}`}>
+          <button
+            className={`${styles.statusBadge} ${statusClass}`}
+            onClick={cycleStatus}
+            title="Click to change status"
+          >
             {activeNode.status}
-          </span>
+          </button>
         </div>
         <div className={styles.metaGroup}>
+          {activeStory && (
+            <SceneThreadBadges storyId={activeStory.id} nodeId={activeNode.id} />
+          )}
           <span className={styles.wordCount}>{wordCount.toLocaleString()} words</span>
+          {activeStory && (
+            <button
+              onClick={() => setShowSummary((s) => !s)}
+              className={styles.focusBtn}
+              title="Story So Far"
+            >
+              <BookOpen size={14} />
+            </button>
+          )}
           <button
             onClick={toggleFocusMode}
             className={styles.focusBtn}
@@ -80,6 +110,12 @@ export default function SceneEditor() {
           </button>
         </div>
       </div>
+
+      {showSummary && activeStory && (
+        <div className={styles.summaryWrap}>
+          <StorySummaryPanel storyId={activeStory.id} />
+        </div>
+      )}
 
       <div className={styles.scrollArea}>
         <div className={styles.editorWrap}>
