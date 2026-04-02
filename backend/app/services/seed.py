@@ -313,6 +313,7 @@ def seed_demo_story():
             synopsis="Eleanor climbs to the lamp room as the storm rolls in.",
             position=0,
             status="revised",
+            timeline_position=2,
             entry_state="Eleanor alone in her lighthouse, mid-routine — log entry made, barometer falling, the world predictably hers.",
             exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
             key_events="Barometer reading logged; lamp room climb; sight of the unexpected boat in the storm.",
@@ -362,6 +363,7 @@ def seed_demo_story():
             title="Knock at the Door",
             synopsis="Eleanor opens the door to find the Visitor standing in the rain.",
             position=0,
+            timeline_position=3,
             entry_state="Eleanor wary, alone, storm at full strength — she has decided not to open the door if anyone comes.",
             exit_state="The Visitor is inside, dry, and drinking Eleanor's tea. Eleanor's boundary has been crossed — by her own choice.",
             key_events="Knock at the door; Eleanor's hesitation; the Visitor's inexplicable calm; Eleanor lets them in.",
@@ -411,6 +413,7 @@ def seed_demo_story():
             title="The Logbook",
             synopsis="The Visitor asks to examine the lighthouse records. Eleanor hesitates, then agrees.",
             position=0,
+            timeline_position=4,
             metadata_={"purpose": "Show Eleanor's guardedness cracking under the Visitor's seemingly reasonable request. The logs are sacred to her — her father's handwriting fills half of them. The act of handing them over should feel like a small surrender."},
         )
         db.add(scene3)
@@ -435,6 +438,7 @@ def seed_demo_story():
             title="The Gap",
             synopsis="Eleanor notices six months of entries missing. The Visitor is not surprised.",
             position=1,
+            timeline_position=1,  # Flashback: chronologically first — represents the period three years ago when Thomas removed these entries
             metadata_={"purpose": "The missing entries are the story's central wound made visible. Eleanor has been avoiding looking at this gap. The Visitor's unsurprised reaction confirms they came here knowing about it."},
         )
         db.add(scene4)
@@ -472,6 +476,7 @@ def seed_demo_story():
             title="Night Passage",
             synopsis="The Visitor begins to tell a version of the truth. Eleanor listens.",
             position=0,
+            timeline_position=5,
             metadata_={"purpose": "The Visitor's partial confession raises the stakes: they know more than they've said, and some of it is damaging. Eleanor has to decide how much she wants to know. The scene should end with her asking the question she's been afraid to ask."},
         )
         db.add(scene5)
@@ -523,6 +528,7 @@ def seed_demo_story():
             title="What Thomas Knew",
             synopsis="The Visitor reveals why the log entries are missing and what Thomas Vance did.",
             position=0,
+            timeline_position=6,
             metadata_={"purpose": "The revelation scene. Keep it grounded — Eleanor receives this information in her body, not just her mind. The facts matter less than what they cost her to hear."},
         )
         db.add(scene6)

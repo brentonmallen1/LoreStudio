@@ -25,6 +25,7 @@ class StructureNodeUpdate(BaseModel):
     entry_state: str | None = None
     exit_state: str | None = None
     key_events: str | None = None
+    timeline_position: int | None = None
     metadata_: dict | None = None
 
 
@@ -43,6 +44,7 @@ class StructureNodeOut(BaseModel):
     entry_state: str = ""
     exit_state: str = ""
     key_events: str = ""
+    timeline_position: int | None = None
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
