@@ -35,6 +35,9 @@ class StructureNode(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
     word_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String, default="draft")  # draft, revised, final
+    entry_state: Mapped[str] = mapped_column(Text, default="")
+    exit_state: Mapped[str] = mapped_column(Text, default="")
+    key_events: Mapped[str] = mapped_column(Text, default="")
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

@@ -51,7 +51,8 @@ desktop.ini
 *.swo
 *~
 .history/
-
+.ralph-tui
+tasks/
 # ── Docker ────────────────────────────────────────────────────────────────────
 # (docker-compose.yml itself is committed; ignore local overrides)
 docker-compose.override.yml

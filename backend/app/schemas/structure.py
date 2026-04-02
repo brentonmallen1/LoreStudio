@@ -22,6 +22,9 @@ class StructureNodeUpdate(BaseModel):
     position: int | None = None
     status: str | None = None
     word_count: int | None = None
+    entry_state: str | None = None
+    exit_state: str | None = None
+    key_events: str | None = None
     metadata_: dict | None = None
 
 
@@ -37,6 +40,9 @@ class StructureNodeOut(BaseModel):
     position: int
     word_count: int
     status: str
+    entry_state: str = ""
+    exit_state: str = ""
+    key_events: str = ""
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime

@@ -312,6 +312,9 @@ def seed_demo_story():
             synopsis="Eleanor climbs to the lamp room as the storm rolls in.",
             position=0,
             status="revised",
+            entry_state="Eleanor alone in her lighthouse, mid-routine — log entry made, barometer falling, the world predictably hers.",
+            exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
+            key_events="Barometer reading logged; lamp room climb; sight of the unexpected boat in the storm.",
             metadata_={"purpose": "Open in Eleanor's element — she is competent and alone by choice. The barometer and the log establish her observational nature and her father's lingering presence. The boat at the end pivots the scene: something is coming that she can't control."},
             content=(
                 "<p>The barometer had been falling since noon.</p>"
@@ -358,6 +361,9 @@ def seed_demo_story():
             title="Knock at the Door",
             synopsis="Eleanor opens the door to find the Visitor standing in the rain.",
             position=0,
+            entry_state="Eleanor wary, alone, storm at full strength — she has decided not to open the door if anyone comes.",
+            exit_state="The Visitor is inside, dry, and drinking Eleanor's tea. Eleanor's boundary has been crossed — by her own choice.",
+            key_events="Knock at the door; Eleanor's hesitation; the Visitor's inexplicable calm; Eleanor lets them in.",
             metadata_={"purpose": "First direct encounter between Eleanor and the Visitor. Establish Eleanor's suspicion without hostility — she lets them in against her better judgment. The Visitor's calm is the first signal that something about their story doesn't add up."},
         )
         db.add(scene2)
