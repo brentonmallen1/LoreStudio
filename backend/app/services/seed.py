@@ -7,6 +7,7 @@ from ..models.character import Character, CharacterRelationship
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.scene_link import SceneLink
+from ..models.setting import Setting
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -248,6 +249,33 @@ def seed_demo_story():
         ))
         db.flush()
 
+        # Settings (locations)
+        db.add(Setting(
+            story_id=story.id,
+            name="The Lighthouse",
+            description="Harrow Point Lighthouse — a working lighthouse on the southern tip of Harrow Island. Three storeys of whitewashed stone, a lamp room with a Fresnel lens, and a keeper's quarters that still smells of Thomas Vance's pipe tobacco.",
+            atmosphere="Isolated, purposeful, faintly haunted by routine. The lamp room at the top is where Eleanor feels most herself. The log room below is where the gaps live.",
+            history="Built in 1887, the lighthouse has had only three keepers in its history — the last being Thomas Vance, who passed the role to Eleanor when his health failed.",
+            significance="The lighthouse is both Eleanor's home and her inheritance. It represents her father's world, which she absorbed entirely — and may have to re-examine.",
+        ))
+        db.add(Setting(
+            story_id=story.id,
+            name="The Keeper's Cottage",
+            description="A low stone cottage attached to the base of the lighthouse. Two rooms: a main room with a woodstove and Eleanor's books, and a bedroom. Spartan by choice.",
+            atmosphere="Spare and self-sufficient. Everything has a place. Nothing is decorative except a framed photograph of Eleanor and her father on the mantle.",
+            history="The cottage was Thomas Vance's home for forty years. Eleanor moved back in after his death and has changed very little.",
+            significance="The cottage is where Eleanor is most off-guard — and where the Visitor disrupts her most, because guests are not part of its logic.",
+        ))
+        db.add(Setting(
+            story_id=story.id,
+            name="Harrow Island",
+            description="A small island three miles off the mainland, accessible only by boat. Eleven houses at peak; three occupied now. A general store that opens twice a week. A disused fishing pier.",
+            atmosphere="The quiet of a place people left. The few who remain have made peace with the diminishment.",
+            history="Harrow Island was a fishing community until the 1980s, when the catch dried up. The lighthouse kept the island on maps after the community forgot why it mattered.",
+            significance="The island's isolation is not just physical — it mirrors Eleanor's chosen remove from everything that might ask something of her.",
+        ))
+        db.flush()
+
         # Plot threads
         thread_logs = PlotThread(
             story_id=story.id,
@@ -436,7 +464,16 @@ def seed_demo_story():
             synopsis="The Visitor asks to examine the lighthouse records. Eleanor hesitates, then agrees.",
             position=0,
             timeline_position=4,
+            status="draft",
             metadata_={"purpose": "Show Eleanor's guardedness cracking under the Visitor's seemingly reasonable request. The logs are sacred to her — her father's handwriting fills half of them. The act of handing them over should feel like a small surrender."},
+            content=(
+                "<p>The logs were kept in a cabinet in the watch room — twelve volumes, cloth-bound, labelled by year in @Eleanor Vance's careful hand and, before that, in the older, more certain hand of @Thomas Vance.</p>"
+                "<p>@Eleanor Vance had not shown them to anyone. They were not secret, exactly. They were simply not the sort of thing one shared. A record of weather and maintenance and minor incident: the language of [[The Lighthouse]], addressed to no one and everyone who might need to know what the sea had been doing on a particular night.</p>"
+                "<p>\"Historians use records like these all the time,\" the Visitor said, standing in the middle of [[The Keeper's Cottage]] with her canvas bag still over one shoulder, as if she hadn't yet decided to stay. \"Shipping patterns. Storm records. I'm not here to examine anything personal.\"</p>"
+                "<p>Eleanor looked at the cabinet. She thought about her father's handwriting — the entries from the years before she came back, the years she'd spent elsewhere, not asking questions. She thought about [[Harrow Island]] in winter, and how the logs were the closest thing to a conversation she still had with him.</p>"
+                "<p>\"All right,\" she said. She got the key from the hook by the door.</p>"
+            ),
+            word_count=198,
         )
         db.add(scene3)
         db.flush()

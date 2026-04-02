@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StructureNode, SceneLink, InlineNote } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -7,6 +7,14 @@ import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
 import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, type LucideIcon } from "lucide-react";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
+import {
+  MentionDropdownExtension,
+  setMentionItems,
+  setMentionCallbacks,
+  setMentionIsOpen,
+  FORCE_MENTION_KEY,
+  type MentionItem,
+} from "./MentionDropdown";
 
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
   act: Flag,
@@ -84,6 +92,23 @@ export default function SceneEditor() {
   const [notePopover, setNotePopover] = useState<NotePopover>({ open: false });
   const [noteInputText, setNoteInputText] = useState("");
 
+  // @mention autocomplete state
+  const [mentionAllItems, setMentionAllItems] = useState<MentionItem[]>([]);
+  const [mentionOpen, setMentionOpen_] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionPos, setMentionPos] = useState({ bottom: 0, left: 0 });
+  const [mentionSelIdx, setMentionSelIdx] = useState(0);
+  // Refs for stable access inside ProseMirror callbacks
+  const mentionQueryRef = useRef("");
+  const mentionSelIdxRef = useRef(0);
+  const filteredMentionRef = useRef<MentionItem[]>([]);
+  const doInsertMentionRef = useRef<((item: MentionItem) => void) | null>(null);
+
+  function setMentionOpen(open: boolean) {
+    setMentionOpen_(open);
+    setMentionIsOpen(open);
+  }
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -91,6 +116,7 @@ export default function SceneEditor() {
       CharacterCount,
       Typography,
       InlineNoteExtension,
+      MentionDropdownExtension,
     ],
     content: activeNode?.content ?? "",
     onUpdate: ({ editor }) => {
@@ -129,6 +155,120 @@ export default function SceneEditor() {
     if (!activeNode) { setSceneLinks([]); return; }
     api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
   }, [activeNode?.id]);
+
+  // Load characters and settings for @mention autocomplete
+  useEffect(() => {
+    if (!activeStory) { setMentionAllItems([]); setMentionItems([]); return; }
+    Promise.all([
+      api.listCharacters(activeStory.id),
+      api.listSettings(activeStory.id),
+    ]).then(([chars, settings_]) => {
+      const items: MentionItem[] = [
+        ...chars.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
+        ...settings_.map((s) => ({ type: "setting" as const, name: s.name })),
+      ];
+      setMentionAllItems(items);
+      setMentionItems(items);
+      // Force decoration rebuild after items are loaded
+      if (editor?.view) {
+        editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+      }
+    }).catch(() => {});
+  }, [activeStory?.id]);
+
+  // Force decoration rebuild when editor becomes ready and items exist
+  useEffect(() => {
+    if (editor?.view && mentionAllItems.length > 0) {
+      setMentionItems(mentionAllItems);
+      editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+    }
+  }, [editor]);
+
+  // Filtered mention items (characters first, then settings; prefix-matched)
+  const filteredMentionItems = useMemo(
+    () =>
+      mentionAllItems.filter((item) =>
+        item.name.toLowerCase().startsWith(mentionQuery.toLowerCase())
+      ),
+    [mentionAllItems, mentionQuery]
+  );
+
+  // Keep refs in sync with latest state (for stable ProseMirror callbacks)
+  mentionQueryRef.current = mentionQuery;
+  mentionSelIdxRef.current = mentionSelIdx;
+  filteredMentionRef.current = filteredMentionItems;
+
+  // Reset selection index when filtered list changes
+  useEffect(() => {
+    setMentionSelIdx(0);
+  }, [mentionQuery]);
+
+  const doInsertMention = useCallback(
+    (item: MentionItem) => {
+      if (!editor) return;
+      const { from } = editor.state.selection;
+      const query = mentionQueryRef.current;
+      const start = from - query.length - 1; // -1 for the @ character
+      const text =
+        item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
+      editor
+        .chain()
+        .focus()
+        .command(({ tr, dispatch }) => {
+          if (dispatch) tr.insertText(text, start, from);
+          return true;
+        })
+        .run();
+      setMentionOpen(false);
+      setMentionSelIdx(0);
+    },
+    [editor]
+  );
+
+  // Keep doInsertMentionRef current (used by Enter keyboard path)
+  useEffect(() => {
+    doInsertMentionRef.current = doInsertMention;
+  }, [doInsertMention]);
+
+  // Wire up mention callbacks (stable — reads from refs)
+  useEffect(() => {
+    setMentionCallbacks({
+      onOpen: (query, bottom, left) => {
+        setMentionQuery(query);
+        setMentionPos({ bottom, left });
+        setMentionOpen_(true);
+        setMentionIsOpen(true);
+        setMentionSelIdx(0);
+        mentionSelIdxRef.current = 0;
+      },
+      onClose: () => {
+        setMentionOpen_(false);
+        setMentionIsOpen(false);
+      },
+      onArrowDown: () => {
+        setMentionSelIdx((i) => {
+          const next = Math.min(i + 1, filteredMentionRef.current.length - 1);
+          mentionSelIdxRef.current = next;
+          return next;
+        });
+      },
+      onArrowUp: () => {
+        setMentionSelIdx((i) => {
+          const next = Math.max(i - 1, 0);
+          mentionSelIdxRef.current = next;
+          return next;
+        });
+      },
+      onEnterSelect: () => {
+        const items = filteredMentionRef.current;
+        const idx = mentionSelIdxRef.current;
+        const item = items[Math.min(idx, items.length - 1)];
+        if (item && doInsertMentionRef.current) {
+          doInsertMentionRef.current(item);
+        }
+      },
+    });
+  }, []); // stable — refs handle freshness
 
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
     if (overviewSaveRef.current) clearTimeout(overviewSaveRef.current);
@@ -662,6 +802,33 @@ export default function SceneEditor() {
           </div>
         );
       })()}
+
+      {/* @mention autocomplete dropdown */}
+      {mentionOpen && filteredMentionItems.length > 0 && (
+        <div
+          className={styles.mentionDropdown}
+          style={{
+            top: Math.min(mentionPos.bottom + 4, window.innerHeight - 260),
+            left: Math.max(8, Math.min(mentionPos.left, window.innerWidth - 260)),
+          }}
+        >
+          {filteredMentionItems.map((item, idx) => (
+            <button
+              key={`${item.type}:${item.name}`}
+              className={`${styles.mentionItem} ${idx === mentionSelIdx ? styles.mentionItemSelected : ""}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => doInsertMention(item)}
+            >
+              <span className={styles.mentionItemName}>{item.name}</span>
+              {item.type === "character" && item.role ? (
+                <span className={styles.mentionItemRole}>{item.role}</span>
+              ) : item.type === "setting" ? (
+                <span className={styles.mentionItemType}>setting</span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Add Link modal */}
       {showAddLink && (
