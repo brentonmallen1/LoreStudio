@@ -6,6 +6,7 @@ from ..models.story import Story
 from ..models.character import Character, CharacterRelationship
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.scene_link import SceneLink
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -565,6 +566,25 @@ def seed_demo_story():
             thread_id=thread_father.id,
             node_id=scene7.id,
             note="Eleanor makes her peace — or doesn't — with who Thomas Vance actually was.",
+        ))
+
+        # Scene links
+        # Foreshadowing: scene1 (The Light) → scene4 (The Gap)
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene1.id,
+            target_node_id=scene4.id,
+            link_type="foreshadowing",
+            note="Eleanor's careful log-keeping in 'The Light' foreshadows the shock of the missing entries in 'The Gap' — the ritual she trusts implicitly turns out to have been violated.",
+        ))
+
+        # Callback: scene2 (Knock at the Door) → scene6 (What Thomas Knew)
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene2.id,
+            target_node_id=scene6.id,
+            link_type="callback",
+            note="Eleanor letting the Visitor in despite her instincts in 'Knock at the Door' is echoed in 'What Thomas Knew' — both moments turn on a choice to let something unwanted past the threshold.",
         ))
 
         db.commit()

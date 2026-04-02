@@ -15,6 +15,7 @@ from .routers.templates import router as templates_router
 from .routers.analysis import router as analysis_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
+from .routers.scene_links import router as scene_links_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story
 
 
@@ -48,6 +49,7 @@ app.include_router(templates_router, prefix="/api/templates", tags=["templates"]
 app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
+app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
 
 
 @app.get("/health")
