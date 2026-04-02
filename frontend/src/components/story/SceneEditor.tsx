@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import type { StructureNode } from "../../types";
+import type { StructureNode, SceneLink } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, type LucideIcon } from "lucide-react";
+import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, type LucideIcon } from "lucide-react";
 
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
   act: Flag,
@@ -26,6 +26,26 @@ function segmentColor(levelType: string): string {
   const known = ["act", "chapter", "scene", "section", "beat", "part", "stage"];
   return known.includes(key) ? `var(--segment-${key})` : "var(--color-accent)";
 }
+
+const LINK_TYPES = [
+  { value: "foreshadowing", forward: "Foreshadows →", reverse: "← Foreshadowed by" },
+  { value: "callback", forward: "Calls back to →", reverse: "← Called back by" },
+  { value: "causes", forward: "Causes →", reverse: "← Caused by" },
+  { value: "parallel", forward: "Parallels →", reverse: "← Paralleled by" },
+  { value: "contrast", forward: "Contrasts with →", reverse: "← Contrasted by" },
+  { value: "echoes", forward: "Echoes →", reverse: "← Echoed by" },
+];
+
+function flattenStructure(nodes: StructureNode[]): StructureNode[] {
+  const result: StructureNode[] = [];
+  function walk(n: StructureNode) {
+    result.push(n);
+    n.children.forEach(walk);
+  }
+  nodes.forEach(walk);
+  return result;
+}
+
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -34,7 +54,7 @@ import SceneThreadBadges from "../threads/SceneThreadBadges";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate } = useStoryStore();
+  const { activeNode, setActiveNode, activeStory, activeTemplate, structure } = useStoryStore();
   const { focusMode, toggleFocusMode } = useUIStore();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,6 +65,14 @@ export default function SceneEditor() {
   const [entryState, setEntryState] = useState("");
   const [exitState, setExitState] = useState("");
   const [keyEvents, setKeyEvents] = useState("");
+
+  // Scene links state
+  const [sceneLinks, setSceneLinks] = useState<SceneLink[]>([]);
+  const [showAddLink, setShowAddLink] = useState(false);
+  const [addLinkType, setAddLinkType] = useState("foreshadowing");
+  const [addLinkNote, setAddLinkNote] = useState("");
+  const [addLinkTarget, setAddLinkTarget] = useState<StructureNode | null>(null);
+  const [addLinkSearch, setAddLinkSearch] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -83,6 +111,12 @@ export default function SceneEditor() {
     setKeyEvents(activeNode.key_events ?? "");
   }, [activeNode?.id]);
 
+  // Load scene links when active node changes
+  useEffect(() => {
+    if (!activeNode) { setSceneLinks([]); return; }
+    api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
+  }, [activeNode?.id]);
+
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
     if (overviewSaveRef.current) clearTimeout(overviewSaveRef.current);
     overviewSaveRef.current = setTimeout(async () => {
@@ -90,6 +124,50 @@ export default function SceneEditor() {
       const updated = await api.updateNode(activeNode.id, patch);
       setActiveNode({ ...activeNode, ...updated });
     }, 900);
+  }
+
+  // Scene link helpers
+  const flatNodes = flattenStructure(structure);
+
+  function findNode(id: string): StructureNode | undefined {
+    return flatNodes.find(n => n.id === id);
+  }
+
+  function getLinkLabel(link: SceneLink, isForward: boolean): string {
+    const t = LINK_TYPES.find(lt => lt.value === link.link_type);
+    if (!t) return isForward ? `${link.link_type} →` : `← ${link.link_type}`;
+    return isForward ? t.forward : t.reverse;
+  }
+
+  function handleNavigateToLink(link: SceneLink) {
+    if (!activeNode) return;
+    const targetId = link.source_node_id === activeNode.id ? link.target_node_id : link.source_node_id;
+    const node = findNode(targetId);
+    if (node) setActiveNode(node);
+  }
+
+  async function handleDeleteLink(linkId: string) {
+    setSceneLinks(prev => prev.filter(l => l.id !== linkId));
+    try { await api.deleteSceneLink(linkId); } catch { /* optimistic removal stands */ }
+  }
+
+  async function handleCreateLink() {
+    if (!activeNode || !activeStory || !addLinkTarget) return;
+    try {
+      const link = await api.createSceneLink({
+        story_id: activeStory.id,
+        source_node_id: activeNode.id,
+        target_node_id: addLinkTarget.id,
+        link_type: addLinkType,
+        note: addLinkNote,
+      });
+      setSceneLinks(prev => [...prev, link]);
+    } catch { /* silently ignore */ }
+    setShowAddLink(false);
+    setAddLinkTarget(null);
+    setAddLinkNote("");
+    setAddLinkType("foreshadowing");
+    setAddLinkSearch("");
   }
 
   const wordCount = editor?.storage.characterCount?.words() ?? 0;
@@ -289,6 +367,45 @@ export default function SceneEditor() {
               rows={2}
             />
           </div>
+          <div className={styles.overviewField}>
+            <div className={styles.linkedHeader}>
+              <label className={styles.overviewLabel}>Linked Scenes</label>
+              <button className={styles.addLinkBtn} onClick={() => setShowAddLink(true)}>
+                <Plus size={11} />
+                Add Link
+              </button>
+            </div>
+            {sceneLinks.length === 0 ? (
+              <p className={styles.overviewHint}>No scene links yet.</p>
+            ) : (
+              <div className={styles.linkChips}>
+                {sceneLinks.map(link => {
+                  const isForward = link.source_node_id === activeNode.id;
+                  const linkedNodeId = isForward ? link.target_node_id : link.source_node_id;
+                  const linkedNode = findNode(linkedNodeId);
+                  const label = getLinkLabel(link, isForward);
+                  return (
+                    <div key={link.id} className={styles.linkChip} title={link.note || undefined}>
+                      <button
+                        className={styles.linkChipContent}
+                        onClick={() => handleNavigateToLink(link)}
+                      >
+                        <span className={styles.linkChipLabel}>{label}</span>
+                        <span className={styles.linkChipTitle}>{linkedNode?.title ?? "Unknown scene"}</span>
+                      </button>
+                      <button
+                        className={styles.linkChipDelete}
+                        onClick={() => handleDeleteLink(link.id)}
+                        title="Remove link"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -303,6 +420,84 @@ export default function SceneEditor() {
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      {/* Add Link modal */}
+      {showAddLink && (
+        <div className={styles.modalOverlay} onClick={() => setShowAddLink(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>Add Scene Link</span>
+              <button className={styles.modalClose} onClick={() => setShowAddLink(false)}>
+                <X size={14} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Target Scene</label>
+                <input
+                  type="text"
+                  placeholder="Search scenes…"
+                  value={addLinkSearch}
+                  onChange={e => setAddLinkSearch(e.target.value)}
+                  className={styles.modalInput}
+                  autoFocus
+                />
+                <div className={styles.nodeList}>
+                  {flatNodes
+                    .filter(n =>
+                      n.id !== activeNode.id &&
+                      n.title.toLowerCase().includes(addLinkSearch.toLowerCase())
+                    )
+                    .map(n => (
+                      <button
+                        key={n.id}
+                        className={`${styles.nodeListItem} ${addLinkTarget?.id === n.id ? styles.nodeListItemSelected : ""}`}
+                        onClick={() => setAddLinkTarget(n)}
+                      >
+                        <span className={styles.nodeListType}>{n.level_type}</span>
+                        {n.title}
+                      </button>
+                    ))}
+                </div>
+              </div>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Link Type</label>
+                <select
+                  value={addLinkType}
+                  onChange={e => setAddLinkType(e.target.value)}
+                  className={styles.modalSelect}
+                >
+                  {LINK_TYPES.map(t => (
+                    <option key={t.value} value={t.value}>{t.forward}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Note (optional)</label>
+                <textarea
+                  value={addLinkNote}
+                  onChange={e => setAddLinkNote(e.target.value)}
+                  placeholder="Describe how these scenes connect…"
+                  className={styles.modalTextarea}
+                  rows={2}
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.modalCancel} onClick={() => setShowAddLink(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.modalSave}
+                onClick={handleCreateLink}
+                disabled={!addLinkTarget}
+              >
+                Add Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

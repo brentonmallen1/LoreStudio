@@ -276,6 +276,15 @@ export const api = {
     });
   },
 
+  // Scene Links
+  getSceneLinks: (params: { story_id?: string; node_id?: string }) =>
+    request<import("../types").SceneLink[]>(`/scene-links?${new URLSearchParams(params as Record<string, string>)}`),
+  createSceneLink: (data: { story_id: string; source_node_id: string; target_node_id: string; link_type: string; note?: string }) =>
+    request<import("../types").SceneLink>("/scene-links", { method: "POST", body: JSON.stringify(data) }),
+  updateSceneLink: (id: string, data: { link_type?: string; note?: string }) =>
+    request<import("../types").SceneLink>(`/scene-links/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteSceneLink: (id: string) => request<void>(`/scene-links/${id}`, { method: "DELETE" }),
+
   // Templates
   listStructureTemplates: () =>
     request<import("../types").StoryStructureTemplate[]>("/templates/structures"),

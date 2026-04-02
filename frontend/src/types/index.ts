@@ -180,3 +180,13 @@ export interface PlotThread {
   created_at: string;
   updated_at: string;
 }
+
+export interface SceneLink {
+  id: string;
+  story_id: string;
+  source_node_id: string;
+  target_node_id: string;
+  link_type: string;
+  note: string;
+  created_at: string;
+}
