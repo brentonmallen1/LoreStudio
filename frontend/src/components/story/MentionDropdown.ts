@@ -55,30 +55,80 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
   doc.descendants((node, pos) => {
     if (!node.isText || !node.text) return;
     const text = node.text;
+    const claimedRanges: Array<[number, number]> = [];
 
+    // Known character mentions — exact name match
     for (const char of chars) {
-      // Match @Name followed by end-of-node, whitespace, or punctuation
       const re = new RegExp(
         `@${escapeRe(char.name)}(?=[\\s.,;:!?)"'\\]]|$)`,
         "g"
       );
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
+        const from = pos + m.index;
+        const to = from + m[0].length;
+        claimedRanges.push([from, to]);
         decos.push(
-          Decoration.inline(pos + m.index, pos + m.index + m[0].length, {
+          Decoration.inline(from, to, {
             class: "mention-char",
+            "data-mention-name": char.name,
+            "data-mention-type": "character",
           })
         );
       }
     }
 
+    // Known setting mentions — exact name match
     for (const setting of settings) {
       const re = new RegExp(`\\[\\[${escapeRe(setting.name)}\\]\\]`, "g");
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
+        const from = pos + m.index;
+        const to = from + m[0].length;
+        claimedRanges.push([from, to]);
         decos.push(
-          Decoration.inline(pos + m.index, pos + m.index + m[0].length, {
+          Decoration.inline(from, to, {
             class: "mention-setting",
+            "data-mention-name": setting.name,
+            "data-mention-type": "setting",
+          })
+        );
+      }
+    }
+
+    function isClaimed(from: number, to: number): boolean {
+      return claimedRanges.some(([a, b]) => from < b && to > a);
+    }
+
+    // Unknown @Name mentions (not matched by any known character)
+    const unknownCharRe = /@([A-Za-z]\S*)(?=[\s.,;:!?)"'\]]|$)/g;
+    let mu: RegExpExecArray | null;
+    while ((mu = unknownCharRe.exec(text)) !== null) {
+      const from = pos + mu.index;
+      const to = from + mu[0].length;
+      if (!isClaimed(from, to)) {
+        decos.push(
+          Decoration.inline(from, to, {
+            class: "mention-missing",
+            "data-mention-name": mu[1],
+            "data-mention-type": "character",
+          })
+        );
+      }
+    }
+
+    // Unknown [[Setting]] mentions (not matched by any known setting)
+    const unknownSettingRe = /\[\[([^\]]+)\]\]/g;
+    let ms: RegExpExecArray | null;
+    while ((ms = unknownSettingRe.exec(text)) !== null) {
+      const from = pos + ms.index;
+      const to = from + ms[0].length;
+      if (!isClaimed(from, to)) {
+        decos.push(
+          Decoration.inline(from, to, {
+            class: "mention-missing",
+            "data-mention-name": ms[1],
+            "data-mention-type": "setting",
           })
         );
       }

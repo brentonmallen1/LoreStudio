@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { StructureNode, SceneLink, InlineNote } from "../../types";
+import { useNavigate } from "react-router-dom";
+import type { StructureNode, SceneLink, InlineNote, Setting } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -63,8 +64,9 @@ import SceneThreadBadges from "../threads/SceneThreadBadges";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate, structure } = useStoryStore();
+  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
   const { focusMode, toggleFocusMode } = useUIStore();
+  const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSummary, setShowSummary] = useState(false);
@@ -103,6 +105,33 @@ export default function SceneEditor() {
   const mentionSelIdxRef = useRef(0);
   const filteredMentionRef = useRef<MentionItem[]>([]);
   const doInsertMentionRef = useRef<((item: MentionItem) => void) | null>(null);
+
+  // Full settings list (for hover card excerpts)
+  const [settingsList, setSettingsList] = useState<Setting[]>([]);
+
+  // Mention hover card
+  type HoverCard =
+    | { open: false }
+    | {
+        open: true;
+        type: "character" | "setting";
+        name: string;
+        found: boolean;
+        entityId: string;
+        roleOrLabel: string;
+        excerpt: string;
+        rect: DOMRect;
+      };
+  const [hoverCard, setHoverCard] = useState<HoverCard>({ open: false });
+  const hoverShowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const hoverCardRef = useRef<HTMLDivElement>(null);
+  // Refs so event listeners (stable, empty-deps) always read fresh data
+  const charactersRef = useRef(characters);
+  const settingsListRef = useRef<Setting[]>([]);
+  charactersRef.current = characters;
+  settingsListRef.current = settingsList;
 
   function setMentionOpen(open: boolean) {
     setMentionOpen_(open);
@@ -158,7 +187,7 @@ export default function SceneEditor() {
 
   // Load characters and settings for @mention autocomplete
   useEffect(() => {
-    if (!activeStory) { setMentionAllItems([]); setMentionItems([]); return; }
+    if (!activeStory) { setMentionAllItems([]); setMentionItems([]); setSettingsList([]); return; }
     Promise.all([
       api.listCharacters(activeStory.id),
       api.listSettings(activeStory.id),
@@ -169,6 +198,7 @@ export default function SceneEditor() {
       ];
       setMentionAllItems(items);
       setMentionItems(items);
+      setSettingsList(settings_);
       // Force decoration rebuild after items are loaded
       if (editor?.view) {
         editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
@@ -269,6 +299,76 @@ export default function SceneEditor() {
       },
     });
   }, []); // stable — refs handle freshness
+
+  // Hover card event delegation — stable listener that reads from refs
+  useEffect(() => {
+    const el = scrollAreaRef.current;
+    if (!el) return;
+
+    function handleMouseOver(e: MouseEvent) {
+      const target = (e.target as Element).closest(
+        ".mention-char, .mention-setting, .mention-missing"
+      ) as HTMLElement | null;
+      if (!target) return;
+
+      if (hoverShowTimer.current) clearTimeout(hoverShowTimer.current);
+      if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+
+      hoverShowTimer.current = setTimeout(() => {
+        const name = target.getAttribute("data-mention-name") ?? "";
+        const type = (target.getAttribute("data-mention-type") ?? "character") as
+          | "character"
+          | "setting";
+        const rect = target.getBoundingClientRect();
+
+        if (type === "character") {
+          const char = charactersRef.current.find((c) => c.name === name);
+          if (char) {
+            const raw = char.personality || char.motivation || "";
+            const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
+            setHoverCard({
+              open: true, type, name, found: true,
+              entityId: char.id, roleOrLabel: char.role || "Character", excerpt, rect,
+            });
+          } else {
+            setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
+          }
+        } else {
+          const setting = settingsListRef.current.find((s) => s.name === name);
+          if (setting) {
+            const raw = setting.description || "";
+            const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
+            setHoverCard({
+              open: true, type, name, found: true,
+              entityId: setting.id, roleOrLabel: "Setting", excerpt, rect,
+            });
+          } else {
+            setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
+          }
+        }
+      }, 150);
+    }
+
+    function handleMouseOut(e: MouseEvent) {
+      const target = (e.target as Element).closest(
+        ".mention-char, .mention-setting, .mention-missing"
+      ) as HTMLElement | null;
+      if (!target) return;
+
+      // Don't close if moving to the hover card
+      if (hoverCardRef.current && hoverCardRef.current.contains(e.relatedTarget as Node)) return;
+
+      if (hoverShowTimer.current) clearTimeout(hoverShowTimer.current);
+      hoverCloseTimer.current = setTimeout(() => setHoverCard({ open: false }), 100);
+    }
+
+    el.addEventListener("mouseover", handleMouseOver);
+    el.addEventListener("mouseout", handleMouseOut);
+    return () => {
+      el.removeEventListener("mouseover", handleMouseOver);
+      el.removeEventListener("mouseout", handleMouseOut);
+    };
+  }, []); // stable — refs handle data freshness
 
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
     if (overviewSaveRef.current) clearTimeout(overviewSaveRef.current);
@@ -714,7 +814,7 @@ export default function SceneEditor() {
         </div>
       )}
 
-      <div className={styles.scrollArea}>
+      <div className={styles.scrollArea} ref={scrollAreaRef}>
         <div className={styles.editorWrap}>
           <EditorContent editor={editor} />
         </div>
@@ -797,6 +897,56 @@ export default function SceneEditor() {
                 >
                   Save Note
                 </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Mention hover card */}
+      {hoverCard.open && (() => {
+        const card = hoverCard;
+        const top = Math.min(card.rect.bottom + 6, window.innerHeight - 160);
+        const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
+        return (
+          <div
+            ref={hoverCardRef}
+            className={styles.hoverCard}
+            style={{ top, left }}
+            onMouseEnter={() => {
+              if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+            }}
+            onMouseLeave={() => setHoverCard({ open: false })}
+          >
+            {card.found ? (
+              <>
+                <div className={styles.hoverCardHeader}>
+                  <span className={styles.hoverCardName}>{card.name}</span>
+                  <span className={styles.hoverCardLabel}>{card.roleOrLabel}</span>
+                </div>
+                {card.excerpt && (
+                  <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>
+                )}
+                {activeStory && (
+                  <button
+                    className={styles.hoverCardViewBtn}
+                    onClick={() => {
+                      setHoverCard({ open: false });
+                      if (card.type === "character") {
+                        navigate(`/stories/${activeStory.id}/characters/${card.entityId}`);
+                      } else {
+                        navigate(`/stories/${activeStory.id}/bible`);
+                      }
+                    }}
+                  >
+                    View →
+                  </button>
+                )}
+              </>
+            ) : (
+              <div className={styles.hoverCardNotFound}>
+                <span className={styles.hoverCardMissingName}>{card.name}</span>
+                <span className={styles.hoverCardNotFoundBadge}>Not found</span>
               </div>
             )}
           </div>
