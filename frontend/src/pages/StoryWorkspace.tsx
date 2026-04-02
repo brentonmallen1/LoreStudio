@@ -12,6 +12,7 @@ import StoryBiblePanel from "../components/story/StoryBiblePanel";
 import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
 import PlotThreadManager from "../components/threads/PlotThreadManager";
 import CorkboardView from "../components/story/CorkboardView";
+import TimelineView from "../components/story/TimelineView";
 import styles from "./StoryWorkspace.module.css";
 
 export default function StoryWorkspacePage() {
@@ -51,7 +52,11 @@ export default function StoryWorkspacePage() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path="/" element={viewMode === "corkboard" ? <CorkboardView /> : <SceneEditor />} />
+          <Route path="/" element={
+            viewMode === "corkboard" ? <CorkboardView /> :
+            viewMode === "timeline" ? <TimelineView /> :
+            <SceneEditor />
+          } />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
           <Route path="/characters/:characterId" element={<CharacterSheet />} />
           <Route path="/bible" element={<StoryBiblePanel storyId={storyId!} />} />

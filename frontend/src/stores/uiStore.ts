@@ -25,8 +25,8 @@ interface UIState {
   toggleFocusMode: () => void;
 
   // Story view mode
-  viewMode: "tree" | "corkboard";
-  setViewMode: (mode: "tree" | "corkboard") => void;
+  viewMode: "tree" | "corkboard" | "timeline";
+  setViewMode: (mode: "tree" | "corkboard" | "timeline") => void;
 }
 
 function applyTheme(theme: Theme) {

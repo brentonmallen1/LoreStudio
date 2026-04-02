@@ -13,6 +13,7 @@ import {
   GitBranch,
   LayoutGrid,
   List,
+  Clock,
   UserCircle2,
   Flag,
   BookMarked,
@@ -251,6 +252,13 @@ export default function Sidebar() {
             title="Corkboard view"
           >
             <LayoutGrid size={12} />
+          </button>
+          <button
+            className={`${styles.viewBtn} ${viewMode === "timeline" ? styles.viewActive : ""}`}
+            onClick={() => setViewMode("timeline")}
+            title="Timeline view"
+          >
+            <Clock size={12} />
           </button>
         </div>
       )}

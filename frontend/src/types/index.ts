@@ -60,6 +60,7 @@ export interface StructureNode {
   entry_state: string;
   exit_state: string;
   key_events: string;
+  timeline_position: number | null;
   created_at: string;
   updated_at: string;
   children: StructureNode[];
