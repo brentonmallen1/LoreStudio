@@ -368,6 +368,18 @@ def seed_demo_story():
             exit_state="The Visitor is inside, dry, and drinking Eleanor's tea. Eleanor's boundary has been crossed — by her own choice.",
             key_events="Knock at the door; Eleanor's hesitation; the Visitor's inexplicable calm; Eleanor lets them in.",
             metadata_={"purpose": "First direct encounter between Eleanor and the Visitor. Establish Eleanor's suspicion without hostility — she lets them in against her better judgment. The Visitor's calm is the first signal that something about their story doesn't add up."},
+            content=(
+                "<p>The knock came at quarter past nine.</p>"
+                "<p>Eleanor had been expecting it ever since she saw the boat — a small, impossible thing — beached on the shingle below the breakwater. She'd watched it from the lamp room for twenty minutes, telling herself she was waiting to see if anyone emerged, knowing she was just delaying the moment when she'd have to make a decision.</p>"
+                "<p>She had made the decision. <em>Don't open the door.</em></p>"
+                "<hr>"
+                "<h2>The Visitor</h2>"
+                "<p>The person on the other side of the door was not what she had expected. She had expected a fisherman, perhaps, or someone's stray nephew caught in the weather. What she got was a woman of about fifty, grey-haired, wearing a canvas jacket that was soaked through and carrying a bag over one shoulder as if she'd simply stepped off a bus in light drizzle.</p>"
+                "<p>She was not panicked. That was the thing Eleanor kept returning to later. Most people, arriving at a stranger's door in a storm like this, would be apologetic, breathless, grateful. This woman looked at Eleanor the way someone looks at a landmark they've been navigating by for years.</p>"
+                "<p>\"Ms. Vance,\" she said. \"I'm sorry to impose.\"</p>"
+                "<p>Eleanor stepped back. Later she would wonder why. At the time it felt like the only sensible thing to do.</p>"
+            ),
+            word_count=214,
         )
         db.add(scene2)
         db.flush()
