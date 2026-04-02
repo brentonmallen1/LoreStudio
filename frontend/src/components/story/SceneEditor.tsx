@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
-import type { StructureNode, SceneLink } from "../../types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { StructureNode, SceneLink, InlineNote } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, type LucideIcon } from "lucide-react";
+import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, type LucideIcon } from "lucide-react";
+import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
   act: Flag,
@@ -74,12 +75,22 @@ export default function SceneEditor() {
   const [addLinkTarget, setAddLinkTarget] = useState<StructureNode | null>(null);
   const [addLinkSearch, setAddLinkSearch] = useState("");
 
+  // Inline notes state
+  const [inlineNotes, setInlineNotes] = useState<InlineNote[]>([]);
+  type NotePopover =
+    | { open: false }
+    | { open: true; isNew: true; from: number; to: number; anchor: string; rect: DOMRect | null }
+    | { open: true; isNew: false; noteId: string; rect: DOMRect | null };
+  const [notePopover, setNotePopover] = useState<NotePopover>({ open: false });
+  const [noteInputText, setNoteInputText] = useState("");
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Placeholder.configure({ placeholder: "Begin writing…" }),
       CharacterCount,
       Typography,
+      InlineNoteExtension,
     ],
     content: activeNode?.content ?? "",
     onUpdate: ({ editor }) => {
@@ -109,6 +120,8 @@ export default function SceneEditor() {
     setEntryState(activeNode.entry_state ?? "");
     setExitState(activeNode.exit_state ?? "");
     setKeyEvents(activeNode.key_events ?? "");
+    setInlineNotes(activeNode.metadata_?.inline_notes ?? []);
+    setNotePopover({ open: false });
   }, [activeNode?.id]);
 
   // Load scene links when active node changes
@@ -124,6 +137,110 @@ export default function SceneEditor() {
       const updated = await api.updateNode(activeNode.id, patch);
       setActiveNode({ ...activeNode, ...updated });
     }, 900);
+  }
+
+  // Inline note callbacks — kept current via module-level ref
+  const handleNoteActivate = useCallback(
+    (noteId: string, rect: DOMRect) => {
+      setNotePopover({ open: true, isNew: false, noteId, rect });
+    },
+    []
+  );
+
+  const handleAddNote = useCallback(
+    (from: number, to: number, anchor: string) => {
+      const sel = window.getSelection();
+      const rect =
+        sel && sel.rangeCount > 0
+          ? sel.getRangeAt(0).getBoundingClientRect()
+          : null;
+      setNotePopover({ open: true, isNew: true, from, to, anchor, rect });
+      setNoteInputText("");
+    },
+    []
+  );
+
+  useEffect(() => {
+    setInlineNoteCallbacks({
+      onNoteActivate: handleNoteActivate,
+      onAddNote: handleAddNote,
+    });
+  }, [handleNoteActivate, handleAddNote]);
+
+  async function handleSaveNote() {
+    if (!activeNode || !editor) return;
+    if (!notePopover.open || !notePopover.isNew) return;
+    const { from, to, anchor } = notePopover;
+    const newNote: InlineNote = {
+      id: crypto.randomUUID(),
+      anchor,
+      note: noteInputText.trim(),
+      position: from,
+    };
+    editor.chain()
+      .setTextSelection({ from, to })
+      .setMark("inlineNote", { noteId: newNote.id })
+      .run();
+    const updated = [...inlineNotes, newNote];
+    setInlineNotes(updated);
+    setNotePopover({ open: false });
+    try {
+      const patched = await api.updateNode(activeNode.id, {
+        metadata_: { ...activeNode.metadata_, inline_notes: updated },
+      });
+      setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
+    } catch { /* silently ignore */ }
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    if (!activeNode || !editor) return;
+    // Remove mark from editor
+    let markFrom: number | null = null;
+    let markTo: number | null = null;
+    editor.state.doc.descendants((node, pos) => {
+      if (!node.isText) return;
+      if (node.marks.some((m) => m.type.name === "inlineNote" && m.attrs.noteId === noteId)) {
+        if (markFrom === null) markFrom = pos;
+        markTo = pos + node.nodeSize;
+      }
+    });
+    if (markFrom !== null && markTo !== null) {
+      editor.chain()
+        .setTextSelection({ from: markFrom, to: markTo })
+        .unsetMark("inlineNote")
+        .run();
+    }
+    const updated = inlineNotes.filter((n) => n.id !== noteId);
+    setInlineNotes(updated);
+    setNotePopover({ open: false });
+    try {
+      const patched = await api.updateNode(activeNode.id, {
+        metadata_: { ...activeNode.metadata_, inline_notes: updated },
+      });
+      setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
+    } catch { /* silently ignore */ }
+  }
+
+  function scrollToNote(noteId: string) {
+    if (!editor) return;
+    let markFrom: number | null = null;
+    editor.state.doc.descendants((node, pos) => {
+      if (markFrom !== null) return false;
+      if (!node.isText) return;
+      if (node.marks.some((m) => m.type.name === "inlineNote" && m.attrs.noteId === noteId)) {
+        markFrom = pos;
+      }
+    });
+    if (markFrom !== null) {
+      const pos = markFrom;
+      editor.chain().focus().setTextSelection(pos).scrollIntoView().run();
+      setTimeout(() => {
+        const el = document.querySelector(`[data-note-id="${noteId}"]`) as HTMLElement | null;
+        if (el) {
+          setNotePopover({ open: true, isNew: false, noteId, rect: el.getBoundingClientRect() });
+        }
+      }, 60);
+    }
   }
 
   // Scene link helpers
@@ -369,6 +486,48 @@ export default function SceneEditor() {
           </div>
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>
+              <label className={styles.overviewLabel}>Inline Notes</label>
+              {inlineNotes.length > 0 && (
+                <span className={styles.overviewHint}>{inlineNotes.length} note{inlineNotes.length !== 1 ? "s" : ""}</span>
+              )}
+            </div>
+            {inlineNotes.length === 0 ? (
+              <p className={styles.overviewHint}>
+                Select text and press{" "}
+                {typeof navigator !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
+                +Shift+N to add a note.
+              </p>
+            ) : (
+              <div className={styles.inlineNoteList}>
+                {inlineNotes.map((note) => (
+                  <div key={note.id} className={styles.inlineNoteItem}>
+                    <button
+                      className={styles.inlineNoteContent}
+                      onClick={() => scrollToNote(note.id)}
+                    >
+                      <span className={styles.inlineNoteAnchor}>
+                        &ldquo;{note.anchor.length > 35 ? note.anchor.slice(0, 35) + "…" : note.anchor}&rdquo;
+                      </span>
+                      {note.note && (
+                        <span className={styles.inlineNoteText}>
+                          {note.note.length > 60 ? note.note.slice(0, 60) + "…" : note.note}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      className={styles.linkChipDelete}
+                      onClick={() => handleDeleteNote(note.id)}
+                      title="Delete note"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={styles.overviewField}>
+            <div className={styles.linkedHeader}>
               <label className={styles.overviewLabel}>Linked Scenes</label>
               <button className={styles.addLinkBtn} onClick={() => setShowAddLink(true)}>
                 <Plus size={11} />
@@ -420,6 +579,89 @@ export default function SceneEditor() {
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      {/* Inline note popover */}
+      {notePopover.open && (() => {
+        const rect = notePopover.rect;
+        const top = rect
+          ? Math.min(rect.bottom + 8, window.innerHeight - 220)
+          : window.innerHeight / 2 - 80;
+        const left = rect
+          ? Math.max(8, Math.min(rect.left, window.innerWidth - 296))
+          : window.innerWidth / 2 - 140;
+        const existingNote = !notePopover.isNew
+          ? inlineNotes.find((n) => n.id === notePopover.noteId)
+          : undefined;
+        return (
+          <div
+            className={styles.notePopover}
+            style={{ top, left }}
+          >
+            <div className={styles.notePopoverHeader}>
+              <span className={styles.notePopoverTitle}>
+                {notePopover.isNew ? "Add Note" : "Author Note"}
+              </span>
+              <div className={styles.notePopoverActions}>
+                {!notePopover.isNew && (
+                  <button
+                    className={styles.notePopoverDelete}
+                    onClick={() => handleDeleteNote(notePopover.noteId)}
+                    title="Delete note"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                )}
+                <button
+                  className={styles.notePopoverClose}
+                  onClick={() => setNotePopover({ open: false })}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            </div>
+            <div className={styles.notePopoverBody}>
+              <p className={styles.notePopoverAnchor}>
+                &ldquo;{notePopover.isNew ? notePopover.anchor : existingNote?.anchor}&rdquo;
+              </p>
+              {notePopover.isNew ? (
+                <textarea
+                  className={styles.notePopoverInput}
+                  value={noteInputText}
+                  onChange={(e) => setNoteInputText(e.target.value)}
+                  placeholder="Your note…"
+                  rows={3}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setNotePopover({ open: false });
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote();
+                  }}
+                />
+              ) : (
+                <p className={styles.notePopoverNoteText}>
+                  {existingNote?.note || <em>No note text.</em>}
+                </p>
+              )}
+            </div>
+            {notePopover.isNew && (
+              <div className={styles.notePopoverFooter}>
+                <button
+                  className={styles.modalCancel}
+                  onClick={() => setNotePopover({ open: false })}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.modalSave}
+                  onClick={handleSaveNote}
+                  disabled={!noteInputText.trim()}
+                >
+                  Save Note
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Add Link modal */}
       {showAddLink && (

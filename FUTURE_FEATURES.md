@@ -136,7 +136,7 @@ MAKE SURE TO DO THE FOLLOWING WHEN IMPLEMENTING THINGS ON THIS LIST:
 ### Formatting
 - [ ] **Scene Breaks** — Visual dividers between scenes
 - [ ] **Chapter Headings** — Styled chapter markers
-- [ ] **Notes/Comments** — Inline author notes (excluded from export)
+- [x] **Notes/Comments** — Inline author notes stored in `metadata_.inline_notes`; select text + Cmd/Ctrl+Shift+N to annotate; highlights with amber tint + gutter dot markers; clickable popover to read/delete; Notes panel lists all notes with click-to-scroll; excluded from prose content HTML
 - [ ] **Version History** — Track changes over time, restore previous versions
 
 ---

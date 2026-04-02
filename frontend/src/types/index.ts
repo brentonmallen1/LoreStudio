@@ -40,8 +40,16 @@ export interface StoryStructureTemplate {
   user_id: string | null;
 }
 
+export interface InlineNote {
+  id: string;
+  anchor: string;
+  note: string;
+  position: number;
+}
+
 export interface SegmentMeta {
   purpose?: string;
+  inline_notes?: InlineNote[];
 }
 
 export interface StructureNode {
