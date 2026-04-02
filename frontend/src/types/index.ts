@@ -57,6 +57,9 @@ export interface StructureNode {
   word_count: number;
   status: "draft" | "revised" | "final";
   metadata_: SegmentMeta;
+  entry_state: string;
+  exit_state: string;
+  key_events: string;
   created_at: string;
   updated_at: string;
   children: StructureNode[];

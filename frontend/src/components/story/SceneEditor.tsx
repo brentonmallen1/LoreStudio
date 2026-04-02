@@ -42,6 +42,9 @@ export default function SceneEditor() {
   const [showOverview, setShowOverview] = useState(false);
   const [synopsis, setSynopsis] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [entryState, setEntryState] = useState("");
+  const [exitState, setExitState] = useState("");
+  const [keyEvents, setKeyEvents] = useState("");
 
   const editor = useEditor({
     extensions: [
@@ -75,6 +78,9 @@ export default function SceneEditor() {
     if (!activeNode) return;
     setSynopsis(activeNode.synopsis ?? "");
     setPurpose(activeNode.metadata_?.purpose ?? "");
+    setEntryState(activeNode.entry_state ?? "");
+    setExitState(activeNode.exit_state ?? "");
+    setKeyEvents(activeNode.key_events ?? "");
   }, [activeNode?.id]);
 
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
@@ -237,6 +243,51 @@ export default function SceneEditor() {
               rows={2}
             />
             <p className={styles.overviewHint}>Consider: Where are things at the start? Where should they be at the end? What key events need to happen?</p>
+          </div>
+          <div className={styles.overviewField}>
+            <label className={styles.overviewLabel}>Entry State</label>
+            <textarea
+              value={entryState}
+              onChange={(e) => setEntryState(e.target.value)}
+              onBlur={async () => {
+                if (!activeNode) return;
+                const updated = await api.updateNode(activeNode.id, { entry_state: entryState });
+                setActiveNode({ ...activeNode, ...updated });
+              }}
+              placeholder="Who is Maya before this scene begins? What does she believe?"
+              className={styles.overviewTextarea}
+              rows={2}
+            />
+          </div>
+          <div className={styles.overviewField}>
+            <label className={styles.overviewLabel}>Exit State</label>
+            <textarea
+              value={exitState}
+              onChange={(e) => setExitState(e.target.value)}
+              onBlur={async () => {
+                if (!activeNode) return;
+                const updated = await api.updateNode(activeNode.id, { exit_state: exitState });
+                setActiveNode({ ...activeNode, ...updated });
+              }}
+              placeholder="How has the character or situation changed by the end of this scene?"
+              className={styles.overviewTextarea}
+              rows={2}
+            />
+          </div>
+          <div className={styles.overviewField}>
+            <label className={styles.overviewLabel}>Key Events</label>
+            <textarea
+              value={keyEvents}
+              onChange={(e) => setKeyEvents(e.target.value)}
+              onBlur={async () => {
+                if (!activeNode) return;
+                const updated = await api.updateNode(activeNode.id, { key_events: keyEvents });
+                setActiveNode({ ...activeNode, ...updated });
+              }}
+              placeholder="What must happen in this scene? List the pivotal moments or turning points."
+              className={styles.overviewTextarea}
+              rows={2}
+            />
           </div>
         </div>
       )}
