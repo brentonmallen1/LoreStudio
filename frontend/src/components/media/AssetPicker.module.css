@@ -1,0 +1,269 @@
+.picker {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--color-surface-raised);
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-subtle);
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.header:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.header svg:last-child {
+  margin-left: auto;
+}
+
+.badge {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-radius: 8px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.panel {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--color-border);
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding: 4px 2px;
+}
+
+/* Attachment list */
+.attachList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attachItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-surface);
+}
+
+.attachThumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.attachImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attachInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.attachName {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachRole {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detachBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.detachBtn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  font-size: 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.actionBtn:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Browser */
+.browser {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.browserHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--color-surface-raised);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.browserGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 6px;
+  padding: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.browserItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.browserItem:hover:not(.browserItemAttached) {
+  background: var(--color-surface-raised);
+  border-color: var(--color-accent);
+}
+
+.browserItemAttached {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.browserThumb {
+  width: 100%;
+  height: 50px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--color-surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.browserImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.browserName {
+  font-size: 9px;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.browserCheck {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--color-accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

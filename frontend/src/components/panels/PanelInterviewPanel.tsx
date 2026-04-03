@@ -4,6 +4,10 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PanelInterview, PanelInterviewSummary } from "../../types";
 import CreatePanelDialog from "./CreatePanelDialog";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useLLMStream } from "../../hooks/useLLMStream";
+import { useLLMContextSources } from "../../hooks/useLLMContextSources";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./PanelInterviewPanel.module.css";
 
 interface Props {
@@ -56,9 +60,36 @@ export default function PanelInterviewPanel({ storyId }: Props) {
   const [activePanel, setActivePanel] = useState<PanelInterview | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [inputText, setInputText] = useState("");
-  const [streamingText, setStreamingText] = useState("");
-  const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const lastUserMsg = useRef("");
+  const lastResponse = useRef("");
+  const transparency = useLLMTransparency();
+
+  const panelId = activePanel?.id ?? "";
+  const panelTitle = activePanel?.title ?? "Group interview";
+
+  const { sources: contextSources } = useLLMContextSources(
+    panelId ? { context_type: "panel", panel_id: panelId } : null
+  );
+
+  const { stream, text: streamingText, isStreaming: sending } = useLLMStream({
+    requestId: `panel:${panelId}`,
+    label: panelTitle,
+    onComplete: (full) => {
+      lastResponse.current = full;
+      transparency.recordInteraction();
+      setActivePanel((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          messages: [
+            ...prev.messages,
+            { role: "panel", content: full, timestamp: new Date().toISOString() },
+          ],
+        };
+      });
+    },
+  });
 
   useEffect(() => {
     api.listPanels(storyId).then(setPanels).catch(() => {});
@@ -66,7 +97,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activePanel?.messages, streamingText]);
+  }, [activePanel?.messages, streamingText]);  // streamingText from useLLMStream
 
   function charColor(name: string): string {
     const idx = (activePanel?.character_ids ?? []).findIndex((id) => {
@@ -98,12 +129,11 @@ export default function PanelInterviewPanel({ storyId }: Props) {
     if (activePanel?.id === id) setActivePanel(null);
   }
 
-  async function handleSend() {
+  function handleSend() {
     if (!activePanel || !inputText.trim() || sending) return;
     const content = inputText.trim();
+    lastUserMsg.current = content;
     setInputText("");
-    setSending(true);
-    setStreamingText("");
 
     // Optimistically add user message to UI
     setActivePanel((prev) => {
@@ -117,35 +147,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
       };
     });
 
-    try {
-      const res = await api.sendPanelMessage(activePanel.id, content);
-      if (!res.ok || !res.body) throw new Error("Failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setStreamingText(full);
-      }
-      // Commit streamed message
-      setActivePanel((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          messages: [
-            ...prev.messages,
-            { role: "panel", content: full, timestamp: new Date().toISOString() },
-          ],
-        };
-      });
-      setStreamingText("");
-    } catch {
-      setStreamingText("");
-    } finally {
-      setSending(false);
-    }
+    stream((signal) => api.sendPanelMessage(activePanel.id, content, signal));
   }
 
   const panelCharacterNames = (panel: PanelInterviewSummary) =>
@@ -154,6 +156,8 @@ export default function PanelInterviewPanel({ storyId }: Props) {
       .join(", ");
 
   return (
+    <>
+    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
     <div className={styles.page}>
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
@@ -203,7 +207,16 @@ export default function PanelInterviewPanel({ storyId }: Props) {
             <div className={styles.chatHeader}>
               <Users size={14} className={styles.chatHeaderIcon} />
               <span className={styles.chatTitle}>{activePanel.title}</span>
+              <LLMTransparencyTrigger
+                disabled={!transparency.hasData}
+                onClick={() => transparency.open(
+                  { context_type: "panel", panel_id: activePanel.id, user_message: lastUserMsg.current },
+                  lastResponse.current,
+                )}
+              />
             </div>
+
+            <LLMContextSources sources={contextSources} />
 
             <div className={styles.messages}>
               {activePanel.messages.map((msg, i) => {
@@ -284,5 +297,6 @@ export default function PanelInterviewPanel({ storyId }: Props) {
         />
       )}
     </div>
+    </>
   );
 }

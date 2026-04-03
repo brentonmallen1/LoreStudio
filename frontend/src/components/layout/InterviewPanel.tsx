@@ -4,6 +4,10 @@ import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { InterviewMessage } from "../../types";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useLLMStream } from "../../hooks/useLLMStream";
+import { useLLMContextSources } from "../../hooks/useLLMContextSources";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./InterviewPanel.module.css";
 
 export default function InterviewPanel() {
@@ -12,101 +16,85 @@ export default function InterviewPanel() {
   const { upsertCharacter } = useStoryStore();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<InterviewMessage[]>(activeInterview?.messages ?? []);
-  const [streaming, setStreaming] = useState(false);
-  const [summarizing, setSummarizing] = useState(false);
-  const [summaryText, setSummaryText] = useState(activeInterview?.interview_notes ?? "");
   const [showNotes, setShowNotes] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lastUserMsg = useRef("");
+  const lastResponse = useRef("");
+  const lastContextType = useRef<"interview" | "interview-summary">("interview");
+  const transparency = useLLMTransparency();
+
+  const interviewId = activeInterview?.id ?? "";
+  const character = activeInterviewCharacter;
+
+  const { sources: contextSources, loading: sourcesLoading } = useLLMContextSources(
+    interviewId ? { context_type: "interview", interview_id: interviewId } : null
+  );
+
+  const { stream: streamChat, text: chatStreamText, isStreaming } = useLLMStream({
+    requestId: `interview:${interviewId}`,
+    label: `Interview with ${character?.name ?? "character"}`,
+    onComplete: async (full) => {
+      lastResponse.current = full;
+      transparency.recordInteraction();
+      if (activeInterview) {
+        const updated = await api.getInterview(activeInterview.id);
+        setActiveInterview(updated);
+        setMessages(updated.messages);
+      }
+      inputRef.current?.focus();
+    },
+    onError: () => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "⚠ Error reaching LLM.", timestamp: new Date().toISOString() },
+      ]);
+    },
+  });
+
+  const { stream: streamSummary, text: summaryStreamText, isStreaming: isSummarizing } = useLLMStream({
+    requestId: `interview-summary:${interviewId}`,
+    label: "Summarizing interview",
+    onComplete: async (full) => {
+      lastResponse.current = full;
+      transparency.recordInteraction();
+      if (activeInterview) {
+        const updated = await api.getInterview(activeInterview.id);
+        setActiveInterview(updated);
+      }
+    },
+  });
+
+  const summaryText = isSummarizing
+    ? summaryStreamText
+    : (activeInterview?.interview_notes ?? "");
 
   useEffect(() => {
     setMessages(activeInterview?.messages ?? []);
-    setSummaryText(activeInterview?.interview_notes ?? "");
     setShowNotes(!!(activeInterview?.interview_notes));
   }, [activeInterview?.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, chatStreamText]);
 
   async function sendMessage() {
-    if (!input.trim() || streaming || !activeInterview) return;
+    if (!input.trim() || isStreaming || !activeInterview) return;
     const content = input.trim();
+    lastUserMsg.current = content;
+    lastContextType.current = "interview";
     setInput("");
-    setStreaming(true);
-
-    const userMsg: InterviewMessage = {
-      role: "user",
-      content,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-
-    try {
-      const res = await api.sendInterviewMessage(activeInterview.id, content);
-      if (!res.ok || !res.body) throw new Error("Stream failed");
-
-      const assistantMsg: InterviewMessage = {
-        role: "assistant",
-        content: "",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        full += chunk;
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { ...assistantMsg, content: full };
-          return updated;
-        });
-      }
-
-      const updated = await api.getInterview(activeInterview.id);
-      setActiveInterview(updated);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "⚠ Error reaching LLM.", timestamp: new Date().toISOString() },
-      ]);
-    } finally {
-      setStreaming(false);
-      inputRef.current?.focus();
-    }
+    setMessages((prev) => [...prev, { role: "user", content, timestamp: new Date().toISOString() }]);
+    streamChat((signal) => api.sendInterviewMessage(activeInterview.id, content, signal));
   }
 
   async function captureInsights() {
-    if (!activeInterview || summarizing || messages.length === 0) return;
-    setSummarizing(true);
-    setSummaryText("");
+    if (!activeInterview || isSummarizing || messages.length === 0) return;
+    lastContextType.current = "interview-summary";
+    lastUserMsg.current = "Please summarize this interview.";
     setShowNotes(true);
-    try {
-      const res = await api.summarizeInterview(activeInterview.id);
-      if (!res.ok || !res.body) throw new Error("Failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setSummaryText(full);
-      }
-      const updated = await api.getInterview(activeInterview.id);
-      setActiveInterview(updated);
-    } catch {
-      setSummaryText("⚠ Error generating summary.");
-    } finally {
-      setSummarizing(false);
-    }
+    streamSummary((signal) => api.summarizeInterview(activeInterview.id, signal));
   }
 
   async function applyToCharacter(fields: string[]) {
@@ -122,9 +110,9 @@ export default function InterviewPanel() {
     setShowApply(false);
   }
 
-  const character = activeInterviewCharacter;
-
   return (
+    <>
+    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
     <aside className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.avatar}>
@@ -134,6 +122,13 @@ export default function InterviewPanel() {
           <p className={styles.characterName}>{character?.name ?? "Character"}</p>
           <p className={styles.sessionLabel}>Interview session</p>
         </div>
+        <LLMTransparencyTrigger
+          disabled={!transparency.hasData}
+          onClick={() => activeInterview && transparency.open(
+            { context_type: lastContextType.current, interview_id: activeInterview.id, user_message: lastUserMsg.current },
+            lastResponse.current,
+          )}
+        />
         <button
           onClick={collapseInterviewPanel}
           className={styles.panelBtn}
@@ -149,6 +144,8 @@ export default function InterviewPanel() {
           <X size={14} />
         </button>
       </div>
+
+      <LLMContextSources sources={contextSources} loading={sourcesLoading && !contextSources.length} />
 
       {messages.length === 0 && character?.interview_prompts && character.interview_prompts.length > 0 && (
         <div className={styles.prompts}>
@@ -188,7 +185,12 @@ export default function InterviewPanel() {
             </div>
           </div>
         ))}
-        {streaming && messages[messages.length - 1]?.role !== "assistant" && (
+        {chatStreamText && (
+          <div className={`${styles.messageRow} ${styles.assistant}`}>
+            <div className={`${styles.bubble} ${styles.assistantBubble}`}>{chatStreamText}</div>
+          </div>
+        )}
+        {isStreaming && !chatStreamText && (
           <div className={`${styles.messageRow} ${styles.assistant}`}>
             <div className={styles.typing}>…</div>
           </div>
@@ -202,7 +204,7 @@ export default function InterviewPanel() {
           <div className={styles.notesHeader}>
             <span className={styles.notesLabel}>Captured Insights</span>
             <div className={styles.notesActions}>
-              {summaryText && !summarizing && (
+              {summaryText && !isSummarizing && (
                 <button
                   className={styles.applyBtn}
                   onClick={() => setShowApply((s) => !s)}
@@ -217,7 +219,7 @@ export default function InterviewPanel() {
             </div>
           </div>
           <div className={styles.notesText}>
-            {summarizing && !summaryText ? <span className={styles.summarizing}>Analyzing interview…</span> : summaryText}
+            {isSummarizing && !summaryText ? <span className={styles.summarizing}>Analyzing interview…</span> : summaryText}
           </div>
           {showApply && (
             <div className={styles.applyPanel}>
@@ -247,11 +249,11 @@ export default function InterviewPanel() {
             placeholder="Ask a question…"
             rows={1}
             className={styles.textarea}
-            disabled={streaming}
+            disabled={isStreaming}
           />
           <button
             onClick={sendMessage}
-            disabled={streaming || !input.trim()}
+            disabled={isStreaming || !input.trim()}
             className={styles.sendBtn}
           >
             <Send size={14} />
@@ -263,15 +265,16 @@ export default function InterviewPanel() {
             <button
               className={styles.captureBtn}
               onClick={showNotes ? () => setShowNotes(true) : captureInsights}
-              disabled={summarizing || messages.length === 0}
+              disabled={isSummarizing || messages.length === 0}
               title="Capture insights from this interview"
             >
               {showNotes ? <ChevronUp size={11} /> : <Sparkles size={11} />}
-              {summarizing ? "Analyzing…" : showNotes ? "Show notes" : "Capture insights"}
+              {isSummarizing ? "Analyzing…" : showNotes ? "Show notes" : "Capture insights"}
             </button>
           )}
         </div>
       </div>
     </aside>
+    </>
   );
 }

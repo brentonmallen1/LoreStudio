@@ -12,6 +12,7 @@ class OllamaProvider(LLMProvider):
         self.base_url = settings.ollama_base_url
         self.model = settings.ollama_model
         self.temperature = settings.ollama_temperature
+        self.keep_alive = settings.ollama_keep_alive
 
     async def is_available(self) -> bool:
         try:
@@ -26,6 +27,7 @@ class OllamaProvider(LLMProvider):
             "model": self.model,
             "messages": [{"role": "system", "content": system_prompt}] + messages,
             "stream": True,
+            "keep_alive": self.keep_alive,
             "options": {"temperature": self.temperature},
         }
         async with aiohttp.ClientSession() as session:

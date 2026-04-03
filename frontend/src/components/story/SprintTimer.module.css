@@ -1,0 +1,192 @@
+.root {
+  position: relative;
+}
+
+/* ── Inactive: Sprint button ── */
+.startBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.startBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.startBtnActive {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+/* ── Setup popover ── */
+.setup {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.875rem;
+  min-width: 188px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.setupSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.setupLabel {
+  font-size: 0.695rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.durationRow {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.durationBtn {
+  flex: 1;
+  padding: 0.28rem 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.durationBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.durationBtnActive {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.goalInput {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.goalInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.goalInput::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.goBtn {
+  padding: 0.42rem 0.75rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.goBtn:hover {
+  opacity: 0.85;
+}
+
+/* ── Active sprint display ── */
+.sprintActive {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.timer {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.separator {
+  color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+.words {
+  font-weight: 500;
+}
+
+.goal {
+  color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.stopBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  cursor: pointer;
+  border-radius: 3px;
+  margin-left: 0.15rem;
+  transition: color var(--transition), background var(--transition);
+}
+
+.stopBtn:hover {
+  background: color-mix(in srgb, #e87070 15%, transparent);
+  color: #e87070;
+}
+
+/* ── Goal met / completed ── */
+.goalMet,
+.completed {
+  border-color: color-mix(in srgb, #5ba55b 40%, transparent);
+  background: color-mix(in srgb, #5ba55b 10%, transparent);
+  color: #5ba55b;
+}

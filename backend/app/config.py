@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
     ollama_temperature: float = 0.8
+    ollama_keep_alive: str = "10m"
 
 
 settings = Settings()

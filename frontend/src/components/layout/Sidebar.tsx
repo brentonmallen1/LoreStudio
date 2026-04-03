@@ -22,6 +22,8 @@ import {
   Zap,
   Puzzle,
   Milestone,
+  Images,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -49,6 +51,7 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import type { StructureNode } from "../../types";
+import AIActivityIndicator from "./AIActivityIndicator";
 import styles from "./Sidebar.module.css";
 
 function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: number; storyId?: string }) {
@@ -165,7 +168,7 @@ export default function Sidebar() {
   const location = useLocation();
   const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
   const { activeStory, structure, setStructure, characters, activeTemplate } = useStoryStore();
-  const { toggleFocusMode, viewMode, setViewMode } = useUIStore();
+  const { setViewState, viewMode, setViewMode } = useUIStore();
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
 
@@ -176,6 +179,8 @@ export default function Sidebar() {
     if (path.includes("/bible")) return "bible";
     if (path.includes("/panels")) return "panels";
     if (path.includes("/threads")) return "threads";
+    if (path.includes("/media")) return "media";
+    if (path.includes("/health")) return "health";
     return "story";
   })();
 
@@ -210,7 +215,7 @@ export default function Sidebar() {
           {activeStory?.title ?? "Story"}
         </span>
         <button
-          onClick={toggleFocusMode}
+          onClick={() => setViewState("focus")}
           className={styles.focusBtn}
           title="Focus mode"
         >
@@ -219,7 +224,7 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.tabs}>
-        {(["story", "characters", "bible", "panels", "threads"] as const).map((t) => (
+        {(["story", "characters", "bible", "panels", "threads", "media", "health"] as const).map((t) => (
           <button
             key={t}
             onClick={() => {
@@ -227,12 +232,14 @@ export default function Sidebar() {
               else if (t === "bible") navigate(`/stories/${storyId}/bible`);
               else if (t === "panels") navigate(`/stories/${storyId}/panels`);
               else if (t === "threads") navigate(`/stories/${storyId}/threads`);
+              else if (t === "media") navigate(`/stories/${storyId}/media`);
+              else if (t === "health") navigate(`/stories/${storyId}/health`);
               else navigate(`/stories/${storyId}`);
             }}
             className={`${styles.tab} ${tab === t ? styles.activeTab : ""}`}
-            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "bible" ? "Bible" : t === "panels" ? "Group Interviews" : "Plot Threads"}
+            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "bible" ? "Bible" : t === "panels" ? "Group Interviews" : t === "threads" ? "Plot Threads" : t === "media" ? "Media & Diagrams" : "Story Health"}
           >
-            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "bible" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : <GitBranch size={12} />}
+            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "bible" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : t === "threads" ? <GitBranch size={12} /> : t === "media" ? <Images size={12} /> : <Activity size={12} />}
           </button>
         ))}
       </div>
@@ -332,6 +339,8 @@ export default function Sidebar() {
           </button>
         </div>
       )}
+
+      <AIActivityIndicator />
     </aside>
   );
 }

@@ -1,9 +1,10 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAuthStore } from "../../stores/authStore";
 import { api } from "../../api/client";
+import type { SearchResult } from "../../types";
 import {
   BookOpen,
   Users,
@@ -13,16 +14,49 @@ import {
   Moon,
   Maximize2,
   MessageSquare,
+  Search,
+  Clapperboard,
+  MapPin,
+  GitBranch,
+  Loader2,
+  Images,
+  Network,
 } from "lucide-react";
 import styles from "./CommandPalette.module.css";
 
+const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
+  story: BookOpen,
+  character: Users,
+  scene: Clapperboard,
+  setting: MapPin,
+  thread: GitBranch,
+};
+
+const TYPE_LABELS: Record<SearchResult["type"], string> = {
+  story: "Stories",
+  character: "Characters",
+  scene: "Scenes",
+  setting: "Settings",
+  thread: "Threads",
+};
+
 export default function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, setTheme, toggleFocusMode, openInterview } = useUIStore();
-  const { stories, characters } = useStoryStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, setTheme, setViewState, openInterview } = useUIStore();
+  const { stories, characters, activeStory } = useStoryStore();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const close = useCallback(() => setCommandPaletteOpen(false), [setCommandPaletteOpen]);
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const close = useCallback(() => {
+    setCommandPaletteOpen(false);
+    setQuery("");
+    setSearchResults([]);
+  }, [setCommandPaletteOpen]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -36,15 +70,88 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [close, setCommandPaletteOpen]);
 
+  // Focus input when palette opens
+  useEffect(() => {
+    if (commandPaletteOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [commandPaletteOpen]);
+
+  // Debounced search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const results = await api.search(query.trim());
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
   if (!commandPaletteOpen) return null;
 
-  const storyActions = stories.map((s) => ({
-    id: `story-${s.id}`,
-    label: s.title,
-    group: "Stories",
-    Icon: BookOpen,
-    action: () => navigate(`/stories/${s.id}`),
-  }));
+  function navigateTo(result: SearchResult) {
+    switch (result.type) {
+      case "story":
+        navigate(`/stories/${result.story_id}`);
+        break;
+      case "character":
+        navigate(`/stories/${result.story_id}/characters/${result.id}`);
+        break;
+      case "scene":
+        navigate(`/stories/${result.story_id}`);
+        break;
+      case "setting":
+        navigate(`/stories/${result.story_id}/bible`);
+        break;
+      case "thread":
+        navigate(`/stories/${result.story_id}/threads`);
+        break;
+    }
+    close();
+  }
+
+  // Group search results by type
+  const groupedResults = searchResults.reduce(
+    (acc, result) => {
+      if (!acc[result.type]) acc[result.type] = [];
+      acc[result.type].push(result);
+      return acc;
+    },
+    {} as Record<string, SearchResult[]>
+  );
+  const resultTypeOrder: SearchResult["type"][] = ["story", "character", "scene", "setting", "thread"];
+
+  // Static jump-to actions (shown when no query)
+  const storyActions = stories.flatMap((s) => [
+    {
+      id: `story-${s.id}`,
+      label: s.title,
+      group: "Stories",
+      Icon: BookOpen,
+      action: () => navigate(`/stories/${s.id}`),
+    },
+    {
+      id: `story-media-${s.id}`,
+      label: `Media & Diagrams: ${s.title}`,
+      group: "Stories",
+      Icon: Images,
+      action: () => navigate(`/stories/${s.id}/media`),
+    },
+  ]);
 
   const characterActions = characters.map((c) => [
     {
@@ -94,8 +201,29 @@ export default function CommandPalette() {
       label: "Toggle focus mode",
       group: "View",
       Icon: Maximize2,
-      action: toggleFocusMode,
+      action: () => setViewState("focus"),
     },
+    ...(activeStory ? [
+      {
+        id: "new-diagram",
+        label: `New diagram: ${activeStory.title}`,
+        group: "Media & Diagrams",
+        Icon: Network,
+        action: async () => {
+          const title = prompt("Diagram title:");
+          if (!title) return;
+          await api.createDiagram(activeStory.id, { title });
+          navigate(`/stories/${activeStory.id}/media`);
+        },
+      },
+      {
+        id: "open-media",
+        label: `Open media library: ${activeStory.title}`,
+        group: "Media & Diagrams",
+        Icon: Images,
+        action: () => navigate(`/stories/${activeStory.id}/media`),
+      },
+    ] : []),
     {
       id: "logout",
       label: "Sign out",
@@ -106,7 +234,6 @@ export default function CommandPalette() {
   ];
 
   const allActions = [...globalActions, ...storyActions, ...characterActions];
-
   const grouped = allActions.reduce(
     (acc, item) => {
       if (!acc[item.group]) acc[item.group] = [];
@@ -116,33 +243,81 @@ export default function CommandPalette() {
     {} as Record<string, typeof allActions>
   );
 
+  const isSearching = query.trim().length > 0;
+  const hasResults = searchResults.length > 0;
+
   return (
     <div className={styles.overlay} onClick={close}>
       <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.paletteHeader}>
+        {/* Search input */}
+        <div className={styles.searchRow}>
+          <Search size={15} className={styles.searchIcon} />
+          <input
+            ref={inputRef}
+            className={styles.searchInput}
+            placeholder="Search or jump to…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          {searching && <Loader2 size={14} className={styles.spinner} />}
           <span className={styles.kbdHint}>⌘K</span>
-          <span className={styles.paletteLabel}>Jump to…</span>
         </div>
 
         <div className={styles.list}>
-          {Object.entries(grouped).map(([group, items]) => (
-            <div key={group} className={styles.group}>
-              <p className={styles.groupLabel}>{group}</p>
-              {items.map(({ id, label, Icon, action }) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    action();
-                    close();
-                  }}
-                  className={styles.item}
-                >
-                  <Icon size={14} className={styles.itemIcon} />
-                  {label}
-                </button>
-              ))}
-            </div>
-          ))}
+          {isSearching ? (
+            hasResults ? (
+              resultTypeOrder.map((type) => {
+                const items = groupedResults[type];
+                if (!items?.length) return null;
+                const Icon = TYPE_ICONS[type];
+                return (
+                  <div key={type} className={styles.group}>
+                    <p className={styles.groupLabel}>{TYPE_LABELS[type]}</p>
+                    {items.map((result) => (
+                      <button
+                        key={result.id}
+                        onClick={() => navigateTo(result)}
+                        className={styles.item}
+                      >
+                        <Icon size={14} className={styles.itemIcon} />
+                        <span className={styles.itemContent}>
+                          <span className={styles.itemTitle}>{result.title}</span>
+                          {result.subtitle && (
+                            <span className={styles.itemSubtitle}>{result.subtitle}</span>
+                          )}
+                          {result.excerpt && (
+                            <span className={styles.itemExcerpt}>{result.excerpt}</span>
+                          )}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })
+            ) : !searching ? (
+              <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
+            ) : null
+          ) : (
+            Object.entries(grouped).map(([group, items]) => (
+              <div key={group} className={styles.group}>
+                <p className={styles.groupLabel}>{group}</p>
+                {items.map(({ id, label, Icon, action }) => (
+                  <button
+                    key={id}
+                    onClick={() => { action(); close(); }}
+                    className={styles.item}
+                  >
+                    <Icon size={14} className={styles.itemIcon} />
+                    <span className={styles.itemContent}>
+                      <span className={styles.itemTitle}>{label}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ))
+          )}
         </div>
 
         <div className={styles.footer}>

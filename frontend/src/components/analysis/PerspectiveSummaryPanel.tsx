@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Layers, Copy, Check } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useLLMStream } from "../../hooks/useLLMStream";
+import { useLLMContextSources } from "../../hooks/useLLMContextSources";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./PerspectiveSummaryPanel.module.css";
 
 type PerspectiveMode = "structure" | "character";
 
 export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }) {
-  const { structure, characters, activeNode } = useStoryStore();
+  const { structure, characters } = useStoryStore();
   const [mode, setMode] = useState<PerspectiveMode>("structure");
   const [selectedId, setSelectedId] = useState("");
-  const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState("");
   const [copied, setCopied] = useState(false);
+  const lastResult = useRef("");
+  const lastMode = useRef<PerspectiveMode>("structure");
+  const lastSelectedId = useRef("");
+  const transparency = useLLMTransparency();
 
   // Flatten structure for selection
   function flattenNodes(nodes: import("../../types").StructureNode[]): import("../../types").StructureNode[] {
@@ -20,31 +27,40 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
   }
   const flatNodes = flattenNodes(structure);
 
-  async function generate() {
+  const requestId = mode === "structure"
+    ? `perspective:structure:${selectedId}`
+    : `perspective:character:${selectedId}`;
+
+  const { sources: contextSources } = useLLMContextSources(
+    selectedId
+      ? mode === "structure"
+        ? { context_type: "structure-summary", story_id: storyId, node_id: selectedId }
+        : { context_type: "character-arc", story_id: storyId, character_id: selectedId }
+      : null
+  );
+
+  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
+    requestId,
+    label: mode === "structure" ? "Summarizing section" : "Summarizing character arc",
+    onComplete: (full) => {
+      setResult(full);
+      lastResult.current = full;
+      transparency.recordInteraction();
+    },
+    onError: () => setResult("⚠ Error generating summary."),
+  });
+
+  const displayText = generating ? streamingText : result;
+
+  function generate() {
     if (!selectedId) return;
-    setGenerating(true);
+    lastMode.current = mode;
+    lastSelectedId.current = selectedId;
     setResult("");
-    try {
-      let res: Response;
-      if (mode === "structure") {
-        res = await api.summarizeStructureSection(storyId, selectedId);
-      } else {
-        res = await api.summarizeCharacterArc(storyId, selectedId);
-      }
-      if (!res.ok || !res.body) throw new Error("Failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setResult(full);
-      }
-    } catch {
-      setResult("⚠ Error generating summary.");
-    } finally {
-      setGenerating(false);
+    if (mode === "structure") {
+      stream((signal) => api.summarizeStructureSection(storyId, selectedId, signal));
+    } else {
+      stream((signal) => api.summarizeCharacterArc(storyId, selectedId, signal));
     }
   }
 
@@ -62,10 +78,21 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
   }
 
   return (
+    <>
+    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
     <div className={styles.panel}>
       <div className={styles.header}>
         <Layers size={14} className={styles.icon} />
         <h3 className={styles.title}>Perspective Summary</h3>
+        <LLMTransparencyTrigger
+          disabled={!transparency.hasData}
+          onClick={() => transparency.open(
+            lastMode.current === "structure"
+              ? { context_type: "structure-summary", story_id: storyId, node_id: lastSelectedId.current }
+              : { context_type: "character-arc", story_id: storyId, character_id: lastSelectedId.current },
+            lastResult.current,
+          )}
+        />
       </div>
 
       <div className={styles.controls}>
@@ -114,7 +141,9 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
         </button>
       </div>
 
-      {result && (
+      <LLMContextSources sources={contextSources} />
+
+      {displayText && (
         <div className={styles.result}>
           <div className={styles.resultHeader}>
             <span className={styles.resultLabel}>
@@ -124,11 +153,11 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
               {copied ? <Check size={12} /> : <Copy size={12} />}
             </button>
           </div>
-          <div className={styles.resultText}>{result}</div>
+          <div className={styles.resultText}>{displayText}</div>
         </div>
       )}
 
-      {!result && !generating && (
+      {!displayText && !generating && (
         <p className={styles.hint}>
           {mode === "structure"
             ? "Select a section to get a summary of its content."
@@ -136,5 +165,6 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
         </p>
       )}
     </div>
+    </>
   );
 }

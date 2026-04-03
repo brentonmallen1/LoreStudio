@@ -6,6 +6,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
+import AssetPicker from "../media/AssetPicker";
 import styles from "./CharacterSheet.module.css";
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -237,6 +238,16 @@ export default function CharacterSheet() {
                 ))}
               </div>
             </div>
+          )}
+
+          {storyId && (
+            <AssetPicker
+              storyId={storyId}
+              objectType="character"
+              objectId={character.id}
+              defaultRole="portrait"
+              label="Images & References"
+            />
           )}
         </div>
       </div>

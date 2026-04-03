@@ -1,38 +1,43 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { BookOpen, Copy, Check } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useLLMStream } from "../../hooks/useLLMStream";
+import { useLLMContextSources } from "../../hooks/useLLMContextSources";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./StorySummaryPanel.module.css";
 
 export default function StorySummaryPanel({ storyId }: { storyId: string }) {
   const { activeNode } = useStoryStore();
   const [style, setStyle] = useState<"brief" | "detailed">("brief");
   const [upToCurrentScene, setUpToCurrentScene] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [summary, setSummary] = useState("");
   const [copied, setCopied] = useState(false);
+  const lastSummary = useRef("");
+  const transparency = useLLMTransparency();
 
-  async function generate() {
-    setGenerating(true);
+  const { sources: contextSources } = useLLMContextSources(
+    storyId ? { context_type: "story-summary", story_id: storyId } : null
+  );
+
+  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
+    requestId: `story-summary:${storyId}`,
+    label: "Generating story summary",
+    onComplete: (full) => {
+      setSummary(full);
+      lastSummary.current = full;
+      transparency.recordInteraction();
+    },
+    onError: () => setSummary("⚠ Error generating summary."),
+  });
+
+  const displayText = generating ? streamingText : summary;
+
+  function generate() {
     setSummary("");
-    try {
-      const upTo = upToCurrentScene && activeNode ? activeNode.id : undefined;
-      const res = await api.summarizeStory(storyId, upTo, style);
-      if (!res.ok || !res.body) throw new Error("Failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setSummary(full);
-      }
-    } catch {
-      setSummary("⚠ Error generating summary.");
-    } finally {
-      setGenerating(false);
-    }
+    const upTo = upToCurrentScene && activeNode ? activeNode.id : undefined;
+    stream((signal) => api.summarizeStory(storyId, upTo, style, signal));
   }
 
   async function copy() {
@@ -42,10 +47,16 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
   }
 
   return (
+    <>
+    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
     <div className={styles.panel}>
       <div className={styles.header}>
         <BookOpen size={14} className={styles.icon} />
         <h3 className={styles.title}>The Story So Far</h3>
+        <LLMTransparencyTrigger
+          disabled={!transparency.hasData}
+          onClick={() => transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current)}
+        />
       </div>
 
       <div className={styles.controls}>
@@ -82,7 +93,9 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
         </button>
       </div>
 
-      {summary && (
+      <LLMContextSources sources={contextSources} />
+
+      {displayText && (
         <div className={styles.result}>
           <div className={styles.resultHeader}>
             <span className={styles.resultLabel}>Summary</span>
@@ -90,13 +103,14 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
               {copied ? <Check size={12} /> : <Copy size={12} />}
             </button>
           </div>
-          <div className={styles.resultText}>{summary}</div>
+          <div className={styles.resultText}>{displayText}</div>
         </div>
       )}
 
-      {!summary && !generating && (
+      {!displayText && !generating && (
         <p className={styles.hint}>Generate a summary of your story's content to date.</p>
       )}
     </div>
+    </>
   );
 }

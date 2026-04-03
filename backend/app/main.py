@@ -16,6 +16,12 @@ from .routers.analysis import router as analysis_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
 from .routers.scene_links import router as scene_links_router
+from .routers.search import router as search_router
+from .routers.media import router as media_router
+from .routers.diagrams import router as diagrams_router
+from .routers.chat import router as chat_router
+from .routers.health import router as health_router
+from .routers.llm_preview import router as llm_preview_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story
 
 
@@ -50,6 +56,12 @@ app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
+app.include_router(search_router, prefix="/api", tags=["search"])
+app.include_router(media_router, prefix="/api", tags=["media"])
+app.include_router(diagrams_router, prefix="/api", tags=["diagrams"])
+app.include_router(chat_router, prefix="/api", tags=["chat"])
+app.include_router(health_router, prefix="/api", tags=["health"])
+app.include_router(llm_preview_router, prefix="/api", tags=["llm-transparency"])
 
 
 @app.get("/health")

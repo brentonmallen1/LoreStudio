@@ -1,10 +1,11 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Settings2 } from "lucide-react";
+import { BookOpen, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StoryStructureTemplate } from "../../types";
 import TemplateManagerDialog from "../templates/TemplateManagerDialog";
+import { Modal } from "../common";
 import styles from "./CreateStoryDialog.module.css";
 
 interface Props {
@@ -40,24 +41,39 @@ export default function CreateStoryDialog({ onClose }: Props) {
 
   const selectedTemplate = templates.find((t) => t.id === templateId);
 
+  const footer = (
+    <>
+      <button type="button" onClick={onClose} className={styles.cancelBtn}>
+        Cancel
+      </button>
+      <button
+        type="submit"
+        form="create-story-form"
+        disabled={loading || !title.trim()}
+        className={styles.submitBtn}
+      >
+        {loading ? "Creating…" : "Create story"}
+      </button>
+    </>
+  );
+
   return (
     <>
-    {showTemplateManager && (
-      <TemplateManagerDialog
-        onClose={() => setShowTemplateManager(false)}
-        onTemplatesChanged={() => api.listStructureTemplates().then(setTemplates).catch(() => {})}
-      />
-    )}
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.dialogHead}>
-          <h2 className={styles.dialogTitle}>New Story</h2>
-          <button onClick={onClose} className={styles.closeBtn}>
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
+      {showTemplateManager && (
+        <TemplateManagerDialog
+          onClose={() => setShowTemplateManager(false)}
+          onTemplatesChanged={() => api.listStructureTemplates().then(setTemplates).catch(() => {})}
+        />
+      )}
+      <Modal
+        isOpen
+        onClose={onClose}
+        title="New Story"
+        icon={<BookOpen size={15} />}
+        size="sm"
+        footer={footer}
+      >
+        <form id="create-story-form" onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.field}>
             <label className={styles.label}>Title</label>
             <input
@@ -107,22 +123,8 @@ export default function CreateStoryDialog({ onClose }: Props) {
               <p className={styles.templateHint}>{selectedTemplate.description}</p>
             )}
           </div>
-
-          <div className={styles.actions}>
-            <button type="button" onClick={onClose} className={styles.cancelBtn}>
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !title.trim()}
-              className={styles.submitBtn}
-            >
-              {loading ? "Creating…" : "Create story"}
-            </button>
-          </div>
         </form>
-      </div>
-    </div>
+      </Modal>
     </>
   );
 }

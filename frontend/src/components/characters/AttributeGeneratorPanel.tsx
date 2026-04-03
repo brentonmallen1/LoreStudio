@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Sparkles, X } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useLLMStream } from "../../hooks/useLLMStream";
+import { useLLMContextSources } from "../../hooks/useLLMContextSources";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./AttributeGeneratorPanel.module.css";
 
 const ATTRIBUTE_TYPES = [
@@ -20,29 +24,32 @@ interface Props {
 export default function AttributeGeneratorPanel({ character, onClose }: Props) {
   const { upsertCharacter } = useStoryStore();
   const [type, setType] = useState("traits");
-  const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState("");
+  const lastResult = useRef("");
+  const transparency = useLLMTransparency();
 
-  async function generate() {
-    setGenerating(true);
+  const typeLabel = ATTRIBUTE_TYPES.find((t) => t.value === type)?.label ?? type;
+
+  const { sources: contextSources } = useLLMContextSources(
+    { context_type: "attributes", character_id: character.id, attribute_type: type }
+  );
+
+  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
+    requestId: `attributes:${character.id}:${type}`,
+    label: `Generating ${typeLabel}`,
+    onComplete: (full) => {
+      setResult(full);
+      lastResult.current = full;
+      transparency.recordInteraction();
+    },
+    onError: () => setResult("⚠ Error generating suggestions."),
+  });
+
+  const displayText = generating ? streamingText : result;
+
+  function generate() {
     setResult("");
-    try {
-      const res = await api.generateAttributes(character.id, type);
-      if (!res.ok || !res.body) throw new Error("Failed");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setResult(full);
-      }
-    } catch {
-      setResult("⚠ Error generating suggestions.");
-    } finally {
-      setGenerating(false);
-    }
+    stream((signal) => api.generateAttributes(character.id, type, signal));
   }
 
   async function applyToField() {
@@ -56,11 +63,21 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
     onClose();
   }
 
+
   return (
+    <>
+    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
     <div className={styles.panel}>
       <div className={styles.header}>
         <Sparkles size={14} className={styles.icon} />
         <span className={styles.title}>AI Attribute Suggestions</span>
+        <LLMTransparencyTrigger
+          disabled={!transparency.hasData}
+          onClick={() => transparency.open(
+            { context_type: "attributes", character_id: character.id, attribute_type: type },
+            lastResult.current,
+          )}
+        />
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
           <X size={14} />
         </button>
@@ -85,9 +102,11 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
         </button>
       </div>
 
-      {result && (
+      <LLMContextSources sources={contextSources} />
+
+      {displayText && (
         <div className={styles.result}>
-          <div className={styles.resultText}>{result}</div>
+          <div className={styles.resultText}>{displayText}</div>
           {!generating && (
             <div className={styles.resultActions}>
               <button onClick={applyToField} className={styles.applyBtn}>
@@ -101,9 +120,10 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
         </div>
       )}
 
-      {!result && !generating && (
+      {!displayText && !generating && (
         <p className={styles.hint}>Select what to generate, then click Generate.</p>
       )}
     </div>
+    </>
   );
 }

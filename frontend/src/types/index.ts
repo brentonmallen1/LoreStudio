@@ -199,3 +199,195 @@ export interface SceneLink {
   note: string;
   created_at: string;
 }
+
+export interface SearchResult {
+  type: "story" | "character" | "scene" | "setting" | "thread";
+  id: string;
+  story_id: string;
+  title: string;
+  subtitle?: string;
+  excerpt?: string;
+  level_type?: string;
+}
+
+// ── Scene Chat ──
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatContextPreview {
+  story: {
+    title: string;
+    genre?: string;
+    tone?: string;
+    themes?: string[];
+    narrative_intent?: string;
+    logline?: string;
+    unresolved_goals?: string[];
+  };
+  scene: {
+    title: string;
+    level_type: string;
+    synopsis?: string;
+    purpose?: string;
+    entry_state?: string;
+    exit_state?: string;
+    key_events?: string;
+    word_count: number;
+    status: string;
+    prose_preview?: string;
+  };
+  characters_in_scene: { name: string; role: string; motivation?: string }[];
+  all_characters: { name: string; role: string; motivation?: string }[];
+  settings_in_scene: { name: string; description?: string }[];
+  threads_in_scene: { name: string; status: string; description?: string }[];
+  open_threads: { name: string; status: string }[];
+  sibling_scenes: { title: string; synopsis?: string }[];
+}
+
+// ── Story Health ──
+
+export interface PacingEntry {
+  id: string;
+  title: string;
+  word_count: number;
+  status: string;
+  level_type: string;
+}
+
+export interface CharacterHealth {
+  id: string;
+  name: string;
+  role: string;
+  scene_appearances: number;
+  recent_appearances: number;
+  arc_milestones_total: number;
+  arc_milestones_done: number;
+  arc_pct: number | null;
+}
+
+export interface ThreadGroup {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface StoryHealth {
+  word_count: {
+    total: number;
+    by_status: Record<string, number>;
+  };
+  scenes: {
+    total: number;
+    by_status: Record<string, number>;
+  };
+  pacing: PacingEntry[];
+  characters: CharacterHealth[];
+  absent_characters: string[];
+  threads: {
+    open: ThreadGroup[];
+    developing: ThreadGroup[];
+    resolved: ThreadGroup[];
+  };
+  goals: {
+    total: number;
+    done: number;
+    items: { id: string; text: string; completed: boolean }[];
+  };
+}
+
+export interface AssetAttachment {
+  id: string;
+  asset_id: string;
+  object_type: string;
+  object_id: string;
+  role: string;
+  created_at: string;
+}
+
+export interface StoryAsset {
+  id: string;
+  story_id: string;
+  original_filename: string;
+  mime_type: string;
+  size_bytes: number;
+  alt_text: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+  attachments: AssetAttachment[];
+}
+
+export interface DiagramNode {
+  id: string;
+  type?: string;
+  position: { x: number; y: number };
+  data: { label: string; [key: string]: unknown };
+  style?: Record<string, unknown>;
+}
+
+export interface DiagramEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  type?: string;
+  animated?: boolean;
+}
+
+export interface Diagram {
+  id: string;
+  story_id: string;
+  title: string;
+  description: string;
+  diagram_type: "mindmap" | "flowchart";
+  nodes: DiagramNode[];
+  edges: DiagramEdge[];
+  attached_node_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiagramSummary {
+  id: string;
+  story_id: string;
+  title: string;
+  description: string;
+  diagram_type: "mindmap" | "flowchart";
+  attached_node_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// LLM Transparency
+export interface PromptPreviewRequest {
+  context_type: string;
+  story_id?: string;
+  node_id?: string;
+  interview_id?: string;
+  panel_id?: string;
+  character_id?: string;
+  attribute_type?: string;
+  user_message?: string;
+}
+
+export interface ContextSource {
+  source: string;
+  label: string;
+  included: boolean;
+}
+
+export interface PromptPreview {
+  context_type: string;
+  system_prompt: string;
+  user_message: string;
+  model: string;
+  sources: ContextSource[];
+}
+
+export interface LLMInteractionData {
+  preview: PromptPreview;
+  response: string;
+}

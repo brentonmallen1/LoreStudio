@@ -1,0 +1,38 @@
+.section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0.6rem 0.875rem;
+  background: var(--color-surface-2);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background var(--transition), color var(--transition);
+}
+
+.toggle:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.title {
+  flex: 1;
+}
+
+.content {
+  padding: 0.875rem;
+  border-top: 1px solid var(--color-border);
+}

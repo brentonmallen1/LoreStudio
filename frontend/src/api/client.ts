@@ -62,7 +62,7 @@ export const api = {
     request<import("../types").Story>(`/stories/${storyId}/goals/${goalId}`, { method: "DELETE" }),
 
   // Story AI
-  summarizeStory: (storyId: string, upToNodeId?: string, style?: string): Promise<Response> => {
+  summarizeStory: (storyId: string, upToNodeId?: string, style?: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/summarize`, {
       method: "POST",
@@ -71,9 +71,10 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ up_to_node_id: upToNodeId ?? null, style: style ?? "brief" }),
+      signal,
     });
   },
-  summarizeStructureSection: (storyId: string, nodeId: string): Promise<Response> => {
+  summarizeStructureSection: (storyId: string, nodeId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/summarize/structure`, {
       method: "POST",
@@ -82,9 +83,10 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ node_id: nodeId }),
+      signal,
     });
   },
-  summarizeCharacterArc: (storyId: string, characterId: string): Promise<Response> => {
+  summarizeCharacterArc: (storyId: string, characterId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/summarize/character`, {
       method: "POST",
@@ -93,9 +95,10 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ character_id: characterId }),
+      signal,
     });
   },
-  suggestRelationships: (storyId: string): Promise<Response> => {
+  suggestRelationships: (storyId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/suggest-relationships`, {
       method: "POST",
@@ -103,6 +106,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal,
     });
   },
 
@@ -152,7 +156,7 @@ export const api = {
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, { method: "DELETE" }),
 
   // Character AI generation (returns Response for streaming)
-  generateAttributes: (characterId: string, attributeType: string): Promise<Response> => {
+  generateAttributes: (characterId: string, attributeType: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/characters/${characterId}/generate-attributes`, {
       method: "POST",
@@ -161,6 +165,7 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ attribute_type: attributeType }),
+      signal,
     });
   },
 
@@ -208,7 +213,7 @@ export const api = {
     }),
 
   // Interview streaming (returns Response, not parsed JSON)
-  sendInterviewMessage: (interviewId: string, content: string): Promise<Response> => {
+  sendInterviewMessage: (interviewId: string, content: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/interviews/${interviewId}/messages`, {
       method: "POST",
@@ -217,10 +222,11 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ content }),
+      signal,
     });
   },
 
-  summarizeInterview: (interviewId: string): Promise<Response> => {
+  summarizeInterview: (interviewId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/interviews/${interviewId}/summarize`, {
       method: "POST",
@@ -228,6 +234,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal,
     });
   },
 
@@ -264,7 +271,7 @@ export const api = {
   getPanel: (panelId: string) =>
     request<import("../types").PanelInterview>(`/panels/${panelId}`),
   deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
-  sendPanelMessage: (panelId: string, content: string): Promise<Response> => {
+  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/panels/${panelId}/messages`, {
       method: "POST",
@@ -273,6 +280,7 @@ export const api = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({ content }),
+      signal,
     });
   },
 
@@ -284,6 +292,93 @@ export const api = {
   updateSceneLink: (id: string, data: { link_type?: string; note?: string }) =>
     request<import("../types").SceneLink>(`/scene-links/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteSceneLink: (id: string) => request<void>(`/scene-links/${id}`, { method: "DELETE" }),
+
+  // Global search
+  search: (query: string) =>
+    request<import("../types").SearchResult[]>(`/search?q=${encodeURIComponent(query)}`),
+
+  // Scene Chat
+  getChatContext: (storyId: string, nodeId: string) =>
+    request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
+  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ node_id: nodeId, messages }),
+      signal,
+    });
+  },
+
+  // Story Health
+  getStoryHealth: (storyId: string) =>
+    request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
+
+  // Media / Assets
+  uploadAsset: (storyId: string, file: File): Promise<import("../types").StoryAsset> => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append("file", file);
+    return fetch(`${BASE}/stories/${storyId}/media/upload`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(detail.detail ?? "Upload failed");
+      }
+      return res.json();
+    });
+  },
+  listAssets: (storyId: string) =>
+    request<import("../types").StoryAsset[]>(`/stories/${storyId}/media`),
+  getAsset: (assetId: string) =>
+    request<import("../types").StoryAsset>(`/media/${assetId}`),
+  assetFileUrl: (assetId: string) => {
+    const token = getToken();
+    // Returns URL for use in <img src> — must include token as query param since we can't set headers on img src
+    return `${BASE}/media/${assetId}/file?token=${token ?? ""}`;
+  },
+  updateAsset: (assetId: string, data: { alt_text?: string; description?: string }) =>
+    request<import("../types").StoryAsset>(`/media/${assetId}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteAsset: (assetId: string) => request<void>(`/media/${assetId}`, { method: "DELETE" }),
+  listAttachments: (objectType: string, objectId: string) =>
+    request<import("../types").AssetAttachment[]>(`/media/attachments/${objectType}/${objectId}`),
+  attachAsset: (assetId: string, objectType: string, objectId: string, role = "reference") =>
+    request<import("../types").AssetAttachment>(`/media/${assetId}/attach`, {
+      method: "POST",
+      body: JSON.stringify({ object_type: objectType, object_id: objectId, role }),
+    }),
+  detachAsset: (attachmentId: string) =>
+    request<void>(`/media/attachments/${attachmentId}`, { method: "DELETE" }),
+  analyzeImage: (assetId: string): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/media/${assetId}/analyze`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+
+  // Diagrams
+  listDiagrams: (storyId: string) =>
+    request<import("../types").DiagramSummary[]>(`/stories/${storyId}/diagrams`),
+  createDiagram: (storyId: string, data: { title: string; description?: string; diagram_type?: string; attached_node_id?: string }) =>
+    request<import("../types").Diagram>(`/stories/${storyId}/diagrams`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getDiagram: (diagramId: string) =>
+    request<import("../types").Diagram>(`/diagrams/${diagramId}`),
+  updateDiagram: (diagramId: string, data: Partial<import("../types").Diagram>) =>
+    request<import("../types").Diagram>(`/diagrams/${diagramId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteDiagram: (diagramId: string) => request<void>(`/diagrams/${diagramId}`, { method: "DELETE" }),
 
   // Templates
   listStructureTemplates: () =>
@@ -300,4 +395,11 @@ export const api = {
     }),
   deleteStructureTemplate: (id: string) =>
     request<void>(`/templates/structures/${id}`, { method: "DELETE" }),
+
+  // LLM Transparency
+  getPromptPreview: (body: import("../types").PromptPreviewRequest) =>
+    request<import("../types").PromptPreview>("/llm/prompt-preview", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };

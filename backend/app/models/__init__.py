@@ -5,6 +5,8 @@ from .character import Character, CharacterRelationship
 from .setting import Setting
 from .interview import CharacterInterview
 from .note import StoryNote
+from .media import StoryAsset, AssetAttachment
+from .diagram import Diagram
 
 __all__ = [
     "User",
@@ -16,4 +18,7 @@ __all__ = [
     "Setting",
     "CharacterInterview",
     "StoryNote",
+    "StoryAsset",
+    "AssetAttachment",
+    "Diagram",
 ]

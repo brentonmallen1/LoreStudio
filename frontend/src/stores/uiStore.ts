@@ -20,13 +20,27 @@ interface UIState {
   collapseInterviewPanel: () => void;
   setActiveInterview: (interview: Interview) => void;
 
-  // Focus mode
-  focusMode: boolean;
-  toggleFocusMode: () => void;
+  // View state: normal | focus (sidebar hidden) | fullscreen (browser fullscreen + sidebar hidden)
+  viewState: "normal" | "focus" | "fullscreen";
+  setViewState: (state: "normal" | "focus" | "fullscreen") => void;
+
+  // Sprint timer
+  sprintActive: boolean;
+  sprintStartTime: number | null;
+  sprintDuration: number;
+  sprintGoalWords: number;
+  sprintStartWordCount: number;
+  startSprint: (duration: number, goalWords: number, startWordCount: number) => void;
+  endSprint: () => void;
 
   // Story view mode
   viewMode: "tree" | "corkboard" | "timeline";
   setViewMode: (mode: "tree" | "corkboard" | "timeline") => void;
+
+  // Scene chat panel
+  chatPanelOpen: boolean;
+  openChatPanel: () => void;
+  closeChatPanel: () => void;
 }
 
 function applyTheme(theme: Theme) {
@@ -66,9 +80,22 @@ export const useUIStore = create<UIState>((set) => ({
   collapseInterviewPanel: () => set({ interviewPanelOpen: false }),
   setActiveInterview: (interview) => set({ activeInterview: interview }),
 
-  focusMode: false,
-  toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
+  viewState: "normal",
+  setViewState: (state) => set({ viewState: state }),
+
+  sprintActive: false,
+  sprintStartTime: null,
+  sprintDuration: 25,
+  sprintGoalWords: 500,
+  sprintStartWordCount: 0,
+  startSprint: (duration, goalWords, startWordCount) =>
+    set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
+  endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
   viewMode: "tree",
   setViewMode: (mode) => set({ viewMode: mode }),
+
+  chatPanelOpen: false,
+  openChatPanel: () => set({ chatPanelOpen: true }),
+  closeChatPanel: () => set({ chatPanelOpen: false }),
 }));

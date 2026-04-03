@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, Plus, Trash2, Edit2, Check, GripVertical } from "lucide-react";
+import { X, Plus, Trash2, Edit2, Check, GripVertical, LayoutTemplate } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryStructureTemplate } from "../../types";
+import { Modal } from "../common";
 import styles from "./TemplateManagerDialog.module.css";
 
 interface Props {
@@ -143,136 +144,132 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
     );
   }
 
-  return (
-    <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.dialog}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>Structure Templates</h2>
-          <button onClick={onClose} className={styles.closeBtn} aria-label="Close">
-            <X size={15} />
-          </button>
-        </div>
+  const footer = (
+    <button onClick={onClose} className={styles.doneBtn}>Done</button>
+  );
 
-        <div className={styles.body}>
-          {loading ? (
-            <p className={styles.loading}>Loading…</p>
-          ) : (
-            <>
-              {/* Custom templates section */}
-              <div className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <span className={styles.sectionTitle}>My Templates</span>
-                  <button onClick={startCreate} className={styles.newBtn}>
-                    <Plus size={12} /> New
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Structure Templates"
+      icon={<LayoutTemplate size={15} />}
+      size="md"
+      footer={footer}
+    >
+      {loading ? (
+        <p className={styles.loading}>Loading…</p>
+      ) : (
+        <div className={styles.content}>
+          {/* Custom templates section */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionTitle}>My Templates</span>
+              <button onClick={startCreate} className={styles.newBtn}>
+                <Plus size={12} /> New
+              </button>
+            </div>
+
+            {creating && (
+              <div className={styles.editCard}>
+                <input
+                  autoFocus
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  placeholder="Template name…"
+                  className={styles.nameInput}
+                />
+                <input
+                  value={draftDesc}
+                  onChange={(e) => setDraftDesc(e.target.value)}
+                  placeholder="Description (optional)"
+                  className={styles.nameInput}
+                />
+                {renderLevelEditor()}
+                <div className={styles.editActions}>
+                  <button onClick={() => setCreating(false)} className={styles.cancelBtn}>Cancel</button>
+                  <button
+                    onClick={handleCreate}
+                    disabled={!draftName.trim() || draftLevels.every((l) => !l.name.trim())}
+                    className={styles.saveBtn}
+                  >
+                    <Check size={12} /> Create
                   </button>
                 </div>
+              </div>
+            )}
 
-                {creating && (
+            {userTemplates.length === 0 && !creating && (
+              <p className={styles.empty}>No custom templates yet.</p>
+            )}
+
+            {userTemplates.map((t) => (
+              <div key={t.id} className={styles.templateCard}>
+                {editingId === t.id ? (
                   <div className={styles.editCard}>
                     <input
-                      autoFocus
                       value={draftName}
                       onChange={(e) => setDraftName(e.target.value)}
-                      placeholder="Template name…"
+                      placeholder="Template name"
                       className={styles.nameInput}
                     />
                     <input
                       value={draftDesc}
                       onChange={(e) => setDraftDesc(e.target.value)}
-                      placeholder="Description (optional)"
+                      placeholder="Description"
                       className={styles.nameInput}
                     />
                     {renderLevelEditor()}
                     <div className={styles.editActions}>
-                      <button onClick={() => setCreating(false)} className={styles.cancelBtn}>Cancel</button>
-                      <button
-                        onClick={handleCreate}
-                        disabled={!draftName.trim() || draftLevels.every((l) => !l.name.trim())}
-                        className={styles.saveBtn}
-                      >
-                        <Check size={12} /> Create
+                      <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>Cancel</button>
+                      <button onClick={() => handleSaveEdit(t.id)} className={styles.saveBtn}>
+                        <Check size={12} /> Save
                       </button>
                     </div>
                   </div>
-                )}
-
-                {userTemplates.length === 0 && !creating && (
-                  <p className={styles.empty}>No custom templates yet.</p>
-                )}
-
-                {userTemplates.map((t) => (
-                  <div key={t.id} className={styles.templateCard}>
-                    {editingId === t.id ? (
-                      <div className={styles.editCard}>
-                        <input
-                          value={draftName}
-                          onChange={(e) => setDraftName(e.target.value)}
-                          placeholder="Template name"
-                          className={styles.nameInput}
-                        />
-                        <input
-                          value={draftDesc}
-                          onChange={(e) => setDraftDesc(e.target.value)}
-                          placeholder="Description"
-                          className={styles.nameInput}
-                        />
-                        {renderLevelEditor()}
-                        <div className={styles.editActions}>
-                          <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>Cancel</button>
-                          <button onClick={() => handleSaveEdit(t.id)} className={styles.saveBtn}>
-                            <Check size={12} /> Save
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className={styles.templateInfo}>
-                          <span className={styles.templateName}>{t.name}</span>
-                          {t.description && <p className={styles.templateDesc}>{t.description}</p>}
-                          <p className={styles.templateLevels}>
-                            {t.levels.map((l) => l.name).join(" → ")}
-                          </p>
-                        </div>
-                        <div className={styles.templateActions}>
-                          <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
-                            <Edit2 size={12} />
-                          </button>
-                          <button onClick={() => handleDelete(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* System templates (read-only preview) */}
-              <div className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <span className={styles.sectionTitle}>Built-in Templates</span>
-                </div>
-                {systemTemplates.map((t) => (
-                  <div key={t.id} className={`${styles.templateCard} ${styles.systemCard}`}>
+                ) : (
+                  <>
                     <div className={styles.templateInfo}>
                       <span className={styles.templateName}>{t.name}</span>
                       {t.description && <p className={styles.templateDesc}>{t.description}</p>}
                       <p className={styles.templateLevels}>
-                        {t.levels.map((l: { name: string; plural: string }) => l.name).join(" → ")}
+                        {t.levels.map((l) => l.name).join(" → ")}
                       </p>
                     </div>
-                    <span className={styles.systemBadge}>built-in</span>
-                  </div>
-                ))}
+                    <div className={styles.templateActions}>
+                      <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
+                        <Edit2 size={12} />
+                      </button>
+                      <button onClick={() => handleDelete(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
 
-        <div className={styles.footer}>
-          <button onClick={onClose} className={styles.doneBtn}>Done</button>
+          {/* System templates (read-only preview) */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionTitle}>Built-in Templates</span>
+            </div>
+            {systemTemplates.map((t) => (
+              <div key={t.id} className={`${styles.templateCard} ${styles.systemCard}`}>
+                <div className={styles.templateInfo}>
+                  <span className={styles.templateName}>{t.name}</span>
+                  {t.description && <p className={styles.templateDesc}>{t.description}</p>}
+                  <p className={styles.templateLevels}>
+                    {t.levels.map((l: { name: string; plural: string }) => l.name).join(" → ")}
+                  </p>
+                </div>
+                <span className={styles.systemBadge}>built-in</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Modal>
   );
 }

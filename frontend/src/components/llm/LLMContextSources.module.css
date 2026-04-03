@@ -1,0 +1,98 @@
+.root {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.loading {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Collapsed toggle row */
+.toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text-muted);
+  transition: background var(--transition);
+}
+
+.toggle:hover {
+  background: var(--color-surface-2);
+}
+
+.toggleLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* Inline summary of included sources */
+.summary {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* Expanded detail */
+.detail {
+  padding: 0.4rem 0.75rem 0.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sourceItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.73rem;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.sourceItem.missing {
+  color: var(--color-text-muted);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.dotMissing {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.missingNote {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-left: 0.15rem;
+}

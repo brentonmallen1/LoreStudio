@@ -1,0 +1,222 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.titleBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.titleBtn:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.titleInput {
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-width: 180px;
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.toolBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolBtnDanger:hover {
+  border-color: var(--color-error, #e05c5c);
+  color: var(--color-error, #e05c5c) !important;
+}
+
+.toolBtnSave {
+  background: var(--color-accent) !important;
+  color: var(--color-bg) !important;
+  border-color: var(--color-accent) !important;
+  font-weight: 500;
+}
+
+.toolBtnSave:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.canvas {
+  flex: 1;
+  position: relative;
+}
+
+/* ReactFlow overrides to respect our color scheme */
+.canvas :global(.react-flow__background) {
+  background: var(--color-bg);
+}
+
+.canvas :global(.react-flow__controls) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.canvas :global(.react-flow__controls-button) {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-subtle);
+}
+
+.canvas :global(.react-flow__controls-button:hover) {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.canvas :global(.react-flow__edge-path) {
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+}
+
+.canvas :global(.react-flow__edge.selected .react-flow__edge-path) {
+  stroke: var(--color-accent);
+}
+
+.canvas :global(.react-flow__connection-line) {
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+}
+
+.hint {
+  padding: 5px 12px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+/* Custom Nodes */
+.mindNode {
+  padding: 8px 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--color-text);
+  cursor: pointer;
+  min-width: 80px;
+  text-align: center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mindNode:hover {
+  border-color: var(--color-accent);
+}
+
+.mindNodeSelected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.centralNode {
+  padding: 12px 20px;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: 2px solid var(--color-accent);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 120px;
+  text-align: center;
+  transition: box-shadow 0.15s;
+}
+
+.centralNodeSelected {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.centralLabel {
+  display: block;
+}
+
+.nodeLabel {
+  display: block;
+}
+
+.nodeInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+  text-align: center;
+  width: 100%;
+  min-width: 60px;
+  padding: 0;
+}
+
+.handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--color-accent) !important;
+  border: 2px solid var(--color-bg) !important;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.mindNode:hover .handle,
+.centralNode:hover .handle,
+.mindNodeSelected .handle,
+.centralNodeSelected .handle {
+  opacity: 1;
+}

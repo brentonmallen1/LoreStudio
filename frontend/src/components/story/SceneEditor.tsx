@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { Maximize2, Minimize2, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, type LucideIcon } from "lucide-react";
+import { Maximize2, Minimize2, Fullscreen, Sidebar, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, type LucideIcon } from "lucide-react";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
   MentionDropdownExtension,
@@ -16,6 +16,7 @@ import {
   FORCE_MENTION_KEY,
   type MentionItem,
 } from "./MentionDropdown";
+import AssetPicker from "../media/AssetPicker";
 
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
   act: Flag,
@@ -61,16 +62,19 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import StorySummaryPanel from "./StorySummaryPanel";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
+import SprintTimer from "./SprintTimer";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
-  const { focusMode, toggleFocusMode } = useUIStore();
+  const { viewState, setViewState, chatPanelOpen, openChatPanel, closeChatPanel } = useUIStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
+  const [showViewPicker, setShowViewPicker] = useState(false);
+  const viewPickerRef = useRef<HTMLDivElement>(null);
   const [synopsis, setSynopsis] = useState("");
   const [purpose, setPurpose] = useState("");
   const [entryState, setEntryState] = useState("");
@@ -214,6 +218,7 @@ export default function SceneEditor() {
     }
   }, [editor]);
 
+
   // Filtered mention items (characters first, then settings; prefix-matched)
   const filteredMentionItems = useMemo(
     () =>
@@ -300,6 +305,37 @@ export default function SceneEditor() {
     });
   }, []); // stable — refs handle freshness
 
+  // If user presses Escape to exit browser fullscreen, drop back to focus (sidebar still hidden)
+  useEffect(() => {
+    function onFullscreenChange() {
+      if (!document.fullscreenElement && viewState === "fullscreen") setViewState("focus");
+    }
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+  }, [viewState, setViewState]);
+
+  // Close view picker on outside click
+  useEffect(() => {
+    if (!showViewPicker) return;
+    function handleClick(e: MouseEvent) {
+      if (viewPickerRef.current && !viewPickerRef.current.contains(e.target as Node)) {
+        setShowViewPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showViewPicker]);
+
+  function applyViewState(next: "normal" | "focus" | "fullscreen") {
+    if (next === "fullscreen" && viewState !== "fullscreen") {
+      document.documentElement.requestFullscreen?.();
+    } else if (next !== "fullscreen" && viewState === "fullscreen") {
+      document.exitFullscreen?.();
+    }
+    setViewState(next);
+    setShowViewPicker(false);
+  }
+
   // Hover card event delegation — stable listener that reads from refs
   useEffect(() => {
     const el = scrollAreaRef.current;
@@ -346,7 +382,7 @@ export default function SceneEditor() {
             setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
           }
         }
-      }, 150);
+      }, 500);
     }
 
     function handleMouseOut(e: MouseEvent) {
@@ -368,7 +404,7 @@ export default function SceneEditor() {
       el.removeEventListener("mouseover", handleMouseOver);
       el.removeEventListener("mouseout", handleMouseOut);
     };
-  }, []); // stable — refs handle data freshness
+  }, [activeNode]); // Re-run when activeNode loads so scrollAreaRef is available
 
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
     if (overviewSaveRef.current) clearTimeout(overviewSaveRef.current);
@@ -640,13 +676,53 @@ export default function SceneEditor() {
               <span>Story So Far</span>
             </button>
           )}
-          <button
-            onClick={toggleFocusMode}
-            className={styles.focusBtn}
-            title={focusMode ? "Exit focus mode" : "Focus mode"}
-          >
-            {focusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
+          {activeStory && (
+            <button
+              onClick={() => chatPanelOpen ? closeChatPanel() : openChatPanel()}
+              className={`${styles.topbarBtn} ${chatPanelOpen ? styles.topbarBtnActive : ""}`}
+              title="Scene Assistant — AI chat grounded in this scene's full context"
+            >
+              <Sparkles size={13} />
+              <span>Assistant</span>
+            </button>
+          )}
+          <SprintTimer currentWordCount={wordCount} />
+          <div className={styles.viewPickerWrap} ref={viewPickerRef}>
+            <button
+              onClick={() => setShowViewPicker((v) => !v)}
+              className={`${styles.focusBtn} ${showViewPicker ? styles.focusBtnActive : ""}`}
+              title="View mode"
+            >
+              {viewState === "normal" && <Maximize2 size={14} />}
+              {viewState === "focus" && <Fullscreen size={14} />}
+              {viewState === "fullscreen" && <Minimize2 size={14} />}
+            </button>
+            {showViewPicker && (
+              <div className={styles.viewPicker}>
+                <button
+                  className={`${styles.viewPickerItem} ${viewState === "normal" ? styles.viewPickerItemActive : ""}`}
+                  onClick={() => applyViewState("normal")}
+                >
+                  <Sidebar size={13} />
+                  <span>Normal</span>
+                </button>
+                <button
+                  className={`${styles.viewPickerItem} ${viewState === "focus" ? styles.viewPickerItemActive : ""}`}
+                  onClick={() => applyViewState("focus")}
+                >
+                  <Maximize2 size={13} />
+                  <span>Focus</span>
+                </button>
+                <button
+                  className={`${styles.viewPickerItem} ${viewState === "fullscreen" ? styles.viewPickerItemActive : ""}`}
+                  onClick={() => applyViewState("fullscreen")}
+                >
+                  <Fullscreen size={13} />
+                  <span>Fullscreen</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -805,6 +881,17 @@ export default function SceneEditor() {
               </div>
             )}
           </div>
+          {activeStory && (
+            <div className={styles.overviewField}>
+              <AssetPicker
+                storyId={activeStory.id}
+                objectType="structure_node"
+                objectId={activeNode.id}
+                defaultRole="reference"
+                label="Images & References"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -814,7 +901,15 @@ export default function SceneEditor() {
         </div>
       )}
 
-      <div className={styles.scrollArea} ref={scrollAreaRef}>
+      <div
+        className={styles.scrollArea}
+        ref={scrollAreaRef}
+        onClick={(e) => {
+          if (editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
+            editor.commands.focus("end");
+          }
+        }}
+      >
         <div className={styles.editorWrap}>
           <EditorContent editor={editor} />
         </div>
@@ -906,13 +1001,13 @@ export default function SceneEditor() {
       {/* Mention hover card */}
       {hoverCard.open && (() => {
         const card = hoverCard;
-        const top = Math.min(card.rect.bottom + 6, window.innerHeight - 160);
+        const top = Math.max(8, card.rect.top - 12);
         const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
         return (
           <div
             ref={hoverCardRef}
             className={styles.hoverCard}
-            style={{ top, left }}
+            style={{ top, left, transform: "translateY(-100%)" }}
             onMouseEnter={() => {
               if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
             }}
