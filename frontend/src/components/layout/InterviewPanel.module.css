@@ -75,6 +75,104 @@
   color: var(--color-text);
 }
 
+/* ── Story context bar ── */
+.contextBar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent) 5%, var(--color-surface));
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.contextBarIcon {
+  color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.contextBarLabel {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.journeyDotFresh {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4caf7d;
+  flex-shrink: 0;
+}
+
+.journeyDotStale {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e8a838;
+  flex-shrink: 0;
+}
+
+.journeyDotNone {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.staleTag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #e8a838;
+  background: color-mix(in srgb, #e8a838 12%, transparent);
+  border: 1px solid color-mix(in srgb, #e8a838 28%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.05rem 0.3rem;
+}
+
+.refreshContextBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.68rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background var(--transition);
+  white-space: nowrap;
+}
+
+.refreshContextBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.refreshContextBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
 /* ── Suggested prompts ── */
 .prompts {
   padding: 0.75rem;

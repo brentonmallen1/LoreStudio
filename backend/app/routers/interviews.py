@@ -16,6 +16,11 @@ from ..schemas.interview import (
 from ..auth.dependencies import get_current_user
 from ..services.llm.ollama import ollama_provider
 from ..services.llm.prompts import build_character_interview_system_prompt, build_interview_summary_prompt
+from ..services.character_journey import (
+    get_cached_journey, get_nodes_up_to, get_scenes_with_character,
+    build_journey_prompt, save_journey,
+)
+from ..models.structure import StructureNode
 
 router = APIRouter()
 
@@ -71,7 +76,12 @@ def start_interview(
 ):
     character = _verify_character_access(character_id, db, current_user)
     title = body.title or f"Interview with {character.name}"
-    interview = CharacterInterview(character_id=character_id, title=title, messages=[])
+    interview = CharacterInterview(
+        character_id=character_id,
+        title=title,
+        context_node_id=body.context_node_id,
+        messages=[],
+    )
     db.add(interview)
     db.commit()
     db.refresh(interview)
@@ -100,7 +110,32 @@ async def send_message(
     interview.messages = messages
     db.commit()
 
-    system_prompt = build_character_interview_system_prompt(character)
+    # Fetch journey summary if interview has a story context point
+    journey_summary: str | None = None
+    if interview.context_node_id:
+        context_node = db.get(StructureNode, interview.context_node_id)
+        if context_node:
+            cached = get_cached_journey(character.id, interview.context_node_id, db)
+            if cached and cached.summary:
+                journey_summary = cached.summary
+            else:
+                # Auto-generate journey on first message if not cached
+                nodes_up_to = get_nodes_up_to(context_node.story_id, interview.context_node_id, db)
+                relevant = get_scenes_with_character(nodes_up_to, character)
+                if relevant:
+                    scene_summaries = [(n.title, n.content_summary) for n in relevant]
+                    source_ids = [n.id for n in relevant]
+                    prompt = build_journey_prompt(character, scene_summaries)
+                    full_tokens: list[str] = []
+                    async for token in ollama_provider.chat_stream(
+                        [{"role": "user", "content": "Please provide the journey summary."}], prompt
+                    ):
+                        full_tokens.append(token)
+                    if full_tokens:
+                        journey_summary = "".join(full_tokens)
+                        save_journey(character.id, interview.context_node_id, journey_summary, source_ids, db)
+
+    system_prompt = build_character_interview_system_prompt(character, journey_summary)
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
 
     async def stream_and_persist():

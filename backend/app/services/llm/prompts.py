@@ -145,10 +145,13 @@ def build_panel_interview_system_prompt(characters: list[Character]) -> str:
     )
 
 
-def build_character_interview_system_prompt(character: Character) -> str:
+def build_character_interview_system_prompt(
+    character: Character, journey_summary: str | None = None
+) -> str:
     """
     Constructs the system prompt for a character interview.
     The character becomes the LLM's persona — it IS the character.
+    If journey_summary is provided, the character responds with awareness of story events.
     """
     parts = [f"You are {character.name}."]
 
@@ -167,6 +170,12 @@ def build_character_interview_system_prompt(character: Character) -> str:
     if character.traits:
         trait_lines = "\n".join(f"  - {k}: {v}" for k, v in character.traits.items())
         parts.append(f"\nYour traits:\n{trait_lines}")
+
+    if journey_summary:
+        parts.append(
+            f"\n\nWhat you have experienced so far in the story:\n{journey_summary}\n"
+            "Respond with awareness of these events — they are part of your lived experience."
+        )
 
     parts.append(
         "\n\nYou are being interviewed by your author. "

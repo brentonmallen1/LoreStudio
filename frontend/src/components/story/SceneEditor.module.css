@@ -5,6 +5,7 @@
   height: 100%;
   overflow: hidden;
   background: var(--color-bg);
+  container-type: inline-size;
 }
 
 /* ── Top bar ── */
@@ -81,6 +82,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .statusBadge {
@@ -267,6 +269,8 @@
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--color-section-title);
+  display: flex;
+  align-items: center;
 }
 
 .overviewTextarea {
@@ -294,6 +298,81 @@
   font-size: 0.71rem;
   color: var(--color-text-subtle);
   line-height: 1.5;
+}
+
+/* ── Summary staleness indicators ── */
+.staleIndicatorFresh {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf7d;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.staleIndicatorStale {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8a838;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.staleIndicatorNone {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  opacity: 0.5;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.staleBadge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #e8a838;
+  background: color-mix(in srgb, #e8a838 12%, transparent);
+  border: 1px solid color-mix(in srgb, #e8a838 30%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.35rem;
+}
+
+.summaryRefreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.summaryRefreshBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border-color: var(--color-accent);
+}
+
+.summaryRefreshBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ── Linked Scenes section ── */
@@ -1118,6 +1197,45 @@
   padding: 0.1rem 0.4rem;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+/* ── Sprint timer wrapper (used for container query targeting) ── */
+.sprintTimerWrap {
+  display: contents;
+}
+
+/* ── Thread badges wrapper (used for container query hiding) ── */
+.threadBadgesWrap {
+  display: contents;
+}
+
+/* ── Responsive topbar: progressively hide content as editor narrows ── */
+
+/* Hide button text labels → icon-only buttons */
+@container (max-width: 720px) {
+  .topbarBtn span {
+    display: none;
+  }
+  .sprintTimerWrap span {
+    display: none;
+  }
+}
+
+/* Hide thread badges and word count */
+@container (max-width: 560px) {
+  .threadBadgesWrap {
+    display: none;
+  }
+  .wordCount {
+    display: none;
+  }
+}
+
+/* Hide status badge */
+@container (max-width: 440px) {
+  .statusBadge {
+    display: none;
+  }
 }
 
 /* ── Empty state ── */

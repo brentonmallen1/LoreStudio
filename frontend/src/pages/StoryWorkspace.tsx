@@ -10,7 +10,7 @@ import SceneChatPanel from "../components/layout/SceneChatPanel";
 import SceneEditor from "../components/story/SceneEditor";
 import CharacterSheet from "../components/characters/CharacterSheet";
 import CharacterList from "../components/characters/CharacterList";
-import StoryBiblePanel from "../components/story/StoryBiblePanel";
+import LorebookPanel from "../components/story/LorebookPanel";
 import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
 import PlotThreadManager from "../components/threads/PlotThreadManager";
 import CorkboardView from "../components/story/CorkboardView";
@@ -23,7 +23,7 @@ export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const isSceneView = !location.pathname.match(/\/(characters|bible|panels|threads|media|health)/);
+  const isSceneView = !location.pathname.match(/\/(characters|lorebook|panels|threads|media|health)/);
 
   const { setActiveStory, setStructure, setCharacters, setActiveTemplate } = useStoryStore();
   const { interviewPanelOpen, activeInterview, viewState, viewMode, chatPanelOpen } = useUIStore();
@@ -67,7 +67,7 @@ export default function StoryWorkspacePage() {
           } />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
           <Route path="/characters/:characterId" element={<CharacterSheet />} />
-          <Route path="/bible" element={<StoryBiblePanel storyId={storyId!} />} />
+          <Route path="/lorebook" element={<LorebookPanel storyId={storyId!} />} />
           <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
           <Route path="/media" element={<MediaPage />} />

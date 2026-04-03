@@ -4,7 +4,7 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
-import styles from "./StoryBiblePanel.module.css";
+import styles from "./LorebookPanel.module.css";
 
 // ── Theme tag input ────────────────────────────────────────────────────
 function ThemeInput({ themes, onChange }: { themes: string[]; onChange: (t: string[]) => void }) {
@@ -125,7 +125,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
 }
 
 // ── Main panel ─────────────────────────────────────────────────────────
-export default function StoryBiblePanel({ storyId }: { storyId: string }) {
+export default function LorebookPanel({ storyId }: { storyId: string }) {
   const { activeStory, setActiveStory } = useStoryStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -173,7 +173,7 @@ export default function StoryBiblePanel({ storyId }: { storyId: string }) {
   return (
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
-        <h2 className={styles.panelTitle}>Story Bible</h2>
+        <h2 className={styles.panelTitle}>Lorebook</h2>
         <p className={styles.panelSubtitle}>Reference and grounding for your story. Auto-saves as you type.</p>
       </div>
 

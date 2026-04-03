@@ -176,7 +176,7 @@ export default function Sidebar() {
   const tab = (() => {
     const path = location.pathname;
     if (path.includes("/characters")) return "characters";
-    if (path.includes("/bible")) return "bible";
+    if (path.includes("/lorebook")) return "lorebook";
     if (path.includes("/panels")) return "panels";
     if (path.includes("/threads")) return "threads";
     if (path.includes("/media")) return "media";
@@ -224,12 +224,12 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.tabs}>
-        {(["story", "characters", "bible", "panels", "threads", "media", "health"] as const).map((t) => (
+        {(["story", "characters", "lorebook", "panels", "threads", "media", "health"] as const).map((t) => (
           <button
             key={t}
             onClick={() => {
               if (t === "characters") navigate(`/stories/${storyId}/characters`);
-              else if (t === "bible") navigate(`/stories/${storyId}/bible`);
+              else if (t === "lorebook") navigate(`/stories/${storyId}/lorebook`);
               else if (t === "panels") navigate(`/stories/${storyId}/panels`);
               else if (t === "threads") navigate(`/stories/${storyId}/threads`);
               else if (t === "media") navigate(`/stories/${storyId}/media`);
@@ -237,9 +237,9 @@ export default function Sidebar() {
               else navigate(`/stories/${storyId}`);
             }}
             className={`${styles.tab} ${tab === t ? styles.activeTab : ""}`}
-            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "bible" ? "Bible" : t === "panels" ? "Group Interviews" : t === "threads" ? "Plot Threads" : t === "media" ? "Media & Diagrams" : "Story Health"}
+            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "lorebook" ? "Lorebook" : t === "panels" ? "Group Interviews" : t === "threads" ? "Plot Threads" : t === "media" ? "Media & Diagrams" : "Story Health"}
           >
-            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "bible" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : t === "threads" ? <GitBranch size={12} /> : t === "media" ? <Images size={12} /> : <Activity size={12} />}
+            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "lorebook" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : t === "threads" ? <GitBranch size={12} /> : t === "media" ? <Images size={12} /> : <Activity size={12} />}
           </button>
         ))}
       </div>

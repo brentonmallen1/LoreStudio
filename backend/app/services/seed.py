@@ -103,7 +103,7 @@ def seed_demo_story():
             description="A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
             structure_template_id="three-act",
             intent="A quiet, atmospheric story about solitude, memory, and the things we keep hidden.",
-            # Story Bible fields
+            # Lorebook fields
             genre="Literary Fiction",
             tone="Atmospheric, melancholic, quietly tense",
             themes=["solitude", "memory", "secrets", "grief", "identity"],

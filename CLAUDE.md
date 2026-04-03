@@ -12,6 +12,21 @@ The guiding philosophy: data-centric, organized, intentional. Every feature shou
 - **Author intent as first-class data** — Narrative intent, arc milestones, segment purpose/synopsis are as important as the prose itself
 - **Seed data tells the story** — When implementing new features, update the demo story ("The Last Lighthouse") to show off how the feature is meant to be used
 - **Update FUTURE_FEATURES.md** — Check off items as they're implemented, including a brief description of what was built
+- **Transparent by default** — Background work is never hidden. Every AI interaction, task run, and automated update is logged and accessible. The author can always see what the system did and why.
+- **Proactive, not presumptuous** — The system anticipates needs (pre-computing summaries, caching context, flagging issues) but never acts without permission. Prepare the data; don't make decisions.
+- **Context as infrastructure** — The system maintains knowledge graphs, conversation history, and summaries as invisible infrastructure that makes AI interactions smarter without manual management.
+
+## Naming Vocabulary
+
+LoreStudio uses a consistent vocabulary for its major information domains:
+
+- **Lorebook** — Story canon: characters, settings, relationships, themes, narrative intent, goals. The authoritative reference for "what is true in this story."
+- **Manuscript** — The prose being written: scenes, chapters, the actual text content.
+- **Compendium** — Research & reference materials: supplemental documents, URLs, notes, PDFs. Information that informs the story but isn't part of it.
+- **Codex** — AI knowledge infrastructure: the knowledge graph, embeddings, semantic index. The system's learned understanding of the story.
+- **Chronicle** — History & logs: conversation history, generated analyses, reports, activity logs, AI audit trail.
+
+Use these terms consistently in code, UI, and documentation.
 
 ## Commands
 
@@ -78,7 +93,7 @@ stores/           — Zustand: authStore, uiStore, storyStore
 pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
   layout/         — Sidebar, InterviewPanel
-  story/          — SceneEditor, CorkboardView, StorySummaryPanel, StoryBiblePanel
+  story/          — SceneEditor, CorkboardView, StorySummaryPanel, LorebookPanel
   characters/     — CharacterSheet, CharacterList, RelationshipGraph
   threads/        — PlotThreadManager, ThreadVisualization
   panels/         — Group interview (multi-character panel)

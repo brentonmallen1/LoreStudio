@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp, RefreshCw, BookOpen } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
-import type { InterviewMessage } from "../../types";
+import type { InterviewMessage, CharacterJourney } from "../../types";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
@@ -13,11 +13,12 @@ import styles from "./InterviewPanel.module.css";
 export default function InterviewPanel() {
   const { activeInterview, activeInterviewCharacter, closeInterviewPanel, collapseInterviewPanel, setActiveInterview } =
     useUIStore();
-  const { upsertCharacter } = useStoryStore();
+  const { upsertCharacter, structure } = useStoryStore();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<InterviewMessage[]>(activeInterview?.messages ?? []);
   const [showNotes, setShowNotes] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [journey, setJourney] = useState<CharacterJourney | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastUserMsg = useRef("");
@@ -27,6 +28,15 @@ export default function InterviewPanel() {
 
   const interviewId = activeInterview?.id ?? "";
   const character = activeInterviewCharacter;
+
+  function findNodeTitle(nodeId: string, nodes: import("../../types").StructureNode[]): string | null {
+    for (const n of nodes) {
+      if (n.id === nodeId) return n.title;
+      const found = findNodeTitle(nodeId, n.children);
+      if (found) return found;
+    }
+    return null;
+  }
 
   const { sources: contextSources, loading: sourcesLoading } = useLLMContextSources(
     interviewId ? { context_type: "interview", interview_id: interviewId } : null
@@ -66,6 +76,18 @@ export default function InterviewPanel() {
     },
   });
 
+  const contextNodeId = activeInterview?.context_node_id ?? null;
+
+  const { stream: streamJourneyRefresh, isStreaming: refreshingJourney } = useLLMStream({
+    requestId: `journey-refresh:${activeInterviewCharacter?.id ?? ""}:${contextNodeId ?? ""}`,
+    label: "Refreshing journey context",
+    onComplete: () => {
+      if (activeInterviewCharacter && contextNodeId) {
+        api.getCharacterJourney(activeInterviewCharacter.id, contextNodeId).then(setJourney).catch(() => {});
+      }
+    },
+  });
+
   const summaryText = isSummarizing
     ? summaryStreamText
     : (activeInterview?.interview_notes ?? "");
@@ -73,6 +95,12 @@ export default function InterviewPanel() {
   useEffect(() => {
     setMessages(activeInterview?.messages ?? []);
     setShowNotes(!!(activeInterview?.interview_notes));
+    setJourney(null);
+    if (activeInterview?.context_node_id && activeInterviewCharacter) {
+      api.getCharacterJourney(activeInterviewCharacter.id, activeInterview.context_node_id)
+        .then(setJourney)
+        .catch(() => {});
+    }
   }, [activeInterview?.id]);
 
   useEffect(() => {
@@ -146,6 +174,42 @@ export default function InterviewPanel() {
       </div>
 
       <LLMContextSources sources={contextSources} loading={sourcesLoading && !contextSources.length} />
+
+      {contextNodeId && (
+        <div className={styles.contextBar}>
+          <BookOpen size={11} className={styles.contextBarIcon} />
+          <span className={styles.contextBarLabel}>
+            At: {findNodeTitle(contextNodeId, structure) ?? "scene"}
+          </span>
+          <span className={
+            !journey || !journey.summary
+              ? styles.journeyDotNone
+              : journey.is_stale
+              ? styles.journeyDotStale
+              : styles.journeyDotFresh
+          } title={
+            !journey || !journey.summary ? "No journey context" : journey.is_stale ? "Context may be outdated" : "Context is fresh"
+          } />
+          {journey?.is_stale && (
+            <span className={styles.staleTag}>Outdated</span>
+          )}
+          <button
+            className={styles.refreshContextBtn}
+            onClick={() => {
+              if (activeInterviewCharacter && contextNodeId) {
+                streamJourneyRefresh((signal) =>
+                  api.refreshCharacterJourney(activeInterviewCharacter.id, contextNodeId, signal)
+                );
+              }
+            }}
+            disabled={refreshingJourney}
+            title="Refresh journey context"
+          >
+            <RefreshCw size={10} className={refreshingJourney ? styles.spinning : ""} />
+            {refreshingJourney ? "Refreshing…" : "Refresh context"}
+          </button>
+        </div>
+      )}
 
       {messages.length === 0 && character?.interview_prompts && character.interview_prompts.length > 0 && (
         <div className={styles.prompts}>

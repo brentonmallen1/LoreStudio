@@ -1,0 +1,205 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-section-title);
+}
+
+.hint {
+  font-size: 0.79rem;
+  color: var(--color-text-subtle);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.select {
+  width: 100%;
+  padding: 0.45rem 0.625rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  outline: none;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--color-accent);
+}
+
+/* ── Journey Preview ── */
+.journeyPreview {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.journeyHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.journeyLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-section-title);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.sceneCount {
+  font-size: 0.71rem;
+  color: var(--color-text-subtle);
+}
+
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.45rem;
+  font-size: 0.71rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: background var(--transition);
+  white-space: nowrap;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+.staleWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #e8a838;
+  background: color-mix(in srgb, #e8a838 10%, transparent);
+  border: 1px solid color-mix(in srgb, #e8a838 25%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.6rem;
+  line-height: 1.4;
+}
+
+.journeyText {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.journeyHint {
+  font-size: 0.79rem;
+  color: var(--color-text-subtle);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Staleness indicator dots */
+.indicatorFresh {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf7d;
+  flex-shrink: 0;
+}
+
+.indicatorStale {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8a838;
+  flex-shrink: 0;
+}
+
+.indicatorNone {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── Footer buttons ── */
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.cancelBtn:hover {
+  background: var(--color-surface-2);
+}
+
+.startBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.startBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

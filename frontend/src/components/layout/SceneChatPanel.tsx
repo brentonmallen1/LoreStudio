@@ -86,10 +86,39 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const [ctx, setCtx] = useState<ChatContextPreview | null>(null);
   const [showCtx, setShowCtx] = useState(false);
   const [loadingCtx, setLoadingCtx] = useState(false);
+  const [panelWidth, setPanelWidth] = useState(340);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastUserMsg = useRef("");
   const lastResponse = useRef("");
+  const isResizing = useRef(false);
+  const resizeStartX = useRef(0);
+  const resizeStartWidth = useRef(340);
+
+  function startResize(e: React.MouseEvent) {
+    isResizing.current = true;
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = panelWidth;
+    e.preventDefault();
+  }
+
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!isResizing.current) return;
+      const dx = resizeStartX.current - e.clientX;
+      const newWidth = Math.max(260, Math.min(640, resizeStartWidth.current + dx));
+      setPanelWidth(newWidth);
+    }
+    function onMouseUp() {
+      isResizing.current = false;
+    }
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, []);
   const transparency = useLLMTransparency();
 
   const { sources: contextSources } = useLLMContextSources(
@@ -150,7 +179,8 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   return (
     <>
     <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
-    <div className={styles.panel}>
+    <div className={styles.panel} style={{ width: panelWidth }}>
+      <div className={styles.resizeHandle} onMouseDown={startResize} />
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>

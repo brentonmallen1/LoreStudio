@@ -63,6 +63,7 @@ import { useUIStore } from "../../stores/uiStore";
 import StorySummaryPanel from "./StorySummaryPanel";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "./SprintTimer";
+import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
@@ -80,6 +81,7 @@ export default function SceneEditor() {
   const [entryState, setEntryState] = useState("");
   const [exitState, setExitState] = useState("");
   const [keyEvents, setKeyEvents] = useState("");
+  const [contentSummary, setContentSummary] = useState("");
 
   // Scene links state
   const [sceneLinks, setSceneLinks] = useState<SceneLink[]>([]);
@@ -179,9 +181,21 @@ export default function SceneEditor() {
     setEntryState(activeNode.entry_state ?? "");
     setExitState(activeNode.exit_state ?? "");
     setKeyEvents(activeNode.key_events ?? "");
+    setContentSummary(activeNode.content_summary ?? "");
     setInlineNotes(activeNode.metadata_?.inline_notes ?? []);
     setNotePopover({ open: false });
   }, [activeNode?.id]);
+
+  const { stream: streamSummary, text: summaryStreamText, isStreaming: generatingSummary } = useLLMStream({
+    requestId: activeNode ? `scene-summary:${activeNode.id}` : "scene-summary:none",
+    label: "Summarizing scene",
+    onComplete: (full) => {
+      setContentSummary(full);
+      if (activeNode) {
+        setActiveNode({ ...activeNode, content_summary: full, summary_stale: false });
+      }
+    },
+  });
 
   // Load scene links when active node changes
   useEffect(() => {
@@ -655,7 +669,9 @@ export default function SceneEditor() {
         </div>
         <div className={styles.metaGroup}>
           {activeStory && (
-            <SceneThreadBadges storyId={activeStory.id} nodeId={activeNode.id} />
+            <div className={styles.threadBadgesWrap}>
+              <SceneThreadBadges storyId={activeStory.id} nodeId={activeNode.id} />
+            </div>
           )}
           <span className={styles.wordCount}>{wordCount.toLocaleString()} words</span>
           <button
@@ -686,7 +702,7 @@ export default function SceneEditor() {
               <span>Assistant</span>
             </button>
           )}
-          <SprintTimer currentWordCount={wordCount} />
+          <div className={styles.sprintTimerWrap}><SprintTimer currentWordCount={wordCount} /></div>
           <div className={styles.viewPickerWrap} ref={viewPickerRef}>
             <button
               onClick={() => setShowViewPicker((v) => !v)}
@@ -799,6 +815,60 @@ export default function SceneEditor() {
               className={styles.overviewTextarea}
               rows={2}
             />
+          </div>
+          <div className={styles.overviewField}>
+            <div className={styles.linkedHeader}>
+              <label className={styles.overviewLabel}>
+                AI Summary
+                {activeNode && (
+                  <span className={
+                    !contentSummary && !summaryStreamText
+                      ? styles.staleIndicatorNone
+                      : activeNode.summary_stale
+                      ? styles.staleIndicatorStale
+                      : styles.staleIndicatorFresh
+                  } title={
+                    !contentSummary && !summaryStreamText ? "Not generated" : activeNode.summary_stale ? "Stale — content has changed" : "Fresh"
+                  } />
+                )}
+                {activeNode?.summary_stale && contentSummary && (
+                  <span className={styles.staleBadge}>Stale</span>
+                )}
+              </label>
+              <button
+                className={styles.summaryRefreshBtn}
+                onClick={() => {
+                  if (!activeNode) return;
+                  streamSummary((signal) => api.summarizeNode(activeNode.id, signal));
+                }}
+                disabled={generatingSummary || !activeNode?.content?.trim()}
+                title="Generate/Refresh summary"
+              >
+                <Sparkles size={11} />
+                {!contentSummary && !summaryStreamText ? "Generate" : generatingSummary ? "Generating…" : "Regenerate"}
+              </button>
+            </div>
+            {generatingSummary && summaryStreamText ? (
+              <p className={styles.overviewHint} style={{ fontStyle: "italic" }}>{summaryStreamText}</p>
+            ) : contentSummary ? (
+              <textarea
+                value={contentSummary}
+                onChange={(e) => setContentSummary(e.target.value)}
+                onBlur={async () => {
+                  if (!activeNode) return;
+                  const updated = await api.updateNode(activeNode.id, { content_summary: contentSummary });
+                  setActiveNode({ ...activeNode, ...updated });
+                }}
+                className={styles.overviewTextarea}
+                rows={3}
+              />
+            ) : (
+              <p className={styles.overviewHint}>
+                {activeNode?.content?.trim()
+                  ? "Click Generate to create an AI summary of this scene's content."
+                  : "Write some content first, then generate a summary."}
+              </p>
+            )}
           </div>
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>
@@ -1030,7 +1100,7 @@ export default function SceneEditor() {
                       if (card.type === "character") {
                         navigate(`/stories/${activeStory.id}/characters/${card.entityId}`);
                       } else {
-                        navigate(`/stories/${activeStory.id}/bible`);
+                        navigate(`/stories/${activeStory.id}/lorebook`);
                       }
                     }}
                   >

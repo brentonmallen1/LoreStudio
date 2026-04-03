@@ -69,6 +69,8 @@ export interface StructureNode {
   exit_state: string;
   key_events: string;
   timeline_position: number | null;
+  content_summary: string;
+  summary_stale: boolean;
   created_at: string;
   updated_at: string;
   children: StructureNode[];
@@ -129,10 +131,18 @@ export interface Interview {
   id: string;
   character_id: string;
   title: string;
+  context_node_id: string | null;
   messages: InterviewMessage[];
   interview_notes: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CharacterJourney {
+  summary: string;
+  is_stale: boolean;
+  scene_count: number;
+  generated_at: string | null;
 }
 
 export interface InterviewSummary {

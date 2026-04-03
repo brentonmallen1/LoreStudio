@@ -137,7 +137,7 @@ export default function StoryHealthPage() {
             <h3 className={styles.cardTitle}>Story Goals</h3>
           </div>
           {health.goals.total === 0 ? (
-            <p className={styles.emptyNote}>No goals set — add them in the Story Bible.</p>
+            <p className={styles.emptyNote}>No goals set — add them in the Lorebook.</p>
           ) : (
             <>
               <p className={styles.bigStat}>{health.goals.done}/{health.goals.total}</p>

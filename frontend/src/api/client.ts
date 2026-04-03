@@ -124,6 +124,14 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteNode: (nodeId: string) => request<void>(`/structure/${nodeId}`, { method: "DELETE" }),
+  summarizeNode: (nodeId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/structure/${nodeId}/summarize`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    });
+  },
 
   // Characters
   listCharacters: (storyId: string) =>
@@ -192,10 +200,10 @@ export const api = {
   // Interviews
   listInterviews: (characterId: string) =>
     request<import("../types").InterviewSummary[]>(`/interviews/characters/${characterId}`),
-  startInterview: (characterId: string, title?: string) =>
+  startInterview: (characterId: string, title?: string, contextNodeId?: string) =>
     request<import("../types").Interview>(`/interviews/characters/${characterId}`, {
       method: "POST",
-      body: JSON.stringify({ title: title ?? "" }),
+      body: JSON.stringify({ title: title ?? "", context_node_id: contextNodeId ?? null }),
     }),
   getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
   deleteInterview: (id: string) => request<void>(`/interviews/${id}`, { method: "DELETE" }),
@@ -234,6 +242,18 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      signal,
+    });
+  },
+
+  // Character Journey
+  getCharacterJourney: (characterId: string, upToNodeId: string) =>
+    request<import("../types").CharacterJourney>(`/characters/${characterId}/journey?up_to_node=${upToNodeId}`),
+  refreshCharacterJourney: (characterId: string, upToNodeId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/characters/${characterId}/journey/refresh?up_to_node=${upToNodeId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
       signal,
     });
   },

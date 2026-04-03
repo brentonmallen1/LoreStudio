@@ -6,6 +6,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
+import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
 import styles from "./CharacterSheet.module.css";
 
@@ -24,7 +25,7 @@ export default function CharacterSheet() {
   const { characters, upsertCharacter } = useStoryStore();
   const { openInterview } = useUIStore();
   const [editing, setEditing] = useState(false);
-  const [startingInterview, setStartingInterview] = useState(false);
+  const [showStartInterview, setShowStartInterview] = useState(false);
   const [showAiGenerator, setShowAiGenerator] = useState(false);
   const [intentText, setIntentText] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
@@ -78,15 +79,10 @@ export default function CharacterSheet() {
     upsertCharacter(updated);
   }
 
-  async function handleStartInterview() {
+  function handleInterviewStarted(interview: import("../../types").Interview) {
     if (!character) return;
-    setStartingInterview(true);
-    try {
-      const interview = await api.startInterview(character.id, `Interview with ${character.name}`);
-      openInterview(interview, character);
-    } finally {
-      setStartingInterview(false);
-    }
+    setShowStartInterview(false);
+    openInterview(interview, character);
   }
 
   if (!character) {
@@ -112,8 +108,7 @@ export default function CharacterSheet() {
 
           <div className={styles.actions}>
             <button
-              onClick={handleStartInterview}
-              disabled={startingInterview}
+              onClick={() => setShowStartInterview(true)}
               className={styles.interviewBtn}
             >
               <MessageSquare size={14} />
@@ -215,7 +210,7 @@ export default function CharacterSheet() {
                 {character.interview_prompts.map((prompt, i) => (
                   <button
                     key={i}
-                    onClick={handleStartInterview}
+                    onClick={() => setShowStartInterview(true)}
                     className={styles.promptCard}
                   >
                     <span>{prompt}</span>
@@ -264,6 +259,14 @@ export default function CharacterSheet() {
           storyId={storyId!}
           character={character}
           onClose={() => setEditing(false)}
+        />
+      )}
+
+      {showStartInterview && (
+        <StartInterviewDialog
+          character={character}
+          onStarted={handleInterviewStarted}
+          onClose={() => setShowStartInterview(false)}
         />
       )}
     </div>

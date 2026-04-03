@@ -115,7 +115,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}`);
         break;
       case "setting":
-        navigate(`/stories/${result.story_id}/bible`);
+        navigate(`/stories/${result.story_id}/lorebook`);
         break;
       case "thread":
         navigate(`/stories/${result.story_id}/threads`);

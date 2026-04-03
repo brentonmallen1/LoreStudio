@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 class InterviewCreate(BaseModel):
     title: str = ""
+    context_node_id: str | None = None
 
 
 class InterviewMessageRequest(BaseModel):
@@ -30,6 +31,7 @@ class InterviewOut(BaseModel):
     id: str
     character_id: str
     title: str
+    context_node_id: str | None = None
     messages: list[MessageOut]
     interview_notes: str
     created_at: datetime

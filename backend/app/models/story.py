@@ -15,7 +15,7 @@ class Story(Base):
     intent: Mapped[str] = mapped_column(Text, default="")  # System-level LLM context
     structure_template_id: Mapped[str] = mapped_column(String, default="freeform")
 
-    # Story Bible fields
+    # Lorebook fields
     genre: Mapped[str] = mapped_column(String, default="")
     tone: Mapped[str] = mapped_column(String, default="")
     themes: Mapped[list] = mapped_column(JSON, default=list)

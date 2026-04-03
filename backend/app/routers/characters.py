@@ -1,5 +1,6 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from datetime import timezone
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Body
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -7,6 +8,7 @@ from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.character import Character, CharacterRelationship
+from ..models.structure import StructureNode
 from ..schemas.character import (
     CharacterCreate, CharacterUpdate, CharacterOut,
     RelationshipCreate, RelationshipOut,
@@ -15,6 +17,10 @@ from ..schemas.character import (
 from ..auth.dependencies import get_current_user
 from ..services.llm.ollama import ollama_provider
 from ..services.llm.prompts import build_attribute_generation_prompt
+from ..services.character_journey import (
+    get_cached_journey, get_nodes_up_to, get_scenes_with_character,
+    build_journey_prompt, save_journey,
+)
 
 router = APIRouter()
 
@@ -163,3 +169,86 @@ def delete_relationship(
     _verify_character_access(rel.character_id, db, current_user)
     db.delete(rel)
     db.commit()
+
+
+@router.get("/{character_id}/journey")
+def get_character_journey(
+    character_id: str,
+    up_to_node: str = Query(..., description="Node ID to use as the 'current point in story'"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Return a cached character journey summary up to the given node.
+    If no cache exists yet, returns empty summary with scene_count.
+    """
+    character = _verify_character_access(character_id, db, current_user)
+    node = db.get(StructureNode, up_to_node)
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+
+    cached = get_cached_journey(character_id, up_to_node, db)
+    nodes_up_to = get_nodes_up_to(node.story_id, up_to_node, db)
+    relevant_scenes = get_scenes_with_character(nodes_up_to, character)
+
+    if cached:
+        return {
+            "summary": cached.summary,
+            "is_stale": cached.is_stale,
+            "scene_count": len(relevant_scenes),
+            "generated_at": cached.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+        }
+    return {
+        "summary": "",
+        "is_stale": False,
+        "scene_count": len(relevant_scenes),
+        "generated_at": None,
+    }
+
+
+@router.post("/{character_id}/journey/refresh")
+async def refresh_character_journey(
+    character_id: str,
+    up_to_node: str = Query(..., description="Node ID to use as the 'current point in story'"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Force-regenerate the character journey summary up to the given node.
+    Streams the LLM response and saves to cache on completion.
+    """
+    character = _verify_character_access(character_id, db, current_user)
+    node = db.get(StructureNode, up_to_node)
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+
+    nodes_up_to = get_nodes_up_to(node.story_id, up_to_node, db)
+    relevant_scenes = get_scenes_with_character(nodes_up_to, character)
+
+    if not relevant_scenes:
+        from fastapi.responses import Response
+        # Still cache a placeholder so the UI can show "0 scenes found"
+        cached = get_cached_journey(character_id, up_to_node, db)
+        placeholder = f"I don't appear to have experienced anything notable in the story up to this point."
+        save_journey(character_id, up_to_node, placeholder, [], db, existing=cached)
+        return Response(placeholder, media_type="text/plain")
+
+    scene_summaries = [(n.title, n.content_summary) for n in relevant_scenes]
+    source_ids = [n.id for n in relevant_scenes]
+    system_prompt = build_journey_prompt(character, scene_summaries)
+    llm_messages = [{"role": "user", "content": "Please provide the journey summary."}]
+
+    cached = get_cached_journey(character_id, up_to_node, db)
+
+    async def stream_and_persist():
+        full_response = []
+        try:
+            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+                full_response.append(token)
+                yield token
+        finally:
+            if full_response:
+                summary = "".join(full_response)
+                save_journey(character_id, up_to_node, summary, source_ids, db, existing=cached)
+
+    return StreamingResponse(stream_and_persist(), media_type="text/plain")

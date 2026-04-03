@@ -39,6 +39,8 @@ class StructureNode(Base):
     exit_state: Mapped[str] = mapped_column(Text, default="")
     key_events: Mapped[str] = mapped_column(Text, default="")
     timeline_position: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    content_summary: Mapped[str] = mapped_column(Text, default="", server_default="")
+    summary_stale: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

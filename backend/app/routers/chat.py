@@ -4,7 +4,7 @@ Scene-aware chat assistant.
 Assembles a rich context packet from everything the story knows about the current
 scene, then streams a response.  Context includes:
 
-  - Story bible: title, genre, tone, themes, narrative intent, logline, premise
+  - Lorebook: title, genre, tone, themes, narrative intent, logline, premise
   - Active scene: title, synopsis, purpose, entry/exit state, key events, prose (truncated)
   - Characters @mentioned in the scene's prose (full profiles)
   - Plot threads touching this scene
@@ -54,8 +54,8 @@ def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
 def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dict:
     """Assemble the full context dict — used for both the preview endpoint and chat."""
 
-    # ── Story bible ──
-    story_bible = {
+    # ── Lorebook ──
+    lorebook = {
         "title": story.title,
         "genre": story.genre or None,
         "tone": story.tone or None,
@@ -152,7 +152,7 @@ def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dic
     ]
 
     return {
-        "story": story_bible,
+        "story": lorebook,
         "scene": scene,
         "characters_in_scene": mentioned_char_profiles,
         "all_characters": all_char_summaries,
