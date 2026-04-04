@@ -12,6 +12,12 @@ from .chat_session import ChatSession
 from .chat_message import ChatMessage
 from .activity_log import ActivityLog
 from .compendium import CompendiumEntry, CompendiumAttachment
+from .location import Location, SceneSetting
+from .world_system import WorldSystem
+from .culture import Culture
+from .historical_event import Era, HistoricalEvent
+from .location_travel import LocationTravel
+from .calendar import Calendar
 
 __all__ = [
     "User",
@@ -32,4 +38,12 @@ __all__ = [
     "ActivityLog",
     "CompendiumEntry",
     "CompendiumAttachment",
+    "Location",
+    "SceneSetting",
+    "WorldSystem",
+    "Culture",
+    "Era",
+    "HistoricalEvent",
+    "LocationTravel",
+    "Calendar",
 ]

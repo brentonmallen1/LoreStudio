@@ -28,6 +28,7 @@ import {
   PanelLeftOpen,
   PanelRightOpen,
   BookOpen,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 
@@ -223,6 +224,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/media")) return "media";
     if (path.includes("/health")) return "health";
     if (path.includes("/chronicle")) return "chronicle";
+    if (path.includes("/worldbuilding")) return "worldbuilding";
     if (path.includes("/write")) return "story";
     return "overview";
   })();
@@ -251,9 +253,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     { id: "compendium", icon: BookOpen,          label: "Compendium",        path: "/compendium" },
     { id: "panels",     icon: MessageSquareMore, label: "Group Interviews",  path: "/panels" },
     { id: "threads",    icon: GitBranch,         label: "Plot Threads",      path: "/threads" },
-    { id: "media",      icon: Images,            label: "Media & Diagrams",  path: "/media" },
-    { id: "health",     icon: Activity,          label: "Story Health",      path: "/health" },
-    { id: "chronicle",  icon: Clock,             label: "Chronicle",         path: "/chronicle" },
+    { id: "worldbuilding", icon: Globe,             label: "World Building",    path: "/worldbuilding" },
+    { id: "media",         icon: Images,           label: "Media & Diagrams",  path: "/media" },
+    { id: "health",        icon: Activity,         label: "Story Health",      path: "/health" },
+    { id: "chronicle",     icon: Clock,            label: "Chronicle",         path: "/chronicle" },
   ] as const;
 
   return (

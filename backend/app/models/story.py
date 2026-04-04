@@ -59,3 +59,21 @@ class Story(Base):
     compendium_entries: Mapped[list["CompendiumEntry"]] = relationship(
         "CompendiumEntry", back_populates="story", cascade="all, delete-orphan"
     )
+    locations: Mapped[list["Location"]] = relationship(
+        "Location", back_populates="story", cascade="all, delete-orphan"
+    )
+    world_systems: Mapped[list["WorldSystem"]] = relationship(
+        "WorldSystem", back_populates="story", cascade="all, delete-orphan"
+    )
+    cultures: Mapped[list["Culture"]] = relationship(
+        "Culture", back_populates="story", cascade="all, delete-orphan"
+    )
+    eras: Mapped[list["Era"]] = relationship(
+        "Era", back_populates="story", cascade="all, delete-orphan"
+    )
+    historical_events: Mapped[list["HistoricalEvent"]] = relationship(
+        "HistoricalEvent", back_populates="story", cascade="all, delete-orphan"
+    )
+    calendars: Mapped[list["Calendar"]] = relationship(
+        "Calendar", back_populates="story", cascade="all, delete-orphan"
+    )

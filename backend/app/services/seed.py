@@ -9,6 +9,12 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.compendium import CompendiumEntry
+from ..models.location import Location, SceneSetting
+from ..models.world_system import WorldSystem
+from ..models.culture import Culture
+from ..models.historical_event import Era, HistoricalEvent
+from ..models.location_travel import LocationTravel
+from ..models.calendar import Calendar
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -1050,6 +1056,281 @@ def seed_demo_story():
             tags=["research", "setting", "plot"],
             category="worldbuilding",
             notes="The storm is structural, not decorative — it must be severe enough to trap both characters together.",
+        ))
+
+        # ── World Building — Locations ──────────────────────────────────────
+        harrow_island = Location(
+            story_id=story.id,
+            name="Harrow Island",
+            location_type="natural_feature",
+            description=(
+                "A small, rocky island off the Atlantic coast. Largely uninhabited now — "
+                "three houses still occupied out of eleven. The lighthouse sits on the northern "
+                "headland, visible for miles on a clear night."
+            ),
+            climate="Subarctic maritime — cold, wet, fog-prone, brutal in storm season",
+            terrain="Rocky coastline, low scrub, exposed headlands, a small shingle beach",
+            significance="The island is the story's world. Its isolation is both setting and theme.",
+            position=0,
+        )
+        db.add(harrow_island)
+        db.flush()
+
+        lighthouse = Location(
+            story_id=story.id,
+            parent_id=harrow_island.id,
+            name="The Lighthouse",
+            location_type="structure",
+            description=(
+                "A white-painted stone lighthouse built in the 1890s. Four storeys: "
+                "ground-floor keeper's quarters, lantern room at the top. The great Fresnel lens "
+                "still rotates, though the mechanism has been electrified. Eleanor's father kept it "
+                "by hand for thirty years."
+            ),
+            atmosphere=(
+                "Cramped, worn, salt-bleached. The smell of lamp oil that never quite leaves the walls. "
+                "Every surface has a function; nothing is decorative except the logbooks on the shelf."
+            ),
+            history=(
+                "Built 1894. Automated in 1987, then decommissioned by the coast guard. "
+                "Eleanor's father petitioned successfully to maintain it manually as a heritage site. "
+                "Eleanor inherited the post — and the obligation."
+            ),
+            significance="Eleanor's entire world. The lamp room is where she is most herself.",
+            position=0,
+        )
+        db.add(lighthouse)
+
+        cottage = Location(
+            story_id=story.id,
+            parent_id=harrow_island.id,
+            name="Keeper's Cottage",
+            location_type="structure",
+            description=(
+                "A low stone cottage attached to the base of the lighthouse. Two rooms: a main "
+                "room with a stove, table, and shelves of logbooks; a small bedroom. "
+                "The Visitor is given the bedroom. Eleanor sleeps on the cot in the main room."
+            ),
+            atmosphere="Warm, enclosed, too small for two people to avoid each other.",
+            position=1,
+        )
+        db.add(cottage)
+
+        shoals = Location(
+            story_id=story.id,
+            parent_id=harrow_island.id,
+            name="The Shoals",
+            location_type="natural_feature",
+            description=(
+                "Submerged rock formations extending south of the island. Navigational hazard "
+                "that the lighthouse was built specifically to warn against. "
+                "Several ships have wrecked here over the centuries."
+            ),
+            significance="The reason the lighthouse exists. A graveyard of ships.",
+            position=2,
+        )
+        db.add(shoals)
+
+        village = Location(
+            story_id=story.id,
+            parent_id=harrow_island.id,
+            name="The Village",
+            location_type="settlement",
+            description=(
+                "What remains of the fishing settlement on the island's sheltered east side. "
+                "Eleven houses, three occupied. A single pier. No shop, no pub — those closed "
+                "when the permanent population dropped below a dozen."
+            ),
+            history="Thriving fishing community until the 1980s. The Great Storm of 1962 destroyed the original village; the rebuilt one never quite recovered.",
+            significance="Evidence of how much has already been lost. Eleanor's neighbours, though she rarely speaks to them.",
+            position=3,
+        )
+        db.add(village)
+        db.flush()
+
+        # ── World Building — World System ───────────────────────────────────
+        db.add(WorldSystem(
+            story_id=story.id,
+            name="The Light",
+            system_type="symbolic",
+            source_origin=(
+                "The lighthouse was built to warn ships away from The Shoals. Over generations "
+                "it became something more: a covenant between the keeper and every vessel at sea."
+            ),
+            rules=(
+                "The light must be on by dusk. It must not go out before dawn. "
+                "When the light is on, ships are safe. When it fails, people die. "
+                "There are no exceptions and no excuses."
+            ),
+            limitations=(
+                "The light is only as reliable as the person keeping it. "
+                "Equipment fails. People fail. Eleanor's father's last logbook entries "
+                "suggest the light was dark for two nights she cannot account for."
+            ),
+            costs=(
+                "The keeper's entire life. Eleanor has not left the island in four years. "
+                "The light demands presence, vigilance, and the sacrifice of any other kind of life."
+            ),
+            notes=(
+                "The Light functions as both plot mechanism (what did her father do during those dark nights?) "
+                "and theme (what obligations do we inherit, and can we put them down?)."
+            ),
+        ))
+
+        # ── World Building — Culture ────────────────────────────────────────
+        db.add(Culture(
+            story_id=story.id,
+            name="Islanders",
+            description=(
+                "The small, dwindling community of people who have chosen to remain on Harrow Island "
+                "despite the ferry stopping, the shops closing, and the mainland's steady encroachment. "
+                "Not a culture by design — a culture by attrition."
+            ),
+            values=(
+                "Self-sufficiency. Competence over charm. Quiet neighbourliness (help is given "
+                "without being asked; problems are solved without discussion). "
+                "The sea is respected, never romanticised."
+            ),
+            customs=(
+                "Storm preparation is communal and wordless — neighbours check on each other's "
+                "shutters and fuel stores without announcement. "
+                "Food is left on doorsteps during illness. No one knocks."
+            ),
+            taboos=(
+                "Complaining about the weather. Treating the sea as backdrop rather than force. "
+                "Leaving the island without saying goodbye to at least one person — bad luck."
+            ),
+            religion=(
+                "Nominally Protestant, but practice has faded. What remains is a kind of "
+                "weather-worship: attention to the barometer, the tide tables, the behaviour of birds."
+            ),
+            notes=(
+                "Eleanor is an islander by birth and temperament. The Visitor is not — "
+                "her ease in the storm and her ability to wait are dissonances that Eleanor registers."
+            ),
+        ))
+
+        # ── World Building — History ────────────────────────────────────────
+        keepers_era = Era(
+            story_id=story.id,
+            name="The Keeper's Era",
+            description="The period during which the lighthouse was maintained by hand, beginning with its construction and ending (perhaps) with Eleanor.",
+            start_date="1894",
+            end_date="present",
+            characteristics=(
+                "Defined by the covenant between keeper and light. "
+                "Each keeper has inherited not just the job but the logbooks — "
+                "a continuous record of weather, ships, and incident stretching back 130 years."
+            ),
+            position=0,
+        )
+        db.add(keepers_era)
+        db.flush()
+
+        db.add(HistoricalEvent(
+            story_id=story.id,
+            era_id=keepers_era.id,
+            name="The Great Storm",
+            in_world_date="November 1962",
+            description=(
+                "A nor'easter of unusual severity struck Harrow Island over three days. "
+                "The original village — twelve houses, a cooperage, and a small school — "
+                "was destroyed by storm surge. Seven people drowned."
+            ),
+            causes="Unusual convergence of Arctic and Atlantic air masses. The island's exposed position on the eastern headland offered no shelter.",
+            consequences=(
+                "The original village was never rebuilt in its original location. "
+                "The replacement settlement on the sheltered east side drew fewer people back. "
+                "The island's population began its long decline."
+            ),
+            legacy_effects=(
+                "The storm is still the event islanders measure other storms against. "
+                "'Not as bad as '62' is the highest reassurance one can offer. "
+                "Eleanor's father was keeper during the storm — the logbook from those three days "
+                "is the most detailed in the archive and also the one with the most revisions."
+            ),
+            position=0,
+        ))
+
+        db.add(HistoricalEvent(
+            story_id=story.id,
+            era_id=keepers_era.id,
+            name="Silas Vance Becomes Keeper",
+            in_world_date="Spring 1971",
+            description=(
+                "Eleanor's father, Silas Vance, took over the lighthouse from the retiring keeper Thomas Mull. "
+                "He was 28. He would not leave the island again for the rest of his life."
+            ),
+            causes="Thomas Mull's retirement after 34 years. Silas, then a mainland fisherman's son, applied and was accepted by the lighthouse authority.",
+            consequences="Silas became the defining presence of the island. Eleanor was born on the island six years later.",
+            legacy_effects=(
+                "Silas kept the lighthouse for 43 years. His logbooks — meticulous, opinionated, "
+                "occasionally cryptic — are the primary source of island history from 1971 onward. "
+                "The gaps in those logbooks are what the Visitor has come to investigate."
+            ),
+            position=1,
+        ))
+
+        # ── World Building — Travel ─────────────────────────────────────────
+        db.add(LocationTravel(
+            from_location_id=harrow_island.id,
+            to_location_id=lighthouse.id,
+            travel_time="20 minutes on foot",
+            travel_method="footpath along the cliff edge",
+            notes="Passable in most weather; treacherous in ice or storm-force wind.",
+            bidirectional=True,
+        ))
+
+        # ── World Building — Calendar ───────────────────────────────────────
+        db.add(Calendar(
+            story_id=story.id,
+            name="Atlantic Season Calendar",
+            description=(
+                "The islanders don't track time by months so much as by seasons defined by the sea. "
+                "This calendar is informal — kept in weather logs and fishing records rather than any official document."
+            ),
+            months=[
+                {"name": "January", "days": 31},
+                {"name": "February", "days": 28},
+                {"name": "March", "days": 31},
+                {"name": "April", "days": 30},
+                {"name": "May", "days": 31},
+                {"name": "June", "days": 30},
+                {"name": "July", "days": 31},
+                {"name": "August", "days": 31},
+                {"name": "September", "days": 30},
+                {"name": "October", "days": 31},
+                {"name": "November", "days": 30},
+                {"name": "December", "days": 31},
+            ],
+            days_per_week=7,
+            week_day_names=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            special_days=[
+                {"name": "Storm Season Opening", "month": 10, "day": 1, "description": "Informal marking of nor'easter season. Islanders begin storm prep."},
+                {"name": "Storm Season End", "month": 4, "day": 15, "description": "When islanders consider the worst weather reliably past."},
+                {"name": "Light Night", "month": 6, "day": 21, "description": "Midsummer. The night when the light burns longest. The keeper traditionally stays in the lamp room all night."},
+            ],
+            epoch_name="Common Era",
+            conversion_notes="Story takes place in late October — storm season just begun, ferry long since stopped for winter.",
+        ))
+
+        # ── World Building — Scene Settings (location → scene links) ────────
+        db.add(SceneSetting(
+            location_id=lighthouse.id,
+            node_id=scene1.id,
+            role="primary",
+            notes="Eleanor is in the lamp room watching the storm roll in.",
+        ))
+        db.add(SceneSetting(
+            location_id=cottage.id,
+            node_id=scene2.id,
+            role="primary",
+            notes="The knock at the cottage door. Eleanor lets the Visitor in.",
+        ))
+        db.add(SceneSetting(
+            location_id=harrow_island.id,
+            node_id=scene2.id,
+            role="mentioned",
         ))
 
         db.commit()

@@ -11,6 +11,7 @@ import CharacterSheet from "../components/characters/CharacterSheet";
 import CharacterList from "../components/characters/CharacterList";
 import LorebookPanel from "../components/story/LorebookPanel";
 import CompendiumPanel from "../components/compendium/CompendiumPanel";
+import WorldBuildingHub from "../components/worldbuilding/WorldBuildingHub";
 import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
 import PlotThreadManager from "../components/threads/PlotThreadManager";
 import CorkboardView from "../components/story/CorkboardView";
@@ -106,6 +107,7 @@ export default function StoryWorkspacePage() {
           <Route path="/characters/:characterId" element={<CharacterSheet />} />
           <Route path="/lorebook" element={<LorebookPanel storyId={storyId!} />} />
           <Route path="/compendium" element={<CompendiumPanel storyId={storyId!} />} />
+          <Route path="/worldbuilding" element={<WorldBuildingHub />} />
           <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
           <Route path="/media" element={<MediaPage />} />

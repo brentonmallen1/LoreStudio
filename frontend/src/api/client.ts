@@ -588,4 +588,140 @@ export const api = {
     }),
   resetLLMSettings: () =>
     request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
+
+  // World Building — Locations
+  listLocations: (storyId: string) =>
+    request<import("../types").Location[]>(`/stories/${storyId}/locations`),
+  listLocationsFlat: (storyId: string) =>
+    request<import("../types").Location[]>(`/stories/${storyId}/locations/flat`),
+  getLocationTypes: (storyId: string) =>
+    request<string[]>(`/stories/${storyId}/location-types`),
+  createLocation: (storyId: string, data: Partial<import("../types").Location>) =>
+    request<import("../types").Location>(`/stories/${storyId}/locations`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getLocation: (id: string) =>
+    request<import("../types").Location>(`/locations/${id}`),
+  updateLocation: (id: string, data: Partial<import("../types").Location>) =>
+    request<import("../types").Location>(`/locations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteLocation: (id: string) => request<void>(`/locations/${id}`, { method: "DELETE" }),
+
+  // World Building — Scene Settings
+  getSceneSettingsForNode: (nodeId: string) =>
+    request<import("../types").SceneSetting[]>(`/structure/${nodeId}/scene-settings`),
+  getSceneSettingsForLocation: (locationId: string) =>
+    request<import("../types").SceneSetting[]>(`/locations/${locationId}/scene-settings`),
+  addSceneSetting: (data: { location_id: string; node_id: string; role?: string; notes?: string }) =>
+    request<import("../types").SceneSetting>("/scene-settings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  removeSceneSetting: (id: string) => request<void>(`/scene-settings/${id}`, { method: "DELETE" }),
+
+  // World Building — World Systems
+  listWorldSystems: (storyId: string) =>
+    request<import("../types").WorldSystem[]>(`/stories/${storyId}/world-systems`),
+  getSystemTypes: (storyId: string) =>
+    request<string[]>(`/stories/${storyId}/world-system-types`),
+  createWorldSystem: (storyId: string, data: Partial<import("../types").WorldSystem>) =>
+    request<import("../types").WorldSystem>(`/stories/${storyId}/world-systems`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getWorldSystem: (id: string) =>
+    request<import("../types").WorldSystem>(`/world-systems/${id}`),
+  updateWorldSystem: (id: string, data: Partial<import("../types").WorldSystem>) =>
+    request<import("../types").WorldSystem>(`/world-systems/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteWorldSystem: (id: string) => request<void>(`/world-systems/${id}`, { method: "DELETE" }),
+
+  // World Building — Cultures
+  listCultures: (storyId: string) =>
+    request<import("../types").Culture[]>(`/stories/${storyId}/cultures`),
+  createCulture: (storyId: string, data: Partial<import("../types").Culture>) =>
+    request<import("../types").Culture>(`/stories/${storyId}/cultures`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getCulture: (id: string) =>
+    request<import("../types").Culture>(`/cultures/${id}`),
+  updateCulture: (id: string, data: Partial<import("../types").Culture>) =>
+    request<import("../types").Culture>(`/cultures/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteCulture: (id: string) => request<void>(`/cultures/${id}`, { method: "DELETE" }),
+
+  // World Building — Eras
+  listEras: (storyId: string) =>
+    request<import("../types").Era[]>(`/stories/${storyId}/eras`),
+  createEra: (storyId: string, data: Partial<import("../types").Era>) =>
+    request<import("../types").Era>(`/stories/${storyId}/eras`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getEra: (id: string) => request<import("../types").Era>(`/eras/${id}`),
+  updateEra: (id: string, data: Partial<import("../types").Era>) =>
+    request<import("../types").Era>(`/eras/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteEra: (id: string) => request<void>(`/eras/${id}`, { method: "DELETE" }),
+
+  // World Building — Historical Events
+  listHistoricalEvents: (storyId: string) =>
+    request<import("../types").HistoricalEvent[]>(`/stories/${storyId}/historical-events`),
+  createHistoricalEvent: (storyId: string, data: Partial<import("../types").HistoricalEvent>) =>
+    request<import("../types").HistoricalEvent>(`/stories/${storyId}/historical-events`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getHistoricalEvent: (id: string) =>
+    request<import("../types").HistoricalEvent>(`/historical-events/${id}`),
+  updateHistoricalEvent: (id: string, data: Partial<import("../types").HistoricalEvent>) =>
+    request<import("../types").HistoricalEvent>(`/historical-events/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteHistoricalEvent: (id: string) =>
+    request<void>(`/historical-events/${id}`, { method: "DELETE" }),
+
+  // World Building — Location Travel
+  listLocationTravel: (storyId: string) =>
+    request<import("../types").LocationTravel[]>(`/stories/${storyId}/location-travel`),
+  createLocationTravel: (data: Partial<import("../types").LocationTravel>) =>
+    request<import("../types").LocationTravel>("/location-travel", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateLocationTravel: (id: string, data: Partial<import("../types").LocationTravel>) =>
+    request<import("../types").LocationTravel>(`/location-travel/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteLocationTravel: (id: string) =>
+    request<void>(`/location-travel/${id}`, { method: "DELETE" }),
+
+  // World Building — Calendars
+  listCalendars: (storyId: string) =>
+    request<import("../types").Calendar[]>(`/stories/${storyId}/calendars`),
+  createCalendar: (storyId: string, data: Partial<import("../types").Calendar>) =>
+    request<import("../types").Calendar>(`/stories/${storyId}/calendars`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getCalendar: (id: string) =>
+    request<import("../types").Calendar>(`/calendars/${id}`),
+  updateCalendar: (id: string, data: Partial<import("../types").Calendar>) =>
+    request<import("../types").Calendar>(`/calendars/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteCalendar: (id: string) => request<void>(`/calendars/${id}`, { method: "DELETE" }),
 };

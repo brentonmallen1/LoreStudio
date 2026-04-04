@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { StructureNode, SceneLink, InlineNote, Setting } from "../../types";
+import type { StructureNode, SceneLink, InlineNote, Setting, SceneSetting, Location } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -85,6 +85,12 @@ export default function SceneEditor() {
   const [exitState, setExitState] = useState("");
   const [keyEvents, setKeyEvents] = useState("");
   const [contentSummary, setContentSummary] = useState("");
+
+  // Scene settings (location links) state
+  const [sceneSettings, setSceneSettings] = useState<SceneSetting[]>([]);
+  const [flatLocations, setFlatLocations] = useState<Location[]>([]);
+  const [addSettingId, setAddSettingId] = useState("");
+  const [addSettingRole, setAddSettingRole] = useState("primary");
 
   // Scene links state
   const [sceneLinks, setSceneLinks] = useState<SceneLink[]>([]);
@@ -226,6 +232,17 @@ export default function SceneEditor() {
     if (!activeNode) { setSceneLinks([]); return; }
     api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
   }, [activeNode?.id]);
+
+  // Load scene settings (location links) when active node/story changes
+  useEffect(() => {
+    if (!activeNode || !activeStory) { setSceneSettings([]); return; }
+    api.getSceneSettingsForNode(activeNode.id).then(setSceneSettings).catch(() => {});
+  }, [activeNode?.id]);
+
+  useEffect(() => {
+    if (!activeStory) { setFlatLocations([]); return; }
+    api.listLocationsFlat(activeStory.id).then(setFlatLocations).catch(() => {});
+  }, [activeStory?.id]);
 
   // Load characters and settings for @mention autocomplete
   useEffect(() => {
@@ -779,6 +796,79 @@ export default function SceneEditor() {
               className={styles.overviewTextarea}
               rows={2}
             />
+          </div>
+          <div className={styles.overviewField}>
+            <div className={styles.linkedHeader}>
+              <label className={styles.overviewLabel}>Settings</label>
+              <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
+                <select
+                  value={addSettingRole}
+                  onChange={(e) => setAddSettingRole(e.target.value)}
+                  style={{ fontSize: "0.72rem", fontFamily: "inherit", padding: "0.15rem 0.3rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-muted)", cursor: "pointer" }}
+                >
+                  <option value="primary">Primary</option>
+                  <option value="mentioned">Mentioned</option>
+                  <option value="flashback">Flashback</option>
+                </select>
+                <select
+                  value={addSettingId}
+                  onChange={(e) => setAddSettingId(e.target.value)}
+                  style={{ fontSize: "0.72rem", fontFamily: "inherit", padding: "0.15rem 0.3rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-muted)", cursor: "pointer" }}
+                >
+                  <option value="">Add location…</option>
+                  {flatLocations
+                    .filter((loc) => !sceneSettings.some((s) => s.location_id === loc.id))
+                    .map((loc) => (
+                      <option key={loc.id} value={loc.id}>{loc.name}</option>
+                    ))}
+                </select>
+                <button
+                  className={styles.addLinkBtn}
+                  disabled={!addSettingId}
+                  onClick={async () => {
+                    if (!activeNode || !addSettingId) return;
+                    const created = await api.addSceneSetting({
+                      location_id: addSettingId,
+                      node_id: activeNode.id,
+                      role: addSettingRole,
+                    });
+                    setSceneSettings((prev) => [...prev, created]);
+                    setAddSettingId("");
+                  }}
+                >
+                  <Plus size={11} />
+                </button>
+              </div>
+            </div>
+            {sceneSettings.length === 0 ? (
+              <p className={styles.overviewHint}>No locations linked to this scene yet.</p>
+            ) : (
+              <div className={styles.linkChips}>
+                {sceneSettings.map((s) => {
+                  const loc = flatLocations.find((l) => l.id === s.location_id);
+                  return (
+                    <div key={s.id} className={styles.linkChip}>
+                      <span className={styles.linkChipContent} style={{ cursor: "default" }}>
+                        {s.role !== "primary" && (
+                          <span className={styles.linkChipLabel}>{s.role}</span>
+                        )}
+                        <span className={styles.linkChipTitle}>{loc?.name ?? s.location_id}</span>
+                      </span>
+                      <button
+                        className={styles.linkChipDelete}
+                        onClick={async () => {
+                          await api.removeSceneSetting(s.id);
+                          setSceneSettings((prev) => prev.filter((x) => x.id !== s.id));
+                        }}
+                        title="Remove location"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>

@@ -26,6 +26,12 @@ from .routers.chronicle import router as chronicle_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.llm_settings import router as llm_settings_router
 from .routers.compendium import router as compendium_router
+from .routers.locations import router as locations_router
+from .routers.world_systems import router as world_systems_router
+from .routers.cultures import router as cultures_router
+from .routers.history import router as history_router
+from .routers.location_travel import router as location_travel_router
+from .routers.calendars import router as calendars_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story
 
 
@@ -70,6 +76,12 @@ app.include_router(chronicle_router, prefix="/api", tags=["chronicle"])
 app.include_router(ai_settings_router, prefix="/api/ai-settings", tags=["ai-settings"])
 app.include_router(llm_settings_router, prefix="/api/llm-settings", tags=["llm-settings"])
 app.include_router(compendium_router, prefix="/api", tags=["compendium"])
+app.include_router(locations_router, prefix="/api", tags=["locations"])
+app.include_router(world_systems_router, prefix="/api", tags=["world-systems"])
+app.include_router(cultures_router, prefix="/api", tags=["cultures"])
+app.include_router(history_router, prefix="/api", tags=["history"])
+app.include_router(location_travel_router, prefix="/api", tags=["location-travel"])
+app.include_router(calendars_router, prefix="/api", tags=["calendars"])
 
 
 @app.get("/health")

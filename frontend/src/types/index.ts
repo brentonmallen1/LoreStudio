@@ -624,3 +624,130 @@ export interface AISettingsUpdate {
   core_prompt?: string | null;
   feature_prompts?: Record<string, string | null> | null;
 }
+
+// ── World Building ──
+
+export interface SceneSetting {
+  id: string;
+  location_id: string;
+  node_id: string;
+  role: "primary" | "mentioned" | "flashback" | string;
+  notes: string;
+  created_at: string;
+}
+
+export interface Location {
+  id: string;
+  story_id: string;
+  parent_id: string | null;
+  name: string;
+  location_type: string;
+  climate: string;
+  terrain: string;
+  political_affiliation: string;
+  description: string;
+  atmosphere: string;
+  history: string;
+  significance: string;
+  orbital_period: string;
+  distance_from_parent: string;
+  gravity: string;
+  habitability: string;
+  radiation_level: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+  children: Location[];
+}
+
+export interface WorldSystem {
+  id: string;
+  story_id: string;
+  name: string;
+  system_type: string;
+  source_origin: string;
+  rules: string;
+  limitations: string;
+  costs: string;
+  hierarchy_tiers: { name: string; description: string; examples: string[] }[];
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Culture {
+  id: string;
+  story_id: string;
+  name: string;
+  description: string;
+  values: string;
+  customs: string;
+  taboos: string;
+  religion: string;
+  government_type: string;
+  economy: string;
+  social_hierarchy: string;
+  naming_conventions: Record<string, unknown>;
+  common_phrases: { phrase: string; meaning: string; context: string }[];
+  notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Era {
+  id: string;
+  story_id: string;
+  name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  characteristics: string;
+  key_figures: { name: string; role: string }[];
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HistoricalEvent {
+  id: string;
+  story_id: string;
+  era_id: string | null;
+  name: string;
+  description: string;
+  in_world_date: string;
+  participants: { type: string; id: string; name: string; role: string }[];
+  causes: string;
+  consequences: string;
+  legacy_effects: string;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LocationTravel {
+  id: string;
+  from_location_id: string;
+  to_location_id: string;
+  travel_time: string;
+  travel_method: string;
+  condition: string;
+  notes: string;
+  bidirectional: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Calendar {
+  id: string;
+  story_id: string;
+  name: string;
+  description: string;
+  months: { name: string; days: number }[];
+  days_per_week: number;
+  week_day_names: string[];
+  special_days: { name: string; month: number; day: number; description: string }[];
+  epoch_name: string;
+  conversion_notes: string;
+  created_at: string;
+  updated_at: string;
+}
