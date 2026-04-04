@@ -8,6 +8,7 @@ from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.scene_link import SceneLink
 from ..models.setting import Setting
+from ..models.compendium import CompendiumEntry
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -988,5 +989,67 @@ def seed_demo_story():
                 "node_id": scene7.id,
             },
         ]
+
+        # ── Compendium entries ──────────────────────────────────────────────
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="Lighthouse Keeper Duties & History",
+            content=(
+                "Historically, lighthouse keepers lived on-site and were responsible for:\n"
+                "- Trimming and lighting the wick each night at sunset\n"
+                "- Winding the clockwork mechanisms that rotated the lens\n"
+                "- Maintaining the fog signal (horn or bell)\n"
+                "- Keeping meticulous logs of weather, ships sighted, and notable events\n"
+                "- Performing minor repairs and painting to prevent rust and corrosion\n\n"
+                "The profession was largely automated or eliminated in the 20th century. By the 1970s, "
+                "most lighthouses in the US were automated by the Coast Guard. In the UK, Trinity House "
+                "completed automation of all manned lighthouses in 1998.\n\n"
+                "Relevance: Eleanor's father was one of the last manually-stationed keepers on Harrow Island. "
+                "His logbooks would be an unusually complete record — their gaps all the more conspicuous."
+            ),
+            tags=["research", "setting", "backstory"],
+            category="worldbuilding",
+            notes="Use the logbook detail to ground Eleanor's expertise and the significance of the missing entries.",
+        ))
+
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="Isolation & Psychological Effects",
+            content=(
+                "Studies on prolonged isolation (sailors, polar researchers, solo hikers) identify common patterns:\n\n"
+                "Early phase (days-weeks): Heightened productivity, clarity of thought, relief from social friction.\n\n"
+                "Mid phase (weeks-months): Obsessive routine-building as a coping mechanism. "
+                "Hyper-vigilance about the environment — noticing minute changes in weather, sound, light. "
+                "Intrusive thoughts about unresolved relationships.\n\n"
+                "Long phase (months-years): The isolation becomes identity. The thought of re-entering "
+                "social life feels more threatening than continuing alone. Rituals expand to fill time. "
+                "Memory becomes unreliable — the past is revised to justify the present.\n\n"
+                "Key insight: Long-term voluntary isolates often describe their solitude as 'chosen' long "
+                "after it has ceased to feel like a choice."
+            ),
+            tags=["research", "character", "psychology"],
+            category="character research",
+            notes="Eleanor is deep in the 'long phase.' Her isolation has become her identity — which is why the Visitor is such a threat.",
+        ))
+
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="Atlantic Storm Patterns — Nova Scotia / Maine Coast",
+            content=(
+                "Nor'easters are extratropical cyclones that move northeast along the East Coast. "
+                "They are most common October through April.\n\n"
+                "A severe nor'easter can ground boats for 2-4 days, make helicopter approach impossible, "
+                "and cut radio/satellite communication during peak intensity.\n\n"
+                "Storm surge on exposed rocky coastlines can reach 3-6 feet above normal tide. "
+                "Lighthouses are positioned on headlands for maximum visibility — also maximally exposed.\n\n"
+                "The storm that brings the Visitor should be severe enough to strand them for at least 3 days."
+            ),
+            tags=["research", "setting", "plot"],
+            category="worldbuilding",
+            notes="The storm is structural, not decorative — it must be severe enough to trap both characters together.",
+        ))
 
         db.commit()

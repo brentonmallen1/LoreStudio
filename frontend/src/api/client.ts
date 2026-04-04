@@ -442,6 +442,52 @@ export const api = {
   deleteStructureTemplate: (id: string) =>
     request<void>(`/templates/structures/${id}`, { method: "DELETE" }),
 
+  // Compendium
+  listCompendiumEntries: (storyId: string, params?: { entry_type?: string; category?: string; tag?: string; q?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.entry_type) qs.set("entry_type", params.entry_type);
+    if (params?.category) qs.set("category", params.category);
+    if (params?.tag) qs.set("tag", params.tag);
+    if (params?.q) qs.set("q", params.q);
+    const query = qs.toString();
+    return request<import("../types").CompendiumEntrySummary[]>(`/stories/${storyId}/compendium${query ? `?${query}` : ""}`);
+  },
+  createCompendiumNote: (storyId: string, data: { title: string; content?: string; tags?: string[]; category?: string; notes?: string }) =>
+    request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/notes`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  createCompendiumUrl: (storyId: string, data: { title?: string; url: string; tags?: string[]; category?: string; notes?: string; fetch_metadata?: boolean }) =>
+    request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/urls`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  createCompendiumDocument: (storyId: string, data: { title?: string; asset_id: string; tags?: string[]; category?: string; notes?: string }) =>
+    request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/documents`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getCompendiumEntry: (entryId: string) =>
+    request<import("../types").CompendiumEntry>(`/compendium/${entryId}`),
+  updateCompendiumEntry: (entryId: string, data: { title?: string; content?: string; url?: string; tags?: string[]; category?: string; notes?: string }) =>
+    request<import("../types").CompendiumEntry>(`/compendium/${entryId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteCompendiumEntry: (entryId: string) =>
+    request<void>(`/compendium/${entryId}`, { method: "DELETE" }),
+  refreshCompendiumUrl: (entryId: string) =>
+    request<import("../types").CompendiumEntry>(`/compendium/${entryId}/refresh-url`, { method: "POST" }),
+  attachCompendiumEntry: (entryId: string, objectType: string, objectId: string, note = "") =>
+    request<import("../types").CompendiumAttachment>(`/compendium/${entryId}/attach`, {
+      method: "POST",
+      body: JSON.stringify({ object_type: objectType, object_id: objectId, note }),
+    }),
+  listCompendiumAttachments: (objectType: string, objectId: string) =>
+    request<import("../types").CompendiumAttachment[]>(`/compendium/attachments/${objectType}/${objectId}`),
+  detachCompendiumEntry: (attachmentId: string) =>
+    request<void>(`/compendium/attachments/${attachmentId}`, { method: "DELETE" }),
+
   // LLM Transparency
   getPromptPreview: (body: import("../types").PromptPreviewRequest) =>
     request<import("../types").PromptPreview>("/llm/prompt-preview", {

@@ -11,6 +11,7 @@ from .character_journey import CharacterJourneySummary
 from .chat_session import ChatSession
 from .chat_message import ChatMessage
 from .activity_log import ActivityLog
+from .compendium import CompendiumEntry, CompendiumAttachment
 
 __all__ = [
     "User",
@@ -29,4 +30,6 @@ __all__ = [
     "ChatSession",
     "ChatMessage",
     "ActivityLog",
+    "CompendiumEntry",
+    "CompendiumAttachment",
 ]

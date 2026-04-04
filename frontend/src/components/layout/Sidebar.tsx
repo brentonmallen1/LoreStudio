@@ -27,6 +27,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightOpen,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -216,6 +217,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     const path = location.pathname;
     if (path.includes("/characters")) return "characters";
     if (path.includes("/lorebook")) return "lorebook";
+    if (path.includes("/compendium")) return "compendium";
     if (path.includes("/panels")) return "panels";
     if (path.includes("/threads")) return "threads";
     if (path.includes("/media")) return "media";
@@ -246,6 +248,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     { id: "story",      icon: PenLine,           label: "Write",             path: "/write" },
     { id: "characters", icon: Users,             label: "Characters",        path: "/characters" },
     { id: "lorebook",   icon: Scroll,            label: "Lorebook",          path: "/lorebook" },
+    { id: "compendium", icon: BookOpen,          label: "Compendium",        path: "/compendium" },
     { id: "panels",     icon: MessageSquareMore, label: "Group Interviews",  path: "/panels" },
     { id: "threads",    icon: GitBranch,         label: "Plot Threads",      path: "/threads" },
     { id: "media",      icon: Images,            label: "Media & Diagrams",  path: "/media" },

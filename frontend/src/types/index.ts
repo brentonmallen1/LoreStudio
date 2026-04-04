@@ -475,6 +475,52 @@ export interface DiagramSummary {
   updated_at: string;
 }
 
+// Compendium
+export type CompendiumEntryType = "note" | "url" | "document";
+
+export interface CompendiumAttachment {
+  id: string;
+  entry_id: string;
+  object_type: string;
+  object_id: string;
+  note: string;
+  created_at: string;
+}
+
+export interface CompendiumEntry {
+  id: string;
+  story_id: string;
+  title: string;
+  entry_type: CompendiumEntryType;
+  content: string | null;
+  url: string | null;
+  url_title: string | null;
+  url_description: string | null;
+  url_fetched_at: string | null;
+  asset_id: string | null;
+  tags: string[];
+  category: string;
+  notes: string;
+  attachments: CompendiumAttachment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompendiumEntrySummary {
+  id: string;
+  story_id: string;
+  title: string;
+  entry_type: CompendiumEntryType;
+  url: string | null;
+  url_title: string | null;
+  asset_id: string | null;
+  tags: string[];
+  category: string;
+  attachment_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 // LLM Transparency
 export interface PromptPreviewRequest {
   context_type: string;

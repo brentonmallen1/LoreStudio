@@ -56,3 +56,6 @@ class Story(Base):
     plot_threads: Mapped[list["PlotThread"]] = relationship(
         "PlotThread", back_populates="story", cascade="all, delete-orphan"
     )
+    compendium_entries: Mapped[list["CompendiumEntry"]] = relationship(
+        "CompendiumEntry", back_populates="story", cascade="all, delete-orphan"
+    )
