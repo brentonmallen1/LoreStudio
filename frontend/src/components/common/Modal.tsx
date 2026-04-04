@@ -9,6 +9,7 @@ interface ModalProps {
   size?: "sm" | "md" | "lg";
   children: React.ReactNode;
   footer?: React.ReactNode;
+  zIndex?: number;
 }
 
 export default function Modal({
@@ -19,12 +20,14 @@ export default function Modal({
   size = "md",
   children,
   footer,
+  zIndex,
 }: ModalProps) {
   if (!isOpen) return null;
 
   return (
     <div
       className={styles.overlay}
+      style={zIndex !== undefined ? { zIndex } : undefined}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className={`${styles.dialog} ${styles[size]}`}>

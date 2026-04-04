@@ -16,6 +16,7 @@ import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
 import PlotThreadManager from "../components/threads/PlotThreadManager";
 import CorkboardView from "../components/story/CorkboardView";
 import TimelineView from "../components/story/TimelineView";
+import SceneLinkGraph from "../components/story/SceneLinkGraph";
 import MediaPage from "./MediaPage";
 import StoryHealthPage from "./StoryHealthPage";
 import ChroniclePage from "./ChroniclePage";
@@ -101,6 +102,7 @@ export default function StoryWorkspacePage() {
           <Route path="/write" element={
             viewMode === "corkboard" ? <CorkboardView /> :
             viewMode === "timeline" ? <TimelineView /> :
+            viewMode === "graph" ? <SceneLinkGraph /> :
             <SceneEditor />
           } />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />

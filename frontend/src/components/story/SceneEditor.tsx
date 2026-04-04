@@ -6,7 +6,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, type LucideIcon } from "lucide-react";
+import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
   MentionDropdownExtension,
@@ -99,15 +100,22 @@ export default function SceneEditor() {
   const [addLinkNote, setAddLinkNote] = useState("");
   const [addLinkTarget, setAddLinkTarget] = useState<StructureNode | null>(null);
   const [addLinkSearch, setAddLinkSearch] = useState("");
+  const [editingLink, setEditingLink] = useState<SceneLink | null>(null);
+  const [editLinkType, setEditLinkType] = useState("foreshadowing");
+  const [editLinkNote, setEditLinkNote] = useState("");
+
+  // Attached diagrams state
+  const [attachedDiagrams, setAttachedDiagrams] = useState<DiagramSummary[]>([]);
 
   // Inline notes state
   const [inlineNotes, setInlineNotes] = useState<InlineNote[]>([]);
   type NotePopover =
     | { open: false }
     | { open: true; isNew: true; from: number; to: number; anchor: string; rect: DOMRect | null }
-    | { open: true; isNew: false; noteId: string; rect: DOMRect | null };
+    | { open: true; isNew: false; noteId: string; rect: DOMRect | null; isEditing: boolean };
   const [notePopover, setNotePopover] = useState<NotePopover>({ open: false });
   const [noteInputText, setNoteInputText] = useState("");
+  const [noteEditText, setNoteEditText] = useState("");
 
   // @mention autocomplete state
   const [mentionAllItems, setMentionAllItems] = useState<MentionItem[]>([]);
@@ -140,6 +148,7 @@ export default function SceneEditor() {
   const [hoverCard, setHoverCard] = useState<HoverCard>({ open: false });
   const hoverShowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const notePopoverRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
   // Refs so event listeners (stable, empty-deps) always read fresh data
@@ -443,7 +452,7 @@ export default function SceneEditor() {
   // Inline note callbacks — kept current via module-level ref
   const handleNoteActivate = useCallback(
     (noteId: string, rect: DOMRect) => {
-      setNotePopover({ open: true, isNew: false, noteId, rect });
+      setNotePopover({ open: true, isNew: false, noteId, rect, isEditing: false });
     },
     []
   );
@@ -467,6 +476,18 @@ export default function SceneEditor() {
       onAddNote: handleAddNote,
     });
   }, [handleNoteActivate, handleAddNote]);
+
+  // Close read-only note popover on outside click (not when creating/editing)
+  useEffect(() => {
+    if (!notePopover.open || notePopover.isNew || notePopover.isEditing) return;
+    function onMouseDown(e: MouseEvent) {
+      if (notePopoverRef.current && !notePopoverRef.current.contains(e.target as Node)) {
+        setNotePopover({ open: false });
+      }
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [notePopover]);
 
   async function handleSaveNote() {
     if (!activeNode || !editor) return;
@@ -538,11 +559,52 @@ export default function SceneEditor() {
       setTimeout(() => {
         const el = document.querySelector(`[data-note-id="${noteId}"]`) as HTMLElement | null;
         if (el) {
-          setNotePopover({ open: true, isNew: false, noteId, rect: el.getBoundingClientRect() });
+          setNotePopover({ open: true, isNew: false, noteId, rect: el.getBoundingClientRect(), isEditing: false });
         }
       }, 60);
     }
   }
+
+  function triggerAddNote() {
+    if (!editor) return;
+    const { from, to, empty } = editor.state.selection;
+    if (!empty) {
+      const anchor = editor.state.doc.textBetween(from, to);
+      handleAddNote(from, to, anchor);
+    } else {
+      editor.commands.focus();
+    }
+  }
+
+  async function handleUpdateNote(noteId: string, newText: string) {
+    if (!activeNode) return;
+    const updated = inlineNotes.map((n) => n.id === noteId ? { ...n, note: newText } : n);
+    setInlineNotes(updated);
+    setNotePopover({ open: true, isNew: false, noteId, rect: notePopover.open ? notePopover.rect : null, isEditing: false });
+    try {
+      const patched = await api.updateNode(activeNode.id, {
+        metadata_: { ...activeNode.metadata_, inline_notes: updated },
+      });
+      setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
+    } catch { /* silently ignore */ }
+  }
+
+  async function handleUpdateLink() {
+    if (!editingLink) return;
+    try {
+      const updated = await api.updateSceneLink(editingLink.id, { link_type: editLinkType, note: editLinkNote });
+      setSceneLinks(prev => prev.map(l => l.id === editingLink.id ? updated : l));
+    } catch { /* silently ignore */ }
+    setEditingLink(null);
+  }
+
+  // Load diagrams attached to this scene
+  useEffect(() => {
+    if (!activeStory || !activeNode) { setAttachedDiagrams([]); return; }
+    api.listDiagrams(activeStory.id).then((all) => {
+      setAttachedDiagrams(all.filter((d) => d.attached_node_id === activeNode.id));
+    }).catch(() => {});
+  }, [activeNode?.id, activeStory?.id]);
 
   // Scene link helpers
   const flatNodes = flattenStructure(structure);
@@ -927,15 +989,20 @@ export default function SceneEditor() {
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>
               <label className={styles.overviewLabel}>Inline Notes</label>
-              {inlineNotes.length > 0 && (
-                <span className={styles.overviewHint}>{inlineNotes.length} note{inlineNotes.length !== 1 ? "s" : ""}</span>
-              )}
+              <button
+                className={styles.addLinkBtn}
+                onClick={triggerAddNote}
+                title="Select text in the editor, then click to annotate it"
+              >
+                <Plus size={11} />
+                Add Note
+              </button>
             </div>
             {inlineNotes.length === 0 ? (
               <p className={styles.overviewHint}>
-                Select text and press{" "}
+                Select text in the editor and click Add Note (or press{" "}
                 {typeof navigator !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
-                +Shift+N to add a note.
+                +Shift+N).
               </p>
             ) : (
               <div className={styles.inlineNoteList}>
@@ -984,13 +1051,21 @@ export default function SceneEditor() {
                   const linkedNode = findNode(linkedNodeId);
                   const label = getLinkLabel(link, isForward);
                   return (
-                    <div key={link.id} className={styles.linkChip} title={link.note || undefined}>
+                    <div key={link.id} className={styles.linkChip}>
                       <button
                         className={styles.linkChipContent}
                         onClick={() => handleNavigateToLink(link)}
+                        title={link.note || undefined}
                       >
                         <span className={styles.linkChipLabel}>{label}</span>
                         <span className={styles.linkChipTitle}>{linkedNode?.title ?? "Unknown scene"}</span>
+                      </button>
+                      <button
+                        className={styles.linkChipEdit}
+                        onClick={() => { setEditingLink(link); setEditLinkType(link.link_type); setEditLinkNote(link.note ?? ""); }}
+                        title="Edit link"
+                      >
+                        <Pencil size={10} />
                       </button>
                       <button
                         className={styles.linkChipDelete}
@@ -1005,6 +1080,27 @@ export default function SceneEditor() {
               </div>
             )}
           </div>
+          {attachedDiagrams.length > 0 && activeStory && (
+            <div className={styles.overviewField}>
+              <div className={styles.linkedHeader}>
+                <label className={styles.overviewLabel}>Diagrams</label>
+              </div>
+              <div className={styles.linkChips}>
+                {attachedDiagrams.map((d) => (
+                  <div key={d.id} className={styles.linkChip}>
+                    <button
+                      className={styles.linkChipContent}
+                      onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
+                      title={d.description || undefined}
+                    >
+                      <span className={styles.linkChipLabel}>{d.diagram_type}</span>
+                      <span className={styles.linkChipTitle}>{d.title}</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {activeStory && (
             <div className={styles.overviewField}>
               <AssetPicker
@@ -1059,6 +1155,7 @@ export default function SceneEditor() {
           : undefined;
         return (
           <div
+            ref={notePopoverRef}
             className={styles.notePopover}
             style={{ top, left }}
           >
@@ -1067,6 +1164,15 @@ export default function SceneEditor() {
                 {notePopover.isNew ? "Add Note" : "Author Note"}
               </span>
               <div className={styles.notePopoverActions}>
+                {!notePopover.isNew && !notePopover.isEditing && (
+                  <button
+                    className={styles.notePopoverEdit}
+                    onClick={() => { setNoteEditText(existingNote?.note ?? ""); setNotePopover({ ...notePopover, isEditing: true }); }}
+                    title="Edit note"
+                  >
+                    <Pencil size={12} />
+                  </button>
+                )}
                 {!notePopover.isNew && (
                   <button
                     className={styles.notePopoverDelete}
@@ -1101,24 +1207,36 @@ export default function SceneEditor() {
                     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote();
                   }}
                 />
+              ) : notePopover.isEditing ? (
+                <textarea
+                  className={styles.notePopoverInput}
+                  value={noteEditText}
+                  onChange={(e) => setNoteEditText(e.target.value)}
+                  rows={3}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") setNotePopover({ ...notePopover, isEditing: false });
+                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleUpdateNote(notePopover.noteId, noteEditText);
+                  }}
+                />
               ) : (
                 <p className={styles.notePopoverNoteText}>
                   {existingNote?.note || <em>No note text.</em>}
                 </p>
               )}
             </div>
-            {notePopover.isNew && (
+            {(notePopover.isNew || (!notePopover.isNew && notePopover.isEditing)) && (
               <div className={styles.notePopoverFooter}>
                 <button
                   className={styles.modalCancel}
-                  onClick={() => setNotePopover({ open: false })}
+                  onClick={() => notePopover.isNew ? setNotePopover({ open: false }) : setNotePopover({ ...notePopover, isEditing: false })}
                 >
                   Cancel
                 </button>
                 <button
                   className={styles.modalSave}
-                  onClick={handleSaveNote}
-                  disabled={!noteInputText.trim()}
+                  onClick={() => notePopover.isNew ? handleSaveNote() : handleUpdateNote(notePopover.noteId, noteEditText)}
+                  disabled={notePopover.isNew ? !noteInputText.trim() : !noteEditText.trim()}
                 >
                   Save Note
                 </button>
@@ -1160,7 +1278,7 @@ export default function SceneEditor() {
                       if (card.type === "character") {
                         navigate(`/stories/${activeStory.id}/characters/${card.entityId}`);
                       } else {
-                        navigate(`/stories/${activeStory.id}/lorebook`);
+                        navigate(`/stories/${activeStory.id}/worldbuilding`, { state: { selectLocationName: card.name } });
                       }
                     }}
                   >
@@ -1277,6 +1395,53 @@ export default function SceneEditor() {
                 disabled={!addLinkTarget}
               >
                 Add Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Link modal */}
+      {editingLink && (
+        <div className={styles.modalOverlay} onClick={() => setEditingLink(null)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <span className={styles.modalTitle}>Edit Scene Link</span>
+              <button className={styles.modalClose} onClick={() => setEditingLink(null)}>
+                <X size={14} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Link Type</label>
+                <select
+                  value={editLinkType}
+                  onChange={e => setEditLinkType(e.target.value)}
+                  className={styles.modalSelect}
+                >
+                  {LINK_TYPES.map(t => (
+                    <option key={t.value} value={t.value}>{t.forward}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.modalField}>
+                <label className={styles.modalLabel}>Note (optional)</label>
+                <textarea
+                  value={editLinkNote}
+                  onChange={e => setEditLinkNote(e.target.value)}
+                  placeholder="Describe how these scenes connect…"
+                  className={styles.modalTextarea}
+                  rows={2}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button className={styles.modalCancel} onClick={() => setEditingLink(null)}>
+                Cancel
+              </button>
+              <button className={styles.modalSave} onClick={handleUpdateLink}>
+                Save
               </button>
             </div>
           </div>

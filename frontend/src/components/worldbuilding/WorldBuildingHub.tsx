@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Globe, MapPin, Zap, Users, Clock, ArrowLeftRight, Calendar } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import LocationManager from "./LocationManager";
 import WorldSystemManager from "./WorldSystemManager";
 import CultureManager from "./CultureManager";
@@ -22,6 +22,8 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 
 export default function WorldBuildingHub() {
   const { storyId } = useParams<{ storyId: string }>();
+  const { state } = useLocation();
+  const selectLocationName: string | undefined = state?.selectLocationName;
   const [activeTab, setActiveTab] = useState<Tab>("locations");
 
   if (!storyId) return null;
@@ -47,7 +49,7 @@ export default function WorldBuildingHub() {
       </div>
 
       <div className={styles.tabContent}>
-        {activeTab === "locations"  && <LocationManager storyId={storyId} />}
+        {activeTab === "locations"  && <LocationManager storyId={storyId} selectLocationName={selectLocationName} />}
         {activeTab === "systems"    && <WorldSystemManager storyId={storyId} />}
         {activeTab === "cultures"   && <CultureManager storyId={storyId} />}
         {activeTab === "history"    && <HistoryTab storyId={storyId} />}

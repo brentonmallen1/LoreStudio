@@ -6,6 +6,7 @@ import styles from "./WorldBuilding.module.css";
 
 interface Props {
   storyId: string;
+  selectLocationName?: string;
 }
 
 const PREDEFINED_TYPES = [
@@ -81,7 +82,7 @@ function LocationTreeItem({
   );
 }
 
-export default function LocationManager({ storyId }: Props) {
+export default function LocationManager({ storyId, selectLocationName }: Props) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [selected, setSelected] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,8 +108,22 @@ export default function LocationManager({ storyId }: Props) {
       setAvailableTypes(types);
       // Auto-expand roots
       setExpandedIds(new Set(locs.map((l) => l.id)));
+      // Auto-select if navigated from a [[Setting]] mention
+      if (selectLocationName) {
+        function findByName(list: Location[]): Location | undefined {
+          for (const loc of list) {
+            if (loc.name.toLowerCase() === selectLocationName!.toLowerCase()) return loc;
+            if (loc.children) {
+              const found = findByName(loc.children);
+              if (found) return found;
+            }
+          }
+        }
+        const match = findByName(locs);
+        if (match) setSelected(match);
+      }
     }).finally(() => setLoading(false));
-  }, [storyId]);
+  }, [storyId, selectLocationName]);
 
   useEffect(() => { load(); }, [load]);
 

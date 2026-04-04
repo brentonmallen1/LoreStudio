@@ -130,8 +130,8 @@ interface UIState {
   endSprint: () => void;
 
   // Story view mode
-  viewMode: "tree" | "corkboard" | "timeline";
-  setViewMode: (mode: "tree" | "corkboard" | "timeline") => void;
+  viewMode: "tree" | "corkboard" | "timeline" | "graph";
+  setViewMode: (mode: "tree" | "corkboard" | "timeline" | "graph") => void;
 
   // Scene chat panel
   chatPanelOpen: boolean;
@@ -308,7 +308,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
-  viewMode: "tree",
+  viewMode: "tree" as "tree" | "corkboard" | "timeline" | "graph",
   setViewMode: (mode) => set({ viewMode: mode }),
 
   chatPanelOpen: false,

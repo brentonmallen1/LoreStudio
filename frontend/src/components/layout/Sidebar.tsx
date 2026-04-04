@@ -5,7 +5,7 @@ import {
   ChevronDown,
   Plus,
   Users,
-  ArrowLeft,
+  SquareLibrary,
   Scroll,
   MessageSquareMore,
   GitBranch,
@@ -273,7 +273,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             className={styles.backBtn}
             title="Back to dashboard"
           >
-            <ArrowLeft size={14} />
+            <SquareLibrary size={14} />
           </button>
           <span className={styles.storyTitle} title={activeStory?.title}>
             {activeStory?.title ?? "Story"}
@@ -293,7 +293,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             className={styles.railBtn}
             title="Back to dashboard"
           >
-            <ArrowLeft size={16} />
+            <SquareLibrary size={16} />
           </button>
         )}
 
@@ -341,6 +341,13 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             title="Timeline view"
           >
             <Clock size={12} />
+          </button>
+          <button
+            className={`${styles.viewBtn} ${viewMode === "graph" ? styles.viewActive : ""}`}
+            onClick={() => setViewMode("graph")}
+            title="Scene link graph"
+          >
+            <GitBranch size={12} />
           </button>
         </div>
       )}

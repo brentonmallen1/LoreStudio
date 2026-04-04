@@ -32,7 +32,7 @@ from .routers.cultures import router as cultures_router
 from .routers.history import router as history_router
 from .routers.location_travel import router as location_travel_router
 from .routers.calendars import router as calendars_router
-from .services.seed import seed_admin, seed_structure_templates, seed_demo_story
+from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story
 
 
 @asynccontextmanager
@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
     seed_structure_templates()
     seed_admin()
     seed_demo_story()
+    seed_scifi_demo_story()
     yield
 
 

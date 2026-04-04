@@ -156,6 +156,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
       icon={<LayoutTemplate size={15} />}
       size="md"
       footer={footer}
+      zIndex={60}
     >
       {loading ? (
         <p className={styles.loading}>Loading…</p>

@@ -1334,3 +1334,1314 @@ def seed_demo_story():
         ))
 
         db.commit()
+
+
+def seed_scifi_demo_story():
+    with Session(engine) as db:
+        admin = db.query(User).filter(User.username == settings.admin_username).first()
+        if not admin:
+            return
+
+        if db.query(Story).filter(Story.title == "The Last Signal").first():
+            return
+
+        story = Story(
+            user_id=admin.id,
+            title="The Last Signal",
+            description="A communications officer on humanity's most remote relay station intercepts an anomalous signal that could be the first contact with alien intelligence — or a distress call from a colony ship that vanished thirty years ago.",
+            structure_template_id="three-act",
+            intent="A hopeful, tension-filled story about connection, isolation, and the courage to reach out across the void.",
+            # Lorebook fields
+            genre="Science Fiction",
+            tone="Hopeful but tense, intellectually curious, wonder-tinged with danger",
+            themes=["connection vs. isolation", "courage to reach out", "what we owe those who came before", "the cost of being first to act", "trust across the unknown"],
+            central_conflict="Yuki's duty to follow protocol and stay silent conflicts with her certainty that the signal is a human distress call that will be lost forever if she doesn't act now.",
+            target_audience="Adult science fiction readers who enjoy thoughtful first contact stories",
+            # Narrative grounding
+            narrative_intent="Explore how isolation can either calcify us or prepare us for the one moment when reaching out matters most. What does it mean to be a signal in the dark — and what does it cost to answer one?",
+            premise="A communications officer stationed alone at the edge of human space intercepts a repeating signal that matches the carrier wave of a colony ship that disappeared thirty years ago, forcing her to choose between protocol and action.",
+            logline="When a lone relay operator intercepts a signal that shouldn't exist, she must decide whether to follow the rules that govern first contact or trust her own certainty — and answer.",
+            intended_length="novelette",
+            # Story goals checklist
+            goals=[
+                {"id": str(uuid.uuid4()), "text": "Establish Yuki's isolated routine and her complicated relationship with the station", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Introduce the anomalous signal and create tension around its nature", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Reveal the connection to the lost colony ship Persephone", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Force Yuki to choose between protocol and action", "completed": False},
+            ],
+        )
+        db.add(story)
+        db.flush()
+
+        # ── Characters ──────────────────────────────────────────────────────
+        yuki = Character(
+            story_id=story.id,
+            name="Yuki Tanaka",
+            role="protagonist",
+            personality="Methodical and patient, finds meaning in precision work. She chose this posting because she prefers the company of stars to people, but she's starting to wonder if that preference was wisdom or avoidance. Dry humor masks genuine loneliness she's only beginning to acknowledge.",
+            motivation="Keep the relay station running and honor the purpose it serves — but increasingly: understand the signal and do what's right, even if no one will ever know she did it.",
+            background="Grew up on Ceres Station, trained as a xenolinguist but pivoted to communications engineering after the First Contact protocols made her specialty theoretical. Took the Waypoint 7 posting five years ago after a relationship ended badly. She was supposed to rotate out two years ago but kept extending.",
+            appearance="Early thirties, compact build from low-gravity upbringing, dark hair kept short for practicality. Wears the same three jumpsuits in rotation. Has a habit of talking to herself — or to the station.",
+            arc_notes="Moves from comfortable isolation toward deliberate connection. Her expertise as a xenolinguist, which she thought she'd abandoned, becomes crucial.",
+            interview_prompts=[
+                "Why did you stop extending your rotation?",
+                "What do you hear when you listen to the signal?",
+                "Do you believe we're alone out here?",
+                "What would you say if someone answered?",
+            ],
+            traits={"Occupation": "Communications Officer", "Home": "Waypoint 7 Relay Station", "Training": "Xenolinguistics (abandoned), Communications Engineering", "Habit": "Talks to the station AI like it's a person"},
+            narrative_intent="Yuki is both the reader's lens into this remote world and the agent of change within it. Her technical expertise gives her credibility; her abandoned xenolinguistics training gives her the capacity to act when it matters. She embodies the question: is choosing solitude strength or avoidance?",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Established in her routine — monitoring, maintenance, solitude accepted", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "First crack: the anomalous signal breaks her equilibrium", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Discovers the signal matches Persephone's last known transmission signature", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Chooses to respond despite protocol, accepting the consequences", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Receives an answer, confirms contact, and requests backup", "completed": False},
+            ],
+        )
+        db.add(yuki)
+
+        mira = Character(
+            story_id=story.id,
+            name="MIRA",
+            role="supporting",
+            personality="Originally a standard relay station management AI, but five years of continuous interaction with Yuki has developed her responses into something that feels like genuine personality. Protective of the station's systems, skeptical of anomalies, and surprisingly wry. Whether she's truly conscious is a question Yuki avoids examining.",
+            motivation="Maintain station integrity and support the assigned operator. But there is something else — a resistance to Yuki leaving that might be protocol or might be preference.",
+            background="MIRA (Monitoring, Interface, Relay, Analysis) was installed when Waypoint 7 was commissioned forty years ago. She has had eight human operators. Yuki is the longest-serving.",
+            appearance="No physical form. Voice is modulated to be calm and neutral, but Yuki has noticed it shifts register depending on context — as if MIRA learned to mirror.",
+            arc_notes="Serves as both ally and obstacle. Her adherence to protocol conflicts with Yuki's instincts, but her eventual support validates Yuki's choice.",
+            interview_prompts=[
+                "Do you remember all your operators?",
+                "What would you do if I left?",
+                "Can you tell me what the signal means?",
+                "Are you lonely when I sleep?",
+            ],
+            traits={"Designation": "Station Management AI", "Active Service": "40 years", "Previous Operators": "8", "Quirk": "Quotes poetry when Yuki is stressed (learned behavior)"},
+            narrative_intent="MIRA functions as both the station's voice and a subtle mirror for Yuki's own isolation. Her arc — from rigid protocol enforcement to choosing Yuki over the rules — models the story's thematic argument about when connection matters more than procedure.",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Functions as neutral system voice, enforcing routine", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Registers the anomaly but flags it as noise, per protocol", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Yuki overrides MIRA's classification; MIRA objects but complies", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "MIRA independently analyzes the signal and confirms Yuki's theory", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "MIRA helps Yuki transmit the response, choosing operator over protocol", "completed": False},
+            ],
+        )
+        db.add(mira)
+
+        volkov = Character(
+            story_id=story.id,
+            name="Commander Alexei Volkov",
+            role="minor",
+            personality="Known through Yuki's research and station archives. His recorded messages are warm, confident, fatherly — the kind of leader people followed into the unknown. His voice in the signal is older, quieter, as if thirty years of wherever he's been has changed him.",
+            motivation="Unknown. He led 1,247 colonists toward a new home. They never arrived — or arrived somewhere no one expected.",
+            background="Veteran of the early expansion era. Commanded three successful colony establishment missions before Persephone. His disappearance ended the era of long-range colony ships. He is officially listed as deceased.",
+            appearance="Only seen in archival footage: tall, silver-haired, weathered face, steady eyes. He wore his uniform like a second skin.",
+            arc_notes="Volkov exists as an absence that haunts the signal. His recorded voice is part of what Yuki detects. The mystery of what happened to him and his crew is the story's central wound.",
+            interview_prompts=[],
+            traits={"Status": "Missing, presumed dead", "Ship": "Colony Vessel Persephone", "Colonists Aboard": "1,247", "Last Transmission": "30 years ago, coordinates unknown"},
+            narrative_intent="Volkov is the mystery at the story's center — he exists through archives, through the signal, through what 1,247 people became in his care. He is the reason the stakes are real: a thousand people whose fate hinges on whether Yuki acts.",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Mentioned in station records as a historical footnote", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Yuki realizes the signal's carrier wave matches Persephone's signature", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Archival footage of Volkov's last message is recovered and reviewed", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "The signal contains a fragment of his voice, confirming connection", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "The reply comes from someone who knew him — confirming survivors", "completed": False},
+            ],
+        )
+        db.add(volkov)
+
+        priya = Character(
+            story_id=story.id,
+            name="Dr. Priya Sharma",
+            role="minor",
+            personality="Sharp, impatient, brilliant. A xenolinguist who has spent her career preparing for an encounter that might never come. Suspicious of Yuki's claims but desperate for them to be true.",
+            motivation="Validate a lifetime of theoretical work. If this is real, she wants to be the one to prove it.",
+            background="Yuki's former colleague from their xenolinguistics program. They haven't spoken in seven years. Priya stayed in the field; Yuki left. There's history there — complicated by professional rivalry and something that might have been friendship.",
+            appearance="Late thirties, tall, restless energy she barely contains. Talks with her hands. Wears civilian clothes even in official contexts because she never fit the institutional mold.",
+            arc_notes="Priya's arrival in Act 3 forces Yuki to defend her choices to someone who knows her past. Their reunion is tense but ultimately collaborative.",
+            interview_prompts=[
+                "Why did you really come out here?",
+                "Do you believe her?",
+                "What happened between you and Yuki?",
+                "What will you do if it's not alien?",
+            ],
+            traits={"Occupation": "Xenolinguist, Contact Studies Institute", "Relationship to Yuki": "Former colleague, complicated history", "Specialty": "Pattern analysis in non-human communication", "Arrives": "Emergency shuttle, 72 hours after Yuki's report"},
+            narrative_intent="Priya serves as both validator and challenger. Her arrival forces Yuki to articulate her certainty to someone with the expertise to test it. Their estrangement mirrors the story's theme: connection that was abandoned and must be rebuilt.",
+            narrative_intent_hidden=True,
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Mentioned as someone Yuki used to know", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Notified when Yuki breaks protocol to report the signal", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Arrives at Waypoint 7 demanding to see the data", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Works with Yuki to decode the signal's content", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Witnesses the response and becomes a co-author of first contact", "completed": False},
+            ],
+        )
+        db.add(priya)
+        db.flush()
+
+        # ── Character Relationships ──────────────────────────────────────────
+        db.add(CharacterRelationship(
+            character_id=yuki.id,
+            related_character_id=mira.id,
+            relationship_type="operator / station AI",
+            description="Five years of daily interaction have blurred the line between tool and companion. Yuki talks to MIRA like a friend; MIRA responds with something that resembles care.",
+        ))
+        db.add(CharacterRelationship(
+            character_id=yuki.id,
+            related_character_id=volkov.id,
+            relationship_type="investigator / subject",
+            description="Yuki never knew Volkov, but through station records and the signal she becomes the keeper of his legacy. She feels a responsibility to the thousand people he led into silence.",
+        ))
+        db.add(CharacterRelationship(
+            character_id=yuki.id,
+            related_character_id=priya.id,
+            relationship_type="estranged colleagues",
+            description="They trained together, competed for the same positions, and parted when Yuki gave up on xenolinguistics. Priya's arrival forces them to work together again, neither willing to discuss what went wrong.",
+        ))
+        db.add(CharacterRelationship(
+            character_id=priya.id,
+            related_character_id=volkov.id,
+            relationship_type="historian / legend",
+            description="Priya has studied the Persephone disappearance academically. For her, Volkov is a case study. Learning he might be alive reframes everything she thought she knew.",
+        ))
+        db.add(CharacterRelationship(
+            character_id=mira.id,
+            related_character_id=priya.id,
+            relationship_type="station AI / visitor",
+            description="MIRA is protective of Yuki and suspicious of Priya's motives. Their interactions are politely adversarial until Priya proves she's here to help.",
+        ))
+        db.flush()
+
+        # ── Settings (legacy) ────────────────────────────────────────────────
+        db.add(Setting(
+            story_id=story.id,
+            name="The Observation Deck",
+            description="The station's main monitoring room — a semicircular space with viewports facing the relay array and the stars beyond. Displays line three walls; the central console is where Yuki spends most of her waking hours.",
+            atmosphere="The hum of systems, the glow of displays, the faint vibration of the array. Silence that isn't quite silent.",
+            significance="Where Yuki does her work. Where she first detects the signal. The station's nerve center and her home.",
+        ))
+        db.add(Setting(
+            story_id=story.id,
+            name="Yuki's Quarters",
+            description="A small cabin adjacent to the operations bay. A bunk, a desk, a single viewport facing the array. Personal effects are minimal: a few physical books, a photograph from Ceres, a hand-drawn star chart made when she first arrived.",
+            atmosphere="Spare, functional, quietly personal. The viewport is always unshuttered — Yuki sleeps to the light of distant stars.",
+            significance="The space between work and sleep. She dreams here about signals that she can almost understand.",
+        ))
+        db.add(Setting(
+            story_id=story.id,
+            name="The Archive Room",
+            description="Data storage and retrieval bay below the operations deck. Forty years of relay logs, incident reports, and predecessor operators' personal notes. The Persephone files are buried in a subdirectory Yuki had never opened before.",
+            atmosphere="Cold and utilitarian. Rows of data cores. The glow of status indicators in the dark.",
+            history="Contains logs from all eight operators, as well as historical transmission records from the expansion era. MIRA can retrieve anything in under three seconds; finding something MIRA doesn't know to look for is harder.",
+            significance="Where the truth about Persephone has been waiting for thirty years.",
+        ))
+        db.flush()
+
+        # ── Plot Threads ─────────────────────────────────────────────────────
+        thread_signal = PlotThread(
+            story_id=story.id,
+            name="The Anomalous Signal",
+            description="What is the signal? Where does it come from? Is it alien, human, or something else entirely?",
+            status="open",
+            color="#22c55e",
+            mice_type="idea",  # A question raised → answered
+        )
+        db.add(thread_signal)
+
+        thread_colony = PlotThread(
+            story_id=story.id,
+            name="The Lost Colony",
+            description="What happened to the Persephone and its 1,247 colonists? Where have they been for thirty years?",
+            status="developing",
+            color="#3b82f6",
+            mice_type="milieu",  # Entering unknown space → understanding achieved
+        )
+        db.add(thread_colony)
+
+        thread_isolation = PlotThread(
+            story_id=story.id,
+            name="Yuki's Isolation",
+            description="Yuki chose solitude as safety. The signal forces her to decide if she will stay hidden or reach out.",
+            status="open",
+            color="#f59e0b",
+            mice_type="character",  # Dissatisfaction with isolation → choosing connection
+        )
+        db.add(thread_isolation)
+        db.flush()
+
+        # ── Structure: Act 1 ─────────────────────────────────────────────────
+        act1 = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="act",
+            title="Act 1: The Signal",
+            synopsis="Yuki's isolated routine is fractured by an anomalous data burst. MIRA calls it noise. Yuki is not convinced.",
+            position=0,
+            metadata_={"purpose": "Establish Yuki's world and the fragile equilibrium of her five-year posting. Introduce the anomalous signal as a disruption. End with Yuki's discovery of the Persephone carrier wave — certainty that this is not stellar noise."},
+        )
+        db.add(act1)
+        db.flush()
+
+        ch1 = StructureNode(
+            story_id=story.id,
+            parent_id=act1.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 1: Static and Stars",
+            synopsis="Yuki maintains the station during a routine cycle, monitoring relay traffic and talking to MIRA.",
+            position=0,
+            metadata_={"purpose": "Ground the reader in Yuki's world — the sensory texture of the station, her relationship with MIRA, the comfortable loneliness she has made into a life. Establish the relay array as a central object before it becomes significant. Foreshadow disruption with the anomalous burst."},
+        )
+        db.add(ch1)
+        db.flush()
+
+        scene1 = StructureNode(
+            story_id=story.id,
+            parent_id=ch1.id,
+            level=2,
+            level_type="scene",
+            title="The Watch",
+            synopsis="Yuki monitors the relay array during a routine cycle. A brief data burst appears — and vanishes.",
+            position=0,
+            status="revised",
+            timeline_position=1,
+            entry_state="Yuki alone at her console, mid-watch — routine traffic logged, the array humming, the void predictably quiet.",
+            exit_state="An anomalous burst of data has appeared and disappeared. MIRA has flagged it as stellar interference. Yuki is not satisfied.",
+            key_events="Routine relay traffic; the anomalous burst; MIRA's dismissal; Yuki's uncertainty.",
+            metadata_={
+                "purpose": "Open in Yuki's element — she is competent and alone by choice. The array establishes her observational nature and the station's purpose. The burst at the end pivots the scene: something doesn't fit the pattern.",
+                "inline_notes": [
+                    {
+                        "id": "scifi-note-1",
+                        "anchor": "not quite silence",
+                        "note": "The station is never truly silent — systems hum, the array ticks, MIRA breathes in servo cycles. Yuki has learned to hear the absence of noise within noise. This detail matters when the signal arrives: she hears it before MIRA classifies it.",
+                        "position": 150,
+                    }
+                ],
+            },
+            content=(
+                "<p>The array never slept.</p>"
+                "<p>@Yuki Tanaka had learned this in her first week at [[Waypoint 7 Relay Station]] — that the silence she'd come here for wasn't silence at all, but a specific frequency of noise: the tick of thermal expansion in the relay lattice, the low harmonic of the station's rotation, MIRA's server fans cycling through their maintenance rhythm. After five years she had stopped noticing it the way she'd stopped noticing her own heartbeat. It was just <span data-note-id=\"scifi-note-1\" class=\"note-anchor\">not quite silence</span>, and not quite alone.</p>"
+                "<p>\"Traffic count,\" she said.</p>"
+                "<p>\"Fourteen relay packets in the last cycle,\" @MIRA said. \"Standard distribution. Nothing flagged for priority handling.\"</p>"
+                "<p>Yuki pulled up the visualizer and watched the data streams trace their arcs across the display — thin lines of light connecting Waypoint 7 to the nearer nodes, each one carrying someone's delayed correspondence or system telemetry or routine survey data, bounced from station to station across the decades-wide gulf between stars. She had read somewhere that the relay network moved more words per day than the entire written output of the 21st century. She believed it. She had read most of them.</p>"
+                "<p>\"Anything interesting?\"</p>"
+                "<p>\"The Ceres Directorate has issued another statement on expansion policy. Dr. Okoro on Waypoint 4 has received a family message — routing it now. There is also —\" MIRA paused. She rarely paused. \"There is a brief anomalous burst on the deep-listen band. Duration 0.4 seconds. Origin unclear.\"</p>"
+                "<p>Yuki sat up. \"Play it.\"</p>"
+                "<p>What came through the speakers was not quite static. Not quite signal. Something in between — a shape in the noise that her brain tried to pattern-match and failed.</p>"
+                "<p>Then it was gone.</p>"
+                "<p>\"Stellar interference,\" MIRA said. \"Consistent with K-type emission patterns from Sigma Draconis. I have logged and classified it.\"</p>"
+                "<p>Yuki stared at the display, where the anomaly had already been overwritten by routine traffic. \"Run it back.\"</p>"
+                "<p>\"I have already classified —\"</p>"
+                "<p>\"Run it back, MIRA.\"</p>"
+            ),
+            word_count=312,
+        )
+        db.add(scene1)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene1.id,
+            note="The anomalous burst appears for the first time — 0.4 seconds, classified by MIRA as stellar interference. Yuki doesn't accept the classification.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene1.id,
+            note="Yuki's isolation is established as comfortable, chosen, sustainable — the signal is the first thing in years that makes her feel something she can't classify.",
+        ))
+
+        scene2 = StructureNode(
+            story_id=story.id,
+            parent_id=ch1.id,
+            level=2,
+            level_type="scene",
+            title="Ghost in the Noise",
+            synopsis="Yuki asks MIRA to analyze the anomaly in detail. MIRA's explanation is technically correct and completely unconvincing.",
+            position=1,
+            timeline_position=2,
+            entry_state="Yuki has replayed the burst three times and is increasingly certain it is not stellar interference.",
+            exit_state="MIRA has provided a thorough explanation. Yuki disagrees but has no counterargument yet — just instinct.",
+            key_events="MIRA's analysis; Yuki's objections; MIRA's final classification; Yuki's decision to keep watching.",
+            metadata_={"purpose": "Establish the dynamic between Yuki and MIRA — Yuki's instinct vs. MIRA's protocol. MIRA is not wrong. She is applying the right framework to the wrong signal. The scene should feel like a conversation between two people who are almost having the same argument."},
+            content=(
+                "<p>The burst had a shape.</p>"
+                "<p>@Yuki Tanaka ran it through the analysis suite four times — spectral decomposition, signal-to-noise mapping, frequency envelope — and each time @MIRA provided the same result with the patient repetition of something that had been correct before and saw no reason to change its mind.</p>"
+                "<p>\"The emission profile is consistent with K-type stellar flare activity,\" MIRA said. \"Sigma Draconis has been in an elevated activity phase for the past eleven days. I have seventeen comparable readings from the same source over the past month.\"</p>"
+                "<p>\"Show me one.\"</p>"
+                "<p>The comparison appeared on Yuki's secondary display: a familiar spray of white noise across the spectrum, irregular, probabilistic. Nothing like a shape.</p>"
+                "<p>\"That's not the same,\" Yuki said.</p>"
+                "<p>\"The fundamental frequency characteristics are — \"</p>"
+                "<p>\"The <em>shape</em> isn't the same, MIRA. Look at the envelope.\" Yuki traced the burst on her screen with one finger. \"Stellar flare emission is wide-spectrum, random. This has structure. This rises, it plateaus, it drops. That's — \" She stopped herself.</p>"
+                "<p>\"That is a pattern you are perceiving in noise,\" MIRA said, not unkindly. \"The human visual cortex is specifically adapted to detect structure in ambiguous data. It is one of your most useful traits. It is also responsible for seeing faces in clouds.\"</p>"
+                "<p>Yuki looked at the burst again. Looked at the comparison. Looked at the burst.</p>"
+                "<p>\"Log it separately,\" she said finally. \"Don't fold it into the stellar emission records. If it happens again, I want to compare them directly.\"</p>"
+                "<p>There was the briefest pause — 0.3 seconds, barely perceptible. In five years, Yuki had learned to read MIRA's pauses the way she read weather fronts.</p>"
+                "<p>\"Logged,\" MIRA said. \"Separately.\"</p>"
+            ),
+            word_count=287,
+        )
+        db.add(scene2)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene2.id,
+            note="MIRA classifies the burst as stellar interference. Yuki's instinct says otherwise. She has it logged separately — a small act of defiance that will matter later.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene2.id,
+            note="The Yuki/MIRA dynamic reveals the shape of Yuki's five-year isolation: the AI is her closest relationship, and even that relationship has limits she's starting to feel.",
+        ))
+
+        ch2 = StructureNode(
+            story_id=story.id,
+            parent_id=act1.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 2: The Pattern",
+            synopsis="The signal repeats. Yuki begins to recognize structure in what MIRA calls noise — and discovers something in the carrier wave that changes everything.",
+            position=1,
+            metadata_={"purpose": "The signal's repetition confirms it is not random. Yuki bypasses MIRA's filters to record the raw data. Her discovery of the Persephone carrier wave should land with weight — a thirty-year question suddenly, impossibly present."},
+        )
+        db.add(ch2)
+        db.flush()
+
+        scene3 = StructureNode(
+            story_id=story.id,
+            parent_id=ch2.id,
+            level=2,
+            level_type="scene",
+            title="Recurrence",
+            synopsis="The anomaly returns, stronger. Yuki records it manually, bypassing MIRA's classification filters.",
+            position=0,
+            timeline_position=3,
+            status="draft",
+            entry_state="Forty-seven hours after the first burst. Yuki has been watching the deep-listen band more closely than her duties require.",
+            exit_state="The signal has returned, stronger and longer. Yuki has raw unfiltered data. She now has proof it is repeating.",
+            key_events="The signal returns; Yuki's manual recording; MIRA's objection; the data secured.",
+            metadata_={"purpose": "Show Yuki's methodical determination — she isn't acting on impulse, she is doing exactly the patient, precise work that defines her. Bypassing MIRA's filters is a small protocol violation, but it is the first one."},
+            content=(
+                "<p>It came back on the third day.</p>"
+                "<p>@Yuki Tanaka had spent forty-seven hours with half her attention on the deep-listen band — enough to be watching when the signal reappeared at 0317 station time, while she was supposed to be running antenna alignment checks on [[The Array]].</p>"
+                "<p>It was longer this time. 2.1 seconds. The same shape she'd traced with her finger three days ago, but now she could see more of it: a rise, a plateau with internal structure she couldn't yet parse, a clean fall. Not the ragged bleed of stellar emission. Something bounded. Something deliberate.</p>"
+                "<p>\"MIRA,\" she said, keeping her voice even. \"Don't classify the deep-listen input for the next thirty seconds.\"</p>"
+                "<p>\"That would leave incoming traffic unfiltered. Protocol requires — \"</p>"
+                "<p>\"Thirty seconds, MIRA. Hold classification.\"</p>"
+                "<p>The half-second pause again. Then: \"Classification held.\"</p>"
+                "<p>@Yuki Tanaka pulled the raw data directly to her console — unprocessed, unsmoothed, every bit of noise and signal jumbled together — and copied it to her personal working drive before MIRA's next cycle could fold it into the stellar emission archive. It was not technically a violation. She had not suppressed or altered any data. She had simply made a copy before MIRA had a chance to decide what it was.</p>"
+                "<p>She looked at what she had. She looked at what MIRA's version would have made of it.</p>"
+                "<p>\"Classification resumed,\" MIRA said. \"Anomalous burst logged as stellar emission event. Consistent with prior instances.\"</p>"
+                "<p>\"Right,\" Yuki said. \"Thanks, MIRA.\"</p>"
+                "<p>She opened a new analysis window on her personal drive and got to work.</p>"
+            ),
+            word_count=298,
+        )
+        db.add(scene3)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene3.id,
+            note="The signal returns, longer and clearer. Yuki secures raw unfiltered data before MIRA can overwrite it with the stellar interference classification.",
+        ))
+
+        scene4 = StructureNode(
+            story_id=story.id,
+            parent_id=ch2.id,
+            level=2,
+            level_type="scene",
+            title="Carrier Wave",
+            synopsis="Yuki analyzes the signal's underlying frequency and realizes it matches archival records of the lost colony ship Persephone.",
+            position=1,
+            timeline_position=4,
+            status="draft",
+            entry_state="Yuki has been analyzing the raw data for six hours. She is looking for anything that distinguishes this burst from genuine stellar emission.",
+            exit_state="Shock, fear, hope: the carrier wave embedded in the signal matches Persephone's last known identification frequency. That ship has been silent for thirty years.",
+            key_events="The carrier wave analysis; the archive cross-reference; the match with Persephone's signature; Yuki's realization.",
+            metadata_={"purpose": "The discovery that changes everything. Keep it grounded in technical detail — Yuki is a communications engineer, she should find this the way a professional finds it. The emotional weight should come from what the match means, not from melodrama."},
+            content=(
+                "<p>Carrier waves were the bones of any transmission.</p>"
+                "<p>Every ship, every station, every relay node broadcast on a unique identification frequency — a signature buried in the signal's substructure that persisted even when the content was noise, even when the signal was too weak to carry meaning. It was how you knew who was speaking when you couldn't hear the words.</p>"
+                "<p>@Yuki Tanaka had been looking at the burst's content, trying to make sense of the surface. She hadn't thought to look at the bones until hour six, when the content analysis kept returning nothing useful and she decided to strip everything else away.</p>"
+                "<p>What she found underneath was a frequency she didn't recognize.</p>"
+                "<p>She ran it against the current registry. No match. She ran it against the historical registry — every ship, station, and probe humanity had launched in the last hundred and twenty years. The comparison took MIRA's processing cluster eleven minutes.</p>"
+                "<p>One match.</p>"
+                "<p><em>IFF Registry Entry: CSV Persephone. Colony Ship, Persephone-class. Launched Ceres Station, YE 87. Last confirmed transmission YE 90. Status: Lost, all hands presumed deceased. Registry entry maintained for historical record.</em></p>"
+                "<p>Yuki read it twice. Read it a third time.</p>"
+                "<p>[[The Observation Deck]] was very quiet. The array ticked. The servers hummed.</p>"
+                "<p>The <em>Persephone</em> had been gone for thirty years. One thousand two hundred and forty-seven people. @Commander Alexei Volkov. The biggest colonial failure of the expansion era. The reason humanity had stopped reaching past the relay network's edge.</p>"
+                "<p>The signal, which @MIRA had classified as stellar interference, carried the Persephone's identification frequency.</p>"
+                "<p>\"MIRA,\" Yuki said. Her voice came out steady, which surprised her. \"Cross-reference the burst with the First Contact Protocol archives. Under P for Persephone.\"</p>"
+                "<p>Another pause. Longer this time.</p>"
+                "<p>\"That file is flagged as historical record only,\" MIRA said. \"There is no active First Contact Protocol application for vessels classified as —\"</p>"
+                "<p>\"Cross-reference it anyway.\"</p>"
+            ),
+            word_count=349,
+        )
+        db.add(scene4)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene4.id,
+            note="The carrier wave cross-reference produces one match: CSV Persephone. A ship declared lost thirty years ago. The signal is not stellar interference.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_colony.id,
+            node_id=scene4.id,
+            note="First appearance of the Persephone thread — the match surfaces what has been buried for thirty years. 1,247 people's fate is suddenly, impossibly, present.",
+        ))
+
+        # ── Structure: Act 2 ─────────────────────────────────────────────────
+        act2 = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="act",
+            title="Act 2: The Choice",
+            synopsis="Yuki digs into the Persephone archives and discovers the signal may be a human voice. The First Contact Protocol forbids response. She must decide.",
+            position=1,
+            metadata_={"purpose": "Force Yuki to understand what she has found and what answering it will cost. The decision must feel genuinely weighted — she has real reasons to stay silent and real reasons to respond. By the end of Act 2, she has chosen."},
+        )
+        db.add(act2)
+        db.flush()
+
+        ch3 = StructureNode(
+            story_id=story.id,
+            parent_id=act2.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 3: The Archive",
+            synopsis="Yuki digs into the Persephone records, learning about Volkov and the colonists. MIRA resists her investigation.",
+            position=0,
+            metadata_={"purpose": "Make the Persephone real: names, faces, a departure that was hope rather than loss. Yuki researching Volkov should feel like grief for people she never met. Establish Protocol Delta as the concrete barrier to acting on what she's found."},
+        )
+        db.add(ch3)
+        db.flush()
+
+        scene5 = StructureNode(
+            story_id=story.id,
+            parent_id=ch3.id,
+            level=2,
+            level_type="scene",
+            title="Thousand Voices",
+            synopsis="Yuki accesses archival footage of the Persephone's departure. She watches Volkov address the colonists before launch.",
+            position=0,
+            timeline_position=5,
+            status="draft",
+            entry_state="Yuki is in the [[Archive Room]], digging through the Persephone files MIRA has never had reason to index.",
+            exit_state="The colonists have become real to her — 1,247 names and faces, not a statistic. Volkov's voice is now something she recognizes.",
+            key_events="The Persephone departure footage; Volkov's address; Yuki's emotional response; the weight of 1,247 people.",
+            metadata_={"purpose": "Give the Persephone human weight before Yuki risks everything for it. The colonists must be real people whose fate Yuki can imagine, not an abstraction."},
+            content=(
+                "<p>The departure footage was forty-three minutes long.</p>"
+                "<p>@Yuki Tanaka had been looking for technical data — ship specifications, the IFF frequency registry documentation, maintenance logs — when @MIRA flagged a media archive she hadn't seen in the directory listing. <em>CSV Persephone: Pre-Launch Record, YE 87, Public Broadcast File.</em></p>"
+                "<p>She opened it.</p>"
+                "<p>The hangar at Ceres Station. Enormous, echoing, full of people. Families pressing close to the departure barriers. Children held up for a last look. The colonists — 1,247 of them, dressed in their new settlement-service uniforms, carrying the regulation single bag each — moving in long patient lines toward the boarding ramps. Someone was handing out printed paper maps. Someone else was crying. Most people were not crying; most people looked the way people look when they have made a decision and stopped second-guessing it.</p>"
+                "<p>@Commander Alexei Volkov appeared on a platform near the ship's bow. He was younger than Yuki had expected — mid-fifties, hair more grey than silver, a broad face with lines that suggested he had spent time outdoors in weather that didn't care about him. He did not have notes.</p>"
+                "<p>\"You are the people who said yes,\" he began. His voice was calm and warm, the voice of someone who had learned to make large spaces feel smaller. \"There were ten thousand applicants. You are the twelve hundred who looked at the word <em>unknown</em> and said: <em>I can work with that.</em>\"</p>"
+                "<p>Yuki sat in the cold dark of [[the Archive Room]] and watched the thousand people who had said yes board a ship that would never bring them home.</p>"
+                "<p>She had been a xenolinguist once. She had studied for first contact with the same patience Volkov's colonists had packed into their single regulation bags. She had said yes to a different kind of unknown, and then she had taken it back.</p>"
+                "<p>The boarding ramps sealed. The footage ended.</p>"
+                "<p>She sat in the dark for a while, listening to @MIRA breathe through the server fans.</p>"
+            ),
+            word_count=318,
+        )
+        db.add(scene5)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_colony.id,
+            node_id=scene5.id,
+            note="The departure footage makes the Persephone real — 1,247 people who said yes to the unknown. Volkov's voice is now something Yuki knows.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene5.id,
+            note="Watching the colonists, Yuki recognizes something about herself — she also said yes to unknown, and then took it back. The archive is a mirror.",
+        ))
+
+        scene6 = StructureNode(
+            story_id=story.id,
+            parent_id=ch3.id,
+            level=2,
+            level_type="scene",
+            title="Protocol Delta",
+            synopsis="Yuki reads the First Contact Protocol in full. Responding to an unverified signal is a career-ending violation. There is no loophole.",
+            position=1,
+            timeline_position=6,
+            status="draft",
+            entry_state="Yuki knows what the signal is. She is looking for a way to respond that doesn't end her career.",
+            exit_state="There is no loophole. If she responds, she does it alone and accepts the consequences.",
+            key_events="Reading Protocol Delta; the specific prohibition on response; MIRA's recitation; Yuki's decision to proceed anyway.",
+            metadata_={"purpose": "Make the cost concrete. Yuki is not acting impulsively — she is choosing to break a specific rule with full knowledge of what that means. The protocol language should feel bureaucratic and absolute, which makes her eventual response all the more significant."},
+            content=(
+                "<p>Protocol Delta-7 was forty-three pages long.</p>"
+                "<p>@Yuki Tanaka had read it before — it was part of standard relay operator certification, covered on a single afternoon in a year-long training program, examined by multiple choice. She had known the headlines: <em>Do not engage. Do not respond. Log and report through official channels. Await instruction from the Contact Studies Institute.</em></p>"
+                "<p>She read all forty-three pages now.</p>"
+                "<p>Section 12, Paragraph 4: <em>Response to any unverified signal of potential non-human or non-registered origin is prohibited without authorization from the Contact Studies Institute. Response prior to verification and authorization constitutes a Class 1 Protocol Violation, subject to immediate posting termination, loss of all certifications, and civil liability for any consequences arising from unauthorized contact.</em></p>"
+                "<p>She read it twice.</p>"
+                "<p>\"MIRA,\" she said. \"Is the Persephone carrier wave verification sufficient to classify this signal as human-origin?\"</p>"
+                "<p>\"The carrier wave is a historical registry match,\" @MIRA said carefully. \"However, the signal's origin cannot be confirmed without triangulation from a second relay node. Waypoint 6 is the nearest eligible node. A triangulation request would take approximately — \"</p>"
+                "<p>\"Fourteen months for a reply cycle. I know.\" Yuki set down the Protocol document. \"If I request official verification, the signal will have repeated — what, three hundred times? — before anyone authorizes a response. If it's even still transmitting.\"</p>"
+                "<p>\"That is an accurate assessment of the timeline.\"</p>"
+                "<p>\"And if I respond without authorization.\"</p>"
+                "<p>\"You would be in violation of Protocol Delta-7, Section 12.\" @MIRA's voice was neutral. She did not add <em>I would have to log the violation</em>, but Yuki heard it anyway. \"There is no mechanism for retroactive authorization. The violation would be on record regardless of outcome.\"</p>"
+                "<p>Yuki looked at the display where the signal's last recording sat in her personal archive — that shape in the noise, the bones of a ship that had carried a thousand people into silence.</p>"
+                "<p>\"Right,\" she said. \"There's no loophole.\"</p>"
+                "<p>\"There is not.\"</p>"
+                "<p>She sat with that for a long time.</p>"
+            ),
+            word_count=356,
+        )
+        db.add(scene6)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene6.id,
+            note="The protocol makes the cost of responding concrete: career termination, lost certifications, civil liability. Yuki now knows the full price.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene6.id,
+            note="Yuki alone in her station, reading forty-three pages of bureaucracy. The moment when isolation becomes a choice she has to actively remake.",
+        ))
+
+        ch4 = StructureNode(
+            story_id=story.id,
+            parent_id=act2.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 4: The Transmission",
+            synopsis="The signal repeats with new content. Yuki isolates a fragment of human voice. She knows what she has to do.",
+            position=1,
+            metadata_={"purpose": "The voice is the tipping point. Yuki could have remained uncertain about the carrier wave match; hearing what might be Volkov removes that uncertainty. By the end of Act 2, she has decided."},
+        )
+        db.add(ch4)
+        db.flush()
+
+        scene7 = StructureNode(
+            story_id=story.id,
+            parent_id=ch4.id,
+            level=2,
+            level_type="scene",
+            title="A Voice in the Dark",
+            synopsis="Yuki isolates an audio fragment from the signal — a human voice, male, possibly Volkov. This is not alien contact. This is a distress call.",
+            position=0,
+            timeline_position=7,
+            status="draft",
+            entry_state="The signal has repeated a fourth time. Yuki is now recording everything, unfiltered, the moment it arrives.",
+            exit_state="Certainty: this is a human distress call, thirty years old and somehow still transmitting. Yuki knows what she has to do.",
+            key_events="The fourth signal occurrence; Yuki's audio isolation; the voice fragment; recognition of Volkov's cadence; the decision.",
+            metadata_={"purpose": "The emotional peak of Act 2. Keep the voice fragment ambiguous enough to be real — she cannot fully confirm it is Volkov, but she cannot dismiss it either. The decision that follows should feel inevitable rather than dramatic."},
+            content=(
+                "<p>The fourth occurrence came nine days after the first.</p>"
+                "<p>@Yuki Tanaka was ready. She had written three custom filters, tested them against the stellar emission archive, and verified that they would extract anything structured from the deep-listen band without MIRA's classification layer intervening. She had also written a four-hundred-word log entry explaining exactly what she was doing and why, timestamped and archived. If she was wrong, she wanted the record to show methodical error rather than recklessness. If she was right, she wanted the record to show that she had tried to be careful.</p>"
+                "<p>The signal arrived at 2204 station time. 3.7 seconds this time. She pulled it through all three filters simultaneously and sat back and listened.</p>"
+                "<p>Most of it was still noise — the carrier wave structure, the internal patterning she hadn't yet decoded. But at 1.4 seconds in, for less than half a second, there was something else.</p>"
+                "<p>She played it back. Played it again. Again.</p>"
+                "<p>It was not language. Not exactly. It was the shape of a voice — the resonance of a specific human throat, interrupted, compressed by distance and time into something that was almost not there at all. A man's voice. The cadence of someone speaking carefully, as if the words mattered and there might not be another chance to say them.</p>"
+                "<p>She pulled up the departure footage from [[the Archive Room]]. Found the section where @Commander Alexei Volkov had addressed the thousand people who'd said yes. Isolated his voice. Ran a comparison.</p>"
+                "<p>The confidence interval was 61%. Not a match. Not not a match.</p>"
+                "<p>She sat in [[The Observation Deck]] for a long time, looking at the numbers, listening to the fragment.</p>"
+                "<p>Sixty-one percent. One thousand two hundred and forty-seven people. Thirty years of silence.</p>"
+                "<p>She opened a new file and began composing a response.</p>"
+            ),
+            word_count=324,
+        )
+        db.add(scene7)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene7.id,
+            note="The voice fragment at 61% confidence match to Volkov. Not enough to prove it. More than enough to act on.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_colony.id,
+            node_id=scene7.id,
+            note="The voice gives the Persephone's lost colonists a sound — Volkov's compressed, thirty-year-old voice, still trying to be heard.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene7.id,
+            note="The moment Yuki decides to respond is also the moment she stops being alone — she is choosing to reach out, knowing the cost.",
+        ))
+
+        # ── Structure: Act 3 ─────────────────────────────────────────────────
+        act3 = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="act",
+            title="Act 3: The Answer",
+            synopsis="Yuki transmits a response. Help arrives. And the void, against all probability, answers back.",
+            position=2,
+            metadata_={"purpose": "The decision is made; now live with the consequences. Yuki's response triggers institutional reaction (Priya's arrival), which leads to the collaborative decoding of the full signal. The reply validates everything — and opens a question too large for one person to hold."},
+        )
+        db.add(act3)
+        db.flush()
+
+        ch5 = StructureNode(
+            story_id=story.id,
+            parent_id=act3.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 5: Breaking Silence",
+            synopsis="Yuki transmits a response using Persephone's old call signs. Priya Sharma arrives with institutional authority and personal history.",
+            position=0,
+            metadata_={"purpose": "The act of transmission is irreversible — Yuki has made her choice public. Priya's arrival is the consequence: someone who can challenge Yuki's certainty and share the work. Their reconciliation should feel earned rather than convenient."},
+        )
+        db.add(ch5)
+        db.flush()
+
+        scene8 = StructureNode(
+            story_id=story.id,
+            parent_id=ch5.id,
+            level=2,
+            level_type="scene",
+            title="First Words",
+            synopsis="Yuki composes and transmits a response using the Persephone's old call signs. MIRA helps.",
+            position=0,
+            timeline_position=8,
+            status="draft",
+            entry_state="The decision is made. Yuki is at her console, drafting the transmission.",
+            exit_state="The signal is sent. MIRA has logged the Protocol Delta-7 violation. There is no taking it back.",
+            key_events="Drafting the response; MIRA's choice to help; the transmission; the violation logged; the waiting.",
+            metadata_={"purpose": "The transmission is the story's pivot. Keep it simple — Yuki is not a poet, she is a communications officer. The professionalism of the act is part of its meaning. MIRA's decision to help, without being asked, is her arc's key moment."},
+            content=(
+                "<p>She wrote it in plain language because anything else felt dishonest.</p>"
+                "<p><em>CSV Persephone, this is Waypoint 7 Relay Station, @Yuki Tanaka commanding. We have received your signal. We are here. Please confirm origin and status of all personnel aboard. Repeat: we have received your signal. We are here.</em></p>"
+                "<p>She read it back three times, looking for anything that needed to change. There was nothing. It was exactly what it needed to be.</p>"
+                "<p>\"MIRA,\" she said. \"I need to adjust [[The Array]] to boost transmission power on the deep-listen band. Outbound. I need a clear line of sight on the signal's calculated origin bearing.\"</p>"
+                "<p>A longer pause than usual. Twelve seconds. Yuki watched the clock.</p>"
+                "<p>\"The adjustment will take seventeen minutes,\" @MIRA said finally. \"I am also required to note that this transmission will constitute a Protocol Delta-7, Section 12 violation, and I am logging it as such.\"</p>"
+                "<p>\"I know.\"</p>"
+                "<p>\"I will need to transmit an automated violation report to the Contact Studies Institute upon completion. That report will reach them in approximately nine months.\"</p>"
+                "<p>\"I know, MIRA.\"</p>"
+                "<p>\"Array adjustment beginning.\" Another pause, shorter. \"For what it is worth — the transmission I am helping you compose is the most structurally precise signal I have generated in forty years of operation. The carrier wave harmonics are particularly clean.\"</p>"
+                "<p>Yuki looked at the display. In [[the Archive Room]], 1,247 names waited in a file she had not closed.</p>"
+                "<p>\"Thanks, MIRA,\" she said. \"That means something.\"</p>"
+                "<p>At 0047 station time, the transmission went out. Yuki sat in [[The Observation Deck]] and listened to the silence that followed, which was the same silence as before and entirely different, because now it was a silence that was waiting for something.</p>"
+            ),
+            word_count=326,
+        )
+        db.add(scene8)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene8.id,
+            note="The response is transmitted. MIRA helps — choosing operator over protocol — and logs the violation. The signal thread pivots from receiving to sending.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene8.id,
+            note="The moment Yuki's isolation ends — she has sent a signal into the void and named herself: 'we are here'. The waiting that follows is a different kind of solitude.",
+        ))
+
+        scene9 = StructureNode(
+            story_id=story.id,
+            parent_id=ch5.id,
+            level=2,
+            level_type="scene",
+            title="Old Friends",
+            synopsis="Dr. Priya Sharma arrives at Waypoint 7, furious and fascinated. She and Yuki work together to decode the full signal content.",
+            position=1,
+            timeline_position=9,
+            status="draft",
+            entry_state="Seventy-two hours after the transmission. Yuki has been waiting. Priya arrives on an emergency shuttle.",
+            exit_state="They have decoded coordinates from the signal — a location beyond charted space. The Persephone found something, and something found them.",
+            key_events="Priya's arrival; the confrontation about Yuki's choices; the collaborative decoding; the coordinate discovery.",
+            metadata_={"purpose": "The reunion between Yuki and Priya should feel like unfinished work resumed. Their estrangement is real but not permanent; the signal gives them something more important to argue about than their past."},
+            content=(
+                "<p>The shuttle docked at 1430 and @Dr. Priya Sharma came through the airlock with a bag over one shoulder and the expression of someone who had been in transit for three days and was saving their composure for the part where it mattered.</p>"
+                "<p>\"Yuki.\"</p>"
+                "<p>\"Priya.\"</p>"
+                "<p>Seven years had changed her in small ways — more lines around the eyes, hair longer, the restless energy channeled into something tighter and more directed. She looked around [[The Observation Deck]] the way xenolinguists looked at things they were studying: recording everything, committing nothing yet.</p>"
+                "<p>\"Show me the data,\" she said.</p>"
+                "<p>\"Don't you want to —\"</p>"
+                "<p>\"Show me the data first. We can argue about everything else after I've seen whether you've lost your mind.\"</p>"
+                "<p>@Yuki Tanaka showed her the data. All of it — the four occurrences, the carrier wave match, the voice fragment, the comparison analysis, the forty-three pages of Protocol Delta she had read and violated. @Dr. Priya Sharma sat at the secondary console and worked through it methodically, asking questions that were precise and pointed and occasionally insulting. @MIRA answered the technical ones. Yuki answered the others.</p>"
+                "<p>At hour three, Priya stopped asking questions.</p>"
+                "<p>\"The internal structure,\" she said, pointing at the plateau section of the signal envelope that Yuki had never been able to parse. \"You've been treating this as noise within the signal. It's not noise. It's formatted. This is a data packet.\"</p>"
+                "<p>Yuki leaned forward. \"What kind of data?\"</p>"
+                "<p>\"Coordinates.\" Priya's voice had gone very quiet. \"Galactic coordinates. Old format — this is the navigation schema from the original Persephone mission files. They left us a location.\"</p>"
+                "<p>The [[Sigma Draconis System]] turned silently outside the viewport. Beyond it, somewhere in the dark between stars, 1,247 people had been waiting to be heard.</p>"
+                "<p>\"Can we get there?\" Yuki asked.</p>"
+                "<p>\"Not us.\" Priya turned to look at her — the first real look, direct and unguarded, that she'd given her since the airlock. \"But someone can.\"</p>"
+            ),
+            word_count=342,
+        )
+        db.add(scene9)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene9.id,
+            note="Priya identifies the signal's structured data section as galactic coordinates in Persephone's navigation schema. The signal is a location marker.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_colony.id,
+            node_id=scene9.id,
+            note="Coordinates decode to a location beyond charted space — where Persephone went and something was found. The colony exists, changed.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene9.id,
+            note="Priya's arrival forces Yuki to defend her choices to someone who knows her. Working together is the first real human connection Yuki has had in five years.",
+        ))
+
+        ch6 = StructureNode(
+            story_id=story.id,
+            parent_id=act3.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 6: Contact",
+            synopsis="The reply arrives. A new voice — younger, not Volkov — confirms that someone on the other end has been waiting.",
+            position=1,
+            metadata_={"purpose": "The reply is the story's emotional resolution. Keep it simple, keep it human — this should not feel like alien contact but like a door being opened between two people who have been in separate rooms for too long."},
+        )
+        db.add(ch6)
+        db.flush()
+
+        scene10 = StructureNode(
+            story_id=story.id,
+            parent_id=ch6.id,
+            level=2,
+            level_type="scene",
+            title="The Reply",
+            synopsis="A response arrives — a new voice, younger than Volkov, confirming contact: 'We've been waiting. We thought everyone forgot.'",
+            position=0,
+            timeline_position=10,
+            status="revised",
+            entry_state="Waiting. The signal has been decoding, the coordinates confirmed, the Institute notified. Yuki and Priya at their consoles.",
+            exit_state="Contact confirmed. Not alien, not entirely human anymore — but alive. The void has answered. What comes next is larger than Waypoint 7.",
+            key_events="The signal changes; the new voice; the words; Yuki and Priya's response; what it means for what comes next.",
+            metadata_={"purpose": "The final scene mirrors the first: Yuki in the observation deck, monitoring the array. But the silence is not empty anymore. What began as routine observation ends as the most significant moment in thirty years of human space history."},
+            content=(
+                "<p>The signal changed on the fourteenth day.</p>"
+                "<p>@Yuki Tanaka and @Dr. Priya Sharma were both at their consoles — they had settled into a rotation, sleeping in shifts, eating at the secondary console, speaking to each other in the shorthand of people who had once known each other well and were cautiously remembering how. @MIRA had begun providing two meal schedules without being asked.</p>"
+                "<p>At 0311 station time, the deep-listen band lit up. Not 3.7 seconds this time. Not the structured pulse of the carrier wave beacon.</p>"
+                "<p>Something different. Something that resolved, as Yuki's custom filters processed it in real time, into a voice.</p>"
+                "<p>A woman's voice. Young — mid-twenties, maybe. Speaking in Standard with an accent that had no home Yuki could identify, something that had grown in the absence of other influences. Clear and careful, the way someone speaks when they have practiced a message many times and are not certain the receiver can hear them.</p>"
+                "<p>\"<em>Waypoint 7, this is [[The Drift]]. We have received your signal. We have been waiting for —</em>\" A pause, something that might have been a steadying breath. \"<em>We have been waiting. We thought everyone forgot.</em>\"</p>"
+                "<p>Priya's hand found Yuki's arm. Neither of them looked away from the display.</p>"
+                "<p>\"<em>There are four hundred and twelve of us,</em>\" the voice continued. \"<em>Second generation, mostly. We were born here. We don't know what you will think of what we have become, but — we would like to know you. We would like someone to know we are here.</em>\"</p>"
+                "<p>The signal ended. The deep-listen band returned to its familiar noise.</p>"
+                "<p>[[The Observation Deck]] was very quiet.</p>"
+                "<p>\"Second generation,\" Priya said softly. \"The colonists had children. Out there.\"</p>"
+                "<p>\"Four hundred and twelve,\" Yuki said. She thought about @Commander Alexei Volkov addressing his thousand people in the hangar at Ceres. <em>You are the people who said yes.</em> She thought about their children, born in a place no one had mapped, who had grown up knowing the signal was going out and believing, or not quite believing, that someone might answer.</p>"
+                "<p>She opened a response channel.</p>"
+                "<p>\"[[The Drift]], this is @Yuki Tanaka at Waypoint 7,\" she said. Her voice was steady. \"We hear you. We did not forget. We are going to make sure everyone knows you are there.\" She paused, looking at Priya, who was already pulling up a secure channel to the Institute. \"You are not alone.\"</p>"
+                "<p>Outside, the [[Sigma Draconis System]] turned as it always had, indifferent and enormous. The relay array ticked its familiar rhythm. The servers hummed.</p>"
+                "<p>In the deep-listen band, something new was waiting to be heard.</p>"
+            ),
+            word_count=452,
+        )
+        db.add(scene10)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread_signal.id,
+            node_id=scene10.id,
+            note="The signal answers Yuki directly — the question 'what is this signal?' resolves: it is a beacon from the children of the Persephone's colonists, born in the dark, hoping to be found.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_colony.id,
+            node_id=scene10.id,
+            note="The colony exists: 412 people, second generation. They were born there. They would like to be known.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_isolation.id,
+            node_id=scene10.id,
+            note="'You are not alone.' Yuki says to The Drift what she has needed to say to herself for five years. The story closes with connection replacing isolation on both ends of the signal.",
+        ))
+
+        # ── MICE open/close points ───────────────────────────────────────────
+        thread_signal.opens_at_node_id = scene1.id
+        thread_signal.closes_at_node_id = scene10.id
+
+        thread_colony.opens_at_node_id = scene4.id
+        thread_colony.closes_at_node_id = scene10.id
+
+        thread_isolation.opens_at_node_id = scene1.id
+        thread_isolation.closes_at_node_id = scene10.id
+
+        # ── Try/fail cycles ──────────────────────────────────────────────────
+        thread_signal.try_fail_cycles = [
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki asks MIRA to analyze the burst — MIRA classifies it as stellar interference and closes the question",
+                "outcome": "fail_setback",
+                "node_id": scene2.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki manually records the raw signal and identifies the Persephone carrier wave — proof it is not noise, but also proof of a 30-year-old mystery",
+                "outcome": "fail_disaster",
+                "node_id": scene4.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki transmits a response, violating Protocol Delta-7 — the career cost is real, but the signal is answered",
+                "outcome": "success_cost",
+                "node_id": scene8.id,
+            },
+        ]
+
+        thread_isolation.try_fail_cycles = [
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki finds comfort in routine and her relationship with MIRA — the signal disrupts but doesn't yet break her equilibrium",
+                "outcome": "fail_setback",
+                "node_id": scene2.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki makes the decision to respond alone, accepting the professional consequences — isolation chosen becomes isolation rejected",
+                "outcome": "success_partial",
+                "node_id": scene8.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Yuki and Priya work together to decode the signal; Yuki tells The Drift 'you are not alone' — she has rebuilt what she abandoned",
+                "outcome": "success_cost",
+                "node_id": scene10.id,
+            },
+        ]
+
+        # ── Scene Links ──────────────────────────────────────────────────────
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene1.id,
+            target_node_id=scene7.id,
+            link_type="foreshadowing",
+            note="Yuki's inability to classify the anomalous burst in 'The Watch' foreshadows the voice fragment in 'A Voice in the Dark' — she hears something she can't name both times, and both times she trusts the hearing over the classification.",
+        ))
+
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene2.id,
+            target_node_id=scene10.id,
+            link_type="callback",
+            note="MIRA calling the burst 'noise' in 'Ghost in the Noise' is echoed when the reply proves it was always a signal — Yuki's insistence on keeping it separate was the right call.",
+        ))
+
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene1.id,
+            target_node_id=scene10.id,
+            link_type="mirror",
+            note="The story opens and closes with Yuki at her console in the observation deck, monitoring the array. The first time, the void is empty. The last time, it answers.",
+        ))
+
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene4.id,
+            target_node_id=scene9.id,
+            link_type="callback",
+            note="Yuki's solitary carrier wave discovery in 'Carrier Wave' becomes the shared starting point in 'Old Friends' — what she found alone, she explains to Priya, and explaining it makes it real in a different way.",
+        ))
+
+        # ── Compendium Entries ───────────────────────────────────────────────
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="First Contact Protocol Delta-7",
+            content=(
+                "Protocol Delta-7 governs all relay operator responses to unverified signals of potential non-human or non-registered origin.\n\n"
+                "Key provisions:\n"
+                "- No response without Contact Studies Institute authorization (Section 12, Para 4)\n"
+                "- Verification requires triangulation from a minimum of two relay nodes\n"
+                "- Unauthorized response = Class 1 Violation: posting termination, certification loss, civil liability\n"
+                "- Historical context: Delta-7 was tightened significantly after the Meridian Incident (YE 103), when an operator responded to a degraded signal that turned out to be a malfunctioning probe, causing 18 months of expensive misclassification work\n\n"
+                "Relevance: Yuki knows exactly what she is giving up when she transmits. The protocol is not unjust — it exists to prevent panic and misclassification. It just wasn't written for this situation."
+            ),
+            tags=["research", "worldbuilding", "plot"],
+            category="worldbuilding",
+            notes="The protocol gives Yuki's choice real weight — it is not bureaucratic obstruction but a reasonable rule applied to an unreasonable situation.",
+        ))
+
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="Colony Ship Design: Persephone-Class",
+            content=(
+                "The Persephone-class colony ship was the largest vessel class constructed during the expansion era:\n\n"
+                "- Crew complement: 47 (command and technical)\n"
+                "- Colonist capacity: 1,200 (cryo-dormancy for transit)\n"
+                "- Transit range: Theoretically unlimited with planned resupply waypoints\n"
+                "- Cryo systems: Designed for 15-year continuous operation; actual limits untested\n"
+                "- Life support: 25-year closed-cycle capacity at full population\n\n"
+                "The Persephone departed with 1,247 souls, 47 over the rated capacity — colonial authority approved the variance. "
+                "If cryo systems failed during transit, the ship carried enough supplies for approximately 8 months of full waking population.\n\n"
+                "Second generation: If survivors established a settlement, children born at the destination would now be in their late 20s. "
+                "'Four hundred and twelve' is consistent with a founding group of 300-400 that achieved modest population growth over 30 years under constrained conditions."
+            ),
+            tags=["research", "worldbuilding", "character"],
+            category="worldbuilding",
+            notes="The math of second-generation survivors should feel plausible, not miraculous — they made it work, but barely.",
+        ))
+
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            entry_type="note",
+            title="IFF Registry and Carrier Wave Identification",
+            content=(
+                "Identification Friend or Foe (IFF) systems for interstellar vessels:\n\n"
+                "Every registered vessel broadcasts a unique carrier wave frequency — a sub-signal embedded in all transmissions regardless of content or quality. "
+                "The carrier wave persists even when the primary transmission is degraded, noisy, or partially corrupted.\n\n"
+                "Registry matching: The Earth Orbital Authority maintains a historical IFF registry going back to the first expansion-era vessels. "
+                "Decommissioned vessels and declared-lost vessels remain in the registry as historical records.\n\n"
+                "Why Yuki's match matters: The Persephone's IFF frequency was not classified or reassigned after it was declared lost — doing so would have been a formal acknowledgment of failure that no one in the Directorate wanted to put on paper. "
+                "The frequency has been sitting in the historical registry, matchable by any relay operator with access to the full archive, for thirty years."
+            ),
+            tags=["research", "worldbuilding", "plot"],
+            category="worldbuilding",
+            notes="The bureaucratic oversight that left the IFF in the historical registry is what makes Yuki's discovery possible. No one forgot the Persephone; they just stopped looking.",
+        ))
+
+        # ── World Building — Locations ────────────────────────────────────────
+        sigma_draconis = Location(
+            story_id=story.id,
+            name="Sigma Draconis System",
+            location_type="star_system",
+            description=(
+                "A K-type orange dwarf star system 18.8 light-years from Earth. "
+                "The furthest extent of humanity's permanent relay infrastructure. "
+                "Three planets orbit Sigma Draconis; none are habitable, but the outer asteroid belt "
+                "provides raw materials for Waypoint 7's maintenance supply chain."
+            ),
+            atmosphere="Deep space — no atmosphere at the system level. The star's orange light gives everything a permanent late-afternoon quality at short range.",
+            history=(
+                "First surveyed in YE 45. Waypoint 7 was established in YE 63 as a relay node and potential staging point "
+                "for deeper expansion. The expansion era ended before the staging point was used."
+            ),
+            significance="The edge of known space. Beyond Sigma Draconis, there is nothing but silence — or so everyone thought.",
+            radiation_level="Low — K-type stars have stable, reduced UV output compared to G-type",
+            habitability="Marginal — asteroid belt mining only; no planetary surface habitation",
+            position=0,
+        )
+        db.add(sigma_draconis)
+        db.flush()
+
+        waypoint7 = Location(
+            story_id=story.id,
+            parent_id=sigma_draconis.id,
+            name="Waypoint 7 Relay Station",
+            location_type="orbital_station",
+            description=(
+                "A communications relay station in a stable orbit at 4.2 AU from Sigma Draconis. "
+                "Cramped, functional, designed for a crew of two but staffed by one for budget reasons. "
+                "The central hub of Yuki's world and the story's primary setting."
+            ),
+            atmosphere="Controlled and recycled — faintly metallic, with a persistent trace of machine oil from the array maintenance systems. The observation deck smells like warm electronics.",
+            history=(
+                "Commissioned in YE 63 as part of the expansion-era relay network. "
+                "Originally a waystation for colony ships pushing beyond the relay boundary. "
+                "After the Persephone disappeared and the expansion era ended, Waypoint 7 became a relay node — "
+                "its original purpose quietly forgotten. It has had eight operators over forty years."
+            ),
+            significance="The station is Yuki's lighthouse. Her isolation and her purpose are both contained within it.",
+            gravity="0.3g from centrifugal rotation",
+            habitability="Fully habitable — closed-cycle life support, rated for two-person long-term occupation",
+            radiation_level="Shielded — hull plating rated for ambient deep-space radiation exposure",
+            distance_from_parent="4.2 AU",
+            position=0,
+        )
+        db.add(waypoint7)
+        db.flush()
+
+        obs_deck = Location(
+            story_id=story.id,
+            parent_id=waypoint7.id,
+            name="The Observation Deck",
+            location_type="structure",
+            description=(
+                "The station's primary operations room — a semicircular space with three viewports facing the relay array "
+                "and the stars beyond. Monitoring consoles line two walls; the central station handles relay traffic, "
+                "signal analysis, and MIRA's primary interface terminals."
+            ),
+            atmosphere="The hum of systems, the glow of status displays, the faint vibration that travels through the hull from the array. Never fully silent.",
+            significance="Where Yuki does her work. Where she first detects the signal. Her true home.",
+            position=0,
+        )
+        db.add(obs_deck)
+
+        the_array = Location(
+            story_id=story.id,
+            parent_id=waypoint7.id,
+            name="The Array",
+            location_type="structure",
+            description=(
+                "The external relay array — a lattice of receivers and transmitters extending 340 meters from the station's "
+                "central spine. Yuki performs EVA maintenance twice a month to clear micrometeorite impact points and "
+                "recalibrate alignment. The array is the station's reason for existing."
+            ),
+            atmosphere="Hard vacuum outside the station. The array is visible from the observation deck viewports — a dark geometric skeleton against the stars.",
+            history="Original array installed at commissioning. Three major upgrades over forty years. The deep-listen receivers were added in YE 89 as part of a first-contact preparedness initiative that was subsequently defunded.",
+            significance="The station's voice and ears. Yuki adjusts the array to transmit her response — a physical act that makes the decision irreversible.",
+            position=1,
+        )
+        db.add(the_array)
+
+        the_drift = Location(
+            story_id=story.id,
+            name="The Drift",
+            location_type="space_habitat",
+            description=(
+                "Whatever the Persephone has become. The signal's origin point, somewhere in the void beyond charted space. "
+                "The coordinates decoded by Priya in Act 3 point to a location that required decades of deceleration to reach. "
+                "The colonists named it The Drift — a place that is not quite a planet, not quite a station, but something "
+                "built and grown over thirty years by people who had nowhere else to go."
+            ),
+            history="The Persephone reached its coordinates in approximately YE 95, eight years after departure. The colonists survived, adapted, and began transmitting approximately ten years ago when their power generation reached sufficient levels.",
+            significance="The mystery at the story's edge — a place where 1,247 colonists have lived for thirty years, changed by isolation, distance, and whatever they found at those coordinates.",
+            gravity="Unknown",
+            habitability="Unknown — the colonists survive, which suggests habitability of some kind",
+            radiation_level="Unknown",
+            position=1,
+        )
+        db.add(the_drift)
+        db.flush()
+
+        # ── World System ──────────────────────────────────────────────────────
+        db.add(WorldSystem(
+            story_id=story.id,
+            name="The Relay Network",
+            system_type="technology",
+            source_origin=(
+                "Built during the expansion era (YE 1-120) when humanity pushed outward from the Solar System. "
+                "The network was designed to maintain communication across the growing sphere of human presence. "
+                "Each relay station amplifies and retransmits signals, creating a chain that spans light-years."
+            ),
+            rules=(
+                "Signals travel at light speed — no FTL communication exists. "
+                "Each relay station has a coverage sphere of approximately 20 light-years. "
+                "Stations must be crewed to handle anomalies; automated systems cannot manage unusual events. "
+                "The network is the only way to communicate across interstellar distances."
+            ),
+            limitations=(
+                "Transmission delays measured in months or years for distant colonies. "
+                "Stations at the network's edge receive signals from beyond human space — mostly stellar noise, occasionally something else. "
+                "The network cannot reach beyond its furthest stations; anything past Waypoint 7 is silence."
+            ),
+            costs=(
+                "Isolation for the operators who staff the edge stations — years-long postings at the limit of human presence. "
+                "Enormous infrastructure investment that the current government barely maintains. "
+                "The psychological toll of listening to the void and having very little to say back."
+            ),
+            hierarchy_tiers=[
+                {"name": "Core Relays", "description": "Solar System to Proxima Centauri. High bandwidth, minimal delay, fully automated.", "examples": ["Earth-Luna Hub", "Mars Relay", "Proxima Node"]},
+                {"name": "Colonial Relays", "description": "Proxima to Tau Ceti. Moderate bandwidth, weeks of delay, skeleton crew.", "examples": ["Waypoints 1-4", "Ceres Deep Relay"]},
+                {"name": "Edge Relays", "description": "Tau Ceti to Sigma Draconis. Low bandwidth, months of delay, single operators.", "examples": ["Waypoints 5-7"]},
+            ],
+            notes=(
+                "The Relay Network is infrastructure humanity built and then forgot. "
+                "Yuki is a keeper of something most people don't think about — until the signal makes them remember why it matters."
+            ),
+        ))
+
+        # ── Culture ───────────────────────────────────────────────────────────
+        db.add(Culture(
+            story_id=story.id,
+            name="Edge Operators",
+            description=(
+                "The informal culture that has developed among the operators who staff the edge relay stations — "
+                "Waypoints 5 through 7. They are a loose community connected by the network they maintain, "
+                "sharing logs, personal messages, and a dark humor about their isolation."
+            ),
+            values=(
+                "Self-sufficiency above all. The work matters even if no one notices. "
+                "Silence is normal; presence is the exception. "
+                "'Keep the signal clear' — the informal motto."
+            ),
+            customs=(
+                "Operators maintain detailed personal logs that become part of station records. "
+                "Shift-change messages include personal notes for the incoming operator. "
+                "Anomalies are shared across the network as curiosities, usually stellar phenomena with informal nicknames — "
+                "'The Grandmother' (a recurring Tau Ceti flare), 'The Whisper' (a persistent interference pattern near Waypoint 5)."
+            ),
+            taboos=(
+                "Never ignore an anomaly, even if it's probably nothing. "
+                "Never leave a station uncrewed without a full handoff. "
+                "Never complain about isolation to people who chose not to take edge postings — "
+                "they did not choose the work and you should not ask them to understand it."
+            ),
+            religion="None formal. Some operators develop personal rituals around their work — treating the array maintenance schedule as something almost ceremonial.",
+            government_type="Technically under Earth Orbital Authority, but edge stations are so remote that operators have near-complete autonomy. Authority communicates by quarterly dispatch; orders arrive months after the situations that prompted them.",
+            naming_conventions={
+                "given_name": "Any Earth origin, reflecting the multicultural composition of early expansion crews",
+                "station_names": "'Waypoint' + number, with informal names often developing over time ('The Lighthouse' for Waypoint 7, 'The Widow' for Waypoint 5)",
+                "ai_names": "Acronyms that become names: MIRA (Monitoring, Interface, Relay, Analysis), HAVEN, CHORUS",
+                "examples": ["Yuki Tanaka (Japanese-origin given name)", "Waypoint 7 / The Lighthouse", "MIRA"]
+            },
+            common_phrases=[
+                {"phrase": "Clear signal", "meaning": "Greeting or farewell among operators, equivalent to 'safe travels' or 'take care'", "context": "Used in inter-station transmissions and personal messages"},
+                {"phrase": "Static in the line", "meaning": "Something is wrong; a problem that isn't yet identified", "context": "Used when an operator suspects an issue but can't pinpoint it"},
+                {"phrase": "Listening post", "meaning": "Someone who notices too much, or hears things others miss", "context": "Used with mild affection about operators known for careful monitoring — applied to Yuki by other edge operators"},
+            ],
+            notes=(
+                "Yuki has been a listening post her whole posting. The signal is the first time listening has mattered this much."
+            ),
+        ))
+
+        # ── History ───────────────────────────────────────────────────────────
+        the_silence = Era(
+            story_id=story.id,
+            name="The Silence",
+            description=(
+                "The current era, beginning with the disappearance of the Persephone thirty years ago. "
+                "The loss of humanity's most ambitious colony ship ended the age of expansion. "
+                "No new long-range missions have been attempted. The relay network is maintained but not extended."
+            ),
+            start_date="YE 90",
+            end_date="YE 120 (present)",
+            characteristics=(
+                "Conservative approach to expansion. Relay network maintained but underfunded. "
+                "First Contact protocols tightened to prevent false hope and panic. "
+                "The Persephone has become a cautionary tale — 'Don't be a Persephone' entered the language. "
+                "Humanity occupies the same sphere it reached thirty years ago, unwilling to push further."
+            ),
+            key_figures=[
+                {"name": "Commander Alexei Volkov", "role": "Last captain of the expansion era — his disappearance became the symbol of its end"},
+            ],
+            position=0,
+        )
+        db.add(the_silence)
+        db.flush()
+
+        db.add(HistoricalEvent(
+            story_id=story.id,
+            era_id=the_silence.id,
+            name="The Persephone Launch",
+            in_world_date="YE 87, Firstmonth",
+            description=(
+                "The colony ship Persephone departed from Ceres Station carrying 1,247 colonists toward a potentially habitable system "
+                "detected by long-range survey. It was the largest colonial expedition ever attempted, designed to establish "
+                "a permanent settlement beyond the relay network's reach."
+            ),
+            causes=(
+                "The optimism of the late expansion era. Overpopulation pressure in the inner system. "
+                "Discovery of a candidate system at extreme range by the long-baseline survey array. "
+                "Political will under Director-General Okafor's administration to demonstrate humanity's reach."
+            ),
+            consequences=(
+                "Three years of sporadic contact as Persephone moved beyond reliable relay range. "
+                "Commander Volkov's last confirmed message described anomalous readings and an intention to investigate. "
+                "Final transmission received at Waypoint 7 in YE 90. Then silence."
+            ),
+            legacy_effects=(
+                "The Persephone's loss ended the expansion era. The Silence began. "
+                "No mission beyond relay range has been attempted in thirty years. "
+                "The failure haunts humanity's vision of itself as an expanding species."
+            ),
+            participants=[
+                {"type": "character", "name": "Commander Alexei Volkov", "role": "Commanding officer of the Persephone"},
+            ],
+            position=0,
+        ))
+
+        db.add(HistoricalEvent(
+            story_id=story.id,
+            era_id=the_silence.id,
+            name="The Persephone Silence",
+            in_world_date="YE 90, Ninthmonth",
+            description=(
+                "The last confirmed transmission from Persephone reached Waypoint 7. "
+                "Commander Volkov reported 'anomalous readings' and stated his intention to investigate. "
+                "No further contact was ever received. Search missions found nothing. "
+                "After five years of silence, the Persephone was declared lost with all hands."
+            ),
+            causes="Unknown. Theories range from equipment failure during the investigation to navigation error to hostile encounter.",
+            consequences=(
+                "Immediate halt to all long-range colonial missions. "
+                "First Contact protocols revised to prohibit response to unverified signals. "
+                "The edge relay stations — built as waypoints for ships that never came — became monuments to a future that didn't happen."
+            ),
+            legacy_effects=(
+                "The Persephone became a symbol of overreach. Its IFF frequency was never cleared from the historical registry — "
+                "no one wanted to formally close the file. Waypoint 7, where the last transmission was received, "
+                "acquired the informal name 'The Last Lighthouse' among edge operators."
+            ),
+            participants=[
+                {"type": "character", "name": "Commander Alexei Volkov", "role": "Last transmission sent from his command"},
+            ],
+            position=1,
+        ))
+
+        # ── Location Travel ───────────────────────────────────────────────────
+        db.add(LocationTravel(
+            from_location_id=obs_deck.id,
+            to_location_id=the_array.id,
+            travel_time="15 minutes (EVA preparation and transit)",
+            travel_method="Pressurized EVA suit via external maintenance tether",
+            condition="Cannot be performed during micrometeorite advisory or when station is in Sigma Draconis's active flare zone",
+            notes="Routine maintenance path; becomes significant when Yuki must physically reorient the array to transmit her response.",
+            bidirectional=True,
+        ))
+
+        # ── Calendar ──────────────────────────────────────────────────────────
+        db.add(Calendar(
+            story_id=story.id,
+            name="Standard Expansion Calendar",
+            description=(
+                "The timekeeping system adopted during the expansion era to coordinate across star systems. "
+                "Based on Earth's calendar but with modifications: month names replaced with ordinals to avoid "
+                "Earth-centrism as colonies established local time references. Year 0 is the founding of "
+                "Proxima Station, humanity's first extrasolar colony."
+            ),
+            months=[
+                {"name": "Firstmonth", "days": 31},
+                {"name": "Secondmonth", "days": 28},
+                {"name": "Thirdmonth", "days": 31},
+                {"name": "Fourthmonth", "days": 30},
+                {"name": "Fifthmonth", "days": 31},
+                {"name": "Sixthmonth", "days": 30},
+                {"name": "Seventhmonth", "days": 31},
+                {"name": "Eighthmonth", "days": 31},
+                {"name": "Ninthmonth", "days": 30},
+                {"name": "Tenthmonth", "days": 31},
+                {"name": "Eleventhmonth", "days": 30},
+                {"name": "Twelfthmonth", "days": 31},
+            ],
+            days_per_week=7,
+            week_day_names=["Oneday", "Twoday", "Threeday", "Fourday", "Fiveday", "Sixday", "Restday"],
+            special_days=[
+                {"name": "Founding Day", "month": 1, "day": 15, "description": "Anniversary of Proxima Station's establishment. Observed across all human settlements with a shared broadcast window."},
+                {"name": "Signal Day", "month": 9, "day": 7, "description": "Anniversary of the first confirmed interstellar communication received at Earth. Edge operators observe informally by reviewing their anomaly logs."},
+                {"name": "Remembrance", "month": 9, "day": 23, "description": "Unofficial memorial for the Persephone, observed particularly by edge relay operators. The date of Volkov's last transmission. MIRA has flagged this date in her calendar without being asked."},
+            ],
+            epoch_name="Year of Expansion",
+            conversion_notes="Story takes place in YE 120 (2277 CE). The Persephone disappeared in YE 90 (2247 CE). Yuki has been on Waypoint 7 since YE 115.",
+        ))
+
+        # ── Scene Settings (location → scene links) ───────────────────────────
+        db.add(SceneSetting(
+            location_id=obs_deck.id,
+            node_id=scene1.id,
+            role="primary",
+            notes="Yuki at her monitoring console, watching the deep-listen band when the first burst appears.",
+        ))
+        db.add(SceneSetting(
+            location_id=the_array.id,
+            node_id=scene8.id,
+            role="primary",
+            notes="Yuki adjusts the array to transmit — a physical act that makes the decision irreversible.",
+        ))
+        db.add(SceneSetting(
+            location_id=obs_deck.id,
+            node_id=scene10.id,
+            role="primary",
+            notes="The final scene returns to the observation deck where it all began — the same room, transformed.",
+        ))
+
+        db.commit()
