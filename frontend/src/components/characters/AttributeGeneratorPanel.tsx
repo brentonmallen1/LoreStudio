@@ -55,7 +55,7 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
   async function applyToField() {
     if (!result) return;
     const field = type === "traits" ? "arc_notes" : type === "backstory" ? "background" : type === "appearance" ? "appearance" : "personality";
-    const existing = (character as Record<string, unknown>)[field] as string ?? "";
+    const existing = (character as unknown as Record<string, string>)[field] ?? "";
     const updated = await api.updateCharacter(character.id, {
       [field]: existing ? `${existing}\n\n[AI suggestions]:\n${result}` : result,
     });

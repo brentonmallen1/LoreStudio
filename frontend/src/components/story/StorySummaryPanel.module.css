@@ -72,6 +72,9 @@
 }
 
 .generateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   margin-left: auto;
   padding: 0.35rem 0.875rem;
   font-size: 0.8rem;
@@ -79,14 +82,14 @@
   font-weight: 500;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   cursor: pointer;
   transition: background var(--transition), opacity var(--transition);
 }
 
 .generateBtn:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-ai-hover);
 }
 
 .generateBtn:disabled {

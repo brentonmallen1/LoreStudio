@@ -72,21 +72,24 @@
 }
 
 .generateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0.35rem 0.875rem;
   font-size: 0.78rem;
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   cursor: pointer;
   white-space: nowrap;
   transition: background var(--transition), opacity var(--transition);
 }
 
 .generateBtn:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-ai-hover);
 }
 
 .generateBtn:disabled {

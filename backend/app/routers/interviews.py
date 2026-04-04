@@ -14,8 +14,8 @@ from ..schemas.interview import (
     InterviewUpdate, InterviewApplyRequest,
 )
 from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import build_character_interview_system_prompt, build_interview_summary_prompt
+from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
+from ..services.llm.prompts.interviews import build_character_interview_system_prompt, build_interview_summary_prompt
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -126,35 +126,60 @@ async def send_message(
                     scene_summaries = [(n.title, n.content_summary) for n in relevant]
                     source_ids = [n.id for n in relevant]
                     prompt = build_journey_prompt(character, scene_summaries)
+                    story = db.query(Story).filter(Story.id == character.story_id).first()
+                    ctx = AICallContext(
+                        feature="character-journey",
+                        user_id=current_user.id,
+                        story_id=character.story_id,
+                        character_id=character.id,
+                        tags=["character", "journey", "interview", "auto"],
+                    )
                     full_tokens: list[str] = []
-                    async for token in ollama_provider.chat_stream(
-                        [{"role": "user", "content": "Please provide the journey summary."}], prompt
+                    async for token in ai_gateway.stream(
+                        messages=[{"role": "user", "content": "Please provide the journey summary."}],
+                        feature_prompt=prompt,
+                        context=ctx,
+                        db=db,
+                        user=current_user,
+                        include_core_prompt=False,
                     ):
                         full_tokens.append(token)
                     if full_tokens:
                         journey_summary = "".join(full_tokens)
                         save_journey(character.id, interview.context_node_id, journey_summary, source_ids, db)
 
-    system_prompt = build_character_interview_system_prompt(character, journey_summary)
+    feature_prompt = build_character_interview_system_prompt(character, journey_summary)
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
 
+    ctx = AICallContext(
+        feature="interview",
+        user_id=current_user.id,
+        story_id=character.story_id,
+        character_id=character.id,
+        tags=["character", "interview", "conversation", "user-initiated", "persisted"],
+    )
+
+    async def on_complete(result: AICallResult) -> None:
+        assistant_msg = {
+            "role": "assistant",
+            "content": result.content,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        interview.messages = list(interview.messages) + [assistant_msg]
+        db.commit()
+
     async def stream_and_persist():
-        full_response = []
-        try:
-            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
-                full_response.append(token)
-                yield token
-        finally:
-            # Persist assistant response after stream completes
-            if full_response:
-                assistant_msg = {
-                    "role": "assistant",
-                    "content": "".join(full_response),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
-                updated_messages = list(interview.messages) + [assistant_msg]
-                interview.messages = updated_messages
-                db.commit()
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            llm_params=body.llm_params,
+            include_core_prompt=False,
+            on_complete=on_complete,
+        ):
+            yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
 
@@ -187,20 +212,31 @@ async def summarize_interview(
         from fastapi.responses import Response
         return Response("No messages to summarize.", media_type="text/plain")
 
-    system_prompt = build_interview_summary_prompt(character, list(interview.messages))
-    # Use a single user message asking for the summary
+    feature_prompt = build_interview_summary_prompt(character, list(interview.messages))
     llm_messages = [{"role": "user", "content": "Please provide your analysis."}]
 
+    ctx = AICallContext(
+        feature="interview-summary",
+        user_id=current_user.id,
+        story_id=character.story_id,
+        character_id=character.id,
+        tags=["character", "interview", "summarization", "user-initiated", "persisted"],
+    )
+
+    async def on_complete(result: AICallResult) -> None:
+        interview.interview_notes = result.content
+        db.commit()
+
     async def stream_and_persist():
-        full_response = []
-        try:
-            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
-                full_response.append(token)
-                yield token
-        finally:
-            if full_response:
-                interview.interview_notes = "".join(full_response)
-                db.commit()
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            on_complete=on_complete,
+        ):
+            yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
 

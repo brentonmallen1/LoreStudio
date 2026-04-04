@@ -26,6 +26,7 @@ class StoryUpdate(BaseModel):
     themes: list[str] | None = None
     central_conflict: str | None = None
     target_audience: str | None = None
+    intended_length: str | None = None
     narrative_intent: str | None = None
     premise: str | None = None
     logline: str | None = None
@@ -43,6 +44,7 @@ class StoryOut(BaseModel):
     themes: list[str]
     central_conflict: str
     target_audience: str
+    intended_length: str
     narrative_intent: str
     premise: str
     logline: str
@@ -51,6 +53,51 @@ class StoryOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class RecentScene(BaseModel):
+    id: str
+    title: str
+    word_count: int
+    status: str
+    level_type: str
+    updated_at: datetime
+
+
+class RecentActivity(BaseModel):
+    event_type: str
+    description: str
+    created_at: datetime
+
+
+class RecentInterview(BaseModel):
+    id: str
+    character_id: str
+    character_name: str
+    title: str
+    updated_at: datetime
+
+
+class DistributionEntry(BaseModel):
+    id: str
+    title: str
+    level_type: str
+    word_count: int
+    scene_count: int
+    pct: float  # % of total word count
+
+
+class StoryOverview(BaseModel):
+    word_count: int
+    word_count_target: dict | None
+    scene_count: int
+    scenes_by_status: dict[str, int]
+    character_count: int
+    thread_counts: dict[str, int]
+    recent_scenes: list[RecentScene]
+    recent_activity: list[RecentActivity]
+    recent_interviews: list[RecentInterview]
+    distribution: list[DistributionEntry]
 
 
 class StoryGoalCreate(BaseModel):

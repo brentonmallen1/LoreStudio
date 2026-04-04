@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Layers, Copy, Check } from "lucide-react";
+import { Layers, Copy, Check, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -137,6 +137,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
           disabled={generating || !selectedId}
           className={styles.generateBtn}
         >
+          <Sparkles size={12} />
           {generating ? "Generating…" : "Summarize"}
         </button>
       </div>

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -16,32 +16,6 @@ function flattenNodes(nodes: StructureNode[]): StructureNode[] {
   return result;
 }
 
-interface Group {
-  parentTitle: string | null;
-  parentId: string | null;
-  nodes: StructureNode[];
-}
-
-function groupByParent(nodes: StructureNode[], allNodes: StructureNode[]): Group[] {
-  const nodeMap = new Map(allNodes.map((n) => [n.id, n]));
-  const groups = new Map<string | null, Group>();
-
-  for (const node of nodes) {
-    const key = node.parent_id ?? null;
-    if (!groups.has(key)) {
-      const parent = key ? nodeMap.get(key) : null;
-      groups.set(key, {
-        parentTitle: parent?.title ?? null,
-        parentId: key,
-        nodes: [],
-      });
-    }
-    groups.get(key)!.nodes.push(node);
-  }
-
-  // Sort groups by parent position
-  return Array.from(groups.values());
-}
 
 export default function CorkboardView() {
   const navigate = useNavigate();
@@ -55,7 +29,7 @@ export default function CorkboardView() {
   // Group all nodes by parent for display
   const topLevelNodes = structure; // show top-level grouping
 
-  function renderGroup(group: StructureNode, depth: number = 0): JSX.Element {
+  function renderGroup(group: StructureNode, depth: number = 0): React.ReactElement {
     const directChildren = (group.children ?? []).filter((c) => !c.children || c.children.length === 0);
     const subGroups = (group.children ?? []).filter((c) => c.children && c.children.length > 0);
 

@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Settings, LogOut, Clock } from "lucide-react";
+import { Plus, BookOpen, Clock } from "lucide-react";
 import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
-import { useUIStore } from "../stores/uiStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
 import type { Story } from "../types";
 import styles from "./Dashboard.module.css";
 
 export default function DashboardPage() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const { stories, setStories, removeStory } = useStoryStore();
-  const { setCommandPaletteOpen } = useUIStore();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -33,22 +31,6 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.topbar}>
-        <span className={styles.wordmark}>LoreStudio</span>
-        <div className={styles.topbarActions}>
-          <button onClick={() => setCommandPaletteOpen(true)} className={styles.searchHint}>
-            <span>Search</span>
-            <kbd>⌘K</kbd>
-          </button>
-          <button onClick={() => navigate("/settings")} className={styles.iconBtn} title="Settings">
-            <Settings size={16} />
-          </button>
-          <button onClick={logout} className={styles.iconBtn} title="Sign out">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
       <main className={styles.main}>
         <div className={styles.pageHead}>
           <div>

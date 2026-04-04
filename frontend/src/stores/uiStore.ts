@@ -1,11 +1,93 @@
 import { create } from "zustand";
 import type { Character, Interview } from "../types";
 
-type Theme = "light" | "dark" | "system";
+export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
+export type ColorMode = "light" | "dark" | "system";
+export type EditorFontFamily =
+  | "merriweather" | "noto-serif" | "literata" | "bitter"
+  | "inter" | "atkinson-hyperlegible"
+  | "jetbrains-mono" | "roboto-mono" | "space-mono"
+  | "courier-prime" | "cutive" | "special-elite";
+export type EditorFontSize = "small" | "medium" | "large" | "xl";
+export type EditorLineWidth = "narrow" | "medium" | "wide";
+
+export type FontCategory = "serif" | "sans" | "mono" | "typewriter";
+
+export interface FontOption {
+  value: EditorFontFamily;
+  label: string;
+  category: FontCategory;
+  stack: string;
+}
+
+export const FONT_OPTIONS: FontOption[] = [
+  // Serif
+  { value: "merriweather", label: "Merriweather", category: "serif", stack: '"Merriweather", Georgia, serif' },
+  { value: "noto-serif", label: "Noto Serif", category: "serif", stack: '"Noto Serif", Georgia, serif' },
+  { value: "literata", label: "Literata", category: "serif", stack: '"Literata", Georgia, serif' },
+  { value: "bitter", label: "Bitter", category: "serif", stack: '"Bitter", Georgia, serif' },
+  // Sans
+  { value: "inter", label: "Inter", category: "sans", stack: '"Inter", system-ui, sans-serif' },
+  { value: "atkinson-hyperlegible", label: "Atkinson Hyperlegible", category: "sans", stack: '"Atkinson Hyperlegible", system-ui, sans-serif' },
+  // Mono
+  { value: "jetbrains-mono", label: "JetBrains Mono", category: "mono", stack: '"JetBrains Mono", monospace' },
+  { value: "roboto-mono", label: "Roboto Mono", category: "mono", stack: '"Roboto Mono", monospace' },
+  { value: "space-mono", label: "Space Mono", category: "mono", stack: '"Space Mono", monospace' },
+  // Typewriter
+  { value: "courier-prime", label: "Courier Prime", category: "typewriter", stack: '"Courier Prime", "Courier New", monospace' },
+  { value: "cutive", label: "Cutive", category: "typewriter", stack: '"Cutive", "Courier New", monospace' },
+  { value: "special-elite", label: "Special Elite", category: "typewriter", stack: '"Special Elite", "Courier New", monospace' },
+];
+
+export const FONT_CATEGORIES: { value: FontCategory; label: string }[] = [
+  { value: "serif", label: "Serif" },
+  { value: "sans", label: "Sans" },
+  { value: "mono", label: "Monospace" },
+  { value: "typewriter", label: "Typewriter" },
+];
+
+export function getFontStack(fontFamily: EditorFontFamily): string {
+  return FONT_OPTIONS.find((f) => f.value === fontFamily)?.stack ?? FONT_OPTIONS[0].stack;
+}
+
+export const LINE_WIDTHS: Record<EditorLineWidth, string> = {
+  narrow: "520px",
+  medium: "640px",
+  wide:   "800px",
+};
+
+export const FONT_SIZES: Record<EditorFontSize, string> = {
+  small: "0.875rem",
+  medium: "1rem",
+  large: "1.125rem",
+  xl: "1.25rem",
+};
+
+export const THEME_META: Record<ThemeName, { label: string; darkOnly: boolean }> = {
+  zen: { label: "Zen", darkOnly: false },
+  "e-ink": { label: "E-ink", darkOnly: false },
+  nord: { label: "Nord", darkOnly: false },
+  solarized: { label: "Solarized", darkOnly: false },
+  dracula: { label: "Dracula", darkOnly: true },
+  gruvbox: { label: "Gruvbox", darkOnly: false },
+  catppuccin: { label: "Catppuccin", darkOnly: false },
+};
+
+const ALL_THEME_NAMES = Object.keys(THEME_META) as ThemeName[];
 
 interface UIState {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
+  themeName: ThemeName;
+  colorMode: ColorMode;
+  setThemeName: (theme: ThemeName) => void;
+  setColorMode: (mode: ColorMode) => void;
+
+  // Editor typography
+  editorFontFamily: EditorFontFamily;
+  editorFontSize: EditorFontSize;
+  editorLineWidth: EditorLineWidth;
+  setEditorFontFamily: (font: EditorFontFamily) => void;
+  setEditorFontSize: (size: EditorFontSize) => void;
+  setEditorLineWidth: (width: EditorLineWidth) => void;
 
   // Command palette
   commandPaletteOpen: boolean;
@@ -43,11 +125,19 @@ interface UIState {
   closeChatPanel: () => void;
 }
 
-function applyTheme(theme: Theme) {
+function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
   const root = document.documentElement;
-  if (theme === "dark") {
+
+  // Swap theme class
+  ALL_THEME_NAMES.forEach((t) => root.classList.remove(`theme-${t}`));
+  root.classList.add(`theme-${themeName}`);
+
+  // Dark-only themes always use dark mode
+  const effectiveMode = THEME_META[themeName].darkOnly ? "dark" : colorMode;
+
+  if (effectiveMode === "dark") {
     root.classList.add("dark");
-  } else if (theme === "light") {
+  } else if (effectiveMode === "light") {
     root.classList.remove("dark");
   } else {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -56,15 +146,103 @@ function applyTheme(theme: Theme) {
   }
 }
 
-const savedTheme = (localStorage.getItem("ls_theme") as Theme) ?? "system";
-applyTheme(savedTheme);
+function applyEditorFont(fontFamily: EditorFontFamily, fontSize: EditorFontSize) {
+  const root = document.documentElement;
+  root.style.setProperty("--font-editor", getFontStack(fontFamily));
+  root.style.setProperty("--font-size-editor", FONT_SIZES[fontSize]);
+}
+
+function applyEditorLineWidth(lineWidth: EditorLineWidth) {
+  document.documentElement.style.setProperty("--editor-max-width", LINE_WIDTHS[lineWidth]);
+}
+
+// Migrate old format: ls_theme used to store "light" | "dark" | "system"
+const OLD_COLOR_MODES = ["light", "dark", "system"];
+const rawTheme = localStorage.getItem("ls_theme");
+
+let savedThemeName: ThemeName = "zen";
+let savedColorMode: ColorMode = "system";
+
+if (rawTheme && OLD_COLOR_MODES.includes(rawTheme)) {
+  // Old single-field format — migrate
+  savedColorMode = rawTheme as ColorMode;
+  localStorage.setItem("ls_theme", "zen");
+  localStorage.setItem("ls_color_mode", rawTheme);
+} else {
+  const t = rawTheme as ThemeName;
+  savedThemeName = ALL_THEME_NAMES.includes(t) ? t : "zen";
+  const m = localStorage.getItem("ls_color_mode") as ColorMode;
+  savedColorMode = OLD_COLOR_MODES.includes(m) ? m : "system";
+}
+
+applyAppearance(savedThemeName, savedColorMode);
+
+// Migrate old category-based font names to specific font identifiers
+const FONT_MIGRATION: Record<string, EditorFontFamily> = {
+  serif: "merriweather",
+  sans: "inter",
+  mono: "jetbrains-mono",
+  typewriter: "courier-prime",
+};
+
+const VALID_FONT_FAMILIES = FONT_OPTIONS.map((f) => f.value);
+const VALID_FONT_SIZES: EditorFontSize[] = ["small", "medium", "large", "xl"];
+const VALID_LINE_WIDTHS: EditorLineWidth[] = ["narrow", "medium", "wide"];
+
+const rawEditorFont = localStorage.getItem("ls_editor_font") ?? "";
+const migratedFont = FONT_MIGRATION[rawEditorFont] ?? rawEditorFont;
+const savedEditorFont: EditorFontFamily = VALID_FONT_FAMILIES.includes(migratedFont as EditorFontFamily)
+  ? (migratedFont as EditorFontFamily)
+  : "merriweather";
+
+const rawEditorSize = localStorage.getItem("ls_editor_font_size") as EditorFontSize;
+const savedEditorSize: EditorFontSize = VALID_FONT_SIZES.includes(rawEditorSize) ? rawEditorSize : "medium";
+
+const rawLineWidth = localStorage.getItem("ls_editor_line_width") as EditorLineWidth;
+const savedLineWidth: EditorLineWidth = VALID_LINE_WIDTHS.includes(rawLineWidth) ? rawLineWidth : "medium";
+
+applyEditorFont(savedEditorFont, savedEditorSize);
+applyEditorLineWidth(savedLineWidth);
 
 export const useUIStore = create<UIState>((set) => ({
-  theme: savedTheme,
-  setTheme: (theme) => {
-    localStorage.setItem("ls_theme", theme);
-    applyTheme(theme);
-    set({ theme });
+  themeName: savedThemeName,
+  colorMode: savedColorMode,
+  setThemeName: (themeName) => {
+    localStorage.setItem("ls_theme", themeName);
+    let { colorMode } = useUIStore.getState();
+    if (THEME_META[themeName].darkOnly) {
+      colorMode = "dark";
+      localStorage.setItem("ls_color_mode", "dark");
+    }
+    applyAppearance(themeName, colorMode);
+    set({ themeName, ...(THEME_META[themeName].darkOnly ? { colorMode: "dark" } : {}) });
+  },
+  setColorMode: (colorMode) => {
+    localStorage.setItem("ls_color_mode", colorMode);
+    const { themeName } = useUIStore.getState();
+    applyAppearance(themeName, colorMode);
+    set({ colorMode });
+  },
+
+  editorFontFamily: savedEditorFont,
+  editorFontSize: savedEditorSize,
+  editorLineWidth: savedLineWidth,
+  setEditorFontFamily: (editorFontFamily) => {
+    localStorage.setItem("ls_editor_font", editorFontFamily);
+    const { editorFontSize } = useUIStore.getState();
+    applyEditorFont(editorFontFamily, editorFontSize);
+    set({ editorFontFamily });
+  },
+  setEditorFontSize: (editorFontSize) => {
+    localStorage.setItem("ls_editor_font_size", editorFontSize);
+    const { editorFontFamily } = useUIStore.getState();
+    applyEditorFont(editorFontFamily, editorFontSize);
+    set({ editorFontSize });
+  },
+  setEditorLineWidth: (editorLineWidth) => {
+    localStorage.setItem("ls_editor_line_width", editorLineWidth);
+    applyEditorLineWidth(editorLineWidth);
+    set({ editorLineWidth });
   },
 
   commandPaletteOpen: false,

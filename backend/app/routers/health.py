@@ -23,6 +23,8 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.character import Character
 from ..models.plot_thread import PlotThread
+from ..services.word_count import get_word_count_status
+from ..services.mice_validation import validate_thread_nesting
 
 from ..auth.dependencies import get_current_user
 
@@ -38,15 +40,21 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
     return story
 
 
-def _flatten_leaves(nodes: list[StructureNode]) -> list[StructureNode]:
-    """Return leaf nodes (no children) in position order, recursively."""
+def _flatten_leaves(
+    nodes: list[StructureNode],
+    children_map: dict[str, list[StructureNode]],
+) -> list[StructureNode]:
+    """Return leaf nodes (no children) in position order, recursively.
+    Uses an explicit children_map so we never touch the ORM relationship.
+    """
     leaves = []
     def walk(ns: list[StructureNode]):
         for n in sorted(ns, key=lambda x: x.position):
-            if not n.children:
+            kids = children_map.get(n.id, [])
+            if not kids:
                 leaves.append(n)
             else:
-                walk(n.children)
+                walk(kids)
     walk(nodes)
     return leaves
 
@@ -68,18 +76,16 @@ def story_health(
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
 
-    # Build a parent→children map for tree traversal
-    node_map: dict[str, StructureNode] = {n.id: n for n in all_nodes}
+    # Build a parent→children map without touching the ORM relationship.
+    children_map: dict[str, list[StructureNode]] = {}
+    roots: list[StructureNode] = []
     for n in all_nodes:
-        n.children = []  # reset; will be rebuilt
-    roots = []
-    for n in all_nodes:
-        if n.parent_id and n.parent_id in node_map:
-            node_map[n.parent_id].children.append(n)
-        elif not n.parent_id:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
             roots.append(n)
 
-    leaves = _flatten_leaves(roots)
+    leaves = _flatten_leaves(roots, children_map)
 
     # ── Word counts ──
     total_words = sum(n.word_count for n in all_nodes)
@@ -157,17 +163,32 @@ def story_health(
         "resolved": [],
     }
     for t in threads:
-        thread_health[t.status].append({"id": t.id, "name": t.name, "description": t.description})
+        thread_health[t.status].append({
+            "id": t.id,
+            "name": t.name,
+            "description": t.description,
+            "mice_type": t.mice_type,
+            "try_fail_cycle_count": len(t.try_fail_cycles or []),
+        })
 
     # ── Story goals ──
     goals = story.goals or []
     goals_total = len(goals)
     goals_done = sum(1 for g in goals if g.get("completed"))
 
+    # ── Word count target ──
+    word_count_target = get_word_count_status(story.intended_length or "", total_words)
+
+    # ── MICE nesting validation ──
+    leaf_order = [n.id for n in leaves]
+    mice_violations = validate_thread_nesting(threads, leaf_order)
+
     return {
+        "intended_length": story.intended_length or "",
         "word_count": {
             "total": total_words,
             "by_status": words_by_status,
+            "target": word_count_target,
         },
         "scenes": {
             "total": len(leaves),
@@ -182,4 +203,5 @@ def story_health(
             "done": goals_done,
             "items": goals,
         },
+        "mice_violations": mice_violations,
     }

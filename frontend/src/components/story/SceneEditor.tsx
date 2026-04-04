@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { Maximize2, Minimize2, Fullscreen, Sidebar, BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, type LucideIcon } from "lucide-react";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
   MentionDropdownExtension,
@@ -63,19 +63,22 @@ import { useUIStore } from "../../stores/uiStore";
 import StorySummaryPanel from "./StorySummaryPanel";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "./SprintTimer";
+import FontPicker from "./FontPicker";
+import SceneChatPanel from "../layout/SceneChatPanel";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
-  const { viewState, setViewState, chatPanelOpen, openChatPanel, closeChatPanel } = useUIStore();
+  const { chatPanelOpen, openChatPanel, closeChatPanel } = useUIStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
-  const [showViewPicker, setShowViewPicker] = useState(false);
-  const viewPickerRef = useRef<HTMLDivElement>(null);
+  const [wordCount, setWordCount] = useState(0);
+  const [saveState, setSaveState] = useState<"idle" | "unsaved" | "saving" | "saved">("idle");
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [synopsis, setSynopsis] = useState("");
   const [purpose, setPurpose] = useState("");
   const [entryState, setEntryState] = useState("");
@@ -157,11 +160,16 @@ export default function SceneEditor() {
     onUpdate: ({ editor }) => {
       if (!activeNode) return;
       const content = editor.getHTML();
+      setSaveState("unsaved");
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(async () => {
-        const wordCount = editor.storage.characterCount?.words() ?? 0;
-        const updated = await api.updateNode(activeNode.id, { content, word_count: wordCount });
+        setSaveState("saving");
+        const count = editor.storage.characterCount?.words() ?? 0;
+        const updated = await api.updateNode(activeNode.id, { content, word_count: count });
         setActiveNode({ ...activeNode, content, word_count: updated.word_count });
+        setSaveState("saved");
+        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+        savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), 2000);
       }, 1200);
     },
   });
@@ -174,6 +182,20 @@ export default function SceneEditor() {
     }
   }, [activeNode?.id]);
 
+  // Subscribe to editor updates for live word count (seeded from activeNode.word_count)
+  useEffect(() => {
+    if (!editor) return;
+    // Don't read immediately — word count is seeded from activeNode.word_count in the other effect.
+    // CharacterCount extension isn't reliable at mount time anyway.
+    const update = () => {
+      const text = editor.state.doc.textContent;
+      const count = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+      setWordCount(count);
+    };
+    editor.on("update", update);
+    return () => { editor.off("update", update); };
+  }, [editor]);
+
   useEffect(() => {
     if (!activeNode) return;
     setSynopsis(activeNode.synopsis ?? "");
@@ -184,6 +206,8 @@ export default function SceneEditor() {
     setContentSummary(activeNode.content_summary ?? "");
     setInlineNotes(activeNode.metadata_?.inline_notes ?? []);
     setNotePopover({ open: false });
+    // Seed word count from stored value; editor's onUpdate will keep it live
+    setWordCount(activeNode.word_count ?? 0);
   }, [activeNode?.id]);
 
   const { stream: streamSummary, text: summaryStreamText, isStreaming: generatingSummary } = useLLMStream({
@@ -319,36 +343,6 @@ export default function SceneEditor() {
     });
   }, []); // stable — refs handle freshness
 
-  // If user presses Escape to exit browser fullscreen, drop back to focus (sidebar still hidden)
-  useEffect(() => {
-    function onFullscreenChange() {
-      if (!document.fullscreenElement && viewState === "fullscreen") setViewState("focus");
-    }
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, [viewState, setViewState]);
-
-  // Close view picker on outside click
-  useEffect(() => {
-    if (!showViewPicker) return;
-    function handleClick(e: MouseEvent) {
-      if (viewPickerRef.current && !viewPickerRef.current.contains(e.target as Node)) {
-        setShowViewPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [showViewPicker]);
-
-  function applyViewState(next: "normal" | "focus" | "fullscreen") {
-    if (next === "fullscreen" && viewState !== "fullscreen") {
-      document.documentElement.requestFullscreen?.();
-    } else if (next !== "fullscreen" && viewState === "fullscreen") {
-      document.exitFullscreen?.();
-    }
-    setViewState(next);
-    setShowViewPicker(false);
-  }
 
   // Hover card event delegation — stable listener that reads from refs
   useEffect(() => {
@@ -577,8 +571,6 @@ export default function SceneEditor() {
     setAddLinkSearch("");
   }
 
-  const wordCount = editor?.storage.characterCount?.words() ?? 0;
-
   if (!activeNode) {
     return (
       <div className={styles.empty}>
@@ -674,6 +666,10 @@ export default function SceneEditor() {
             </div>
           )}
           <span className={styles.wordCount}>{wordCount.toLocaleString()} words</span>
+          <span
+            className={`${styles.saveIndicator} ${styles[`saveIndicator_${activeNode ? saveState : "idle"}`]}`}
+            title={saveState === "unsaved" ? "Unsaved changes" : saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+          />
           <button
             onClick={() => setShowOverview((s) => !s)}
             className={`${styles.topbarBtn} ${showOverview ? styles.topbarBtnActive : ""}`}
@@ -685,7 +681,7 @@ export default function SceneEditor() {
           {activeStory && (
             <button
               onClick={() => setShowSummary((s) => !s)}
-              className={styles.topbarBtn}
+              className={`${styles.topbarBtn} ${styles.topbarBtnAI}`}
               title="Story So Far — AI summary of the story up to this point"
             >
               <BookOpen size={13} />
@@ -695,7 +691,7 @@ export default function SceneEditor() {
           {activeStory && (
             <button
               onClick={() => chatPanelOpen ? closeChatPanel() : openChatPanel()}
-              className={`${styles.topbarBtn} ${chatPanelOpen ? styles.topbarBtnActive : ""}`}
+              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${chatPanelOpen ? styles.topbarBtnAIActive : ""}`}
               title="Scene Assistant — AI chat grounded in this scene's full context"
             >
               <Sparkles size={13} />
@@ -703,44 +699,12 @@ export default function SceneEditor() {
             </button>
           )}
           <div className={styles.sprintTimerWrap}><SprintTimer currentWordCount={wordCount} /></div>
-          <div className={styles.viewPickerWrap} ref={viewPickerRef}>
-            <button
-              onClick={() => setShowViewPicker((v) => !v)}
-              className={`${styles.focusBtn} ${showViewPicker ? styles.focusBtnActive : ""}`}
-              title="View mode"
-            >
-              {viewState === "normal" && <Maximize2 size={14} />}
-              {viewState === "focus" && <Fullscreen size={14} />}
-              {viewState === "fullscreen" && <Minimize2 size={14} />}
-            </button>
-            {showViewPicker && (
-              <div className={styles.viewPicker}>
-                <button
-                  className={`${styles.viewPickerItem} ${viewState === "normal" ? styles.viewPickerItemActive : ""}`}
-                  onClick={() => applyViewState("normal")}
-                >
-                  <Sidebar size={13} />
-                  <span>Normal</span>
-                </button>
-                <button
-                  className={`${styles.viewPickerItem} ${viewState === "focus" ? styles.viewPickerItemActive : ""}`}
-                  onClick={() => applyViewState("focus")}
-                >
-                  <Maximize2 size={13} />
-                  <span>Focus</span>
-                </button>
-                <button
-                  className={`${styles.viewPickerItem} ${viewState === "fullscreen" ? styles.viewPickerItemActive : ""}`}
-                  onClick={() => applyViewState("fullscreen")}
-                >
-                  <Fullscreen size={13} />
-                  <span>Fullscreen</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <FontPicker />
         </div>
       </div>
+
+      <div className={styles.contentRow}>
+      <div className={styles.editorColumn}>
 
       {showOverview && (
         <div className={styles.overviewPanel}>
@@ -984,6 +948,12 @@ export default function SceneEditor() {
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      </div>{/* end editorColumn */}
+      {chatPanelOpen && activeStory && (
+        <SceneChatPanel storyId={activeStory.id} nodeId={activeNode.id} />
+      )}
+      </div>{/* end contentRow */}
 
       {/* Inline note popover */}
       {notePopover.open && (() => {

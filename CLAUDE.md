@@ -132,9 +132,59 @@ ADMIN_USERNAME=admin
 ADMIN_PASSWORD=changeme
 SECRET_KEY=any-random-string-for-dev
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2
+OLLAMA_MODEL=gemma4
 DATABASE_URL=sqlite:///./data/lorestudio.db
 ```
+
+### Recommended Model: Gemma 4
+
+LoreStudio is built around **Gemma 4** (`gemma4`) served via Ollama. Key integration points:
+
+- **Thinking mode**: Enabled by prepending `<|think|>` to the system prompt. The model then generates `<|channel>thought\n[reasoning]<channel|>` blocks before its final answer. Disable by omitting the token (default).
+- **Recommended parameters**: Temperature 1.0, top-p 0.95, top-k 64 — these are Google's published best-practice defaults.
+- **Multi-turn history**: Strip `<|channel>thought\n...<channel|>` blocks from assistant messages before appending them to conversation history. Thoughts from previous turns must not be re-sent to the model.
+- **Multi-modal**: Images must be placed before text in the prompt. Image detail is controlled by token budgets: 70/140 (fast, classification), 280 (balanced default), 560/1120 (high detail, OCR).
+- **Context windows**: 128K tokens (E2B/E4B), 256K tokens (26B/31B and above).
+
+## Testing
+
+**Test as you build.** Every new service function, especially pure logic, should have corresponding tests. Tests catch regressions early and document expected behavior.
+
+### Backend Testing (`backend/`)
+
+Run tests:
+```bash
+just test              # pytest -v
+just test-watch        # pytest with file watcher
+cd backend && uv run pytest -v  # direct
+```
+
+Test structure mirrors app structure:
+```
+backend/tests/
+  conftest.py           — Fixtures: test DB, mock ORM objects, API client
+  services/             — Unit tests for pure service functions
+    test_mice_validation.py
+    test_word_count.py
+  routers/              — Integration tests for API endpoints
+    test_health.py
+    test_stories.py
+```
+
+#### What to test
+- **Pure functions first** — validation logic, calculations, transformations (no DB/network)
+- **API endpoints** — request/response contracts, auth requirements, error cases
+- **Skip mocking LLM** — AI-dependent features are tested manually; don't mock Ollama responses
+
+#### When to write tests
+- New service functions: write tests alongside implementation
+- Bug fixes: write a failing test first, then fix
+- Refactors: ensure existing tests pass before and after
+
+#### Test fixtures (conftest.py)
+- `test_db` — In-memory SQLite session for isolated DB tests
+- `mock_thread(...)` — Factory for PlotThread-like objects with test data
+- `api_client` — TestClient with auth headers for endpoint tests
 
 ## Feature Tracking
 

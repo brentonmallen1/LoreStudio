@@ -75,6 +75,10 @@
   color: var(--color-text);
 }
 
+.panelBtnActive {
+  color: var(--color-accent);
+}
+
 /* ── Story context bar ── */
 .contextBar {
   display: flex;
@@ -148,16 +152,16 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-ai-border);
   background: transparent;
-  color: var(--color-accent);
+  color: var(--color-ai);
   cursor: pointer;
   transition: background var(--transition);
   white-space: nowrap;
 }
 
 .refreshContextBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  background: var(--color-ai-subtle);
 }
 
 .refreshContextBtn:disabled {
@@ -323,14 +327,14 @@
   flex-shrink: 0;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   cursor: pointer;
   transition: background var(--transition), opacity var(--transition);
 }
 
 .sendBtn:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-ai-hover);
 }
 
 .sendBtn:disabled {
@@ -356,7 +360,7 @@
   gap: 0.3rem;
   font-size: 0.68rem;
   font-family: inherit;
-  color: var(--color-accent);
+  color: var(--color-ai);
   background: none;
   border: none;
   cursor: pointer;
@@ -377,7 +381,7 @@
 .notesArea {
   border-top: 1px solid var(--color-border);
   padding: 0.625rem 0.75rem;
-  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
+  background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
   flex-shrink: 0;
   max-height: 180px;
   overflow-y: auto;
@@ -395,7 +399,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--color-accent);
+  color: var(--color-ai);
 }
 
 .notesActions {
@@ -432,15 +436,15 @@
   font-family: inherit;
   padding: 0.15rem 0.5rem;
   border-radius: 99px;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid var(--color-ai-border);
+  color: var(--color-ai);
+  background: var(--color-ai-subtle);
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .applyBtn:hover {
-  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
 }
 
 .applyPanel {

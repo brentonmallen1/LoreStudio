@@ -5,7 +5,9 @@ import LoginPage from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
 import StoryWorkspacePage from "./pages/StoryWorkspace";
 import SettingsPage from "./pages/Settings";
+import SettingsAIPage from "./pages/SettingsAI";
 import CommandPalette from "./components/layout/CommandPalette";
+import GlobalLayout from "./components/layout/GlobalLayout";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, token } = useAuthStore();
@@ -27,29 +29,17 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/"
           element={
             <RequireAuth>
-              <DashboardPage />
+              <GlobalLayout />
             </RequireAuth>
           }
-        />
-        <Route
-          path="/stories/:storyId/*"
-          element={
-            <RequireAuth>
-              <StoryWorkspacePage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <RequireAuth>
-              <SettingsPage />
-            </RequireAuth>
-          }
-        />
+        >
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/stories/:storyId/*" element={<StoryWorkspacePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings/ai-prompts" element={<SettingsAIPage />} />
+        </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

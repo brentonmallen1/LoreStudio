@@ -85,16 +85,16 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-ai-border);
   background: transparent;
-  color: var(--color-accent);
+  color: var(--color-ai);
   cursor: pointer;
   transition: background var(--transition);
   white-space: nowrap;
 }
 
 .refreshBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  background: var(--color-ai-subtle);
 }
 
 .refreshBtn:disabled {
@@ -193,10 +193,14 @@
   font-weight: 600;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-accent);
-  color: #fff;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   cursor: pointer;
-  transition: opacity var(--transition);
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.startBtn:hover:not(:disabled) {
+  background: var(--color-ai-hover);
 }
 
 .startBtn:disabled {

@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
-import { useLocation } from "react-router-dom";
 import { useUIStore } from "../stores/uiStore";
 import Sidebar from "../components/layout/Sidebar";
 import InterviewPanel from "../components/layout/InterviewPanel";
-import SceneChatPanel from "../components/layout/SceneChatPanel";
 import SceneEditor from "../components/story/SceneEditor";
 import CharacterSheet from "../components/characters/CharacterSheet";
 import CharacterList from "../components/characters/CharacterList";
@@ -17,17 +15,15 @@ import CorkboardView from "../components/story/CorkboardView";
 import TimelineView from "../components/story/TimelineView";
 import MediaPage from "./MediaPage";
 import StoryHealthPage from "./StoryHealthPage";
+import ChroniclePage from "./ChroniclePage";
+import StoryOverviewPage from "./StoryOverviewPage";
 import styles from "./StoryWorkspace.module.css";
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isSceneView = !location.pathname.match(/\/(characters|lorebook|panels|threads|media|health)/);
-
   const { setActiveStory, setStructure, setCharacters, setActiveTemplate } = useStoryStore();
-  const { interviewPanelOpen, activeInterview, viewState, viewMode, chatPanelOpen } = useUIStore();
-  const { activeNode } = useStoryStore();
+  const { interviewPanelOpen, activeInterview, viewState, viewMode } = useUIStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,7 +56,9 @@ export default function StoryWorkspacePage() {
 
       <main className={styles.main}>
         <Routes>
-          <Route path="/" element={
+          <Route path="/" element={<StoryOverviewPage />} />
+          <Route path="/overview" element={<StoryOverviewPage />} />
+          <Route path="/write" element={
             viewMode === "corkboard" ? <CorkboardView /> :
             viewMode === "timeline" ? <TimelineView /> :
             <SceneEditor />
@@ -72,13 +70,11 @@ export default function StoryWorkspacePage() {
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
           <Route path="/media" element={<MediaPage />} />
           <Route path="/health" element={<StoryHealthPage />} />
+          <Route path="/chronicle" element={<ChroniclePage />} />
         </Routes>
       </main>
 
       {interviewPanelOpen && activeInterview && <InterviewPanel />}
-      {chatPanelOpen && isSceneView && storyId && activeNode && (
-        <SceneChatPanel storyId={storyId} nodeId={activeNode.id} />
-      )}
     </div>
   );
 }

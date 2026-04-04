@@ -14,7 +14,7 @@ from ..models.media import StoryAsset, AssetAttachment
 from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentOut
 from ..auth.dependencies import get_current_user
 from ..auth.utils import decode_token
-from ..services.llm.ollama import ollama_provider
+from ..services.llm.gateway import ai_gateway, AICallContext
 
 router = APIRouter()
 
@@ -249,7 +249,7 @@ async def analyze_image(
 
     image_data = base64.b64encode(full_path.read_bytes()).decode()
 
-    system_prompt = (
+    feature_prompt = (
         "You are a writing assistant helping an author describe settings and atmosphere. "
         "Analyze the provided image and describe: the overall mood and emotional tone, "
         "the atmosphere and lighting quality, dominant colors and their emotional associations, "
@@ -257,7 +257,7 @@ async def analyze_image(
         "woven into a fiction narrative. Be evocative and specific — write like a literary consultant, "
         "not a computer vision model. Keep your response to 3-4 concise paragraphs."
     )
-    messages = [
+    llm_messages = [
         {
             "role": "user",
             "content": "Please analyze this image for its mood, atmosphere, and setting qualities.",
@@ -265,9 +265,23 @@ async def analyze_image(
         }
     ]
 
+    ctx = AICallContext(
+        feature="image-analysis",
+        user_id=current_user.id,
+        story_id=asset.story_id,
+        tags=["compendium", "analysis", "user-initiated"],
+        extra_metadata={"asset_id": asset_id},
+    )
+
     async def stream():
         try:
-            async for token in ollama_provider.chat_stream(messages, system_prompt):
+            async for token in ai_gateway.stream(
+                messages=llm_messages,
+                feature_prompt=feature_prompt,
+                context=ctx,
+                db=db,
+                user=current_user,
+            ):
                 yield token
         except Exception as e:
             yield f"\n\n[Analysis unavailable: {e}]"

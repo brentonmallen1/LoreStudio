@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { BookOpen, Copy, Check } from "lucide-react";
+import { BookOpen, Copy, Check, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -89,6 +89,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
           disabled={generating}
           className={styles.generateBtn}
         >
+          <Sparkles size={12} />
           {generating ? "Generating…" : "Generate"}
         </button>
       </div>

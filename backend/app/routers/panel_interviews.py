@@ -16,8 +16,8 @@ from ..schemas.panel_interview import (
     PanelInterviewSummaryOut,
 )
 from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import build_panel_interview_system_prompt
+from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
+from ..services.llm.prompts.interviews import build_panel_interview_system_prompt
 
 router = APIRouter()
 
@@ -131,25 +131,37 @@ async def send_panel_message(
     panel.messages = messages
     db.commit()
 
-    system_prompt = build_panel_interview_system_prompt(characters)
+    feature_prompt = build_panel_interview_system_prompt(characters)
     llm_messages = [{"role": m["role"] if m["role"] == "user" else "assistant", "content": m["content"]} for m in messages]
 
+    ctx = AICallContext(
+        feature="panel-interview",
+        user_id=current_user.id,
+        story_id=panel.story_id,
+        tags=["character", "interview", "conversation", "user-initiated", "persisted"],
+    )
+
+    async def on_complete(result: AICallResult) -> None:
+        panel_msg = {
+            "role": "panel",
+            "content": result.content,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        panel.messages = list(panel.messages) + [panel_msg]
+        db.commit()
+
     async def stream_and_persist():
-        full_response = []
-        try:
-            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
-                full_response.append(token)
-                yield token
-        finally:
-            if full_response:
-                panel_msg = {
-                    "role": "panel",
-                    "content": "".join(full_response),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                }
-                updated_messages = list(panel.messages) + [panel_msg]
-                panel.messages = updated_messages
-                db.commit()
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            llm_params=body.llm_params,
+            include_core_prompt=False,
+            on_complete=on_complete,
+        ):
+            yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
 

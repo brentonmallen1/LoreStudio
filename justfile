@@ -41,8 +41,9 @@ db-revision name:
 
 # Reset database (destructive!)
 db-reset:
-    rm -f data/lorestudio.db
-    just db-migrate
+    rm -f backend/data/lorestudio.db
+    cd backend && PYTHONPATH=. uv run python scripts/reset_db.py
+    cd backend && uv run alembic stamp head
 
 # ── Docker ─────────────────────────────────────
 build:

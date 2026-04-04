@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Send, Users } from "lucide-react";
+import { Plus, Trash2, Send, Users, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import type { PanelInterview, PanelInterviewSummary } from "../../types";
+import type { PanelInterview, PanelInterviewSummary, LLMParams } from "../../types";
 import CreatePanelDialog from "./CreatePanelDialog";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../llm";
 import styles from "./PanelInterviewPanel.module.css";
 
 interface Props {
@@ -67,6 +67,8 @@ export default function PanelInterviewPanel({ storyId }: Props) {
 
   const panelId = activePanel?.id ?? "";
   const panelTitle = activePanel?.title ?? "Group interview";
+  const [showSettings, setShowSettings] = useState(false);
+  const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
 
   const { sources: contextSources } = useLLMContextSources(
     panelId ? { context_type: "panel", panel_id: panelId } : null
@@ -147,7 +149,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
       };
     });
 
-    stream((signal) => api.sendPanelMessage(activePanel.id, content, signal));
+    stream((signal) => api.sendPanelMessage(activePanel.id, content, signal, sessionParams));
   }
 
   const panelCharacterNames = (panel: PanelInterviewSummary) =>
@@ -158,6 +160,12 @@ export default function PanelInterviewPanel({ storyId }: Props) {
   return (
     <>
     <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
+    <ChatSettingsModal
+      isOpen={showSettings}
+      onClose={() => setShowSettings(false)}
+      onApply={setSessionParams}
+      sessionParams={sessionParams}
+    />
     <div className={styles.page}>
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
@@ -214,6 +222,13 @@ export default function PanelInterviewPanel({ storyId }: Props) {
                   lastResponse.current,
                 )}
               />
+              <button
+                className={`${styles.chatHeaderBtn} ${sessionParams ? styles.chatHeaderBtnActive : ""}`}
+                onClick={() => setShowSettings(true)}
+                title="AI parameters"
+              >
+                <Settings2 size={13} />
+              </button>
             </div>
 
             <LLMContextSources sources={contextSources} />

@@ -1,0 +1,293 @@
+/* ── MICE colors ── */
+:root {
+  --mice-milieu: #5a6a82;
+  --mice-idea: #b07c10;
+  --mice-character: #1a9272;
+  --mice-event: #c94f1e;
+}
+
+.dark {
+  --mice-milieu: #8a9ab0;
+  --mice-idea: #e0a830;
+  --mice-character: #35c498;
+  --mice-event: #f07050;
+}
+
+/* ── Intro ── */
+.intro {
+  margin-bottom: 1.25rem;
+}
+
+.intro p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin: 0 0 0.4rem;
+}
+
+.credit {
+  font-size: 0.75rem !important;
+  color: var(--color-text-subtle) !important;
+  font-style: italic;
+}
+
+/* ── Type cards grid ── */
+.typesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.typeCard {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 0.875rem 1rem;
+  background: var(--color-surface-2);
+}
+
+/* Per-type accent border */
+.milieu  { border-left: 3px solid var(--mice-milieu); }
+.idea    { border-left: 3px solid var(--mice-idea); }
+.character { border-left: 3px solid var(--mice-character); }
+.event   { border-left: 3px solid var(--mice-event); }
+
+.typeHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.milieu    .typeIcon { color: var(--mice-milieu); }
+.idea      .typeIcon { color: var(--mice-idea); }
+.character .typeIcon { color: var(--mice-character); }
+.event     .typeIcon { color: var(--mice-event); }
+
+.typeIcon {
+  display: flex;
+  align-items: center;
+}
+
+.typeLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+}
+
+.milieu    .typeLabel { color: var(--mice-milieu); }
+.idea      .typeLabel { color: var(--mice-idea); }
+.character .typeLabel { color: var(--mice-character); }
+.event     .typeLabel { color: var(--mice-event); }
+
+.typeTagline {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0 0 0.6rem;
+  line-height: 1.3;
+}
+
+.typeDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+
+.typeRow {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.typeRowLabel {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  width: 48px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.examplePill {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 99px;
+  background: var(--color-surface-3);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.typeNote {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Collapsible sections ── */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sectionContent p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── LIFO nesting diagram ── */
+.nestingDiagram {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+}
+
+.diagramLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  margin-bottom: 0.4rem;
+}
+
+.diagramTrack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.diagramBar,
+.diagramBarBroken {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-weight: 500;
+}
+
+.barA { background: color-mix(in srgb, var(--mice-milieu) 85%, transparent); }
+.barB { background: color-mix(in srgb, var(--mice-character) 85%, transparent); }
+
+.diagramBarBroken {
+  opacity: 0.75;
+  outline: 2px dashed var(--mice-event);
+  outline-offset: -2px;
+}
+
+.diagramArrows {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  padding: 0.15rem 0;
+}
+
+.tip {
+  font-size: 0.78rem !important;
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-muted) !important;
+}
+
+/* ── Economy table ── */
+.economyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.economyTable th {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.economyTable td {
+  padding: 0.4rem 0.6rem;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: top;
+}
+
+.economyTable tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Try/fail outcomes ── */
+.outcomesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.outcomeCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  background: var(--color-surface-2);
+}
+
+.outcomeCard p {
+  font-size: 0.78rem !important;
+  color: var(--color-text-muted) !important;
+  margin: 0.3rem 0 0 !important;
+}
+
+.outcomeBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+}
+
+.outcomeDisaster  { background: color-mix(in srgb, #b83232 15%, transparent); color: #b83232; }
+.outcomeSetback   { background: color-mix(in srgb, var(--mice-idea) 15%, transparent); color: var(--mice-idea); }
+.outcomeSuccessCost { background: color-mix(in srgb, var(--mice-milieu) 15%, transparent); color: var(--mice-milieu); }
+.outcomeClean     { background: color-mix(in srgb, var(--mice-character) 15%, transparent); color: var(--mice-character); }
+
+/* ── Footer button ── */
+.closeBtn {
+  margin-left: auto;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.closeBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}

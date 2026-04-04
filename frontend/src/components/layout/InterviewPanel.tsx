@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp, RefreshCw, BookOpen } from "lucide-react";
+import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp, RefreshCw, BookOpen, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
-import type { InterviewMessage, CharacterJourney } from "../../types";
+import type { InterviewMessage, CharacterJourney, LLMParams } from "../../types";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../llm";
 import styles from "./InterviewPanel.module.css";
 
 export default function InterviewPanel() {
   const { activeInterview, activeInterviewCharacter, closeInterviewPanel, collapseInterviewPanel, setActiveInterview } =
     useUIStore();
-  const { upsertCharacter, structure } = useStoryStore();
+  const { upsertCharacter, structure, activeStory } = useStoryStore();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<InterviewMessage[]>(activeInterview?.messages ?? []);
   const [showNotes, setShowNotes] = useState(false);
@@ -28,6 +28,9 @@ export default function InterviewPanel() {
 
   const interviewId = activeInterview?.id ?? "";
   const character = activeInterviewCharacter;
+  const chronicleSessionId = useRef<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
 
   function findNodeTitle(nodeId: string, nodes: import("../../types").StructureNode[]): string | null {
     for (const n of nodes) {
@@ -48,6 +51,7 @@ export default function InterviewPanel() {
     onComplete: async (full) => {
       lastResponse.current = full;
       transparency.recordInteraction();
+      persistToChronicle("assistant", full);
       if (activeInterview) {
         const updated = await api.getInterview(activeInterview.id);
         setActiveInterview(updated);
@@ -96,16 +100,33 @@ export default function InterviewPanel() {
     setMessages(activeInterview?.messages ?? []);
     setShowNotes(!!(activeInterview?.interview_notes));
     setJourney(null);
+    chronicleSessionId.current = null;
     if (activeInterview?.context_node_id && activeInterviewCharacter) {
       api.getCharacterJourney(activeInterviewCharacter.id, activeInterview.context_node_id)
         .then(setJourney)
         .catch(() => {});
+    }
+    // Create Chronicle session for this interview
+    if (activeInterview && activeInterviewCharacter && activeStory) {
+      api.createChronicleSession({
+        story_id: activeStory.id,
+        context_type: "character",
+        context_id: activeInterviewCharacter.id,
+        context_label: activeInterviewCharacter.name,
+      }).then((session) => {
+        chronicleSessionId.current = session.id;
+      }).catch(() => {});
     }
   }, [activeInterview?.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatStreamText]);
+
+  function persistToChronicle(role: string, content: string) {
+    if (!chronicleSessionId.current) return;
+    api.addChronicleMessage(chronicleSessionId.current, { role, content }).catch(() => {});
+  }
 
   async function sendMessage() {
     if (!input.trim() || isStreaming || !activeInterview) return;
@@ -114,7 +135,8 @@ export default function InterviewPanel() {
     lastContextType.current = "interview";
     setInput("");
     setMessages((prev) => [...prev, { role: "user", content, timestamp: new Date().toISOString() }]);
-    streamChat((signal) => api.sendInterviewMessage(activeInterview.id, content, signal));
+    persistToChronicle("user", content);
+    streamChat((signal) => api.sendInterviewMessage(activeInterview.id, content, signal, sessionParams));
   }
 
   async function captureInsights() {
@@ -130,7 +152,7 @@ export default function InterviewPanel() {
     const content: Record<string, string> = {};
     const char = activeInterviewCharacter;
     for (const f of fields) {
-      const existing = (char as Record<string, unknown>)[f] as string ?? "";
+      const existing = (char as unknown as Record<string, string>)[f] ?? "";
       content[f] = existing ? `${existing}\n\n[From interview ${new Date().toLocaleDateString()}]:\n${summaryText}` : summaryText;
     }
     const updated = await api.applyInterviewToCharacter(activeInterview.id, fields, content);
@@ -141,6 +163,12 @@ export default function InterviewPanel() {
   return (
     <>
     <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
+    <ChatSettingsModal
+      isOpen={showSettings}
+      onClose={() => setShowSettings(false)}
+      onApply={setSessionParams}
+      sessionParams={sessionParams}
+    />
     <aside className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.avatar}>
@@ -157,6 +185,13 @@ export default function InterviewPanel() {
             lastResponse.current,
           )}
         />
+        <button
+          onClick={() => setShowSettings(true)}
+          className={`${styles.panelBtn} ${sessionParams ? styles.panelBtnActive : ""}`}
+          title="AI parameters"
+        >
+          <Settings2 size={14} />
+        </button>
         <button
           onClick={collapseInterviewPanel}
           className={styles.panelBtn}

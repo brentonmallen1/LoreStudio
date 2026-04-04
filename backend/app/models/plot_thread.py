@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
@@ -14,6 +14,10 @@ class PlotThread(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String, default="open")  # open | developing | resolved
     color: Mapped[str] = mapped_column(String, default="#6b7280")
+    mice_type: Mapped[str | None] = mapped_column(String, nullable=True)  # milieu | idea | character | event
+    opens_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    closes_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    try_fail_cycles: Mapped[list] = mapped_column(JSON, default=list, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

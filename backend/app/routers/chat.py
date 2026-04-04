@@ -29,7 +29,9 @@ from ..models.character import Character
 from ..models.setting import Setting
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
+from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.prompts.chat import build_scene_chat_system_prompt
+from ..schemas.llm_params import LLMParams
 
 router = APIRouter()
 
@@ -163,87 +165,6 @@ def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dic
     }
 
 
-def _build_system_prompt(ctx: dict) -> str:
-    s = ctx["story"]
-    sc = ctx["scene"]
-
-    lines = [
-        "You are a creative writing assistant embedded in LoreStudio, helping an author with their story.",
-        "",
-        f"## Story: {s['title']}",
-    ]
-    if s.get("genre"): lines.append(f"Genre: {s['genre']}")
-    if s.get("tone"): lines.append(f"Tone: {s['tone']}")
-    if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
-    if s.get("central_conflict"): lines.append(f"Central conflict: {s['central_conflict']}")
-    if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
-    if s.get("logline"): lines.append(f"Logline: {s['logline']}")
-    if s.get("unresolved_goals"):
-        lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
-
-    lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
-    if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
-    if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
-    if sc.get("entry_state"): lines.append(f"Entry state: {sc['entry_state']}")
-    if sc.get("exit_state"): lines.append(f"Exit state (goal): {sc['exit_state']}")
-    if sc.get("key_events"): lines.append(f"Key events planned: {sc['key_events']}")
-    if sc.get("prose_preview"):
-        lines += ["", "Prose so far (excerpt):", sc["prose_preview"]]
-
-    if ctx["characters_in_scene"]:
-        lines += ["", "## Characters in this scene"]
-        for c in ctx["characters_in_scene"]:
-            lines.append(f"\n### {c['name']} ({c.get('role', '')})")
-            if c.get("personality"): lines.append(f"Personality: {c['personality']}")
-            if c.get("motivation"): lines.append(f"Motivation: {c['motivation']}")
-            if c.get("arc_notes"): lines.append(f"Arc: {c['arc_notes']}")
-            if c.get("narrative_intent"): lines.append(f"Author's plan for this character: {c['narrative_intent']}")
-            if c.get("arc_milestones_pending"):
-                lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
-    elif ctx["all_characters"]:
-        lines += ["", "## Story characters (all)"]
-        for c in ctx["all_characters"]:
-            line = f"- {c['name']} ({c['role']})"
-            if c.get("motivation"): line += f": {c['motivation']}"
-            lines.append(line)
-
-    if ctx["settings_in_scene"]:
-        lines += ["", "## Settings in this scene"]
-        for setting in ctx["settings_in_scene"]:
-            lines.append(f"\n### {setting['name']}")
-            if setting.get("description"): lines.append(setting["description"])
-            if setting.get("atmosphere"): lines.append(f"Atmosphere: {setting['atmosphere']}")
-
-    if ctx["threads_in_scene"]:
-        lines += ["", "## Plot threads active in this scene"]
-        for t in ctx["threads_in_scene"]:
-            line = f"- {t['name']} [{t['status']}]"
-            if t.get("description"): line += f": {t['description']}"
-            lines.append(line)
-    if ctx["open_threads"]:
-        open_names = [t["name"] for t in ctx["open_threads"] if t not in ctx["threads_in_scene"]]
-        if open_names:
-            lines.append(f"\nOther open threads in this story: {', '.join(open_names)}")
-
-    if ctx["sibling_scenes"]:
-        lines += ["", "## Other scenes in this section"]
-        for sib in ctx["sibling_scenes"]:
-            line = f"- {sib['title']}"
-            if sib.get("synopsis"): line += f": {sib['synopsis']}"
-            lines.append(line)
-
-    lines += [
-        "",
-        "---",
-        "You are a thoughtful collaborator, not a content generator. Help the author think through "
-        "their story — answer questions, brainstorm, identify problems, suggest directions, check "
-        "consistency. Never write prose for them unless explicitly asked. Respond in the author's "
-        "perspective, not the characters'. Keep responses focused and useful.",
-    ]
-
-    return "\n".join(lines)
-
-
 # ── Endpoints ──
 
 @router.get("/stories/{story_id}/chat/context")
@@ -267,6 +188,7 @@ async def scene_chat(
     story_id: str,
     node_id: str = Body(...),
     messages: list[dict] = Body(...),
+    llm_params: LLMParams | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -277,11 +199,26 @@ async def scene_chat(
         raise HTTPException(status_code=404, detail="Scene not found")
 
     ctx = _build_context_packet(story, node, db)
-    system_prompt = _build_system_prompt(ctx)
+    feature_prompt = build_scene_chat_system_prompt(ctx)
+
+    call_ctx = AICallContext(
+        feature="scene-chat",
+        user_id=current_user.id,
+        story_id=story_id,
+        node_id=node_id,
+        tags=["manuscript", "chat", "conversation", "user-initiated"],
+    )
 
     async def stream():
         try:
-            async for token in ollama_provider.chat_stream(messages, system_prompt):
+            async for token in ai_gateway.stream(
+                messages=messages,
+                feature_prompt=feature_prompt,
+                context=call_ctx,
+                db=db,
+                user=current_user,
+                llm_params=llm_params,
+            ):
                 yield token
         except Exception as e:
             yield f"\n\n[Error: {e}]"

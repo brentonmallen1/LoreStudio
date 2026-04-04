@@ -23,6 +23,7 @@ export interface Story {
   themes: string[];
   central_conflict: string;
   target_audience: string;
+  intended_length: string;
   narrative_intent: string;
   premise: string;
   logline: string;
@@ -188,6 +189,17 @@ export interface PlotThreadAppearance {
   created_at: string;
 }
 
+export type MICEType = "milieu" | "idea" | "character" | "event";
+
+export type TryFailOutcome = "fail_disaster" | "fail_setback" | "success_cost" | "success_clean";
+
+export interface TryFailCycle {
+  id: string;
+  description: string;
+  outcome: TryFailOutcome;
+  node_id: string | null;
+}
+
 export interface PlotThread {
   id: string;
   story_id: string;
@@ -195,6 +207,10 @@ export interface PlotThread {
   description: string;
   status: "open" | "developing" | "resolved";
   color: string;
+  mice_type: MICEType | null;
+  opens_at_node_id: string | null;
+  closes_at_node_id: string | null;
+  try_fail_cycles: TryFailCycle[];
   appearances: PlotThreadAppearance[];
   created_at: string;
   updated_at: string;
@@ -218,6 +234,27 @@ export interface SearchResult {
   subtitle?: string;
   excerpt?: string;
   level_type?: string;
+}
+
+// ── LLM Parameters ──
+
+export type ImageTokenBudget = 70 | 140 | 280 | 560 | 1120;
+
+export interface LLMParams {
+  temperature?: number;
+  top_p?: number;
+  top_k?: number;
+  thinking_enabled?: boolean;
+  image_token_budget?: ImageTokenBudget;
+}
+
+export interface LLMSettings {
+  temperature: number;
+  top_p: number;
+  top_k: number;
+  thinking_enabled: boolean;
+  image_token_budget: ImageTokenBudget | null;
+  is_default: boolean;
 }
 
 // ── Scene Chat ──
@@ -282,12 +319,33 @@ export interface ThreadGroup {
   id: string;
   name: string;
   description: string;
+  mice_type: MICEType | null;
+  try_fail_cycle_count: number;
+}
+
+export interface WordCountTarget {
+  min: number | null;
+  max: number;
+  soft_warning_at: number | null;
+  current: number;
+  pct: number;
+  warning_level: "normal" | "approaching" | "exceeded";
+}
+
+export interface MICEViolation {
+  thread_id: string;
+  thread_name: string;
+  message: string;
+  conflicting_thread_id: string | null;
+  conflicting_thread_name: string | null;
 }
 
 export interface StoryHealth {
+  intended_length: string;
   word_count: {
     total: number;
     by_status: Record<string, number>;
+    target: WordCountTarget | null;
   };
   scenes: {
     total: number;
@@ -306,6 +364,52 @@ export interface StoryHealth {
     done: number;
     items: { id: string; text: string; completed: boolean }[];
   };
+  mice_violations: MICEViolation[];
+}
+
+export interface RecentScene {
+  id: string;
+  title: string;
+  word_count: number;
+  status: string;
+  level_type: string;
+  updated_at: string;
+}
+
+export interface RecentActivity {
+  event_type: string;
+  description: string;
+  created_at: string;
+}
+
+export interface RecentInterview {
+  id: string;
+  character_id: string;
+  character_name: string;
+  title: string;
+  updated_at: string;
+}
+
+export interface DistributionEntry {
+  id: string;
+  title: string;
+  level_type: string;
+  word_count: number;
+  scene_count: number;
+  pct: number;
+}
+
+export interface StoryOverview {
+  word_count: number;
+  word_count_target: WordCountTarget | null;
+  scene_count: number;
+  scenes_by_status: Record<string, number>;
+  character_count: number;
+  thread_counts: Record<string, number>;
+  recent_scenes: RecentScene[];
+  recent_activity: RecentActivity[];
+  recent_interviews: RecentInterview[];
+  distribution: DistributionEntry[];
 }
 
 export interface AssetAttachment {
@@ -400,4 +504,77 @@ export interface PromptPreview {
 export interface LLMInteractionData {
   preview: PromptPreview;
   response: string;
+}
+
+// ── Chronicle ──
+
+export interface ChronicleMessage {
+  id: string;
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  model: string | null;
+  tokens_in: number | null;
+  tokens_out: number | null;
+  created_at: string;
+}
+
+export interface ChronicleSession {
+  id: string;
+  story_id: string;
+  user_id: string;
+  context_type: "scene" | "character" | "story" | "panel";
+  context_id: string | null;
+  context_label: string;
+  title: string;
+  archived: boolean;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+}
+
+export interface ChronicleSessionDetail extends ChronicleSession {
+  messages: ChronicleMessage[];
+}
+
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  story_id: string | null;
+  event_type: string;
+  category: string;
+  description: string;
+  metadata_: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ChronicleSearchResult {
+  type: "session" | "activity";
+  session: ChronicleSession | null;
+  log: ActivityLog | null;
+  excerpt: string;
+}
+
+export interface ChronicleStats {
+  total_sessions: number;
+  total_messages: number;
+  total_activity_logs: number;
+  sessions_by_type: Record<string, number>;
+  ai_interactions: number;
+}
+
+export interface AISettings {
+  core_prompt: string;
+  core_prompt_is_custom: boolean;
+  feature_prompts: Record<string, string | null>;
+}
+
+export interface AISettingsDefaults {
+  core_prompt: string;
+  feature_labels: Record<string, string>;
+}
+
+export interface AISettingsUpdate {
+  core_prompt?: string | null;
+  feature_prompts?: Record<string, string | null> | null;
 }

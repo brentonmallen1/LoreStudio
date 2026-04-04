@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target } from "lucide-react";
 import { api } from "../api/client";
 import type { StoryHealth } from "../types";
+import WordCountProgress from "../components/health/WordCountProgress";
+import MICEValidation from "../components/health/MICEValidation";
+import EconomyAnalysisPanel from "../components/health/EconomyAnalysisPanel";
 import styles from "./StoryHealthPage.module.css";
 
 function WordBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
@@ -18,31 +21,6 @@ function WordBar({ label, value, max, color }: { label: string; value: number; m
   );
 }
 
-function ArcRing({ pct, name }: { pct: number | null; name: string }) {
-  const r = 20;
-  const circ = 2 * Math.PI * r;
-  const dash = pct != null ? (pct / 100) * circ : 0;
-  return (
-    <div className={styles.arcRing} title={`${name}: ${pct != null ? pct + "%" : "no milestones"}`}>
-      <svg width={52} height={52} viewBox="0 0 52 52">
-        <circle cx={26} cy={26} r={r} fill="none" stroke="var(--color-border)" strokeWidth={4} />
-        <circle
-          cx={26} cy={26} r={r}
-          fill="none"
-          stroke={pct != null ? "var(--color-accent)" : "var(--color-border)"}
-          strokeWidth={4}
-          strokeDasharray={`${dash} ${circ}`}
-          strokeLinecap="round"
-          transform="rotate(-90 26 26)"
-        />
-        <text x={26} y={30} textAnchor="middle" fontSize={10} fill="var(--color-text)" fontWeight={600}>
-          {pct != null ? `${pct}%` : "—"}
-        </text>
-      </svg>
-      <span className={styles.arcName}>{name.split(" ")[0]}</span>
-    </div>
-  );
-}
 
 export default function StoryHealthPage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -104,6 +82,12 @@ export default function StoryHealthPage() {
             <WordBar label="Revised" value={byStatus.revised ?? 0} max={totalWords} color="var(--color-accent)" />
             <WordBar label="Final" value={byStatus.final ?? 0} max={totalWords} color="#4caf82" />
           </div>
+          {health.word_count.target && (
+            <WordCountProgress
+              target={health.word_count.target}
+              intendedLength={health.intended_length}
+            />
+          )}
         </section>
 
         {/* Scene Status */}
@@ -190,6 +174,26 @@ export default function StoryHealthPage() {
           </div>
           {totalThreads === 0 && (
             <p className={styles.emptyNote}>No threads yet — add them in Plot Threads.</p>
+          )}
+          {(() => {
+            const thinResolved = health.threads.resolved.filter(
+              (t) => t.mice_type && t.try_fail_cycle_count < 2
+            );
+            return thinResolved.length > 0 ? (
+              <div className={styles.alertBanner}>
+                <AlertTriangle size={13} />
+                <span>
+                  {thinResolved.map((t) => t.name).join(", ")}
+                  {thinResolved.length === 1 ? " resolves" : " resolve"} with fewer than 2 try/fail cycles.
+                  Consider adding more struggle before the resolution.
+                </span>
+              </div>
+            ) : null;
+          })()}
+          {health.mice_violations.length > 0 && (
+            <div className={styles.miceViolationsWrap}>
+              <MICEValidation violations={health.mice_violations} />
+            </div>
           )}
         </section>
 
@@ -284,6 +288,13 @@ export default function StoryHealthPage() {
             </div>
           </section>
         )}
+
+      {/* Economy Analysis */}
+      {storyId && (
+        <div className={styles.economyWrap}>
+          <EconomyAnalysisPanel storyId={storyId} />
+        </div>
+      )}
 
       </div>
     </div>

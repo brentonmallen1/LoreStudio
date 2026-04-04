@@ -18,14 +18,17 @@ from ..models.interview import CharacterInterview
 from ..models.panel_interview import PanelInterview
 from ..auth.dependencies import get_current_user
 from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import (
+from ..services.llm.gateway import ai_gateway
+from ..services.llm.prompts.interviews import (
     build_character_interview_system_prompt,
     build_interview_summary_prompt,
     build_panel_interview_system_prompt,
+)
+from ..services.llm.prompts.generation import (
     build_attribute_generation_prompt,
-    build_story_summary_prompt,
     build_relationship_suggestion_prompt,
 )
+from ..services.llm.prompts.summaries import build_story_summary_prompt
 
 router = APIRouter()
 
@@ -50,10 +53,12 @@ class ContextSource(BaseModel):
 
 class PromptPreviewResponse(BaseModel):
     context_type: str
-    system_prompt: str
+    system_prompt: str          # Feature-specific prompt only
+    composed_prompt: str        # Core + feature prompt (what actually gets sent)
     user_message: str
     model: str
     sources: list[ContextSource] = []
+    core_prompt_is_custom: bool = False
 
 
 def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]:
@@ -91,13 +96,14 @@ def get_prompt_preview(
     if body.context_type == "scene-chat":
         if not body.story_id or not body.node_id:
             raise HTTPException(status_code=400, detail="story_id and node_id required")
-        from .chat import _build_context_packet, _build_system_prompt
+        from .chat import _build_context_packet
+        from ..services.llm.prompts.chat import build_scene_chat_system_prompt
         story = _get_story(body.story_id)
         node = db.get(StructureNode, body.node_id)
         if not node or node.story_id != body.story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
         ctx = _build_context_packet(story, node, db)
-        system_prompt = _build_system_prompt(ctx)
+        system_prompt = build_scene_chat_system_prompt(ctx)
         if not user_message:
             user_message = "[your message to the scene assistant]"
         chars_in_scene = ctx.get("characters_in_scene", [])
@@ -320,10 +326,16 @@ def get_prompt_preview(
     else:
         raise HTTPException(status_code=400, detail=f"Unknown context_type: {body.context_type}")
 
+    user_ai = (current_user.settings or {}).get("ai", {})
+    composed_prompt = ai_gateway.compose_prompt(system_prompt, current_user)
+    core_is_custom = bool(user_ai.get("core_prompt"))
+
     return PromptPreviewResponse(
         context_type=body.context_type,
         system_prompt=system_prompt,
+        composed_prompt=composed_prompt,
         user_message=user_message,
         model=ollama_provider.model,
         sources=sources,
+        core_prompt_is_custom=core_is_custom,
     )

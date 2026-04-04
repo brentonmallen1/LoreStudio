@@ -21,8 +21,18 @@ import {
   Loader2,
   Images,
   Network,
+  Palette,
 } from "lucide-react";
 import styles from "./CommandPalette.module.css";
+
+function findNode(nodes: import("../../types").StructureNode[], id: string): import("../../types").StructureNode | null {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const found = findNode(node.children ?? [], id);
+    if (found) return found;
+  }
+  return null;
+}
 
 const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
   story: BookOpen,
@@ -41,16 +51,18 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 };
 
 export default function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, setTheme, setViewState, openInterview } = useUIStore();
-  const { stories, characters, activeStory } = useStoryStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, setColorMode, setThemeName, setViewState, openInterview } = useUIStore();
+  const { stories, characters, activeStory, structure, setActiveNode } = useStoryStore();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => {
     setCommandPaletteOpen(false);
@@ -83,6 +95,7 @@ export default function CommandPalette() {
     if (!query.trim()) {
       setSearchResults([]);
       setSearching(false);
+      setSelectedIndex(0);
       return;
     }
     setSearching(true);
@@ -90,6 +103,7 @@ export default function CommandPalette() {
       try {
         const results = await api.search(query.trim());
         setSearchResults(results);
+        setSelectedIndex(0);
       } catch {
         setSearchResults([]);
       } finally {
@@ -111,9 +125,12 @@ export default function CommandPalette() {
       case "character":
         navigate(`/stories/${result.story_id}/characters/${result.id}`);
         break;
-      case "scene":
+      case "scene": {
+        const node = findNode(structure, result.id);
+        if (node) setActiveNode(node);
         navigate(`/stories/${result.story_id}`);
         break;
+      }
       case "setting":
         navigate(`/stories/${result.story_id}/lorebook`);
         break;
@@ -184,17 +201,66 @@ export default function CommandPalette() {
     },
     {
       id: "theme-light",
-      label: "Set theme: Light",
+      label: "Color mode: Light",
       group: "Appearance",
       Icon: Sun,
-      action: () => setTheme("light"),
+      action: () => setColorMode("light"),
     },
     {
       id: "theme-dark",
-      label: "Set theme: Dark",
+      label: "Color mode: Dark",
       group: "Appearance",
       Icon: Moon,
-      action: () => setTheme("dark"),
+      action: () => setColorMode("dark"),
+    },
+    {
+      id: "theme-zen",
+      label: "Theme: Zen",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("zen"),
+    },
+    {
+      id: "theme-e-ink",
+      label: "Theme: E-ink",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("e-ink"),
+    },
+    {
+      id: "theme-nord",
+      label: "Theme: Nord",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("nord"),
+    },
+    {
+      id: "theme-solarized",
+      label: "Theme: Solarized",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("solarized"),
+    },
+    {
+      id: "theme-dracula",
+      label: "Theme: Dracula",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("dracula"),
+    },
+    {
+      id: "theme-gruvbox",
+      label: "Theme: Gruvbox",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("gruvbox"),
+    },
+    {
+      id: "theme-catppuccin",
+      label: "Theme: Catppuccin",
+      group: "Appearance",
+      Icon: Palette,
+      action: () => setThemeName("catppuccin"),
     },
     {
       id: "focus-mode",
@@ -246,6 +312,44 @@ export default function CommandPalette() {
   const isSearching = query.trim().length > 0;
   const hasResults = searchResults.length > 0;
 
+  // Flat ordered list of selectable items for keyboard navigation.
+  // Must match the exact render order so selectedIndex aligns with the highlighted button.
+  const flatItems: Array<{ action: () => void }> = isSearching
+    ? resultTypeOrder.flatMap((type) =>
+        (groupedResults[type] ?? []).map((r) => ({ action: () => navigateTo(r) }))
+      )
+    : Object.values(grouped).flatMap((items) =>
+        items.map((a) => ({ action: () => { a.action(); close(); } }))
+      );
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((i) => {
+        const next = Math.min(i + 1, flatItems.length - 1);
+        scrollToIndex(next);
+        return next;
+      });
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((i) => {
+        const next = Math.max(i - 1, 0);
+        scrollToIndex(next);
+        return next;
+      });
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      flatItems[selectedIndex]?.action();
+    }
+  }
+
+  function scrollToIndex(index: number) {
+    const list = listRef.current;
+    if (!list) return;
+    const buttons = list.querySelectorAll("button");
+    buttons[index]?.scrollIntoView({ block: "nearest" });
+  }
+
   return (
     <div className={styles.overlay} onClick={close}>
       <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
@@ -258,6 +362,7 @@ export default function CommandPalette() {
             placeholder="Search or jump to…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             autoComplete="off"
             spellCheck={false}
           />
@@ -265,58 +370,70 @@ export default function CommandPalette() {
           <span className={styles.kbdHint}>⌘K</span>
         </div>
 
-        <div className={styles.list}>
+        <div className={styles.list} ref={listRef}>
           {isSearching ? (
             hasResults ? (
-              resultTypeOrder.map((type) => {
-                const items = groupedResults[type];
-                if (!items?.length) return null;
-                const Icon = TYPE_ICONS[type];
-                return (
-                  <div key={type} className={styles.group}>
-                    <p className={styles.groupLabel}>{TYPE_LABELS[type]}</p>
-                    {items.map((result) => (
-                      <button
-                        key={result.id}
-                        onClick={() => navigateTo(result)}
-                        className={styles.item}
-                      >
-                        <Icon size={14} className={styles.itemIcon} />
-                        <span className={styles.itemContent}>
-                          <span className={styles.itemTitle}>{result.title}</span>
-                          {result.subtitle && (
-                            <span className={styles.itemSubtitle}>{result.subtitle}</span>
-                          )}
-                          {result.excerpt && (
-                            <span className={styles.itemExcerpt}>{result.excerpt}</span>
-                          )}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                );
-              })
+              (() => {
+                let flatIdx = 0;
+                return resultTypeOrder.map((type) => {
+                  const items = groupedResults[type];
+                  if (!items?.length) return null;
+                  const Icon = TYPE_ICONS[type];
+                  return (
+                    <div key={type} className={styles.group}>
+                      <p className={styles.groupLabel}>{TYPE_LABELS[type]}</p>
+                      {items.map((result) => {
+                        const idx = flatIdx++;
+                        return (
+                          <button
+                            key={result.id}
+                            onClick={() => navigateTo(result)}
+                            className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                          >
+                            <Icon size={14} className={styles.itemIcon} />
+                            <span className={styles.itemContent}>
+                              <span className={styles.itemTitle}>{result.title}</span>
+                              {result.subtitle && (
+                                <span className={styles.itemSubtitle}>{result.subtitle}</span>
+                              )}
+                              {result.excerpt && (
+                                <span className={styles.itemExcerpt}>{result.excerpt}</span>
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                });
+              })()
             ) : !searching ? (
               <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
             ) : null
           ) : (
-            Object.entries(grouped).map(([group, items]) => (
-              <div key={group} className={styles.group}>
-                <p className={styles.groupLabel}>{group}</p>
-                {items.map(({ id, label, Icon, action }) => (
-                  <button
-                    key={id}
-                    onClick={() => { action(); close(); }}
-                    className={styles.item}
-                  >
-                    <Icon size={14} className={styles.itemIcon} />
-                    <span className={styles.itemContent}>
-                      <span className={styles.itemTitle}>{label}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            ))
+            (() => {
+              let flatIdx = 0;
+              return Object.entries(grouped).map(([group, items]) => (
+                <div key={group} className={styles.group}>
+                  <p className={styles.groupLabel}>{group}</p>
+                  {items.map(({ id, label, Icon, action }) => {
+                    const idx = flatIdx++;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => { action(); close(); }}
+                        className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                      >
+                        <Icon size={14} className={styles.itemIcon} />
+                        <span className={styles.itemContent}>
+                          <span className={styles.itemTitle}>{label}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ));
+            })()
           )}
         </div>
 

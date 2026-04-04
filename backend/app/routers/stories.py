@@ -8,10 +8,15 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.character import Character, CharacterRelationship
-from ..schemas.story import StoryCreate, StoryUpdate, StoryOut, StoryGoalCreate, StoryGoalUpdate
+from ..schemas.story import StoryCreate, StoryUpdate, StoryOut, StoryGoalCreate, StoryGoalUpdate, StoryOverview
+from ..models.plot_thread import PlotThread
+from ..models.activity_log import ActivityLog
+from ..models.interview import CharacterInterview
+from ..services.word_count import get_word_count_status
 from ..schemas.character import RelationshipOut
-from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import build_story_summary_prompt, build_relationship_suggestion_prompt
+from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.prompts.summaries import build_story_summary_prompt
+from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..schemas.structure import StructureNodeCreate, StructureNodeOut
 from ..auth.dependencies import get_current_user
 
@@ -66,6 +71,138 @@ def delete_story(story_id: str, db: Session = Depends(get_db), current_user: Use
     db.commit()
 
 
+@router.get("/{story_id}/overview", response_model=StoryOverview)
+def get_story_overview(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
+
+    # Determine leaf nodes without touching the ORM relationship attribute.
+    # Build a set of node IDs that have at least one child, then any node
+    # not in that set is a leaf.
+    parent_ids: set[str] = {n.parent_id for n in all_nodes if n.parent_id}
+    leaf_nodes = [n for n in all_nodes if n.id not in parent_ids]
+
+    # Word count
+    total_words = sum(n.word_count for n in all_nodes)
+    scenes_by_status: dict[str, int] = {"draft": 0, "revised": 0, "final": 0}
+    for n in leaf_nodes:
+        scenes_by_status[n.status] = scenes_by_status.get(n.status, 0) + 1
+
+    # Thread counts
+    thread_counts: dict[str, int] = {"open": 0, "developing": 0, "resolved": 0}
+    for t in threads:
+        if t.status in thread_counts:
+            thread_counts[t.status] += 1
+
+    # Recent scenes (most recently updated leaf nodes with content)
+    recent_leaves = sorted(
+        [n for n in leaf_nodes if n.word_count > 0],
+        key=lambda n: n.updated_at,
+        reverse=True,
+    )[:5]
+
+    # Recent activity logs
+    recent_logs = (
+        db.query(ActivityLog)
+        .filter(ActivityLog.story_id == story_id, ActivityLog.user_id == current_user.id)
+        .order_by(ActivityLog.created_at.desc())
+        .limit(8)
+        .all()
+    )
+
+    # Recent interviews via character join
+    char_ids = [c.id for c in characters]
+    char_name_map = {c.id: c.name for c in characters}
+    recent_interviews_raw = []
+    if char_ids:
+        recent_interviews_raw = (
+            db.query(CharacterInterview)
+            .filter(CharacterInterview.character_id.in_(char_ids))
+            .order_by(CharacterInterview.updated_at.desc())
+            .limit(3)
+            .all()
+        )
+
+    # Word count distribution — group leaf nodes by their immediate parent.
+    # If a leaf has no parent (flat structure), treat the leaf itself as its own group.
+    node_map = {n.id: n for n in all_nodes}
+    # bucket: parent_id (or leaf.id if root) → {"node": ..., "words": int, "count": int}
+    buckets: dict[str, dict] = {}
+    for leaf in leaf_nodes:
+        if leaf.parent_id and leaf.parent_id in node_map:
+            bucket_id = leaf.parent_id
+            container = node_map[leaf.parent_id]
+        else:
+            bucket_id = leaf.id
+            container = leaf
+        if bucket_id not in buckets:
+            buckets[bucket_id] = {"node": container, "words": 0, "count": 0}
+        buckets[bucket_id]["words"] += leaf.word_count
+        buckets[bucket_id]["count"] += 1
+
+    # Sort by position order: prefer parent's position, fallback to node id
+    sorted_buckets = sorted(buckets.values(), key=lambda b: b["node"].position)
+    distribution = [
+        {
+            "id": b["node"].id,
+            "title": b["node"].title,
+            "level_type": b["node"].level_type,
+            "word_count": b["words"],
+            "scene_count": b["count"],
+            "pct": round(b["words"] / total_words * 100, 1) if total_words else 0.0,
+        }
+        for b in sorted_buckets
+    ]
+
+    return StoryOverview(
+        word_count=total_words,
+        word_count_target=get_word_count_status(story.intended_length or "", total_words),
+        scene_count=len(leaf_nodes),
+        scenes_by_status=scenes_by_status,
+        character_count=len(characters),
+        thread_counts=thread_counts,
+        recent_scenes=[
+            {
+                "id": n.id,
+                "title": n.title,
+                "word_count": n.word_count,
+                "status": n.status,
+                "level_type": n.level_type,
+                "updated_at": n.updated_at,
+            }
+            for n in recent_leaves
+        ],
+        recent_activity=[
+            {
+                "event_type": log.event_type,
+                "description": log.description,
+                "created_at": log.created_at,
+            }
+            for log in recent_logs
+        ],
+        recent_interviews=[
+            {
+                "id": iv.id,
+                "character_id": iv.character_id,
+                "character_name": char_name_map.get(iv.character_id, "Unknown"),
+                "title": iv.title or "Untitled Interview",
+                "updated_at": iv.updated_at,
+            }
+            for iv in recent_interviews_raw
+        ],
+        distribution=distribution,
+    )
+
+
 @router.post("/{story_id}/summarize")
 async def summarize_story(
     story_id: str,
@@ -91,7 +228,7 @@ async def summarize_story(
             target_idx = next((i for i, n in enumerate(all_nodes) if n.id == up_to_node_id), len(all_nodes))
             nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes[:target_idx + 1] if n.content and n.content.strip()]
 
-    system_prompt = build_story_summary_prompt(
+    feature_prompt = build_story_summary_prompt(
         title=story.title,
         intent=story.narrative_intent or story.intent,
         nodes_content=nodes_content,
@@ -100,8 +237,21 @@ async def summarize_story(
     )
     llm_messages = [{"role": "user", "content": "Please provide the summary."}]
 
+    ctx = AICallContext(
+        feature="story-summary",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "summarization", "user-initiated"],
+    )
+
     async def stream():
-        async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+        ):
             yield token
 
     return StreamingResponse(stream(), media_type="text/plain")
@@ -132,11 +282,24 @@ async def suggest_relationships(
         for r in existing_rels
     ]
 
-    system_prompt = build_relationship_suggestion_prompt(characters, existing)
+    feature_prompt = build_relationship_suggestion_prompt(characters, existing)
     llm_messages = [{"role": "user", "content": "Please suggest relationships."}]
 
+    ctx = AICallContext(
+        feature="relationship-suggest",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["character", "generation", "lorebook", "user-initiated"],
+    )
+
     async def stream():
-        async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+        ):
             yield token
 
     return StreamingResponse(stream(), media_type="text/plain")

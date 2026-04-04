@@ -21,6 +21,7 @@ class Story(Base):
     themes: Mapped[list] = mapped_column(JSON, default=list)
     central_conflict: Mapped[str] = mapped_column(Text, default="")
     target_audience: Mapped[str] = mapped_column(String, default="")
+    intended_length: Mapped[str] = mapped_column(String, default="")
 
     # Narrative grounding
     narrative_intent: Mapped[str] = mapped_column(Text, default="")

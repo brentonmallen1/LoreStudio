@@ -1,6 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+from .llm_params import LLMParams
+
 
 class PanelInterviewCreate(BaseModel):
     title: str = ""
@@ -9,6 +11,7 @@ class PanelInterviewCreate(BaseModel):
 
 class PanelMessageRequest(BaseModel):
     content: str
+    llm_params: LLMParams | None = None
 
 
 class PanelMessageOut(BaseModel):

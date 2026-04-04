@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, ChevronDown, ChevronUp, Sparkles, Bot, User2, Info, BookOpen } from "lucide-react";
+import { X, Send, ChevronDown, ChevronUp, Sparkles, Bot, User2, Info, BookOpen, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
-import type { ChatMessage, ChatContextPreview } from "../../types";
+import type { ChatMessage, ChatContextPreview, LLMParams } from "../../types";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
+import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../llm";
 import styles from "./SceneChatPanel.module.css";
 
 interface Props {
@@ -87,6 +87,8 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const [showCtx, setShowCtx] = useState(false);
   const [loadingCtx, setLoadingCtx] = useState(false);
   const [panelWidth, setPanelWidth] = useState(340);
+  const [showSettings, setShowSettings] = useState(false);
+  const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastUserMsg = useRef("");
@@ -94,6 +96,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const isResizing = useRef(false);
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(340);
+  const chronicleSessionId = useRef<string | null>(null);
 
   function startResize(e: React.MouseEvent) {
     isResizing.current = true;
@@ -132,6 +135,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
       lastResponse.current = full;
       transparency.recordInteraction();
       setMessages((prev) => [...prev, { role: "assistant", content: full }]);
+      persist("assistant", full);
       inputRef.current?.focus();
     },
     onError: () => {
@@ -142,11 +146,22 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
     },
   });
 
-  // Load context preview on mount
+  // Load context preview and create Chronicle session on mount
   useEffect(() => {
     setLoadingCtx(true);
     api.getChatContext(storyId, nodeId)
-      .then(setCtx)
+      .then((context) => {
+        setCtx(context);
+        // Create Chronicle session in background
+        api.createChronicleSession({
+          story_id: storyId,
+          context_type: "scene",
+          context_id: nodeId,
+          context_label: context.scene?.title ?? "",
+        }).then((session) => {
+          chronicleSessionId.current = session.id;
+        }).catch(() => {});
+      })
       .catch(() => {})
       .finally(() => setLoadingCtx(false));
   }, [storyId, nodeId]);
@@ -155,6 +170,11 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatStreamText]);
+
+  function persist(role: string, content: string) {
+    if (!chronicleSessionId.current) return;
+    api.addChronicleMessage(chronicleSessionId.current, { role, content }).catch(() => {});
+  }
 
   function send(text?: string) {
     const content = (text ?? input).trim();
@@ -165,8 +185,9 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
     const userMsg: ChatMessage = { role: "user", content };
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
+    persist("user", content);
 
-    stream((signal) => api.sendChatMessage(storyId, nodeId, nextMessages, signal));
+    stream((signal) => api.sendChatMessage(storyId, nodeId, nextMessages, signal, sessionParams));
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -179,6 +200,12 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   return (
     <>
     <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
+    <ChatSettingsModal
+      isOpen={showSettings}
+      onClose={() => setShowSettings(false)}
+      onApply={setSessionParams}
+      sessionParams={sessionParams}
+    />
     <div className={styles.panel} style={{ width: panelWidth }}>
       <div className={styles.resizeHandle} onMouseDown={startResize} />
       {/* Header */}
@@ -204,6 +231,13 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
               lastResponse.current,
             )}
           />
+          <button
+            className={`${styles.headerBtn} ${sessionParams ? styles.headerBtnActive : ""}`}
+            onClick={() => setShowSettings(true)}
+            title="AI parameters"
+          >
+            <Settings2 size={13} />
+          </button>
           <button className={styles.headerBtn} onClick={closeChatPanel} title="Close">
             <X size={13} />
           </button>

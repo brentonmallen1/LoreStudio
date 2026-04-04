@@ -8,6 +8,9 @@ from .note import StoryNote
 from .media import StoryAsset, AssetAttachment
 from .diagram import Diagram
 from .character_journey import CharacterJourneySummary
+from .chat_session import ChatSession
+from .chat_message import ChatMessage
+from .activity_log import ActivityLog
 
 __all__ = [
     "User",
@@ -23,4 +26,7 @@ __all__ = [
     "AssetAttachment",
     "Diagram",
     "CharacterJourneySummary",
+    "ChatSession",
+    "ChatMessage",
+    "ActivityLog",
 ]

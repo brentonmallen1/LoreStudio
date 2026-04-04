@@ -4,7 +4,6 @@
   height: 100%;
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  width: 340px;
   flex-shrink: 0;
   overflow: hidden;
   position: relative;
@@ -325,17 +324,17 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: var(--color-accent);
-  color: var(--color-bg);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   border: none;
   border-radius: 6px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity 0.1s;
+  transition: background var(--transition), opacity var(--transition);
 }
 
 .sendBtn:hover:not(:disabled) {
-  opacity: 0.85;
+  background: var(--color-ai-hover);
 }
 
 .sendBtn:disabled {

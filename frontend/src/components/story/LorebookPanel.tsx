@@ -6,6 +6,19 @@ import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
 import styles from "./LorebookPanel.module.css";
 
+const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
+
+const LENGTH_LABELS: Record<string, string> = {
+  "": "Not specified",
+  "flash_fiction": "Flash Fiction (<1K words)",
+  "short_story": "Short Story (1K–7.5K words)",
+  "novelette": "Novelette (7.5K–17.5K words)",
+  "novella": "Novella (17.5K–40K words)",
+  "novel": "Novel (40K–100K words)",
+  "epic_saga": "Epic / Saga (100K+ words)",
+  "series": "Series (multi-book)",
+};
+
 // ── Theme tag input ────────────────────────────────────────────────────
 function ThemeInput({ themes, onChange }: { themes: string[]; onChange: (t: string[]) => void }) {
   const [input, setInput] = useState("");
@@ -133,6 +146,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
     logline: "",
     genre: "",
     tone: "",
+    intended_length: "",
     themes: [] as string[],
     central_conflict: "",
     target_audience: "",
@@ -147,6 +161,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
       logline: activeStory.logline ?? "",
       genre: activeStory.genre ?? "",
       tone: activeStory.tone ?? "",
+      intended_length: activeStory.intended_length ?? "",
       themes: activeStory.themes ?? [],
       central_conflict: activeStory.central_conflict ?? "",
       target_audience: activeStory.target_audience ?? "",
@@ -236,6 +251,21 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
               className={styles.input}
             />
           </div>
+        </div>
+
+        {/* ── Intended Length ── */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Intended Length</h3>
+          <p className={styles.fieldHint}>Target form and word count range for your story. Used by Story Health and AI tools.</p>
+          <select
+            value={fields.intended_length}
+            onChange={(e) => update("intended_length", e.target.value)}
+            className={styles.input}
+          >
+            {LENGTH_OPTIONS.map((val) => (
+              <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
+            ))}
+          </select>
         </div>
 
         {/* ── Themes ── */}

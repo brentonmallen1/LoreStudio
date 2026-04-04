@@ -131,6 +131,41 @@
   padding: 0 0.375rem;
 }
 
+.saveIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.saveIndicator_idle {
+  background: color-mix(in srgb, #4a8c4a 20%, transparent);
+  border: 1.5px solid #4a8c4a;
+  opacity: 0.55;
+}
+
+.saveIndicator_unsaved {
+  background: #c9a227;
+  opacity: 0.7;
+}
+
+.saveIndicator_saving {
+  background: var(--color-text-muted);
+  opacity: 0.6;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.saveIndicator_saved {
+  background: #4a8c4a;
+  opacity: 0.9;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+
 /* Labeled action buttons */
 .topbarBtn {
   display: flex;
@@ -161,6 +196,28 @@
 
 .topbarBtnActive:hover {
   background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+}
+
+/* AI feature variant — purple border at rest */
+.topbarBtnAI {
+  border-color: var(--color-ai-border);
+  color: var(--color-text-muted);
+}
+
+.topbarBtnAI:hover {
+  border-color: color-mix(in srgb, var(--color-ai) 50%, var(--color-border));
+  color: var(--color-text);
+  background: var(--color-ai-subtle);
+}
+
+.topbarBtnAIActive {
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+  border-color: var(--color-ai-border);
+}
+
+.topbarBtnAIActive:hover {
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
 }
 
 /* Icon-only button (focus mode) */
@@ -357,17 +414,17 @@
   font-family: inherit;
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-ai-border);
   background: transparent;
-  color: var(--color-accent);
+  color: var(--color-ai);
   cursor: pointer;
   transition: background var(--transition), color var(--transition);
   white-space: nowrap;
 }
 
 .summaryRefreshBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  border-color: var(--color-accent);
+  background: var(--color-ai-subtle);
+  border-color: color-mix(in srgb, var(--color-ai) 50%, var(--color-border));
 }
 
 .summaryRefreshBtn:disabled {
@@ -687,6 +744,19 @@
 }
 
 /* ── Scroll area ── */
+.contentRow {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.editorColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .scrollArea {
   flex: 1;
   overflow-y: auto;
@@ -694,7 +764,7 @@
 
 /* ── Editor content ── */
 .editorWrap {
-  max-width: 640px;
+  max-width: var(--editor-max-width);
   margin: 0 auto;
   padding: 3rem 2rem 6rem;
 }
@@ -702,8 +772,8 @@
 /* Tiptap prose styles */
 .editorWrap :global(.ProseMirror) {
   outline: none;
-  font-family: "Merriweather", Georgia, serif;
-  font-size: 1rem;
+  font-family: var(--font-editor);
+  font-size: var(--font-size-editor);
   line-height: 1.95;
   color: var(--color-text);
 }

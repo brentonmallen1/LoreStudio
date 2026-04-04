@@ -98,6 +98,28 @@ export const api = {
       signal,
     });
   },
+  recapLastSession: (storyId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/recap`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal,
+    });
+  },
+  analyzeEconomy: (storyId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/analyze/economy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal,
+    });
+  },
   suggestRelationships: (storyId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/suggest-relationships`, {
@@ -221,7 +243,7 @@ export const api = {
     }),
 
   // Interview streaming (returns Response, not parsed JSON)
-  sendInterviewMessage: (interviewId: string, content: string, signal?: AbortSignal): Promise<Response> => {
+  sendInterviewMessage: (interviewId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/interviews/${interviewId}/messages`, {
       method: "POST",
@@ -229,7 +251,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, llm_params: llmParams ?? null }),
       signal,
     });
   },
@@ -291,7 +313,7 @@ export const api = {
   getPanel: (panelId: string) =>
     request<import("../types").PanelInterview>(`/panels/${panelId}`),
   deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
-  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal): Promise<Response> => {
+  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/panels/${panelId}/messages`, {
       method: "POST",
@@ -299,7 +321,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, llm_params: llmParams ?? null }),
       signal,
     });
   },
@@ -320,7 +342,7 @@ export const api = {
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
-  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal): Promise<Response> => {
+  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/chat`, {
       method: "POST",
@@ -328,7 +350,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ node_id: nodeId, messages }),
+      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null }),
       signal,
     });
   },
@@ -336,6 +358,10 @@ export const api = {
   // Story Health
   getStoryHealth: (storyId: string) =>
     request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
+
+  // Story Overview
+  getStoryOverview: (storyId: string) =>
+    request<import("../types").StoryOverview>(`/stories/${storyId}/overview`),
 
   // Media / Assets
   uploadAsset: (storyId: string, file: File): Promise<import("../types").StoryAsset> => {
@@ -422,4 +448,98 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  // Chronicle — sessions
+  listChronicleSessions: (params: {
+    story_id?: string; context_type?: string; archived?: boolean; page?: number; page_size?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params.story_id) q.set("story_id", params.story_id);
+    if (params.context_type) q.set("context_type", params.context_type);
+    if (params.archived !== undefined) q.set("archived", String(params.archived));
+    if (params.page) q.set("page", String(params.page));
+    if (params.page_size) q.set("page_size", String(params.page_size));
+    return request<{ sessions: import("../types").ChronicleSession[]; total: number; page: number; page_size: number }>(
+      `/chronicle/sessions?${q}`
+    );
+  },
+  createChronicleSession: (data: {
+    story_id: string; context_type: string; context_id?: string; context_label?: string; title?: string;
+  }) =>
+    request<import("../types").ChronicleSession>("/chronicle/sessions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getChronicleSession: (sessionId: string) =>
+    request<import("../types").ChronicleSessionDetail>(`/chronicle/sessions/${sessionId}`),
+  updateChronicleSession: (sessionId: string, data: { title?: string; archived?: boolean }) =>
+    request<import("../types").ChronicleSession>(`/chronicle/sessions/${sessionId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteChronicleSession: (sessionId: string) =>
+    request<void>(`/chronicle/sessions/${sessionId}`, { method: "DELETE" }),
+  addChronicleMessage: (sessionId: string, data: {
+    role: string; content: string; model?: string; tokens_in?: number; tokens_out?: number;
+  }) =>
+    request<import("../types").ChronicleMessage>(`/chronicle/sessions/${sessionId}/messages`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  // Chronicle — activity logs
+  listActivityLogs: (params: {
+    story_id?: string; category?: string; event_type?: string; page?: number; page_size?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params.story_id) q.set("story_id", params.story_id);
+    if (params.category) q.set("category", params.category);
+    if (params.event_type) q.set("event_type", params.event_type);
+    if (params.page) q.set("page", String(params.page));
+    if (params.page_size) q.set("page_size", String(params.page_size));
+    return request<{ logs: import("../types").ActivityLog[]; total: number; page: number; page_size: number }>(
+      `/chronicle/activity?${q}`
+    );
+  },
+
+  // Chronicle — search & stats
+  searchChronicle: (params: { q: string; story_id?: string; page?: number; page_size?: number }) => {
+    const qs = new URLSearchParams({ q: params.q });
+    if (params.story_id) qs.set("story_id", params.story_id);
+    if (params.page) qs.set("page", String(params.page));
+    if (params.page_size) qs.set("page_size", String(params.page_size));
+    return request<{ results: import("../types").ChronicleSearchResult[]; total: number; query: string }>(
+      `/chronicle/search?${qs}`
+    );
+  },
+  getChronicleStats: (storyId?: string) => {
+    const q = storyId ? `?story_id=${storyId}` : "";
+    return request<import("../types").ChronicleStats>(`/chronicle/stats${q}`);
+  },
+
+  // AI Settings
+  getAISettings: () =>
+    request<import("../types").AISettings>("/ai-settings"),
+  getAISettingsDefaults: () =>
+    request<import("../types").AISettingsDefaults>("/ai-settings/defaults"),
+  updateAISettings: (data: import("../types").AISettingsUpdate) =>
+    request<import("../types").AISettings>("/ai-settings", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  resetCorePrompt: () =>
+    request<import("../types").AISettings>("/ai-settings/core-prompt", { method: "DELETE" }),
+  resetFeaturePrompt: (featureId: string) =>
+    request<import("../types").AISettings>(`/ai-settings/feature-prompts/${featureId}`, { method: "DELETE" }),
+
+  // LLM Settings (sampling parameters)
+  getLLMSettings: () =>
+    request<import("../types").LLMSettings>("/llm-settings"),
+  updateLLMSettings: (data: import("../types").LLMParams) =>
+    request<import("../types").LLMSettings>("/llm-settings", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  resetLLMSettings: () =>
+    request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
 };

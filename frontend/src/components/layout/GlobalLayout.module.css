@@ -1,0 +1,22 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Reserve space for fixed header in normal mode */
+.contentNormal {
+  padding-top: 40px;
+}
+
+/* No space reservation in focus/fullscreen — content fills full viewport */
+.contentFocused {
+  padding-top: 0;
+}

@@ -15,8 +15,8 @@ from ..schemas.character import (
     ArcMilestone,
 )
 from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
-from ..services.llm.prompts import build_attribute_generation_prompt
+from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
+from ..services.llm.prompts.generation import build_attribute_generation_prompt
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -98,11 +98,26 @@ async def generate_attributes(
 ):
     """Stream AI-generated attribute suggestions for a character."""
     character = _verify_character_access(character_id, db, current_user)
-    system_prompt = build_attribute_generation_prompt(character, attribute_type)
+    feature_prompt = build_attribute_generation_prompt(character, attribute_type)
     llm_messages = [{"role": "user", "content": "Please provide your suggestions."}]
 
+    ctx = AICallContext(
+        feature="character-attributes",
+        user_id=current_user.id,
+        story_id=character.story_id,
+        character_id=character_id,
+        tags=["character", "generation", "lorebook", "user-initiated"],
+        extra_metadata={"attribute_type": attribute_type},
+    )
+
     async def stream():
-        async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+        ):
             yield token
 
     return StreamingResponse(stream(), media_type="text/plain")
@@ -235,20 +250,33 @@ async def refresh_character_journey(
 
     scene_summaries = [(n.title, n.content_summary) for n in relevant_scenes]
     source_ids = [n.id for n in relevant_scenes]
-    system_prompt = build_journey_prompt(character, scene_summaries)
+    feature_prompt = build_journey_prompt(character, scene_summaries)
     llm_messages = [{"role": "user", "content": "Please provide the journey summary."}]
 
     cached = get_cached_journey(character_id, up_to_node, db)
 
+    ctx = AICallContext(
+        feature="character-journey",
+        user_id=current_user.id,
+        story_id=node.story_id,
+        character_id=character_id,
+        node_id=up_to_node,
+        tags=["character", "journey", "lorebook", "user-initiated", "persisted"],
+    )
+
+    async def on_complete(result: AICallResult) -> None:
+        save_journey(character_id, up_to_node, result.content, source_ids, db, existing=cached)
+
     async def stream_and_persist():
-        full_response = []
-        try:
-            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
-                full_response.append(token)
-                yield token
-        finally:
-            if full_response:
-                summary = "".join(full_response)
-                save_journey(character_id, up_to_node, summary, source_ids, db, existing=cached)
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            include_core_prompt=False,
+            on_complete=on_complete,
+        ):
+            yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")

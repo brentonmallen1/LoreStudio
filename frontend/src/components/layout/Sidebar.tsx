@@ -6,7 +6,6 @@ import {
   Plus,
   Users,
   ArrowLeft,
-  BookOpen,
   Maximize2,
   Scroll,
   MessageSquareMore,
@@ -24,6 +23,8 @@ import {
   Milestone,
   Images,
   Activity,
+  Home,
+  PenLine,
   type LucideIcon,
 } from "lucide-react";
 
@@ -169,6 +170,7 @@ export default function Sidebar() {
   const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
   const { activeStory, structure, setStructure, characters, activeTemplate } = useStoryStore();
   const { setViewState, viewMode, setViewMode } = useUIStore();
+
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
 
@@ -181,7 +183,9 @@ export default function Sidebar() {
     if (path.includes("/threads")) return "threads";
     if (path.includes("/media")) return "media";
     if (path.includes("/health")) return "health";
-    return "story";
+    if (path.includes("/chronicle")) return "chronicle";
+    if (path.includes("/write")) return "story";
+    return "overview";
   })();
 
   // Top-level type from template (e.g. "act", "section")
@@ -224,22 +228,24 @@ export default function Sidebar() {
       </div>
 
       <div className={styles.tabs}>
-        {(["story", "characters", "lorebook", "panels", "threads", "media", "health"] as const).map((t) => (
+        {([
+          { id: "overview",   icon: Home,              title: "Overview",        path: "" },
+          { id: "story",      icon: PenLine,           title: "Write",           path: "/write" },
+          { id: "characters", icon: Users,             title: "Characters",      path: "/characters" },
+          { id: "lorebook",   icon: Scroll,            title: "Lorebook",        path: "/lorebook" },
+          { id: "panels",     icon: MessageSquareMore, title: "Group Interviews",path: "/panels" },
+          { id: "threads",    icon: GitBranch,         title: "Plot Threads",    path: "/threads" },
+          { id: "media",      icon: Images,            title: "Media & Diagrams",path: "/media" },
+          { id: "health",     icon: Activity,          title: "Story Health",    path: "/health" },
+          { id: "chronicle",  icon: Clock,             title: "Chronicle",       path: "/chronicle" },
+        ] as const).map(({ id, icon: Icon, title, path }) => (
           <button
-            key={t}
-            onClick={() => {
-              if (t === "characters") navigate(`/stories/${storyId}/characters`);
-              else if (t === "lorebook") navigate(`/stories/${storyId}/lorebook`);
-              else if (t === "panels") navigate(`/stories/${storyId}/panels`);
-              else if (t === "threads") navigate(`/stories/${storyId}/threads`);
-              else if (t === "media") navigate(`/stories/${storyId}/media`);
-              else if (t === "health") navigate(`/stories/${storyId}/health`);
-              else navigate(`/stories/${storyId}`);
-            }}
-            className={`${styles.tab} ${tab === t ? styles.activeTab : ""}`}
-            title={t === "story" ? "Structure" : t === "characters" ? "Characters" : t === "lorebook" ? "Lorebook" : t === "panels" ? "Group Interviews" : t === "threads" ? "Plot Threads" : t === "media" ? "Media & Diagrams" : "Story Health"}
+            key={id}
+            onClick={() => navigate(`/stories/${storyId}${path}`)}
+            className={`${styles.tab} ${tab === id ? styles.activeTab : ""}`}
+            title={title}
           >
-            {t === "story" ? <BookOpen size={12} /> : t === "characters" ? <Users size={12} /> : t === "lorebook" ? <Scroll size={12} /> : t === "panels" ? <MessageSquareMore size={12} /> : t === "threads" ? <GitBranch size={12} /> : t === "media" ? <Images size={12} /> : <Activity size={12} />}
+            <Icon size={12} />
           </button>
         ))}
       </div>

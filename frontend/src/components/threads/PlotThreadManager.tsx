@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Check, X, List, Network } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, List, Network, BookOpen, MapPin, HelpCircle, User, Zap } from "lucide-react";
 import { api } from "../../api/client";
-import type { PlotThread } from "../../types";
+import type { PlotThread, MICEType, TryFailCycle, StructureNode } from "../../types";
 import ThreadVisualization from "./ThreadVisualization";
+import MICEGuide from "../help/MICEGuide";
+import TryFailCycleEditor from "./TryFailCycleEditor";
 import styles from "./PlotThreadManager.module.css";
 
 interface Props {
@@ -21,21 +23,60 @@ const PRESET_COLORS = [
   "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4",
 ];
 
+const MICE_OPTIONS: { value: MICEType; label: string; icon: React.ReactNode; tooltip: string }[] = [
+  { value: "milieu",    label: "Milieu",    icon: <MapPin size={12} />,      tooltip: "A stranger enters a strange land — opens when entering, closes when leaving" },
+  { value: "idea",      label: "Idea",      icon: <HelpCircle size={12} />,  tooltip: "A question is raised — opens with the question, closes with the answer" },
+  { value: "character", label: "Character", icon: <User size={12} />,        tooltip: "Someone wants to change — opens with dissatisfaction, closes with transformation or acceptance" },
+  { value: "event",     label: "Event",     icon: <Zap size={12} />,         tooltip: "The world is out of balance — opens with disruption, closes with new equilibrium" },
+];
+
+interface EditFields {
+  name: string;
+  description: string;
+  status: string;
+  color: string;
+  mice_type: MICEType | null;
+  opens_at_node_id: string | null;
+  closes_at_node_id: string | null;
+  try_fail_cycles: TryFailCycle[];
+}
+
+function flattenNodes(nodes: StructureNode[]): StructureNode[] {
+  const result: StructureNode[] = [];
+  function walk(ns: StructureNode[]) {
+    for (const n of [...ns].sort((a, b) => a.position - b.position)) {
+      result.push(n);
+      if (n.children?.length) walk(n.children);
+    }
+  }
+  walk(nodes);
+  return result;
+}
+
 export default function PlotThreadManager({ storyId }: Props) {
   const [view, setView] = useState<"list" | "viz">("list");
   const [threads, setThreads] = useState<PlotThread[]>([]);
+  const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showMICEGuide, setShowMICEGuide] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
-  const [editFields, setEditFields] = useState<{ name: string; description: string; status: string; color: string }>({
+  const [editFields, setEditFields] = useState<EditFields>({
     name: "", description: "", status: "open", color: PRESET_COLORS[0],
+    mice_type: null, opens_at_node_id: null, closes_at_node_id: null, try_fail_cycles: [],
   });
 
   useEffect(() => {
-    api.listThreads(storyId)
-      .then(setThreads)
+    Promise.all([
+      api.listThreads(storyId),
+      api.getStructure(storyId),
+    ])
+      .then(([t, s]) => {
+        setThreads(t);
+        setNodes(flattenNodes(s));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
@@ -51,7 +92,16 @@ export default function PlotThreadManager({ storyId }: Props) {
 
   function startEdit(t: PlotThread) {
     setEditingId(t.id);
-    setEditFields({ name: t.name, description: t.description, status: t.status, color: t.color });
+    setEditFields({
+      name: t.name,
+      description: t.description,
+      status: t.status,
+      color: t.color,
+      mice_type: t.mice_type,
+      opens_at_node_id: t.opens_at_node_id,
+      closes_at_node_id: t.closes_at_node_id,
+      try_fail_cycles: t.try_fail_cycles ?? [],
+    });
   }
 
   async function saveEdit(id: string) {
@@ -100,11 +150,17 @@ export default function PlotThreadManager({ storyId }: Props) {
   }
 
   return (
+    <>
+    {showMICEGuide && <MICEGuide onClose={() => setShowMICEGuide(false)} />}
     <div className={styles.manager}>
       <div className={styles.header}>
         <h2 className={styles.title}>Plot Threads</h2>
         <div className={styles.headerRight}>
           {viewToggle}
+          <button onClick={() => setShowMICEGuide(true)} className={styles.guideBtn} title="Learn about the MICE Quotient framework">
+            <BookOpen size={13} />
+            MICE Guide
+          </button>
           <button onClick={() => setCreating(true)} className={styles.addBtn}>
             <Plus size={13} />
             New thread
@@ -163,6 +219,86 @@ export default function PlotThreadManager({ storyId }: Props) {
                   placeholder="Description (optional)"
                   rows={2}
                 />
+
+                {/* MICE type selector */}
+                <div className={styles.miceSection}>
+                  <span className={styles.fieldLabel}>
+                    MICE type
+                    <button
+                      className={styles.inlineGuideBtn}
+                      onClick={() => setShowMICEGuide(true)}
+                      title="What is MICE?"
+                      type="button"
+                    >
+                      ?
+                    </button>
+                  </span>
+                  <div className={styles.miceButtons}>
+                    <button
+                      className={`${styles.miceBtn} ${editFields.mice_type === null ? styles.miceBtnActive : ""} ${styles.miceBtnNone}`}
+                      onClick={() => setEditFields((f) => ({ ...f, mice_type: null }))}
+                      type="button"
+                    >
+                      None
+                    </button>
+                    {MICE_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        className={`${styles.miceBtn} ${styles[`miceBtn_${opt.value}`]} ${editFields.mice_type === opt.value ? styles.miceBtnActive : ""}`}
+                        onClick={() => setEditFields((f) => ({ ...f, mice_type: opt.value }))}
+                        title={opt.tooltip}
+                        type="button"
+                      >
+                        {opt.icon}
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Open/close scene pickers (only when MICE type is set) */}
+                {editFields.mice_type && nodes.length > 0 && (
+                  <div className={styles.openCloseRow}>
+                    <div className={styles.openCloseField}>
+                      <label className={styles.fieldLabel}>Opens at</label>
+                      <select
+                        className={styles.statusSelect}
+                        value={editFields.opens_at_node_id ?? ""}
+                        onChange={(e) => setEditFields((f) => ({ ...f, opens_at_node_id: e.target.value || null }))}
+                      >
+                        <option value="">— not set —</option>
+                        {nodes.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className={styles.openCloseField}>
+                      <label className={styles.fieldLabel}>Closes at</label>
+                      <select
+                        className={styles.statusSelect}
+                        value={editFields.closes_at_node_id ?? ""}
+                        onChange={(e) => setEditFields((f) => ({ ...f, closes_at_node_id: e.target.value || null }))}
+                      >
+                        <option value="">— not set —</option>
+                        {nodes.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Try/fail cycles */}
+                <TryFailCycleEditor
+                  cycles={editFields.try_fail_cycles}
+                  nodes={nodes.filter((n) => !n.children?.length)}
+                  onChange={(cycles) => setEditFields((f) => ({ ...f, try_fail_cycles: cycles }))}
+                />
+
                 <div className={styles.editRow}>
                   <select
                     value={editFields.status}
@@ -207,9 +343,20 @@ export default function PlotThreadManager({ storyId }: Props) {
                       <span className={`${styles.statusBadge} ${styles[`status_${t.status}`]}`}>
                         {STATUS_LABELS[t.status]}
                       </span>
+                      {t.mice_type && (
+                        <span className={`${styles.miceBadge} ${styles[`miceBadge_${t.mice_type}`]}`}>
+                          {MICE_OPTIONS.find((o) => o.value === t.mice_type)?.icon}
+                          {t.mice_type.charAt(0).toUpperCase() + t.mice_type.slice(1)}
+                        </span>
+                      )}
                       <span className={styles.appearCount}>
                         {t.appearances.length} scene{t.appearances.length !== 1 ? "s" : ""}
                       </span>
+                      {(t.try_fail_cycles?.length ?? 0) > 0 && (
+                        <span className={styles.cycleCount}>
+                          {t.try_fail_cycles.length} try/fail
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -227,5 +374,6 @@ export default function PlotThreadManager({ storyId }: Props) {
         ))}
       </div>
     </div>
+    </>
   );
 }

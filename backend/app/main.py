@@ -22,6 +22,9 @@ from .routers.diagrams import router as diagrams_router
 from .routers.chat import router as chat_router
 from .routers.health import router as health_router
 from .routers.llm_preview import router as llm_preview_router
+from .routers.chronicle import router as chronicle_router
+from .routers.ai_settings import router as ai_settings_router
+from .routers.llm_settings import router as llm_settings_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story
 
 
@@ -62,6 +65,9 @@ app.include_router(diagrams_router, prefix="/api", tags=["diagrams"])
 app.include_router(chat_router, prefix="/api", tags=["chat"])
 app.include_router(health_router, prefix="/api", tags=["health"])
 app.include_router(llm_preview_router, prefix="/api", tags=["llm-transparency"])
+app.include_router(chronicle_router, prefix="/api", tags=["chronicle"])
+app.include_router(ai_settings_router, prefix="/api/ai-settings", tags=["ai-settings"])
+app.include_router(llm_settings_router, prefix="/api/llm-settings", tags=["llm-settings"])
 
 
 @app.get("/health")

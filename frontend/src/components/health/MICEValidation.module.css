@@ -1,0 +1,61 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ok {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--color-accent);
+}
+
+.violations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.violation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  background: color-mix(in srgb, #f0a050 10%, transparent);
+  border: 1px solid color-mix(in srgb, #f0a050 28%, transparent);
+  border-radius: var(--radius);
+}
+
+.violationIcon {
+  color: #c47a1e;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.violationMsg {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.learnBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color var(--transition);
+  align-self: flex-start;
+}
+
+.learnBtn:hover {
+  color: var(--color-text-muted);
+}

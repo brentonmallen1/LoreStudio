@@ -1,0 +1,489 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* Centered content column */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 580px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 44px 32px 64px;
+}
+
+/* ── Hero ── */
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.heroText {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.logline {
+  font-size: 13px;
+  color: var(--color-text-subtle);
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.metaItem {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  text-transform: capitalize;
+}
+
+.metaAccent {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  color: var(--color-accent);
+}
+
+/* Progress ring */
+.progressWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ring {
+  transform: rotate(-90deg);
+}
+
+.ringBg {
+  fill: none;
+  stroke: var(--color-surface-raised);
+}
+
+.ringFill {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease, stroke 0.4s ease;
+}
+
+.progressInner {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: 20px; /* above the label */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progressPct {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.progressLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Metrics strip ── */
+.metrics {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  overflow: hidden;
+}
+
+.metric {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metricValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.metricLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.metricBar {
+  height: 3px;
+  background: var(--color-surface-raised);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.metricBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.metricSubrow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 1px;
+}
+
+.metricSub {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.metricDivider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border);
+  margin: 0 14px;
+  flex-shrink: 0;
+}
+
+/* ── Word count distribution ── */
+.distSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.distBars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.distRow {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px;
+  align-items: center;
+  gap: 8px;
+}
+
+.distLabel {
+  font-size: 12px;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.distTrack {
+  height: 6px;
+  background: var(--color-surface-raised);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.distFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  opacity: 0.75;
+}
+
+.distCount {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Continue writing CTA ── */
+.ctaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.continueBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: var(--radius-lg, 10px);
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+  width: 100%;
+  text-align: left;
+}
+
+.continueBtn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.continueBtn:active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.continueBtnText {
+  flex: 1;
+}
+
+.continueBtnArrow {
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+
+.lastSession {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding-left: 2px;
+}
+
+/* ── Session recap ── */
+.recapSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.recapTrigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition), background var(--transition);
+  width: 100%;
+  text-align: left;
+}
+
+.recapTrigger:hover {
+  border-color: var(--color-ai-border);
+  color: var(--color-ai);
+  background: var(--color-ai-subtle);
+}
+
+.recapIcon {
+  color: var(--color-ai);
+  flex-shrink: 0;
+}
+
+.recapCard {
+  border: 1px solid var(--color-ai-border);
+  border-radius: 8px;
+  background: var(--color-ai-subtle);
+  overflow: hidden;
+}
+
+.recapCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-ai-border);
+}
+
+.recapCardIcon {
+  color: var(--color-ai);
+  flex-shrink: 0;
+}
+
+.recapCardTitle {
+  flex: 1;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ai);
+}
+
+.recapRefresh {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: color var(--transition);
+}
+
+.recapRefresh:hover {
+  color: var(--color-ai);
+}
+
+.recapText {
+  margin: 0;
+  padding: 10px 14px 12px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--color-text-subtle);
+}
+
+.recapCursor {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+  background: var(--color-ai);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: blink 0.9s step-end infinite;
+  opacity: 0.7;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0; }
+}
+
+/* ── Recent scene cards ── */
+.recentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.sceneCards {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sceneCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 13px;
+  border-radius: 7px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), border-color var(--transition);
+  width: 100%;
+}
+
+.sceneCard:hover {
+  background: var(--color-surface-raised);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
+}
+
+.sceneCardTitle {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.sceneCardMeta {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Empty state ── */
+.emptyState {
+  padding: 4px 0;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.inlineLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inlineLink:hover {
+  opacity: 0.8;
+}

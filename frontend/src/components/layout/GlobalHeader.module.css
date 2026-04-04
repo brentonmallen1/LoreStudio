@@ -1,0 +1,357 @@
+/* ── Global Header Shell ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 40px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  transform: translateY(0);
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 220ms ease;
+}
+
+/* Hidden state (focus/fullscreen, not hovered) */
+.headerHidden {
+  transform: translateY(-100%);
+  pointer-events: none;
+  box-shadow: none;
+}
+
+/* Hover zone — invisible 8px strip that reveals the header */
+.hoverZone {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  z-index: 51;
+  cursor: default;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ── Wordmark ── */
+.wordmark {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.wordmark:hover {
+  color: var(--color-accent);
+}
+
+/* ── Search button ── */
+.searchBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.searchBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text-muted);
+}
+
+.searchBtn kbd {
+  font-family: inherit;
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  opacity: 0.7;
+}
+
+/* ── Icon buttons ── */
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.iconBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.iconBtnActive {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+/* ── User button ── */
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.25rem;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.userBtn:hover {
+  background: var(--color-surface-2);
+}
+
+.userBtnActive {
+  background: var(--color-surface-2);
+}
+
+.userAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* ── Dropdown wrapper ── */
+.dropdownWrap {
+  position: relative;
+}
+
+/* ── Dropdown panel (shared by settings and user menu) ── */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  min-width: 220px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.dropdownSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.35rem 0.1rem;
+}
+
+.dropdownLabel {
+  font-size: 0.67rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 0.3rem;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 0.1rem 0;
+}
+
+/* ── Theme grid ── */
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.25rem;
+}
+
+.themeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.themeBtn:hover {
+  background: var(--color-surface-2);
+}
+
+.themeBtn.active {
+  border-color: var(--color-accent);
+}
+
+.themeSwatch {
+  display: flex;
+  gap: 1px;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 24px;
+  height: 24px;
+}
+
+.themeSwatch span {
+  flex: 1;
+  display: block;
+}
+
+/* ── Option button rows (color mode, font, size, width) ── */
+.btnRow {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.fontSelect {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.fontSelect:focus {
+  border-color: var(--color-accent);
+}
+
+.optionBtn {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.73rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.optionBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.optionBtn.active {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.optionBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── All Settings link ── */
+.allSettingsBtn {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.77rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+
+.allSettingsBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── User info ── */
+.userInfo {
+  padding: 0.4rem 0.5rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.userName {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.userEmail {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+/* ── Menu item ── */
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.77rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+
+.menuItem:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}

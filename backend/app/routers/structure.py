@@ -8,7 +8,8 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..schemas.structure import StructureNodeUpdate, StructureNodeOut
 from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
+from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
+from ..services.llm.prompts.summaries import build_scene_summary_prompt
 
 router = APIRouter()
 
@@ -65,27 +66,34 @@ async def summarize_node(
         from fastapi.responses import Response
         return Response("No content to summarize.", media_type="text/plain")
 
-    system_prompt = (
-        "You are a literary assistant helping an author document their story. "
-        "Summarize the following scene in 2-3 sentences, focusing on key events and character actions. "
-        "Write in present tense. Be specific and concise."
-    )
+    feature_prompt = build_scene_summary_prompt(node.title, node.content)
     llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
 
+    story = db.query(Story).filter(Story.id == node.story_id).first()
+    ctx = AICallContext(
+        feature="scene-summary",
+        user_id=current_user.id,
+        story_id=node.story_id,
+        node_id=node_id,
+        tags=["manuscript", "summarization", "user-initiated", "persisted"],
+    )
+
+    async def on_complete(result: AICallResult) -> None:
+        node.content_summary = result.content
+        node.summary_stale = False
+        db.commit()
+        _invalidate_journey_summaries(node_id, db)
+
     async def stream_and_persist():
-        full_response = []
-        try:
-            async for token in ollama_provider.chat_stream(llm_messages, system_prompt):
-                full_response.append(token)
-                yield token
-        finally:
-            if full_response:
-                summary = "".join(full_response)
-                node.content_summary = summary
-                node.summary_stale = False
-                db.commit()
-                # Mark any character journey summaries that used this node as stale
-                _invalidate_journey_summaries(node_id, db)
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            on_complete=on_complete,
+        ):
+            yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
 

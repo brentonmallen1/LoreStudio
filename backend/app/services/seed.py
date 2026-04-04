@@ -59,6 +59,25 @@ STRUCTURE_TEMPLATES = [
             {"name": "Scene", "plural": "Scenes"},
         ],
     },
+    {
+        "id": "mice-single",
+        "name": "Single MICE Thread (Flash / Short Story)",
+        "description": "One dominant MICE element (Milieu, Idea, Character, or Event). Ideal for flash fiction and tight short stories. The story opens the thread and closes it cleanly.",
+        "levels": [
+            {"name": "Opening", "plural": "Openings"},
+            {"name": "Try/Fail Beat", "plural": "Try/Fail Beats"},
+            {"name": "Resolution", "plural": "Resolutions"},
+        ],
+    },
+    {
+        "id": "mice-nested",
+        "name": "Nested MICE Threads (Short Story / Novelette)",
+        "description": "Multiple MICE threads that open and close in LIFO order — last opened, first closed. Great for short stories with 2-3 interleaved questions or arcs.",
+        "levels": [
+            {"name": "Movement", "plural": "Movements"},
+            {"name": "Beat", "plural": "Beats"},
+        ],
+    },
 ]
 
 
@@ -113,6 +132,7 @@ def seed_demo_story():
             narrative_intent="Explore how self-imposed isolation can be both sanctuary and prison, and how the past finds us regardless of where we hide.",
             premise="A solitary lighthouse keeper on a dying island must confront her buried past when a mysterious stranger arrives seeking answers she's spent years avoiding.",
             logline="When a mysterious historian arrives during a storm, a reclusive lighthouse keeper must decide whether to protect her secrets or finally face what she buried.",
+            intended_length="novelette",
             # Story goals checklist
             goals=[
                 {"id": str(uuid.uuid4()), "text": "Establish Eleanor's isolated routine and her relationship with the lighthouse", "completed": True},
@@ -155,25 +175,29 @@ def seed_demo_story():
 
         visitor = Character(
             story_id=story.id,
-            name="The Visitor",
+            name="The Visitor (Calder)",
             role="supporting",
-            personality="Enigmatic and precise, speaks carefully as if choosing each word from a limited supply. Unsettling not because of anything threatening, but because of how much they seem to already know.",
-            motivation="Claims to be researching the island's history. The truth is more complicated.",
-            background="Arrived by boat during a storm, soaked and calm in equal measure. Says they're a historian from the university. Their papers are in order. Their story isn't.",
-            appearance="Indeterminate age. Dark coat, small leather notebook always in hand. Never seems cold despite the weather.",
-            arc_notes="Functions as a mirror for Eleanor — their presence forces her to examine the story she tells herself about why she stayed.",
+            personality="Enigmatic and precise, speaks carefully as if choosing each word from a limited supply. Unsettling not because of anything threatening, but because of how much they seem to already know. Beneath the composure is grief held at arm's length — she has learned to be patient because impatience cost her too much.",
+            motivation="Seeking answers about her brother James's death aboard the Ardent. The Maritime Heritage Foundation gave her a cover story, but this is personal.",
+            background="Her real name is Calder. Her brother James was captain of the cargo vessel Ardent, which went down five years ago with all hands lost. She works for the Maritime Heritage Foundation investigating maritime incidents, but this case is different — she came to Harrow Island once before, two weeks before Thomas Vance died, and left with more questions than answers.",
+            appearance="About fifty, grey-haired, weathered in a way that suggests time spent on boats. Wears a canvas jacket and carries a leather notebook. Her calm is studied, not natural — the kind you learn when falling apart isn't an option.",
+            arc_notes="Functions as a mirror for Eleanor — her presence forces Eleanor to examine the story she tells herself about why she stayed. Calder's grief is a preview of what Eleanor might become if she doesn't face her own.",
             interview_prompts=[
                 "What are you really looking for here?",
                 "Have we met before?",
                 "Why this island, why now?",
+                "What did my father say when you met him?",
+                "Do you blame him for what happened to James?",
             ],
-            traits={"Known as": "The Visitor", "Carries": "Leather notebook"},
-            narrative_intent="Functions as a catalyst and mirror for Eleanor. Their questions force her to examine the story she tells herself. The mystery of their identity keeps tension high throughout the second act.",
+            traits={"Real name": "Calder", "Known as": "The Visitor", "Occupation": "Maritime Heritage Foundation investigator", "Carries": "Leather notebook", "Brother": "James Calder (deceased, captain of the Ardent)"},
+            narrative_intent="Functions as a catalyst and mirror for Eleanor. Her questions force Eleanor to examine the story she tells herself. The mystery of her identity keeps tension high through Act 2, and her revelation in Act 3 reframes every interaction they've had.",
             narrative_intent_hidden=True,
             arc_milestones=[
                 {"id": str(uuid.uuid4()), "text": "Arrives with an apparent purpose (historical research)", "completed": True},
-                {"id": str(uuid.uuid4()), "text": "Gains Eleanor's grudging trust through patience and honesty about small things", "completed": False},
-                {"id": str(uuid.uuid4()), "text": "True purpose revealed — and its connection to Eleanor's past", "completed": False},
+                {"id": str(uuid.uuid4()), "text": "Gains Eleanor's grudging trust through patience and honesty about small things", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Reveals she is not a historian — works for Maritime Heritage Foundation", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "True identity disclosed: her brother was captain of the Ardent", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Leaves the island with the logbook — and something like closure", "completed": True},
             ],
         )
         db.add(visitor)
@@ -189,9 +213,15 @@ def seed_demo_story():
             arc_notes="Thomas exists as an absence. His choices shape the present without him being present. The story is partly an excavation of who he actually was.",
             interview_prompts=[],
             traits={"Status": "Deceased", "Occupation": "Lighthouse keeper (retired)", "Tenure": "31 years on Harrow Island"},
-            narrative_intent="Thomas is the mystery at the story's center. His presence is felt through Eleanor's grief, the missing log entries, and the Visitor's purpose. His character must reveal itself through what others remember — and misremember.",
+            narrative_intent="Thomas is the mystery at the story's center. His presence is felt through Eleanor's grief, the missing log entries, and the Visitor's purpose. His character must reveal itself through what others remember — and misremember. The reader should finish the story feeling the full weight of who he was: a man of discipline and routine who failed catastrophically once and spent his last months dismantling the evidence.",
             narrative_intent_hidden=True,
-            arc_milestones=[],
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Established through Eleanor's memory and the lighthouse logbooks", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "His absence from the night of the Ardent is implied through the log gap", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Calder reveals he met her before his death — knowingly, deliberately", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "The full truth disclosed: he failed to respond to the Ardent's distress signal, then destroyed the evidence", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Eleanor chooses how to remember him — not as innocent, not as monster", "completed": True},
+            ],
         )
         db.add(thomas)
 
@@ -199,19 +229,26 @@ def seed_demo_story():
             story_id=story.id,
             name="Margaret Holt",
             role="minor",
-            personality="Economical and unsentimental. Has outlasted most of what she loved about the island without bitterness, which Eleanor finds both admirable and slightly unnerving.",
-            motivation="Finish out her years on the island she was born on. Leave it in better shape than she found it.",
-            background="Born on Harrow Island, married a fisherman, buried him here. One of three residents who never left. At seventy-four, she keeps a kitchen garden and trades supplies with Eleanor once a week.",
-            appearance="Small, deliberate in her movements. Wears the same oilskin coat regardless of weather. Knows more about the island's history than she lets on.",
-            arc_notes="Margaret is a minor but useful presence — a witness to the island's past who speaks only when directly asked, and then with precision.",
+            personality="Economical and unsentimental. Has outlasted most of what she loved about the island without bitterness, which Eleanor finds both admirable and slightly unnerving. She practices a deliberate philosophy of not-knowing: some things aren't hers to ask about, and she's made peace with that. But when asked directly, she answers with precision.",
+            motivation="Finish out her years on the island she was born on. Protect what's left of the community — which mostly means protecting Eleanor from the loneliness that took Thomas.",
+            background="Born on Harrow Island, married a fisherman named Robert, buried him here twenty years ago. One of three permanent residents who never left. At seventy-four, she keeps a kitchen garden, trades supplies with Eleanor weekly, and watches the lighthouse beam from her window every night — partly habit, partly vigil. She saw the lamp go dark the night of the Ardent but chose not to speak of it until asked.",
+            appearance="Small, deliberate in her movements. Wears the same oilskin coat regardless of weather. Hands roughened by decades of practical work. Eyes that miss very little but reveal even less.",
+            arc_notes="Margaret is a witness — to the island's long decline, to Thomas Vance's final years, to Eleanor's quiet unraveling. Her choice to finally speak what she saw represents the story's theme: some silences protect us, and some silences become prisons.",
             interview_prompts=[
                 "What do you remember about the night Thomas died?",
                 "Have you seen strangers on the island before?",
+                "Why did you stay when everyone else left?",
+                "What did you see the night the Ardent went down?",
+                "Do you think Eleanor will leave now?",
             ],
-            traits={"Age": "74", "Status": "Year-round resident", "Relationship to Eleanor": "Neighbor and occasional confidante"},
-            narrative_intent="Margaret grounds the story in the island's longer history. She knows more than she says, and her sparse dialogue can be a source of revelation or misdirection as needed.",
+            traits={"Age": "74", "Status": "Year-round resident", "Relationship to Eleanor": "Neighbor and confidante", "Late husband": "Robert Holt (fisherman)", "Secret": "Saw the lighthouse dark on the night of the Ardent"},
+            narrative_intent="Margaret grounds the story in the island's longer history. She knows more than she says — specifically, she witnessed the lighthouse dark on the night of the Ardent but chose not to report it. Her confession to Eleanor in Act 3 adds another layer to the truth: the cover-up wasn't complete, just unspoken.",
             narrative_intent_hidden=True,
-            arc_milestones=[],
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Mentioned as one of three remaining residents", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Visits Eleanor after the storm; senses something has changed", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Reveals she saw the lighthouse dark on the night of the Ardent", "completed": True},
+            ],
         )
         db.add(margaret)
         db.flush()
@@ -239,7 +276,7 @@ def seed_demo_story():
             character_id=visitor.id,
             related_character_id=thomas.id,
             relationship_type="prior contact",
-            description="The Visitor met Thomas Vance once before his death. The nature of that meeting — and what Thomas told them — is what brought them to the island.",
+            description="Calder came to Harrow Island two weeks before Thomas Vance died — she had already traced the missing distress log to the lighthouse. Thomas met her, spoke briefly, and said nothing that exonerated him. She has carried the uncertainty of that meeting ever since.",
         ))
         db.add(CharacterRelationship(
             character_id=margaret.id,
@@ -283,6 +320,7 @@ def seed_demo_story():
             description="Several entries from five years ago are missing or damaged. What was recorded there — and why were they removed?",
             status="open",
             color="#3b82f6",
+            mice_type="idea",  # A question raised → answered
         )
         db.add(thread_logs)
 
@@ -292,6 +330,7 @@ def seed_demo_story():
             description="Who is this 'historian' really, and why do they know so much about Harrow Island and the Vance family?",
             status="developing",
             color="#8b5cf6",
+            mice_type="idea",  # Who is she? → answered when Calder's identity is revealed
         )
         db.add(thread_identity)
 
@@ -301,6 +340,7 @@ def seed_demo_story():
             description="What really happened in the final months of Thomas Vance's life? Eleanor's account has gaps she won't examine.",
             status="open",
             color="#ef4444",
+            mice_type="character",  # Eleanor's dissatisfaction with her idealized image of her father → acceptance of who he was
         )
         db.add(thread_father)
         db.flush()
@@ -498,7 +538,24 @@ def seed_demo_story():
             synopsis="Eleanor notices six months of entries missing. The Visitor is not surprised.",
             position=1,
             timeline_position=1,  # Flashback: chronologically first — represents the period three years ago when Thomas removed these entries
+            status="draft",
+            entry_state="Eleanor and the Visitor are in the watch room with the logbooks open on the desk.",
+            exit_state="The gap is exposed. The Visitor has confirmed they knew about it. Eleanor has asked who the Visitor really is.",
+            key_events="The gap discovered; Eleanor registers its weight; the Visitor's unsurprised reaction; Eleanor's confrontation.",
             metadata_={"purpose": "The missing entries are the story's central wound made visible. Eleanor has been avoiding looking at this gap. The Visitor's unsurprised reaction confirms they came here knowing about it."},
+            content=(
+                "<p>The volume for five years ago was lighter than it should have been.</p>"
+                "<p>@Eleanor Vance noticed it the moment she lifted it from the shelf — that wrongness of weight, the way books tell you something is missing before you even open them. She had carried these volumes a hundred times. She knew them by heft.</p>"
+                "<p>The Visitor was watching her. Not the book. Her.</p>"
+                "<p>Eleanor opened the logbook to September. October. Then the pages jumped to March. Six months, gone. Not torn out — she could see no ragged edges, no violence done to the binding. Just... absent. As if those months had never been recorded at all.</p>"
+                "<p>But she knew her father's hand. She knew his discipline. @Thomas Vance had logged every day for thirty-one years without exception. Even the day her mother left. Even the week he couldn't get out of bed after his stroke. He had crawled to the watch room and made his entry because that was what keepers did.</p>"
+                "<p>\"You knew,\" Eleanor said. Her voice came out flat, declarative. \"You came here knowing this.\"</p>"
+                "<p>The Visitor set down her tea. \"I came here hoping I was wrong.\"</p>"
+                "<p>\"Wrong about what?\"</p>"
+                "<p>The storm answered for her — a gust that shook [[The Lighthouse]] to its foundations, rattling the windows in their frames. When it passed, the Visitor was still looking at Eleanor with something that might have been pity.</p>"
+                "<p>\"About what your father did,\" she said. \"And why.\"</p>"
+            ),
+            word_count=267,
         )
         db.add(scene4)
         db.flush()
@@ -536,7 +593,27 @@ def seed_demo_story():
             synopsis="The Visitor begins to tell a version of the truth. Eleanor listens.",
             position=0,
             timeline_position=5,
+            status="draft",
+            entry_state="Eleanor has discovered the missing log entries. Trust has fractured. The storm rages outside.",
+            exit_state="The Visitor has admitted they aren't a historian. Eleanor has asked about her father directly.",
+            key_events="The Visitor's confession; Eleanor's question about Thomas; the storm reaches its peak.",
             metadata_={"purpose": "The Visitor's partial confession raises the stakes: they know more than they've said, and some of it is damaging. Eleanor has to decide how much she wants to know. The scene should end with her asking the question she's been afraid to ask."},
+            content=(
+                "<p>They sat in the kitchen while the storm did its work outside. @Eleanor Vance had put the kettle on again — not because either of them wanted more tea, but because the ritual of it gave her hands something to do that wasn't reaching for the logbook.</p>"
+                "<p>\"I'm not a historian,\" the Visitor said.</p>"
+                "<p>Eleanor watched the flame under the kettle. Blue at the base, orange at the tip. Predictable. \"I know.\"</p>"
+                "<p>\"I work for the Maritime Heritage Foundation. We investigate — \" She stopped, tried again. \"There was a ship. The <em>Ardent</em>. A cargo vessel. It went down in these waters five years ago, almost to the day.\"</p>"
+                "<p>The kettle began to whisper. Not yet boiling, but close.</p>"
+                "<p>\"Twelve crew,\" the Visitor continued. \"All hands lost. The official report said mechanical failure. The lighthouse logs should have shown — would have shown — whether anyone saw distress signals. Whether anyone could have responded.\"</p>"
+                "<p>Eleanor turned off the flame. The whisper died.</p>"
+                "<p>\"You think my father saw something.\"</p>"
+                "<p>\"I think your father saw everything.\" The Visitor's voice was careful, precise — the voice of someone who had practiced this conversation. \"And I think he spent the last two months of his life making sure no one would ever be able to prove it.\"</p>"
+                "<p>Outside, the wind found a new register — a sound like something tearing. Eleanor stood at the window and watched [[The Lighthouse]] beam sweep through the dark, patient and mechanical, asking nothing, answering nothing.</p>"
+                "<p>\"Did you know him?\" she asked. \"My father. Did you ever meet him?\"</p>"
+                "<p>The Visitor was quiet for a long time.</p>"
+                "<p>\"Once,\" she said. \"I came here once before. Two weeks before he died.\"</p>"
+            ),
+            word_count=312,
         )
         db.add(scene5)
         db.flush()
@@ -588,7 +665,32 @@ def seed_demo_story():
             synopsis="The Visitor reveals why the log entries are missing and what Thomas Vance did.",
             position=0,
             timeline_position=6,
+            status="draft",
+            entry_state="Morning after the storm. Eleanor has not slept. The Visitor has one more truth to tell.",
+            exit_state="Eleanor knows the full story. Her understanding of her father has been overwritten.",
+            key_events="The Visitor's final revelation; the truth about the Ardent; what Thomas chose.",
             metadata_={"purpose": "The revelation scene. Keep it grounded — Eleanor receives this information in her body, not just her mind. The facts matter less than what they cost her to hear."},
+            content=(
+                "<p>The storm broke at dawn.</p>"
+                "<p>@Eleanor Vance had been awake for it — had watched the sky go from black to grey to a pale, exhausted blue, the clouds pulling apart like something defeated. The sea was still rough, but the violence had gone out of it. What remained was just the ordinary churn of aftermath.</p>"
+                "<p>The Visitor stood at the window of [[The Keeper's Cottage]], looking out at the water. She had not slept either.</p>"
+                "<p>\"I'm not here for the Foundation,\" she said. \"Not really. Not anymore.\"</p>"
+                "<p>Eleanor waited. She had been waiting all night. A few more minutes made no difference.</p>"
+                "<p>\"My brother was the captain of the <em>Ardent</em>.\" The words came out steady, rehearsed. \"James Calder. He sent a distress signal at 11:47 PM on September 14th. The weather was bad — not as bad as last night, but bad enough. His engine had failed. He was drifting toward the rocks.\"</p>"
+                "<p>Eleanor closed her eyes. She could see it: the lamp room, the log book open, her father's careful hand recording wind speed, visibility, wave height. Everything in its proper place.</p>"
+                "<p>\"@Thomas Vance logged a routine night,\" the Visitor — Calder, her name was Calder — continued. \"No signals observed. No vessels in distress. His entry for September 14th says: <em>Clear. Light wind. No incidents.</em>\"</p>"
+                "<p>\"That's not possible.\" Eleanor's voice cracked on the last word. \"He would never — \"</p>"
+                "<p>\"The coastguard received the distress call. They have it on record. They tried to reach [[The Lighthouse]] for visual confirmation. No one answered.\" Calder turned from the window. Her face was lined and tired, but her eyes were steady. \"I don't know if he was asleep. I don't know if he couldn't get to the radio. I don't know if he made a choice. But I know what he did afterward.\"</p>"
+                "<p>\"He destroyed the logs.\"</p>"
+                "<p>\"He destroyed the evidence. Six months of entries that would have shown the pattern of his failures — the nights he didn't check the radio, the reports he filed late, the maintenance he let slide.\" Calder's voice softened. \"Your father was seventy-three years old, Eleanor. He'd kept this light for three decades. And in the end, he couldn't keep it anymore. And twelve people died because no one knew.\"</p>"
+                "<p>The photograph on the mantle — Eleanor and her father, taken the summer she turned sixteen — watched them both with the flat patience of memory.</p>"
+                "<p>\"Why did you come here?\" Eleanor asked. \"If you already knew. Why come?\"</p>"
+                "<p>\"Because I wanted to hear you say it wasn't true.\" Calder smiled, thin and sad. \"Because I wanted you to show me the logs and prove that my brother's death was just an accident. Just bad luck. Just the sea.\"</p>"
+                "<p>Eleanor looked at the cabinet where the logbooks waited, their gaps now visible, now inescapable. She thought about her father in his final weeks — how quiet he had been, how careful, how ready to leave.</p>"
+                "<p>\"I can't prove that,\" she said.</p>"
+                "<p>\"I know.\"</p>"
+            ),
+            word_count=542,
         )
         db.add(scene6)
         db.flush()
@@ -617,7 +719,36 @@ def seed_demo_story():
             title="The Decision",
             synopsis="Eleanor chooses what to do with the truth — and with the Visitor.",
             position=1,
+            timeline_position=7,
+            status="draft",
+            entry_state="Eleanor knows everything. The choice is hers alone.",
+            exit_state="A decision has been made. The lighthouse still stands.",
+            key_events="Eleanor's choice; what she offers Calder; the logbooks' fate.",
             metadata_={"purpose": "Eleanor's choice is the story's true ending. It should tell us who she is — not who she was at the start. Whether she protects her father's memory or burns it down, the act must be hers."},
+            content=(
+                "<p>The logbooks were still on the table where they'd left them. Twelve volumes. A lifetime of weather.</p>"
+                "<p>@Eleanor Vance picked up the one with the gap — five years ago, the missing months, the silence where her father's guilt should have been recorded. She held it for a long moment, feeling its wrongness, its incompleteness.</p>"
+                "<p>Calder waited. She had put on her coat but made no move toward the door.</p>"
+                "<p>\"I could burn them,\" Eleanor said. \"The whole set. No one would ever know what they don't contain.\"</p>"
+                "<p>\"You could.\"</p>"
+                "<p>\"Or I could give them to you. Let your Foundation have them. Let them write their report, close their file, decide what my father was.\"</p>"
+                "<p>\"Is that what you want?\"</p>"
+                "<p>Eleanor looked at the photograph again. Her father's hand on her shoulder. His face turned toward the camera with an expression she had always read as pride. She wondered now if it was something else. Relief, maybe. Or the beginning of a long apology he never found the words for.</p>"
+                "<p>\"What I want,\" she said slowly, \"is to have never opened that door. What I want is for the barometer to have told me to stay in bed. What I want is to go back to not knowing.\" She set the logbook down. \"But I don't get that. And neither did you.\"</p>"
+                "<p>She crossed to the cabinet and opened it. The remaining volumes sat in their places, patient, indifferent. She took out the one from thirty years ago — the year her mother left — and the one from fifteen years ago — the year she'd gotten her first cartography commission and called to tell her father she was never coming back to [[Harrow Island]].</p>"
+                "<p>\"He kept everything,\" she said. \"Except the one thing that mattered. That tells you something.\"</p>"
+                "<p>\"What does it tell you?\"</p>"
+                "<p>Eleanor put the books back. Closed the cabinet. Turned the key.</p>"
+                "<p>\"That he knew what he did. That he couldn't live with it. That the two months I spent here with him, watching him fade — \" Her voice caught. She let it. \"He wasn't just dying. He was waiting. For someone to ask the right questions. For someone to make him answer.\"</p>"
+                "<p>\"And no one did.\"</p>"
+                "<p>\"And no one did.\" Eleanor crossed to the window. [[The Lighthouse]] stood patient and white against the clearing sky, its lamp dark now in the daylight. \"Take the logbook. The one with the gap. Show your Foundation. Let them write whatever they need to write about him.\"</p>"
+                "<p>Calder picked up the volume, held it carefully. \"And you?\"</p>"
+                "<p>\"I'll keep [[The Lighthouse]] running.\" Eleanor almost smiled. \"Someone has to. And I've got eleven more volumes to read. Thirty years of my father's handwriting. All the days he did show up, did his job, kept the light burning for the ships that needed it.\" She turned to face Calder directly. \"That's who he was too. That has to count for something.\"</p>"
+                "<p>\"It does,\" Calder said. \"It doesn't cancel out what happened. But it counts.\"</p>"
+                "<p>The morning light came through the window and caught the edge of the photograph on the mantle, and for a moment @Thomas Vance seemed to be looking at both of them — his daughter and the sister of the man he had failed — with something that might have been gratitude.</p>"
+                "<p>Or might have been goodbye.</p>"
+            ),
+            word_count=589,
         )
         db.add(scene7)
         db.flush()
@@ -631,6 +762,159 @@ def seed_demo_story():
             thread_id=thread_father.id,
             node_id=scene7.id,
             note="Eleanor makes her peace — or doesn't — with who Thomas Vance actually was.",
+        ))
+
+        # Chapter 6: After the Storm (new denouement chapter)
+        ch6 = StructureNode(
+            story_id=story.id,
+            parent_id=act3.id,
+            level=1,
+            level_type="chapter",
+            title="Chapter 6: After the Storm",
+            synopsis="In the aftermath, Eleanor begins to rebuild — not the lighthouse, but her understanding of it.",
+            position=1,
+            metadata_={"purpose": "The denouement. Show Eleanor's world after the revelation — changed but not destroyed. Resolve the question of whether she will stay or leave. Plant the first seed of whatever comes next."},
+        )
+        db.add(ch6)
+        db.flush()
+
+        scene8 = StructureNode(
+            story_id=story.id,
+            parent_id=ch6.id,
+            level=2,
+            level_type="scene",
+            title="The Departure",
+            synopsis="Calder leaves the island. Eleanor watches the boat until it disappears.",
+            position=0,
+            timeline_position=8,
+            status="draft",
+            entry_state="The truth has been exchanged. Calder has what she came for.",
+            exit_state="Eleanor is alone again — but not the same alone she was before.",
+            key_events="Calder's departure; Eleanor's vigil at the breakwater; the return to routine.",
+            metadata_={"purpose": "The mirror of the arrival scene. Calder leaves by boat as she came, but the weather is clear and Eleanor chooses to watch. The watching is an act of release, not vigilance."},
+            content=(
+                "<p>The boat came for Calder at noon — a fishing vessel from the mainland, summoned by radio. @Eleanor Vance walked with her to the breakwater where the small craft that had brought her still sat beached and battered, waiting for someone to deal with it.</p>"
+                "<p>\"I'll have someone come for that,\" Calder said, nodding at her ruined boat. \"Unless you want to keep it for parts.\"</p>"
+                "<p>\"I don't need parts.\" Eleanor looked at the wreck. It seemed smaller in the daylight, more pathetic. \"I'll burn it. Wood's good for something, at least.\"</p>"
+                "<p>Calder smiled — the first real smile Eleanor had seen from her. \"You're very practical.\"</p>"
+                "<p>\"Island life.\" Eleanor shrugged. \"No room for things that don't work.\"</p>"
+                "<p>The fishing boat was close now, its engine a low rumble across the water. Calder shifted the bag on her shoulder — heavier now, with the logbook inside it. The evidence. The proof. Whatever the Foundation would call it.</p>"
+                "<p>\"I'll be in touch,\" Calder said. \"About the report. You'll have a chance to respond before anything's published.\"</p>"
+                "<p>\"I don't need to respond.\" Eleanor watched the boat approach. \"I know what he did. I don't need to argue with anyone about it.\"</p>"
+                "<p>\"Most people would.\"</p>"
+                "<p>\"Most people didn't know him.\" Eleanor met Calder's eyes. \"And neither did I, it turns out. So what's the point?\"</p>"
+                "<p>Calder was quiet for a moment. Then she reached into her coat and pulled out a card — plain white, with a phone number and an email address. \"If you ever want to talk. About any of it. I know what it's like to have your understanding of someone... overwritten.\"</p>"
+                "<p>Eleanor took the card. She didn't look at it. \"Your brother. Was he a good man?\"</p>"
+                "<p>\"He was a complicated man.\" Calder's voice was soft. \"He drank too much and worked too hard and sent money home to our mother even when he couldn't afford it. He made bad choices sometimes. He was kind to people who didn't deserve it.\" She paused. \"He would have liked you, I think.\"</p>"
+                "<p>The fishing boat reached the breakwater. A man in oilskins threw a rope. Calder caught it with practiced ease — she knew boats, Eleanor realized. Had probably grown up around them, like her brother had.</p>"
+                "<p>\"Thank you,\" Calder said. \"For letting me in.\"</p>"
+                "<p>\"I almost didn't.\"</p>"
+                "<p>\"I know.\" Calder climbed down to the boat. \"That's why I'm thanking you.\"</p>"
+                "<p>Eleanor stood on the breakwater until the boat was a speck on the horizon, then smaller, then nothing. The sea had taken everything it was going to take. What remained was hers to deal with.</p>"
+                "<p>She walked back to [[The Lighthouse]].</p>"
+            ),
+            word_count=478,
+        )
+        db.add(scene8)
+        db.flush()
+
+        scene9 = StructureNode(
+            story_id=story.id,
+            parent_id=ch6.id,
+            level=2,
+            level_type="scene",
+            title="Margaret's Visit",
+            synopsis="Margaret Holt comes by with supplies. She knows something has changed.",
+            position=1,
+            timeline_position=9,
+            status="draft",
+            entry_state="Two days after the storm. Eleanor has resumed her routine, but differently.",
+            exit_state="Margaret has offered what she knows. Eleanor has to decide if she wants to hear it.",
+            key_events="Margaret's arrival; the unasked question; what Margaret saw five years ago.",
+            metadata_={"purpose": "Margaret functions as a witness to the island's long memory. She knows more than she's said. This scene plants the possibility that the story isn't quite finished — that there's more to learn about Thomas Vance, if Eleanor chooses to ask."},
+            content=(
+                "<p>@Margaret Holt came by on Wednesday, same as always.</p>"
+                "<p>She brought eggs from her chickens, a jar of preserved tomatoes, and the particular silence of a woman who had lived long enough to know when not to ask questions. @Eleanor Vance traded coffee and lamp oil and a silence of her own, and for a while they sat at the kitchen table like they always did, saying nothing about anything that mattered.</p>"
+                "<p>\"Heard you had a visitor,\" Margaret said finally. She was looking out the window at [[Harrow Island]]'s small harbor, where the fishing boat had come and gone. \"During the storm.\"</p>"
+                "<p>\"Word travels fast.\"</p>"
+                "<p>\"Small island.\" Margaret shrugged. \"Nothing else to talk about.\"</p>"
+                "<p>Eleanor poured more coffee. The photograph on the mantle seemed to watch them — her father's face, caught in a moment she no longer trusted.</p>"
+                "<p>\"She was asking about the logs,\" Eleanor said. \"The ones from five years ago.\"</p>"
+                "<p>Margaret's hands went still around her cup. Just for a moment. Then she lifted it, drank, set it down. \"Found what she was looking for?\"</p>"
+                "<p>\"Found what was missing.\" Eleanor met the old woman's eyes. \"You knew. Didn't you.\"</p>"
+                "<p>It wasn't a question. Margaret didn't treat it like one.</p>"
+                "<p>\"I knew your father,\" she said slowly. \"Knew him for thirty years. Knew when something was eating at him. Knew when he stopped sleeping. Knew when he started burning things in the fire pit behind [[The Lighthouse]] at three in the morning.\" She paused. \"Didn't know what. Didn't ask.\"</p>"
+                "<p>\"Why not?\"</p>"
+                "<p>\"Because I was seventy years old and he was my neighbor and whatever he was carrying, he'd earned the right to carry it himself.\" Margaret's voice was matter-of-fact, unsentimental. \"Some things aren't mine to know. That was one of them.\"</p>"
+                "<p>Eleanor thought about that. About the luxury of not asking. About the cost of it.</p>"
+                "<p>\"There's more,\" she said. \"Isn't there. Things you noticed but didn't put together.\"</p>"
+                "<p>Margaret was quiet for a long time. When she spoke again, her voice was careful.</p>"
+                "<p>\"The night of the <em>Ardent</em>,\" she said. \"I was up late. Couldn't sleep — the weather had me restless. I walked down to the point around midnight, just to clear my head.\" She looked at Eleanor directly. \"The lighthouse lamp was dark. For almost twenty minutes. I watched it.\"</p>"
+                "<p>Eleanor's breath caught. \"You never told anyone.\"</p>"
+                "<p>\"Who would I tell? @Thomas Vance was the keeper. If the lamp was out, he'd have had a reason. That's what I told myself.\" Margaret stood, gathering her empty jar and her coat. \"I've told myself a lot of things over the years. Gets easier with practice.\"</p>"
+                "<p>At the door, she paused.</p>"
+                "<p>\"Your father was a good man, Eleanor. Whatever else he was, he was that too. Don't let the one thing make you forget all the others.\"</p>"
+                "<p>\"I'm trying not to.\"</p>"
+                "<p>\"Good.\" Margaret stepped out into the pale afternoon light. \"That's all any of us can do. Try not to.\"</p>"
+            ),
+            word_count=542,
+        )
+        db.add(scene9)
+        db.flush()
+
+        scene10 = StructureNode(
+            story_id=story.id,
+            parent_id=ch6.id,
+            level=2,
+            level_type="scene",
+            title="The New Entry",
+            synopsis="Eleanor makes her first log entry since the storm.",
+            position=2,
+            timeline_position=10,
+            status="revised",
+            entry_state="A week after the storm. Eleanor stands in the watch room with the current logbook open.",
+            exit_state="The log has been updated. The lighthouse continues. So does Eleanor.",
+            key_events="Eleanor's entry; what she chooses to record; the lamp comes on at dusk.",
+            metadata_={"purpose": "The final scene mirrors the first: Eleanor alone in the lighthouse, making an entry in the log. But she is changed — she writes differently now, records differently, sees the ritual differently. The story ends not with resolution but with continuation."},
+            content=(
+                "<p>The logbook lay open on the desk, its pages patient and blank.</p>"
+                "<p>@Eleanor Vance stood in the watch room with a pen in her hand and nothing particular to say. A week had passed since the storm. The repairs were done — a few shingles replaced, a window resealed, the driftwood from Calder's boat stacked for burning. The radio worked. The lamp worked. Everything was as it should be.</p>"
+                "<p>She looked at the last entry she'd made, the day before the storm: <em>Barometer falling. Wind from the southwest. The ferry didn't run.</em> Ordinary words for an ordinary day. The day before everything changed.</p>"
+                "<p>She thought about what to write now. She could record the storm — wind speeds, damage assessment, the factual aftermath. She could note Calder's visit as an \"inspection\" or \"official inquiry\" and leave it at that. She could fill the week's silence with the same neutral language her father had used, the careful nothing that protected everything.</p>"
+                "<p>Instead, she wrote:</p>"
+                "<p><em>October 8th. Clear morning, calm seas. A visitor came during the storm — someone looking for answers about the Ardent. Found them, I think. Or found enough.</em></p>"
+                "<p><em>The lighthouse logs are incomplete. My father removed entries from five years ago. I don't know everything he did, but I know he knew what he was doing when he did it. That's the truth of it. Someone should have it written down.</em></p>"
+                "<p><em>The lamp came on at dusk, same as always. I watched it from the railing. It does what it does — sweeps the dark, warns the ships, keeps turning. Doesn't ask to be forgiven. Doesn't need to be.</em></p>"
+                "<p><em>I'm still here. That's the entry. That's all of it.</em></p>"
+                "<p>She set down the pen and closed the book. Outside, the sun was beginning its long slide toward the horizon, painting [[Harrow Island]] in shades of gold and shadow. In an hour the lamp would come on. In an hour she would climb to the lamp room and watch it begin its slow rotation, just as she had done every night for five years, just as her father had done for thirty years before that.</p>"
+                "<p>The light didn't care who kept it. The light just needed keeping.</p>"
+                "<p>Eleanor Vance walked to the window and watched the sea turn colors, and waited for dark.</p>"
+            ),
+            word_count=402,
+        )
+        db.add(scene10)
+        db.flush()
+
+        # Plot thread appearances for new scenes
+        db.add(PlotThreadAppearance(
+            thread_id=thread_identity.id,
+            node_id=scene8.id,
+            note="Calder's identity is now fully known. The departure scene closes her arc and the mystery of who she was.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_father.id,
+            node_id=scene9.id,
+            note="Margaret reveals she saw the lighthouse dark on the night of the Ardent — another piece of the truth Eleanor has to carry.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_logs.id,
+            node_id=scene10.id,
+            note="Eleanor makes a new entry — one that acknowledges the gaps in her father's record. The logbook tradition continues, but changed.",
+        ))
+        db.add(PlotThreadAppearance(
+            thread_id=thread_father.id,
+            node_id=scene10.id,
+            note="Eleanor's final entry is an act of reckoning: she records what her father did, breaking the silence he created.",
         ))
 
         # Scene links
@@ -651,5 +935,58 @@ def seed_demo_story():
             link_type="callback",
             note="Eleanor letting the Visitor in despite her instincts in 'Knock at the Door' is echoed in 'What Thomas Knew' — both moments turn on a choice to let something unwanted past the threshold.",
         ))
+
+        # Mirror: scene1 (The Light) → scene10 (The New Entry)
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene1.id,
+            target_node_id=scene10.id,
+            link_type="mirror",
+            note="The story opens and closes with Eleanor making a log entry — the first routine and protective, the last deliberate and honest. The ritual is the same; the keeper is not.",
+        ))
+
+        # Callback: scene2 (Knock at the Door) → scene8 (The Departure)
+        db.add(SceneLink(
+            story_id=story.id,
+            source_node_id=scene2.id,
+            target_node_id=scene8.id,
+            link_type="callback",
+            note="The arrival and departure mirror each other: storm vs calm, stranger vs known quantity, suspicion vs something approaching understanding.",
+        ))
+
+        # ── MICE open/close points ──
+        # thread_logs (idea): opens when the log is first central (scene1), closes when Eleanor makes a new entry acknowledging the gap (scene10)
+        thread_logs.opens_at_node_id = scene1.id
+        thread_logs.closes_at_node_id = scene10.id
+
+        # thread_identity (idea): opens when the Visitor arrives and her identity is in question (scene2), closes at her departure (scene8)
+        thread_identity.opens_at_node_id = scene2.id
+        thread_identity.closes_at_node_id = scene8.id
+
+        # thread_father (character): opens with the first mention of Thomas Vance (scene1), closes when Eleanor records the truth and makes peace (scene10)
+        thread_father.opens_at_node_id = scene1.id
+        thread_father.closes_at_node_id = scene10.id
+
+        # ── Try/fail cycles for Eleanor's Father (character arc) ──
+        thread_father.try_fail_cycles = [
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Eleanor lets the Visitor in but deflects all questions about her father — she stays polite and closed",
+                "outcome": "fail_setback",
+                "node_id": scene2.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Eleanor shows the Visitor the logbooks to prove she has nothing to hide — and discovers the gap herself for the first time",
+                "outcome": "fail_disaster",
+                "node_id": scene4.id,
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "description": "Eleanor confronts what her father did and releases the logbook to Calder — she lets go of the false version of him she'd been protecting",
+                "outcome": "success_cost",
+                "node_id": scene7.id,
+            },
+        ]
 
         db.commit()

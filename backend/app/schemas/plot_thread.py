@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from pydantic import BaseModel
 
 
@@ -7,6 +8,10 @@ class PlotThreadCreate(BaseModel):
     description: str = ""
     status: str = "open"
     color: str = "#6b7280"
+    mice_type: str | None = None
+    opens_at_node_id: str | None = None
+    closes_at_node_id: str | None = None
+    try_fail_cycles: list[Any] = []
 
 
 class PlotThreadUpdate(BaseModel):
@@ -14,6 +19,10 @@ class PlotThreadUpdate(BaseModel):
     description: str | None = None
     status: str | None = None
     color: str | None = None
+    mice_type: str | None = None
+    opens_at_node_id: str | None = None
+    closes_at_node_id: str | None = None
+    try_fail_cycles: list[Any] | None = None
 
 
 class PlotThreadAppearanceCreate(BaseModel):
@@ -38,6 +47,10 @@ class PlotThreadOut(BaseModel):
     description: str
     status: str
     color: str
+    mice_type: str | None
+    opens_at_node_id: str | None
+    closes_at_node_id: str | None
+    try_fail_cycles: list[Any]
     appearances: list[PlotThreadAppearanceOut]
     created_at: datetime
     updated_at: datetime

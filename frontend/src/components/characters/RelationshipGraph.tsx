@@ -122,7 +122,6 @@ export default function RelationshipGraph({ storyId }: Props) {
   useEffect(() => {
     if (characters.length === 0) return;
     const { w, h } = dims;
-    const n = characters.length;
     const nodeInput = characters.map((c) => ({ id: c.id, role: c.role }));
     const edgeSet = new Map<string, { source: string; target: string }>();
     for (const r of rels) {
@@ -218,8 +217,6 @@ export default function RelationshipGraph({ storyId }: Props) {
 
   const { w, h } = dims;
   const { scale, tx, ty } = xform;
-  const isActive = !!drag || !!pan;
-
   return (
     <div className={styles.container}>
       <div className={styles.svgWrap} ref={wrapRef}>

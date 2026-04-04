@@ -199,6 +199,31 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--color-text);
+  flex: 1;
+}
+
+.chatHeaderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+
+.chatHeaderBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.chatHeaderBtnActive {
+  color: var(--color-accent);
 }
 
 /* ── Messages ── */
@@ -305,15 +330,15 @@
   height: 34px;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
   cursor: pointer;
   flex-shrink: 0;
   transition: background var(--transition), opacity var(--transition);
 }
 
 .sendBtn:hover:not(:disabled) {
-  background: var(--color-accent-hover);
+  background: var(--color-ai-hover);
 }
 
 .sendBtn:disabled {

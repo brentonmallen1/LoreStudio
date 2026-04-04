@@ -1,6 +1,6 @@
 .workspace {
   display: flex;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   background: var(--color-bg);
 }
@@ -11,6 +11,7 @@
   flex-direction: column;
   overflow: hidden;
 }
+
 
 .loading {
   flex: 1;

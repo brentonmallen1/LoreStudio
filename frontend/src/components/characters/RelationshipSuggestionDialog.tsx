@@ -13,7 +13,7 @@ interface Props {
   onRelationshipCreated?: () => void;
 }
 
-export default function RelationshipSuggestionDialog({ storyId, onClose, onRelationshipCreated }: Props) {
+export default function RelationshipSuggestionDialog({ storyId, onClose }: Props) {
   const [result, setResult] = useState("");
   const lastResult = useRef("");
   const transparency = useLLMTransparency();
