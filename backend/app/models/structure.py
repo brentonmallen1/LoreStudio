@@ -41,6 +41,7 @@ class StructureNode(Base):
     timeline_position: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     content_summary: Mapped[str] = mapped_column(Text, default="", server_default="")
     summary_stale: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    beat_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

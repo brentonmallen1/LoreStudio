@@ -27,6 +27,7 @@ class StoryUpdate(BaseModel):
     central_conflict: str | None = None
     target_audience: str | None = None
     intended_length: str | None = None
+    beat_sheet_id: str | None = None
     narrative_intent: str | None = None
     premise: str | None = None
     logline: str | None = None
@@ -45,6 +46,7 @@ class StoryOut(BaseModel):
     central_conflict: str
     target_audience: str
     intended_length: str
+    beat_sheet_id: str | None
     narrative_intent: str
     premise: str
     logline: str

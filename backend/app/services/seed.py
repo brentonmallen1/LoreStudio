@@ -15,6 +15,7 @@ from ..models.culture import Culture
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.location_travel import LocationTravel
 from ..models.calendar import Calendar
+from ..models.beat_sheet import BeatSheet
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -96,6 +97,96 @@ def seed_structure_templates():
                 template = StoryStructureTemplate(**template_data, is_system=True)
                 db.add(template)
             elif not existing.is_system:
+                existing.is_system = True
+        db.commit()
+
+
+BEAT_SHEETS = [
+    {
+        "id": "save-the-cat",
+        "name": "Save the Cat",
+        "description": "Blake Snyder's 15-beat structure for screenplays and novels. Emphasizes an emotional journey with a clear midpoint transformation.",
+        "beats": [
+            {"id": "opening-image",      "name": "Opening Image",      "position_pct": 1,  "description": "A visual that represents the struggle and tone of the story. The opposite of the final image."},
+            {"id": "theme-stated",       "name": "Theme Stated",       "position_pct": 5,  "description": "The theme of the movie is stated, usually in a question or statement by a character other than the main character."},
+            {"id": "set-up",             "name": "Set-Up",             "position_pct": 8,  "description": "Introduce the protagonist, their world, their flaws, and what needs to change."},
+            {"id": "catalyst",           "name": "Catalyst",           "position_pct": 12, "description": "The inciting incident — the life-changing event that kicks the story into motion."},
+            {"id": "debate",             "name": "Debate",             "position_pct": 18, "description": "The protagonist debates whether to engage with the new world. A question is posed."},
+            {"id": "break-into-two",     "name": "Break into Two",     "position_pct": 25, "description": "The protagonist makes a clear choice and enters Act Two — a new world with new rules."},
+            {"id": "b-story",            "name": "B Story",            "position_pct": 30, "description": "A secondary story begins, often involving a love interest or mentor who carries the theme."},
+            {"id": "fun-and-games",      "name": "Fun & Games",        "position_pct": 40, "description": "The promise of the premise — the most entertaining part of the story."},
+            {"id": "midpoint",           "name": "Midpoint",           "position_pct": 50, "description": "A false victory or false defeat. Stakes are raised; the protagonist is changed."},
+            {"id": "bad-guys-close-in",  "name": "Bad Guys Close In",  "position_pct": 62, "description": "The antagonistic forces regroup and close in on the protagonist."},
+            {"id": "all-is-lost",        "name": "All Is Lost",        "position_pct": 75, "description": "The lowest point — the protagonist loses everything they have gained."},
+            {"id": "dark-night",         "name": "Dark Night of the Soul", "position_pct": 80, "description": "The protagonist wallows in despair before finding the answer within themselves."},
+            {"id": "break-into-three",   "name": "Break into Three",   "position_pct": 85, "description": "The protagonist synthesizes A and B stories and discovers a new way forward."},
+            {"id": "finale",             "name": "Finale",             "position_pct": 90, "description": "The protagonist storms the castle and defeats the antagonist using what they've learned."},
+            {"id": "final-image",        "name": "Final Image",        "position_pct": 99, "description": "The opposite of the opening image, proving that change has occurred."},
+        ],
+    },
+    {
+        "id": "story-circle",
+        "name": "Story Circle (Dan Harmon)",
+        "description": "Dan Harmon's 8-step circle based on the Hero's Journey. Emphasizes a cyclical journey of need, transformation, and return.",
+        "beats": [
+            {"id": "you",      "name": "You",     "position_pct": 0,    "description": "A character is in a zone of comfort."},
+            {"id": "need",     "name": "Need",    "position_pct": 12.5, "description": "But they want something."},
+            {"id": "go",       "name": "Go",      "position_pct": 25,   "description": "They enter an unfamiliar situation."},
+            {"id": "search",   "name": "Search",  "position_pct": 37.5, "description": "Adapt to it."},
+            {"id": "find",     "name": "Find",    "position_pct": 50,   "description": "Get what they wanted."},
+            {"id": "take",     "name": "Take",    "position_pct": 62.5, "description": "Pay a heavy price for it."},
+            {"id": "return",   "name": "Return",  "position_pct": 75,   "description": "Return to their familiar situation."},
+            {"id": "change",   "name": "Change",  "position_pct": 87.5, "description": "Having changed."},
+        ],
+    },
+    {
+        "id": "heros-journey",
+        "name": "Hero's Journey (Campbell / Vogler)",
+        "description": "Joseph Campbell's monomyth as adapted by Christopher Vogler. A 12-stage universal story pattern.",
+        "beats": [
+            {"id": "ordinary-world",     "name": "Ordinary World",       "position_pct": 0,  "description": "The hero's normal world before the story begins."},
+            {"id": "call-to-adventure",  "name": "Call to Adventure",    "position_pct": 8,  "description": "The hero is presented with a problem, challenge, or adventure."},
+            {"id": "refusal",            "name": "Refusal of the Call",  "position_pct": 12, "description": "The hero initially refuses the call due to fear or reluctance."},
+            {"id": "meeting-mentor",     "name": "Meeting the Mentor",   "position_pct": 17, "description": "The hero meets a mentor who gives advice, training, or a magical gift."},
+            {"id": "crossing-threshold", "name": "Crossing the Threshold","position_pct": 25, "description": "The hero commits to the adventure and enters a special world."},
+            {"id": "tests",              "name": "Tests, Allies, Enemies","position_pct": 35, "description": "The hero faces tests, makes allies, and confronts enemies."},
+            {"id": "approach",           "name": "Approach to the Inmost Cave","position_pct": 47, "description": "The hero approaches the central crisis of the adventure."},
+            {"id": "ordeal",             "name": "Ordeal",               "position_pct": 55, "description": "The hero faces their greatest challenge and confronts death (literal or metaphorical)."},
+            {"id": "reward",             "name": "Reward",               "position_pct": 65, "description": "The hero takes possession of the treasure they sought."},
+            {"id": "road-back",          "name": "Road Back",            "position_pct": 75, "description": "The hero deals with the consequences of confronting evil and begins the journey back."},
+            {"id": "resurrection",       "name": "Resurrection",         "position_pct": 85, "description": "The hero is severely tested once more on the threshold of home — a final climax."},
+            {"id": "return",             "name": "Return with Elixir",   "position_pct": 95, "description": "The hero returns home with the elixir and uses it to help others."},
+        ],
+    },
+    {
+        "id": "three-act-beats",
+        "name": "Three-Act Beats",
+        "description": "Essential story beats for a classic three-act structure.",
+        "beats": [
+            {"id": "hook",              "name": "Hook",                 "position_pct": 1,  "description": "Opening hook that grabs the reader's attention."},
+            {"id": "inciting-incident", "name": "Inciting Incident",    "position_pct": 12, "description": "The event that sets the main conflict in motion."},
+            {"id": "first-plot-point",  "name": "First Plot Point",     "position_pct": 25, "description": "End of Act One — the protagonist commits to the main conflict."},
+            {"id": "first-pinch",       "name": "First Pinch Point",    "position_pct": 37, "description": "A reminder of the antagonist's power; raises the stakes."},
+            {"id": "midpoint",          "name": "Midpoint",             "position_pct": 50, "description": "A major revelation or shift that changes the direction of the story."},
+            {"id": "second-pinch",      "name": "Second Pinch Point",   "position_pct": 62, "description": "Another push from the antagonist; things look bleak."},
+            {"id": "second-plot-point", "name": "Second Plot Point",    "position_pct": 75, "description": "End of Act Two — the protagonist is at their lowest; finds what they need to win."},
+            {"id": "climax",            "name": "Climax",               "position_pct": 88, "description": "The final confrontation between protagonist and antagonist."},
+            {"id": "resolution",        "name": "Resolution",           "position_pct": 96, "description": "The aftermath — loose ends tied up, new normal established."},
+        ],
+    },
+]
+
+
+def seed_beat_sheets():
+    with Session(engine) as db:
+        for data in BEAT_SHEETS:
+            existing = db.get(BeatSheet, data["id"])
+            if not existing:
+                db.add(BeatSheet(**data, is_system=True))
+            else:
+                existing.name = data["name"]
+                existing.description = data["description"]
+                existing.beats = data["beats"]
                 existing.is_system = True
         db.commit()
 

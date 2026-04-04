@@ -5,6 +5,22 @@ export interface User {
   is_admin: boolean;
 }
 
+export interface Beat {
+  id: string;
+  name: string;
+  position_pct: number;
+  description: string;
+}
+
+export interface BeatSheet {
+  id: string;
+  name: string;
+  description: string;
+  is_system: boolean;
+  user_id: string | null;
+  beats: Beat[];
+}
+
 export interface StoryGoal {
   id: string;
   text: string;
@@ -24,6 +40,7 @@ export interface Story {
   central_conflict: string;
   target_audience: string;
   intended_length: string;
+  beat_sheet_id: string | null;
   narrative_intent: string;
   premise: string;
   logline: string;
@@ -72,6 +89,7 @@ export interface StructureNode {
   timeline_position: number | null;
   content_summary: string;
   summary_stale: boolean;
+  beat_id: string | null;
   created_at: string;
   updated_at: string;
   children: StructureNode[];

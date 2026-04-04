@@ -335,6 +335,9 @@ export const api = {
     request<import("../types").SceneLink>(`/scene-links/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   deleteSceneLink: (id: string) => request<void>(`/scene-links/${id}`, { method: "DELETE" }),
 
+  // Beat Sheets
+  listBeatSheets: () => request<import("../types").BeatSheet[]>("/beat-sheets"),
+
   // Global search
   search: (query: string) =>
     request<import("../types").SearchResult[]>(`/search?q=${encodeURIComponent(query)}`),

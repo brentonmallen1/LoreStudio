@@ -22,6 +22,7 @@ class Story(Base):
     central_conflict: Mapped[str] = mapped_column(Text, default="")
     target_audience: Mapped[str] = mapped_column(String, default="")
     intended_length: Mapped[str] = mapped_column(String, default="")
+    beat_sheet_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
 
     # Narrative grounding
     narrative_intent: Mapped[str] = mapped_column(Text, default="")

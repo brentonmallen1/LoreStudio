@@ -104,6 +104,16 @@ export default function SceneEditor() {
   const [editLinkType, setEditLinkType] = useState("foreshadowing");
   const [editLinkNote, setEditLinkNote] = useState("");
 
+  // Beat sheet state (for beat assignment dropdown)
+  const [beatSheet, setBeatSheet] = useState<import("../../types").BeatSheet | null>(null);
+
+  useEffect(() => {
+    if (!activeStory?.beat_sheet_id) { setBeatSheet(null); return; }
+    api.listBeatSheets()
+      .then(sheets => setBeatSheet(sheets.find(s => s.id === activeStory.beat_sheet_id) ?? null))
+      .catch(() => {});
+  }, [activeStory?.beat_sheet_id]);
+
   // Attached diagrams state
   const [attachedDiagrams, setAttachedDiagrams] = useState<DiagramSummary[]>([]);
 
@@ -859,6 +869,33 @@ export default function SceneEditor() {
               rows={2}
             />
           </div>
+          {beatSheet && (
+            <div className={styles.overviewField}>
+              <label className={styles.overviewLabel}>Beat</label>
+              <select
+                className={styles.overviewSelect}
+                value={activeNode.beat_id ?? ""}
+                onChange={async (e) => {
+                  const beat_id = e.target.value || null;
+                  const updated = await api.updateNode(activeNode.id, { beat_id });
+                  setActiveNode({ ...activeNode, ...updated });
+                }}
+              >
+                <option value="">— None —</option>
+                {beatSheet.beats.map(beat => (
+                  <option key={beat.id} value={beat.id}>
+                    {beat.position_pct}% · {beat.name}
+                  </option>
+                ))}
+              </select>
+              {activeNode.beat_id && (() => {
+                const b = beatSheet.beats.find(b => b.id === activeNode.beat_id);
+                return b?.description ? (
+                  <p className={styles.overviewHint}>{b.description}</p>
+                ) : null;
+              })()}
+            </div>
+          )}
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>
               <label className={styles.overviewLabel}>Settings</label>

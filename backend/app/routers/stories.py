@@ -55,7 +55,7 @@ def update_story(
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    for key, value in body.model_dump(exclude_none=True).items():
+    for key, value in body.model_dump(exclude_unset=True).items():
         setattr(story, key, value)
     db.commit()
     db.refresh(story)

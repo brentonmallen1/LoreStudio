@@ -32,13 +32,15 @@ from .routers.cultures import router as cultures_router
 from .routers.history import router as history_router
 from .routers.location_travel import router as location_travel_router
 from .routers.calendars import router as calendars_router
-from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story
+from .routers.beat_sheets import router as beat_sheets_router
+from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     seed_structure_templates()
+    seed_beat_sheets()
     seed_admin()
     seed_demo_story()
     seed_scifi_demo_story()
@@ -83,6 +85,7 @@ app.include_router(cultures_router, prefix="/api", tags=["cultures"])
 app.include_router(history_router, prefix="/api", tags=["history"])
 app.include_router(location_travel_router, prefix="/api", tags=["location-travel"])
 app.include_router(calendars_router, prefix="/api", tags=["calendars"])
+app.include_router(beat_sheets_router, prefix="/api", tags=["beat-sheets"])
 
 
 @app.get("/health")

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target } from "lucide-react";
+import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked } from "lucide-react";
 import { api } from "../api/client";
-import type { StoryHealth } from "../types";
+import type { StoryHealth, BeatSheet } from "../types";
+import { useStoryStore } from "../stores/storyStore";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import EconomyAnalysisPanel from "../components/health/EconomyAnalysisPanel";
@@ -22,11 +23,20 @@ function WordBar({ label, value, max, color }: { label: string; value: number; m
 }
 
 
+function flattenNodes(nodes: import("../types").StructureNode[]): import("../types").StructureNode[] {
+  const out: import("../types").StructureNode[] = [];
+  function walk(n: import("../types").StructureNode) { out.push(n); n.children.forEach(walk); }
+  nodes.forEach(walk);
+  return out;
+}
+
 export default function StoryHealthPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
+  const { activeStory, structure } = useStoryStore();
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
+  const [beatSheet, setBeatSheet] = useState<BeatSheet | null>(null);
 
   async function load() {
     if (!storyId) return;
@@ -40,6 +50,19 @@ export default function StoryHealthPage() {
   }
 
   useEffect(() => { load(); }, [storyId]);
+
+  // Load beat sheet when story changes
+  useEffect(() => {
+    if (!activeStory?.beat_sheet_id) { setBeatSheet(null); return; }
+    api.listBeatSheets()
+      .then(sheets => setBeatSheet(sheets.find(s => s.id === activeStory.beat_sheet_id) ?? null))
+      .catch(() => {});
+  }, [activeStory?.beat_sheet_id]);
+
+  // Map beat_id → node for assignment tracking
+  const assignedBeatIds = new Set(
+    flattenNodes(structure).map(n => n.beat_id).filter(Boolean) as string[]
+  );
 
   if (loading) return <div className={styles.loading}>Computing health…</div>;
   if (!health) return <div className={styles.loading}>Failed to load.</div>;
@@ -140,6 +163,57 @@ export default function StoryHealthPage() {
             </>
           )}
         </section>
+
+        {/* Beat Progress — only shown when a beat sheet is selected */}
+        {beatSheet && (
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <BookMarked size={14} className={styles.cardIcon} />
+              <h3 className={styles.cardTitle}>Beat Progress</h3>
+            </div>
+            <p className={styles.bigStatSub} style={{ marginBottom: "0.75rem" }}>
+              {beatSheet.name} · {assignedBeatIds.size}/{beatSheet.beats.length} assigned
+            </p>
+
+            {/* Visual timeline */}
+            <div className={styles.beatTimeline}>
+              <div className={styles.beatTrack} />
+              {/* Current word count position marker */}
+              {totalWords > 0 && health.word_count.target && (
+                <div
+                  className={styles.beatCursor}
+                  style={{ left: `${Math.min(100, (totalWords / health.word_count.target.max) * 100)}%` }}
+                  title={`Current: ${totalWords.toLocaleString()} words`}
+                />
+              )}
+              {beatSheet.beats.map(beat => (
+                <div
+                  key={beat.id}
+                  className={`${styles.beatMarker} ${assignedBeatIds.has(beat.id) ? styles.beatDone : ""}`}
+                  style={{ left: `${beat.position_pct}%` }}
+                  title={`${beat.name} (${beat.position_pct}%)${assignedBeatIds.has(beat.id) ? " ✓" : ""}`}
+                />
+              ))}
+            </div>
+
+            {/* Beat checklist */}
+            <div className={styles.beatList}>
+              {beatSheet.beats.map(beat => {
+                const done = assignedBeatIds.has(beat.id);
+                return (
+                  <div key={beat.id} className={`${styles.beatRow} ${done ? styles.beatRowDone : ""}`}>
+                    {done
+                      ? <CheckCircle2 size={12} style={{ color: "var(--color-accent)", flexShrink: 0 }} />
+                      : <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                    }
+                    <span className={styles.beatPct}>{beat.position_pct}%</span>
+                    <span className={styles.beatName}>{beat.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Plot Threads */}
         <section className={styles.card}>

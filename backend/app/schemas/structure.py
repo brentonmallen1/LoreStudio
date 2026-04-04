@@ -28,6 +28,7 @@ class StructureNodeUpdate(BaseModel):
     timeline_position: int | None = None
     content_summary: str | None = None
     summary_stale: bool | None = None
+    beat_id: str | None = None
     metadata_: dict | None = None
 
 
@@ -49,6 +50,7 @@ class StructureNodeOut(BaseModel):
     timeline_position: int | None = None
     content_summary: str = ""
     summary_stale: bool = True
+    beat_id: str | None = None
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime

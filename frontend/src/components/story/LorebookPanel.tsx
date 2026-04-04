@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
+import BeatSheetSelector from "./BeatSheetSelector";
 import styles from "./LorebookPanel.module.css";
 
 const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
@@ -170,7 +171,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
     });
   }, [activeStory?.id]);
 
-  function scheduleSync(patch: Partial<typeof fields>) {
+  function scheduleSync(patch: Partial<typeof fields> & { beat_sheet_id?: string | null }) {
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(async () => {
       const updated = await api.updateStory(storyId, patch);
@@ -181,6 +182,14 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
   function update(key: keyof typeof fields, value: string | string[]) {
     setFields((prev) => ({ ...prev, [key]: value }));
     scheduleSync({ [key]: value });
+  }
+
+  function updateBeatSheet(id: string | null) {
+    if (saveRef.current) clearTimeout(saveRef.current);
+    saveRef.current = setTimeout(async () => {
+      const updated = await api.updateStory(storyId, { beat_sheet_id: id });
+      setActiveStory(updated);
+    }, 300);
   }
 
   if (!activeStory) return null;
@@ -266,6 +275,16 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
               <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
             ))}
           </select>
+        </div>
+
+        {/* ── Beat Sheet ── */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Beat Sheet</h3>
+          <p className={styles.fieldHint}>Optional story structure framework. Helps track where key beats fall relative to your word count.</p>
+          <BeatSheetSelector
+            value={activeStory.beat_sheet_id}
+            onChange={updateBeatSheet}
+          />
         </div>
 
         {/* ── Themes ── */}
