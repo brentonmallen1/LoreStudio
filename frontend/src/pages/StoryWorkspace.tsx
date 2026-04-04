@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import Sidebar from "../components/layout/Sidebar";
+import StructureTreePanel from "../components/layout/StructureTreePanel";
 import InterviewPanel from "../components/layout/InterviewPanel";
 import SceneEditor from "../components/story/SceneEditor";
 import CharacterSheet from "../components/characters/CharacterSheet";
@@ -23,8 +24,11 @@ export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveStory, setStructure, setCharacters, setActiveTemplate } = useStoryStore();
-  const { interviewPanelOpen, activeInterview, viewState, viewMode } = useUIStore();
+  const { interviewPanelOpen, activeInterview, viewState, viewMode, treeDetached } = useUIStore();
   const [loading, setLoading] = useState(true);
+  const isFocused = viewState === "focus";
+  const [sidebarRevealed, setSidebarRevealed] = useState(false);
+  const sidebarHideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (!storyId) return;
@@ -50,9 +54,43 @@ export default function StoryWorkspacePage() {
     return <div className={styles.loading}>Loading…</div>;
   }
 
+  function startSidebarHide() {
+    clearTimeout(sidebarHideTimerRef.current);
+    sidebarHideTimerRef.current = setTimeout(() => setSidebarRevealed(false), 600);
+  }
+
+  function cancelSidebarHide() {
+    clearTimeout(sidebarHideTimerRef.current);
+  }
+
   return (
     <div className={styles.workspace}>
+      {/* Focus mode: hover zone on left edge reveals collapsed sidebar */}
+      {isFocused && !sidebarRevealed && (
+        <div
+          className={styles.sidebarHoverZone}
+          onMouseEnter={() => { cancelSidebarHide(); setSidebarRevealed(true); }}
+        />
+      )}
+
       {viewState === "normal" && <Sidebar />}
+      {viewState === "normal" && treeDetached && <StructureTreePanel />}
+      {isFocused && sidebarRevealed && (
+        <>
+          <Sidebar
+            collapsed={true}
+            onMouseLeave={startSidebarHide}
+            onMouseEnter={cancelSidebarHide}
+          />
+          {treeDetached && (
+            <StructureTreePanel
+              onMouseLeave={startSidebarHide}
+              onMouseEnter={cancelSidebarHide}
+              overlay
+            />
+          )}
+        </>
+      )}
 
       <main className={styles.main}>
         <Routes>

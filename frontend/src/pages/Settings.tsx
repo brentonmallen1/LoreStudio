@@ -17,7 +17,7 @@ const THEME_SWATCHES: Record<string, string[]> = {
   nord: ["#ECEFF4", "#5E81AC", "#BF616A"],
   solarized: ["#fdf6e3", "#2aa198", "#dc322f"],
   dracula: ["#282A36", "#50FA7B", "#BD93F9"],
-  gruvbox: ["#fbf1c7", "#458588", "#b16286"],
+  gruvbox: ["#fbf1c7", "#d65d0e", "#b16286"],
   catppuccin: ["#EFF1F5", "#8839EF", "#C6A0F6"],
 };
 

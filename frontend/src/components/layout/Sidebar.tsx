@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   ChevronRight,
@@ -6,7 +6,6 @@ import {
   Plus,
   Users,
   ArrowLeft,
-  Maximize2,
   Scroll,
   MessageSquareMore,
   GitBranch,
@@ -25,6 +24,9 @@ import {
   Activity,
   Home,
   PenLine,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -63,7 +65,6 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
   const hasChildren = node.children && node.children.length > 0;
   const isActive = activeNode?.id === node.id;
 
-  // Determine the child level's type name from the template
   const childLevel = depth + 1;
   const childLevelDef = activeTemplate?.levels[childLevel];
   const canAddChild = !!childLevelDef && !!storyId;
@@ -77,7 +78,6 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
       level_type: childLevelDef.name.toLowerCase(),
       position: node.children?.length ?? 0,
     });
-    // Insert child into structure tree
     function insertChild(nodes: StructureNode[]): StructureNode[] {
       return nodes.map((n) =>
         n.id === node.id
@@ -97,10 +97,7 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
         className={`${styles.nodeRowWrap} ${isActive ? styles.nodeRowWrapActive : ""}`}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
-        <button
-          onClick={() => setActiveNode(node)}
-          className={styles.nodeRow}
-        >
+        <button onClick={() => setActiveNode(node)} className={styles.nodeRow}>
           <span
             className={styles.chevron}
             onClick={hasChildren ? (e) => { e.stopPropagation(); setExpanded((x) => !x); } : undefined}
@@ -164,17 +161,57 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
   );
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean;
+  onMouseLeave?: () => void;
+  onMouseEnter?: () => void;
+}
+
+export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMouseEnter }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
   const { activeStory, structure, setStructure, characters, activeTemplate } = useStoryStore();
-  const { setViewState, viewMode, setViewMode } = useUIStore();
+  const {
+    viewMode, setViewMode,
+    sidebarCollapsed, setSidebarCollapsed,
+    sidebarTabRailHeight, setSidebarTabRailHeight,
+    treeDetached, setTreeDetached,
+  } = useUIStore();
+
+  const isCollapsed = collapsedProp ?? sidebarCollapsed;
 
   const [adding, setAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
 
-  // Derive active tab from URL — fixes visual update bug
+  // Tab rail vertical resize
+  const isResizingRail = useRef(false);
+  const resizeStartY = useRef(0);
+  const resizeStartHeight = useRef(sidebarTabRailHeight);
+
+  function startRailResize(e: React.MouseEvent) {
+    isResizingRail.current = true;
+    resizeStartY.current = e.clientY;
+    resizeStartHeight.current = sidebarTabRailHeight;
+    e.preventDefault();
+  }
+
+  useEffect(() => {
+    function onMouseMove(e: MouseEvent) {
+      if (!isResizingRail.current) return;
+      const dy = e.clientY - resizeStartY.current;
+      const newHeight = Math.max(80, Math.min(400, resizeStartHeight.current + dy));
+      setSidebarTabRailHeight(newHeight);
+    }
+    function onMouseUp() { isResizingRail.current = false; }
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [setSidebarTabRailHeight]);
+
   const tab = (() => {
     const path = location.pathname;
     if (path.includes("/characters")) return "characters";
@@ -188,7 +225,6 @@ export default function Sidebar() {
     return "overview";
   })();
 
-  // Top-level type from template (e.g. "act", "section")
   const topLevelType = activeTemplate?.levels[0]?.name.toLowerCase() ?? "section";
   const topLevelLabel = activeTemplate?.levels[0]?.name ?? "Section";
 
@@ -205,52 +241,79 @@ export default function Sidebar() {
     setAdding(false);
   }
 
-  return (
-    <aside className={styles.sidebar}>
-      <div className={styles.header}>
-        <button
-          onClick={() => navigate("/")}
-          className={styles.backBtn}
-          title="Back to dashboard"
-        >
-          <ArrowLeft size={14} />
-        </button>
-        <span className={styles.storyTitle} title={activeStory?.title}>
-          {activeStory?.title ?? "Story"}
-        </span>
-        <button
-          onClick={() => setViewState("focus")}
-          className={styles.focusBtn}
-          title="Focus mode"
-        >
-          <Maximize2 size={13} />
-        </button>
-      </div>
+  const tabs = [
+    { id: "overview",   icon: Home,              label: "Overview",          path: "" },
+    { id: "story",      icon: PenLine,           label: "Write",             path: "/write" },
+    { id: "characters", icon: Users,             label: "Characters",        path: "/characters" },
+    { id: "lorebook",   icon: Scroll,            label: "Lorebook",          path: "/lorebook" },
+    { id: "panels",     icon: MessageSquareMore, label: "Group Interviews",  path: "/panels" },
+    { id: "threads",    icon: GitBranch,         label: "Plot Threads",      path: "/threads" },
+    { id: "media",      icon: Images,            label: "Media & Diagrams",  path: "/media" },
+    { id: "health",     icon: Activity,          label: "Story Health",      path: "/health" },
+    { id: "chronicle",  icon: Clock,             label: "Chronicle",         path: "/chronicle" },
+  ] as const;
 
-      <div className={styles.tabs}>
-        {([
-          { id: "overview",   icon: Home,              title: "Overview",        path: "" },
-          { id: "story",      icon: PenLine,           title: "Write",           path: "/write" },
-          { id: "characters", icon: Users,             title: "Characters",      path: "/characters" },
-          { id: "lorebook",   icon: Scroll,            title: "Lorebook",        path: "/lorebook" },
-          { id: "panels",     icon: MessageSquareMore, title: "Group Interviews",path: "/panels" },
-          { id: "threads",    icon: GitBranch,         title: "Plot Threads",    path: "/threads" },
-          { id: "media",      icon: Images,            title: "Media & Diagrams",path: "/media" },
-          { id: "health",     icon: Activity,          title: "Story Health",    path: "/health" },
-          { id: "chronicle",  icon: Clock,             title: "Chronicle",       path: "/chronicle" },
-        ] as const).map(({ id, icon: Icon, title, path }) => (
+  return (
+    <aside
+      className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : ""} ${collapsedProp !== undefined ? styles.sidebarOverlay : ""}`}
+      onMouseLeave={onMouseLeave}
+      onMouseEnter={onMouseEnter}
+    >
+      {/* Header — expanded only */}
+      {!isCollapsed && (
+        <div className={styles.header}>
+          <button
+            onClick={() => navigate("/")}
+            className={styles.backBtn}
+            title="Back to dashboard"
+          >
+            <ArrowLeft size={14} />
+          </button>
+          <span className={styles.storyTitle} title={activeStory?.title}>
+            {activeStory?.title ?? "Story"}
+          </span>
+        </div>
+      )}
+
+      {/* Vertical tab rail */}
+      <nav
+        className={styles.tabRail}
+        style={!isCollapsed ? { height: sidebarTabRailHeight, overflowY: "auto", flexShrink: 0 } : undefined}
+      >
+        {/* Back button in collapsed state */}
+        {isCollapsed && (
+          <button
+            onClick={() => navigate("/")}
+            className={styles.railBtn}
+            title="Back to dashboard"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        )}
+
+        {tabs.map(({ id, icon: Icon, label, path }) => (
           <button
             key={id}
-            onClick={() => navigate(`/stories/${storyId}${path}`)}
-            className={`${styles.tab} ${tab === id ? styles.activeTab : ""}`}
-            title={title}
+            onClick={() => {
+              navigate(`/stories/${storyId}${path}`);
+              if (isCollapsed && id === "story" && !treeDetached) setTreeDetached(true);
+            }}
+            className={`${styles.railBtn} ${tab === id ? styles.railBtnActive : ""}`}
+            title={isCollapsed ? label : undefined}
           >
-            <Icon size={12} />
+            <Icon size={16} />
+            {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {tab === "story" && (
+      {/* Resize handle — between tab rail and tree */}
+      {!isCollapsed && (
+        <div className={styles.railResizeHandle} onMouseDown={startRailResize} />
+      )}
+
+      {/* View mode toggle — expanded + write tab only */}
+      {!isCollapsed && tab === "story" && (
         <div className={styles.viewToggle}>
           <button
             className={`${styles.viewBtn} ${viewMode === "tree" ? styles.viewActive : ""}`}
@@ -276,77 +339,109 @@ export default function Sidebar() {
         </div>
       )}
 
-      <div className={styles.tree}>
-        {tab === "story" && (
-          <>
-            {structure.length === 0 && (
-              <p className={styles.emptyHint}>No sections yet</p>
-            )}
-            {structure.map((node) => (
-              <NodeItem key={node.id} node={node} storyId={storyId} />
-            ))}
-          </>
-        )}
-
-        {tab === "characters" && (
-          <>
-            {characters.length === 0 && (
-              <p className={styles.emptyHint}>No characters yet</p>
-            )}
-            {characters.map((char) => (
+      {/* Content tree — expanded only */}
+      {!isCollapsed && (
+        <>
+          {/* Tree section header (story tab only — shows detach button) */}
+          {tab === "story" && (
+            <div className={styles.treeHeader}>
+              <span className={styles.treeHeaderLabel}>Structure</span>
               <button
-                key={char.id}
-                onClick={() => navigate(`/stories/${storyId}/characters/${char.id}`)}
-                className={`${styles.nodeRow} ${characterId === char.id ? styles.nodeActive : ""}`}
+                className={styles.treeHeaderBtn}
+                onClick={() => setTreeDetached(!treeDetached)}
+                title={treeDetached ? "Dock tree back to sidebar" : "Detach tree to side panel"}
               >
-                <span className={styles.charAvatar}>{char.name[0].toUpperCase()}</span>
-                <span className={styles.nodeLabel}>{char.name}</span>
-                <span className={styles.roleBadge}>{char.role}</span>
+                <PanelRightOpen size={12} />
               </button>
-            ))}
-          </>
-        )}
-      </div>
-
-      {tab === "story" && (
-        <div className={styles.addSection}>
-          {adding ? (
-            <input
-              autoFocus
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addTopLevelNode();
-                if (e.key === "Escape") setAdding(false);
-              }}
-              onBlur={() => {
-                if (!newTitle.trim()) setAdding(false);
-              }}
-              placeholder="Section title…"
-              className={styles.addInput}
-            />
-          ) : (
-            <button onClick={() => setAdding(true)} className={styles.addBtn}>
-              <Plus size={12} />
-              Add {topLevelLabel}
-            </button>
+            </div>
           )}
-        </div>
+
+          <div className={styles.tree}>
+            {tab === "story" && !treeDetached && (
+              <>
+                {structure.length === 0 && (
+                  <p className={styles.emptyHint}>No sections yet</p>
+                )}
+                {structure.map((node) => (
+                  <NodeItem key={node.id} node={node} storyId={storyId} />
+                ))}
+              </>
+            )}
+
+            {tab === "story" && treeDetached && (
+              <p className={styles.emptyHint}>Structure tree is open in side panel</p>
+            )}
+
+            {tab === "characters" && (
+              <>
+                {characters.length === 0 && (
+                  <p className={styles.emptyHint}>No characters yet</p>
+                )}
+                {characters.map((char) => (
+                  <button
+                    key={char.id}
+                    onClick={() => navigate(`/stories/${storyId}/characters/${char.id}`)}
+                    className={`${styles.nodeRow} ${characterId === char.id ? styles.nodeActive : ""}`}
+                  >
+                    <span className={styles.charAvatar}>{char.name[0].toUpperCase()}</span>
+                    <span className={styles.nodeLabel}>{char.name}</span>
+                    <span className={styles.roleBadge}>{char.role}</span>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+
+          {tab === "story" && !treeDetached && (
+            <div className={styles.addSection}>
+              {adding ? (
+                <input
+                  autoFocus
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") addTopLevelNode();
+                    if (e.key === "Escape") setAdding(false);
+                  }}
+                  onBlur={() => { if (!newTitle.trim()) setAdding(false); }}
+                  placeholder="Section title…"
+                  className={styles.addInput}
+                />
+              ) : (
+                <button onClick={() => setAdding(true)} className={styles.addBtn}>
+                  <Plus size={12} />
+                  Add {topLevelLabel}
+                </button>
+              )}
+            </div>
+          )}
+
+          {tab === "characters" && (
+            <div className={styles.addSection}>
+              <button
+                onClick={() => navigate(`/stories/${storyId}/characters`)}
+                className={styles.addBtn}
+              >
+                <UserCircle2 size={12} />
+                All characters
+              </button>
+            </div>
+          )}
+
+          <AIActivityIndicator />
+        </>
       )}
 
-      {tab === "characters" && (
-        <div className={styles.addSection}>
-          <button
-            onClick={() => navigate(`/stories/${storyId}/characters`)}
-            className={styles.addBtn}
-          >
-            <UserCircle2 size={12} />
-            All characters
-          </button>
-        </div>
+      {/* Collapse toggle — always at bottom, only when not in focus (prop) mode */}
+      {collapsedProp === undefined && (
+        <button
+          className={styles.collapseToggle}
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+        </button>
       )}
-
-      <AIActivityIndicator />
     </aside>
   );
 }

@@ -102,9 +102,23 @@ interface UIState {
   collapseInterviewPanel: () => void;
   setActiveInterview: (interview: Interview) => void;
 
-  // View state: normal | focus (sidebar hidden) | fullscreen (browser fullscreen + sidebar hidden)
-  viewState: "normal" | "focus" | "fullscreen";
-  setViewState: (state: "normal" | "focus" | "fullscreen") => void;
+  // View state: normal | focus (sidebar hover-reveal)
+  viewState: "normal" | "focus";
+  setViewState: (state: "normal" | "focus") => void;
+
+  // Sidebar collapsed (icon rail vs full panel)
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+
+  // Sidebar tab rail height (resizable, Write tab only)
+  sidebarTabRailHeight: number;
+  setSidebarTabRailHeight: (height: number) => void;
+
+  // Structure tree detached to second panel
+  treeDetached: boolean;
+  setTreeDetached: (detached: boolean) => void;
+  treePanelWidth: number;
+  setTreePanelWidth: (width: number) => void;
 
   // Sprint timer
   sprintActive: boolean;
@@ -260,6 +274,30 @@ export const useUIStore = create<UIState>((set) => ({
 
   viewState: "normal",
   setViewState: (state) => set({ viewState: state }),
+
+  sidebarCollapsed: localStorage.getItem("ls_sidebar_collapsed") === "true",
+  setSidebarCollapsed: (collapsed) => {
+    localStorage.setItem("ls_sidebar_collapsed", String(collapsed));
+    set({ sidebarCollapsed: collapsed });
+  },
+
+  sidebarTabRailHeight: Number(localStorage.getItem("ls_tab_rail_height") ?? 280),
+  setSidebarTabRailHeight: (height) => {
+    localStorage.setItem("ls_tab_rail_height", String(height));
+    set({ sidebarTabRailHeight: height });
+  },
+
+  treeDetached: localStorage.getItem("ls_tree_detached") === "true",
+  setTreeDetached: (detached) => {
+    localStorage.setItem("ls_tree_detached", String(detached));
+    set({ treeDetached: detached });
+  },
+
+  treePanelWidth: Number(localStorage.getItem("ls_tree_panel_width") ?? 200),
+  setTreePanelWidth: (width) => {
+    localStorage.setItem("ls_tree_panel_width", String(width));
+    set({ treePanelWidth: width });
+  },
 
   sprintActive: false,
   sprintStartTime: null,

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Minimize2 } from "lucide-react";
+import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
@@ -12,7 +12,7 @@ const THEME_SWATCHES: Record<ThemeName, string[]> = {
   nord: ["#ECEFF4", "#5E81AC", "#BF616A"],
   solarized: ["#fdf6e3", "#2aa198", "#dc322f"],
   dracula: ["#282A36", "#50FA7B", "#BD93F9"],
-  gruvbox: ["#fbf1c7", "#458588", "#b16286"],
+  gruvbox: ["#fbf1c7", "#d65d0e", "#b16286"],
   catppuccin: ["#EFF1F5", "#8839EF", "#C6A0F6"],
 };
 
@@ -44,7 +44,7 @@ export default function GlobalHeader() {
     setCommandPaletteOpen, viewState, setViewState,
   } = useUIStore();
 
-  const isFocused = viewState !== "normal";
+  const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -57,17 +57,6 @@ export default function GlobalHeader() {
   useEffect(() => {
     if (!isFocused) setRevealed(false);
   }, [isFocused]);
-
-  // If user presses Escape to exit browser fullscreen, drop back to focus
-  useEffect(() => {
-    function onFullscreenChange() {
-      if (!document.fullscreenElement && viewState === "fullscreen") {
-        setViewState("focus");
-      }
-    }
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, [viewState, setViewState]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -96,16 +85,6 @@ export default function GlobalHeader() {
     clearTimeout(hideTimerRef.current);
   }
 
-  function toggleFullscreen() {
-    if (viewState === "fullscreen") {
-      document.exitFullscreen?.();
-      setViewState("focus");
-    } else {
-      document.documentElement.requestFullscreen?.();
-      setViewState("fullscreen");
-    }
-  }
-
   const ColorModeIcon = colorMode === "dark" ? Moon : colorMode === "light" ? Sun : Monitor;
 
   return (
@@ -124,7 +103,6 @@ export default function GlobalHeader() {
         onMouseLeave={isFocused ? startHide : undefined}
       >
         <div className={styles.left}>
-          {/* Sidebar restore button — only shown in focus/fullscreen */}
           {isFocused && (
             <button
               onClick={() => setViewState("normal")}
@@ -281,16 +259,14 @@ export default function GlobalHeader() {
             <ColorModeIcon size={15} />
           </button>
 
-          {/* Fullscreen toggle — shown in focus/fullscreen mode */}
-          {isFocused && (
-            <button
-              onClick={toggleFullscreen}
-              className={styles.iconBtn}
-              title={viewState === "fullscreen" ? "Exit fullscreen" : "Enter fullscreen"}
-            >
-              {viewState === "fullscreen" ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-          )}
+          {/* Focus toggle: normal ↔ focus */}
+          <button
+            onClick={() => setViewState(isFocused ? "normal" : "focus")}
+            className={`${styles.iconBtn} ${isFocused ? styles.iconBtnActive : ""}`}
+            title={isFocused ? "Exit focus mode" : "Focus mode"}
+          >
+            <Maximize2 size={15} />
+          </button>
 
           {/* User Menu */}
           <div className={styles.dropdownWrap} ref={userMenuRef}>

@@ -13,6 +13,16 @@
 }
 
 
+/* Thin hover zone on left edge that reveals sidebar in focus mode */
+.sidebarHoverZone {
+  position: fixed;
+  top: 40px;
+  left: 0;
+  width: 6px;
+  height: calc(100% - 40px);
+  z-index: 50;
+}
+
 .loading {
   flex: 1;
   display: flex;
