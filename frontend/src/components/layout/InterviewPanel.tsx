@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp, RefreshCw, BookOpen, Settings2 } from "lucide-react";
+import { X, Minus, Send, User2, Sparkles, ChevronDown, ChevronUp, RefreshCw, BookOpen, Settings2, Brain } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -9,6 +9,31 @@ import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
 import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../llm";
 import styles from "./InterviewPanel.module.css";
+
+const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
+
+function MessageContent({ content, styles: s }: { content: string; styles: Record<string, string> }) {
+  const thinkingBlocks: string[] = [];
+  const mainContent = content.replace(THINKING_RE, (_, thought) => {
+    thinkingBlocks.push(thought.trim());
+    return "";
+  }).trim();
+
+  if (thinkingBlocks.length === 0) return <>{content}</>;
+
+  return (
+    <>
+      <details className={s.thinkingBlock}>
+        <summary className={s.thinkingSummary}>
+          <Brain size={11} />
+          Thinking
+        </summary>
+        <div className={s.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
+      </details>
+      {mainContent}
+    </>
+  );
+}
 
 export default function InterviewPanel() {
   const { activeInterview, activeInterviewCharacter, closeInterviewPanel, collapseInterviewPanel, setActiveInterview } =
@@ -29,6 +54,7 @@ export default function InterviewPanel() {
   const interviewId = activeInterview?.id ?? "";
   const character = activeInterviewCharacter;
   const chronicleSessionId = useRef<string | null>(null);
+  const pendingSessionData = useRef<{ story_id: string; context_type: string; context_id: string; context_label: string } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
 
@@ -48,6 +74,7 @@ export default function InterviewPanel() {
   const { stream: streamChat, text: chatStreamText, isStreaming } = useLLMStream({
     requestId: `interview:${interviewId}`,
     label: `Interview with ${character?.name ?? "character"}`,
+    tabId: "characters",
     onComplete: async (full) => {
       lastResponse.current = full;
       transparency.recordInteraction();
@@ -70,6 +97,7 @@ export default function InterviewPanel() {
   const { stream: streamSummary, text: summaryStreamText, isStreaming: isSummarizing } = useLLMStream({
     requestId: `interview-summary:${interviewId}`,
     label: "Summarizing interview",
+    tabId: "characters",
     onComplete: async (full) => {
       lastResponse.current = full;
       transparency.recordInteraction();
@@ -85,6 +113,7 @@ export default function InterviewPanel() {
   const { stream: streamJourneyRefresh, isStreaming: refreshingJourney } = useLLMStream({
     requestId: `journey-refresh:${activeInterviewCharacter?.id ?? ""}:${contextNodeId ?? ""}`,
     label: "Refreshing journey context",
+    tabId: "characters",
     onComplete: () => {
       if (activeInterviewCharacter && contextNodeId) {
         api.getCharacterJourney(activeInterviewCharacter.id, contextNodeId).then(setJourney).catch(() => {});
@@ -101,21 +130,20 @@ export default function InterviewPanel() {
     setShowNotes(!!(activeInterview?.interview_notes));
     setJourney(null);
     chronicleSessionId.current = null;
+    pendingSessionData.current = null;
     if (activeInterview?.context_node_id && activeInterviewCharacter) {
       api.getCharacterJourney(activeInterviewCharacter.id, activeInterview.context_node_id)
         .then(setJourney)
         .catch(() => {});
     }
-    // Create Chronicle session for this interview
+    // Store session data for lazy creation on first message
     if (activeInterview && activeInterviewCharacter && activeStory) {
-      api.createChronicleSession({
+      pendingSessionData.current = {
         story_id: activeStory.id,
         context_type: "character",
         context_id: activeInterviewCharacter.id,
         context_label: activeInterviewCharacter.name,
-      }).then((session) => {
-        chronicleSessionId.current = session.id;
-      }).catch(() => {});
+      };
     }
   }, [activeInterview?.id]);
 
@@ -123,8 +151,14 @@ export default function InterviewPanel() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatStreamText]);
 
-  function persistToChronicle(role: string, content: string) {
-    if (!chronicleSessionId.current) return;
+  async function persistToChronicle(role: string, content: string) {
+    if (!chronicleSessionId.current) {
+      if (!pendingSessionData.current) return;
+      const session = await api.createChronicleSession(pendingSessionData.current).catch(() => null);
+      if (!session) return;
+      chronicleSessionId.current = session.id;
+      pendingSessionData.current = null;
+    }
     api.addChronicleMessage(chronicleSessionId.current, { role, content }).catch(() => {});
   }
 
@@ -280,13 +314,17 @@ export default function InterviewPanel() {
             <div
               className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}
             >
-              {msg.content}
+              {msg.role === "assistant"
+                ? <MessageContent content={msg.content} styles={styles} />
+                : msg.content}
             </div>
           </div>
         ))}
-        {chatStreamText && (
+        {isStreaming && chatStreamText && (
           <div className={`${styles.messageRow} ${styles.assistant}`}>
-            <div className={`${styles.bubble} ${styles.assistantBubble}`}>{chatStreamText}</div>
+            <div className={`${styles.bubble} ${styles.assistantBubble}`}>
+              <MessageContent content={chatStreamText} styles={styles} />
+            </div>
           </div>
         )}
         {isStreaming && !chatStreamText && (

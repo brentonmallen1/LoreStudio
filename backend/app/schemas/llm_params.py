@@ -17,6 +17,8 @@ class LLMParams(BaseModel):
 class LLMSettingsRead(LLMParams):
     """LLM settings as returned by the API — includes whether they're defaults."""
     is_default: bool
+    ollama_url: str | None = None    # None = use server default
+    ollama_model: str | None = None  # None = use server default
 
 
 class LLMSettingsUpdate(BaseModel):
@@ -26,3 +28,5 @@ class LLMSettingsUpdate(BaseModel):
     top_k: int | None = Field(default=None, ge=1, le=200)
     thinking_enabled: bool | None = None
     image_token_budget: Literal[70, 140, 280, 560, 1120] | None = None
+    ollama_url: str | None = None
+    ollama_model: str | None = None

@@ -269,6 +269,42 @@
   border-bottom-left-radius: var(--radius-sm);
 }
 
+/* ── Thinking blocks ── */
+.thinkingBlock {
+  margin-bottom: 0.45rem;
+}
+
+.thinkingSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  user-select: none;
+  list-style: none;
+}
+
+.thinkingSummary::-webkit-details-marker { display: none; }
+
+.thinkingSummary:hover {
+  color: var(--color-text-muted);
+}
+
+.thinkingContent {
+  margin-top: 0.35rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-surface-2);
+  border-left: 2px solid var(--color-border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .typing {
   padding: 0.55rem 0.75rem;
   font-size: 0.82rem;

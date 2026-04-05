@@ -20,6 +20,7 @@ import SceneLinkGraph from "../components/story/SceneLinkGraph";
 import MediaPage from "./MediaPage";
 import StoryHealthPage from "./StoryHealthPage";
 import ChroniclePage from "./ChroniclePage";
+import DiscoveryQueuePage from "./DiscoveryQueuePage";
 import StoryOverviewPage from "./StoryOverviewPage";
 import styles from "./StoryWorkspace.module.css";
 
@@ -114,6 +115,7 @@ export default function StoryWorkspacePage() {
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
           <Route path="/media" element={<MediaPage />} />
           <Route path="/health" element={<StoryHealthPage />} />
+          <Route path="/discoveries" element={<DiscoveryQueuePage />} />
           <Route path="/chronicle" element={<ChroniclePage />} />
         </Routes>
       </main>

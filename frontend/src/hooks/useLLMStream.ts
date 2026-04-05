@@ -3,11 +3,12 @@ import { useLLMStore } from "../stores/llmStore";
 export interface UseLLMStreamOptions {
   requestId: string;
   label: string;
+  tabId?: string;
   onComplete?: (text: string) => void;
   onError?: () => void;
 }
 
-export function useLLMStream({ requestId, label, onComplete, onError }: UseLLMStreamOptions) {
+export function useLLMStream({ requestId, label, tabId, onComplete, onError }: UseLLMStreamOptions) {
   const startRequest = useLLMStore((s) => s.startRequest);
   const updateStream = useLLMStore((s) => s.updateStream);
   const completeRequest = useLLMStore((s) => s.completeRequest);
@@ -16,7 +17,7 @@ export function useLLMStream({ requestId, label, onComplete, onError }: UseLLMSt
   const request = useLLMStore((s) => s.requests[requestId]);
 
   const stream = async (fetchFn: (signal: AbortSignal) => Promise<Response>): Promise<string | null> => {
-    const controller = startRequest(requestId, label);
+    const controller = startRequest(requestId, label, tabId);
 
     try {
       const res = await fetchFn(controller.signal);

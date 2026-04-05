@@ -24,6 +24,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
   const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId: `story-summary:${storyId}`,
     label: "Generating story summary",
+    tabId: "overview",
     onComplete: (full) => {
       setSummary(full);
       lastSummary.current = full;

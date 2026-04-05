@@ -376,6 +376,31 @@
   line-height: 1.5;
 }
 
+.analyzeBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius);
+  color: var(--color-accent);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.analyzeBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.analyzeBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* ── Summary staleness indicators ── */
 .staleIndicatorFresh {
   display: inline-block;

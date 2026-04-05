@@ -45,8 +45,31 @@ export interface Story {
   premise: string;
   logline: string;
   goals: StoryGoal[];
+  discovery_enabled: boolean;
+  discovery_auto_analyze: boolean;
+  discovery_element_types: string[];
+  discovery_min_confidence: number;
   created_at: string;
   updated_at: string;
+}
+
+export type DiscoveryElementType = "character" | "setting" | "relationship" | "theme" | "object";
+export type DiscoveryStatus = "pending" | "approved" | "rejected";
+
+export interface DiscoveredElement {
+  id: string;
+  story_id: string;
+  element_type: DiscoveryElementType;
+  name: string;
+  description: string;
+  confidence: number;
+  source_node_id: string | null;
+  source_excerpt: string;
+  status: DiscoveryStatus;
+  merged_to_type: string | null;
+  merged_to_id: string | null;
+  created_at: string;
+  reviewed_at: string | null;
 }
 
 export interface StoryStructureTemplate {
@@ -264,6 +287,8 @@ export interface LLMParams {
   top_k?: number;
   thinking_enabled?: boolean;
   image_token_budget?: ImageTokenBudget;
+  ollama_url?: string | null;
+  ollama_model?: string | null;
 }
 
 export interface LLMSettings {
@@ -273,6 +298,8 @@ export interface LLMSettings {
   thinking_enabled: boolean;
   image_token_budget: ImageTokenBudget | null;
   is_default: boolean;
+  ollama_url: string | null;
+  ollama_model: string | null;
 }
 
 // ── Scene Chat ──
@@ -595,6 +622,7 @@ export interface ChronicleSession {
   created_at: string;
   updated_at: string;
   message_count: number;
+  last_message_preview: string | null;
 }
 
 export interface ChronicleSessionDetail extends ChronicleSession {
@@ -636,6 +664,7 @@ export interface AISettings {
 export interface AISettingsDefaults {
   core_prompt: string;
   feature_labels: Record<string, string>;
+  feature_defaults: Record<string, string>;
 }
 
 export interface AISettingsUpdate {

@@ -21,6 +21,7 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
   const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId: `relationships:${storyId}`,
     label: "Analyzing relationships",
+    tabId: "characters",
     onComplete: (full) => {
       setResult(full);
       lastResult.current = full;

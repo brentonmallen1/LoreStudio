@@ -500,11 +500,12 @@ export const api = {
 
   // Chronicle — sessions
   listChronicleSessions: (params: {
-    story_id?: string; context_type?: string; archived?: boolean; page?: number; page_size?: number;
+    story_id?: string; context_type?: string; context_id?: string; archived?: boolean; page?: number; page_size?: number;
   }) => {
     const q = new URLSearchParams();
     if (params.story_id) q.set("story_id", params.story_id);
     if (params.context_type) q.set("context_type", params.context_type);
+    if (params.context_id) q.set("context_id", params.context_id);
     if (params.archived !== undefined) q.set("archived", String(params.archived));
     if (params.page) q.set("page", String(params.page));
     if (params.page_size) q.set("page_size", String(params.page_size));
@@ -591,6 +592,12 @@ export const api = {
     }),
   resetLLMSettings: () =>
     request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
+
+  // Ollama connectivity
+  ollamaStatus: () =>
+    request<{ connected: boolean; model: string; model_available: boolean; base_url: string }>("/ollama/status"),
+  ollamaModels: () =>
+    request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>("/ollama/models"),
 
   // World Building — Locations
   listLocations: (storyId: string) =>
@@ -727,4 +734,28 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteCalendar: (id: string) => request<void>(`/calendars/${id}`, { method: "DELETE" }),
+
+  // Discovery
+  runDiscovery: (storyId: string, nodeId?: string) =>
+    request<import("../types").DiscoveredElement[]>(`/stories/${storyId}/discover`, {
+      method: "POST",
+      body: JSON.stringify({ node_id: nodeId ?? null }),
+    }),
+  listDiscoveries: (storyId: string, status = "pending") =>
+    request<import("../types").DiscoveredElement[]>(
+      `/stories/${storyId}/discoveries?status=${status}`
+    ),
+  countPendingDiscoveries: (storyId: string) =>
+    request<{ count: number }>(`/stories/${storyId}/discoveries/count`),
+  approveDiscovery: (elementId: string, overrides?: { name?: string; description?: string }) =>
+    request<import("../types").DiscoveredElement>(`/discoveries/${elementId}/approve`, {
+      method: "POST",
+      body: JSON.stringify(overrides ?? {}),
+    }),
+  rejectDiscovery: (elementId: string) =>
+    request<import("../types").DiscoveredElement>(`/discoveries/${elementId}/reject`, {
+      method: "POST",
+    }),
+  deleteDiscovery: (elementId: string) =>
+    request<void>(`/discoveries/${elementId}`, { method: "DELETE" }),
 };

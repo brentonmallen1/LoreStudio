@@ -1,8 +1,52 @@
 import { useState, useEffect } from "react";
-import { RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
+import { RotateCcw, ChevronDown, ChevronRight, Info, Copy, Check, X } from "lucide-react";
 import { api } from "../api/client";
 import type { AISettings, AISettingsDefaults } from "../types";
 import styles from "./SettingsAI.module.css";
+
+interface DefaultPromptModalProps {
+  label: string;
+  prompt: string;
+  onClose: () => void;
+}
+
+function DefaultPromptModal({ label, prompt, onClose }: DefaultPromptModalProps) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(prompt).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  return (
+    <div className={styles.modalBackdrop} onClick={handleBackdropClick}>
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <span className={styles.modalTitle}>Default: {label}</span>
+          <button className={styles.modalClose} onClick={onClose} aria-label="Close">
+            <X size={15} />
+          </button>
+        </div>
+        <p className={styles.modalNote}>
+          Story and character context is automatically prepended at runtime. This is the behavioral instruction portion.
+        </p>
+        <pre className={styles.modalPrompt}>{prompt}</pre>
+        <div className={styles.modalActions}>
+          <button className={styles.copyBtn} onClick={handleCopy}>
+            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SettingsAIPage() {
   const [settings, setSettings] = useState<AISettings | null>(null);
@@ -13,6 +57,7 @@ export default function SettingsAIPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [defaultModal, setDefaultModal] = useState<{ featureId: string; label: string } | null>(null);
 
   useEffect(() => {
     Promise.all([api.getAISettings(), api.getAISettingsDefaults()])
@@ -155,6 +200,7 @@ export default function SettingsAIPage() {
               const isExpanded = expandedFeature === featureId;
               const isCustom = Boolean(settings?.feature_prompts[featureId]);
               const currentValue = featureEdits[featureId] ?? "";
+              const hasDefault = Boolean(defaults.feature_defaults[featureId]);
 
               return (
                 <div key={featureId} className={styles.featureItem}>
@@ -167,6 +213,26 @@ export default function SettingsAIPage() {
                     </span>
                     <span className={styles.featureLabel}>{label}</span>
                     {isCustom && <span className={styles.customBadge}>Custom</span>}
+                    {hasDefault && (
+                      <span
+                        className={styles.infoBtn}
+                        role="button"
+                        tabIndex={0}
+                        title="View default prompt"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDefaultModal({ featureId, label });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.stopPropagation();
+                            setDefaultModal({ featureId, label });
+                          }
+                        }}
+                      >
+                        <Info size={13} />
+                      </span>
+                    )}
                   </button>
 
                   {isExpanded && (
@@ -209,6 +275,14 @@ export default function SettingsAIPage() {
           </div>
         </section>
       </main>
+
+      {defaultModal && defaults?.feature_defaults[defaultModal.featureId] && (
+        <DefaultPromptModal
+          label={defaultModal.label}
+          prompt={defaults.feature_defaults[defaultModal.featureId]}
+          onClose={() => setDefaultModal(null)}
+        />
+      )}
     </div>
   );
 }

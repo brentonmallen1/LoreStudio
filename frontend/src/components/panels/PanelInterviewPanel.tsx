@@ -77,6 +77,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
   const { stream, text: streamingText, isStreaming: sending } = useLLMStream({
     requestId: `panel:${panelId}`,
     label: panelTitle,
+    tabId: "panels",
     onComplete: (full) => {
       lastResponse.current = full;
       transparency.recordInteraction();

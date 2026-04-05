@@ -39,6 +39,7 @@ class ChatSessionOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     message_count: int = 0
+    last_message_preview: str | None = None  # truncated preview of most recent message
 
     model_config = {"from_attributes": True}
 

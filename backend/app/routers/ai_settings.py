@@ -15,7 +15,7 @@ from ..models.user import User
 from ..auth.dependencies import get_current_user
 from ..schemas.ai_settings import AISettingsRead, AISettingsUpdate, AISettingsDefaults
 from ..services.llm.prompts.core import CORE_SYSTEM_PROMPT
-from ..services.llm.prompts import FEATURE_LABELS
+from ..services.llm.prompts import FEATURE_LABELS, FEATURE_DEFAULT_INSTRUCTIONS
 
 router = APIRouter()
 
@@ -47,6 +47,7 @@ def get_ai_settings_defaults(
     return AISettingsDefaults(
         core_prompt=CORE_SYSTEM_PROMPT,
         feature_labels=FEATURE_LABELS,
+        feature_defaults=FEATURE_DEFAULT_INSTRUCTIONS,
     )
 
 

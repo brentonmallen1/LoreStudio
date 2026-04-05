@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, Boolean, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
@@ -31,6 +31,15 @@ class Story(Base):
 
     # Story goals checklist
     goals: Mapped[list] = mapped_column(JSON, default=list)
+
+    # Discovery writer settings
+    discovery_enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    discovery_auto_analyze: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    discovery_element_types: Mapped[list] = mapped_column(
+        JSON, default=lambda: ["character", "setting", "relationship"]
+    )
+    discovery_min_confidence: Mapped[float] = mapped_column(Float, default=0.6, server_default="0.6")
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
@@ -56,6 +65,9 @@ class Story(Base):
     )
     plot_threads: Mapped[list["PlotThread"]] = relationship(
         "PlotThread", back_populates="story", cascade="all, delete-orphan"
+    )
+    discovered_elements: Mapped[list["DiscoveredElement"]] = relationship(
+        "DiscoveredElement", back_populates="story", cascade="all, delete-orphan"
     )
     compendium_entries: Mapped[list["CompendiumEntry"]] = relationship(
         "CompendiumEntry", back_populates="story", cascade="all, delete-orphan"

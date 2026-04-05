@@ -14,6 +14,7 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
   const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId: `economy:${storyId}`,
     label: "Analyzing story economy",
+    tabId: "health",
     onComplete: (full) => setResult(full),
     onError: () => setResult("⚠ Error running economy analysis."),
   });

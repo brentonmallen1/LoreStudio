@@ -29,8 +29,10 @@ import {
   PanelRightOpen,
   BookOpen,
   Globe,
+  Telescope,
   type LucideIcon,
 } from "lucide-react";
+import { useDiscoveryStore } from "../../stores/discoveryStore";
 
 // Map segment types to icons for visual distinction
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
@@ -55,6 +57,8 @@ function segmentColor(levelType: string): string {
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { useLLMStore } from "../../stores/llmStore";
+import { TabActivityIndicator } from "./TabActivityIndicator";
 import type { StructureNode } from "../../types";
 import AIActivityIndicator from "./AIActivityIndicator";
 import styles from "./Sidebar.module.css";
@@ -180,6 +184,9 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     sidebarTabRailHeight, setSidebarTabRailHeight,
     treeDetached, setTreeDetached,
   } = useUIStore();
+  const { pendingCount, refreshCount } = useDiscoveryStore();
+  const getTabStatus = useLLMStore((s) => s.getTabStatus);
+  const markViewed = useLLMStore((s) => s.markViewed);
 
   const isCollapsed = collapsedProp ?? sidebarCollapsed;
 
@@ -214,6 +221,11 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     };
   }, [setSidebarTabRailHeight]);
 
+  // Refresh discovery badge count when story changes
+  useEffect(() => {
+    if (storyId && activeStory?.discovery_enabled) refreshCount(storyId);
+  }, [storyId, activeStory?.discovery_enabled]);
+
   const tab = (() => {
     const path = location.pathname;
     if (path.includes("/characters")) return "characters";
@@ -225,6 +237,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/health")) return "health";
     if (path.includes("/chronicle")) return "chronicle";
     if (path.includes("/worldbuilding")) return "worldbuilding";
+    if (path.includes("/discoveries")) return "discoveries";
     if (path.includes("/write")) return "story";
     return "overview";
   })();
@@ -245,19 +258,22 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     setAdding(false);
   }
 
-  const tabs = [
-    { id: "overview",   icon: Home,              label: "Overview",          path: "" },
-    { id: "story",      icon: PenLine,           label: "Write",             path: "/write" },
-    { id: "characters", icon: Users,             label: "Characters",        path: "/characters" },
-    { id: "lorebook",   icon: Scroll,            label: "Lorebook",          path: "/lorebook" },
-    { id: "compendium", icon: BookOpen,          label: "Compendium",        path: "/compendium" },
-    { id: "panels",     icon: MessageSquareMore, label: "Group Interviews",  path: "/panels" },
-    { id: "threads",    icon: GitBranch,         label: "Plot Threads",      path: "/threads" },
-    { id: "worldbuilding", icon: Globe,             label: "World Building",    path: "/worldbuilding" },
-    { id: "media",         icon: Images,           label: "Media & Diagrams",  path: "/media" },
-    { id: "health",        icon: Activity,         label: "Story Health",      path: "/health" },
-    { id: "chronicle",     icon: Clock,            label: "Chronicle",         path: "/chronicle" },
-  ] as const;
+  const tabs: { id: string; icon: LucideIcon; label: string; path: string; badge?: number }[] = [
+    { id: "overview",      icon: Home,              label: "Overview",         path: "" },
+    { id: "story",         icon: PenLine,           label: "Write",            path: "/write" },
+    { id: "characters",    icon: Users,             label: "Characters",       path: "/characters" },
+    { id: "lorebook",      icon: Scroll,            label: "Lorebook",         path: "/lorebook" },
+    { id: "compendium",    icon: BookOpen,          label: "Compendium",       path: "/compendium" },
+    { id: "panels",        icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
+    { id: "threads",       icon: GitBranch,         label: "Plot Threads",     path: "/threads" },
+    { id: "worldbuilding", icon: Globe,             label: "World Building",   path: "/worldbuilding" },
+    { id: "media",         icon: Images,            label: "Media & Diagrams", path: "/media" },
+    { id: "health",        icon: Activity,          label: "Story Health",     path: "/health" },
+    ...(activeStory?.discovery_enabled
+      ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
+      : []),
+    { id: "chronicle",     icon: Clock,             label: "Chronicle",        path: "/chronicle" },
+  ];
 
   return (
     <aside
@@ -297,20 +313,41 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
           </button>
         )}
 
-        {tabs.map(({ id, icon: Icon, label, path }) => (
-          <button
-            key={id}
-            onClick={() => {
-              navigate(`/stories/${storyId}${path}`);
-              if (isCollapsed && id === "story" && !treeDetached) setTreeDetached(true);
-            }}
-            className={`${styles.railBtn} ${tab === id ? styles.railBtnActive : ""}`}
-            title={isCollapsed ? label : undefined}
-          >
-            <Icon size={16} />
-            {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
-          </button>
-        ))}
+        {tabs.map(({ id, icon: Icon, label, path, badge }) => {
+          const activityStatus = getTabStatus(id);
+          return (
+            <button
+              key={id}
+              onClick={() => {
+                navigate(`/stories/${storyId}${path}`);
+                if (isCollapsed && id === "story" && !treeDetached) setTreeDetached(true);
+                markViewed(id);
+              }}
+              className={`${styles.railBtn} ${tab === id ? styles.railBtnActive : ""}`}
+              title={isCollapsed ? (badge ? `${label} (${badge})` : label) : undefined}
+            >
+              <Icon size={16} />
+              {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
+              {badge ? (
+                <span style={{
+                  marginLeft: "auto",
+                  background: "var(--color-accent)",
+                  color: "white",
+                  borderRadius: "9px",
+                  fontSize: "9px",
+                  fontWeight: 700,
+                  padding: "1px 5px",
+                  minWidth: "16px",
+                  textAlign: "center",
+                  lineHeight: "14px",
+                  flexShrink: 0,
+                }}>{badge}</span>
+              ) : (
+                <TabActivityIndicator status={activityStatus} />
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Resize handle — between tab rail and tree */}

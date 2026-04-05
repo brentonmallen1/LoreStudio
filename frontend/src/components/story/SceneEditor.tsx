@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, Telescope, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -61,6 +61,7 @@ function flattenStructure(nodes: StructureNode[]): StructureNode[] {
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { useDiscoveryStore } from "../../stores/discoveryStore";
 import StorySummaryPanel from "./StorySummaryPanel";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "./SprintTimer";
@@ -72,6 +73,7 @@ import styles from "./SceneEditor.module.css";
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
   const { chatPanelOpen, openChatPanel, closeChatPanel } = useUIStore();
+  const { runDiscovery, isAnalyzing: isDiscoveryAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,6 +197,10 @@ export default function SceneEditor() {
         setSaveState("saved");
         if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
         savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), 2000);
+        // Auto-analyze for discoveries if enabled
+        if (activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
+          runDiscovery(activeNode.story_id, activeNode.id).catch(() => {});
+        }
       }, 1200);
     },
   });
@@ -238,6 +244,7 @@ export default function SceneEditor() {
   const { stream: streamSummary, text: summaryStreamText, isStreaming: generatingSummary } = useLLMStream({
     requestId: activeNode ? `scene-summary:${activeNode.id}` : "scene-summary:none",
     label: "Summarizing scene",
+    tabId: "story",
     onComplete: (full) => {
       setContentSummary(full);
       if (activeNode) {
@@ -1136,6 +1143,19 @@ export default function SceneEditor() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+          {activeStory?.discovery_enabled && (
+            <div className={styles.overviewField}>
+              <button
+                className={styles.analyzeBtn}
+                onClick={() => runDiscovery(activeNode.story_id, activeNode.id).catch(() => {})}
+                disabled={isDiscoveryAnalyzing}
+                title="Analyze this scene for new characters, settings, and other story elements"
+              >
+                <Telescope size={12} />
+                {isDiscoveryAnalyzing ? "Analyzing…" : "Analyze for discoveries"}
+              </button>
             </div>
           )}
           {activeStory && (

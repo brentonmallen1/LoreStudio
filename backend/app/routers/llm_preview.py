@@ -115,7 +115,7 @@ def get_prompt_preview(
             ContextSource(source="story_goals", label="Story goals", included=bool(story.goals)),
             ContextSource(source="scene_metadata", label=f"Scene: {node.title}", included=True),
             ContextSource(source="scene_synopsis", label="Scene synopsis", included=bool(node.synopsis)),
-            ContextSource(source="scene_purpose", label="Scene purpose", included=bool(node.purpose)),
+            ContextSource(source="scene_purpose", label="Scene purpose", included=bool((node.metadata_ or {}).get("purpose"))),
             ContextSource(source="scene_entry_exit", label="Entry/exit state", included=bool(node.entry_state or node.exit_state)),
             ContextSource(source="characters_in_scene", label=f"Characters in scene ({len(chars_in_scene)})", included=bool(chars_in_scene)),
             ContextSource(source="threads_in_scene", label=f"Plot threads ({len(threads_in_scene)})", included=bool(threads_in_scene)),

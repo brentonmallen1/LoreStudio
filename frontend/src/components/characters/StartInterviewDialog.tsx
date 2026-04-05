@@ -28,6 +28,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   const { stream: streamRefresh, text: refreshStreamText, isStreaming: refreshing } = useLLMStream({
     requestId: `journey-refresh:${character.id}:${contextNodeId}`,
     label: "Refreshing journey context",
+    tabId: "characters",
     onComplete: () => {
       // Reload the journey after refresh
       if (contextNodeId) loadJourney(contextNodeId);

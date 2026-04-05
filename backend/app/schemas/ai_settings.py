@@ -17,4 +17,5 @@ class AISettingsUpdate(BaseModel):
 class AISettingsDefaults(BaseModel):
     """Default prompts as shipped (not user-customized)."""
     core_prompt: str
-    feature_labels: dict[str, str]  # feature_id -> human label
+    feature_labels: dict[str, str]   # feature_id -> human label
+    feature_defaults: dict[str, str]  # feature_id -> default behavioral instruction

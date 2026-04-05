@@ -52,6 +52,11 @@ def _session_or_404(session_id: str, db: Session, user: User) -> ChatSession:
 
 
 def _session_to_out(s: ChatSession) -> ChatSessionOut:
+    last = s.messages[-1] if s.messages else None
+    preview = None
+    if last:
+        text = last.content[:120].replace("\n", " ").strip()
+        preview = f"{text}…" if len(last.content) > 120 else text
     return ChatSessionOut(
         id=s.id,
         story_id=s.story_id,
@@ -64,6 +69,7 @@ def _session_to_out(s: ChatSession) -> ChatSessionOut:
         created_at=s.created_at,
         updated_at=s.updated_at,
         message_count=len(s.messages),
+        last_message_preview=preview,
     )
 
 
@@ -73,6 +79,7 @@ def _session_to_out(s: ChatSession) -> ChatSessionOut:
 def list_sessions(
     story_id: str | None = Query(None),
     context_type: str | None = Query(None),
+    context_id: str | None = Query(None),
     archived: bool = Query(False),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -87,6 +94,8 @@ def list_sessions(
         q = q.filter(ChatSession.story_id == story_id)
     if context_type:
         q = q.filter(ChatSession.context_type == context_type)
+    if context_id:
+        q = q.filter(ChatSession.context_id == context_id)
 
     total = q.count()
     sessions = q.order_by(ChatSession.updated_at.desc()).offset((page - 1) * page_size).limit(page_size).all()

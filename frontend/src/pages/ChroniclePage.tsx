@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Search, MessageSquare, Activity, ChevronLeft, Trash2, Archive,
-  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw,
+  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X,
 } from "lucide-react";
 import { api } from "../api/client";
 import type { ChronicleSession, ChronicleSessionDetail, ActivityLog, ChronicleSearchResult } from "../types";
@@ -51,17 +51,35 @@ function SessionCard({
   onClick,
   onArchive,
   onDelete,
+  selected,
+  onToggle,
+  selectionActive,
 }: {
   session: ChronicleSession;
   onClick: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  selected: boolean;
+  onToggle: () => void;
+  selectionActive: boolean;
 }) {
   return (
-    <div className={styles.card} onClick={onClick}>
+    <div
+      className={`${styles.card} ${selected ? styles.selectedCard : ""}`}
+      onClick={selectionActive ? onToggle : onClick}
+    >
+      <div
+        className={`${styles.checkboxWrap} ${selectionActive ? styles.checkboxVisible : ""}`}
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      >
+        {selected ? <CheckSquare size={15} className={styles.checkboxOn} /> : <Square size={15} className={styles.checkboxOff} />}
+      </div>
       <div className={styles.cardIcon}>{CONTEXT_ICONS[session.context_type] ?? <MessageSquare size={12} />}</div>
       <div className={styles.cardBody}>
         <p className={styles.cardTitle}>{sessionTitle(session)}</p>
+        {session.last_message_preview && (
+          <p className={styles.cardPreview}>{session.last_message_preview}</p>
+        )}
         <p className={styles.cardMeta}>
           {session.message_count} {session.message_count === 1 ? "message" : "messages"}
           {" · "}
@@ -78,25 +96,82 @@ function SessionCard({
 
 // ── Activity log card ──────────────────────────────────────────────────
 
+const FEATURE_LABELS: Record<string, string> = {
+  "scene-chat": "Scene Assistant",
+  "interview": "Character Interview",
+  "interview-summary": "Interview Summary",
+  "panel-interview": "Group Interview",
+  "story-summary": "Story Summary",
+  "scene-summary": "Scene Summary",
+  "attribute-generation": "Attribute Generation",
+  "relationship-suggestion": "Relationship Suggestion",
+  "perspective-summary": "Perspective Summary",
+  "economy-analysis": "Economy Analysis",
+  "story-recap": "Story Recap",
+  "character-journey": "Character Journey",
+  "discovery": "Element Discovery",
+  "media-analysis": "Media Analysis",
+};
+
+function featureLabel(log: ActivityLog): string {
+  const feature = log.metadata_?.feature as string | undefined;
+  if (feature && FEATURE_LABELS[feature]) return FEATURE_LABELS[feature];
+  // Fall back to humanising the event_type
+  return log.event_type.replace(/^ai_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function LogCard({ log }: { log: ActivityLog }) {
+  const [expanded, setExpanded] = useState(false);
   const categoryColor: Record<string, string> = {
     ai: "var(--color-accent)",
     system: "var(--color-text-subtle)",
     task: "var(--segment-chapter)",
   };
+  const prompt = log.metadata_?.prompt as string | undefined;
+  const response = log.metadata_?.response as string | undefined;
+  const model = log.metadata_?.model as string | undefined;
+  const tokensIn = log.metadata_?.tokens_in as number | undefined;
+  const tokensOut = log.metadata_?.tokens_out as number | undefined;
+  const hasContent = !!(prompt || response);
+
+  // Strip thinking blocks from response preview
+  const responsePreview = response?.replace(/<\|channel>thought\n[\s\S]*?<channel\|>/g, "").trim();
+
   return (
-    <div className={`${styles.card} ${styles.logCard}`}>
+    <div
+      className={`${styles.card} ${styles.logCard} ${hasContent ? styles.logCardExpandable : ""}`}
+      onClick={() => hasContent && setExpanded((v) => !v)}
+    >
       <div className={styles.cardIcon}>
         <Activity size={12} style={{ color: categoryColor[log.category] ?? "var(--color-text-subtle)" }} />
       </div>
       <div className={styles.cardBody}>
-        <p className={styles.cardTitle}>{log.description}</p>
+        <p className={styles.cardTitle}>{featureLabel(log)}</p>
+        {prompt && <p className={`${styles.cardPreview} ${styles.logPromptPreview}`}>{prompt}</p>}
+        {responsePreview && <p className={styles.cardPreview}>{responsePreview}</p>}
         <p className={styles.cardMeta}>
-          <span className={styles.badge}>{log.event_type}</span>
+          {model && <span className={styles.badge}>{model}</span>}
+          {tokensIn != null && <span>{tokensIn}↑ {tokensOut}↓ tokens</span>}
           {" · "}
           {relativeTime(log.created_at)}
         </p>
       </div>
+      {expanded && (
+        <div className={styles.logDetail}>
+          {prompt && (
+            <div className={styles.logMessage}>
+              <span className={styles.logRole}>You</span>
+              <p className={styles.logContent}>{prompt}</p>
+            </div>
+          )}
+          {response && (
+            <div className={styles.logMessage}>
+              <span className={styles.logRole}>AI</span>
+              <p className={styles.logContent}>{responsePreview}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -169,6 +244,8 @@ export default function ChroniclePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("");
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
 
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -211,9 +288,10 @@ export default function ChroniclePage() {
     }
   }, [storyId]);
 
-  // Initial + filter-change loads
+  // Initial + filter-change loads; clear selection on context change
   useEffect(() => {
     setPage(1);
+    clearSelection();
     if (tab === "chats") loadSessions(1);
     else if (tab === "activity") loadLogs(1);
   }, [tab, filterType, showArchived, loadSessions, loadLogs]);
@@ -236,6 +314,40 @@ export default function ChroniclePage() {
     await api.deleteChronicleSession(id);
     setSessions((prev) => prev.filter((s) => s.id !== id));
     setTotalSessions((n) => n - 1);
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function selectAll() {
+    setSelectedIds(new Set(sessions.map((s) => s.id)));
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function bulkArchive() {
+    setBulkWorking(true);
+    await Promise.all([...selectedIds].map((id) => api.updateChronicleSession(id, { archived: true })));
+    setSessions((prev) => prev.filter((s) => !selectedIds.has(s.id)));
+    setTotalSessions((n) => n - selectedIds.size);
+    clearSelection();
+    setBulkWorking(false);
+  }
+
+  async function bulkDelete() {
+    setBulkWorking(true);
+    await Promise.all([...selectedIds].map((id) => api.deleteChronicleSession(id)));
+    setSessions((prev) => prev.filter((s) => !selectedIds.has(s.id)));
+    setTotalSessions((n) => n - selectedIds.size);
+    clearSelection();
+    setBulkWorking(false);
   }
 
   function loadMore() {
@@ -294,7 +406,10 @@ export default function ChroniclePage() {
               onClick={() => { setTab(t); setSearchQuery(""); }}
             >
               {t === "chats" ? <MessageSquare size={12} /> : <Activity size={12} />}
-              {t === "chats" ? "Conversations" : "Activity"}
+              <span style={{ flex: 1 }}>{t === "chats" ? "Conversations" : "Activity"}</span>
+              <span className={styles.tabCount}>
+                {t === "chats" ? totalSessions : totalLogs}
+              </span>
             </button>
           ))}
 
@@ -325,9 +440,38 @@ export default function ChroniclePage() {
 
         {/* ── Results ── */}
         <div className={styles.results}>
+          {/* Tab blurbs */}
+          {tab === "chats" && (
+            <p className={styles.tabBlurb}>
+              Conversations are direct back-and-forth chats with the AI — scene assistants, character interviews, and group panels. Each session is tied to a specific context and can be resumed.
+            </p>
+          )}
+          {tab === "activity" && (
+            <p className={styles.tabBlurb}>
+              Activity logs every task the AI executes on your behalf — generating suggestions, summarizing scenes, analyzing perspectives, and other background operations. Click any entry to see the full prompt and response.
+            </p>
+          )}
+
           {/* Chats tab */}
           {tab === "chats" && (
             <>
+              {selectedIds.size > 0 && (
+                <div className={styles.bulkBar}>
+                  <span className={styles.bulkCount}>{selectedIds.size} selected</span>
+                  <button className={styles.bulkBtn} onClick={selectAll} disabled={bulkWorking}>
+                    <CheckSquare size={13} /> Select all ({sessions.length})
+                  </button>
+                  <button className={styles.bulkBtn} onClick={bulkArchive} disabled={bulkWorking}>
+                    <Archive size={13} /> Archive
+                  </button>
+                  <button className={`${styles.bulkBtn} ${styles.bulkDanger}`} onClick={bulkDelete} disabled={bulkWorking}>
+                    <Trash2 size={13} /> Delete
+                  </button>
+                  <button className={styles.bulkClear} onClick={clearSelection} disabled={bulkWorking} title="Clear selection">
+                    <X size={13} />
+                  </button>
+                </div>
+              )}
               {sessions.length === 0 && !loading && (
                 <p className={styles.empty}>No conversations yet. Start a scene or character chat to see history here.</p>
               )}
@@ -338,6 +482,9 @@ export default function ChroniclePage() {
                   onClick={() => setSelectedSessionId(s.id)}
                   onArchive={() => archiveSession(s.id)}
                   onDelete={() => deleteSession(s.id)}
+                  selected={selectedIds.has(s.id)}
+                  onToggle={() => toggleSelect(s.id)}
+                  selectionActive={selectedIds.size > 0}
                 />
               ))}
             </>
@@ -368,6 +515,9 @@ export default function ChroniclePage() {
                       onClick={() => setSelectedSessionId(r.session!.id)}
                       onArchive={() => archiveSession(r.session!.id)}
                       onDelete={() => deleteSession(r.session!.id)}
+                      selected={false}
+                      onToggle={() => {}}
+                      selectionActive={false}
                     />
                     {r.excerpt && <p className={styles.excerpt}>…{r.excerpt}…</p>}
                   </div>

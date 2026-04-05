@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, ChevronDown, ChevronUp, Sparkles, Bot, User2, Info, BookOpen, Settings2 } from "lucide-react";
+import { X, Send, ChevronDown, ChevronUp, Sparkles, Bot, User2, Info, BookOpen, Settings2, Brain } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import type { ChatMessage, ChatContextPreview, LLMParams } from "../../types";
@@ -79,6 +79,31 @@ const STARTER_PROMPTS = [
   "What should the reader feel leaving this scene?",
 ];
 
+const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
+
+function MessageContent({ content, styles: s }: { content: string; styles: Record<string, string> }) {
+  const thinkingBlocks: string[] = [];
+  const mainContent = content.replace(THINKING_RE, (_, thought) => {
+    thinkingBlocks.push(thought.trim());
+    return "";
+  }).trim();
+
+  if (thinkingBlocks.length === 0) return <>{content}</>;
+
+  return (
+    <>
+      <details className={s.thinkingBlock}>
+        <summary className={s.thinkingSummary}>
+          <Brain size={11} />
+          Thinking
+        </summary>
+        <div className={s.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
+      </details>
+      {mainContent}
+    </>
+  );
+}
+
 export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const { closeChatPanel } = useUIStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -97,6 +122,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(340);
   const chronicleSessionId = useRef<string | null>(null);
+  const pendingSessionData = useRef<{ story_id: string; context_type: string; context_id: string; context_label: string } | null>(null);
 
   function startResize(e: React.MouseEvent) {
     isResizing.current = true;
@@ -131,6 +157,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const { stream, text: chatStreamText, isStreaming: streaming } = useLLMStream({
     requestId: `scene-chat:${storyId}:${nodeId}`,
     label: "Scene assistant",
+    tabId: "story",
     onComplete: (full) => {
       lastResponse.current = full;
       transparency.recordInteraction();
@@ -146,21 +173,34 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
     },
   });
 
-  // Load context preview and create Chronicle session on mount
+  // Load context preview and resume or create Chronicle session on mount
   useEffect(() => {
     setLoadingCtx(true);
     api.getChatContext(storyId, nodeId)
-      .then((context) => {
+      .then(async (context) => {
         setCtx(context);
-        // Create Chronicle session in background
-        api.createChronicleSession({
+        // Look for an existing active session for this scene
+        const { sessions } = await api.listChronicleSessions({
           story_id: storyId,
           context_type: "scene",
           context_id: nodeId,
-          context_label: context.scene?.title ?? "",
-        }).then((session) => {
-          chronicleSessionId.current = session.id;
-        }).catch(() => {});
+          archived: false,
+          page_size: 1,
+        });
+        if (sessions.length > 0) {
+          // Resume existing session — load its messages
+          const detail = await api.getChronicleSession(sessions[0].id);
+          chronicleSessionId.current = detail.id;
+          setMessages(detail.messages.map((m) => ({ role: m.role, content: m.content })));
+        } else {
+          // No prior session — store data for lazy creation on first message
+          pendingSessionData.current = {
+            story_id: storyId,
+            context_type: "scene",
+            context_id: nodeId,
+            context_label: context.scene?.title ?? "",
+          };
+        }
       })
       .catch(() => {})
       .finally(() => setLoadingCtx(false));
@@ -171,8 +211,14 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatStreamText]);
 
-  function persist(role: string, content: string) {
-    if (!chronicleSessionId.current) return;
+  async function persist(role: string, content: string) {
+    if (!chronicleSessionId.current) {
+      if (!pendingSessionData.current) return;
+      const session = await api.createChronicleSession(pendingSessionData.current).catch(() => null);
+      if (!session) return;
+      chronicleSessionId.current = session.id;
+      pendingSessionData.current = null;
+    }
     api.addChronicleMessage(chronicleSessionId.current, { role, content }).catch(() => {});
   }
 
@@ -296,13 +342,19 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
             <div className={styles.messageAvatar}>
               {msg.role === "user" ? <User2 size={13} /> : <Bot size={13} />}
             </div>
-            <div className={styles.messageContent}>{msg.content}</div>
+            <div className={styles.messageContent}>
+                {msg.role === "assistant"
+                  ? <MessageContent content={msg.content} styles={styles} />
+                  : msg.content}
+              </div>
           </div>
         ))}
-        {chatStreamText && (
+        {streaming && chatStreamText && (
           <div className={`${styles.message} ${styles.assistantMessage}`}>
             <div className={styles.messageAvatar}><Bot size={13} /></div>
-            <div className={styles.messageContent}>{chatStreamText}</div>
+            <div className={styles.messageContent}>
+              <MessageContent content={chatStreamText} styles={styles} />
+            </div>
           </div>
         )}
         {streaming && !chatStreamText && (

@@ -83,6 +83,11 @@ class AIGateway:
     invokes optional callbacks — so individual features don't have to.
     """
 
+    def _get_ollama_config(self, user: User) -> tuple[str | None, str | None]:
+        """Return (base_url, model) overrides from user settings, or (None, None) to use server defaults."""
+        user_llm = (user.settings or {}).get("llm", {})
+        return user_llm.get("ollama_url") or None, user_llm.get("ollama_model") or None
+
     def _get_effective_params(self, user: User, request_params: LLMParams | None) -> LLMParams:
         """
         Resolve effective LLM params with three-layer priority:
@@ -107,7 +112,7 @@ class AIGateway:
             temperature=request_params.temperature if request_params.temperature != 1.0 else merged.temperature,
             top_p=request_params.top_p if request_params.top_p != 0.95 else merged.top_p,
             top_k=request_params.top_k if request_params.top_k != 64 else merged.top_k,
-            thinking_enabled=request_params.thinking_enabled,
+            thinking_enabled=request_params.thinking_enabled if request_params.thinking_enabled else merged.thinking_enabled,
             image_token_budget=request_params.image_token_budget or merged.image_token_budget,
         )
 
@@ -150,10 +155,12 @@ class AIGateway:
         """
         params = self._get_effective_params(user, llm_params)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
+        user_url, user_model = self._get_ollama_config(user)
 
         start_time = time.monotonic()
         full_response: list[str] = []
         metrics: StreamMetrics | None = None
+        _logged = False  # guard against finally running more than once
 
         try:
             async for chunk in ollama_provider.chat_stream_with_metrics(
@@ -163,6 +170,8 @@ class AIGateway:
                 top_p=params.top_p,
                 top_k=params.top_k,
                 thinking_enabled=params.thinking_enabled,
+                base_url=user_url,
+                model=user_model,
             ):
                 if isinstance(chunk, StreamMetrics):
                     metrics = chunk
@@ -170,29 +179,40 @@ class AIGateway:
                     full_response.append(chunk)
                     yield chunk
         finally:
-            latency_ms = int((time.monotonic() - start_time) * 1000)
-            result = AICallResult(
-                content="".join(full_response),
-                tokens_in=metrics.tokens_in if metrics else None,
-                tokens_out=metrics.tokens_out if metrics else None,
-                latency_ms=latency_ms,
-                model=metrics.model if metrics else ollama_provider.model,
-            )
+            if not _logged:
+                _logged = True
+                latency_ms = int((time.monotonic() - start_time) * 1000)
+                result = AICallResult(
+                    content="".join(full_response),
+                    tokens_in=metrics.tokens_in if metrics else None,
+                    tokens_out=metrics.tokens_out if metrics else None,
+                    latency_ms=latency_ms,
+                    model=metrics.model if metrics else ollama_provider.model,
+                )
 
-            self._log_call(context, result, db, params)
+                self._log_call(context, result, db, params, messages)
 
-            if on_complete and result.content:
-                await on_complete(result)
+                if on_complete and result.content:
+                    await on_complete(result)
 
-    def _log_call(self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams) -> None:
+    def _log_call(self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]) -> None:
         """Write an ActivityLog entry for this AI call."""
         try:
+            # Extract the last user message as the prompt
+            user_messages = [m for m in messages if m.get("role") == "user"]
+            last_prompt = user_messages[-1]["content"] if user_messages else None
+
+            description = f"AI {context.feature}"
+            if last_prompt:
+                preview = last_prompt[:80].replace("\n", " ").strip()
+                description = f"{preview}…" if len(last_prompt) > 80 else preview
+
             log = ActivityLog(
                 user_id=context.user_id,
                 story_id=context.story_id,
                 event_type=f"ai_{context.feature.replace('-', '_')}",
                 category="ai",
-                description=f"AI {context.feature}",
+                description=description,
                 metadata_={
                     "model": result.model,
                     "tokens_in": result.tokens_in,
@@ -205,6 +225,8 @@ class AIGateway:
                     "session_id": context.session_id,
                     "thinking_enabled": params.thinking_enabled,
                     "temperature": params.temperature,
+                    "prompt": last_prompt,
+                    "response": result.content,
                     **context.extra_metadata,
                 },
             )

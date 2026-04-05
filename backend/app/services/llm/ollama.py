@@ -48,13 +48,37 @@ class OllamaProvider(LLMProvider):
         self.top_k = settings.ollama_top_k
         self.keep_alive = settings.ollama_keep_alive
 
-    async def is_available(self) -> bool:
+    async def is_available(self, base_url: str | None = None) -> bool:
+        url = base_url or self.base_url
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{self.base_url}/api/tags", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                async with session.get(f"{url}/api/tags", timeout=aiohttp.ClientTimeout(total=5)) as resp:
                     return resp.status == 200
         except Exception:
             return False
+
+    async def list_models(self, base_url: str | None = None) -> list[dict]:
+        """Return the list of models from Ollama's /api/tags."""
+        url = base_url or self.base_url
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{url}/api/tags", timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status != 200:
+                        return []
+                    data = await resp.json()
+                    return data.get("models", [])
+        except Exception:
+            return []
+
+    async def model_exists(self, model_name: str, base_url: str | None = None) -> bool:
+        """Check if a given model name is available in Ollama (prefix match, ignores :tag)."""
+        models = await self.list_models(base_url=base_url)
+        base = model_name.split(":")[0].lower()
+        for m in models:
+            name = m.get("name", "")
+            if name == model_name or name.split(":")[0].lower() == base:
+                return True
+        return False
 
     async def chat_stream(self, messages: list[dict], system_prompt: str) -> AsyncIterator[str]:
         """Stream response tokens. Discards metrics — use chat_stream_with_metrics for full data."""
@@ -71,6 +95,8 @@ class OllamaProvider(LLMProvider):
         top_p: float | None = None,
         top_k: int | None = None,
         thinking_enabled: bool = False,
+        base_url: str | None = None,
+        model: str | None = None,
     ) -> AsyncIterator[str | StreamMetrics]:
         """
         Stream response tokens, then yield a final StreamMetrics object.
@@ -79,13 +105,18 @@ class OllamaProvider(LLMProvider):
         When thinking_enabled is True, <|think|> is prepended to the system prompt
         so Gemma 4 generates its reasoning before answering.
         """
-        effective_system = f"<|think|>\n{system_prompt}" if thinking_enabled else system_prompt
         cleaned_messages = strip_thoughts_from_messages(messages)
+        # Prepend <|think|> to trigger Gemma 4's reasoning output
+        effective_system = f"<|think|>\n{system_prompt}" if thinking_enabled else system_prompt
+        assembled_messages = [{"role": "system", "content": effective_system}] + cleaned_messages
 
+        effective_model = model or self.model
+        effective_url = base_url or self.base_url
         payload = {
-            "model": self.model,
-            "messages": [{"role": "system", "content": effective_system}] + cleaned_messages,
+            "model": effective_model,
+            "messages": assembled_messages,
             "stream": True,
+            "think": thinking_enabled,
             "keep_alive": self.keep_alive,
             "options": {
                 "temperature": temperature if temperature is not None else self.temperature,
@@ -95,7 +126,7 @@ class OllamaProvider(LLMProvider):
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"{self.base_url}/api/chat",
+                f"{effective_url}/api/chat",
                 json=payload,
                 timeout=aiohttp.ClientTimeout(total=300),
             ) as resp:
@@ -113,7 +144,7 @@ class OllamaProvider(LLMProvider):
                             yield StreamMetrics(
                                 tokens_in=data.get("prompt_eval_count"),
                                 tokens_out=data.get("eval_count"),
-                                model=self.model,
+                                model=effective_model,
                             )
                             break
                     except json.JSONDecodeError:

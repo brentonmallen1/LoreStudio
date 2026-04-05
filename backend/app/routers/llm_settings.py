@@ -42,6 +42,8 @@ def _build_response(user_llm: dict) -> LLMSettingsRead:
         thinking_enabled=user_llm.get("thinking_enabled", _DEFAULTS["thinking_enabled"]),
         image_token_budget=user_llm.get("image_token_budget"),
         is_default=is_default,
+        ollama_url=user_llm.get("ollama_url"),
+        ollama_model=user_llm.get("ollama_model"),
     )
 
 
@@ -63,7 +65,7 @@ def update_llm_settings(
     user_settings = dict(current_user.settings or {})
     llm = dict(user_settings.get("llm", {}))
 
-    for field_name in ("temperature", "top_p", "top_k", "thinking_enabled", "image_token_budget"):
+    for field_name in ("temperature", "top_p", "top_k", "thinking_enabled", "image_token_budget", "ollama_url", "ollama_model"):
         value = getattr(body, field_name)
         if value is not None or field_name in body.model_fields_set:
             if value is None and field_name in body.model_fields_set:

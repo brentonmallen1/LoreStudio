@@ -37,6 +37,7 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
   const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId: `attributes:${character.id}:${type}`,
     label: `Generating ${typeLabel}`,
+    tabId: "characters",
     onComplete: (full) => {
       setResult(full);
       lastResult.current = full;
