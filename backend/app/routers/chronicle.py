@@ -30,7 +30,7 @@ from ..auth.dependencies import get_current_user
 from ..schemas.chronicle import (
     ChatSessionCreate, ChatSessionUpdate, ChatSessionOut, ChatSessionDetail,
     ChatMessageCreate, ChatMessageOut,
-    ActivityLogOut,
+    ActivityLogOut, ActivityLogUpdate,
     SessionListResponse, ActivityListResponse,
     SearchResponse, SearchResult,
     ChronicleStats,
@@ -200,6 +200,8 @@ def list_activity(
     story_id: str | None = Query(None),
     category: str | None = Query(None),
     event_type: str | None = Query(None),
+    starred: bool | None = Query(None),
+    features: str | None = Query(None),  # comma-separated feature names to filter by
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
@@ -212,6 +214,12 @@ def list_activity(
         q = q.filter(ActivityLog.category == category)
     if event_type:
         q = q.filter(ActivityLog.event_type == event_type)
+    if starred is not None:
+        q = q.filter(ActivityLog.starred == starred)
+    if features:
+        feature_list = [f.strip() for f in features.split(",") if f.strip()]
+        if feature_list:
+            q = q.filter(ActivityLog.metadata_["feature"].astext.in_(feature_list))
 
     total = q.count()
     logs = q.order_by(ActivityLog.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
@@ -225,11 +233,42 @@ def list_activity(
             category=log.category,
             description=log.description,
             metadata_=log.metadata_,
+            starred=log.starred,
             created_at=log.created_at,
         ) for log in logs],
         total=total,
         page=page,
         page_size=page_size,
+    )
+
+
+@router.patch("/chronicle/activity/{log_id}", response_model=ActivityLogOut)
+def update_activity_log(
+    log_id: str,
+    body: ActivityLogUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    log = db.query(ActivityLog).filter(
+        ActivityLog.id == log_id,
+        ActivityLog.user_id == user.id,
+    ).first()
+    if not log:
+        raise HTTPException(status_code=404, detail="Activity log not found")
+    if body.starred is not None:
+        log.starred = body.starred
+    db.commit()
+    db.refresh(log)
+    return ActivityLogOut(
+        id=log.id,
+        user_id=log.user_id,
+        story_id=log.story_id,
+        event_type=log.event_type,
+        category=log.category,
+        description=log.description,
+        metadata_=log.metadata_,
+        starred=log.starred,
+        created_at=log.created_at,
     )
 
 

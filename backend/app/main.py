@@ -35,6 +35,7 @@ from .routers.calendars import router as calendars_router
 from .routers.beat_sheets import router as beat_sheets_router
 from .routers.discoveries import router as discoveries_router
 from .routers.ollama import router as ollama_router
+from .routers.brainstorm import router as brainstorm_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets
 
 
@@ -90,6 +91,7 @@ app.include_router(calendars_router, prefix="/api", tags=["calendars"])
 app.include_router(beat_sheets_router, prefix="/api", tags=["beat-sheets"])
 app.include_router(discoveries_router, prefix="/api", tags=["discoveries"])
 app.include_router(ollama_router, prefix="/api", tags=["ollama"])
+app.include_router(brainstorm_router, prefix="/api", tags=["brainstorm"])
 
 
 @app.get("/health")

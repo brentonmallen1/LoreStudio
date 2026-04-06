@@ -27,6 +27,7 @@ from .generation import (
     build_relationship_suggestion_prompt,
 )
 from .chat import build_scene_chat_system_prompt
+from .brainstorm import build_brainstorm_system_prompt
 
 
 # Feature identifier → human-readable label
@@ -45,6 +46,7 @@ FEATURE_LABELS: dict[str, str] = {
     "relationship-suggest": "Relationship Suggestions",
     "character-journey": "Character Journey",
     "image-analysis": "Image Analysis",
+    "brainstorm": "What's Next? (Brainstorm)",
 }
 
 
@@ -150,6 +152,11 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
         "woven into a fiction narrative. Be evocative and specific — write like a literary consultant, "
         "not a photographer."
     ),
+    "brainstorm": (
+        "You are a brainstorming guide, not a co-author. Help the author think through narrative "
+        "possibilities — ask questions, suggest directions, surface story connections. "
+        "Never write prose, dialogue, or draftable content. Keep the author in the decision seat."
+    ),
 }
 
 
@@ -169,4 +176,5 @@ __all__ = [
     "build_attribute_generation_prompt",
     "build_relationship_suggestion_prompt",
     "build_scene_chat_system_prompt",
+    "build_brainstorm_system_prompt",
 ]

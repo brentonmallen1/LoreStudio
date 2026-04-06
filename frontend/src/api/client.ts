@@ -358,6 +358,32 @@ export const api = {
     });
   },
 
+  // Brainstorm ("What's Next?")
+  sendBrainstormMessage: (
+    storyId: string,
+    nodeId: string,
+    messages: import("../types").ChatMessage[],
+    authorIntent?: import("../types").BrainstormIntent,
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/brainstorm`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        node_id: nodeId,
+        messages,
+        author_intent: authorIntent ?? null,
+        llm_params: llmParams ?? null,
+      }),
+      signal,
+    });
+  },
+
   // Story Health
   getStoryHealth: (storyId: string) =>
     request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
@@ -539,18 +565,27 @@ export const api = {
 
   // Chronicle — activity logs
   listActivityLogs: (params: {
-    story_id?: string; category?: string; event_type?: string; page?: number; page_size?: number;
+    story_id?: string; category?: string; event_type?: string;
+    starred?: boolean; features?: string;
+    page?: number; page_size?: number;
   }) => {
     const q = new URLSearchParams();
     if (params.story_id) q.set("story_id", params.story_id);
     if (params.category) q.set("category", params.category);
     if (params.event_type) q.set("event_type", params.event_type);
+    if (params.starred !== undefined) q.set("starred", String(params.starred));
+    if (params.features) q.set("features", params.features);
     if (params.page) q.set("page", String(params.page));
     if (params.page_size) q.set("page_size", String(params.page_size));
     return request<{ logs: import("../types").ActivityLog[]; total: number; page: number; page_size: number }>(
       `/chronicle/activity?${q}`
     );
   },
+  updateActivityLog: (logId: string, data: { starred?: boolean }) =>
+    request<import("../types").ActivityLog>(`/chronicle/activity/${logId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
 
   // Chronicle — search & stats
   searchChronicle: (params: { q: string; story_id?: string; page?: number; page_size?: number }) => {

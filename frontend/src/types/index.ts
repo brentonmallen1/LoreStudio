@@ -307,6 +307,7 @@ export interface LLMSettings {
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  images?: string[];  // base64-encoded image data for multimodal messages
 }
 
 export interface ChatContextPreview {
@@ -337,6 +338,14 @@ export interface ChatContextPreview {
   threads_in_scene: { name: string; status: string; description?: string }[];
   open_threads: { name: string; status: string }[];
   sibling_scenes: { title: string; synopsis?: string }[];
+}
+
+// ── Brainstorm ──
+
+export interface BrainstormIntent {
+  mood?: string;
+  goal?: string;
+  required_events?: string;
 }
 
 // ── Story Health ──
@@ -636,6 +645,7 @@ export interface ActivityLog {
   event_type: string;
   category: string;
   description: string;
+  starred: boolean;
   metadata_: Record<string, unknown>;
   created_at: string;
 }

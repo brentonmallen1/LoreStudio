@@ -137,6 +137,11 @@ interface UIState {
   chatPanelOpen: boolean;
   openChatPanel: () => void;
   closeChatPanel: () => void;
+
+  // Brainstorm panel ("What's Next?")
+  brainstormPanelOpen: boolean;
+  openBrainstormPanel: () => void;
+  closeBrainstormPanel: () => void;
 }
 
 function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
@@ -314,4 +319,8 @@ export const useUIStore = create<UIState>((set) => ({
   chatPanelOpen: false,
   openChatPanel: () => set({ chatPanelOpen: true }),
   closeChatPanel: () => set({ chatPanelOpen: false }),
+
+  brainstormPanelOpen: false,
+  openBrainstormPanel: () => set({ brainstormPanelOpen: true }),
+  closeBrainstormPanel: () => set({ brainstormPanelOpen: false }),
 }));

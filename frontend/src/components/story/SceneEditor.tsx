@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, Telescope, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, Telescope, Compass, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -67,12 +67,13 @@ import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "./SprintTimer";
 import FontPicker from "./FontPicker";
 import SceneChatPanel from "../layout/SceneChatPanel";
+import BrainstormPanel from "../layout/BrainstormPanel";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
-  const { chatPanelOpen, openChatPanel, closeChatPanel } = useUIStore();
+  const { chatPanelOpen, openChatPanel, closeChatPanel, brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel } = useUIStore();
   const { runDiscovery, isAnalyzing: isDiscoveryAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -786,6 +787,16 @@ export default function SceneEditor() {
           )}
           {activeStory && (
             <button
+              onClick={() => brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel()}
+              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${brainstormPanelOpen ? styles.topbarBtnAIActive : ""}`}
+              title="What's Next? — brainstorm directions for this scene"
+            >
+              <Compass size={13} />
+              <span>What's Next?</span>
+            </button>
+          )}
+          {activeStory && (
+            <button
               onClick={() => chatPanelOpen ? closeChatPanel() : openChatPanel()}
               className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${chatPanelOpen ? styles.topbarBtnAIActive : ""}`}
               title="Scene Assistant — AI chat grounded in this scene's full context"
@@ -1193,6 +1204,9 @@ export default function SceneEditor() {
       </div>
 
       </div>{/* end editorColumn */}
+      {brainstormPanelOpen && activeStory && (
+        <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
+      )}
       {chatPanelOpen && activeStory && (
         <SceneChatPanel storyId={activeStory.id} nodeId={activeNode.id} />
       )}

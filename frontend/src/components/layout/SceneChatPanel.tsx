@@ -3,6 +3,7 @@ import { X, Send, ChevronDown, ChevronUp, Sparkles, Bot, User2, Info, BookOpen, 
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import type { ChatMessage, ChatContextPreview, LLMParams } from "../../types";
+import ChatImagePicker from "./ChatImagePicker";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
@@ -108,6 +109,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
   const { closeChatPanel } = useUIStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [selectedImage, setSelectedImage] = useState<{ base64: string; mimeType: string; filename: string; assetId?: string } | null>(null);
   const [ctx, setCtx] = useState<ChatContextPreview | null>(null);
   const [showCtx, setShowCtx] = useState(false);
   const [loadingCtx, setLoadingCtx] = useState(false);
@@ -228,7 +230,12 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
     setInput("");
     lastUserMsg.current = content;
 
-    const userMsg: ChatMessage = { role: "user", content };
+    const userMsg: ChatMessage = {
+      role: "user",
+      content,
+      ...(selectedImage ? { images: [selectedImage.base64] } : {}),
+    };
+    setSelectedImage(null);
     const nextMessages = [...messages, userMsg];
     setMessages(nextMessages);
     persist("user", content);
@@ -343,10 +350,17 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
               {msg.role === "user" ? <User2 size={13} /> : <Bot size={13} />}
             </div>
             <div className={styles.messageContent}>
-                {msg.role === "assistant"
-                  ? <MessageContent content={msg.content} styles={styles} />
-                  : msg.content}
-              </div>
+              {msg.images && msg.images.length > 0 && (
+                <div className={styles.messageImages}>
+                  {msg.images.map((b64, idx) => (
+                    <img key={idx} src={`data:image/jpeg;base64,${b64}`} alt="attached" className={styles.messageImage} />
+                  ))}
+                </div>
+              )}
+              {msg.role === "assistant"
+                ? <MessageContent content={msg.content} styles={styles} />
+                : msg.content}
+            </div>
           </div>
         ))}
         {streaming && chatStreamText && (
@@ -368,6 +382,12 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
 
       {/* Input */}
       <div className={styles.inputRow}>
+        <ChatImagePicker
+          storyId={storyId}
+          selected={selectedImage}
+          onSelect={setSelectedImage}
+          disabled={streaming}
+        />
         <textarea
           ref={inputRef}
           value={input}
@@ -381,7 +401,7 @@ export default function SceneChatPanel({ storyId, nodeId }: Props) {
         <button
           className={styles.sendBtn}
           onClick={() => send()}
-          disabled={!input.trim() || streaming}
+          disabled={(!input.trim() && !selectedImage) || streaming}
           title="Send"
         >
           <Send size={14} />

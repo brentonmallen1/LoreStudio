@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Search, MessageSquare, Activity, ChevronLeft, Trash2, Archive,
-  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X,
+  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X, Star, Library,
 } from "lucide-react";
 import { api } from "../api/client";
 import type { ChronicleSession, ChronicleSessionDetail, ActivityLog, ChronicleSearchResult } from "../types";
@@ -10,7 +10,14 @@ import styles from "./ChroniclePage.module.css";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-type ViewTab = "chats" | "activity" | "search";
+type ViewTab = "chats" | "activity" | "summaries" | "search";
+
+// Features that surface in the Summaries tab
+const SUMMARY_FEATURES = [
+  "story-summary", "scene-summary", "structure-summary", "interview-summary",
+  "character-journey", "perspective-summary", "economy-analysis",
+  "story-recap", "brainstorm",
+].join(",");
 
 const CONTEXT_ICONS: Record<string, React.ReactNode> = {
   scene: <BookOpen size={12} />,
@@ -103,6 +110,7 @@ const FEATURE_LABELS: Record<string, string> = {
   "panel-interview": "Group Interview",
   "story-summary": "Story Summary",
   "scene-summary": "Scene Summary",
+  "structure-summary": "Section Summary",
   "attribute-generation": "Attribute Generation",
   "relationship-suggestion": "Relationship Suggestion",
   "perspective-summary": "Perspective Summary",
@@ -111,6 +119,7 @@ const FEATURE_LABELS: Record<string, string> = {
   "character-journey": "Character Journey",
   "discovery": "Element Discovery",
   "media-analysis": "Media Analysis",
+  "brainstorm": "What's Next? (Brainstorm)",
 };
 
 function featureLabel(log: ActivityLog): string {
@@ -120,8 +129,15 @@ function featureLabel(log: ActivityLog): string {
   return log.event_type.replace(/^ai_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function LogCard({ log }: { log: ActivityLog }) {
+function LogCard({
+  log,
+  onStarToggle,
+}: {
+  log: ActivityLog;
+  onStarToggle?: (id: string, starred: boolean) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
+  const [starring, setStarring] = useState(false);
   const categoryColor: Record<string, string> = {
     ai: "var(--color-accent)",
     system: "var(--color-text-subtle)",
@@ -136,6 +152,18 @@ function LogCard({ log }: { log: ActivityLog }) {
 
   // Strip thinking blocks from response preview
   const responsePreview = response?.replace(/<\|channel>thought\n[\s\S]*?<channel\|>/g, "").trim();
+
+  async function toggleStar(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (starring) return;
+    setStarring(true);
+    try {
+      await api.updateActivityLog(log.id, { starred: !log.starred });
+      onStarToggle?.(log.id, !log.starred);
+    } finally {
+      setStarring(false);
+    }
+  }
 
   return (
     <div
@@ -155,6 +183,16 @@ function LogCard({ log }: { log: ActivityLog }) {
           {" · "}
           {relativeTime(log.created_at)}
         </p>
+      </div>
+      <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
+        <button
+          className={`${styles.iconBtn} ${log.starred ? styles.starActive : ""}`}
+          title={log.starred ? "Unstar" : "Star this summary"}
+          onClick={toggleStar}
+          disabled={starring}
+        >
+          <Star size={13} />
+        </button>
       </div>
       {expanded && (
         <div className={styles.logDetail}>
@@ -234,11 +272,14 @@ export default function ChroniclePage() {
   const [tab, setTab] = useState<ViewTab>("chats");
   const [sessions, setSessions] = useState<ChronicleSession[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [summaries, setSummaries] = useState<ActivityLog[]>([]);
   const [searchResults, setSearchResults] = useState<ChronicleSearchResult[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [totalSessions, setTotalSessions] = useState(0);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [totalSummaries, setTotalSummaries] = useState(0);
+  const [starredOnly, setStarredOnly] = useState(false);
   const [page, setPage] = useState(1);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -277,6 +318,23 @@ export default function ChroniclePage() {
     }
   }, [storyId]);
 
+  const loadSummaries = useCallback(async (p = 1) => {
+    setLoading(true);
+    try {
+      const res = await api.listActivityLogs({
+        story_id: storyId,
+        features: SUMMARY_FEATURES,
+        starred: starredOnly ? true : undefined,
+        page: p,
+        page_size: 50,
+      });
+      setSummaries(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
+      setTotalSummaries(res.total);
+    } finally {
+      setLoading(false);
+    }
+  }, [storyId, starredOnly]);
+
   const runSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setSearchResults([]); return; }
     setLoading(true);
@@ -294,7 +352,8 @@ export default function ChroniclePage() {
     clearSelection();
     if (tab === "chats") loadSessions(1);
     else if (tab === "activity") loadLogs(1);
-  }, [tab, filterType, showArchived, loadSessions, loadLogs]);
+    else if (tab === "summaries") loadSummaries(1);
+  }, [tab, filterType, showArchived, starredOnly, loadSessions, loadLogs, loadSummaries]);
 
   // Debounced search
   useEffect(() => {
@@ -350,15 +409,28 @@ export default function ChroniclePage() {
     setBulkWorking(false);
   }
 
+  function handleStarToggle(id: string, starred: boolean) {
+    const update = (item: ActivityLog) => item.id === id ? { ...item, starred } : item;
+    setLogs((prev) => prev.map(update));
+    setSummaries((prev) => {
+      const updated = prev.map(update);
+      // If showing starred only and we just unstarred, remove from list
+      return starredOnly ? updated.filter((l) => l.starred) : updated;
+    });
+  }
+
   function loadMore() {
     const next = page + 1;
     setPage(next);
     if (tab === "chats") loadSessions(next);
     else if (tab === "activity") loadLogs(next);
+    else if (tab === "summaries") loadSummaries(next);
   }
 
   const hasMore = tab === "chats"
     ? sessions.length < totalSessions
+    : tab === "summaries"
+    ? summaries.length < totalSummaries
     : logs.length < totalLogs;
 
   if (selectedSessionId) {
@@ -399,19 +471,35 @@ export default function ChroniclePage() {
         {/* ── Filters sidebar ── */}
         <aside className={styles.filters}>
           <p className={styles.filterLabel}>View</p>
-          {(["chats", "activity"] as ViewTab[]).map((t) => (
+          {(["chats", "activity", "summaries"] as ViewTab[]).map((t) => (
             <button
               key={t}
               className={`${styles.filterBtn} ${tab === t ? styles.activeFilter : ""}`}
               onClick={() => { setTab(t); setSearchQuery(""); }}
             >
-              {t === "chats" ? <MessageSquare size={12} /> : <Activity size={12} />}
-              <span style={{ flex: 1 }}>{t === "chats" ? "Conversations" : "Activity"}</span>
+              {t === "chats" ? <MessageSquare size={12} /> : t === "summaries" ? <Library size={12} /> : <Activity size={12} />}
+              <span style={{ flex: 1 }}>
+                {t === "chats" ? "Conversations" : t === "summaries" ? "Summaries" : "Activity"}
+              </span>
               <span className={styles.tabCount}>
-                {t === "chats" ? totalSessions : totalLogs}
+                {t === "chats" ? totalSessions : t === "summaries" ? totalSummaries : totalLogs}
               </span>
             </button>
           ))}
+
+          {tab === "summaries" && (
+            <>
+              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>Filter</p>
+              <label className={styles.archiveToggle}>
+                <input
+                  type="checkbox"
+                  checked={starredOnly}
+                  onChange={(e) => setStarredOnly(e.target.checked)}
+                />
+                Starred only
+              </label>
+            </>
+          )}
 
           {tab === "chats" && (
             <>
@@ -496,7 +584,28 @@ export default function ChroniclePage() {
               {logs.length === 0 && !loading && (
                 <p className={styles.empty}>No activity logged yet.</p>
               )}
-              {logs.map((log) => <LogCard key={log.id} log={log} />)}
+              {logs.map((log) => (
+                <LogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
+              ))}
+            </>
+          )}
+
+          {/* Summaries tab */}
+          {tab === "summaries" && (
+            <>
+              <p className={styles.tabBlurb}>
+                All AI-generated summaries, analyses, and brainstorms — scene summaries, story recaps, character journeys, perspective summaries, and more. Star important ones to pin them for quick access.
+              </p>
+              {summaries.length === 0 && !loading && (
+                <p className={styles.empty}>
+                  {starredOnly
+                    ? "No starred summaries yet. Star a summary from the Activity log or here to pin it."
+                    : "No summaries yet. Generate a scene summary, story recap, or perspective summary to see it here."}
+                </p>
+              )}
+              {summaries.map((log) => (
+                <LogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
+              ))}
             </>
           )}
 
@@ -529,7 +638,7 @@ export default function ChroniclePage() {
           )}
 
           {/* Load more */}
-          {(tab === "chats" || tab === "activity") && hasMore && (
+          {(tab === "chats" || tab === "activity" || tab === "summaries") && hasMore && (
             <button className={styles.loadMore} onClick={loadMore} disabled={loading}>
               {loading ? <RotateCcw size={13} className={styles.spin} /> : <Clock size={13} />}
               Load more

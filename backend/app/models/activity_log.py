@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 from ..database import Base
 
@@ -24,5 +24,8 @@ class ActivityLog(Base):
     description: Mapped[str] = mapped_column(Text, nullable=False)
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     # flexible extra data: model, tokens, session_id, node_id, error details, etc.
+
+    starred: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # starred summaries/analyses are surfaced in the Summary Archive tab of Chronicle
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))

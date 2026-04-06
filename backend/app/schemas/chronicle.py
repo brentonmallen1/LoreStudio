@@ -71,9 +71,14 @@ class ActivityLogOut(BaseModel):
     category: str
     description: str
     metadata_: dict
+    starred: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class ActivityLogUpdate(BaseModel):
+    starred: bool | None = None
 
 
 # ── Search / List responses ────────────────────────────────────────────

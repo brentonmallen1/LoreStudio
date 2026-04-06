@@ -445,6 +445,12 @@
   color: var(--color-danger, #ef4444);
 }
 
+/* Star button — always visible when starred, otherwise reveals on card hover */
+.starActive {
+  color: #d97706;
+  opacity: 1 !important;
+}
+
 .excerpt {
   font-size: 0.75rem;
   color: var(--color-text-subtle);
