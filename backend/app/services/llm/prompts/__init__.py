@@ -28,6 +28,7 @@ from .generation import (
 )
 from .chat import build_scene_chat_system_prompt
 from .brainstorm import build_brainstorm_system_prompt
+from .scene_planner import build_scene_planner_system_prompt
 
 
 # Feature identifier → human-readable label
@@ -47,6 +48,7 @@ FEATURE_LABELS: dict[str, str] = {
     "character-journey": "Character Journey",
     "image-analysis": "Image Analysis",
     "brainstorm": "What's Next? (Brainstorm)",
+    "scene-plan": "Scene Planner",
 }
 
 
@@ -157,6 +159,11 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
         "possibilities — ask questions, suggest directions, surface story connections. "
         "Never write prose, dialogue, or draftable content. Keep the author in the decision seat."
     ),
+    "scene-plan": (
+        "You are a story structure consultant helping an author plan a scene. "
+        "Suggest specific content for synopsis, purpose, entry state, exit state, and key events. "
+        "Root suggestions in the actual story elements. Never write prose."
+    ),
 }
 
 
@@ -177,4 +184,5 @@ __all__ = [
     "build_relationship_suggestion_prompt",
     "build_scene_chat_system_prompt",
     "build_brainstorm_system_prompt",
+    "build_scene_planner_system_prompt",
 ]

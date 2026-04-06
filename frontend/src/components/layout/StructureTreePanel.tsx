@@ -150,26 +150,58 @@ interface StructureTreePanelProps {
 
 export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay }: StructureTreePanelProps) {
   const { storyId } = useParams<{ storyId: string }>();
-  const { structure, setStructure, activeTemplate } = useStoryStore();
+  const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
   const { treePanelWidth, setTreePanelWidth, setTreeDetached } = useUIStore();
 
-  const [adding, setAdding] = useState(false);
+  const [addingLevel, setAddingLevel] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [showAddMenu, setShowAddMenu] = useState(false);
+  const addMenuRef = useRef<HTMLDivElement>(null);
 
-  const topLevelType = activeTemplate?.levels[0]?.name.toLowerCase() ?? "section";
-  const topLevelLabel = activeTemplate?.levels[0]?.name ?? "Section";
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
+        setShowAddMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
 
-  async function addTopLevelNode() {
-    if (!storyId || !newTitle.trim()) return;
-    const node = await api.createNode(storyId, {
-      title: newTitle.trim(),
-      level: 0,
-      level_type: topLevelType,
-      position: structure.length,
-    });
-    setStructure([...structure, { ...node, children: [] }]);
+  function insertNodeIntoTree(nodes: StructureNode[], parentId: string, newNode: StructureNode): StructureNode[] {
+    return nodes.map((n) =>
+      n.id === parentId
+        ? { ...n, children: [...(n.children ?? []), newNode] }
+        : { ...n, children: insertNodeIntoTree(n.children ?? [], parentId, newNode) }
+    );
+  }
+
+  async function addNode() {
+    if (!storyId || !newTitle.trim() || addingLevel === null) return;
+    const levelDef = activeTemplate?.levels[addingLevel];
+    if (!levelDef) return;
+
+    if (addingLevel === 0) {
+      const node = await api.createNode(storyId, {
+        title: newTitle.trim(),
+        level: 0,
+        level_type: levelDef.name.toLowerCase(),
+        position: structure.length,
+      });
+      setStructure([...structure, { ...node, children: [] }]);
+    } else {
+      if (!activeNode) return;
+      const node = await api.createNode(storyId, {
+        title: newTitle.trim(),
+        parent_id: activeNode.id,
+        level: addingLevel,
+        level_type: levelDef.name.toLowerCase(),
+        position: activeNode.children?.length ?? 0,
+      });
+      setStructure(insertNodeIntoTree(structure, activeNode.id, { ...node, children: [] }));
+    }
     setNewTitle("");
-    setAdding(false);
+    setAddingLevel(null);
   }
 
   // Horizontal resize (drag left edge to change width)
@@ -213,46 +245,83 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
       {/* Header */}
       <div className={styles.header}>
         <span className={styles.title}>Structure</span>
-        <button
-          className={styles.dockBtn}
-          onClick={() => setTreeDetached(false)}
-          title="Dock back to sidebar"
-        >
-          <PanelLeftOpen size={13} />
-        </button>
+        <div className={styles.headerRight}>
+          <div className={styles.addMenuWrap} ref={addMenuRef}>
+            <button
+              className={`${styles.addBtn} ${showAddMenu ? styles.addBtnActive : ""}`}
+              onClick={() => { setShowAddMenu((v) => !v); setAddingLevel(null); setNewTitle(""); }}
+              title="Add structure node"
+            >
+              <Plus size={12} />
+            </button>
+            {showAddMenu && (
+              <div className={styles.addMenu}>
+                {activeTemplate?.levels.map((level, idx) => {
+                  const enabled = idx === 0 || (activeNode?.level === idx - 1);
+                  const hint = idx > 0 && !enabled
+                    ? `Select a ${activeTemplate.levels[idx - 1].name} first`
+                    : undefined;
+                  const Icon = getSegmentIcon(level.name.toLowerCase());
+                  return (
+                    <button
+                      key={level.name}
+                      className={`${styles.addMenuItem} ${!enabled ? styles.addMenuItemDisabled : ""}`}
+                      onClick={() => {
+                        if (!enabled) return;
+                        setAddingLevel(idx);
+                        setNewTitle("");
+                        setShowAddMenu(false);
+                      }}
+                      title={hint}
+                      disabled={!enabled}
+                    >
+                      <Icon size={11} style={{ color: segmentColor(level.name.toLowerCase()) }} />
+                      <span>Add {level.name}</span>
+                      {hint && <span className={styles.addMenuHint}>{hint}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <button
+            className={styles.dockBtn}
+            onClick={() => setTreeDetached(false)}
+            title="Dock back to sidebar"
+          >
+            <PanelLeftOpen size={13} />
+          </button>
+        </div>
       </div>
 
       {/* Tree */}
       <div className={styles.tree}>
-        {structure.length === 0 && (
+        {addingLevel !== null && (
+          <div className={styles.addInlineRow}>
+            <input
+              autoFocus
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addNode();
+                if (e.key === "Escape") setAddingLevel(null);
+              }}
+              onBlur={() => { if (!newTitle.trim()) setAddingLevel(null); }}
+              placeholder={
+                addingLevel === 0
+                  ? `${activeTemplate?.levels[0]?.name ?? "Section"} title…`
+                  : `${activeTemplate?.levels[addingLevel]?.name ?? "Node"} title (under "${activeNode?.title}")…`
+              }
+              className={styles.addInput}
+            />
+          </div>
+        )}
+        {structure.length === 0 && addingLevel === null && (
           <p className={styles.emptyHint}>No sections yet</p>
         )}
         {structure.map((node) => (
           <NodeItem key={node.id} node={node} storyId={storyId} />
         ))}
-      </div>
-
-      {/* Add section */}
-      <div className={styles.addSection}>
-        {adding ? (
-          <input
-            autoFocus
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addTopLevelNode();
-              if (e.key === "Escape") setAdding(false);
-            }}
-            onBlur={() => { if (!newTitle.trim()) setAdding(false); }}
-            placeholder="Section title…"
-            className={styles.addInput}
-          />
-        ) : (
-          <button onClick={() => setAdding(true)} className={styles.addBtn}>
-            <Plus size={12} />
-            Add {topLevelLabel}
-          </button>
-        )}
       </div>
     </div>
   );

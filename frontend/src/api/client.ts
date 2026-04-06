@@ -358,6 +358,32 @@ export const api = {
     });
   },
 
+  // Scene Planner
+  sendScenePlanMessage: (
+    storyId: string,
+    nodeId: string,
+    messages: import("../types").ChatMessage[],
+    initialNotes?: string,
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/scene-plan`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        node_id: nodeId,
+        messages,
+        initial_notes: initialNotes ?? null,
+        llm_params: llmParams ?? null,
+      }),
+      signal,
+    });
+  },
+
   // Brainstorm ("What's Next?")
   sendBrainstormMessage: (
     storyId: string,

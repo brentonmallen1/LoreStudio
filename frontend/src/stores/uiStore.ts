@@ -142,6 +142,11 @@ interface UIState {
   brainstormPanelOpen: boolean;
   openBrainstormPanel: () => void;
   closeBrainstormPanel: () => void;
+
+  // Scene Planner panel
+  plannerPanelOpen: boolean;
+  openPlannerPanel: () => void;
+  closePlannerPanel: () => void;
 }
 
 function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
@@ -323,4 +328,8 @@ export const useUIStore = create<UIState>((set) => ({
   brainstormPanelOpen: false,
   openBrainstormPanel: () => set({ brainstormPanelOpen: true }),
   closeBrainstormPanel: () => set({ brainstormPanelOpen: false }),
+
+  plannerPanelOpen: false,
+  openPlannerPanel: () => set({ plannerPanelOpen: true }),
+  closePlannerPanel: () => set({ plannerPanelOpen: false }),
 }));
