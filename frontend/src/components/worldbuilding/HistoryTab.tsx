@@ -3,6 +3,7 @@ import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen } from "lucide
 import { api } from "../../api/client";
 import type { Era, HistoricalEvent } from "../../types";
 import styles from "./WorldBuilding.module.css";
+import WorldAIPanel from "./WorldAIPanel";
 
 interface Props {
   storyId: string;
@@ -20,7 +21,10 @@ export default function HistoryTab({ storyId }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<"era" | "event" | null>(null);
   const [newName, setNewName] = useState("");
   const [newEraId, setNewEraId] = useState<string | null>(null);
+  const [showImplications, setShowImplications] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => { setShowImplications(false); }, [selectedEvent?.id]);
 
   const load = useCallback(() => {
     Promise.all([
@@ -193,6 +197,13 @@ export default function HistoryTab({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selectedEvent.name}</h2>
               <div className={styles.detailActions}>
+                <button
+                  className={styles.ghostBtn}
+                  onClick={() => setShowImplications((v) => !v)}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  Analyze Implications
+                </button>
                 <button className={`${styles.iconBtn} ${styles.danger}`}
                   onClick={() => setShowDeleteConfirm("event")}>
                   <Trash2 size={14} />
@@ -257,6 +268,16 @@ export default function HistoryTab({ storyId }: Props) {
                 value={selectedEvent.legacy_effects}
                 onChange={(e) => scheduleEventUpdate("legacy_effects", e.target.value)} />
             </div>
+
+            {showImplications && (
+              <WorldAIPanel
+                title="Historical Implication Analysis"
+                description="Surface questions about what this event's ripple effects look like today — ruins, traditions, political shifts, inherited attitudes."
+                buttonLabel="Analyze"
+                requestId={`historical-implications-${selectedEvent.id}`}
+                onAnalyze={(signal) => api.analyzeHistoricalImplications(storyId, selectedEvent.id, signal)}
+              />
+            )}
           </>
         )}
       </div>

@@ -410,6 +410,37 @@ export const api = {
     });
   },
 
+  // World Building AI
+  analyzeLocationExistence: (storyId: string, locationId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/worldbuilding/what-exists`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ location_id: locationId }),
+      signal,
+    });
+  },
+
+  suggestWorldElements: (storyId: string, elementType: string, elementId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/worldbuilding/suggest-elements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ element_type: elementType, element_id: elementId }),
+      signal,
+    });
+  },
+
+  analyzeHistoricalImplications: (storyId: string, eventId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/worldbuilding/historical-implications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ event_id: eventId }),
+      signal,
+    });
+  },
+
   // Story Health
   getStoryHealth: (storyId: string) =>
     request<import("../types").StoryHealth>(`/stories/${storyId}/health`),

@@ -3,6 +3,7 @@ import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, FolderPlus } from "luc
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import styles from "./WorldBuilding.module.css";
+import WorldAIPanel from "./WorldAIPanel";
 
 interface Props {
   storyId: string;
@@ -95,6 +96,11 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   const [newType, setNewType] = useState("");
   const [newCustomType, setNewCustomType] = useState("");
   const [newParentId, setNewParentId] = useState<string | null>(null);
+
+  const [showAI, setShowAI] = useState<"what-exists" | "suggest" | null>(null);
+
+  // Reset AI panel when selection changes
+  useEffect(() => { setShowAI(null); }, [selected?.id]);
 
   // Debounced save
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -227,6 +233,20 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
+                <button
+                  className={styles.ghostBtn}
+                  onClick={() => setShowAI((v) => v === "what-exists" ? null : "what-exists")}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  What Exists Here?
+                </button>
+                <button
+                  className={styles.ghostBtn}
+                  onClick={() => setShowAI((v) => v === "suggest" ? null : "suggest")}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  AI Suggest
+                </button>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   title="Delete location"
@@ -407,6 +427,26 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                   </div>
                 </div>
               </>
+            )}
+
+            {/* AI panels */}
+            {showAI === "what-exists" && (
+              <WorldAIPanel
+                title="What Would Exist Here?"
+                description="Analyze this location's properties to surface questions about what would logically inhabit it — buildings, creatures, plants, and weather."
+                buttonLabel="Analyze"
+                requestId={`what-exists-${selected.id}`}
+                onAnalyze={(signal) => api.analyzeLocationExistence(storyId, selected.id, signal)}
+              />
+            )}
+            {showAI === "suggest" && (
+              <WorldAIPanel
+                title="AI Element Suggestions"
+                description="Surface questions and directions for names, customs, creatures, and cultural elements rooted in this location's properties."
+                buttonLabel="Suggest"
+                requestId={`element-suggest-location-${selected.id}`}
+                onAnalyze={(signal) => api.suggestWorldElements(storyId, "location", selected.id, signal)}
+              />
             )}
 
             {/* Add child location shortcut */}

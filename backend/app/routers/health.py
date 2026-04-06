@@ -103,6 +103,7 @@ def story_health(
             "word_count": n.word_count,
             "status": n.status,
             "level_type": n.level_type,
+            "beat_id": n.beat_id,
         }
         for n in leaves
     ]

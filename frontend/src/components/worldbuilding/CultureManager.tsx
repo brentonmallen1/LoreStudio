@@ -3,6 +3,7 @@ import { Plus, Users, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Culture } from "../../types";
 import styles from "./WorldBuilding.module.css";
+import WorldAIPanel from "./WorldAIPanel";
 
 interface Props {
   storyId: string;
@@ -15,7 +16,10 @@ export default function CultureManager({ storyId }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newName, setNewName] = useState("");
+  const [showAIPanel, setShowAIPanel] = useState(false);
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => { setShowAIPanel(false); }, [selected?.id]);
 
   const load = useCallback(() => {
     api.listCultures(storyId).then(setCultures).finally(() => setLoading(false));
@@ -91,6 +95,13 @@ export default function CultureManager({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
+                <button
+                  className={styles.ghostBtn}
+                  onClick={() => setShowAIPanel((v) => !v)}
+                  style={{ fontSize: "0.72rem" }}
+                >
+                  AI Suggest
+                </button>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   title="Delete culture"
@@ -199,6 +210,16 @@ export default function CultureManager({ storyId }: Props) {
                 value={selected.notes}
                 onChange={(e) => scheduleUpdate("notes", e.target.value)} />
             </div>
+
+            {showAIPanel && (
+              <WorldAIPanel
+                title="AI Element Suggestions"
+                description="Surface questions and directions for names, customs, creatures, and cultural elements rooted in this culture's values and structure."
+                buttonLabel="Suggest"
+                requestId={`element-suggest-culture-${selected.id}`}
+                onAnalyze={(signal) => api.suggestWorldElements(storyId, "culture", selected.id, signal)}
+              />
+            )}
           </>
         )}
       </div>

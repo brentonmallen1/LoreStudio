@@ -356,6 +356,7 @@ export interface PacingEntry {
   word_count: number;
   status: string;
   level_type: string;
+  beat_id: string | null;
 }
 
 export interface CharacterHealth {

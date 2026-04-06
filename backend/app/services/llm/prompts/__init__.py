@@ -29,6 +29,11 @@ from .generation import (
 from .chat import build_scene_chat_system_prompt
 from .brainstorm import build_brainstorm_system_prompt
 from .scene_planner import build_scene_planner_system_prompt
+from .worldbuilding import (
+    build_location_existence_prompt,
+    build_element_suggestion_prompt,
+    build_historical_implication_prompt,
+)
 
 
 # Feature identifier → human-readable label
@@ -49,6 +54,9 @@ FEATURE_LABELS: dict[str, str] = {
     "image-analysis": "Image Analysis",
     "brainstorm": "What's Next? (Brainstorm)",
     "scene-plan": "Scene Planner",
+    "what-exists": "Location Existence Analysis",
+    "element-suggest": "World Element Suggestions",
+    "historical-implications": "Historical Implication Analysis",
 }
 
 
@@ -164,6 +172,24 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
         "Suggest specific content for synopsis, purpose, entry state, exit state, and key events. "
         "Root suggestions in the actual story elements. Never write prose."
     ),
+    "what-exists": (
+        "You are a world building consultant helping an author think through what would "
+        "logically exist at a location. Surface considerations about buildings, creatures, "
+        "plants, and weather based on the location's established properties and world rules. "
+        "Ask questions — never write prose or provide paste-ready content."
+    ),
+    "element-suggest": (
+        "You are a world building brainstorming partner. Help the author think through "
+        "directions for names, customs, creatures, and cultural elements. Suggest considerations "
+        "and ask questions grounded in existing world elements — never write prose or "
+        "provide ready-made content."
+    ),
+    "historical-implications": (
+        "You are a world building consultant helping an author think through the present-day "
+        "ripple effects of historical events. Surface questions about what would be visible today: "
+        "ruins, traditions, political effects, inherited attitudes. Reference specific world "
+        "elements by name. Never write prose."
+    ),
 }
 
 
@@ -185,4 +211,7 @@ __all__ = [
     "build_scene_chat_system_prompt",
     "build_brainstorm_system_prompt",
     "build_scene_planner_system_prompt",
+    "build_location_existence_prompt",
+    "build_element_suggestion_prompt",
+    "build_historical_implication_prompt",
 ]

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked } from "lucide-react";
+import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity } from "lucide-react";
 import { api } from "../api/client";
-import type { StoryHealth, BeatSheet } from "../types";
+import type { StoryHealth, BeatSheet, PlotThread } from "../types";
 import { useStoryStore } from "../stores/storyStore";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import EconomyAnalysisPanel from "../components/health/EconomyAnalysisPanel";
+import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import styles from "./StoryHealthPage.module.css";
 
 function WordBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
@@ -37,13 +38,18 @@ export default function StoryHealthPage() {
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [beatSheet, setBeatSheet] = useState<BeatSheet | null>(null);
+  const [threads, setThreads] = useState<PlotThread[]>([]);
 
   async function load() {
     if (!storyId) return;
     setLoading(true);
     try {
-      const h = await api.getStoryHealth(storyId);
+      const [h, t] = await Promise.all([
+        api.getStoryHealth(storyId),
+        api.listThreads(storyId),
+      ]);
       setHealth(h);
+      setThreads(t);
     } finally {
       setLoading(false);
     }
@@ -72,7 +78,6 @@ export default function StoryHealthPage() {
   const sceneTotal = health.scenes.total;
   const sceneByStatus = health.scenes.by_status;
 
-  const maxPacingWords = Math.max(...health.pacing.map((p) => p.word_count), 1);
   const avgWords = sceneTotal > 0 ? Math.round(totalWords / sceneTotal) : 0;
 
   const openThreads = health.threads.open.length;
@@ -327,41 +332,22 @@ export default function StoryHealthPage() {
           )}
         </section>
 
-        {/* Pacing Heatmap */}
+        {/* Story Progression Graph */}
         {health.pacing.length > 0 && (
           <section className={`${styles.card} ${styles.cardFull}`}>
             <div className={styles.cardHeader}>
-              <TrendingUp size={14} className={styles.cardIcon} />
-              <h3 className={styles.cardTitle}>Pacing — Words per Scene</h3>
+              <Activity size={14} className={styles.cardIcon} />
+              <h3 className={styles.cardTitle}>Story Progression</h3>
             </div>
-            <div className={styles.heatmap}>
-              {health.pacing.map((entry) => {
-                const intensity = maxPacingWords > 0 ? entry.word_count / maxPacingWords : 0;
-                const statusColor =
-                  entry.status === "final" ? "#4caf82" :
-                  entry.status === "revised" ? "var(--color-accent)" :
-                  "var(--color-text-muted)";
-                return (
-                  <div
-                    key={entry.id}
-                    className={styles.heatCell}
-                    title={`${entry.title}: ${entry.word_count.toLocaleString()} words (${entry.status})`}
-                    style={{
-                      opacity: entry.word_count === 0 ? 0.2 : 0.3 + intensity * 0.7,
-                      background: statusColor,
-                    }}
-                  />
-                );
-              })}
-            </div>
-            <div className={styles.heatLegend}>
-              <span className={styles.heatLegendItem}><span style={{ background: "var(--color-text-muted)", opacity: 0.6 }} className={styles.heatSwatch} /> Draft</span>
-              <span className={styles.heatLegendItem}><span style={{ background: "var(--color-accent)", opacity: 0.8 }} className={styles.heatSwatch} /> Revised</span>
-              <span className={styles.heatLegendItem}><span style={{ background: "#4caf82", opacity: 0.8 }} className={styles.heatSwatch} /> Final</span>
-              <span className={styles.heatLegendItem} style={{ marginLeft: "auto" }}>Darker = more words</span>
-            </div>
+            <StoryProgressionGraph
+              pacing={health.pacing}
+              threads={threads}
+              beatSheet={beatSheet}
+              storyId={storyId!}
+            />
           </section>
         )}
+
 
       {/* Economy Analysis */}
       {storyId && (
