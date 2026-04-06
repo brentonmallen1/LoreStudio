@@ -19,6 +19,7 @@ class CharacterCreate(BaseModel):
     arc_notes: str = ""
     interview_prompts: list[str] = []
     traits: dict = {}
+    attributes: dict = {}
     narrative_intent: str = ""
     narrative_intent_hidden: bool = True
 
@@ -33,6 +34,7 @@ class CharacterUpdate(BaseModel):
     arc_notes: str | None = None
     interview_prompts: list[str] | None = None
     traits: dict | None = None
+    attributes: dict | None = None
     narrative_intent: str | None = None
     narrative_intent_hidden: bool | None = None
 
@@ -49,6 +51,7 @@ class CharacterOut(BaseModel):
     arc_notes: str
     interview_prompts: list[str]
     traits: dict
+    attributes: dict
     narrative_intent: str
     narrative_intent_hidden: bool
     arc_milestones: list[ArcMilestone]

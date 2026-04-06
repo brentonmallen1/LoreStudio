@@ -124,6 +124,15 @@ export interface ArcMilestone {
   completed: boolean;
 }
 
+export interface CharacterAttributes {
+  intelligence?: string;
+  education?: string;
+  moral_alignment?: string;
+  disposition?: string;
+  temperament?: string;
+  social_manner?: string;
+}
+
 export interface Character {
   id: string;
   story_id: string;
@@ -136,6 +145,7 @@ export interface Character {
   arc_notes: string;
   interview_prompts: string[];
   traits: Record<string, string>;
+  attributes: CharacterAttributes;
   narrative_intent: string;
   narrative_intent_hidden: boolean;
   arc_milestones: ArcMilestone[];
@@ -465,6 +475,33 @@ export interface StoryOverview {
   recent_activity: RecentActivity[];
   recent_interviews: RecentInterview[];
   distribution: DistributionEntry[];
+}
+
+// ── Manuscript & Export ──
+
+export interface ManuscriptSection {
+  id: string;
+  heading: string;
+  level: number;
+  is_leaf: boolean;
+  content: string | null;
+  word_count: number;
+  status: string;
+}
+
+export interface Manuscript {
+  title: string;
+  total_words: number;
+  sections: ManuscriptSection[];
+}
+
+export interface ExportOptions {
+  format: "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf";
+  include_headers: boolean;
+  include_scene_titles: boolean;
+  title_page: boolean;
+  scene_break: string;
+  status_filter: string[] | null;
 }
 
 export interface AssetAttachment {

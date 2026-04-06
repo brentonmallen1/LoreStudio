@@ -20,7 +20,7 @@ const THREAD_ROW_H = 26;
 const MIN_SLOT_W = 4;
 
 const STATUS_COLORS: Record<string, string> = {
-  final: "#4caf82",
+  final: "var(--color-success)",
   revised: "var(--color-accent)",
   draft: "var(--color-text-muted)",
 };
@@ -369,7 +369,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
             <span className={styles.swatch} style={{ background: "var(--color-accent)", opacity: 0.65 }} /> Revised
           </span>
           <span className={styles.legendItem}>
-            <span className={styles.swatch} style={{ background: "#4caf82", opacity: 0.65 }} /> Final
+            <span className={styles.swatch} style={{ background: "var(--color-success)", opacity: 0.65 }} /> Final
           </span>
           {beatSheet && (
             <span className={styles.legendItem} style={{ marginLeft: "auto", color: "var(--color-accent)" }}>

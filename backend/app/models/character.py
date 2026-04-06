@@ -19,6 +19,7 @@ class Character(Base):
     arc_notes: Mapped[str] = mapped_column(Text, default="")
     interview_prompts: Mapped[list] = mapped_column(JSON, default=list)  # list of strings
     traits: Mapped[dict] = mapped_column(JSON, default=dict)  # flexible key-value traits
+    attributes: Mapped[dict] = mapped_column(JSON, default=dict)  # intelligence, alignment, etc.
 
     # Author-facing: what is this character FOR in the story (hidden from character interviews)
     narrative_intent: Mapped[str] = mapped_column(Text, default="")

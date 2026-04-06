@@ -30,6 +30,7 @@ import {
   BookOpen,
   Globe,
   Telescope,
+  Send,
   type LucideIcon,
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
@@ -248,6 +249,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/media")) return "media";
     if (path.includes("/health")) return "health";
     if (path.includes("/chronicle")) return "chronicle";
+    if (path.includes("/publish")) return "publish";
     if (path.includes("/worldbuilding")) return "worldbuilding";
     if (path.includes("/discoveries")) return "discoveries";
     if (path.includes("/write")) return "story";
@@ -305,6 +307,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
       : []),
     { id: "chronicle",     icon: Clock,             label: "Chronicle",        path: "/chronicle" },
+    { id: "publish",       icon: Send,              label: "Publish",          path: "/publish" },
   ];
 
   return (
@@ -417,6 +420,13 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             title="Scene link graph"
           >
             <GitBranch size={12} />
+          </button>
+          <button
+            className={`${styles.viewBtn} ${viewMode === "manuscript" ? styles.viewActive : ""}`}
+            onClick={() => setViewMode("manuscript")}
+            title="Manuscript view"
+          >
+            <BookOpen size={12} />
           </button>
         </div>
       )}

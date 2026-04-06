@@ -66,7 +66,7 @@ import StorySummaryPanel from "./StorySummaryPanel";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "./SprintTimer";
 import FontPicker from "./FontPicker";
-import SceneChatPanel from "../layout/SceneChatPanel";
+import { useAIStore } from "../../stores/aiStore";
 import BrainstormPanel from "../layout/BrainstormPanel";
 import ScenePlannerPanel from "../layout/ScenePlannerPanel";
 import { useLLMStream } from "../../hooks/useLLMStream";
@@ -74,7 +74,8 @@ import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
-  const { chatPanelOpen, openChatPanel, closeChatPanel, brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel } = useUIStore();
+  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel } = useUIStore();
+  const { sessions, panelOpen, createSession, setActiveSession } = useAIStore();
   const { runDiscovery, isAnalyzing: isDiscoveryAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -808,8 +809,17 @@ export default function SceneEditor() {
           )}
           {activeStory && (
             <button
-              onClick={() => chatPanelOpen ? closeChatPanel() : openChatPanel()}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${chatPanelOpen ? styles.topbarBtnAIActive : ""}`}
+              onClick={() => {
+                const existingSession = sessions.find(
+                  (s) => s.type === "scene-assistant" && s.context.nodeId === activeNode?.id
+                );
+                if (existingSession) {
+                  setActiveSession(existingSession.id);
+                } else {
+                  createSession("scene-assistant", { storyId: activeStory?.id, nodeId: activeNode?.id });
+                }
+              }}
+              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${panelOpen && sessions.some((s) => s.type === "scene-assistant" && s.context.nodeId === activeNode?.id) ? styles.topbarBtnAIActive : ""}`}
               title="Scene Assistant — AI chat grounded in this scene's full context"
             >
               <Sparkles size={13} />
@@ -1220,9 +1230,6 @@ export default function SceneEditor() {
       )}
       {brainstormPanelOpen && activeStory && (
         <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
-      )}
-      {chatPanelOpen && activeStory && (
-        <SceneChatPanel storyId={activeStory.id} nodeId={activeNode.id} />
       )}
       </div>{/* end contentRow */}
 

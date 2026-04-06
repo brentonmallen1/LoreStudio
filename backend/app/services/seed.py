@@ -259,6 +259,14 @@ def seed_demo_story():
                 "Tell me about your father.",
             ],
             traits={"Occupation": "Lighthouse keeper", "Home": "Harrow Island", "Skill": "Cartography"},
+            attributes={
+                "intelligence": "sharp",
+                "education": "educated",
+                "moral_alignment": "principled",
+                "disposition": "orderly",
+                "temperament": "calm",
+                "social_manner": "rough",
+            },
             narrative_intent="Eleanor serves as the reader's lens into the isolated world. Her guardedness creates mystery while her observant nature provides rich sensory detail. She represents the universal tension between safety and connection.",
             narrative_intent_hidden=True,
             arc_milestones=[
@@ -288,6 +296,14 @@ def seed_demo_story():
                 "Do you blame him for what happened to James?",
             ],
             traits={"Real name": "Calder", "Known as": "The Visitor", "Occupation": "Maritime Heritage Foundation investigator", "Carries": "Leather notebook", "Brother": "James Calder (deceased, captain of the Ardent)"},
+            attributes={
+                "intelligence": "sharp",
+                "education": "educated",
+                "moral_alignment": "principled",
+                "disposition": "conventional",
+                "temperament": "calm",
+                "social_manner": "polished",
+            },
             narrative_intent="Functions as a catalyst and mirror for Eleanor. Her questions force Eleanor to examine the story she tells herself. The mystery of her identity keeps tension high through Act 2, and her revelation in Act 3 reframes every interaction they've had.",
             narrative_intent_hidden=True,
             arc_milestones=[
@@ -311,6 +327,14 @@ def seed_demo_story():
             arc_notes="Thomas exists as an absence. His choices shape the present without him being present. The story is partly an excavation of who he actually was.",
             interview_prompts=[],
             traits={"Status": "Deceased", "Occupation": "Lighthouse keeper (retired)", "Tenure": "31 years on Harrow Island"},
+            attributes={
+                "intelligence": "average",
+                "education": "common",
+                "moral_alignment": "unknown",
+                "disposition": "orderly",
+                "temperament": "calm",
+                "social_manner": "casual",
+            },
             narrative_intent="Thomas is the mystery at the story's center. His presence is felt through Eleanor's grief, the missing log entries, and the Visitor's purpose. His character must reveal itself through what others remember — and misremember. The reader should finish the story feeling the full weight of who he was: a man of discipline and routine who failed catastrophically once and spent his last months dismantling the evidence.",
             narrative_intent_hidden=True,
             arc_milestones=[
@@ -340,6 +364,14 @@ def seed_demo_story():
                 "Do you think Eleanor will leave now?",
             ],
             traits={"Age": "74", "Status": "Year-round resident", "Relationship to Eleanor": "Neighbor and confidante", "Late husband": "Robert Holt (fisherman)", "Secret": "Saw the lighthouse dark on the night of the Ardent"},
+            attributes={
+                "intelligence": "sharp",
+                "education": "common",
+                "moral_alignment": "pragmatic",
+                "disposition": "orderly",
+                "temperament": "serene",
+                "social_manner": "rough",
+            },
             narrative_intent="Margaret grounds the story in the island's longer history. She knows more than she says — specifically, she witnessed the lighthouse dark on the night of the Ardent but chose not to report it. Her confession to Eleanor in Act 3 adds another layer to the truth: the cover-up wasn't complete, just unspoken.",
             narrative_intent_hidden=True,
             arc_milestones=[

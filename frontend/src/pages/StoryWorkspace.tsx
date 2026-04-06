@@ -1,34 +1,39 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
+// Always-loaded layout chrome
 import Sidebar from "../components/layout/Sidebar";
 import StructureTreePanel from "../components/layout/StructureTreePanel";
-import InterviewPanel from "../components/layout/InterviewPanel";
-import SceneEditor from "../components/story/SceneEditor";
-import CharacterSheet from "../components/characters/CharacterSheet";
-import CharacterList from "../components/characters/CharacterList";
-import LorebookPanel from "../components/story/LorebookPanel";
-import CompendiumPanel from "../components/compendium/CompendiumPanel";
-import WorldBuildingHub from "../components/worldbuilding/WorldBuildingHub";
-import PanelInterviewPanel from "../components/panels/PanelInterviewPanel";
-import PlotThreadManager from "../components/threads/PlotThreadManager";
-import CorkboardView from "../components/story/CorkboardView";
-import TimelineView from "../components/story/TimelineView";
-import SceneLinkGraph from "../components/story/SceneLinkGraph";
-import MediaPage from "./MediaPage";
-import StoryHealthPage from "./StoryHealthPage";
-import ChroniclePage from "./ChroniclePage";
-import DiscoveryQueuePage from "./DiscoveryQueuePage";
-import StoryOverviewPage from "./StoryOverviewPage";
 import styles from "./StoryWorkspace.module.css";
+
+// Lazy-loaded route panels — only fetched when the user navigates to them
+const SceneEditor        = lazy(() => import("../components/story/SceneEditor"));
+const CharacterSheet     = lazy(() => import("../components/characters/CharacterSheet"));
+const CharacterList      = lazy(() => import("../components/characters/CharacterList"));
+const LorebookPanel      = lazy(() => import("../components/story/LorebookPanel"));
+const CompendiumPanel    = lazy(() => import("../components/compendium/CompendiumPanel"));
+const WorldBuildingHub   = lazy(() => import("../components/worldbuilding/WorldBuildingHub"));
+const PanelInterviewPanel = lazy(() => import("../components/panels/PanelInterviewPanel"));
+const PlotThreadManager  = lazy(() => import("../components/threads/PlotThreadManager"));
+const CorkboardView      = lazy(() => import("../components/story/CorkboardView"));
+const TimelineView       = lazy(() => import("../components/story/TimelineView"));
+const SceneLinkGraph     = lazy(() => import("../components/story/SceneLinkGraph"));
+const ManuscriptView     = lazy(() => import("../components/manuscript/ManuscriptView"));
+const MediaPage          = lazy(() => import("./MediaPage"));
+const StoryHealthPage    = lazy(() => import("./StoryHealthPage"));
+const ChroniclePage      = lazy(() => import("./ChroniclePage"));
+const DiscoveryQueuePage = lazy(() => import("./DiscoveryQueuePage"));
+const StoryOverviewPage  = lazy(() => import("./StoryOverviewPage"));
+const PublishPage        = lazy(() => import("./PublishPage"));
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { setActiveStory, setStructure, setCharacters, setActiveTemplate } = useStoryStore();
-  const { interviewPanelOpen, activeInterview, viewState, viewMode, treeDetached } = useUIStore();
+  const { setActiveStory, setStructure, setCharacters, setActiveTemplate, structure } = useStoryStore();
+  const { viewState, viewMode, treeDetached, setViewMode } = useUIStore();
+  const { setActiveNode } = useStoryStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
   const [sidebarRevealed, setSidebarRevealed] = useState(false);
@@ -97,6 +102,7 @@ export default function StoryWorkspacePage() {
       )}
 
       <main className={styles.main}>
+        <Suspense fallback={<div className={styles.loading}>Loading…</div>}>
         <Routes>
           <Route path="/" element={<StoryOverviewPage />} />
           <Route path="/overview" element={<StoryOverviewPage />} />
@@ -104,6 +110,20 @@ export default function StoryWorkspacePage() {
             viewMode === "corkboard" ? <CorkboardView /> :
             viewMode === "timeline" ? <TimelineView /> :
             viewMode === "graph" ? <SceneLinkGraph /> :
+            viewMode === "manuscript" ? (
+              <ManuscriptView
+                storyId={storyId!}
+                onNavigateToScene={(id) => {
+                  const queue = [...structure];
+                  while (queue.length) {
+                    const n = queue.shift()!;
+                    if (n.id === id) { setActiveNode(n); break; }
+                    if (n.children) queue.push(...n.children);
+                  }
+                  setViewMode("tree");
+                }}
+              />
+            ) :
             <SceneEditor />
           } />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
@@ -117,10 +137,11 @@ export default function StoryWorkspacePage() {
           <Route path="/health" element={<StoryHealthPage />} />
           <Route path="/discoveries" element={<DiscoveryQueuePage />} />
           <Route path="/chronicle" element={<ChroniclePage />} />
+          <Route path="/publish" element={<PublishPage />} />
         </Routes>
+        </Suspense>
       </main>
 
-      {interviewPanelOpen && activeInterview && <InterviewPanel />}
     </div>
   );
 }

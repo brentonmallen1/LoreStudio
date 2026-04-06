@@ -135,7 +135,7 @@ export default function StoryHealthPage() {
               <span className={styles.pillNum}>{sceneByStatus.revised ?? 0}</span>
               <span className={styles.pillLabel}>Revised</span>
             </div>
-            <div className={styles.statusPill} style={{ background: "color-mix(in srgb, #4caf82 15%, transparent)" }}>
+            <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}>
               <span className={styles.pillNum}>{sceneByStatus.final ?? 0}</span>
               <span className={styles.pillLabel}>Final</span>
             </div>
@@ -158,7 +158,7 @@ export default function StoryHealthPage() {
                 {health.goals.items.map((g) => (
                   <div key={g.id} className={`${styles.goalItem} ${g.completed ? styles.goalDone : ""}`}>
                     {g.completed
-                      ? <CheckCircle2 size={12} style={{ color: "#4caf82", flexShrink: 0 }} />
+                      ? <CheckCircle2 size={12} style={{ color: "var(--color-success)", flexShrink: 0 }} />
                       : <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                     }
                     <span>{g.text}</span>

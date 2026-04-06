@@ -157,6 +157,49 @@
   max-width: 380px;
 }
 
+/* ── Shortcut & chevron ── */
+.shortcutHint {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--color-text-subtle);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.chevron {
+  margin-left: auto;
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+/* ── Sub-menu header ── */
+.backBtn {
+  display: flex;
+  align-items: center;
+  padding: 0.1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transform: rotate(180deg);
+  transition: color var(--transition);
+}
+.backBtn:hover { color: var(--color-text); }
+
+.backIcon { flex-shrink: 0; }
+
+.subMenuContext {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── Empty state ── */
 .empty {
   padding: 2rem 1rem;

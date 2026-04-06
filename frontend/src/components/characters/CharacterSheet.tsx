@@ -3,7 +3,17 @@ import { useParams } from "react-router-dom";
 import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
+import { useAIStore } from "../../stores/aiStore";
+import type { CharacterAttributes } from "../../types";
+
+const ATTRIBUTE_DEFS: { key: keyof CharacterAttributes; label: string; options: string[] }[] = [
+  { key: "intelligence",    label: "Intelligence",    options: ["Brilliant", "Sharp", "Average", "Simple", "Slow"] },
+  { key: "education",       label: "Education",       options: ["Scholarly", "Educated", "Common", "Unlettered"] },
+  { key: "moral_alignment", label: "Moral Alignment", options: ["Righteous", "Principled", "Pragmatic", "Self-Serving", "Corrupt"] },
+  { key: "disposition",     label: "Disposition",     options: ["Orderly", "Conventional", "Flexible", "Unpredictable", "Chaotic"] },
+  { key: "temperament",     label: "Temperament",     options: ["Serene", "Calm", "Balanced", "Volatile", "Explosive"] },
+  { key: "social_manner",   label: "Social Manner",   options: ["Refined", "Polished", "Casual", "Rough", "Crude"] },
+];
 import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
 import StartInterviewDialog from "./StartInterviewDialog";
@@ -23,7 +33,7 @@ function Field({ label, value }: { label: string; value: string }) {
 export default function CharacterSheet() {
   const { characterId, storyId } = useParams<{ characterId: string; storyId: string }>();
   const { characters, upsertCharacter } = useStoryStore();
-  const { openInterview } = useUIStore();
+  const { resumeSession } = useAIStore();
   const [editing, setEditing] = useState(false);
   const [showStartInterview, setShowStartInterview] = useState(false);
   const [showAiGenerator, setShowAiGenerator] = useState(false);
@@ -79,10 +89,24 @@ export default function CharacterSheet() {
     upsertCharacter(updated);
   }
 
-  function handleInterviewStarted(interview: import("../../types").Interview) {
+  async function updateAttribute(key: keyof CharacterAttributes, value: string) {
+    if (!character) return;
+    const updated = await api.updateCharacter(character.id, {
+      attributes: { ...character.attributes, [key]: value },
+    });
+    upsertCharacter(updated);
+  }
+
+  async function handleInterviewStarted(interview: import("../../types").Interview) {
     if (!character) return;
     setShowStartInterview(false);
-    openInterview(interview, character);
+    await resumeSession(
+      "interview",
+      { characterId: character.id, storyId: storyId ?? character.story_id, nodeId: interview.context_node_id ?? undefined },
+      interview.id,
+      (interview.messages ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      interview.interview_notes ?? undefined,
+    );
   }
 
   if (!character) {
@@ -234,6 +258,36 @@ export default function CharacterSheet() {
               </div>
             </div>
           )}
+
+          {/* ── Character Attributes ── */}
+          <div className={styles.attributesSection}>
+            <p className={styles.fieldLabel}>Character Attributes</p>
+            <p className={styles.attributesHint}>
+              Shapes vocabulary, tone, and behaviour during interviews. Leave as Unknown to discover through writing.
+            </p>
+            <div className={styles.attributesGrid}>
+              {ATTRIBUTE_DEFS.map(({ key, label, options }) => {
+                const value = character.attributes?.[key] ?? "unknown";
+                const isUnknown = !value || value === "unknown";
+                return (
+                  <div key={key} className={styles.attributeRow}>
+                    <span className={styles.attributeLabel}>{label}</span>
+                    <select
+                      className={styles.attributeSelect}
+                      value={isUnknown ? "unknown" : value}
+                      data-unknown={isUnknown ? "true" : "false"}
+                      onChange={(e) => updateAttribute(key, e.target.value)}
+                    >
+                      <option value="unknown">Unknown</option>
+                      {options.map((o) => (
+                        <option key={o} value={o.toLowerCase().replace(" ", "_")}>{o}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           {storyId && (
             <AssetPicker

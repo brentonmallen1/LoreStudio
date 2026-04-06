@@ -2,26 +2,19 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { useAuthStore } from "../../stores/authStore";
 import { api } from "../../api/client";
+import { commandRegistry } from "../../lib/commands/registry";
+import type { CommandAction } from "../../lib/commands/registry";
 import type { SearchResult } from "../../types";
 import {
   BookOpen,
   Users,
-  Settings,
-  LogOut,
-  Sun,
-  Moon,
-  Maximize2,
-  MessageSquare,
-  Search,
   Clapperboard,
   MapPin,
   GitBranch,
   Loader2,
-  Images,
-  Network,
-  Palette,
+  Search,
+  ChevronRight,
 } from "lucide-react";
 import styles from "./CommandPalette.module.css";
 
@@ -51,24 +44,58 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 };
 
 export default function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, setColorMode, setThemeName, setViewState, openInterview } = useUIStore();
-  const { stories, characters, activeStory, structure, setActiveNode } = useStoryStore();
-  const { logout } = useAuthStore();
+  const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
+  const { stories, characters, structure, setActiveNode } = useStoryStore();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  // Sub-menu: when a parent action has getSubItems, drill into it
+  const [subMenu, setSubMenu] = useState<{ parent: CommandAction; items: CommandAction[] } | null>(null);
+  const [subQuery, setSubQuery] = useState("");
+  const [subSelectedIndex, setSubSelectedIndex] = useState(0);
+  // Revision counter to re-evaluate registry on store changes
+  const [, forceUpdate] = useState(0);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const subInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => {
     setCommandPaletteOpen(false);
     setQuery("");
     setSearchResults([]);
+    setSubMenu(null);
+    setSubQuery("");
   }, [setCommandPaletteOpen]);
+
+  // Register dynamic commands that depend on store state (stories, characters)
+  useEffect(() => {
+    stories.forEach((s) => {
+      commandRegistry.update({
+        id: `story-${s.id}`,
+        label: s.title,
+        keywords: ["story", "open", "navigate"],
+        icon: BookOpen,
+        group: "Stories",
+        action: () => navigate(`/stories/${s.id}`),
+      });
+    });
+    characters.forEach((c) => {
+      commandRegistry.update({
+        id: `char-view-${c.id}`,
+        label: `View: ${c.name}`,
+        keywords: ["character", "view", "open", c.name.toLowerCase()],
+        icon: Users,
+        group: "Characters",
+        action: () => navigate(`/stories/${c.story_id}/characters/${c.id}`),
+      });
+    });
+    forceUpdate((n) => n + 1);
+  }, [stories, characters, navigate]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -82,15 +109,20 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [close, setCommandPaletteOpen]);
 
-  // Focus input when palette opens
+  // Focus the active input when palette/submenu opens
   useEffect(() => {
     if (commandPaletteOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
+      if (subMenu) {
+        setTimeout(() => subInputRef.current?.focus(), 30);
+      } else {
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
     }
-  }, [commandPaletteOpen]);
+  }, [commandPaletteOpen, subMenu]);
 
-  // Debounced search
+  // Debounced server search (only when not in sub-menu)
   useEffect(() => {
+    if (subMenu) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!query.trim()) {
       setSearchResults([]);
@@ -113,9 +145,11 @@ export default function CommandPalette() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query]);
+  }, [query, subMenu]);
 
   if (!commandPaletteOpen) return null;
+
+  // ── Search results navigation ──────────────────────────────────────────────
 
   function navigateTo(result: SearchResult) {
     switch (result.type) {
@@ -141,6 +175,95 @@ export default function CommandPalette() {
     close();
   }
 
+  // ── Action execution ───────────────────────────────────────────────────────
+
+  function executeAction(action: CommandAction) {
+    if (action.getSubItems) {
+      const items = action.getSubItems();
+      setSubMenu({ parent: action, items });
+      setSubQuery("");
+      setSubSelectedIndex(0);
+    } else {
+      action.action();
+      close();
+    }
+  }
+
+  function executeSubItem(action: CommandAction) {
+    action.action();
+    close();
+  }
+
+  // ── Visible items ──────────────────────────────────────────────────────────
+
+  const isSearchMode = query.trim().length > 0 && !subMenu;
+  const hasSearchResults = searchResults.length > 0;
+
+  // Group action results from registry
+  const actionGroups: Record<string, CommandAction[]> = commandRegistry.grouped(query);
+
+  // Sub-menu filtering
+  const filteredSubItems = subMenu
+    ? (subQuery.trim()
+      ? subMenu.items.filter((item) => {
+          const q = subQuery.toLowerCase();
+          return item.label.toLowerCase().includes(q) ||
+            (item.keywords ?? []).some((k) => k.toLowerCase().includes(q));
+        })
+      : subMenu.items)
+    : [];
+
+  // Flat list for keyboard nav
+  const flatItems: Array<{ action: () => void }> = isSearchMode
+    ? (searchResults.reduce((acc: SearchResult[], r) => { acc.push(r); return acc; }, []) as SearchResult[]).map((r) => ({ action: () => navigateTo(r) }))
+    : Object.values(actionGroups).flatMap((items) =>
+        items.map((a) => ({ action: () => executeAction(a) }))
+      );
+
+  const flatSubItems = filteredSubItems.map((a) => ({ action: () => executeSubItem(a) }));
+
+  // ── Keyboard handling ──────────────────────────────────────────────────────
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((i) => { const n = Math.min(i + 1, flatItems.length - 1); scrollToIndex(n); return n; });
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((i) => { const n = Math.max(i - 1, 0); scrollToIndex(n); return n; });
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      flatItems[selectedIndex]?.action();
+    }
+  }
+
+  function handleSubKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      setSubMenu(null);
+      setSubQuery("");
+      setTimeout(() => inputRef.current?.focus(), 30);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSubSelectedIndex((i) => Math.min(i + 1, flatSubItems.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSubSelectedIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      flatSubItems[subSelectedIndex]?.action();
+    }
+  }
+
+  function scrollToIndex(index: number) {
+    const list = listRef.current;
+    if (!list) return;
+    const buttons = list.querySelectorAll("button[data-item]");
+    (buttons[index] as HTMLElement)?.scrollIntoView({ block: "nearest" });
+  }
+
   // Group search results by type
   const groupedResults = searchResults.reduce(
     (acc, result) => {
@@ -152,296 +275,174 @@ export default function CommandPalette() {
   );
   const resultTypeOrder: SearchResult["type"][] = ["story", "character", "scene", "setting", "thread"];
 
-  // Static jump-to actions (shown when no query)
-  const storyActions = stories.flatMap((s) => [
-    {
-      id: `story-${s.id}`,
-      label: s.title,
-      group: "Stories",
-      Icon: BookOpen,
-      action: () => navigate(`/stories/${s.id}`),
-    },
-    {
-      id: `story-media-${s.id}`,
-      label: `Media & Diagrams: ${s.title}`,
-      group: "Stories",
-      Icon: Images,
-      action: () => navigate(`/stories/${s.id}/media`),
-    },
-  ]);
-
-  const characterActions = characters.map((c) => [
-    {
-      id: `char-view-${c.id}`,
-      label: `View: ${c.name}`,
-      group: "Characters",
-      Icon: Users,
-      action: () => navigate(`/stories/${c.story_id}/characters/${c.id}`),
-    },
-    {
-      id: `char-interview-${c.id}`,
-      label: `Interview: ${c.name}`,
-      group: "Characters",
-      Icon: MessageSquare,
-      action: async () => {
-        const interview = await api.startInterview(c.id);
-        openInterview(interview, c);
-        close();
-      },
-    },
-  ]).flat();
-
-  const globalActions = [
-    {
-      id: "go-settings",
-      label: "Settings",
-      group: "Navigation",
-      Icon: Settings,
-      action: () => navigate("/settings"),
-    },
-    {
-      id: "theme-light",
-      label: "Color mode: Light",
-      group: "Appearance",
-      Icon: Sun,
-      action: () => setColorMode("light"),
-    },
-    {
-      id: "theme-dark",
-      label: "Color mode: Dark",
-      group: "Appearance",
-      Icon: Moon,
-      action: () => setColorMode("dark"),
-    },
-    {
-      id: "theme-zen",
-      label: "Theme: Zen",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("zen"),
-    },
-    {
-      id: "theme-e-ink",
-      label: "Theme: E-ink",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("e-ink"),
-    },
-    {
-      id: "theme-nord",
-      label: "Theme: Nord",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("nord"),
-    },
-    {
-      id: "theme-solarized",
-      label: "Theme: Solarized",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("solarized"),
-    },
-    {
-      id: "theme-dracula",
-      label: "Theme: Dracula",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("dracula"),
-    },
-    {
-      id: "theme-gruvbox",
-      label: "Theme: Gruvbox",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("gruvbox"),
-    },
-    {
-      id: "theme-catppuccin",
-      label: "Theme: Catppuccin",
-      group: "Appearance",
-      Icon: Palette,
-      action: () => setThemeName("catppuccin"),
-    },
-    {
-      id: "focus-mode",
-      label: "Toggle focus mode",
-      group: "View",
-      Icon: Maximize2,
-      action: () => setViewState("focus"),
-    },
-    ...(activeStory ? [
-      {
-        id: "new-diagram",
-        label: `New diagram: ${activeStory.title}`,
-        group: "Media & Diagrams",
-        Icon: Network,
-        action: async () => {
-          const title = prompt("Diagram title:");
-          if (!title) return;
-          await api.createDiagram(activeStory.id, { title });
-          navigate(`/stories/${activeStory.id}/media`);
-        },
-      },
-      {
-        id: "open-media",
-        label: `Open media library: ${activeStory.title}`,
-        group: "Media & Diagrams",
-        Icon: Images,
-        action: () => navigate(`/stories/${activeStory.id}/media`),
-      },
-    ] : []),
-    {
-      id: "logout",
-      label: "Sign out",
-      group: "Account",
-      Icon: LogOut,
-      action: logout,
-    },
-  ];
-
-  const allActions = [...globalActions, ...storyActions, ...characterActions];
-  const grouped = allActions.reduce(
-    (acc, item) => {
-      if (!acc[item.group]) acc[item.group] = [];
-      acc[item.group].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof allActions>
-  );
-
-  const isSearching = query.trim().length > 0;
-  const hasResults = searchResults.length > 0;
-
-  // Flat ordered list of selectable items for keyboard navigation.
-  // Must match the exact render order so selectedIndex aligns with the highlighted button.
-  const flatItems: Array<{ action: () => void }> = isSearching
-    ? resultTypeOrder.flatMap((type) =>
-        (groupedResults[type] ?? []).map((r) => ({ action: () => navigateTo(r) }))
-      )
-    : Object.values(grouped).flatMap((items) =>
-        items.map((a) => ({ action: () => { a.action(); close(); } }))
-      );
-
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex((i) => {
-        const next = Math.min(i + 1, flatItems.length - 1);
-        scrollToIndex(next);
-        return next;
-      });
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex((i) => {
-        const next = Math.max(i - 1, 0);
-        scrollToIndex(next);
-        return next;
-      });
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      flatItems[selectedIndex]?.action();
-    }
-  }
-
-  function scrollToIndex(index: number) {
-    const list = listRef.current;
-    if (!list) return;
-    const buttons = list.querySelectorAll("button");
-    buttons[index]?.scrollIntoView({ block: "nearest" });
-  }
-
   return (
-    <div className={styles.overlay} onClick={close}>
-      <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
-        {/* Search input */}
-        <div className={styles.searchRow}>
-          <Search size={15} className={styles.searchIcon} />
-          <input
-            ref={inputRef}
-            className={styles.searchInput}
-            placeholder="Search or jump to…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            spellCheck={false}
-          />
-          {searching && <Loader2 size={14} className={styles.spinner} />}
-          <span className={styles.kbdHint}>⌘K</span>
-        </div>
+    <div className={styles.overlay} onClick={close} aria-hidden="true">
+      <div
+        className={styles.palette}
+        role="dialog"
+        aria-label="Command palette"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* ── Sub-menu view ── */}
+        {subMenu ? (
+          <>
+            <div className={styles.searchRow}>
+              <button
+                className={styles.backBtn}
+                onClick={() => { setSubMenu(null); setTimeout(() => inputRef.current?.focus(), 30); }}
+                aria-label="Back to main menu"
+              >
+                <ChevronRight size={14} className={styles.backIcon} />
+              </button>
+              <span className={styles.subMenuContext} aria-hidden="true">{subMenu.parent.label}</span>
+              <input
+                ref={subInputRef}
+                className={styles.searchInput}
+                placeholder={`Filter ${subMenu.parent.label.toLowerCase()}…`}
+                aria-label={`Filter ${subMenu.parent.label}`}
+                value={subQuery}
+                onChange={(e) => { setSubQuery(e.target.value); setSubSelectedIndex(0); }}
+                onKeyDown={handleSubKeyDown}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+            <div className={styles.list} role="listbox" aria-label={subMenu.parent.label} ref={listRef}>
+              {filteredSubItems.length === 0 && (
+                <p className={styles.empty}>No matches</p>
+              )}
+              {filteredSubItems.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    data-item
+                    role="option"
+                    aria-selected={idx === subSelectedIndex}
+                    onClick={() => executeSubItem(item)}
+                    className={`${styles.item}${idx === subSelectedIndex ? ` ${styles.activeItem}` : ""}`}
+                  >
+                    <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                    <span className={styles.itemContent}>
+                      <span className={styles.itemTitle}>{item.label}</span>
+                      {item.description && <span className={styles.itemSubtitle}>{item.description}</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className={styles.footer} aria-hidden="true">
+              <span className={styles.footerHint}><kbd>↑↓</kbd> navigate</span>
+              <span className={styles.footerHint}><kbd>↵</kbd> select</span>
+              <span className={styles.footerHint}><kbd>Esc</kbd> back</span>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* ── Main search view ── */}
+            <div className={styles.searchRow}>
+              <Search size={15} className={styles.searchIcon} aria-hidden="true" />
+              <input
+                ref={inputRef}
+                className={styles.searchInput}
+                placeholder="Search or jump to…"
+                aria-label="Search or jump to a command"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {searching && <Loader2 size={14} className={styles.spinner} aria-hidden="true" />}
+              <span className={styles.kbdHint} aria-hidden="true">⌘K</span>
+            </div>
 
-        <div className={styles.list} ref={listRef}>
-          {isSearching ? (
-            hasResults ? (
-              (() => {
-                let flatIdx = 0;
-                return resultTypeOrder.map((type) => {
-                  const items = groupedResults[type];
-                  if (!items?.length) return null;
-                  const Icon = TYPE_ICONS[type];
-                  return (
-                    <div key={type} className={styles.group}>
-                      <p className={styles.groupLabel}>{TYPE_LABELS[type]}</p>
-                      {items.map((result) => {
+            <div className={styles.list} role="listbox" aria-label="Commands" ref={listRef}>
+              {isSearchMode ? (
+                hasSearchResults ? (
+                  (() => {
+                    let flatIdx = 0;
+                    return resultTypeOrder.map((type) => {
+                      const items = groupedResults[type];
+                      if (!items?.length) return null;
+                      const Icon = TYPE_ICONS[type];
+                      return (
+                        <div key={type} className={styles.group} role="group" aria-label={TYPE_LABELS[type]}>
+                          <p className={styles.groupLabel} aria-hidden="true">{TYPE_LABELS[type]}</p>
+                          {items.map((result) => {
+                            const idx = flatIdx++;
+                            return (
+                              <button
+                                key={result.id}
+                                data-item
+                                role="option"
+                                aria-selected={idx === selectedIndex}
+                                onClick={() => navigateTo(result)}
+                                className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                              >
+                                <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                                <span className={styles.itemContent}>
+                                  <span className={styles.itemTitle}>{result.title}</span>
+                                  {result.subtitle && <span className={styles.itemSubtitle}>{result.subtitle}</span>}
+                                  {result.excerpt && <span className={styles.itemExcerpt}>{result.excerpt}</span>}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    });
+                  })()
+                ) : !searching ? (
+                  <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
+                ) : null
+              ) : (
+                (() => {
+                  let flatIdx = 0;
+                  return Object.entries(actionGroups).map(([group, items]) => (
+                    <div key={group} className={styles.group} role="group" aria-label={group}>
+                      <p className={styles.groupLabel} aria-hidden="true">{group}</p>
+                      {items.map((action) => {
                         const idx = flatIdx++;
+                        const Icon = action.icon;
                         return (
                           <button
-                            key={result.id}
-                            onClick={() => navigateTo(result)}
+                            key={action.id}
+                            data-item
+                            role="option"
+                            aria-selected={idx === selectedIndex}
+                            onClick={() => executeAction(action)}
                             className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                            title={action.shortcut ? `${action.label} (${action.shortcut})` : action.label}
                           >
-                            <Icon size={14} className={styles.itemIcon} />
+                            <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
                             <span className={styles.itemContent}>
-                              <span className={styles.itemTitle}>{result.title}</span>
-                              {result.subtitle && (
-                                <span className={styles.itemSubtitle}>{result.subtitle}</span>
-                              )}
-                              {result.excerpt && (
-                                <span className={styles.itemExcerpt}>{result.excerpt}</span>
-                              )}
+                              <span className={styles.itemTitle}>{action.label}</span>
+                              {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
                             </span>
+                            {action.shortcut && (
+                              <span className={styles.shortcutHint} aria-hidden="true">{action.shortcut}</span>
+                            )}
+                            {action.getSubItems && (
+                              <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
+                            )}
                           </button>
                         );
                       })}
                     </div>
-                  );
-                });
-              })()
-            ) : !searching ? (
-              <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
-            ) : null
-          ) : (
-            (() => {
-              let flatIdx = 0;
-              return Object.entries(grouped).map(([group, items]) => (
-                <div key={group} className={styles.group}>
-                  <p className={styles.groupLabel}>{group}</p>
-                  {items.map(({ id, label, Icon, action }) => {
-                    const idx = flatIdx++;
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => { action(); close(); }}
-                        className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
-                      >
-                        <Icon size={14} className={styles.itemIcon} />
-                        <span className={styles.itemContent}>
-                          <span className={styles.itemTitle}>{label}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ));
-            })()
-          )}
-        </div>
+                  ));
+                })()
+              )}
+            </div>
 
-        <div className={styles.footer}>
-          <span className={styles.footerHint}><kbd>↑↓</kbd> navigate</span>
-          <span className={styles.footerHint}><kbd>↵</kbd> select</span>
-          <span className={styles.footerHint}><kbd>Esc</kbd> close</span>
-        </div>
+            <div className={styles.footer} aria-hidden="true">
+              <span className={styles.footerHint}><kbd>↑↓</kbd> navigate</span>
+              <span className={styles.footerHint}><kbd>↵</kbd> select</span>
+              <span className={styles.footerHint}><kbd>Esc</kbd> close</span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PenLine, ArrowRight, Sparkles, RefreshCw } from "lucide-react";
+import { PenLine, ArrowRight, Sparkles, RefreshCw, BookOpen } from "lucide-react";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
+import { useUIStore } from "../stores/uiStore";
 import type { StoryOverview } from "../types";
 import styles from "./StoryOverviewPage.module.css";
 
@@ -43,8 +44,8 @@ function ProgressRing({
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (Math.min(pct, 100) / 100) * circumference;
   const color =
-    warning === "exceeded" ? "#e05050" :
-    warning === "approaching" ? "#f0a050" :
+    warning === "exceeded" ? "var(--color-danger)" :
+    warning === "approaching" ? "var(--color-warning)" :
     "var(--color-accent)";
 
   return (
@@ -66,6 +67,7 @@ export default function StoryOverviewPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { activeStory, structure, setActiveNode } = useStoryStore();
+  const { setViewMode } = useUIStore();
   const [overview, setOverview] = useState<StoryOverview | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -232,7 +234,7 @@ export default function StoryOverviewPage() {
                 <span className={styles.metricSub} style={{ color: "var(--color-accent)" }}>
                   {ov.scenes_by_status.revised ?? 0} revised
                 </span>
-                <span className={styles.metricSub} style={{ color: "#4caf82" }}>
+                <span className={styles.metricSub} style={{ color: "var(--color-success)" }}>
                   {ov.scenes_by_status.final ?? 0} final
                 </span>
               </div>
@@ -307,6 +309,15 @@ export default function StoryOverviewPage() {
             </span>
             <ArrowRight size={15} className={styles.continueBtnArrow} />
           </button>
+          {hasContent && (
+            <button
+              className={styles.manuscriptBtn}
+              onClick={() => { setViewMode("manuscript"); navigate(`/stories/${storyId}/write`); }}
+            >
+              <BookOpen size={14} />
+              View Manuscript
+            </button>
+          )}
           {lastSessionText && (
             <p className={styles.lastSession}>{lastSessionText}</p>
           )}

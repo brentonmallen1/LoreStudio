@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import type { Character, Interview } from "../types";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
 export type ColorMode = "light" | "dark" | "system";
@@ -93,15 +92,6 @@ interface UIState {
   commandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
 
-  // Interview panel
-  interviewPanelOpen: boolean;
-  activeInterview: Interview | null;
-  activeInterviewCharacter: Character | null;
-  openInterview: (interview: Interview, character: Character) => void;
-  closeInterviewPanel: () => void;
-  collapseInterviewPanel: () => void;
-  setActiveInterview: (interview: Interview) => void;
-
   // View state: normal | focus (sidebar hover-reveal)
   viewState: "normal" | "focus";
   setViewState: (state: "normal" | "focus") => void;
@@ -130,13 +120,9 @@ interface UIState {
   endSprint: () => void;
 
   // Story view mode
-  viewMode: "tree" | "corkboard" | "timeline" | "graph";
-  setViewMode: (mode: "tree" | "corkboard" | "timeline" | "graph") => void;
+  viewMode: "tree" | "corkboard" | "timeline" | "graph" | "manuscript";
+  setViewMode: (mode: "tree" | "corkboard" | "timeline" | "graph" | "manuscript") => void;
 
-  // Scene chat panel
-  chatPanelOpen: boolean;
-  openChatPanel: () => void;
-  closeChatPanel: () => void;
 
   // Brainstorm panel ("What's Next?")
   brainstormPanelOpen: boolean;
@@ -272,16 +258,6 @@ export const useUIStore = create<UIState>((set) => ({
   commandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
 
-  interviewPanelOpen: false,
-  activeInterview: null,
-  activeInterviewCharacter: null,
-  openInterview: (interview, character) =>
-    set({ interviewPanelOpen: true, activeInterview: interview, activeInterviewCharacter: character }),
-  closeInterviewPanel: () =>
-    set({ interviewPanelOpen: false, activeInterview: null, activeInterviewCharacter: null }),
-  collapseInterviewPanel: () => set({ interviewPanelOpen: false }),
-  setActiveInterview: (interview) => set({ activeInterview: interview }),
-
   viewState: "normal",
   setViewState: (state) => set({ viewState: state }),
 
@@ -318,12 +294,9 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
-  viewMode: "tree" as "tree" | "corkboard" | "timeline" | "graph",
+  viewMode: "tree" as "tree" | "corkboard" | "timeline" | "graph" | "manuscript",
   setViewMode: (mode) => set({ viewMode: mode }),
 
-  chatPanelOpen: false,
-  openChatPanel: () => set({ chatPanelOpen: true }),
-  closeChatPanel: () => set({ chatPanelOpen: false }),
 
   brainstormPanelOpen: false,
   openBrainstormPanel: () => set({ brainstormPanelOpen: true }),

@@ -53,6 +53,10 @@
   --color-danger-bg: #fdf2f2;
   --color-warning: #c47a1e;
 
+  /* ── Semantic status colors ────────────────────── */
+  --color-success: #4a9c6e;
+  --color-surface-raised: #eceae2;
+
   /* ── Editor typography ─────────────────────────── */
   --font-editor: "Merriweather", Georgia, serif;
   --font-size-editor: 1rem;
@@ -65,6 +69,7 @@
   --color-surface: #1c1b18;
   --color-surface-2: #242320;
   --color-surface-3: #2c2b27;
+  --color-surface-raised: #201f1c;
   --color-border: #2e2d29;
   --color-border-light: #272622;
   --color-text: #f0ede6;
@@ -95,6 +100,8 @@
 
   --color-danger: #e05454;
   --color-danger-bg: #1f1212;
+  --color-warning: #d08428;
+  --color-success: #5ab87e;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -108,6 +115,7 @@
   --color-surface: #f5f1e8;
   --color-surface-2: #e4e0d4;
   --color-surface-3: #d8d4c8;
+  --color-surface-raised: #dad6ca;
   --color-border: #c4bfb0;
   --color-border-light: #ccc8ba;
   --color-text: #222222;
@@ -139,6 +147,7 @@
   --color-danger: #b03030;
   --color-danger-bg: #f0e8e8;
   --color-warning: #a87820;
+  --color-success: #3d7856;
 }
 
 /* ── E-ink theme · dark mode ───────────────────── */
@@ -147,6 +156,7 @@
   --color-surface: #242018;
   --color-surface-2: #2c2820;
   --color-surface-3: #343028;
+  --color-surface-raised: #302c24;
   --color-border: #3c3830;
   --color-border-light: #322e26;
   --color-text: #d4ccc0;
@@ -177,6 +187,8 @@
 
   --color-danger: #c84848;
   --color-danger-bg: #1c1010;
+  --color-warning: #c89840;
+  --color-success: #58906a;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -190,6 +202,7 @@
   --color-surface: #E5E9F0;
   --color-surface-2: #D8DEE9;
   --color-surface-3: #CAD1DE;
+  --color-surface-raised: #CED5E2;
   --color-border: #D0D8E8;
   --color-border-light: #DDE4EF;
   --color-text: #2E3440;
@@ -221,6 +234,7 @@
   --color-danger: #BF616A;
   --color-danger-bg: #EFE6E6;
   --color-warning: #D08770;
+  --color-success: #6A9070;
 }
 
 /* ── Nord theme · dark mode ────────────────────── */
@@ -229,6 +243,7 @@
   --color-surface: #3B4252;
   --color-surface-2: #434C5E;
   --color-surface-3: #4C566A;
+  --color-surface-raised: #424B5E;
   --color-border: #3E4758;
   --color-border-light: #434C5E;
   --color-text: #ECEFF4;
@@ -260,6 +275,7 @@
   --color-danger: #BF616A;
   --color-danger-bg: #3A2A2B;
   --color-warning: #D08770;
+  --color-success: #A3BE8C;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -273,6 +289,7 @@
   --color-surface: #eee8d5;
   --color-surface-2: #e4dece;
   --color-surface-3: #d6cfc2;
+  --color-surface-raised: #dcd8c8;
   --color-border: #cdc5b0;
   --color-border-light: #d8d2bf;
   --color-text: #657b83;
@@ -304,6 +321,7 @@
   --color-danger: #dc322f;
   --color-danger-bg: #f7eeec;
   --color-warning: #b58900;
+  --color-success: #859900;
 }
 
 /* ── Solarized theme · dark mode ───────────────── */
@@ -312,6 +330,7 @@
   --color-surface: #073642;
   --color-surface-2: #0d3f4c;
   --color-surface-3: #1a4b57;
+  --color-surface-raised: #0b3a46;
   --color-border: #1a4b57;
   --color-border-light: #0f4250;
   --color-text: #839496;
@@ -342,7 +361,8 @@
 
   --color-danger: #dc322f;
   --color-danger-bg: #1a0e0e;
-  --color-warning: #b58900;
+  --color-warning: #d4a800;
+  --color-success: #859900;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -356,6 +376,7 @@
   --color-surface: #313342;
   --color-surface-2: #3A3C4E;
   --color-surface-3: #44475A;
+  --color-surface-raised: #424455;
   --color-border: #44475A;
   --color-border-light: #3D3F52;
   --color-text: #F8F8F2;
@@ -387,6 +408,7 @@
   --color-danger: #FF5555;
   --color-danger-bg: #3A2020;
   --color-warning: #FFB86C;
+  --color-success: #50FA7B;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -400,6 +422,7 @@
   --color-surface: #f2e5bc;
   --color-surface-2: #ebdbb2;
   --color-surface-3: #d5c4a1;
+  --color-surface-raised: #e2d4aa;
   --color-border: #c9b98a;
   --color-border-light: #d8c9a0;
   --color-text: #3c3836;
@@ -431,6 +454,7 @@
   --color-danger: #cc241d;
   --color-danger-bg: #f4e8e0;
   --color-warning: #d79921;
+  --color-success: #98971a;
 }
 
 /* ── Gruvbox theme · dark mode ─────────────────── */
@@ -439,6 +463,7 @@
   --color-surface: #3c3836;
   --color-surface-2: #504945;
   --color-surface-3: #665c54;
+  --color-surface-raised: #575250;
   --color-border: #504945;
   --color-border-light: #3c3836;
   --color-text: #ebdbb2;
@@ -470,6 +495,7 @@
   --color-danger: #fb4934;
   --color-danger-bg: #332020;
   --color-warning: #fabd2f;
+  --color-success: #b8bb26;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -483,6 +509,7 @@
   --color-surface: #E6E9EF;
   --color-surface-2: #CCD0DA;
   --color-surface-3: #BCC0CC;
+  --color-surface-raised: #C6CAD5;
   --color-border: #C5CAD5;
   --color-border-light: #D1D5DE;
   --color-text: #4C4F69;
@@ -514,6 +541,7 @@
   --color-danger: #D20F39;
   --color-danger-bg: #F4E8EC;
   --color-warning: #DF8E1D;
+  --color-success: #40A02B;
 }
 
 /* ── Catppuccin theme · Macchiato (dark) ───────── */
@@ -522,6 +550,7 @@
   --color-surface: #1E2030;
   --color-surface-2: #363A4F;
   --color-surface-3: #494D64;
+  --color-surface-raised: #3f4359;
   --color-border: #363A4F;
   --color-border-light: #2D3145;
   --color-text: #CAD3F5;
@@ -553,6 +582,7 @@
   --color-danger: #ED8796;
   --color-danger-bg: #352030;
   --color-warning: #EED49F;
+  --color-success: #A6DA95;
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -621,4 +651,18 @@ body {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Focus-visible baseline (keyboard a11y) ─────── */
+/* Buttons/links get a visible outline on keyboard focus.
+   Specificity (0-1-1) beats class-only outline:none (0-1-0),
+   so this wins without !important for <button> elements. */
+button:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="option"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }

@@ -148,7 +148,22 @@ async def send_message(
                         journey_summary = "".join(full_tokens)
                         save_journey(character.id, interview.context_node_id, journey_summary, source_ids, db)
 
-    feature_prompt = build_character_interview_system_prompt(character, journey_summary)
+    # Fetch most recent prior interview notes for session continuity
+    previous_session_summary: str | None = None
+    prior_interview = (
+        db.query(CharacterInterview)
+        .filter(
+            CharacterInterview.character_id == character.id,
+            CharacterInterview.id != interview_id,
+            CharacterInterview.interview_notes.isnot(None),
+        )
+        .order_by(CharacterInterview.updated_at.desc())
+        .first()
+    )
+    if prior_interview and prior_interview.interview_notes:
+        previous_session_summary = prior_interview.interview_notes
+
+    feature_prompt = build_character_interview_system_prompt(character, journey_summary, previous_session_summary)
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
 
     ctx = AICallContext(

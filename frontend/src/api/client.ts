@@ -449,6 +449,22 @@ export const api = {
   getStoryOverview: (storyId: string) =>
     request<import("../types").StoryOverview>(`/stories/${storyId}/overview`),
 
+  // Manuscript & Export
+  getManuscript: (storyId: string, statusFilter?: string) =>
+    request<import("../types").Manuscript>(
+      `/stories/${storyId}/manuscript${statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ""}`
+    ),
+  exportStory: (storyId: string, options: import("../types").ExportOptions): Promise<Response> => {
+    const token = getToken();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return fetch(`${BASE}/stories/${storyId}/export`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(options),
+    });
+  },
+
   // Media / Assets
   uploadAsset: (storyId: string, file: File): Promise<import("../types").StoryAsset> => {
     const token = getToken();
