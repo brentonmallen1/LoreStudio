@@ -39,6 +39,7 @@ from .routers.brainstorm import router as brainstorm_router
 from .routers.scene_planner import router as scene_planner_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
 from .routers.export import router as export_router
+from .routers.dialogue import router as dialogue_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets
 
 
@@ -98,6 +99,7 @@ app.include_router(brainstorm_router, prefix="/api", tags=["brainstorm"])
 app.include_router(scene_planner_router, prefix="/api", tags=["scene-planner"])
 app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-ai"])
 app.include_router(export_router, prefix="/api", tags=["export"])
+app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 
 
 @app.get("/health")

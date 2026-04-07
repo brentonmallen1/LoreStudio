@@ -20,9 +20,13 @@ def _clean_mentions(html: str) -> str:
     """Strip inline mention syntax from TipTap HTML before manuscript rendering.
 
     [[Setting Name]] → Setting Name
+    "dialogue"<Name> → "dialogue"  (strip speaker suffix)
     @CharacterName   → CharacterName
     """
     html = re.sub(r'\[\[([^\]]+)\]\]', r'\1', html)
+    # Remove explicit dialogue speaker suffix stored as entity-encoded angle brackets:
+    # "..."&lt;Name&gt; → "..."  (TipTap stores < and > as &lt; and &gt; in HTML)
+    html = re.sub(r'([\u201d"])&lt;([^&]+)&gt;', r'\1', html)
     # Negative lookbehind avoids matching email addresses (foo@bar.com)
     html = re.sub(r'(?<!\w)@([A-Za-z]\S*)', r'\1', html)
     return html

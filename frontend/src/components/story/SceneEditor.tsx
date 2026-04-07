@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -14,10 +14,30 @@ import {
   setMentionItems,
   setMentionCallbacks,
   setMentionIsOpen,
+  setMentionDialogueCallbacks,
   FORCE_MENTION_KEY,
   type MentionItem,
 } from "./MentionDropdown";
+import {
+  DialogueExtension,
+  setDialogueCallbacks,
+  isDialogueModeActive,
+  setDialogueModeActive,
+} from "./DialogueExtension";
+import DialogueSyntaxGuide from "../help/DialogueSyntaxGuide";
 import AssetPicker from "../media/AssetPicker";
+
+/**
+ * Count words after stripping dialogue speaker tags (e.g., <Maya>).
+ * @mentions and [[settings]] ARE counted since they represent actual prose words.
+ * Only the <Speaker> suffix is pure metadata and should be excluded.
+ */
+function countWordsClean(text: string): number {
+  // Strip <Name> dialogue tags — these follow closing quotes
+  const cleaned = text.replace(/<[^>]+>/g, "");
+  const trimmed = cleaned.trim();
+  return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
+}
 
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
   act: Flag,
@@ -85,6 +105,9 @@ export default function SceneEditor() {
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
+  const [showDialogueGuide, setShowDialogueGuide] = useState(false);
+  const [dialogueIsolation, setDialogueIsolation] = useState(false);
+  const [dialogueBlocks, setDialogueBlocks] = useState<import("../../types").DialogueBlock[]>([]);
   const [wordCount, setWordCount] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "unsaved" | "saving" | "saved">("idle");
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -141,11 +164,15 @@ export default function SceneEditor() {
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionPos, setMentionPos] = useState({ bottom: 0, left: 0 });
   const [mentionSelIdx, setMentionSelIdx] = useState(0);
+  // When true, the mention dropdown was opened via ^ → insert as dialogue attribution
+  const [dialogueModeDropdown, setDialogueModeDropdown] = useState(false);
   // Refs for stable access inside ProseMirror callbacks
   const mentionQueryRef = useRef("");
   const mentionSelIdxRef = useRef(0);
   const filteredMentionRef = useRef<MentionItem[]>([]);
   const doInsertMentionRef = useRef<((item: MentionItem) => void) | null>(null);
+  // Set by triggerAttributeDialogue to wrap a selection range instead of inserting at cursor
+  const _pendingWrapRef = useRef<{ from: number; to: number } | null>(null);
 
   // Full settings list (for hover card excerpts)
   const [settingsList, setSettingsList] = useState<Location[]>([]);
@@ -192,6 +219,7 @@ export default function SceneEditor() {
       Typography,
       InlineNoteExtension,
       MentionDropdownExtension,
+      DialogueExtension,
     ],
     content: activeNode?.content ?? "",
     onSelectionUpdate: ({ editor }) => {
@@ -214,7 +242,7 @@ export default function SceneEditor() {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(async () => {
         setSaveState("saving");
-        const count = editor.storage.characterCount?.words() ?? 0;
+        const count = countWordsClean(editor.state.doc.textContent);
         const updated = await api.updateNode(activeNode.id, { content, word_count: count });
         setActiveNode({ ...activeNode, content, word_count: updated.word_count });
         setSaveState("saved");
@@ -237,11 +265,16 @@ export default function SceneEditor() {
   }, [activeNode?.id]);
 
   // ⌘⇧R — open writing coach for the current selection
+  // ⌘⇧D — attribute selected dialogue to a character
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "R") {
         e.preventDefault();
         openWritingCoach();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "D") {
+        e.preventDefault();
+        triggerAttributeDialogue();
       }
     }
     document.addEventListener("keydown", onKeyDown);
@@ -252,11 +285,8 @@ export default function SceneEditor() {
   useEffect(() => {
     if (!editor) return;
     // Don't read immediately — word count is seeded from activeNode.word_count in the other effect.
-    // CharacterCount extension isn't reliable at mount time anyway.
     const update = () => {
-      const text = editor.state.doc.textContent;
-      const count = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
-      setWordCount(count);
+      setWordCount(countWordsClean(editor.state.doc.textContent));
     };
     editor.on("update", update);
     return () => { editor.off("update", update); };
@@ -359,18 +389,54 @@ export default function SceneEditor() {
       if (!editor) return;
       const { from } = editor.state.selection;
       const query = mentionQueryRef.current;
-      const start = from - query.length - 1; // -1 for the @ character
-      const text =
-        item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
-      editor
-        .chain()
-        .focus()
-        .command(({ tr, dispatch }) => {
-          if (dispatch) tr.insertText(text, start, from);
-          return true;
-        })
-        .run();
+      const inDialogueMode = isDialogueModeActive();
+
+      if (inDialogueMode && item.type === "character") {
+        const pendingWrap = _pendingWrapRef.current;
+        if (pendingWrap) {
+          // Wrap-selection mode: surround selected text with "..."<Name>
+          _pendingWrapRef.current = null;
+          const selectedText = editor.state.doc.textBetween(pendingWrap.from, pendingWrap.to);
+          const wrapped = `"${selectedText}"<${item.name}>`;
+          editor
+            .chain()
+            .focus()
+            .command(({ tr, dispatch }) => {
+              if (dispatch) tr.replaceWith(pendingWrap.from, pendingWrap.to, editor.state.schema.text(wrapped));
+              return true;
+            })
+            .run();
+        } else {
+          // ^ mode: replace ^query with ""<Name> and position cursor between the quotes
+          const start = from - query.length - 1; // -1 for the ^ prefix
+          const inserted = `""<${item.name}>`;
+          editor
+            .chain()
+            .focus()
+            .command(({ tr, dispatch }) => {
+              if (dispatch) tr.insertText(inserted, start, from);
+              return true;
+            })
+            .run();
+          // Place cursor between the two quote marks (start + 1)
+          editor.chain().setTextSelection(start + 1).run();
+        }
+        setDialogueModeActive(false);
+      } else {
+        const start = from - query.length - 1; // -1 for the @ character
+        const text =
+          item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
+        editor
+          .chain()
+          .focus()
+          .command(({ tr, dispatch }) => {
+            if (dispatch) tr.insertText(text, start, from);
+            return true;
+          })
+          .run();
+      }
       setMentionOpen(false);
+      setDialogueModeDropdown(false);
       setMentionSelIdx(0);
     },
     [editor]
@@ -420,6 +486,51 @@ export default function SceneEditor() {
       },
     });
   }, []); // stable — refs handle freshness
+
+  // Load dialogue blocks when isolation view is toggled on
+  useEffect(() => {
+    if (!dialogueIsolation || !activeNode) { setDialogueBlocks([]); return; }
+    api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => setDialogueBlocks([]));
+  }, [dialogueIsolation, activeNode?.id]);
+
+  // Wire up ^ dialogue-mode callbacks — reuses the same mention dropdown but marks it dialogue mode.
+  // ^ detection lives in MentionDropdownExtension (registered first) to avoid plugin ordering
+  // conflicts; /dialogue slash command detection remains in DialogueExtension.
+  useEffect(() => {
+    const openDialogueDropdown = (query: string, bottom: number, left: number) => {
+      setDialogueModeActive(true);
+      setMentionQuery(query);
+      setMentionPos({ bottom, left });
+      setMentionOpen_(true);
+      setMentionIsOpen(true);
+      setDialogueModeDropdown(true);
+      setMentionSelIdx(0);
+      mentionSelIdxRef.current = 0;
+    };
+    const closeDialogueDropdown = () => {
+      setDialogueModeActive(false);
+      setMentionOpen_(false);
+      setMentionIsOpen(false);
+      setDialogueModeDropdown(false);
+    };
+
+    // ^ trigger is detected by MentionDropdownExtension
+    setMentionDialogueCallbacks(openDialogueDropdown, closeDialogueDropdown);
+
+    // /dialogue slash command is detected by DialogueExtension
+    setDialogueCallbacks({
+      onSlashDialogue: (slashFrom, slashTo, bottom, left) => {
+        // Erase the /dialogue text, then open picker in dialogue mode
+        if (editor) {
+          editor.chain().focus().command(({ tr, dispatch }) => {
+            if (dispatch) tr.delete(slashFrom, slashTo);
+            return true;
+          }).run();
+        }
+        openDialogueDropdown("", bottom, left);
+      },
+    });
+  }, [editor]); // editor used in onSlashDialogue
 
 
   // Hover card event delegation — stable listener that reads from refs
@@ -638,6 +749,25 @@ export default function SceneEditor() {
     } else {
       editor.commands.focus();
     }
+  }
+
+  function triggerAttributeDialogue() {
+    if (!editor) return;
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return;
+    // Wrap selected text in @: "..." attribution — open the mention dropdown in dialogue mode
+    // Pre-populate with selection content, filtered to characters only
+    const coords = editor.view.coordsAtPos(from);
+    setDialogueModeActive(true);
+    setMentionQuery("");
+    setMentionPos({ bottom: coords.top - 8, left: coords.left });
+    setMentionOpen_(true);
+    setMentionIsOpen(true);
+    setDialogueModeDropdown(true);
+    setMentionSelIdx(0);
+    mentionSelIdxRef.current = 0;
+    // Store the selection range so doInsertMention can wrap it
+    _pendingWrapRef.current = { from, to };
   }
 
   function openWritingCoach() {
@@ -876,6 +1006,14 @@ export default function SceneEditor() {
                     <Compass size={13} />
                     What's Next?
                   </button>
+                  <button
+                    onClick={() => { setShowDialogueGuide(true); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="Learn how to attribute dialogue to characters"
+                  >
+                    <Quote size={13} />
+                    Dialogue Guide
+                  </button>
                 </div>
               )}
             </div>
@@ -900,6 +1038,14 @@ export default function SceneEditor() {
               <span>Assistant</span>
             </button>
           )}
+          <button
+            onClick={() => setDialogueIsolation((v) => !v)}
+            className={`${styles.topbarBtn} ${dialogueIsolation ? styles.topbarBtnActive : ""}`}
+            title="Dialogue view — show only attributed dialogue (toggle)"
+          >
+            <Quote size={13} />
+            <span>Dialogue</span>
+          </button>
           <div className={styles.sprintTimerWrap}><SprintTimer currentWordCount={wordCount} /></div>
           <FontPicker />
         </div>
@@ -1288,14 +1434,38 @@ export default function SceneEditor() {
         className={styles.scrollArea}
         ref={scrollAreaRef}
         onClick={(e) => {
-          if (editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
+          if (!dialogueIsolation && editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
             editor.commands.focus("end");
           }
         }}
       >
-        <div className={styles.editorWrap}>
-          <EditorContent editor={editor} />
-        </div>
+        {dialogueIsolation ? (
+          <div className={styles.dialogueIsolationView}>
+            <div className={styles.dialogueIsolationHeader}>
+              <Quote size={13} />
+              Dialogue only — <button className={styles.dialogueIsolationExit} onClick={() => setDialogueIsolation(false)}>back to prose</button>
+            </div>
+            {dialogueBlocks.length === 0 ? (
+              <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>@Name: "..."</code> syntax or <code>^</code> to attribute dialogue.</p>
+            ) : (
+              <div className={styles.dialogueScript}>
+                {dialogueBlocks.map((b) => (
+                  <div key={b.id} className={`${styles.dialogueLine} ${b.attribution_method === "unattributed" ? styles.dialogueLineUnattr : ""}`}>
+                    <span className={styles.dialogueLineSpeaker}>
+                      {b.speaker_name || "Unknown"}
+                      {b.attribution_method === "inferred" || b.attribution_method === "alternating" ? <span className={styles.dialogueLineInferred}>?</span> : null}
+                    </span>
+                    <span className={styles.dialogueLineContent}>{b.content}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className={styles.editorWrap}>
+            <EditorContent editor={editor} />
+          </div>
+        )}
       </div>
 
       </div>{/* end editorColumn */}
@@ -1307,11 +1477,17 @@ export default function SceneEditor() {
       )}
       </div>{/* end contentRow */}
 
+      {/* Dialogue Syntax Guide modal */}
+      {showDialogueGuide && (
+        <DialogueSyntaxGuide onClose={() => setShowDialogueGuide(false)} />
+      )}
+
       {/* Selection toolbar */}
       <SelectionToolbar
         selectionRect={selectionRect}
         onOpenCoach={openWritingCoach}
         onAddNote={triggerAddNote}
+        onAttributeDialogue={triggerAttributeDialogue}
       />
 
       {/* Inline note popover */}
@@ -1478,6 +1654,11 @@ export default function SceneEditor() {
             left: Math.max(8, Math.min(mentionPos.left, window.innerWidth - 260)),
           }}
         >
+          {dialogueModeDropdown && (
+            <div className={styles.mentionDropdownDialogueMode}>
+              Dialogue speaker
+            </div>
+          )}
           {filteredMentionItems.map((item, idx) => (
             <button
               key={`${item.type}:${item.name}`}

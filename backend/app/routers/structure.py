@@ -10,6 +10,7 @@ from ..schemas.structure import StructureNodeUpdate, StructureNodeOut
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.summaries import build_scene_summary_prompt
+from ..services.dialogue_service import sync_dialogue_blocks
 
 router = APIRouter()
 
@@ -50,6 +51,11 @@ def update_node(
         setattr(node, key, value)
     db.commit()
     db.refresh(node)
+
+    # Re-extract dialogue whenever content changes
+    if "content" in data and node.content:
+        sync_dialogue_blocks(node.id, node.content, node.story_id, db)
+
     return node
 
 

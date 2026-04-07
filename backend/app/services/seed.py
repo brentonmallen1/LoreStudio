@@ -703,18 +703,19 @@ def seed_demo_story():
             metadata_={"purpose": "The Visitor's partial confession raises the stakes: they know more than they've said, and some of it is damaging. Eleanor has to decide how much she wants to know. The scene should end with her asking the question she's been afraid to ask."},
             content=(
                 "<p>They sat in the kitchen while the storm did its work outside. @Eleanor Vance had put the kettle on again — not because either of them wanted more tea, but because the ritual of it gave her hands something to do that wasn't reaching for the logbook.</p>"
-                "<p>\"I'm not a historian,\" the Visitor said.</p>"
-                "<p>Eleanor watched the flame under the kettle. Blue at the base, orange at the tip. Predictable. \"I know.\"</p>"
-                "<p>\"I work for the Maritime Heritage Foundation. We investigate — \" She stopped, tried again. \"There was a ship. The <em>Ardent</em>. A cargo vessel. It went down in these waters five years ago, almost to the day.\"</p>"
+                "<p>\"I'm not a historian.\"&lt;Calder&gt;</p>"
+                "<p>Eleanor watched the flame under the kettle. Blue at the base, orange at the tip. Predictable.</p>"
+                "<p>\"I know.\"&lt;Eleanor Vance&gt;</p>"
+                "<p>\"I work for the Maritime Heritage Foundation. We investigate \u2014 \" She stopped, tried again. \"There was a ship. The <em>Ardent</em>. A cargo vessel. It went down in these waters five years ago, almost to the day.\"&lt;Calder&gt;</p>"
                 "<p>The kettle began to whisper. Not yet boiling, but close.</p>"
-                "<p>\"Twelve crew,\" the Visitor continued. \"All hands lost. The official report said mechanical failure. The lighthouse logs should have shown — would have shown — whether anyone saw distress signals. Whether anyone could have responded.\"</p>"
+                "<p>\"Twelve crew. All hands lost. The official report said mechanical failure. The lighthouse logs should have shown \u2014 would have shown \u2014 whether anyone saw distress signals. Whether anyone could have responded.\"&lt;Calder&gt;</p>"
                 "<p>Eleanor turned off the flame. The whisper died.</p>"
-                "<p>\"You think my father saw something.\"</p>"
-                "<p>\"I think your father saw everything.\" The Visitor's voice was careful, precise — the voice of someone who had practiced this conversation. \"And I think he spent the last two months of his life making sure no one would ever be able to prove it.\"</p>"
-                "<p>Outside, the wind found a new register — a sound like something tearing. Eleanor stood at the window and watched [[The Lighthouse]] beam sweep through the dark, patient and mechanical, asking nothing, answering nothing.</p>"
-                "<p>\"Did you know him?\" she asked. \"My father. Did you ever meet him?\"</p>"
+                "<p>\"You think my father saw something.\"&lt;Eleanor Vance&gt;</p>"
+                "<p>\"I think your father saw everything.\"&lt;Calder&gt; The Visitor's voice was careful, precise \u2014 the voice of someone who had practiced this conversation. \"And I think he spent the last two months of his life making sure no one would ever be able to prove it.\"&lt;Calder&gt;</p>"
+                "<p>Outside, the wind found a new register \u2014 a sound like something tearing. @Eleanor Vance stood at the window and watched [[The Lighthouse]] beam sweep through the dark, patient and mechanical, asking nothing, answering nothing.</p>"
+                "<p>\"Did you know him? My father. Did you ever meet him?\"&lt;Eleanor Vance&gt;</p>"
                 "<p>The Visitor was quiet for a long time.</p>"
-                "<p>\"Once,\" she said. \"I came here once before. Two weeks before he died.\"</p>"
+                "<p>\"Once. I came here once before. Two weeks before he died.\"&lt;Calder&gt;</p>"
             ),
             word_count=312,
         )

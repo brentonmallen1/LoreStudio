@@ -29,6 +29,19 @@ const _cb: MentionCallbacks = {
   onEnterSelect: () => {},
 };
 
+// Dialogue-mode callbacks — called when @@ trigger is detected instead of @
+let _dialogueMode = false;
+let _onDialogueOpen: ((query: string, bottom: number, left: number) => void) | null = null;
+let _onDialogueClose: (() => void) | null = null;
+
+export function setMentionDialogueCallbacks(
+  onOpen: (query: string, bottom: number, left: number) => void,
+  onClose: () => void,
+) {
+  _onDialogueOpen = onOpen;
+  _onDialogueClose = onClose;
+}
+
 export const FORCE_MENTION_KEY = "forceMentionRebuild";
 
 export function setMentionIsOpen(open: boolean) {
@@ -218,18 +231,39 @@ export const MentionDropdownExtension = Extension.create({
                 "\0"
               );
 
+              // Check for ^ (dialogue mode trigger) — completely separate from @
+              const dialogueMatch = textBefore.match(/\^(\S*)$/);
+              if (dialogueMatch) {
+                const atIdx = textBefore.length - dialogueMatch[0].length;
+                const prevChar = atIdx > 0 ? textBefore[atIdx - 1] : null;
+                if (prevChar === null || prevChar === " " || prevChar === "\t") {
+                  _dialogueMode = true;
+                  const coords = view.coordsAtPos(from);
+                  _onDialogueOpen?.(dialogueMatch[1], coords.bottom, coords.left);
+                  return;
+                }
+              }
+
               // Check for @query at end — must be preceded by whitespace or start of block
               const match = textBefore.match(/@(\S*)$/);
               if (match) {
                 const atIdx = textBefore.length - match[0].length;
                 const prevChar = atIdx > 0 ? textBefore[atIdx - 1] : null;
                 if (prevChar === null || prevChar === " " || prevChar === "\t") {
+                  if (_dialogueMode) {
+                    _dialogueMode = false;
+                    _onDialogueClose?.();
+                  }
                   const coords = view.coordsAtPos(from);
                   _cb.onOpen(match[1], coords.bottom, coords.left);
                   return;
                 }
               }
 
+              if (_dialogueMode) {
+                _dialogueMode = false;
+                _onDialogueClose?.();
+              }
               _cb.onClose();
             },
           };

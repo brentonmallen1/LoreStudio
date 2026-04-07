@@ -18,6 +18,7 @@ from .culture import Culture
 from .historical_event import Era, HistoricalEvent
 from .location_travel import LocationTravel
 from .calendar import Calendar
+from .dialogue import DialogueBlock
 
 __all__ = [
     "User",
@@ -46,4 +47,5 @@ __all__ = [
     "HistoricalEvent",
     "LocationTravel",
     "Calendar",
+    "DialogueBlock",
 ]

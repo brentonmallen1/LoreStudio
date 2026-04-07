@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, MessageSquare } from "lucide-react";
+import { Sparkles, MessageSquare, Quote } from "lucide-react";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -8,9 +8,10 @@ interface Props {
   selectionRect: DOMRect | null;
   onOpenCoach: () => void;
   onAddNote: () => void;
+  onAttributeDialogue?: () => void;
 }
 
-export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote }: Props) {
+export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue }: Props) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Keep toolbar position in sync with selectionRect
@@ -57,6 +58,19 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
         <MessageSquare size={12} />
         Note
       </button>
+      {onAttributeDialogue && (
+        <>
+          <div className={styles.divider} />
+          <button
+            className={styles.btn}
+            onClick={onAttributeDialogue}
+            title="Attribute dialogue to a character (⌘⇧D)"
+          >
+            <Quote size={12} />
+            Attribute
+          </button>
+        </>
+      )}
     </div>,
     document.body,
   );

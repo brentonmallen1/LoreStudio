@@ -906,3 +906,36 @@ export interface Calendar {
   created_at: string;
   updated_at: string;
 }
+
+export interface DialogueBlock {
+  id: string;
+  scene_id: string;
+  character_id: string | null;
+  speaker_name: string;
+  content: string;
+  raw_text: string;
+  paragraph_index: number;
+  position_in_paragraph: number;
+  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed";
+  confidence: number;
+  subtext: string | null;
+}
+
+export interface DialogueStats {
+  total_blocks: number;
+  unattributed: number;
+  by_character: {
+    speaker_name: string;
+    character_id: string | null;
+    line_count: number;
+    word_count: number;
+  }[];
+}
+
+export interface DialogueInteraction {
+  character_a_id: string;
+  character_a_name: string;
+  character_b_id: string;
+  character_b_name: string;
+  scene_count: number;
+}

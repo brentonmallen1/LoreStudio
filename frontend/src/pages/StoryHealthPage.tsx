@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity } from "lucide-react";
+import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare } from "lucide-react";
 import { api } from "../api/client";
-import type { StoryHealth, BeatSheet, PlotThread } from "../types";
+import type { StoryHealth, BeatSheet, PlotThread, DialogueStats, DialogueInteraction } from "../types";
 import { useStoryStore } from "../stores/storyStore";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
@@ -39,6 +39,8 @@ export default function StoryHealthPage() {
   const [loading, setLoading] = useState(true);
   const [beatSheet, setBeatSheet] = useState<BeatSheet | null>(null);
   const [threads, setThreads] = useState<PlotThread[]>([]);
+  const [dialogueStats, setDialogueStats] = useState<DialogueStats | null>(null);
+  const [dialogueInteractions, setDialogueInteractions] = useState<DialogueInteraction[]>([]);
 
   async function load() {
     if (!storyId) return;
@@ -53,6 +55,9 @@ export default function StoryHealthPage() {
     } finally {
       setLoading(false);
     }
+    // Load dialogue stats separately (non-blocking)
+    api.getDialogueStats(storyId).then(setDialogueStats).catch(() => {});
+    api.getDialogueInteractions(storyId).then(setDialogueInteractions).catch(() => {});
   }
 
   useEffect(() => { load(); }, [storyId]);
@@ -348,6 +353,51 @@ export default function StoryHealthPage() {
           </section>
         )}
 
+
+      {/* Dialogue Stats */}
+      {dialogueStats && dialogueStats.total_blocks > 0 && (
+        <section className={`${styles.card} ${styles.cardWide}`}>
+          <div className={styles.cardHeader}>
+            <MessageSquare size={14} className={styles.cardIcon} />
+            <h3 className={styles.cardTitle}>Dialogue</h3>
+            <span className={styles.cardMeta}>{dialogueStats.total_blocks} lines</span>
+          </div>
+          {dialogueStats.unattributed > 0 && (
+            <div className={styles.alertBanner}>
+              <AlertTriangle size={13} />
+              <span>{dialogueStats.unattributed} unattributed dialogue line{dialogueStats.unattributed !== 1 ? "s" : ""} — consider adding <code>@Name: "..."</code> attribution</span>
+            </div>
+          )}
+          <div className={styles.dialogueBars}>
+            {dialogueStats.by_character.slice(0, 8).map((c) => {
+              const maxWords = dialogueStats.by_character[0]?.word_count ?? 1;
+              const pct = Math.round((c.word_count / maxWords) * 100);
+              return (
+                <div key={c.speaker_name} className={styles.barRow}>
+                  <span className={styles.barLabel}>{c.speaker_name}</span>
+                  <div className={styles.barTrack}>
+                    <div className={styles.barFill} style={{ width: `${pct}%`, background: "var(--color-accent)" }} />
+                  </div>
+                  <span className={styles.barValue}>{c.word_count.toLocaleString()} w · {c.line_count} lines</span>
+                </div>
+              );
+            })}
+          </div>
+          {dialogueInteractions.length > 0 && (
+            <div className={styles.interactionsWrap}>
+              <p className={styles.interactionsLabel}>Top interactions</p>
+              <div className={styles.interactionsList}>
+                {dialogueInteractions.slice(0, 6).map((pair) => (
+                  <div key={`${pair.character_a_id}-${pair.character_b_id}`} className={styles.interactionPair}>
+                    <span className={styles.interactionNames}>{pair.character_a_name} ↔ {pair.character_b_name}</span>
+                    <span className={styles.interactionCount}>{pair.scene_count} scene{pair.scene_count !== 1 ? "s" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Economy Analysis */}
       {storyId && (

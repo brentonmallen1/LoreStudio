@@ -540,3 +540,55 @@
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-border-light);
 }
+
+/* ── Dialogue card ── */
+.cardMeta {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+.dialogueBars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.interactionsWrap {
+  margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.interactionsLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.5rem;
+}
+
+.interactionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.interactionPair {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0;
+}
+
+.interactionNames {
+  color: var(--color-text-muted);
+}
+
+.interactionCount {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}

@@ -845,4 +845,16 @@ export const api = {
     }),
   deleteDiscovery: (elementId: string) =>
     request<void>(`/discoveries/${elementId}`, { method: "DELETE" }),
+
+  // Dialogue
+  listDialogue: (sceneId: string) =>
+    request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue`),
+  refreshDialogue: (sceneId: string) =>
+    request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue/refresh`, { method: "POST" }),
+  patchDialogueBlock: (blockId: string, data: { speaker_name?: string; character_id?: string | null; subtext?: string }) =>
+    request<import("../types").DialogueBlock>(`/dialogue/${blockId}`, { method: "PATCH", body: JSON.stringify(data) }),
+  getDialogueStats: (storyId: string) =>
+    request<import("../types").DialogueStats>(`/stories/${storyId}/dialogue/stats`),
+  getDialogueInteractions: (storyId: string) =>
+    request<import("../types").DialogueInteraction[]>(`/stories/${storyId}/dialogue/interactions`),
 };
