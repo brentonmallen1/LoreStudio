@@ -2,6 +2,7 @@ import uuid
 from datetime import timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Body
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -9,6 +10,7 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.character import Character, CharacterRelationship
 from ..models.structure import StructureNode
+from ..models.dialogue import DialogueBlock
 from ..schemas.character import (
     CharacterCreate, CharacterUpdate, CharacterOut,
     RelationshipCreate, RelationshipOut,
@@ -182,6 +184,51 @@ def delete_relationship(
     _verify_character_access(rel.character_id, db, current_user)
     db.delete(rel)
     db.commit()
+
+
+class DialogueBlockWithScene(BaseModel):
+    id: str
+    scene_id: str
+    scene_title: str
+    character_id: str | None
+    speaker_name: str
+    content: str
+    attribution_method: str
+    confidence: float
+    paragraph_index: int
+
+    model_config = {"from_attributes": True}
+
+
+@router.get("/{character_id}/dialogue", response_model=list[DialogueBlockWithScene])
+def get_character_dialogue(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return all dialogue blocks for a character across all scenes, ordered by story position."""
+    _verify_character_access(character_id, db, current_user)
+    rows = (
+        db.query(DialogueBlock, StructureNode.title, StructureNode.position)
+        .join(StructureNode, DialogueBlock.scene_id == StructureNode.id)
+        .filter(DialogueBlock.character_id == character_id)
+        .order_by(StructureNode.position, DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph)
+        .all()
+    )
+    result = []
+    for block, scene_title, _ in rows:
+        result.append(DialogueBlockWithScene(
+            id=block.id,
+            scene_id=block.scene_id,
+            scene_title=scene_title or "Untitled",
+            character_id=block.character_id,
+            speaker_name=block.speaker_name,
+            content=block.content,
+            attribution_method=block.attribution_method,
+            confidence=block.confidence,
+            paragraph_index=block.paragraph_index,
+        ))
+    return result
 
 
 @router.get("/{character_id}/journey")

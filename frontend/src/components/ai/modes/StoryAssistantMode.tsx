@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, RotateCcw } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
@@ -23,7 +23,7 @@ interface Props {
 
 export default function StoryAssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, updateSessionContext } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume } = useAIStore();
   const { stories } = useStoryStore();
 
   const storyId = session.context.storyId ?? "";
@@ -71,7 +71,22 @@ export default function StoryAssistantMode({ session }: Props) {
     >
       <LLMContextSources sources={contextSources} />
 
-      {session.messages.length === 0 && !session.isStreaming ? (
+      {session.pendingResume ? (
+        <div className={styles.resumePrompt}>
+          <RotateCcw size={20} className={styles.resumeIcon} />
+          <p className={styles.resumeTitle}>Continue previous conversation?</p>
+          <p className={styles.resumePreview}>"{session.pendingResume.preview}"</p>
+          <p className={styles.resumeMeta}>{session.pendingResume.messageCount} messages</p>
+          <div className={styles.resumeActions}>
+            <button className={styles.resumeContinueBtn} onClick={() => continuePendingResume(session.id)}>
+              Continue
+            </button>
+            <button className={styles.resumeFreshBtn} onClick={() => discardPendingResume(session.id)}>
+              Start Fresh
+            </button>
+          </div>
+        </div>
+      ) : session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <BookOpen size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Story Assistant</p>

@@ -49,6 +49,8 @@ export interface Story {
   discovery_auto_analyze: boolean;
   discovery_element_types: string[];
   discovery_min_confidence: number;
+  narrative_perspective: string;
+  pov_character_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -938,4 +940,47 @@ export interface DialogueInteraction {
   character_b_id: string;
   character_b_name: string;
   scene_count: number;
+}
+
+export interface DialogueBlockWithScene {
+  id: string;
+  scene_id: string;
+  scene_title: string;
+  character_id: string | null;
+  speaker_name: string;
+  content: string;
+  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed";
+  confidence: number;
+  paragraph_index: number;
+}
+
+export interface ProposedDialogueTag {
+  id: string;
+  quote_content: string;
+  inferred_speaker: string | null;
+  character_id: string | null;
+  confidence: number;
+  source_excerpt: string;
+}
+
+export interface ApplyTagRequest {
+  quote_content: string;
+  speaker_name: string;
+}
+
+export interface ProposedEntityLink {
+  id: string;
+  entity_type: "character" | "location";
+  entity_id: string;
+  entity_name: string;
+  matched_text: string;
+  text_start: number;
+  confidence: number;
+  source_excerpt: string;
+}
+
+export interface ApplyLinkRequest {
+  matched_text: string;
+  entity_name: string;
+  entity_type: "character" | "location";
 }

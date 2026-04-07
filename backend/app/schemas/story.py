@@ -35,6 +35,8 @@ class StoryUpdate(BaseModel):
     discovery_auto_analyze: bool | None = None
     discovery_element_types: list[str] | None = None
     discovery_min_confidence: float | None = None
+    narrative_perspective: str | None = None
+    pov_character_id: str | None = None
 
 
 class StoryOut(BaseModel):
@@ -59,6 +61,8 @@ class StoryOut(BaseModel):
     discovery_auto_analyze: bool
     discovery_element_types: list[str]
     discovery_min_confidence: float
+    narrative_perspective: str
+    pov_character_id: str | None
     created_at: datetime
     updated_at: datetime
 

@@ -72,6 +72,20 @@
   line-height: 1.5;
 }
 
+/* ── Sub-field (nested within a section, e.g. POV character under Perspective) ── */
+.subField {
+  margin-top: 0.625rem;
+}
+
+.subFieldLabel {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* ── Inputs ── */
 .input {
   width: 100%;

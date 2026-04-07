@@ -29,6 +29,10 @@ class Story(Base):
     premise: Mapped[str] = mapped_column(Text, default="")
     logline: Mapped[str] = mapped_column(String, default="")
 
+    # Narrative perspective
+    narrative_perspective: Mapped[str] = mapped_column(String, default="")
+    pov_character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True)
+
     # Story goals checklist
     goals: Mapped[list] = mapped_column(JSON, default=list)
 
@@ -48,11 +52,15 @@ class Story(Base):
     )
 
     user: Mapped["User"] = relationship("User", back_populates="stories")
+    pov_character: Mapped["Character | None"] = relationship(
+        "Character", foreign_keys=[pov_character_id], uselist=False
+    )
     structure_nodes: Mapped[list["StructureNode"]] = relationship(
         "StructureNode", back_populates="story", cascade="all, delete-orphan"
     )
     characters: Mapped[list["Character"]] = relationship(
-        "Character", back_populates="story", cascade="all, delete-orphan"
+        "Character", back_populates="story", cascade="all, delete-orphan",
+        foreign_keys="Character.story_id",
     )
     settings: Mapped[list["Setting"]] = relationship(
         "Setting", back_populates="story", cascade="all, delete-orphan"

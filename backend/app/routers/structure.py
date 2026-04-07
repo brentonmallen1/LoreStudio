@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -11,6 +12,7 @@ from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.summaries import build_scene_summary_prompt
 from ..services.dialogue_service import sync_dialogue_blocks
+from ..services.linking_service import suggest_entity_links, apply_entity_links
 
 router = APIRouter()
 
@@ -126,3 +128,63 @@ def delete_node(node_id: str, db: Session = Depends(get_db), current_user: User 
     node = _verify_node_access(node_id, db, current_user)
     db.delete(node)
     db.commit()
+
+
+# ---------------------------------------------------------------------------
+# Entity linking endpoints
+# ---------------------------------------------------------------------------
+
+class ProposedEntityLink(BaseModel):
+    id: str
+    entity_type: str          # "character" | "location"
+    entity_id: str
+    entity_name: str
+    matched_text: str
+    text_start: int
+    confidence: float
+    source_excerpt: str
+
+
+class ApplyLinkRequest(BaseModel):
+    matched_text: str
+    entity_name: str
+    entity_type: str          # "character" | "location"
+
+
+class ApplyLinksBody(BaseModel):
+    links: list[ApplyLinkRequest]
+
+
+@router.post("/{node_id}/suggest-links", response_model=list[ProposedEntityLink])
+def suggest_links(
+    node_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Scan scene for unlinked character and location mentions and propose @/[[]] links."""
+    node = _verify_node_access(node_id, db, current_user)
+    if not node.content:
+        return []
+    return suggest_entity_links(node.content, node.story_id, db)
+
+
+@router.post("/{node_id}/apply-links", response_model=StructureNodeOut)
+def apply_links(
+    node_id: str,
+    body: ApplyLinksBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Apply approved entity link proposals to scene content."""
+    node = _verify_node_access(node_id, db, current_user)
+    if not body.links:
+        return StructureNodeOut.model_validate(node)
+
+    updated_content = apply_entity_links(
+        node.content or "",
+        [l.model_dump() for l in body.links],
+    )
+    node.content = updated_content
+    db.commit()
+    db.refresh(node)
+    return StructureNodeOut.model_validate(node)

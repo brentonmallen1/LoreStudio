@@ -84,6 +84,39 @@ class OllamaProvider(LLMProvider):
         except Exception:
             return []
 
+    async def get_context_length(self, model_name: str, base_url: str | None = None) -> int | None:
+        """Return the context window size for a model via /api/show.
+
+        Checks model_info.general.context_length first (modern Ollama), then
+        falls back to parsing the parameters string for num_ctx.
+        Returns None if unavailable or Ollama is unreachable.
+        """
+        url = base_url or self.base_url
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{url}/api/show",
+                    json={"name": model_name},
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as resp:
+                    if resp.status != 200:
+                        return None
+                    data = await resp.json()
+                    # Primary: model_info.general.context_length (integer)
+                    model_info = data.get("model_info", {})
+                    if ctx := model_info.get("general.context_length"):
+                        return int(ctx)
+                    # Fallback: parse parameters string for num_ctx
+                    params = data.get("parameters", "")
+                    for line in params.split("\n"):
+                        if line.startswith("num_ctx"):
+                            parts = line.split()
+                            if len(parts) >= 2:
+                                return int(parts[1])
+                    return None
+        except Exception:
+            return None
+
     async def model_exists(self, model_name: str, base_url: str | None = None) -> bool:
         """Check if a given model name is available in Ollama (prefix match, ignores :tag)."""
         models = await self.list_models(base_url=base_url)

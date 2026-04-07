@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass } from "lucide-react";
+import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass, User } from "lucide-react";
+import CharacterDialogueTab from "./CharacterDialogueTab";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAIStore } from "../../stores/aiStore";
@@ -41,6 +42,7 @@ export default function CharacterSheet() {
   const [newMilestone, setNewMilestone] = useState("");
   const intentSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [activeTab, setActiveTab] = useState<"overview" | "dialogue">("overview");
   const character = characters.find((c) => c.id === characterId);
 
   useEffect(() => {
@@ -130,6 +132,23 @@ export default function CharacterSheet() {
             <span className={roleBadgeClass()}>{character.role}</span>
           </div>
 
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === "overview" ? styles.tabActive : ""}`}
+              onClick={() => setActiveTab("overview")}
+            >
+              <User size={12} />
+              Overview
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === "dialogue" ? styles.tabActive : ""}`}
+              onClick={() => setActiveTab("dialogue")}
+            >
+              <MessageSquare size={12} />
+              Dialogue
+            </button>
+          </div>
+
           <div className={styles.actions}>
             <button
               onClick={() => setShowStartInterview(true)}
@@ -155,7 +174,11 @@ export default function CharacterSheet() {
           </div>
         </div>
 
-        <div className={styles.fields}>
+        {activeTab === "dialogue" && (
+          <CharacterDialogueTab characterId={character.id} characterName={character.name} />
+        )}
+
+        {activeTab === "overview" && <div className={styles.fields}>
           <Field label="Personality" value={character.personality} />
           <Field label="Motivation" value={character.motivation} />
           <Field label="Background" value={character.background} />
@@ -298,7 +321,7 @@ export default function CharacterSheet() {
               label="Images & References"
             />
           )}
-        </div>
+        </div>}
       </div>
 
       {showAiGenerator && (

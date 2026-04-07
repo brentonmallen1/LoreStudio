@@ -1354,6 +1354,62 @@
   color: var(--color-text);
 }
 
+/* ── Dialogue chat bubble view ── */
+.dialogueBubbles {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 0;
+}
+
+.dialogueBubbleWrap {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.dialogueBubbleWrapRight {
+  align-items: flex-end;
+}
+
+.dialogueBubbleSpeaker {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dialogueBubbleInferred {
+  color: var(--color-warning);
+  font-weight: 700;
+}
+
+.dialogueBubble {
+  max-width: 75%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.dialogueBubbleLeft {
+  align-self: flex-start;
+  background: var(--color-surface-raised);
+  border-bottom-left-radius: 4px;
+}
+
+.dialogueBubbleRight {
+  align-self: flex-end;
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
+  border-bottom-right-radius: 4px;
+}
+
+.dialogueBubbleUnattr {
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
+}
+
 /* ── @mention autocomplete dropdown ── */
 .mentionDropdown {
   position: fixed;

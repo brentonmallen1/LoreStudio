@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Feather, ChevronDown, ChevronUp } from "lucide-react";
+import { Feather, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { api } from "../../../api/client";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -41,7 +41,7 @@ interface Props {
 
 export default function SceneAssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, updateSessionContext } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume } = useAIStore();
   const { structure } = useStoryStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
   const [showCtx, setShowCtx] = useState(false);
@@ -129,7 +129,22 @@ export default function SceneAssistantMode({ session }: Props) {
         </>
       }
     >
-      {session.messages.length === 0 && !session.isStreaming ? (
+      {session.pendingResume ? (
+        <div className={styles.resumePrompt}>
+          <RotateCcw size={20} className={styles.resumeIcon} />
+          <p className={styles.resumeTitle}>Continue previous conversation?</p>
+          <p className={styles.resumePreview}>"{session.pendingResume.preview}"</p>
+          <p className={styles.resumeMeta}>{session.pendingResume.messageCount} messages</p>
+          <div className={styles.resumeActions}>
+            <button className={styles.resumeContinueBtn} onClick={() => continuePendingResume(session.id)}>
+              Continue
+            </button>
+            <button className={styles.resumeFreshBtn} onClick={() => discardPendingResume(session.id)}>
+              Start Fresh
+            </button>
+          </div>
+        </div>
+      ) : session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Scene Assistant</p>

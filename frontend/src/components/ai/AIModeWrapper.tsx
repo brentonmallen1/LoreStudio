@@ -40,7 +40,7 @@ export default function AIModeWrapper({
     sessionParams, setSessionParams,
     showSettings, setShowSettings,
     transparency,
-    ctxPct, ctxWarning, estimatedTokens, CTX_LIMIT,
+    ctxPct, ctxWarning, tokenTooltip,
   } = state;
 
   return (
@@ -65,12 +65,15 @@ export default function AIModeWrapper({
 
         {!hideTokenBadge && session.messages.length > 0 && (
           <div
-            className={styles.ctxBadge}
+            className={styles.ctxMeter}
             data-warning={ctxWarning}
-            title={`~${estimatedTokens.toLocaleString()} / ${CTX_LIMIT.toLocaleString()} tokens`}
+            title={tokenTooltip}
           >
             <Database size={10} />
-            {ctxPct}%
+            <div className={styles.ctxMeterBar}>
+              <div className={styles.ctxMeterFill} style={{ width: `${ctxPct}%` }} />
+            </div>
+            <span>{ctxPct}%</span>
           </div>
         )}
 

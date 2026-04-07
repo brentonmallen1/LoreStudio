@@ -23,30 +23,47 @@
 }
 
 /* ── Context token badge ── */
-.ctxBadge {
+.ctxMeter {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   font-size: 0.65rem;
-  font-weight: 600;
-  padding: 2px 5px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
+  font-weight: 500;
   color: var(--color-text-muted);
-  background: none;
   flex-shrink: 0;
   cursor: default;
   margin-left: auto;
 }
 
-.ctxBadge[data-warning="approaching"] {
-  border-color: color-mix(in srgb, #f0a050 40%, var(--color-border));
-  color: #f0a050;
+.ctxMeterBar {
+  width: 44px;
+  height: 5px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.ctxBadge[data-warning="exceeded"] {
-  border-color: color-mix(in srgb, #e05050 50%, var(--color-border));
-  color: #e05050;
+.ctxMeterFill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ctxMeter[data-warning="approaching"] .ctxMeterFill {
+  background: var(--color-warning, #f0a050);
+}
+
+.ctxMeter[data-warning="approaching"] {
+  color: var(--color-warning, #f0a050);
+}
+
+.ctxMeter[data-warning="exceeded"] .ctxMeterFill {
+  background: var(--color-danger, #e05050);
+}
+
+.ctxMeter[data-warning="exceeded"] {
+  color: var(--color-danger, #e05050);
 }
 
 /* ── Header buttons ── */

@@ -685,6 +685,8 @@ export const api = {
     request<{ connected: boolean; model: string; model_available: boolean; base_url: string }>("/ollama/status"),
   ollamaModels: () =>
     request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>("/ollama/models"),
+  ollamaModelInfo: () =>
+    request<{ model: string; context_length: number | null }>("/ollama/model-info"),
 
   // World Building — Locations
   listLocations: (storyId: string) =>
@@ -857,4 +859,14 @@ export const api = {
     request<import("../types").DialogueStats>(`/stories/${storyId}/dialogue/stats`),
   getDialogueInteractions: (storyId: string) =>
     request<import("../types").DialogueInteraction[]>(`/stories/${storyId}/dialogue/interactions`),
+  getCharacterDialogue: (characterId: string) =>
+    request<import("../types").DialogueBlockWithScene[]>(`/characters/${characterId}/dialogue`),
+  suggestDialogueTags: (sceneId: string) =>
+    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, { method: "POST" }),
+  applyDialogueTags: (sceneId: string, tags: import("../types").ApplyTagRequest[]) =>
+    request<import("../types").StructureNode>(`/scenes/${sceneId}/dialogue/apply-tags`, { method: "POST", body: JSON.stringify({ tags }) }),
+  suggestEntityLinks: (nodeId: string) =>
+    request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, { method: "POST" }),
+  applyEntityLinks: (nodeId: string, links: import("../types").ApplyLinkRequest[]) =>
+    request<import("../types").StructureNode>(`/structure/${nodeId}/apply-links`, { method: "POST", body: JSON.stringify({ links }) }),
 };

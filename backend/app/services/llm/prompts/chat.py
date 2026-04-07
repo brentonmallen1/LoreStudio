@@ -9,7 +9,7 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
     Same scene context as the chat assistant, but framed as a prose coaching session.
     """
     s = ctx["story"]
-    sc = ctx["scene"]
+    sc = ctx.get("scene")
 
     lines = [
         "You are a writing coach embedded in LoreStudio, helping an author think through their prose choices.",
@@ -28,10 +28,16 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
     if s.get("tone"): lines.append(f"Tone: {s['tone']}")
     if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
     if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
+    if s.get("narrative_perspective"):
+        pov_line = f"Narrative perspective: {s['narrative_perspective'].replace('_', ' ').title()}"
+        if s.get("pov_character"):
+            pov_line += f" (POV: {s['pov_character']})"
+        lines.append(pov_line)
 
-    lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
-    if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
-    if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
+    if sc:
+        lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
+        if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
+        if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
 
     if ctx["characters_in_scene"]:
         lines += ["", "## Characters in this scene"]
@@ -58,7 +64,7 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
     Assembles context from the story lorebook, active scene, characters, threads, etc.
     """
     s = ctx["story"]
-    sc = ctx["scene"]
+    sc = ctx.get("scene")
 
     lines = [
         "You are a creative writing assistant embedded in LoreStudio, helping an author with their story.",
@@ -71,17 +77,23 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
     if s.get("central_conflict"): lines.append(f"Central conflict: {s['central_conflict']}")
     if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
     if s.get("logline"): lines.append(f"Logline: {s['logline']}")
+    if s.get("narrative_perspective"):
+        pov_line = f"Narrative perspective: {s['narrative_perspective'].replace('_', ' ').title()}"
+        if s.get("pov_character"):
+            pov_line += f" (POV: {s['pov_character']})"
+        lines.append(pov_line)
     if s.get("unresolved_goals"):
         lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
 
-    lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
-    if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
-    if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
-    if sc.get("entry_state"): lines.append(f"Entry state: {sc['entry_state']}")
-    if sc.get("exit_state"): lines.append(f"Exit state (goal): {sc['exit_state']}")
-    if sc.get("key_events"): lines.append(f"Key events planned: {sc['key_events']}")
-    if sc.get("prose_preview"):
-        lines += ["", "Prose so far (excerpt):", sc["prose_preview"]]
+    if sc:
+        lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
+        if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
+        if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
+        if sc.get("entry_state"): lines.append(f"Entry state: {sc['entry_state']}")
+        if sc.get("exit_state"): lines.append(f"Exit state (goal): {sc['exit_state']}")
+        if sc.get("key_events"): lines.append(f"Key events planned: {sc['key_events']}")
+        if sc.get("prose_preview"):
+            lines += ["", "Prose so far (excerpt):", sc["prose_preview"]]
 
     if ctx["characters_in_scene"]:
         lines += ["", "## Characters in this scene"]

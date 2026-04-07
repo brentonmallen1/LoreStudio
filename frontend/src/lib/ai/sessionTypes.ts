@@ -73,6 +73,13 @@ export interface SessionTypeConfig {
     messages?: import("../../types").ChatMessage[];
     interviewNotes?: string;
     chronicleSessionId?: string;
+    /** When set, the user should be asked Continue/Start Fresh before loading messages. */
+    pendingResume?: {
+      chronicleSessionId: string;
+      messages: import("../../types").ChatMessage[];
+      preview: string;
+      messageCount: number;
+    };
   }>;
 
   /**

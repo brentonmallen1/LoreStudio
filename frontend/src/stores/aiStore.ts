@@ -27,6 +27,13 @@ export interface AISession {
   streamingText?: string;
   isStreaming: boolean;
   createdAt: string;
+  /** When set, user is asked Continue/Start Fresh before messages are loaded */
+  pendingResume?: {
+    chronicleSessionId: string;
+    messages: import("../types").ChatMessage[];
+    preview: string;
+    messageCount: number;
+  };
 }
 
 interface AIStore {
@@ -63,6 +70,11 @@ interface AIStore {
 
   /** Update interview notes on a session */
   setInterviewNotes: (sessionId: string, notes: string) => void;
+
+  /** Load messages from a pending resume (user chose "Continue") */
+  continuePendingResume: (sessionId: string) => void;
+  /** Dismiss pending resume, start a fresh session (user chose "Start Fresh") */
+  discardPendingResume: (sessionId: string) => void;
 
   /**
    * Open an already-created backend session (e.g. from StartInterviewDialog).
@@ -150,7 +162,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     const sessionType = getSessionType(type);
     if (!sessionType) throw new Error(`Unknown session type: ${type}`);
 
-    const { backendSessionId, messages, interviewNotes, chronicleSessionId } =
+    const { backendSessionId, messages, interviewNotes, chronicleSessionId, pendingResume } =
       await sessionType.initSession(context);
 
     const resolvedNames = await resolveNames(context);
@@ -167,6 +179,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       interviewNotes,
       isStreaming: false,
       createdAt: new Date().toISOString(),
+      pendingResume,
     };
 
     set((s) => ({
@@ -224,6 +237,29 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: s.sessions.map((sess) =>
         sess.id === sessionId ? { ...sess, interviewNotes: notes } : sess
+      ),
+    }));
+  },
+
+  continuePendingResume: (sessionId) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) => {
+        if (sess.id !== sessionId || !sess.pendingResume) return sess;
+        return {
+          ...sess,
+          messages: sess.pendingResume.messages,
+          chronicleSessionId: sess.pendingResume.chronicleSessionId,
+          contextLocked: true,
+          pendingResume: undefined,
+        };
+      }),
+    }));
+  },
+
+  discardPendingResume: (sessionId) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, pendingResume: undefined } : sess
       ),
     }));
   },

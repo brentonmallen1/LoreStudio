@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -25,6 +25,8 @@ import {
   setDialogueModeActive,
 } from "./DialogueExtension";
 import DialogueSyntaxGuide from "../help/DialogueSyntaxGuide";
+import AutoTagDialoguePanel from "./AutoTagDialoguePanel";
+import AutoLinkEntitiesPanel from "./AutoLinkEntitiesPanel";
 import AssetPicker from "../media/AssetPicker";
 
 /**
@@ -106,6 +108,8 @@ export default function SceneEditor() {
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const [showDialogueGuide, setShowDialogueGuide] = useState(false);
+  const [showAutoTag, setShowAutoTag] = useState(false);
+  const [showAutoLink, setShowAutoLink] = useState(false);
   const [dialogueIsolation, setDialogueIsolation] = useState(false);
   const [dialogueBlocks, setDialogueBlocks] = useState<import("../../types").DialogueBlock[]>([]);
   const [wordCount, setWordCount] = useState(0);
@@ -1014,6 +1018,22 @@ export default function SceneEditor() {
                     <Quote size={13} />
                     Dialogue Guide
                   </button>
+                  <button
+                    onClick={() => { setShowAutoTag(true); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="Scan for untagged quotes and propose speaker attribution"
+                  >
+                    <Tag size={13} />
+                    Auto-Tag Dialogue
+                  </button>
+                  <button
+                    onClick={() => { setShowAutoLink(true); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="Scan for unlinked character and location mentions"
+                  >
+                    <Link size={13} />
+                    Link Mentions
+                  </button>
                 </div>
               )}
             </div>
@@ -1446,20 +1466,40 @@ export default function SceneEditor() {
               Dialogue only — <button className={styles.dialogueIsolationExit} onClick={() => setDialogueIsolation(false)}>back to prose</button>
             </div>
             {dialogueBlocks.length === 0 ? (
-              <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>@Name: "..."</code> syntax or <code>^</code> to attribute dialogue.</p>
-            ) : (
-              <div className={styles.dialogueScript}>
-                {dialogueBlocks.map((b) => (
-                  <div key={b.id} className={`${styles.dialogueLine} ${b.attribution_method === "unattributed" ? styles.dialogueLineUnattr : ""}`}>
-                    <span className={styles.dialogueLineSpeaker}>
-                      {b.speaker_name || "Unknown"}
-                      {b.attribution_method === "inferred" || b.attribution_method === "alternating" ? <span className={styles.dialogueLineInferred}>?</span> : null}
-                    </span>
-                    <span className={styles.dialogueLineContent}>{b.content}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+              <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code> to attribute dialogue.</p>
+            ) : (() => {
+              // Assign left/right sides based on speaker — first speaker left, second speaker right, alternating on change
+              const sideMap = new Map<string, "left" | "right">();
+              let sideToggle: "left" | "right" = "left";
+              return (
+                <div className={styles.dialogueBubbles}>
+                  {dialogueBlocks.map((b) => {
+                    const key = b.speaker_name || "__unknown__";
+                    if (!sideMap.has(key)) {
+                      sideMap.set(key, sideToggle);
+                      sideToggle = sideToggle === "left" ? "right" : "left";
+                    }
+                    const side = sideMap.get(key)!;
+                    const isInferred = b.attribution_method === "inferred" || b.attribution_method === "alternating";
+                    const isUnattr = b.attribution_method === "unattributed";
+                    return (
+                      <div
+                        key={b.id}
+                        className={`${styles.dialogueBubbleWrap} ${side === "right" ? styles.dialogueBubbleWrapRight : ""}`}
+                      >
+                        <div className={styles.dialogueBubbleSpeaker}>
+                          {b.speaker_name || "Unknown"}
+                          {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
+                        </div>
+                        <div className={`${styles.dialogueBubble} ${side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft} ${isUnattr ? styles.dialogueBubbleUnattr : ""}`}>
+                          "{b.content}"
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         ) : (
           <div className={styles.editorWrap}>
@@ -1480,6 +1520,34 @@ export default function SceneEditor() {
       {/* Dialogue Syntax Guide modal */}
       {showDialogueGuide && (
         <DialogueSyntaxGuide onClose={() => setShowDialogueGuide(false)} />
+      )}
+
+      {/* Auto-Tag Dialogue panel */}
+      {showAutoTag && activeNode && (
+        <AutoTagDialoguePanel
+          sceneId={activeNode.id}
+          onClose={() => setShowAutoTag(false)}
+          onApplied={(updated) => {
+            setActiveNode({ ...activeNode, ...updated });
+            if (editor && updated.content) {
+              editor.commands.setContent(updated.content, false);
+            }
+          }}
+        />
+      )}
+
+      {/* Auto-Link Entities panel */}
+      {showAutoLink && activeNode && (
+        <AutoLinkEntitiesPanel
+          nodeId={activeNode.id}
+          onClose={() => setShowAutoLink(false)}
+          onApplied={(updated) => {
+            setActiveNode({ ...activeNode, ...updated });
+            if (editor && updated.content) {
+              editor.commands.setContent(updated.content, false);
+            }
+          }}
+        />
       )}
 
       {/* Selection toolbar */}

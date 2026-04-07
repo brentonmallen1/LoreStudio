@@ -151,9 +151,18 @@ registerSessionType({
         if (recent.sessions.length > 0) {
           const detail = await api.getChronicleSession(recent.sessions[0].id);
           if (detail.messages.length > 0) {
+            const messages = detail.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+            const firstUser = messages.find((m) => m.role === "user");
+            const preview = firstUser
+              ? firstUser.content.slice(0, 120) + (firstUser.content.length > 120 ? "…" : "")
+              : "Previous conversation";
             return {
-              chronicleSessionId: detail.id,
-              messages: detail.messages.map((m) => ({ role: m.role, content: m.content })),
+              pendingResume: {
+                chronicleSessionId: detail.id,
+                messages,
+                preview,
+                messageCount: messages.length,
+              },
             };
           }
         }
@@ -212,9 +221,18 @@ registerSessionType({
         if (recent.sessions.length > 0) {
           const detail = await api.getChronicleSession(recent.sessions[0].id);
           if (detail.messages.length > 0) {
+            const messages = detail.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+            const firstUser = messages.find((m) => m.role === "user");
+            const preview = firstUser
+              ? firstUser.content.slice(0, 120) + (firstUser.content.length > 120 ? "…" : "")
+              : "Previous conversation";
             return {
-              chronicleSessionId: detail.id,
-              messages: detail.messages.map((m) => ({ role: m.role, content: m.content })),
+              pendingResume: {
+                chronicleSessionId: detail.id,
+                messages,
+                preview,
+                messageCount: messages.length,
+              },
             };
           }
         }

@@ -140,7 +140,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
 
 // ── Main panel ─────────────────────────────────────────────────────────
 export default function LorebookPanel({ storyId }: { storyId: string }) {
-  const { activeStory, setActiveStory } = useStoryStore();
+  const { activeStory, setActiveStory, characters } = useStoryStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fields, setFields] = useState({
@@ -148,6 +148,8 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
     genre: "",
     tone: "",
     intended_length: "",
+    narrative_perspective: "",
+    pov_character_id: "" as string,
     themes: [] as string[],
     central_conflict: "",
     target_audience: "",
@@ -163,6 +165,8 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
       genre: activeStory.genre ?? "",
       tone: activeStory.tone ?? "",
       intended_length: activeStory.intended_length ?? "",
+      narrative_perspective: activeStory.narrative_perspective ?? "",
+      pov_character_id: activeStory.pov_character_id ?? "",
       themes: activeStory.themes ?? [],
       central_conflict: activeStory.central_conflict ?? "",
       target_audience: activeStory.target_audience ?? "",
@@ -182,6 +186,11 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
   function update(key: keyof typeof fields, value: string | string[]) {
     setFields((prev) => ({ ...prev, [key]: value }));
     scheduleSync({ [key]: value });
+  }
+
+  function updatePovCharacter(id: string) {
+    setFields((prev) => ({ ...prev, pov_character_id: id }));
+    scheduleSync({ pov_character_id: id || null } as Parameters<typeof scheduleSync>[0]);
   }
 
   function updateBeatSheet(id: string | null) {
@@ -260,6 +269,39 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
               className={styles.input}
             />
           </div>
+        </div>
+
+        {/* ── Narrative Perspective ── */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Narrative Perspective</h3>
+          <p className={styles.fieldHint}>Point of view for the story. Guides AI tools on voice and perspective.</p>
+          <select
+            value={fields.narrative_perspective}
+            onChange={(e) => update("narrative_perspective", e.target.value)}
+            className={styles.input}
+          >
+            <option value="">Not specified</option>
+            <option value="first_person">First Person</option>
+            <option value="third_limited">Third Person Limited</option>
+            <option value="third_omniscient">Third Person Omniscient</option>
+            <option value="second_person">Second Person</option>
+            <option value="multiple_pov">Multiple POV</option>
+          </select>
+          {(fields.narrative_perspective === "first_person" || fields.narrative_perspective === "third_limited") && (
+            <div className={styles.subField}>
+              <p className={styles.subFieldLabel}>POV Character</p>
+              <select
+                value={fields.pov_character_id}
+                onChange={(e) => updatePovCharacter(e.target.value)}
+                className={styles.input}
+              >
+                <option value="">Not specified</option>
+                {characters.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* ── Intended Length ── */}

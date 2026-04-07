@@ -53,10 +53,21 @@ def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
     return [n.strip() for n in char_names], [n.strip() for n in setting_names]
 
 
-def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dict:
+VIRTUAL_NODE_IDS = {"__global__", "__story__"}
+
+
+def _build_context_packet(story: Story, node: StructureNode | None, db: Session) -> dict:
     """Assemble the full context dict — used for both the preview endpoint and chat."""
 
     # ── Lorebook ──
+    # Resolve POV character name if set
+    pov_char_name: str | None = None
+    if story.pov_character_id:
+        from ..models.character import Character as CharacterModel
+        pov_char = db.get(CharacterModel, story.pov_character_id)
+        if pov_char:
+            pov_char_name = pov_char.name
+
     lorebook = {
         "title": story.title,
         "genre": story.genre or None,
@@ -66,29 +77,39 @@ def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dic
         "narrative_intent": story.narrative_intent or story.intent or None,
         "logline": story.logline or None,
         "premise": story.premise or None,
+        "narrative_perspective": story.narrative_perspective or None,
+        "pov_character": pov_char_name,
         "unresolved_goals": [g["text"] for g in (story.goals or []) if not g.get("completed")],
     }
 
-    # ── Active scene ──
-    prose_preview = (node.content or "")[:PROSE_CONTEXT_LIMIT]
-    if len(node.content or "") > PROSE_CONTEXT_LIMIT:
-        prose_preview += "…"
-
-    scene = {
-        "title": node.title,
-        "level_type": node.level_type,
-        "synopsis": node.synopsis or None,
-        "purpose": (node.metadata_ or {}).get("purpose") or None,
-        "entry_state": node.entry_state or None,
-        "exit_state": node.exit_state or None,
-        "key_events": node.key_events or None,
-        "word_count": node.word_count,
-        "status": node.status,
-        "prose_preview": prose_preview or None,
-    }
+    # ── Active scene (None for story-level / global assistant) ──
+    if node is not None:
+        prose_preview = (node.content or "")[:PROSE_CONTEXT_LIMIT]
+        if len(node.content or "") > PROSE_CONTEXT_LIMIT:
+            prose_preview += "…"
+        scene = {
+            "title": node.title,
+            "level_type": node.level_type,
+            "synopsis": node.synopsis or None,
+            "purpose": (node.metadata_ or {}).get("purpose") or None,
+            "entry_state": node.entry_state or None,
+            "exit_state": node.exit_state or None,
+            "key_events": node.key_events or None,
+            "word_count": node.word_count,
+            "status": node.status,
+            "prose_preview": prose_preview or None,
+        }
+        node_content = node.content or ""
+        node_id_for_threads = node.id
+        node_parent_id = node.parent_id
+    else:
+        scene = None
+        node_content = ""
+        node_id_for_threads = None
+        node_parent_id = None
 
     # ── Characters mentioned in prose ──
-    char_names_mentioned, setting_names_mentioned = _extract_mentions(node.content or "")
+    char_names_mentioned, setting_names_mentioned = _extract_mentions(node_content)
 
     all_chars = db.query(Character).filter(Character.story_id == story.id).all()
     mentioned_chars = [
@@ -125,13 +146,16 @@ def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dic
     ]
 
     # ── Plot threads touching this scene ──
-    thread_appearances = db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id == node.id).all()
-    active_thread_ids = {a.thread_id for a in thread_appearances}
-    active_threads = db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
-    threads_in_scene = [
-        {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
-        for t in active_threads
-    ]
+    if node_id_for_threads:
+        thread_appearances = db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id == node_id_for_threads).all()
+        active_thread_ids = {a.thread_id for a in thread_appearances}
+        active_threads = db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
+        threads_in_scene = [
+            {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
+            for t in active_threads
+        ]
+    else:
+        threads_in_scene = []
 
     # All open/developing threads (for wider awareness)
     all_open_threads = [
@@ -143,15 +167,18 @@ def _build_context_packet(story: Story, node: StructureNode, db: Session) -> dic
     ]
 
     # ── Sibling context (adjacent scenes) ──
-    siblings = db.query(StructureNode).filter(
-        StructureNode.story_id == story.id,
-        StructureNode.parent_id == node.parent_id,
-        StructureNode.id != node.id,
-    ).order_by(StructureNode.position).all()
-    sibling_context = [
-        {"title": s.title, "synopsis": s.synopsis[:120] if s.synopsis else None, "position": s.position}
-        for s in siblings[:6]  # nearest 6 siblings
-    ]
+    if node is not None:
+        siblings = db.query(StructureNode).filter(
+            StructureNode.story_id == story.id,
+            StructureNode.parent_id == node_parent_id,
+            StructureNode.id != node.id,
+        ).order_by(StructureNode.position).all()
+        sibling_context = [
+            {"title": s.title, "synopsis": s.synopsis[:120] if s.synopsis else None, "position": s.position}
+            for s in siblings[:6]
+        ]
+    else:
+        sibling_context = []
 
     return {
         "story": lorebook,
@@ -176,9 +203,12 @@ def get_chat_context(
 ):
     """Return the assembled context packet for preview — no AI call."""
     story = _get_story(story_id, db, current_user)
-    node = db.get(StructureNode, node_id)
-    if not node or node.story_id != story_id:
-        raise HTTPException(status_code=404, detail="Scene not found")
+    if node_id in VIRTUAL_NODE_IDS:
+        node = None
+    else:
+        node = db.get(StructureNode, node_id)
+        if not node or node.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Scene not found")
     ctx = _build_context_packet(story, node, db)
     return JSONResponse(ctx)
 
@@ -195,9 +225,12 @@ async def scene_chat(
 ):
     """Stream a chat response grounded in the current scene's full context."""
     story = _get_story(story_id, db, current_user)
-    node = db.get(StructureNode, node_id)
-    if not node or node.story_id != story_id:
-        raise HTTPException(status_code=404, detail="Scene not found")
+    if node_id in VIRTUAL_NODE_IDS:
+        node = None
+    else:
+        node = db.get(StructureNode, node_id)
+        if not node or node.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Scene not found")
 
     ctx = _build_context_packet(story, node, db)
     if mode == "writing-coach":

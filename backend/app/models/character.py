@@ -35,7 +35,7 @@ class Character(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    story: Mapped["Story"] = relationship("Story", back_populates="characters")
+    story: Mapped["Story"] = relationship("Story", back_populates="characters", foreign_keys="Character.story_id")
     interviews: Mapped[list["CharacterInterview"]] = relationship(
         "CharacterInterview", back_populates="character", cascade="all, delete-orphan"
     )

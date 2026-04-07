@@ -41,3 +41,11 @@ async def ollama_models(current_user: User = Depends(get_current_user)):
     url, _ = _user_ollama_config(current_user)
     models = await ollama_provider.list_models(base_url=url)
     return {"models": models}
+
+
+@router.get("/ollama/model-info")
+async def ollama_model_info(current_user: User = Depends(get_current_user)):
+    """Return the active model name and its context window size."""
+    url, model = _user_ollama_config(current_user)
+    context_length = await ollama_provider.get_context_length(model, base_url=url)
+    return {"model": model, "context_length": context_length}
