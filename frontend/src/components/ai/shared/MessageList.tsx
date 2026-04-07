@@ -1,5 +1,7 @@
 import { useRef, useEffect } from "react";
 import { Brain } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../../../types";
 import styles from "./MessageList.module.css";
 
@@ -12,18 +14,22 @@ function MessageContent({ content }: { content: string }) {
     return "";
   }).trim();
 
-  if (thinkingBlocks.length === 0) return <>{content}</>;
-
   return (
     <>
-      <details className={styles.thinkingBlock}>
-        <summary className={styles.thinkingSummary}>
-          <Brain size={11} />
-          Thinking
-        </summary>
-        <div className={styles.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
-      </details>
-      {mainContent}
+      {thinkingBlocks.length > 0 && (
+        <details className={styles.thinkingBlock}>
+          <summary className={styles.thinkingSummary}>
+            <Brain size={11} />
+            Thinking
+          </summary>
+          <div className={styles.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
+        </details>
+      )}
+      <div className={styles.markdown}>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {mainContent}
+        </ReactMarkdown>
+      </div>
     </>
   );
 }
@@ -37,13 +43,45 @@ interface Props {
 
 export default function MessageList({ messages, streamingText, isStreaming, emptyText }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // true = user is at (or near) the bottom and wants auto-scroll
+  const pinToBottom = useRef(true);
+  // ignore scroll events caused by our own scrollIntoView
+  const isAutoScrolling = useRef(false);
 
-  useEffect(() => {
+  function isNearBottom() {
+    const el = scrollRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  }
+
+  function handleScroll() {
+    if (isAutoScrolling.current) return;
+    pinToBottom.current = isNearBottom();
+  }
+
+  function scrollToBottom() {
+    isAutoScrolling.current = true;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingText]);
+    // smooth scroll takes ~300ms; reset flag after
+    setTimeout(() => { isAutoScrolling.current = false; }, 350);
+  }
+
+  // During streaming: only scroll if pinned
+  useEffect(() => {
+    if (pinToBottom.current) {
+      scrollToBottom();
+    }
+  }, [streamingText]);
+
+  // New messages (user sent or stream finalized): always scroll and re-pin
+  useEffect(() => {
+    pinToBottom.current = true;
+    scrollToBottom();
+  }, [messages.length]);
 
   return (
-    <div className={styles.messages}>
+    <div className={styles.messages} ref={scrollRef} onScroll={handleScroll}>
       {messages.length === 0 && !isStreaming && (
         <p className={styles.empty}>
           {emptyText ?? "Start the conversation by sending a message."}

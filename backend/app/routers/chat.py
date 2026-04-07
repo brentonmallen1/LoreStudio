@@ -30,7 +30,7 @@ from ..models.setting import Setting
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.chat import build_scene_chat_system_prompt
+from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
 from ..schemas.llm_params import LLMParams
 
 router = APIRouter()
@@ -189,6 +189,7 @@ async def scene_chat(
     node_id: str = Body(...),
     messages: list[dict] = Body(...),
     llm_params: LLMParams | None = Body(None),
+    mode: str | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -199,10 +200,13 @@ async def scene_chat(
         raise HTTPException(status_code=404, detail="Scene not found")
 
     ctx = _build_context_packet(story, node, db)
-    feature_prompt = build_scene_chat_system_prompt(ctx)
+    if mode == "writing-coach":
+        feature_prompt = build_writing_coach_system_prompt(ctx)
+    else:
+        feature_prompt = build_scene_chat_system_prompt(ctx)
 
     call_ctx = AICallContext(
-        feature="scene-chat",
+        feature=mode if mode else "scene-chat",
         user_id=current_user.id,
         story_id=story_id,
         node_id=node_id,

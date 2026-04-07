@@ -26,7 +26,7 @@ from .generation import (
     build_attribute_generation_prompt,
     build_relationship_suggestion_prompt,
 )
-from .chat import build_scene_chat_system_prompt
+from .chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
 from .brainstorm import build_brainstorm_system_prompt
 from .scene_planner import build_scene_planner_system_prompt
 from .worldbuilding import (
@@ -209,6 +209,7 @@ __all__ = [
     "build_attribute_generation_prompt",
     "build_relationship_suggestion_prompt",
     "build_scene_chat_system_prompt",
+    "build_writing_coach_system_prompt",
     "build_brainstorm_system_prompt",
     "build_scene_planner_system_prompt",
     "build_location_existence_prompt",

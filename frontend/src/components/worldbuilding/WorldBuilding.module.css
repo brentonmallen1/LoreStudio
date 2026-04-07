@@ -442,6 +442,29 @@
   color: var(--color-text);
 }
 
+/* AI trigger button — violet accent, distinct from ghost buttons */
+.aiBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: transparent;
+  color: var(--color-ai, #a78bfa);
+  border: 1px solid color-mix(in srgb, var(--color-ai, #a78bfa) 40%, transparent);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.aiBtn:hover {
+  background: color-mix(in srgb, var(--color-ai, #a78bfa) 10%, transparent);
+  border-color: var(--color-ai, #a78bfa);
+}
+
 /* ── Modal ── */
 .modalOverlay {
   position: fixed;

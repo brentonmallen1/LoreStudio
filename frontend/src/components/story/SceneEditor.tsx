@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Sparkles, Pencil, Telescope, Compass, Map as MapIcon, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -69,13 +69,16 @@ import FontPicker from "./FontPicker";
 import { useAIStore } from "../../stores/aiStore";
 import BrainstormPanel from "../layout/BrainstormPanel";
 import ScenePlannerPanel from "../layout/ScenePlannerPanel";
+import SelectionToolbar from "./SelectionToolbar";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
   const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel } = useUIStore();
-  const { sessions, panelOpen, createSession, setActiveSession } = useAIStore();
+  const { sessions, panelOpen, openPanel, createSession, setActiveSession } = useAIStore();
+  const [showGuideMenu, setShowGuideMenu] = useState(false);
+  const guideMenuRef = useRef<HTMLDivElement>(null);
   const { runDiscovery, isAnalyzing: isDiscoveryAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -165,6 +168,10 @@ export default function SceneEditor() {
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const notePopoverRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Selection toolbar state
+  const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
+  const selectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
   // Refs so event listeners (stable, empty-deps) always read fresh data
   const charactersRef = useRef(characters);
@@ -187,6 +194,19 @@ export default function SceneEditor() {
       MentionDropdownExtension,
     ],
     content: activeNode?.content ?? "",
+    onSelectionUpdate: ({ editor }) => {
+      const { empty } = editor.state.selection;
+      if (selectionDebounceRef.current) clearTimeout(selectionDebounceRef.current);
+      if (empty) {
+        setSelectionRect(null);
+      } else {
+        selectionDebounceRef.current = setTimeout(() => {
+          const sel = window.getSelection();
+          const rect = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).getBoundingClientRect() : null;
+          setSelectionRect(rect && rect.width > 0 ? rect : null);
+        }, 400);
+      }
+    },
     onUpdate: ({ editor }) => {
       if (!activeNode) return;
       const content = editor.getHTML();
@@ -215,6 +235,18 @@ export default function SceneEditor() {
       editor.commands.setContent(activeNode.content ?? "");
     }
   }, [activeNode?.id]);
+
+  // ⌘⇧R — open writing coach for the current selection
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "R") {
+        e.preventDefault();
+        openWritingCoach();
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  });
 
   // Subscribe to editor updates for live word count (seeded from activeNode.word_count)
   useEffect(() => {
@@ -497,6 +529,18 @@ export default function SceneEditor() {
     });
   }, [handleNoteActivate, handleAddNote]);
 
+  // Close guide dropdown on outside click
+  useEffect(() => {
+    if (!showGuideMenu) return;
+    function onMouseDown(e: MouseEvent) {
+      if (guideMenuRef.current && !guideMenuRef.current.contains(e.target as Node)) {
+        setShowGuideMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", onMouseDown);
+    return () => document.removeEventListener("mousedown", onMouseDown);
+  }, [showGuideMenu]);
+
   // Close read-only note popover on outside click (not when creating/editing)
   useEffect(() => {
     if (!notePopover.open || notePopover.isNew || notePopover.isEditing) return;
@@ -594,6 +638,25 @@ export default function SceneEditor() {
     } else {
       editor.commands.focus();
     }
+  }
+
+  function openWritingCoach() {
+    if (!editor || !activeStory || !activeNode) return;
+    const { from, to, empty } = editor.state.selection;
+    const selectedText = empty ? undefined : editor.state.doc.textBetween(from, to).trim();
+    const existing = sessions.find(
+      (s) => s.type === "writing-coach" && s.context.nodeId === activeNode.id && s.messages.length === 0,
+    );
+    if (existing) {
+      setActiveSession(existing.id);
+    } else {
+      createSession("writing-coach", {
+        storyId: activeStory.id,
+        nodeId: activeNode.id,
+        selectedText: selectedText || undefined,
+      });
+    }
+    setSelectionRect(null);
   }
 
   async function handleUpdateNote(noteId: string, newText: string) {
@@ -778,34 +841,44 @@ export default function SceneEditor() {
             <span>Notes</span>
           </button>
           {activeStory && (
-            <button
-              onClick={() => setShowSummary((s) => !s)}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI}`}
-              title="Story So Far — AI summary of the story up to this point"
-            >
-              <BookOpen size={13} />
-              <span>Story So Far</span>
-            </button>
-          )}
-          {activeStory && (
-            <button
-              onClick={() => plannerPanelOpen ? closePlannerPanel() : openPlannerPanel()}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${plannerPanelOpen ? styles.topbarBtnAIActive : ""}`}
-              title="Scene Planner — plan this scene before writing"
-            >
-              <MapIcon size={13} />
-              <span>Plan Scene</span>
-            </button>
-          )}
-          {activeStory && (
-            <button
-              onClick={() => brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel()}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${brainstormPanelOpen ? styles.topbarBtnAIActive : ""}`}
-              title="What's Next? — brainstorm directions for this scene"
-            >
-              <Compass size={13} />
-              <span>What's Next?</span>
-            </button>
+            <div className={styles.guideMenuWrap} ref={guideMenuRef}>
+              <button
+                onClick={() => setShowGuideMenu((v) => !v)}
+                className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${showGuideMenu || plannerPanelOpen || brainstormPanelOpen ? styles.topbarBtnAIActive : ""}`}
+                title="AI writing guides — Story So Far, Plan Scene, What's Next?"
+              >
+                <Compass size={13} />
+                <span>Guide</span>
+              </button>
+              {showGuideMenu && (
+                <div className={styles.guideMenu}>
+                  <button
+                    onClick={() => { setShowSummary((s) => !s); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="AI summary of the story up to this point"
+                  >
+                    <BookOpen size={13} />
+                    Story So Far
+                  </button>
+                  <button
+                    onClick={() => { plannerPanelOpen ? closePlannerPanel() : openPlannerPanel(); setShowGuideMenu(false); }}
+                    className={`${styles.guideMenuItem} ${plannerPanelOpen ? styles.guideMenuItemActive : ""}`}
+                    title="Plan this scene before writing"
+                  >
+                    <MapIcon size={13} />
+                    Plan Scene
+                  </button>
+                  <button
+                    onClick={() => { brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel(); setShowGuideMenu(false); }}
+                    className={`${styles.guideMenuItem} ${brainstormPanelOpen ? styles.guideMenuItemActive : ""}`}
+                    title="Brainstorm directions for this scene"
+                  >
+                    <Compass size={13} />
+                    What's Next?
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           {activeStory && (
             <button
@@ -815,6 +888,7 @@ export default function SceneEditor() {
                 );
                 if (existingSession) {
                   setActiveSession(existingSession.id);
+                  if (!panelOpen) openPanel();
                 } else {
                   createSession("scene-assistant", { storyId: activeStory?.id, nodeId: activeNode?.id });
                 }
@@ -822,7 +896,7 @@ export default function SceneEditor() {
               className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${panelOpen && sessions.some((s) => s.type === "scene-assistant" && s.context.nodeId === activeNode?.id) ? styles.topbarBtnAIActive : ""}`}
               title="Scene Assistant — AI chat grounded in this scene's full context"
             >
-              <Sparkles size={13} />
+              <Feather size={13} />
               <span>Assistant</span>
             </button>
           )}
@@ -1036,7 +1110,7 @@ export default function SceneEditor() {
                 disabled={generatingSummary || !activeNode?.content?.trim()}
                 title="Generate/Refresh summary"
               >
-                <Sparkles size={11} />
+                <Compass size={11} />
                 {!contentSummary && !summaryStreamText ? "Generate" : generatingSummary ? "Generating…" : "Regenerate"}
               </button>
             </div>
@@ -1232,6 +1306,13 @@ export default function SceneEditor() {
         <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
       )}
       </div>{/* end contentRow */}
+
+      {/* Selection toolbar */}
+      <SelectionToolbar
+        selectionRect={selectionRect}
+        onOpenCoach={openWritingCoach}
+        onAddNote={triggerAddNote}
+      />
 
       {/* Inline note popover */}
       {notePopover.open && (() => {

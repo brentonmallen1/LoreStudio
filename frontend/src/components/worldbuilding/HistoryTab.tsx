@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen, Landmark, Shield, HelpCircle } from "lucide-react";
+import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { Era, HistoricalEvent } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
-import type { SectionConfig } from "../ai/StructuredResponseRenderer";
-
-const IMPLICATIONS_SCHEMA: SectionConfig[] = [
-  { key: "physical_remnants", label: "Physical Remnants", icon: Landmark, color: "var(--color-accent)", type: "list" },
-  { key: "cultural_legacy", label: "Cultural Legacy", icon: BookOpen, color: "var(--segment-part)", type: "list" },
-  { key: "political_effects", label: "Political Effects", icon: Shield, color: "var(--color-warning)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
+import { useUIStore } from "../../stores/uiStore";
 
 interface Props {
   storyId: string;
@@ -29,10 +21,8 @@ export default function HistoryTab({ storyId }: Props) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<"era" | "event" | null>(null);
   const [newName, setNewName] = useState("");
   const [newEraId, setNewEraId] = useState<string | null>(null);
-  const [showImplications, setShowImplications] = useState(false);
+  const { openWorldBuildingAIPanel } = useUIStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => { setShowImplications(false); }, [selectedEvent?.id]);
 
   const load = useCallback(() => {
     Promise.all([
@@ -206,11 +196,12 @@ export default function HistoryTab({ storyId }: Props) {
               <h2 className={styles.detailName}>{selectedEvent.name}</h2>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowImplications((v) => !v)}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Traces this event's ripple effects into: Physical Remnants, Cultural Legacy, Political Effects, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "implications", entityId: selectedEvent.id, storyId })}
                 >
-                  Analyze Implications
+                  <Compass size={11} />
+                  Trace Present-Day Effects
                 </button>
                 <button className={`${styles.iconBtn} ${styles.danger}`}
                   onClick={() => setShowDeleteConfirm("event")}>
@@ -277,16 +268,6 @@ export default function HistoryTab({ storyId }: Props) {
                 onChange={(e) => scheduleEventUpdate("legacy_effects", e.target.value)} />
             </div>
 
-            {showImplications && (
-              <WorldAIStructuredPanel
-                title="Historical Implication Analysis"
-                description="Surface what this event's ripple effects look like today — ruins, traditions, political shifts, inherited attitudes."
-                buttonLabel="Analyze"
-                requestId={`historical-implications-${selectedEvent.id}`}
-                schema={IMPLICATIONS_SCHEMA}
-                onAnalyze={() => api.analyzeHistoricalImplications(storyId, selectedEvent.id)}
-              />
-            )}
           </>
         )}
       </div>

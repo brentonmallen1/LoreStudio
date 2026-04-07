@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Sparkles } from "lucide-react";
+import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAIStore } from "../../stores/aiStore";
@@ -143,7 +143,7 @@ export default function CharacterSheet() {
               className={styles.editBtn}
               title="AI suggestions"
             >
-              <Sparkles size={14} />
+              <Compass size={14} />
             </button>
             <button
               onClick={() => setEditing(true)}

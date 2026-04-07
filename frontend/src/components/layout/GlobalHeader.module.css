@@ -59,6 +59,39 @@
   color: var(--color-accent);
 }
 
+/* ── Assistant button ── */
+.assistantBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-ai-border);
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  margin-right: 0.35rem;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.assistantBtn:hover {
+  background: color-mix(in srgb, var(--color-ai) 18%, transparent);
+  border-color: color-mix(in srgb, var(--color-ai) 55%, transparent);
+  color: var(--color-ai);
+}
+
+.assistantBtnActive {
+  background: color-mix(in srgb, var(--color-ai) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-ai) 60%, transparent);
+  color: var(--color-ai);
+}
+
+.assistantBtnActive:hover {
+  background: color-mix(in srgb, var(--color-ai) 28%, transparent);
+}
+
 /* ── Search button ── */
 .searchBtn {
   display: flex;

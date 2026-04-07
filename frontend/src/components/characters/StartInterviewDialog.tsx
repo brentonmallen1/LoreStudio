@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Sparkles } from "lucide-react";
+import { MessageSquare, RefreshCw, Feather } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character, CharacterJourney, StructureNode, Interview } from "../../types";
@@ -147,7 +147,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
 
                 {journey.is_stale && (
                   <div className={styles.staleWarning}>
-                    <Sparkles size={11} />
+                    <Feather size={11} />
                     Context may be outdated — scene summaries have changed. Refresh for accuracy.
                   </div>
                 )}

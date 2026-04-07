@@ -1,25 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Sparkles } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
-import { Home, Leaf, Users, HelpCircle, Bug, Type } from "lucide-react";
-import type { SectionConfig } from "../ai/StructuredResponseRenderer";
-
-const LOCATION_EXISTENCE_SCHEMA: SectionConfig[] = [
-  { key: "built_environment", label: "Built Environment", icon: Home, color: "var(--color-accent)", type: "list" },
-  { key: "natural_environment", label: "Natural Environment", icon: Leaf, color: "var(--segment-beat)", type: "list" },
-  { key: "cultural_presence", label: "Cultural Presence", icon: Users, color: "var(--segment-part)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
-
-const LOCATION_SUGGEST_SCHEMA: SectionConfig[] = [
-  { key: "creature_directions", label: "Creature & Wildlife Directions", icon: Bug, color: "var(--segment-beat)", type: "list" },
-  { key: "flora_directions", label: "Flora & Environment Directions", icon: Leaf, color: "var(--color-accent)", type: "list" },
-  { key: "naming_directions", label: "Naming Directions", icon: Type, color: "var(--color-warning)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
+import { useUIStore } from "../../stores/uiStore";
 
 interface Props {
   storyId: string;
@@ -126,10 +110,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   const [newCustomType, setNewCustomType] = useState("");
   const [newParentId, setNewParentId] = useState<string | null>(null);
 
-  const [showAI, setShowAI] = useState<"what-exists" | "suggest" | null>(null);
-
-  // Reset AI panel when selection changes
-  useEffect(() => { setShowAI(null); }, [selected?.id]);
+  const { openWorldBuildingAIPanel } = useUIStore();
 
   // Debounced save
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -285,18 +266,20 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowAI((v) => v === "what-exists" ? null : "what-exists")}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Analyzes this location's properties and generates ideas for: Built Environment, Natural Environment, Cultural Presence, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "what-exists", entityId: selected.id, storyId })}
                 >
-                  What Exists Here?
+                  <Compass size={11} />
+                  Brainstorm What Exists
                 </button>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowAI((v) => v === "suggest" ? null : "suggest")}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Generates creative directions for: Creatures & Wildlife, Flora & Environment, Naming Patterns, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "location-suggest", entityId: selected.id, storyId })}
                 >
-                  AI Suggest
+                  <Compass size={11} />
+                  Suggest Elements
                 </button>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
@@ -498,29 +481,8 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               </>
             )}
 
-            {/* AI panels */}
-            {showAI === "what-exists" && (
-              <WorldAIStructuredPanel
-                title="What Would Exist Here?"
-                description="Analyze this location's properties to surface questions about what would logically inhabit it — buildings, creatures, plants, and weather."
-                buttonLabel="Analyze"
-                requestId={`what-exists-${selected.id}`}
-                schema={LOCATION_EXISTENCE_SCHEMA}
-                onAnalyze={() => api.analyzeLocationExistence(storyId, selected.id)}
-              />
-            )}
-            {showAI === "suggest" && (
-              <WorldAIStructuredPanel
-                title="AI Element Suggestions"
-                description="Surface questions and directions for creatures, flora, and naming patterns rooted in this location's properties."
-                buttonLabel="Suggest"
-                requestId={`element-suggest-location-${selected.id}`}
-                schema={LOCATION_SUGGEST_SCHEMA}
-                onAnalyze={() => api.suggestWorldElements(storyId, "location", selected.id)}
-              />
-            )}
 
-          </>
+</>
         )}
       </div>
 

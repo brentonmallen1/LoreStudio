@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, UserCircle2, Trash2, Sparkles, List, Network } from "lucide-react";
+import { Plus, UserCircle2, Trash2, Compass, List, Network } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import CharacterFormDialog from "./CharacterFormDialog";
@@ -78,7 +78,7 @@ export default function CharacterList({ storyId }: Props) {
           <div className={styles.headerActions}>
             {characters.length >= 2 && (
               <button onClick={() => setShowRelSuggestions(true)} className={styles.suggestBtn}>
-                <Sparkles size={13} />
+                <Compass size={13} />
                 Suggest relationships
               </button>
             )}

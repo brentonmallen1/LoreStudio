@@ -10,6 +10,8 @@ export interface SessionContext {
   characterId?: string;
   nodeId?: string;
   characterIds?: string[];  // For panel interviews
+  selectedText?: string;    // For writing-coach sessions: the highlighted text
+  tonePrefs?: string[];     // For writing-coach sessions: e.g. ["darker", "direct"]
 }
 
 /** A single context option shown in the context picker dropdown */

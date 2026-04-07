@@ -1,18 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Users, Trash2 } from "lucide-react";
+import { Plus, Users, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { Culture } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
-import { Type, Star, Palette, HelpCircle } from "lucide-react";
-import type { SectionConfig } from "../ai/StructuredResponseRenderer";
-
-const CULTURE_SUGGEST_SCHEMA: SectionConfig[] = [
-  { key: "naming_directions", label: "Naming Directions", icon: Type, color: "var(--color-accent)", type: "list" },
-  { key: "ritual_directions", label: "Ritual & Custom Directions", icon: Star, color: "var(--segment-part)", type: "list" },
-  { key: "aesthetic_directions", label: "Aesthetic & Material Directions", icon: Palette, color: "var(--color-warning)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
+import { useUIStore } from "../../stores/uiStore";
 
 interface Props {
   storyId: string;
@@ -25,10 +16,8 @@ export default function CultureManager({ storyId }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newName, setNewName] = useState("");
-  const [showAIPanel, setShowAIPanel] = useState(false);
+  const { openWorldBuildingAIPanel } = useUIStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => { setShowAIPanel(false); }, [selected?.id]);
 
   const load = useCallback(() => {
     api.listCultures(storyId).then(setCultures).finally(() => setLoading(false));
@@ -105,11 +94,12 @@ export default function CultureManager({ storyId }: Props) {
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowAIPanel((v) => !v)}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Generates creative directions for: Naming Patterns, Rituals & Customs, Aesthetics & Materials, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "culture-suggest", entityId: selected.id, storyId })}
                 >
-                  AI Suggest
+                  <Compass size={11} />
+                  Suggest Cultural Elements
                 </button>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
@@ -220,16 +210,6 @@ export default function CultureManager({ storyId }: Props) {
                 onChange={(e) => scheduleUpdate("notes", e.target.value)} />
             </div>
 
-            {showAIPanel && (
-              <WorldAIStructuredPanel
-                title="AI Element Suggestions"
-                description="Surface directions for names, customs, rituals, and aesthetics rooted in this culture's values and structure."
-                buttonLabel="Suggest"
-                requestId={`element-suggest-culture-${selected.id}`}
-                schema={CULTURE_SUGGEST_SCHEMA}
-                onAnalyze={() => api.suggestWorldElements(storyId, "culture", selected.id)}
-              />
-            )}
           </>
         )}
       </div>

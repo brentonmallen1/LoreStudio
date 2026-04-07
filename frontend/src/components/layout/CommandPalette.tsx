@@ -196,11 +196,12 @@ export default function CommandPalette() {
 
   // ── Visible items ──────────────────────────────────────────────────────────
 
-  const isSearchMode = query.trim().length > 0 && !subMenu;
+  const hasQuery = query.trim().length > 0 && !subMenu;
   const hasSearchResults = searchResults.length > 0;
 
-  // Group action results from registry
+  // Group action results from registry (always shown)
   const actionGroups: Record<string, CommandAction[]> = commandRegistry.grouped(query);
+  const hasActionResults = Object.values(actionGroups).some((g) => g.length > 0);
 
   // Sub-menu filtering
   const filteredSubItems = subMenu
@@ -213,12 +214,15 @@ export default function CommandPalette() {
       : subMenu.items)
     : [];
 
-  // Flat list for keyboard nav
-  const flatItems: Array<{ action: () => void }> = isSearchMode
-    ? (searchResults.reduce((acc: SearchResult[], r) => { acc.push(r); return acc; }, []) as SearchResult[]).map((r) => ({ action: () => navigateTo(r) }))
-    : Object.values(actionGroups).flatMap((items) =>
-        items.map((a) => ({ action: () => executeAction(a) }))
-      );
+  // Flat list for keyboard nav — always includes commands, then content results
+  const flatItems: Array<{ action: () => void }> = [
+    ...Object.values(actionGroups).flatMap((items) =>
+      items.map((a) => ({ action: () => executeAction(a) }))
+    ),
+    ...(hasQuery && hasSearchResults
+      ? searchResults.map((r) => ({ action: () => navigateTo(r) }))
+      : []),
+  ];
 
   const flatSubItems = filteredSubItems.map((a) => ({ action: () => executeSubItem(a) }));
 
@@ -359,10 +363,48 @@ export default function CommandPalette() {
             </div>
 
             <div className={styles.list} role="listbox" aria-label="Commands" ref={listRef}>
-              {isSearchMode ? (
+              {/* ── Command registry results (always shown) ── */}
+              {(() => {
+                let flatIdx = 0;
+                return Object.entries(actionGroups).map(([group, items]) => (
+                  <div key={group} className={styles.group} role="group" aria-label={group}>
+                    <p className={styles.groupLabel} aria-hidden="true">{group}</p>
+                    {items.map((action) => {
+                      const idx = flatIdx++;
+                      const Icon = action.icon;
+                      return (
+                        <button
+                          key={action.id}
+                          data-item
+                          role="option"
+                          aria-selected={idx === selectedIndex}
+                          onClick={() => executeAction(action)}
+                          className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                          title={action.shortcut ? `${action.label} (${action.shortcut})` : action.label}
+                        >
+                          <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                          <span className={styles.itemContent}>
+                            <span className={styles.itemTitle}>{action.label}</span>
+                            {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
+                          </span>
+                          {action.shortcut && (
+                            <span className={styles.shortcutHint} aria-hidden="true">{action.shortcut}</span>
+                          )}
+                          {action.getSubItems && (
+                            <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ));
+              })()}
+
+              {/* ── Content search results (only when query typed) ── */}
+              {hasQuery && (
                 hasSearchResults ? (
                   (() => {
-                    let flatIdx = 0;
+                    let flatIdx = Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
                     return resultTypeOrder.map((type) => {
                       const items = groupedResults[type];
                       if (!items?.length) return null;
@@ -394,45 +436,9 @@ export default function CommandPalette() {
                       );
                     });
                   })()
-                ) : !searching ? (
+                ) : !searching && !hasActionResults ? (
                   <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
                 ) : null
-              ) : (
-                (() => {
-                  let flatIdx = 0;
-                  return Object.entries(actionGroups).map(([group, items]) => (
-                    <div key={group} className={styles.group} role="group" aria-label={group}>
-                      <p className={styles.groupLabel} aria-hidden="true">{group}</p>
-                      {items.map((action) => {
-                        const idx = flatIdx++;
-                        const Icon = action.icon;
-                        return (
-                          <button
-                            key={action.id}
-                            data-item
-                            role="option"
-                            aria-selected={idx === selectedIndex}
-                            onClick={() => executeAction(action)}
-                            className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
-                            title={action.shortcut ? `${action.label} (${action.shortcut})` : action.label}
-                          >
-                            <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
-                            <span className={styles.itemContent}>
-                              <span className={styles.itemTitle}>{action.label}</span>
-                              {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
-                            </span>
-                            {action.shortcut && (
-                              <span className={styles.shortcutHint} aria-hidden="true">{action.shortcut}</span>
-                            )}
-                            {action.getSubItems && (
-                              <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ));
-                })()
               )}
             </div>
 

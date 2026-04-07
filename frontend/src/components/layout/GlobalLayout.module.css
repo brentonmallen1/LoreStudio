@@ -9,6 +9,13 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  padding-right: var(--ai-panel-offset, 0px);
+  transition: padding-right 180ms ease;
+}
+
+/* Suppress transition while the AI panel resize handle is being dragged */
+:global([data-ai-resizing]) .content {
+  transition: none;
 }
 
 /* Reserve space for fixed header in normal mode */

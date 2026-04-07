@@ -1,7 +1,9 @@
 import type { AISession } from "../../stores/aiStore";
+import AssistantMode from "./modes/AssistantMode";
 import InterviewMode from "./modes/InterviewMode";
 import SceneAssistantMode from "./modes/SceneAssistantMode";
 import StoryAssistantMode from "./modes/StoryAssistantMode";
+import WritingCoachMode from "./modes/WritingCoachMode";
 import styles from "./SessionView.module.css";
 
 interface Props {
@@ -10,12 +12,16 @@ interface Props {
 
 export default function SessionView({ session }: Props) {
   switch (session.type) {
+    case "assistant":
+      return <AssistantMode session={session} />;
     case "interview":
       return <InterviewMode session={session} />;
     case "scene-assistant":
       return <SceneAssistantMode session={session} />;
     case "story-assistant":
       return <StoryAssistantMode session={session} />;
+    case "writing-coach":
+      return <WritingCoachMode session={session} />;
     default:
       return (
         <div className={styles.unknown}>

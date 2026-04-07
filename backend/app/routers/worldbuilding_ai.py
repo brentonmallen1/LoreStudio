@@ -85,7 +85,7 @@ async def what_would_exist_here(
         feature="what-exists",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=location_id,
+        extra_metadata={"entity_id": location_id},
         tags=["worldbuilding", "location", "user-initiated"],
     )
 
@@ -137,7 +137,7 @@ async def suggest_world_elements(
         feature="element-suggest",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=element_id,
+        extra_metadata={"entity_id": element_id},
         tags=["worldbuilding", element_type, "user-initiated"],
     )
 
@@ -175,7 +175,7 @@ async def historical_implications(
         feature="historical-implications",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=event_id,
+        extra_metadata={"entity_id": event_id},
         tags=["worldbuilding", "history", "user-initiated"],
     )
 
@@ -213,7 +213,7 @@ async def analyze_world_system(
         feature="system-analysis",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=system_id,
+        extra_metadata={"entity_id": system_id},
         tags=["worldbuilding", "systems", "user-initiated"],
     )
 
@@ -251,7 +251,7 @@ async def calendar_suggestions(
         feature="calendar-suggestions",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=calendar_id,
+        extra_metadata={"entity_id": calendar_id},
         tags=["worldbuilding", "calendar", "user-initiated"],
     )
 
@@ -295,7 +295,7 @@ async def analyze_travel_route(
         feature="travel-analysis",
         user_id=current_user.id,
         story_id=story_id,
-        entity_id=travel_id,
+        extra_metadata={"entity_id": travel_id},
         tags=["worldbuilding", "travel", "user-initiated"],
     )
 

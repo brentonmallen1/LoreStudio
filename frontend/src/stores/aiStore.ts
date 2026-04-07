@@ -33,11 +33,15 @@ interface AIStore {
   // ── Panel state ──────────────────────────────────────────────────────────
   panelOpen: boolean;
   panelCollapsed: boolean;
+  /** When pinned, panel stays open even when all sessions are closed */
+  panelPinned: boolean;
 
   openPanel: () => void;
   closePanel: () => void;
   collapsePanel: () => void;
   expandPanel: () => void;
+  setPanelPinned: (pinned: boolean) => void;
+  togglePanel: () => void;
 
   // ── Session management ───────────────────────────────────────────────────
   sessions: AISession[];
@@ -122,11 +126,21 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
 export const useAIStore = create<AIStore>((set, get) => ({
   panelOpen: false,
   panelCollapsed: false,
+  panelPinned: false,
 
   openPanel: () => set({ panelOpen: true, panelCollapsed: false }),
   closePanel: () => set({ panelOpen: false }),
   collapsePanel: () => set({ panelCollapsed: true }),
   expandPanel: () => set({ panelCollapsed: false, panelOpen: true }),
+  setPanelPinned: (pinned) => set({ panelPinned: pinned }),
+  togglePanel: () => {
+    const { panelOpen, panelCollapsed } = get();
+    if (panelCollapsed) {
+      set({ panelCollapsed: false, panelOpen: true });
+    } else {
+      set({ panelOpen: !panelOpen });
+    }
+  },
 
   sessions: [],
   activeSessionId: null,
@@ -172,11 +186,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
       if (activeSessionId === id) {
         activeSessionId = sessions[sessions.length - 1]?.id ?? null;
       }
-      return {
-        sessions,
-        activeSessionId,
-        panelOpen: sessions.length > 0 ? s.panelOpen : false,
-      };
+      // If pinned, keep panel open even with no sessions
+      const panelOpen = sessions.length > 0 || s.panelPinned ? s.panelOpen : false;
+      return { sessions, activeSessionId, panelOpen };
     });
   },
 

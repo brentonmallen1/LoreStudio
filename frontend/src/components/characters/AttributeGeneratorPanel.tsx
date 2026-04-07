@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Sparkles, X, Wand2 } from "lucide-react";
+import { Compass, X, Wand2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character, StructuredResult } from "../../types";
@@ -81,7 +81,7 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
       <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
       <div className={styles.panel}>
         <div className={styles.header}>
-          <Sparkles size={14} className={styles.icon} />
+          <Compass size={14} className={styles.icon} />
           <span className={styles.title}>AI Attribute Suggestions</span>
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}

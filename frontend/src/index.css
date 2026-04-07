@@ -49,6 +49,12 @@
   --color-ai-subtle: rgba(139, 106, 168, 0.12);
   --color-ai-border: rgba(139, 106, 168, 0.3);
 
+  --color-ai-coach: #7c54b8;
+  --color-ai-coach-hover: #6b44a4;
+  --color-ai-coach-fg: #ffffff;
+  --color-ai-coach-subtle: rgba(124, 84, 184, 0.1);
+  --color-ai-coach-border: rgba(124, 84, 184, 0.28);
+
   --color-danger: #b83232;
   --color-danger-bg: #fdf2f2;
   --color-warning: #c47a1e;
@@ -98,6 +104,12 @@
   --color-ai-subtle: rgba(176, 144, 208, 0.1);
   --color-ai-border: rgba(176, 144, 208, 0.25);
 
+  --color-ai-coach: #a080e0;
+  --color-ai-coach-hover: #b090f0;
+  --color-ai-coach-fg: #100820;
+  --color-ai-coach-subtle: rgba(160, 128, 224, 0.1);
+  --color-ai-coach-border: rgba(160, 128, 224, 0.25);
+
   --color-danger: #e05454;
   --color-danger-bg: #1f1212;
   --color-warning: #d08428;
@@ -144,6 +156,12 @@
   --color-ai-subtle: rgba(122, 90, 152, 0.1);
   --color-ai-border: rgba(122, 90, 152, 0.28);
 
+  --color-ai-coach: #7050b0;
+  --color-ai-coach-hover: #604098;
+  --color-ai-coach-fg: #ffffff;
+  --color-ai-coach-subtle: rgba(112, 80, 176, 0.1);
+  --color-ai-coach-border: rgba(112, 80, 176, 0.25);
+
   --color-danger: #b03030;
   --color-danger-bg: #f0e8e8;
   --color-warning: #a87820;
@@ -184,6 +202,12 @@
   --color-ai-fg: #140c1e;
   --color-ai-subtle: rgba(168, 128, 192, 0.1);
   --color-ai-border: rgba(168, 128, 192, 0.25);
+
+  --color-ai-coach: #9870d8;
+  --color-ai-coach-hover: #a880e8;
+  --color-ai-coach-fg: #0e0820;
+  --color-ai-coach-subtle: rgba(152, 112, 216, 0.1);
+  --color-ai-coach-border: rgba(152, 112, 216, 0.25);
 
   --color-danger: #c84848;
   --color-danger-bg: #1c1010;

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Sparkles, Copy } from "lucide-react";
+import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset } from "../../types";
 import styles from "./MediaLibrary.module.css";
@@ -114,7 +114,7 @@ function AssetCard({
           </button>
           {isImage && (
             <button onClick={runAnalysis} className={styles.actionBtn} title="AI: analyze mood & atmosphere" disabled={analyzing}>
-              <Sparkles size={12} />
+              <Compass size={12} />
             </button>
           )}
           <button

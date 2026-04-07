@@ -1,22 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  User2, BookOpen, RefreshCw, Sparkles, ChevronDown, ChevronUp,
-  Database, Settings2, Brain
+  User2, BookOpen, RefreshCw, Feather, ChevronDown, ChevronUp, Brain
 } from "lucide-react";
 import { api } from "../../../api/client";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
-import type { CharacterJourney, LLMParams } from "../../../types";
+import type { CharacterJourney } from "../../../types";
 import { useLLMStream } from "../../../hooks/useLLMStream";
-import { useLLMTransparency } from "../../../hooks/useLLMTransparency";
 import { useLLMContextSources } from "../../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../../llm";
+import { LLMContextSources } from "../../llm";
+import { useAIModeState } from "../../../hooks/useAIModeState";
+import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
 import ChatInput from "../shared/ChatInput";
 import styles from "./InterviewMode.module.css";
-
-const CTX_LIMIT = 128_000;
 
 function flattenNodes(nodes: import("../../../types").StructureNode[], depth = 0): Array<{ id: string; label: string; depth: number }> {
   return nodes.flatMap((n) => [
@@ -30,27 +28,17 @@ interface Props {
 }
 
 export default function InterviewMode({ session }: Props) {
+  const state = useAIModeState(session);
   const { sendMessage, setInterviewNotes, updateSessionContext } = useAIStore();
   const { structure, characters, upsertCharacter } = useStoryStore();
-  const [input, setInput] = useState("");
   const [showNotes, setShowNotes] = useState(!!(session.interviewNotes));
   const [showApply, setShowApply] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
   const [journey, setJourney] = useState<CharacterJourney | null>(null);
 
-  const lastUserMsg = useRef("");
-  const lastResponse = useRef("");
   const lastContextType = useRef<"interview" | "interview-summary">("interview");
-  const transparency = useLLMTransparency();
 
   const character = characters.find((c) => c.id === session.context.characterId);
   const contextNodeId = session.context.nodeId ?? null;
-
-  const estimatedTokens = Math.round(session.messages.reduce((sum, m) => sum + m.content.length, 0) / 4);
-  const ctxPct = Math.min(Math.round((estimatedTokens / CTX_LIMIT) * 100), 100);
-  const ctxWarning = ctxPct >= 80 ? "exceeded" : ctxPct >= 60 ? "approaching" : "normal";
-
   const flatNodes = flattenNodes(structure);
 
   const { sources: contextSources, loading: sourcesLoading } = useLLMContextSources(
@@ -62,8 +50,8 @@ export default function InterviewMode({ session }: Props) {
     label: "Summarizing interview",
     tabId: "characters",
     onComplete: async (full) => {
-      lastResponse.current = full;
-      transparency.recordInteraction();
+      state.lastResponse.current = full;
+      state.transparency.recordInteraction();
       setInterviewNotes(session.id, full);
     },
   });
@@ -79,7 +67,6 @@ export default function InterviewMode({ session }: Props) {
     },
   });
 
-  // Load journey when context changes
   useEffect(() => {
     setJourney(null);
     if (session.context.characterId && contextNodeId) {
@@ -90,17 +77,17 @@ export default function InterviewMode({ session }: Props) {
   }, [session.context.characterId, contextNodeId]);
 
   function handleSend() {
-    if (!input.trim() || session.isStreaming) return;
-    lastUserMsg.current = input.trim();
+    if (!state.input.trim() || session.isStreaming) return;
+    state.lastUserMsg.current = state.input.trim();
     lastContextType.current = "interview";
-    sendMessage(session.id, input.trim(), undefined, sessionParams);
-    setInput("");
+    sendMessage(session.id, state.input.trim(), undefined, state.sessionParams);
+    state.setInput("");
   }
 
   async function captureInsights() {
     if (!session.backendSessionId || isSummarizing || session.messages.length === 0) return;
     lastContextType.current = "interview-summary";
-    lastUserMsg.current = "Please summarize this interview.";
+    state.lastUserMsg.current = "Please summarize this interview.";
     setShowNotes(true);
     streamSummary((signal) => api.summarizeInterview(session.backendSessionId!, signal));
   }
@@ -130,113 +117,85 @@ export default function InterviewMode({ session }: Props) {
     : styles.journeyDotFresh;
 
   return (
-    <>
-      <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
-      <ChatSettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        onApply={setSessionParams}
-        sessionParams={sessionParams}
-      />
-
-      {/* ── Sub-header: character + context ── */}
-      <div className={styles.subHeader}>
-        <div className={styles.avatar}>
-          <User2 size={12} />
-        </div>
-        <div className={styles.meta}>
-          <p className={styles.name}>{character?.name ?? session.resolvedNames.characterName ?? "Character"}</p>
-          <p className={styles.modeLabel}>Interview session</p>
-        </div>
-
-        {/* Context token badge */}
-        {session.messages.length > 0 && (
-          <div
-            className={styles.ctxBadge}
-            data-warning={ctxWarning}
-            title={`~${estimatedTokens.toLocaleString()} / ${CTX_LIMIT.toLocaleString()} tokens`}
-          >
-            <Database size={10} />
-            {ctxPct}%
+    <AIModeWrapper
+      session={session}
+      state={state}
+      icon={User2}
+      title="Interview"
+      hideTitle
+      onTransparencyClick={() => session.backendSessionId && state.transparency.open(
+        { context_type: lastContextType.current, interview_id: session.backendSessionId, user_message: state.lastUserMsg.current },
+        state.lastResponse.current,
+      )}
+      headerExtra={
+        <>
+          <div className={styles.avatar}><User2 size={12} /></div>
+          <div className={styles.meta}>
+            <p className={styles.name}>{character?.name ?? session.resolvedNames.characterName ?? "Character"}</p>
+            <p className={styles.modeLabel}>Interview session</p>
           </div>
-        )}
+        </>
+      }
+      contextBar={
+        <>
+          <div className={styles.contextBar}>
+            <BookOpen size={11} className={styles.contextIcon} />
+            {!session.contextLocked ? (
+              <select
+                className={styles.contextSelect}
+                value={contextNodeId ?? ""}
+                onChange={(e) => updateSessionContext(session.id, { nodeId: e.target.value || undefined })}
+              >
+                <option value="">Timeless — no story context</option>
+                {flatNodes.map((n) => (
+                  <option key={n.id} value={n.id}>
+                    {"  ".repeat(n.depth)}{n.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className={styles.contextLabel}>
+                {contextNodeId
+                  ? (flatNodes.find((n) => n.id === contextNodeId)?.label ?? "story context")
+                  : "Timeless interview"}
+              </span>
+            )}
 
-        <LLMTransparencyTrigger
-          disabled={!transparency.hasData}
-          onClick={() => session.backendSessionId && transparency.open(
-            { context_type: lastContextType.current, interview_id: session.backendSessionId, user_message: lastUserMsg.current },
-            lastResponse.current,
-          )}
-        />
-        <button
-          className={`${styles.headerBtn} ${sessionParams ? styles.headerBtnActive : ""}`}
-          onClick={() => setShowSettings(true)}
-          title="AI parameters"
-        >
-          <Settings2 size={14} />
-        </button>
-      </div>
-
-      {/* ── Story context selector ── */}
-      <div className={styles.contextBar}>
-        <BookOpen size={11} className={styles.contextIcon} />
-        {!session.contextLocked ? (
-          <select
-            className={styles.contextSelect}
-            value={contextNodeId ?? ""}
-            onChange={(e) => {
-              updateSessionContext(session.id, { nodeId: e.target.value || undefined });
-            }}
-          >
-            <option value="">Timeless — no story context</option>
-            {flatNodes.map((n) => (
-              <option key={n.id} value={n.id}>
-                {"  ".repeat(n.depth)}{n.label}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <span className={styles.contextLabel}>
-            {contextNodeId
-              ? (flatNodes.find((n) => n.id === contextNodeId)?.label ?? "story context")
-              : "Timeless interview"}
-          </span>
-        )}
-
-        {contextNodeId && (
-          <>
-            <span className={staleIndicatorClass} title={
-              !journey?.summary ? "No journey context" : journey.is_stale ? "May be outdated" : "Fresh"
-            } />
-            {journey?.is_stale && <span className={styles.staleTag}>Outdated</span>}
-            <button
-              className={styles.refreshBtn}
-              onClick={() => {
-                if (session.context.characterId && contextNodeId) {
-                  streamJourneyRefresh((signal) =>
-                    api.refreshCharacterJourney(session.context.characterId!, contextNodeId, signal)
-                  );
-                }
-              }}
-              disabled={refreshingJourney}
-              title="Refresh journey context"
-            >
-              <RefreshCw size={10} className={refreshingJourney ? styles.spinning : ""} />
-              {refreshingJourney ? "Refreshing…" : "Refresh"}
-            </button>
-          </>
-        )}
-      </div>
-
-      <LLMContextSources sources={contextSources} loading={sourcesLoading && !contextSources.length} />
-
+            {contextNodeId && (
+              <>
+                <span className={staleIndicatorClass} title={
+                  !journey?.summary ? "No journey context" : journey.is_stale ? "May be outdated" : "Fresh"
+                } />
+                {journey?.is_stale && <span className={styles.staleTag}>Outdated</span>}
+                <button
+                  className={styles.refreshBtn}
+                  onClick={() => {
+                    if (session.context.characterId && contextNodeId) {
+                      streamJourneyRefresh((signal) =>
+                        api.refreshCharacterJourney(session.context.characterId!, contextNodeId, signal)
+                      );
+                    }
+                  }}
+                  disabled={refreshingJourney}
+                  title="Refresh journey context"
+                >
+                  <RefreshCw size={10} className={refreshingJourney ? styles.spinning : ""} />
+                  {refreshingJourney ? "Refreshing…" : "Refresh"}
+                </button>
+              </>
+            )}
+          </div>
+          <LLMContextSources sources={contextSources} loading={sourcesLoading && !contextSources.length} />
+        </>
+      }
+    >
       {/* ── Suggested prompts (empty state) ── */}
       {session.messages.length === 0 && character?.interview_prompts && character.interview_prompts.length > 0 && (
         <div className={styles.prompts}>
           <p className={styles.promptsLabel}>Suggested questions</p>
           <div className={styles.promptList}>
             {character.interview_prompts.slice(0, 3).map((prompt, i) => (
-              <button key={i} className={styles.promptBtn} onClick={() => setInput(prompt)}>
+              <button key={i} className={styles.promptBtn} onClick={() => state.setInput(prompt)}>
                 {prompt}
               </button>
             ))}
@@ -244,7 +203,6 @@ export default function InterviewMode({ session }: Props) {
         </div>
       )}
 
-      {/* ── Messages ── */}
       <MessageList
         messages={session.messages}
         streamingText={session.streamingText}
@@ -289,10 +247,9 @@ export default function InterviewMode({ session }: Props) {
         </div>
       )}
 
-      {/* ── Input ── */}
       <ChatInput
-        value={input}
-        onChange={setInput}
+        value={state.input}
+        onChange={state.setInput}
         onSend={handleSend}
         disabled={session.isStreaming}
         placeholder="Ask a question…"
@@ -304,12 +261,12 @@ export default function InterviewMode({ session }: Props) {
               onClick={showNotes ? () => setShowNotes(true) : captureInsights}
               disabled={isSummarizing || session.messages.length === 0}
             >
-              {showNotes ? <ChevronUp size={11} /> : <Sparkles size={11} />}
+              {showNotes ? <ChevronUp size={11} /> : <Feather size={11} />}
               {isSummarizing ? "Analyzing…" : showNotes ? "Show notes" : "Capture insights"}
             </button>
           ) : null
         }
       />
-    </>
+    </AIModeWrapper>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, BarChart3, Activity, RefreshCw, Lightbulb } from "lucide-react";
+import { Compass, BarChart3, Activity, RefreshCw, Lightbulb } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
@@ -37,7 +37,7 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Sparkles size={13} className={styles.icon} />
+          <Compass size={13} className={styles.icon} />
           <div>
             <h3 className={styles.title}>Economy Analysis</h3>
             <p className={styles.subtitle}>
@@ -46,7 +46,7 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
           </div>
         </div>
         <button onClick={analyze} disabled={generating} className={styles.analyzeBtn}>
-          <Sparkles size={12} />
+          <Compass size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>
       </div>

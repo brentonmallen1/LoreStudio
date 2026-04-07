@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PenLine, ArrowRight, Sparkles, RefreshCw, BookOpen } from "lucide-react";
+import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen } from "lucide-react";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -328,14 +328,14 @@ export default function StoryOverviewPage() {
           <div className={styles.recapSection}>
             {!recapText && !recapLoading && (
               <button className={styles.recapTrigger} onClick={fetchRecap}>
-                <Sparkles size={13} className={styles.recapIcon} />
+                <Compass size={13} className={styles.recapIcon} />
                 Remind me where I left off
               </button>
             )}
             {(recapText || recapLoading) && (
               <div className={styles.recapCard}>
                 <div className={styles.recapCardHeader}>
-                  <Sparkles size={12} className={styles.recapCardIcon} />
+                  <Compass size={12} className={styles.recapCardIcon} />
                   <span className={styles.recapCardTitle}>Last Session</span>
                   {recapDone && (
                     <button className={styles.recapRefresh} onClick={fetchRecap} title="Refresh recap">

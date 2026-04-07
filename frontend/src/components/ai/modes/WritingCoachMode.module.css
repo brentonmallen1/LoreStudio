@@ -1,0 +1,129 @@
+.passageChip {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+  flex-shrink: 1;
+  margin-left: auto;
+}
+
+/* Tone / style section */
+.toneSection {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.toneLabel {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.chipGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chipGroupLabel {
+  font-size: 0.65rem;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.chip {
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-family: inherit;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.chip:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.chipActive {
+  background: var(--color-ai-coach-subtle);
+  border-color: var(--color-ai-coach-border);
+  color: var(--color-ai-coach);
+}
+
+.chipActive:hover {
+  background: color-mix(in srgb, var(--color-ai-coach-subtle) 150%, transparent);
+}
+
+.startBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  border: none;
+  background: var(--color-ai-coach);
+  color: var(--color-ai-coach-fg);
+  cursor: pointer;
+  transition: background var(--transition);
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+.startBtn:hover:not(:disabled) {
+  background: var(--color-ai-coach-hover);
+}
+
+.startBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty state */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.emptyIcon {
+  color: var(--color-ai-coach);
+  opacity: 0.5;
+}
+
+.emptyTitle {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.emptyHint {
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  line-height: 1.5;
+  max-width: 240px;
+}

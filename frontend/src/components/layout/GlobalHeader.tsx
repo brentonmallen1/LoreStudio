@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2 } from "lucide-react";
+import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
+import { useAIStore } from "../../stores/aiStore";
+import { useStoryStore } from "../../stores/storyStore";
 import styles from "./GlobalHeader.module.css";
 
 const THEME_SWATCHES: Record<ThemeName, string[]> = {
@@ -43,9 +45,43 @@ export default function GlobalHeader() {
     setEditorFontFamily, setEditorFontSize, setEditorLineWidth,
     setCommandPaletteOpen, viewState, setViewState,
   } = useUIStore();
+  const { panelOpen, sessions, createSession, setActiveSession, togglePanel, setPanelPinned } = useAIStore();
+  const { activeStory, activeNode } = useStoryStore();
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
+
+  // Cmd+/ to toggle assistant
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+        e.preventDefault();
+        handleAssistantToggle();
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessions, panelOpen]);
+
+  async function handleAssistantToggle() {
+    const existingSession = sessions.find((s) => s.type === "assistant");
+    if (existingSession) {
+      setActiveSession(existingSession.id);
+      if (!panelOpen) {
+        setPanelPinned(true);
+        togglePanel();
+      } else {
+        togglePanel();
+      }
+    } else {
+      setPanelPinned(true);
+      await createSession("assistant", {
+        storyId: activeStory?.id,
+        nodeId: activeNode?.id,
+      });
+    }
+  }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -116,6 +152,16 @@ export default function GlobalHeader() {
         </div>
 
         <div className={styles.right}>
+          {/* AI Assistant */}
+          <button
+            onClick={handleAssistantToggle}
+            className={`${styles.assistantBtn} ${panelOpen && sessions.some(s => s.type === "assistant") ? styles.assistantBtnActive : ""}`}
+            title="AI Assistant (⌘/)"
+          >
+            <Feather size={14} />
+            <span>Assistant</span>
+          </button>
+
           {/* Search */}
           <button
             onClick={() => setCommandPaletteOpen(true)}

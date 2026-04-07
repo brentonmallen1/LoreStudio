@@ -11,7 +11,7 @@ import {
   LogOut,
   Palette,
   MessageSquare,
-  Sparkles,
+  Feather,
   BookOpen,
   Users,
 } from "lucide-react";
@@ -33,6 +33,31 @@ commandRegistry.register({
 });
 
 // ── AI sessions ───────────────────────────────────────────────────────────────
+
+commandRegistry.register({
+  id: "open-assistant",
+  label: "Open Assistant",
+  keywords: ["assistant", "ai", "chat", "help", "feather"],
+  icon: Feather,
+  group: "AI",
+  shortcut: "⌘/",
+  action: async () => {
+    const { sessions, createSession, setActiveSession, openPanel, setPanelPinned } = useAIStore.getState();
+    const { activeStory, activeNode } = useStoryStore.getState();
+    const existing = sessions.find((s) => s.type === "assistant");
+    if (existing) {
+      setActiveSession(existing.id);
+      setPanelPinned(true);
+      openPanel();
+    } else {
+      setPanelPinned(true);
+      await createSession("assistant", {
+        storyId: activeStory?.id,
+        nodeId: activeNode?.id,
+      });
+    }
+  },
+});
 
 commandRegistry.register({
   id: "ai-interview",
@@ -67,7 +92,7 @@ commandRegistry.register({
   id: "ai-scene-assistant",
   label: "Scene assistant",
   keywords: ["scene", "assistant", "help", "chat", "write", "narrate"],
-  icon: Sparkles,
+  icon: Feather,
   group: "AI",
   when: () => !!useStoryStore.getState().activeStory,
   action: async () => {

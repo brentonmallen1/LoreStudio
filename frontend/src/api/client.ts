@@ -325,7 +325,7 @@ export const api = {
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
-  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams, mode?: string): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/chat`, {
       method: "POST",
@@ -333,7 +333,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null }),
+      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null, mode: mode ?? null }),
       signal,
     });
   },

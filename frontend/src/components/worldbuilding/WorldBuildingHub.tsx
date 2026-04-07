@@ -7,6 +7,8 @@ import CultureManager from "./CultureManager";
 import HistoryTab from "./HistoryTab";
 import TravelDistanceEditor from "./TravelDistanceEditor";
 import CalendarEditor from "./CalendarEditor";
+import WorldBuildingAIPanel from "./WorldBuildingAIPanel";
+import { useUIStore } from "../../stores/uiStore";
 import styles from "./WorldBuilding.module.css";
 
 type Tab = "locations" | "systems" | "cultures" | "history" | "travel" | "calendars";
@@ -25,6 +27,7 @@ export default function WorldBuildingHub() {
   const { state } = useLocation();
   const selectLocationName: string | undefined = state?.selectLocationName;
   const [activeTab, setActiveTab] = useState<Tab>("locations");
+  const { worldBuildingAIPanelOpen } = useUIStore();
 
   if (!storyId) return null;
 
@@ -48,13 +51,16 @@ export default function WorldBuildingHub() {
         ))}
       </div>
 
-      <div className={styles.tabContent}>
-        {activeTab === "locations"  && <LocationManager storyId={storyId} selectLocationName={selectLocationName} />}
-        {activeTab === "systems"    && <WorldSystemManager storyId={storyId} />}
-        {activeTab === "cultures"   && <CultureManager storyId={storyId} />}
-        {activeTab === "history"    && <HistoryTab storyId={storyId} />}
-        {activeTab === "travel"     && <TravelDistanceEditor storyId={storyId} />}
-        {activeTab === "calendars"  && <CalendarEditor storyId={storyId} />}
+      <div className={styles.tabContent} style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {activeTab === "locations"  && <LocationManager storyId={storyId} selectLocationName={selectLocationName} />}
+          {activeTab === "systems"    && <WorldSystemManager storyId={storyId} />}
+          {activeTab === "cultures"   && <CultureManager storyId={storyId} />}
+          {activeTab === "history"    && <HistoryTab storyId={storyId} />}
+          {activeTab === "travel"     && <TravelDistanceEditor storyId={storyId} />}
+          {activeTab === "calendars"  && <CalendarEditor storyId={storyId} />}
+        </div>
+        {worldBuildingAIPanelOpen && <WorldBuildingAIPanel />}
       </div>
     </div>
   );

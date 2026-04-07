@@ -1,14 +1,11 @@
-import { useState, useRef } from "react";
-import { BookOpen, Settings2, Database } from "lucide-react";
-
-const CTX_LIMIT = 128_000;
+import { BookOpen } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
-import type { LLMParams } from "../../../types";
-import { useLLMTransparency } from "../../../hooks/useLLMTransparency";
+import { useAIModeState } from "../../../hooks/useAIModeState";
 import { useLLMContextSources } from "../../../hooks/useLLMContextSources";
-import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources, ChatSettingsModal } from "../../llm";
+import { LLMContextSources } from "../../llm";
+import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
 import ChatInput from "../shared/ChatInput";
 import styles from "./StoryAssistantMode.module.css";
@@ -25,50 +22,36 @@ interface Props {
 }
 
 export default function StoryAssistantMode({ session }: Props) {
+  const state = useAIModeState(session);
   const { sendMessage, updateSessionContext } = useAIStore();
   const { stories } = useStoryStore();
-  const [input, setInput] = useState("");
-  const [showSettings, setShowSettings] = useState(false);
-  const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
-
-  const lastUserMsg = useRef("");
-  const lastResponse = useRef("");
-  const transparency = useLLMTransparency();
 
   const storyId = session.context.storyId ?? "";
-
-  const estimatedTokens = Math.round(session.messages.reduce((sum, m) => sum + m.content.length, 0) / 4);
-  const ctxPct = Math.min(Math.round((estimatedTokens / CTX_LIMIT) * 100), 100);
-  const ctxWarning = ctxPct >= 80 ? "exceeded" : ctxPct >= 60 ? "approaching" : "normal";
 
   const { sources: contextSources } = useLLMContextSources(
     storyId ? { context_type: "scene-chat", story_id: storyId, node_id: "__story__" } : null
   );
 
   function handleSend(text?: string) {
-    const content = (text ?? input).trim();
+    const content = (text ?? state.input).trim();
     if (!content || session.isStreaming) return;
-    lastUserMsg.current = content;
-    sendMessage(session.id, content, undefined, sessionParams);
-    setInput("");
+    state.lastUserMsg.current = content;
+    sendMessage(session.id, content, undefined, state.sessionParams);
+    state.setInput("");
   }
 
   return (
-    <>
-      <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
-      <ChatSettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        onApply={setSessionParams}
-        sessionParams={sessionParams}
-      />
-
-      {/* Sub-header */}
-      <div className={styles.subHeader}>
-        <BookOpen size={14} className={styles.headerIcon} />
-        <span className={styles.title}>Story Assistant</span>
-
-        {!session.contextLocked ? (
+    <AIModeWrapper
+      session={session}
+      state={state}
+      icon={BookOpen}
+      title="Story Assistant"
+      onTransparencyClick={() => state.transparency.open(
+        { context_type: "scene-chat", story_id: storyId, node_id: "__story__", user_message: state.lastUserMsg.current },
+        state.lastResponse.current,
+      )}
+      headerExtra={
+        !session.contextLocked ? (
           <select
             className={styles.storySelect}
             value={storyId}
@@ -83,34 +66,9 @@ export default function StoryAssistantMode({ session }: Props) {
           <span className={styles.storyLabel} title={session.resolvedNames.storyTitle}>
             {session.resolvedNames.storyTitle ?? "Story"}
           </span>
-        )}
-
-        {session.messages.length > 0 && (
-          <div
-            className={styles.ctxBadge}
-            data-warning={ctxWarning}
-            title={`~${estimatedTokens.toLocaleString()} / ${CTX_LIMIT.toLocaleString()} tokens`}
-          >
-            <Database size={10} />
-            {ctxPct}%
-          </div>
-        )}
-        <LLMTransparencyTrigger
-          disabled={!transparency.hasData}
-          onClick={() => transparency.open(
-            { context_type: "scene-chat", story_id: storyId, node_id: "__story__", user_message: lastUserMsg.current },
-            lastResponse.current,
-          )}
-        />
-        <button
-          className={`${styles.headerBtn} ${sessionParams ? styles.headerBtnActive : ""}`}
-          onClick={() => setShowSettings(true)}
-          title="AI parameters"
-        >
-          <Settings2 size={13} />
-        </button>
-      </div>
-
+        )
+      }
+    >
       <LLMContextSources sources={contextSources} />
 
       {session.messages.length === 0 && !session.isStreaming ? (
@@ -137,12 +95,12 @@ export default function StoryAssistantMode({ session }: Props) {
       )}
 
       <ChatInput
-        value={input}
-        onChange={setInput}
+        value={state.input}
+        onChange={state.setInput}
         onSend={() => handleSend()}
         disabled={session.isStreaming}
         placeholder="Ask about your story…"
       />
-    </>
+    </AIModeWrapper>
   );
 }

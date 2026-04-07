@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Calendar as CalendarIcon, Trash2, PartyPopper, Sun, Clock, HelpCircle } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { Calendar } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
-import type { SectionConfig } from "../ai/StructuredResponseRenderer";
-
-const CALENDAR_SUGGEST_SCHEMA: SectionConfig[] = [
-  { key: "festivals", label: "Festivals & Celebrations", icon: PartyPopper, color: "var(--color-accent)", type: "list" },
-  { key: "seasonal_events", label: "Seasonal Events", icon: Sun, color: "var(--segment-part)", type: "list" },
-  { key: "historical_observances", label: "Historical Observances", icon: Clock, color: "var(--color-warning)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
+import { useUIStore } from "../../stores/uiStore";
 
 interface Props {
   storyId: string;
@@ -24,10 +16,8 @@ export default function CalendarEditor({ storyId }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newName, setNewName] = useState("");
-  const [showAI, setShowAI] = useState(false);
+  const { openWorldBuildingAIPanel } = useUIStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => { setShowAI(false); }, [selected?.id]);
 
   const load = useCallback(() => {
     api.listCalendars(storyId).then(setCalendars).finally(() => setLoading(false));
@@ -132,11 +122,12 @@ export default function CalendarEditor({ storyId }: Props) {
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowAI((v) => !v)}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Suggests calendar entries: Festivals & Celebrations, Seasonal Events, Historical Observances, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "calendar", entityId: selected.id, storyId })}
                 >
-                  Suggest Events
+                  <Compass size={11} />
+                  Suggest Special Days
                 </button>
                 <button className={`${styles.iconBtn} ${styles.danger}`}
                   onClick={() => setShowDeleteConfirm(true)}>
@@ -272,16 +263,6 @@ export default function CalendarEditor({ storyId }: Props) {
                 onChange={(e) => scheduleUpdate("conversion_notes", e.target.value)} />
             </div>
 
-            {showAI && (
-              <WorldAIStructuredPanel
-                title="Calendar Event Suggestions"
-                description="Generate ideas for festivals, seasonal events, and historical observances rooted in this calendar's culture and history."
-                buttonLabel="Suggest"
-                requestId={`calendar-suggest-${selected.id}`}
-                schema={CALENDAR_SUGGEST_SCHEMA}
-                onAnalyze={() => api.suggestCalendarEvents(storyId, selected.id)}
-              />
-            )}
           </>
         )}
       </div>

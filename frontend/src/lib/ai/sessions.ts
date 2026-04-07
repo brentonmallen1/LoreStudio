@@ -2,10 +2,49 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Sparkles, BookOpen } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+
+// ── Global Assistant ───────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "assistant",
+  label: "Assistant",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Assistant — ${names.storyTitle}` : "Assistant",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Assistant",
+  icon: Feather,
+  accentVar: "--color-ai",
+
+  requiresStory: false,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId, nodeId } = session.context;
+    if (!storyId) {
+      return Promise.reject(new Error("Add a story to context before chatting."));
+    }
+    return api.sendChatMessage(storyId, nodeId ?? "__global__", session.messages, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: true,
+});
 
 // ── Interview ─────────────────────────────────────────────────────────────────
 
@@ -82,7 +121,7 @@ registerSessionType({
   contextTitle: (_ctx, names) =>
     names.nodeName ? `Scene: ${names.nodeName}` : "Scene Assistant",
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
-  icon: Sparkles,
+  icon: Feather,
   accentVar: "--color-accent-secondary",
 
   requiresStory: true,
@@ -195,4 +234,41 @@ registerSessionType({
 
   persistsInBackend: false,
   allowContextSwitch: true,
+});
+
+// ── Writing Coach ─────────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "writing-coach",
+  label: "Writing Coach",
+  contextTitle: (_ctx, names) =>
+    names.nodeName ? `Coach: ${names.nodeName}` : "Writing Coach",
+  contextItemLabel: (_, names) => names.nodeName ?? "Scene",
+  icon: Sparkles,
+  accentVar: "--color-ai-coach",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: true,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => {
+    const { structure } = useStoryStore.getState();
+    return flattenNodes(structure);
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId, nodeId } = session.context;
+    if (!storyId || !nodeId) throw new Error("Story and scene required for writing coach");
+    return api.sendChatMessage(storyId, nodeId, session.messages, signal, llmParams, "writing-coach");
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
 });

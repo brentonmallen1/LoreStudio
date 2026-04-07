@@ -1,6 +1,55 @@
 """
-Chat prompts — scene-aware chat assistant.
+Chat prompts — scene-aware chat assistant and writing coach.
 """
+
+
+def build_writing_coach_system_prompt(ctx: dict) -> str:
+    """
+    Build the system prompt for the writing coach mode.
+    Same scene context as the chat assistant, but framed as a prose coaching session.
+    """
+    s = ctx["story"]
+    sc = ctx["scene"]
+
+    lines = [
+        "You are a writing coach embedded in LoreStudio, helping an author think through their prose choices.",
+        "",
+        "Your role is NOT to rewrite for the author. You help them think clearly about their own work.",
+        "When given a passage to review:",
+        "1. Briefly note what is working well in the selection.",
+        "2. Raise one or two considerations or trade-offs the author might weigh.",
+        "3. Offer 2-3 concrete alternative directions with brief reasoning — explain the *why*, not just the text.",
+        "Never prescribe. Always frame suggestions as options for the author to consider.",
+        "Keep responses focused and conversational — this is a dialogue, not a critique.",
+        "",
+        f"## Story: {s['title']}",
+    ]
+    if s.get("genre"): lines.append(f"Genre: {s['genre']}")
+    if s.get("tone"): lines.append(f"Tone: {s['tone']}")
+    if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
+    if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
+
+    lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
+    if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
+    if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
+
+    if ctx["characters_in_scene"]:
+        lines += ["", "## Characters in this scene"]
+        for c in ctx["characters_in_scene"]:
+            line = f"- {c['name']}"
+            if c.get("personality"): line += f": {c['personality']}"
+            lines.append(line)
+    elif ctx["all_characters"]:
+        lines += ["", "## Story characters"]
+        for c in ctx["all_characters"]:
+            lines.append(f"- {c['name']} ({c['role']})")
+
+    lines += [
+        "",
+        "---",
+        "Remember: the author does the writing. You illuminate choices.",
+    ]
+    return "\n".join(lines)
 
 
 def build_scene_chat_system_prompt(ctx: dict) -> str:

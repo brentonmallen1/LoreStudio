@@ -133,6 +133,18 @@ interface UIState {
   plannerPanelOpen: boolean;
   openPlannerPanel: () => void;
   closePlannerPanel: () => void;
+
+  // World Building AI panel
+  worldBuildingAIPanelOpen: boolean;
+  worldBuildingAIContext: WorldBuildingAIContext | null;
+  openWorldBuildingAIPanel: (ctx: WorldBuildingAIContext) => void;
+  closeWorldBuildingAIPanel: () => void;
+}
+
+export interface WorldBuildingAIContext {
+  feature: "what-exists" | "location-suggest" | "culture-suggest" | "implications" | "system" | "calendar" | "travel";
+  entityId: string;
+  storyId: string;
 }
 
 function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
@@ -305,4 +317,9 @@ export const useUIStore = create<UIState>((set) => ({
   plannerPanelOpen: false,
   openPlannerPanel: () => set({ plannerPanelOpen: true }),
   closePlannerPanel: () => set({ plannerPanelOpen: false }),
+
+  worldBuildingAIPanelOpen: false,
+  worldBuildingAIContext: null,
+  openWorldBuildingAIPanel: (ctx) => set({ worldBuildingAIPanelOpen: true, worldBuildingAIContext: ctx }),
+  closeWorldBuildingAIPanel: () => set({ worldBuildingAIPanelOpen: false, worldBuildingAIContext: null }),
 }));

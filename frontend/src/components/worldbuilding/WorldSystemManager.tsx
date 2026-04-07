@@ -1,17 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Zap, Trash2, ChevronDown, ChevronUp, AlertCircle, Lightbulb, AlertTriangle, HelpCircle } from "lucide-react";
+import { Plus, Zap, Trash2, ChevronDown, ChevronUp, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { WorldSystem } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
-import type { SectionConfig } from "../ai/StructuredResponseRenderer";
-
-const SYSTEM_ANALYSIS_SCHEMA: SectionConfig[] = [
-  { key: "edge_cases", label: "Edge Cases", icon: AlertCircle, color: "var(--color-accent)", type: "list" },
-  { key: "story_implications", label: "Story Implications", icon: Lightbulb, color: "var(--segment-part)", type: "list" },
-  { key: "consistency_questions", label: "Consistency Questions", icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
-  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
-];
+import { useUIStore } from "../../stores/uiStore";
 
 interface Props {
   storyId: string;
@@ -30,10 +22,8 @@ export default function WorldSystemManager({ storyId }: Props) {
   const [newType, setNewType] = useState("");
   const [newCustomType, setNewCustomType] = useState("");
   const [expandedTiers, setExpandedTiers] = useState(false);
-  const [showAI, setShowAI] = useState(false);
+  const { openWorldBuildingAIPanel } = useUIStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => { setShowAI(false); }, [selected?.id]);
 
   const load = useCallback(() => {
     Promise.all([
@@ -135,11 +125,12 @@ export default function WorldSystemManager({ storyId }: Props) {
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
                 <button
-                  className={styles.ghostBtn}
-                  onClick={() => setShowAI((v) => !v)}
-                  style={{ fontSize: "0.72rem" }}
+                  className={styles.aiBtn}
+                  title="Surfaces issues with this system: Edge Cases, Story Implications, Consistency Questions, and Questions to Consider"
+                  onClick={() => openWorldBuildingAIPanel({ feature: "system", entityId: selected.id, storyId })}
                 >
-                  Analyze System
+                  <Compass size={11} />
+                  Analyze Edge Cases
                 </button>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
@@ -266,16 +257,6 @@ export default function WorldSystemManager({ storyId }: Props) {
               )}
             </div>
 
-            {showAI && (
-              <WorldAIStructuredPanel
-                title="System Analysis"
-                description="Surface edge cases, story implications, and consistency questions for this world system."
-                buttonLabel="Analyze"
-                requestId={`system-analysis-${selected.id}`}
-                schema={SYSTEM_ANALYSIS_SCHEMA}
-                onAnalyze={() => api.analyzeWorldSystem(storyId, selected.id)}
-              />
-            )}
           </>
         )}
       </div>
