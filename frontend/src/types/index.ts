@@ -269,6 +269,35 @@ export interface PlotThread {
   updated_at: string;
 }
 
+// ── Twists ──
+
+export type TwistType = "reveal" | "reversal" | "identity" | "unreliable_narrator" | "red_herring";
+export type TwistStatus = "planned" | "seeding" | "revealed";
+export type ClueTarget = "truth" | "misdirection";
+export type SubtletyLevel = "obvious" | "moderate" | "subtle" | "hidden";
+
+export interface TwistClue {
+  id: string;
+  node_id: string | null;
+  text: string;
+  points_to: ClueTarget;
+  subtlety: SubtletyLevel;
+}
+
+export interface Twist {
+  id: string;
+  story_id: string;
+  name: string;
+  the_truth: string;
+  the_misdirection: string;
+  twist_type: TwistType;
+  status: TwistStatus;
+  revealed_at_node_id: string | null;
+  clues: TwistClue[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SceneLink {
   id: string;
   story_id: string;

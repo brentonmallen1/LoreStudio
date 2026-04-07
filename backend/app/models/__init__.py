@@ -19,6 +19,7 @@ from .historical_event import Era, HistoricalEvent
 from .location_travel import LocationTravel
 from .calendar import Calendar
 from .dialogue import DialogueBlock
+from .twist import Twist
 
 __all__ = [
     "User",
@@ -48,4 +49,5 @@ __all__ = [
     "LocationTravel",
     "Calendar",
     "DialogueBlock",
+    "Twist",
 ]

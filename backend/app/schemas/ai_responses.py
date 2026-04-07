@@ -119,6 +119,46 @@ class TravelAnalysisResponse(BaseModel):
     questions: list[str] = []
 
 
+# ── Twist Analysis ────────────────────────────────────────────────────────────
+
+class ClueAssessment(BaseModel):
+    clue_text: str = ""
+    assessment: str = ""   # found | missing | needs-work
+    notes: str = ""
+
+
+class ClueVerificationSection(BaseModel):
+    summary: str = ""
+    details: list[ClueAssessment] = []
+
+
+class DistributionSection(BaseModel):
+    summary: str = ""
+    gaps: list[str] = []
+    truth_count: int = 0
+    misdirection_count: int = 0
+
+
+class RevealSection(BaseModel):
+    summary: str = ""
+    unforeshadowed_elements: list[str] = []
+    strengths: list[str] = []
+
+
+class MisdirectionSection(BaseModel):
+    summary: str = ""
+    suggestions: list[str] = []
+
+
+class TwistAnalysisResponse(BaseModel):
+    clue_verification: ClueVerificationSection = ClueVerificationSection()
+    distribution: DistributionSection = DistributionSection()
+    reveal: RevealSection = RevealSection()
+    misdirection_strength: MisdirectionSection = MisdirectionSection()
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+    suggestions: list[str] = []
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

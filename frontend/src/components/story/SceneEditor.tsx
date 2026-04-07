@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location } from "../../types";
+import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location, Twist } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -131,6 +131,7 @@ export default function SceneEditor() {
   // Scene links state
   const [sceneLinks, setSceneLinks] = useState<SceneLink[]>([]);
   const [showAddLink, setShowAddLink] = useState(false);
+  const [linkedTwists, setLinkedTwists] = useState<Twist[]>([]);
   const [addLinkType, setAddLinkType] = useState("foreshadowing");
   const [addLinkNote, setAddLinkNote] = useState("");
   const [addLinkTarget, setAddLinkTarget] = useState<StructureNode | null>(null);
@@ -324,8 +325,9 @@ export default function SceneEditor() {
 
   // Load scene links when active node changes
   useEffect(() => {
-    if (!activeNode) { setSceneLinks([]); return; }
+    if (!activeNode) { setSceneLinks([]); setLinkedTwists([]); return; }
     api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
+    api.getTwistsForScene(activeNode.id).then(setLinkedTwists).catch(() => {});
   }, [activeNode?.id]);
 
   // Load scene settings (location links) when active node/story changes
@@ -1428,6 +1430,43 @@ export default function SceneEditor() {
                 <Telescope size={12} />
                 {isDiscoveryAnalyzing ? "Analyzing…" : "Analyze for discoveries"}
               </button>
+            </div>
+          )}
+          {linkedTwists.length > 0 && activeStory && (
+            <div className={styles.overviewField}>
+              <div className={styles.linkedHeader}>
+                <label className={styles.overviewLabel}>
+                  <Eye size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />
+                  Linked Twists
+                </label>
+                <button
+                  className={styles.addLinkBtn}
+                  onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
+                  title="Manage twists"
+                >
+                  Manage
+                </button>
+              </div>
+              <div className={styles.linkChips}>
+                {linkedTwists.map((twist) => {
+                  const isReveal = twist.revealed_at_node_id === activeNode.id;
+                  const cluesHere = twist.clues.filter((c) => c.node_id === activeNode.id);
+                  return (
+                    <div key={twist.id} className={styles.linkChip}>
+                      <button
+                        className={styles.linkChipContent}
+                        onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
+                        title={isReveal ? "Reveal scene for this twist" : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""} planted here`}
+                      >
+                        <span className={styles.linkChipLabel}>
+                          {isReveal ? "reveal" : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""}`}
+                        </span>
+                        <span className={styles.linkChipTitle}>{twist.name}</span>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
           {activeStory && (

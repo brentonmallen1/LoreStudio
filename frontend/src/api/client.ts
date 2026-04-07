@@ -282,6 +282,25 @@ export const api = {
   removeThreadAppearance: (threadId: string, nodeId: string) =>
     request<void>(`/threads/${threadId}/appearances/${nodeId}`, { method: "DELETE" }),
 
+  // Twists
+  listTwists: (storyId: string) =>
+    request<import("../types").Twist[]>(`/stories/${storyId}/twists`),
+  createTwist: (storyId: string, data: { name: string; twist_type?: string }) =>
+    request<import("../types").Twist>(`/stories/${storyId}/twists`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateTwist: (twistId: string, data: Partial<import("../types").Twist>) =>
+    request<import("../types").Twist>(`/twists/${twistId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteTwist: (twistId: string) => request<void>(`/twists/${twistId}`, { method: "DELETE" }),
+  getTwistsForScene: (nodeId: string) =>
+    request<import("../types").Twist[]>(`/structure/${nodeId}/twists`),
+  analyzeTwist: (twistId: string) =>
+    request<import("../types").StructuredResult>(`/twists/${twistId}/analyze`, { method: "POST" }),
+
   // Panel Interviews
   listPanels: (storyId: string) =>
     request<import("../types").PanelInterviewSummary[]>(`/stories/${storyId}/panels`),

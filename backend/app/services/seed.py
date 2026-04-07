@@ -16,6 +16,7 @@ from ..models.historical_event import Era, HistoricalEvent
 from ..models.location_travel import LocationTravel
 from ..models.calendar import Calendar
 from ..models.beat_sheet import BeatSheet
+from ..models.twist import Twist
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -1438,6 +1439,80 @@ def seed_demo_story():
             location_id=harrow_island.id,
             node_id=scene2.id,
             role="mentioned",
+        ))
+
+        # ── Twists ──────────────────────────────────────────────────────────
+        db.add(Twist(
+            story_id=story.id,
+            name="The Visitor Has Been Here Before",
+            the_truth="Calder visited Harrow Island two weeks before Thomas Vance died. She spoke with him directly. She already knows what happened to the Ardent — she came back to find out whether Eleanor knows too.",
+            the_misdirection="The Visitor is a neutral Maritime Heritage Foundation investigator who arrived for the first time during the storm, driven purely by professional interest in the lighthouse records.",
+            twist_type="identity",
+            status="seeding",
+            revealed_at_node_id=scene6.id,
+            clues=[
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene2.id,
+                    "text": "The Visitor is oddly calm for someone stranded in a storm — no panic, no questions about the ferry or rescue. She seems to have expected this.",
+                    "points_to": "truth",
+                    "subtlety": "subtle",
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene3.id,
+                    "text": "When Eleanor mentions her father's name unprompted, Calder's expression flickers — just for a moment — before returning to professional neutrality.",
+                    "points_to": "truth",
+                    "subtlety": "subtle",
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene2.id,
+                    "text": "The Visitor shows her Maritime Heritage Foundation credentials without being asked — establishing a believable cover story immediately.",
+                    "points_to": "misdirection",
+                    "subtlety": "obvious",
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene3.id,
+                    "text": "She asks only about shipping records and navigation logs — nothing personal. Appears genuinely interested in historical documentation.",
+                    "points_to": "misdirection",
+                    "subtlety": "moderate",
+                },
+            ],
+        ))
+
+        db.add(Twist(
+            story_id=story.id,
+            name="Thomas Vance Falsified the Logs",
+            the_truth="Thomas Vance, Eleanor's father, deliberately falsified the lighthouse logs on the night the Ardent went down. He guided the ship onto the rocks — whether by action or inaction — and then erased the record.",
+            the_misdirection="The missing log entries are a clerical gap or the result of Thomas's illness — the lighthouse records are otherwise reliable and Eleanor has no reason to doubt her father.",
+            twist_type="reveal",
+            status="seeding",
+            revealed_at_node_id=scene7.id,
+            clues=[
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene1.id,
+                    "text": "Eleanor describes her father's obsessive log-keeping with reverence — establishing how impossible any gap should be.",
+                    "points_to": "truth",
+                    "subtlety": "subtle",
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene3.id,
+                    "text": "A faint smell of woodsmoke near the old archive cabinet — ash residue in the corner, barely visible.",
+                    "points_to": "truth",
+                    "subtlety": "hidden",
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "node_id": scene1.id,
+                    "text": "Eleanor's father always said 'the glass doesn't lie' — suggesting he valued honesty above all else.",
+                    "points_to": "misdirection",
+                    "subtlety": "moderate",
+                },
+            ],
         ))
 
         db.commit()

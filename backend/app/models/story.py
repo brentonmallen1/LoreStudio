@@ -98,3 +98,6 @@ class Story(Base):
     calendars: Mapped[list["Calendar"]] = relationship(
         "Calendar", back_populates="story", cascade="all, delete-orphan"
     )
+    twists: Mapped[list["Twist"]] = relationship(
+        "Twist", back_populates="story", cascade="all, delete-orphan"
+    )
