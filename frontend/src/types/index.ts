@@ -644,6 +644,63 @@ export interface LLMInteractionData {
   response: string;
 }
 
+// ── Structured AI Responses ──
+
+export interface StructuredResult {
+  success: boolean;
+  /** Validated structured data (key → value), present when success=true */
+  data?: Record<string, unknown>;
+  /** Parsed JSON that failed schema validation, present when JSON was valid but schema wasn't */
+  raw_data?: Record<string, unknown>;
+  /** Raw LLM response text, always present on failure */
+  raw_text?: string;
+  tokens_in?: number | null;
+  tokens_out?: number | null;
+  model?: string;
+}
+
+export interface ScenePlanResponse {
+  synopsis: string;
+  purpose: string;
+  entry_state: string;
+  exit_state: string;
+  key_events: string[];
+  characters_to_feature: { name: string; reason: string }[];
+  threads_to_advance: { name: string; how: string }[];
+}
+
+export interface AnalysisSection {
+  summary: string;
+  details: string[];
+}
+
+export interface EconomyAnalysisResponse {
+  thread_balance: AnalysisSection;
+  scene_economy: AnalysisSection;
+  try_fail_cycles: AnalysisSection;
+  recommendations: string[];
+}
+
+export interface AttributeSuggestion {
+  text: string;
+  rationale: string;
+}
+
+export interface AttributeSuggestionsResponse {
+  suggestions: AttributeSuggestion[];
+}
+
+export interface RelationshipSuggestion {
+  character_a: string;
+  character_b: string;
+  relationship_type: string;
+  description: string;
+}
+
+export interface RelationshipSuggestionsResponse {
+  suggestions: RelationshipSuggestion[];
+}
+
 // ── Chronicle ──
 
 export interface ChronicleMessage {
@@ -750,6 +807,9 @@ export interface Location {
   habitability: string;
   radiation_level: string;
   position: number;
+  is_stub: boolean;
+  discovered_from_id: string | null;
+  discovered_at: string | null;
   created_at: string;
   updated_at: string;
   children: Location[];

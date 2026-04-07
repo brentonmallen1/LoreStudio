@@ -1,9 +1,25 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, FolderPlus } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIPanel from "./WorldAIPanel";
+import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
+import { Home, Leaf, Users, HelpCircle, Bug, Type } from "lucide-react";
+import type { SectionConfig } from "../ai/StructuredResponseRenderer";
+
+const LOCATION_EXISTENCE_SCHEMA: SectionConfig[] = [
+  { key: "built_environment", label: "Built Environment", icon: Home, color: "var(--color-accent)", type: "list" },
+  { key: "natural_environment", label: "Natural Environment", icon: Leaf, color: "var(--segment-beat)", type: "list" },
+  { key: "cultural_presence", label: "Cultural Presence", icon: Users, color: "var(--segment-part)", type: "list" },
+  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
+];
+
+const LOCATION_SUGGEST_SCHEMA: SectionConfig[] = [
+  { key: "creature_directions", label: "Creature & Wildlife Directions", icon: Bug, color: "var(--segment-beat)", type: "list" },
+  { key: "flora_directions", label: "Flora & Environment Directions", icon: Leaf, color: "var(--color-accent)", type: "list" },
+  { key: "naming_directions", label: "Naming Directions", icon: Type, color: "var(--color-warning)", type: "list" },
+  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
+];
 
 interface Props {
   storyId: string;
@@ -34,6 +50,7 @@ function LocationTreeItem({
   onSelect,
   expandedIds,
   onToggleExpand,
+  onAddChild,
 }: {
   location: Location;
   depth: number;
@@ -41,6 +58,7 @@ function LocationTreeItem({
   onSelect: (loc: Location) => void;
   expandedIds: Set<string>;
   onToggleExpand: (id: string) => void;
+  onAddChild: (parentId: string) => void;
 }) {
   const isExpanded = expandedIds.has(location.id);
   const hasChildren = location.children && location.children.length > 0;
@@ -58,11 +76,21 @@ function LocationTreeItem({
         >
           {hasChildren ? (isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />) : null}
         </button>
-        <MapPin size={12} color="var(--color-text-muted)" />
-        <span className={styles.listItemName}>{location.name}</span>
+        <MapPin size={12} color={location.is_stub ? "var(--color-ai, #a78bfa)" : "var(--color-text-muted)"} />
+        <span className={styles.listItemName} style={location.is_stub ? { color: "var(--color-text-muted)" } : undefined}>
+          {location.name}
+        </span>
         {location.location_type && (
           <span className={styles.listItemBadge}>{location.location_type}</span>
         )}
+        {location.is_stub && <span className={styles.stubDot} title="Discovered — needs review" />}
+        <button
+          className={styles.treeAddBtn}
+          title={`Add location inside "${location.name}"`}
+          onClick={(e) => { e.stopPropagation(); onAddChild(location.id); }}
+        >
+          <Plus size={10} />
+        </button>
       </div>
       {isExpanded && hasChildren && (
         <div>
@@ -75,6 +103,7 @@ function LocationTreeItem({
               onSelect={onSelect}
               expandedIds={expandedIds}
               onToggleExpand={onToggleExpand}
+              onAddChild={onAddChild}
             />
           ))}
         </div>
@@ -149,11 +178,14 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
 
   function scheduleUpdate(field: string, value: string) {
     if (!selected) return;
-    setSelected((prev) => prev ? { ...prev, [field]: value } : null);
+    const wasStub = selected.is_stub;
+    setSelected((prev) => prev ? { ...prev, [field]: value, is_stub: false } : null);
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selected) return;
-      api.updateLocation(selected.id, { [field]: value }).then(() => load());
+      const update: Partial<Location> = { [field as keyof Location]: value as never };
+      if (wasStub) update.is_stub = false;
+      api.updateLocation(selected.id, update).then(() => load());
     }, 700);
   }
 
@@ -190,6 +222,17 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
     return result;
   }
 
+  function countStubs(locs: Location[]): number {
+    let n = 0;
+    for (const loc of locs) {
+      if (loc.is_stub) n++;
+      if (loc.children?.length) n += countStubs(loc.children);
+    }
+    return n;
+  }
+
+  const stubCount = countStubs(locations);
+
   if (loading) return <div className={styles.loading}>Loading locations…</div>;
 
   return (
@@ -197,7 +240,14 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
       {/* Sidebar — location tree */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <h3 className={styles.sidebarTitle}>Locations</h3>
+          <h3 className={styles.sidebarTitle}>
+            Locations
+            {stubCount > 0 && (
+              <span className={styles.stubCount} title={`${stubCount} discovered location${stubCount !== 1 ? "s" : ""} need review`}>
+                {stubCount}
+              </span>
+            )}
+          </h3>
           <button className={styles.addBtn} onClick={() => setShowAddModal(true)}>
             <Plus size={12} /> Add
           </button>
@@ -215,6 +265,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 onSelect={setSelected}
                 expandedIds={expandedIds}
                 onToggleExpand={toggleExpand}
+                onAddChild={(parentId) => { setNewParentId(parentId); setShowAddModal(true); }}
               />
             ))
           )}
@@ -256,6 +307,24 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 </button>
               </div>
             </div>
+
+            {selected.is_stub && (
+              <div className={styles.stubBanner}>
+                <Sparkles size={14} color="var(--color-ai, #a78bfa)" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span className={styles.stubBannerText}>
+                  Discovered from your prose. Fill in the details to add this place to your lorebook.
+                </span>
+                <button
+                  className={styles.stubBannerDismiss}
+                  onClick={() => api.updateLocation(selected.id, { is_stub: false }).then(() => {
+                    setSelected((prev) => prev ? { ...prev, is_stub: false } : null);
+                    load();
+                  })}
+                >
+                  Mark reviewed
+                </button>
+              </div>
+            )}
 
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
@@ -431,32 +500,26 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
 
             {/* AI panels */}
             {showAI === "what-exists" && (
-              <WorldAIPanel
+              <WorldAIStructuredPanel
                 title="What Would Exist Here?"
                 description="Analyze this location's properties to surface questions about what would logically inhabit it — buildings, creatures, plants, and weather."
                 buttonLabel="Analyze"
                 requestId={`what-exists-${selected.id}`}
-                onAnalyze={(signal) => api.analyzeLocationExistence(storyId, selected.id, signal)}
+                schema={LOCATION_EXISTENCE_SCHEMA}
+                onAnalyze={() => api.analyzeLocationExistence(storyId, selected.id)}
               />
             )}
             {showAI === "suggest" && (
-              <WorldAIPanel
+              <WorldAIStructuredPanel
                 title="AI Element Suggestions"
-                description="Surface questions and directions for names, customs, creatures, and cultural elements rooted in this location's properties."
+                description="Surface questions and directions for creatures, flora, and naming patterns rooted in this location's properties."
                 buttonLabel="Suggest"
                 requestId={`element-suggest-location-${selected.id}`}
-                onAnalyze={(signal) => api.suggestWorldElements(storyId, "location", selected.id, signal)}
+                schema={LOCATION_SUGGEST_SCHEMA}
+                onAnalyze={() => api.suggestWorldElements(storyId, "location", selected.id)}
               />
             )}
 
-            {/* Add child location shortcut */}
-            <hr className={styles.divider} />
-            <button
-              className={styles.ghostBtn}
-              onClick={() => { setNewParentId(selected.id); setShowAddModal(true); }}
-            >
-              <FolderPlus size={13} /> Add location inside "{selected.name}"
-            </button>
           </>
         )}
       </div>

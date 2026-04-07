@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, ArrowLeftRight, Trash2, ArrowRight } from "lucide-react";
+import { Plus, ArrowLeftRight, Trash2, ArrowRight, Navigation, AlertTriangle, BookOpen, HelpCircle } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, LocationTravel } from "../../types";
 import styles from "./WorldBuilding.module.css";
+import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
+import type { SectionConfig } from "../ai/StructuredResponseRenderer";
+
+const TRAVEL_ANALYSIS_SCHEMA: SectionConfig[] = [
+  { key: "journey_considerations", label: "Journey Considerations", icon: Navigation, color: "var(--color-accent)", type: "list" },
+  { key: "hazards_and_challenges", label: "Hazards & Challenges", icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
+  { key: "narrative_possibilities", label: "Narrative Possibilities", icon: BookOpen, color: "var(--color-ai)", type: "list" },
+  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--segment-part)", type: "list" },
+];
 
 interface Props {
   storyId: string;
@@ -85,6 +94,7 @@ export default function TravelDistanceEditor({ storyId }: Props) {
             <TravelEntry
               key={t.id}
               travel={t}
+              storyId={storyId}
               fromName={locationName(t.from_location_id)}
               toName={locationName(t.to_location_id)}
               isEditing={editingId === t.id}
@@ -163,9 +173,10 @@ export default function TravelDistanceEditor({ storyId }: Props) {
 }
 
 function TravelEntry({
-  travel, fromName, toName, isEditing, onStartEdit, onSave, onCancel, onDelete,
+  travel, storyId, fromName, toName, isEditing, onStartEdit, onSave, onCancel, onDelete,
 }: {
   travel: LocationTravel;
+  storyId: string;
   fromName: string;
   toName: string;
   isEditing: boolean;
@@ -181,28 +192,42 @@ function TravelEntry({
     notes: travel.notes,
     bidirectional: travel.bidirectional,
   });
+  const [showAI, setShowAI] = useState(false);
 
   if (!isEditing) {
     return (
-      <div className={styles.travelEntry}>
-        <div className={styles.travelLocations}>
-          <div className={styles.travelRoute}>
-            <span>{fromName}</span>
-            {travel.bidirectional
-              ? <ArrowLeftRight size={14} color="var(--color-text-muted)" />
-              : <ArrowRight size={14} color="var(--color-text-muted)" />}
-            <span>{toName}</span>
+      <div className={styles.travelEntry} style={{ flexDirection: "column", alignItems: "stretch" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div className={styles.travelLocations} style={{ flex: 1 }}>
+            <div className={styles.travelRoute}>
+              <span>{fromName}</span>
+              {travel.bidirectional
+                ? <ArrowLeftRight size={14} color="var(--color-text-muted)" />
+                : <ArrowRight size={14} color="var(--color-text-muted)" />}
+              <span>{toName}</span>
+            </div>
+            <div className={styles.travelMeta}>
+              {travel.travel_time && <span>{travel.travel_time}</span>}
+              {travel.travel_time && travel.travel_method && <span> · </span>}
+              {travel.travel_method && <span>{travel.travel_method}</span>}
+              {travel.condition && <span style={{ fontStyle: "italic", color: "var(--color-text-subtle)" }}> ({travel.condition})</span>}
+              {travel.notes && <span> · {travel.notes}</span>}
+            </div>
           </div>
-          <div className={styles.travelMeta}>
-            {travel.travel_time && <span>{travel.travel_time}</span>}
-            {travel.travel_time && travel.travel_method && <span> · </span>}
-            {travel.travel_method && <span>{travel.travel_method}</span>}
-            {travel.condition && <span style={{ fontStyle: "italic", color: "var(--color-text-subtle)" }}> ({travel.condition})</span>}
-            {travel.notes && <span> · {travel.notes}</span>}
-          </div>
+          <button className={styles.ghostBtn} style={{ fontSize: "0.72rem" }} onClick={() => setShowAI((v) => !v)}>Analyze</button>
+          <button className={styles.ghostBtn} onClick={onStartEdit}>Edit</button>
+          <button className={`${styles.iconBtn} ${styles.danger}`} onClick={onDelete}><Trash2 size={13} /></button>
         </div>
-        <button className={styles.ghostBtn} onClick={onStartEdit}>Edit</button>
-        <button className={`${styles.iconBtn} ${styles.danger}`} onClick={onDelete}><Trash2 size={13} /></button>
+        {showAI && (
+          <WorldAIStructuredPanel
+            title="Route Analysis"
+            description="Surface journey considerations, hazards, and narrative possibilities for this route."
+            buttonLabel="Analyze"
+            requestId={`travel-analysis-${travel.id}`}
+            schema={TRAVEL_ANALYSIS_SCHEMA}
+            onAnalyze={() => api.analyzeTravelRoute(storyId, travel.id)}
+          />
+        )}
       </div>
     );
   }

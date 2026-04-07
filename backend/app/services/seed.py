@@ -416,33 +416,6 @@ def seed_demo_story():
         ))
         db.flush()
 
-        # Settings (locations)
-        db.add(Setting(
-            story_id=story.id,
-            name="The Lighthouse",
-            description="Harrow Point Lighthouse — a working lighthouse on the southern tip of Harrow Island. Three storeys of whitewashed stone, a lamp room with a Fresnel lens, and a keeper's quarters that still smells of Thomas Vance's pipe tobacco.",
-            atmosphere="Isolated, purposeful, faintly haunted by routine. The lamp room at the top is where Eleanor feels most herself. The log room below is where the gaps live.",
-            history="Built in 1887, the lighthouse has had only three keepers in its history — the last being Thomas Vance, who passed the role to Eleanor when his health failed.",
-            significance="The lighthouse is both Eleanor's home and her inheritance. It represents her father's world, which she absorbed entirely — and may have to re-examine.",
-        ))
-        db.add(Setting(
-            story_id=story.id,
-            name="The Keeper's Cottage",
-            description="A low stone cottage attached to the base of the lighthouse. Two rooms: a main room with a woodstove and Eleanor's books, and a bedroom. Spartan by choice.",
-            atmosphere="Spare and self-sufficient. Everything has a place. Nothing is decorative except a framed photograph of Eleanor and her father on the mantle.",
-            history="The cottage was Thomas Vance's home for forty years. Eleanor moved back in after his death and has changed very little.",
-            significance="The cottage is where Eleanor is most off-guard — and where the Visitor disrupts her most, because guests are not part of its logic.",
-        ))
-        db.add(Setting(
-            story_id=story.id,
-            name="Harrow Island",
-            description="A small island three miles off the mainland, accessible only by boat. Eleven houses at peak; three occupied now. A general store that opens twice a week. A disused fishing pier.",
-            atmosphere="The quiet of a place people left. The few who remain have made peace with the diminishment.",
-            history="Harrow Island was a fishing community until the 1980s, when the catch dried up. The lighthouse kept the island on maps after the community forgot why it mattered.",
-            significance="The island's isolation is not just physical — it mirrors Eleanor's chosen remove from everything that might ask something of her.",
-        ))
-        db.flush()
-
         # Plot threads
         thread_logs = PlotThread(
             story_id=story.id,
@@ -1269,6 +1242,16 @@ def seed_demo_story():
             position=3,
         )
         db.add(village)
+
+        # Stub location — discovered from prose, not yet fleshed out
+        db.add(Location(
+            story_id=story.id,
+            parent_id=harrow_island.id,
+            name="The Mainland",
+            description="Mentioned in Eleanor's inner monologue as the place she left and has not returned to.",
+            is_stub=True,
+            position=4,
+        ))
         db.flush()
 
         # ── World Building — World System ───────────────────────────────────
@@ -1638,30 +1621,6 @@ def seed_scifi_demo_story():
         ))
         db.flush()
 
-        # ── Settings (legacy) ────────────────────────────────────────────────
-        db.add(Setting(
-            story_id=story.id,
-            name="The Observation Deck",
-            description="The station's main monitoring room — a semicircular space with viewports facing the relay array and the stars beyond. Displays line three walls; the central console is where Yuki spends most of her waking hours.",
-            atmosphere="The hum of systems, the glow of displays, the faint vibration of the array. Silence that isn't quite silent.",
-            significance="Where Yuki does her work. Where she first detects the signal. The station's nerve center and her home.",
-        ))
-        db.add(Setting(
-            story_id=story.id,
-            name="Yuki's Quarters",
-            description="A small cabin adjacent to the operations bay. A bunk, a desk, a single viewport facing the array. Personal effects are minimal: a few physical books, a photograph from Ceres, a hand-drawn star chart made when she first arrived.",
-            atmosphere="Spare, functional, quietly personal. The viewport is always unshuttered — Yuki sleeps to the light of distant stars.",
-            significance="The space between work and sleep. She dreams here about signals that she can almost understand.",
-        ))
-        db.add(Setting(
-            story_id=story.id,
-            name="The Archive Room",
-            description="Data storage and retrieval bay below the operations deck. Forty years of relay logs, incident reports, and predecessor operators' personal notes. The Persephone files are buried in a subdirectory Yuki had never opened before.",
-            atmosphere="Cold and utilitarian. Rows of data cores. The glow of status indicators in the dark.",
-            history="Contains logs from all eight operators, as well as historical transmission records from the expansion era. MIRA can retrieve anything in under three seconds; finding something MIRA doesn't know to look for is harder.",
-            significance="Where the truth about Persephone has been waiting for thirty years.",
-        ))
-        db.flush()
 
         # ── Plot Threads ─────────────────────────────────────────────────────
         thread_signal = PlotThread(

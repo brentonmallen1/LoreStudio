@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
+import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen, Landmark, Shield, HelpCircle } from "lucide-react";
 import { api } from "../../api/client";
 import type { Era, HistoricalEvent } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIPanel from "./WorldAIPanel";
+import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
+import type { SectionConfig } from "../ai/StructuredResponseRenderer";
+
+const IMPLICATIONS_SCHEMA: SectionConfig[] = [
+  { key: "physical_remnants", label: "Physical Remnants", icon: Landmark, color: "var(--color-accent)", type: "list" },
+  { key: "cultural_legacy", label: "Cultural Legacy", icon: BookOpen, color: "var(--segment-part)", type: "list" },
+  { key: "political_effects", label: "Political Effects", icon: Shield, color: "var(--color-warning)", type: "list" },
+  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
+];
 
 interface Props {
   storyId: string;
@@ -270,12 +278,13 @@ export default function HistoryTab({ storyId }: Props) {
             </div>
 
             {showImplications && (
-              <WorldAIPanel
+              <WorldAIStructuredPanel
                 title="Historical Implication Analysis"
-                description="Surface questions about what this event's ripple effects look like today — ruins, traditions, political shifts, inherited attitudes."
+                description="Surface what this event's ripple effects look like today — ruins, traditions, political shifts, inherited attitudes."
                 buttonLabel="Analyze"
                 requestId={`historical-implications-${selectedEvent.id}`}
-                onAnalyze={(signal) => api.analyzeHistoricalImplications(storyId, selectedEvent.id, signal)}
+                schema={IMPLICATIONS_SCHEMA}
+                onAnalyze={() => api.analyzeHistoricalImplications(storyId, selectedEvent.id)}
               />
             )}
           </>

@@ -29,18 +29,27 @@ Usage:
         yield token
 """
 
+import json
+import logging
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field
+from typing import TypeVar
 
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
-from .ollama import ollama_provider, StreamMetrics
+from .ollama import ollama_provider, StreamMetrics, _strip_json_fencing
 from .prompts.core import CORE_SYSTEM_PROMPT
 from ...config import settings
 from ...models.user import User
 from ...models.activity_log import ActivityLog
 from ...schemas.llm_params import LLMParams
+from ...schemas.ai_responses import StructuredResult
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar("T", bound=BaseModel)
 
 
 @dataclass
@@ -194,6 +203,93 @@ class AIGateway:
 
                 if on_complete and result.content:
                     await on_complete(result)
+
+    async def generate_structured(
+        self,
+        response_model: type[T],
+        messages: list[dict],
+        feature_prompt: str,
+        context: AICallContext,
+        db: Session,
+        user: "User",
+        *,
+        llm_params: LLMParams | None = None,
+        include_core_prompt: bool = True,
+    ) -> StructuredResult:
+        """
+        Generate a structured JSON response and validate it against response_model.
+
+        Always returns a StructuredResult — never raises on parse/validation failure.
+        - success=True:  result.data contains the validated model as a dict
+        - success=False: result.raw_data has the parsed JSON (if any), result.raw_text has raw response
+        """
+        params = self._get_effective_params(user, llm_params)
+        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
+        user_url, user_model = self._get_ollama_config(user)
+
+        start_time = time.monotonic()
+
+        try:
+            raw_text, metrics = await ollama_provider.generate_structured(
+                messages,
+                system_prompt,
+                temperature=params.temperature,
+                top_p=params.top_p,
+                top_k=params.top_k,
+                base_url=user_url,
+                model=user_model,
+            )
+        except Exception as e:
+            logger.warning("generate_structured Ollama call failed: %s", e)
+            return StructuredResult(success=False, raw_text=f"Error reaching LLM: {e}")
+
+        latency_ms = int((time.monotonic() - start_time) * 1000)
+        result_obj = AICallResult(
+            content=raw_text,
+            tokens_in=metrics.tokens_in if metrics else None,
+            tokens_out=metrics.tokens_out if metrics else None,
+            latency_ms=latency_ms,
+            model=metrics.model if metrics else ollama_provider.model,
+        )
+        self._log_call(context, result_obj, db, params, messages)
+
+        # Step 1: Parse JSON
+        cleaned = _strip_json_fencing(raw_text)
+        try:
+            data = json.loads(cleaned)
+        except json.JSONDecodeError:
+            logger.warning("generate_structured: JSON parse failed for feature=%s", context.feature)
+            return StructuredResult(
+                success=False,
+                raw_text=raw_text,
+                tokens_in=result_obj.tokens_in,
+                tokens_out=result_obj.tokens_out,
+                model=result_obj.model,
+            )
+
+        # Step 2: Validate against schema
+        try:
+            validated = response_model.model_validate(data)
+            return StructuredResult(
+                success=True,
+                data=validated.model_dump(),
+                tokens_in=result_obj.tokens_in,
+                tokens_out=result_obj.tokens_out,
+                model=result_obj.model,
+            )
+        except ValidationError as e:
+            logger.warning(
+                "generate_structured: schema validation failed for feature=%s: %s",
+                context.feature, e
+            )
+            return StructuredResult(
+                success=False,
+                raw_data=data,
+                raw_text=raw_text,
+                tokens_in=result_obj.tokens_in,
+                tokens_out=result_obj.tokens_out,
+                model=result_obj.model,
+            )
 
     def _log_call(self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]) -> None:
         """Write an ActivityLog entry for this AI call."""

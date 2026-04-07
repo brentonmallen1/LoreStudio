@@ -3,7 +3,16 @@ import { Plus, Users, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { Culture } from "../../types";
 import styles from "./WorldBuilding.module.css";
-import WorldAIPanel from "./WorldAIPanel";
+import WorldAIStructuredPanel from "./WorldAIStructuredPanel";
+import { Type, Star, Palette, HelpCircle } from "lucide-react";
+import type { SectionConfig } from "../ai/StructuredResponseRenderer";
+
+const CULTURE_SUGGEST_SCHEMA: SectionConfig[] = [
+  { key: "naming_directions", label: "Naming Directions", icon: Type, color: "var(--color-accent)", type: "list" },
+  { key: "ritual_directions", label: "Ritual & Custom Directions", icon: Star, color: "var(--segment-part)", type: "list" },
+  { key: "aesthetic_directions", label: "Aesthetic & Material Directions", icon: Palette, color: "var(--color-warning)", type: "list" },
+  { key: "questions", label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)", type: "list" },
+];
 
 interface Props {
   storyId: string;
@@ -212,12 +221,13 @@ export default function CultureManager({ storyId }: Props) {
             </div>
 
             {showAIPanel && (
-              <WorldAIPanel
+              <WorldAIStructuredPanel
                 title="AI Element Suggestions"
-                description="Surface questions and directions for names, customs, creatures, and cultural elements rooted in this culture's values and structure."
+                description="Surface directions for names, customs, rituals, and aesthetics rooted in this culture's values and structure."
                 buttonLabel="Suggest"
                 requestId={`element-suggest-culture-${selected.id}`}
-                onAnalyze={(signal) => api.suggestWorldElements(storyId, "culture", selected.id, signal)}
+                schema={CULTURE_SUGGEST_SCHEMA}
+                onAnalyze={() => api.suggestWorldElements(storyId, "culture", selected.id)}
               />
             )}
           </>

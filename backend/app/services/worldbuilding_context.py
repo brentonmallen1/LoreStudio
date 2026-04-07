@@ -13,6 +13,8 @@ from ..models.location import Location
 from ..models.world_system import WorldSystem
 from ..models.culture import Culture
 from ..models.historical_event import Era, HistoricalEvent
+from ..models.calendar import Calendar
+from ..models.location_travel import LocationTravel
 
 
 def _location_to_dict(loc: Location) -> dict:
@@ -221,6 +223,121 @@ def build_culture_context(culture: Culture, story: Story, db: Session) -> dict:
         "locations": [
             {"name": loc.name, "type": loc.location_type or None, "climate": loc.climate or None}
             for loc in locations
+        ],
+    }
+
+
+def build_system_context(system: WorldSystem, story: Story, db: Session) -> dict:
+    """Context focused on a world system for AI analysis."""
+    other_systems = db.query(WorldSystem).filter(
+        WorldSystem.story_id == story.id, WorldSystem.id != system.id
+    ).all()
+    cultures = db.query(Culture).filter(Culture.story_id == story.id).all()
+
+    return {
+        "story": {
+            "title": story.title,
+            "genre": story.genre or None,
+            "tone": story.tone or None,
+            "themes": story.themes or [],
+            "narrative_intent": story.narrative_intent or story.intent or None,
+        },
+        "system": {
+            "name": system.name,
+            "type": system.system_type or None,
+            "source_origin": system.source_origin or None,
+            "rules": system.rules or None,
+            "limitations": system.limitations or None,
+            "costs": system.costs or None,
+            "tiers": system.hierarchy_tiers or [],
+            "notes": system.notes or None,
+        },
+        "other_systems": [
+            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None}
+            for s in other_systems
+        ],
+        "cultures": [
+            {"name": c.name, "government_type": c.government_type or None, "values": c.values or None}
+            for c in cultures
+        ],
+    }
+
+
+def build_calendar_context(calendar: Calendar, story: Story, db: Session) -> dict:
+    """Context focused on a calendar for AI suggestions."""
+    cultures = db.query(Culture).filter(Culture.story_id == story.id).all()
+    events = db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story.id).all()
+
+    return {
+        "story": {
+            "title": story.title,
+            "genre": story.genre or None,
+            "tone": story.tone or None,
+            "themes": story.themes or [],
+            "narrative_intent": story.narrative_intent or story.intent or None,
+        },
+        "calendar": {
+            "name": calendar.name,
+            "description": calendar.description or None,
+            "months": calendar.months or [],
+            "days_per_week": calendar.days_per_week or 7,
+            "week_day_names": calendar.week_day_names or [],
+            "special_days": calendar.special_days or [],
+            "epoch_name": calendar.epoch_name or None,
+        },
+        "cultures": [
+            {
+                "name": c.name,
+                "religion": c.religion or None,
+                "values": c.values or None,
+                "customs": c.customs or None,
+            }
+            for c in cultures
+        ],
+        "historical_events": [
+            {"name": ev.name, "description": ev.description or None, "in_world_date": ev.in_world_date or None}
+            for ev in events
+            if ev.name
+        ],
+    }
+
+
+def build_travel_context(travel: LocationTravel, story: Story, db: Session) -> dict:
+    """Context for analyzing a travel route between two locations."""
+    from_loc = db.get(Location, travel.from_location_id)
+    to_loc = db.get(Location, travel.to_location_id)
+    systems = db.query(WorldSystem).filter(WorldSystem.story_id == story.id).all()
+
+    def loc_dict(loc: Location | None) -> dict:
+        if not loc:
+            return {}
+        return {
+            "name": loc.name,
+            "type": loc.location_type or None,
+            "climate": loc.climate or None,
+            "terrain": loc.terrain or None,
+            "political_affiliation": loc.political_affiliation or None,
+        }
+
+    return {
+        "story": {
+            "title": story.title,
+            "genre": story.genre or None,
+            "tone": story.tone or None,
+            "themes": story.themes or [],
+            "narrative_intent": story.narrative_intent or story.intent or None,
+        },
+        "from_location": loc_dict(from_loc),
+        "to_location": loc_dict(to_loc),
+        "travel": {
+            "travel_time": travel.travel_time or None,
+            "travel_method": travel.travel_method or None,
+            "condition": travel.condition or None,
+            "notes": travel.notes or None,
+        },
+        "world_systems": [
+            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None}
+            for s in systems
         ],
     }
 

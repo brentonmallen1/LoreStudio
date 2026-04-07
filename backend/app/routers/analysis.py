@@ -19,6 +19,7 @@ from ..models.plot_thread import PlotThread
 from ..models.activity_log import ActivityLog
 from ..models.interview import CharacterInterview
 from ..services.word_count import WORD_COUNT_RANGES
+from ..schemas.ai_responses import EconomyAnalysisResponse, StructuredResult
 
 router = APIRouter()
 
@@ -161,7 +162,7 @@ async def summarize_character_arc(
     return StreamingResponse(stream(), media_type="text/plain")
 
 
-@router.post("/stories/{story_id}/analyze/economy")
+@router.post("/stories/{story_id}/analyze/economy", response_model=StructuredResult)
 async def analyze_economy(
     story_id: str,
     db: Session = Depends(get_db),
@@ -245,17 +246,14 @@ async def analyze_economy(
         tags=["story", "analysis", "user-initiated"],
     )
 
-    async def economy_stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(economy_stream(), media_type="text/plain")
+    return await ai_gateway.generate_structured(
+        response_model=EconomyAnalysisResponse,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/stories/{story_id}/recap")

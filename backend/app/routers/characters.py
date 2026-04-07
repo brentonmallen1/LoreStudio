@@ -17,6 +17,7 @@ from ..schemas.character import (
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.generation import build_attribute_generation_prompt
+from ..schemas.ai_responses import AttributeSuggestionsResponse, StructuredResult
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -89,14 +90,14 @@ def create_relationship(
     return rel
 
 
-@router.post("/{character_id}/generate-attributes")
+@router.post("/{character_id}/generate-attributes", response_model=StructuredResult)
 async def generate_attributes(
     character_id: str,
     attribute_type: str = Body(..., embed=True),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Stream AI-generated attribute suggestions for a character."""
+    """Generate structured AI attribute suggestions for a character."""
     character = _verify_character_access(character_id, db, current_user)
     feature_prompt = build_attribute_generation_prompt(character, attribute_type)
     llm_messages = [{"role": "user", "content": "Please provide your suggestions."}]
@@ -110,17 +111,14 @@ async def generate_attributes(
         extra_metadata={"attribute_type": attribute_type},
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return await ai_gateway.generate_structured(
+        response_model=AttributeSuggestionsResponse,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/{character_id}/milestones", response_model=CharacterOut)

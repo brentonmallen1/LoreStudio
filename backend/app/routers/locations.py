@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -5,6 +8,7 @@ from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.location import Location, SceneSetting, PREDEFINED_LOCATION_TYPES
+from ..models.setting import Setting
 from ..schemas.location import (
     LocationCreate, LocationUpdate, LocationOut, LocationTree,
     SceneSettingCreate, SceneSettingOut,
@@ -134,6 +138,56 @@ def delete_location(
     location = _verify_location_access(location_id, db, current_user)
     db.delete(location)
     db.commit()
+
+
+# --- Settings Migration ---
+
+@router.post("/stories/{story_id}/locations/migrate-settings")
+def migrate_settings_to_locations(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """One-time migration: convert legacy Setting records to Location stubs.
+    Safe to call multiple times — skips Settings whose name already exists as a Location.
+    """
+    _verify_story_access(story_id, db, current_user)
+    old_settings = db.query(Setting).filter(Setting.story_id == story_id).all()
+    created = 0
+    merged = 0
+    for s in old_settings:
+        existing = (
+            db.query(Location)
+            .filter(Location.story_id == story_id, Location.name == s.name)
+            .first()
+        )
+        if existing:
+            # Merge any non-empty fields that Location is missing
+            if not existing.description and s.description:
+                existing.description = s.description
+            if not existing.atmosphere and s.atmosphere:
+                existing.atmosphere = s.atmosphere
+            if not existing.history and s.history:
+                existing.history = s.history
+            if not existing.significance and s.significance:
+                existing.significance = s.significance
+            merged += 1
+        else:
+            loc = Location(
+                id=str(uuid.uuid4()),
+                story_id=story_id,
+                name=s.name,
+                description=s.description or "",
+                atmosphere=s.atmosphere or "",
+                history=s.history or "",
+                significance=s.significance or "",
+                is_stub=True,
+                created_at=s.created_at,
+            )
+            db.add(loc)
+            created += 1
+    db.commit()
+    return {"created": created, "merged": merged}
 
 
 # --- Scene Settings ---

@@ -39,6 +39,20 @@ def strip_thoughts_from_messages(messages: list[dict]) -> list[dict]:
     return cleaned
 
 
+def _strip_json_fencing(text: str) -> str:
+    """Remove markdown code fencing from JSON responses."""
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        # Drop first line (```json or ```) and last line (```)
+        if lines[-1].strip() == "```":
+            lines = lines[1:-1]
+        else:
+            lines = lines[1:]
+        text = "\n".join(lines).strip()
+    return text
+
+
 class OllamaProvider(LLMProvider):
     def __init__(self):
         self.base_url = settings.ollama_base_url
@@ -149,6 +163,53 @@ class OllamaProvider(LLMProvider):
                             break
                     except json.JSONDecodeError:
                         continue
+
+
+    async def generate_structured(
+        self,
+        messages: list[dict],
+        system_prompt: str,
+        *,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        top_k: int | None = None,
+        base_url: str | None = None,
+        model: str | None = None,
+    ) -> tuple[str, StreamMetrics | None]:
+        """
+        Call Ollama with format="json" for structured output.
+        Returns (raw_response_text, metrics).
+        Does NOT stream — waits for the complete response.
+        """
+        effective_model = model or self.model
+        effective_url = base_url or self.base_url
+        payload = {
+            "model": effective_model,
+            "messages": [{"role": "system", "content": system_prompt}] + messages,
+            "stream": False,
+            "format": "json",
+            "keep_alive": self.keep_alive,
+            "options": {
+                "temperature": temperature if temperature is not None else self.temperature,
+                "top_p": top_p if top_p is not None else self.top_p,
+                "top_k": top_k if top_k is not None else self.top_k,
+            },
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{effective_url}/api/chat",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=300),
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+                content = data.get("message", {}).get("content", "")
+                metrics = StreamMetrics(
+                    tokens_in=data.get("prompt_eval_count"),
+                    tokens_out=data.get("eval_count"),
+                    model=effective_model,
+                ) if data.get("done") else None
+                return content, metrics
 
 
 ollama_provider = OllamaProvider()

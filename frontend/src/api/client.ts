@@ -109,28 +109,10 @@ export const api = {
       signal,
     });
   },
-  analyzeEconomy: (storyId: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/analyze/economy`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      signal,
-    });
-  },
-  suggestRelationships: (storyId: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/suggest-relationships`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      signal,
-    });
-  },
+  analyzeEconomy: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, { method: "POST" }),
+  suggestRelationships: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/suggest-relationships`, { method: "POST" }),
 
   // Structure
   getStructure: (storyId: string) =>
@@ -185,19 +167,12 @@ export const api = {
   deleteMilestone: (characterId: string, milestoneId: string) =>
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, { method: "DELETE" }),
 
-  // Character AI generation (returns Response for streaming)
-  generateAttributes: (characterId: string, attributeType: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/characters/${characterId}/generate-attributes`, {
+  // Character AI generation
+  generateAttributes: (characterId: string, attributeType: string): Promise<import("../types").StructuredResult> =>
+    request<import("../types").StructuredResult>(`/characters/${characterId}/generate-attributes`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify({ attribute_type: attributeType }),
-      signal,
-    });
-  },
+    }),
 
   // Story-level relationships (all relationships for all characters in a story)
   listStoryRelationships: (storyId: string) =>
@@ -215,9 +190,14 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
-  // Settings (locations)
+  // Settings (deprecated — use listLocationsFlat instead)
   listSettings: (storyId: string) =>
     request<import("../types").Setting[]>(`/stories/${storyId}/settings`),
+
+  migrateSettingsToLocations: (storyId: string) =>
+    request<{ created: number; merged: number }>(`/stories/${storyId}/locations/migrate-settings`, {
+      method: "POST",
+    }),
 
   // Interviews
   listInterviews: (characterId: string) =>
@@ -364,25 +344,17 @@ export const api = {
     nodeId: string,
     messages: import("../types").ChatMessage[],
     initialNotes?: string,
-    signal?: AbortSignal,
     llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/scene-plan`, {
+  ) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/scene-plan`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
       body: JSON.stringify({
         node_id: nodeId,
         messages,
         initial_notes: initialNotes ?? null,
         llm_params: llmParams ?? null,
       }),
-      signal,
-    });
-  },
+    }),
 
   // Brainstorm ("What's Next?")
   sendBrainstormMessage: (
@@ -411,35 +383,42 @@ export const api = {
   },
 
   // World Building AI
-  analyzeLocationExistence: (storyId: string, locationId: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/worldbuilding/what-exists`, {
+  analyzeLocationExistence: (storyId: string, locationId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/what-exists`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ location_id: locationId }),
-      signal,
-    });
-  },
+    }),
 
-  suggestWorldElements: (storyId: string, elementType: string, elementId: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/worldbuilding/suggest-elements`, {
+  suggestWorldElements: (storyId: string, elementType: string, elementId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/suggest-elements`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ element_type: elementType, element_id: elementId }),
-      signal,
-    });
-  },
+    }),
 
-  analyzeHistoricalImplications: (storyId: string, eventId: string, signal?: AbortSignal): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/worldbuilding/historical-implications`, {
+  analyzeHistoricalImplications: (storyId: string, eventId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/historical-implications`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({ event_id: eventId }),
-      signal,
-    });
-  },
+    }),
+
+  analyzeWorldSystem: (storyId: string, systemId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/system-analysis`, {
+      method: "POST",
+      body: JSON.stringify({ system_id: systemId }),
+    }),
+
+  suggestCalendarEvents: (storyId: string, calendarId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/calendar-suggestions`, {
+      method: "POST",
+      body: JSON.stringify({ calendar_id: calendarId }),
+    }),
+
+  analyzeTravelRoute: (storyId: string, travelId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/travel-analysis`, {
+      method: "POST",
+      body: JSON.stringify({ travel_id: travelId }),
+    }),
+
 
   // Story Health
   getStoryHealth: (storyId: string) =>

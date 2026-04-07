@@ -37,8 +37,18 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
         f"Existing profile:\n{profile}\n\n"
         f"Task: {type_instruction}\n\n"
         "Be specific and vivid. Avoid generic descriptions. "
-        "Suggestions should feel organic given the character's existing profile. "
-        "Format as a numbered list."
+        "Suggestions should feel organic given the character's existing profile.\n\n"
+        "Respond with a JSON object matching this exact schema:\n"
+        '{\n'
+        '  "suggestions": [\n'
+        '    {"text": "the suggestion text", "rationale": "brief reason why this fits the character"},\n'
+        '    ...\n'
+        '  ]\n'
+        '}\n\n'
+        "Rules:\n"
+        "- Output ONLY valid JSON. No markdown, no extra text before or after.\n"
+        "- Each suggestion: text is the concrete suggestion, rationale is 1 sentence explaining why it fits.\n"
+        "- Include the number of suggestions specified in the task above."
     )
 
 
@@ -57,11 +67,22 @@ def build_relationship_suggestion_prompt(characters: list[Character], existing: 
         "You are helping an author develop character relationships.\n\n"
         f"Characters:\n" + "\n".join(char_profiles) + "\n\n"
         f"Existing relationships:\n" + "\n".join(existing_lines) + "\n\n"
-        "Suggest 3-5 interesting relationship dynamics between these characters. "
-        "For each suggestion provide:\n"
-        "- Character A name\n"
-        "- Character B name\n"
-        "- Relationship type (e.g. mentor/student, rivals, old friends, secret admirers)\n"
-        "- A 1-2 sentence description of the dynamic and its narrative potential\n\n"
-        "Format as a numbered list. Focus on relationships with narrative tension or interesting complexity."
+        "Suggest 3-5 interesting relationship dynamics between these characters.\n\n"
+        "Respond with a JSON object matching this exact schema:\n"
+        '{\n'
+        '  "suggestions": [\n'
+        '    {\n'
+        '      "character_a": "exact name from the list above",\n'
+        '      "character_b": "exact name from the list above",\n'
+        '      "relationship_type": "e.g. mentor/student, rivals, old friends, secret admirers",\n'
+        '      "description": "1-2 sentence description of the dynamic and its narrative potential"\n'
+        '    },\n'
+        '    ...\n'
+        '  ]\n'
+        '}\n\n'
+        "Rules:\n"
+        "- Output ONLY valid JSON. No markdown, no extra text before or after.\n"
+        "- Use exact character names as they appear in the list above.\n"
+        "- Focus on relationships with narrative tension or interesting complexity.\n"
+        "- 3-5 suggestions total."
     )

@@ -8,7 +8,6 @@ Distinct from What's Next? (brainstorming during/after writing).
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Body
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -19,6 +18,7 @@ from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.scene_planner import build_scene_planner_system_prompt
 from ..schemas.llm_params import LLMParams
+from ..schemas.ai_responses import ScenePlanResponse, StructuredResult
 from .chat import _build_context_packet
 
 router = APIRouter()
@@ -31,7 +31,7 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
     return story
 
 
-@router.post("/stories/{story_id}/scene-plan")
+@router.post("/stories/{story_id}/scene-plan", response_model=StructuredResult)
 async def scene_plan(
     story_id: str,
     node_id: str = Body(...),
@@ -42,10 +42,11 @@ async def scene_plan(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Stream scene planning suggestions grounded in the story and scene context.
+    Generate structured scene planning suggestions grounded in the story and scene context.
 
     initial_notes: Optional free-text from the author about what they already know.
     messages: Full conversation history (user + assistant turns for follow-ups).
+    Returns a StructuredResult with ScenePlanResponse data, or raw_text fallback.
     """
     story = _get_story(story_id, db, current_user)
     node = db.get(StructureNode, node_id)
@@ -63,18 +64,12 @@ async def scene_plan(
         tags=["manuscript", "planning", "structure", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return await ai_gateway.generate_structured(
+        response_model=ScenePlanResponse,
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )

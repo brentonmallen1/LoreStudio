@@ -42,19 +42,33 @@ MICE THREADS ({len(threads_summary)} total):
 SCENES ({len(scenes_info)} total):
 {chr(10).join(scenes_info) if scenes_info else "No scenes yet."}
 
-Analyze this story's economy from a short fiction perspective. Structure your response as:
+Analyze this story's economy from a short fiction perspective and respond with a JSON object matching this exact schema:
 
-**Thread Balance**
-How many MICE threads are open? Is this appropriate for the intended form? Are any threads untyped that should be tagged?
+{{
+  "thread_balance": {{
+    "summary": "1-2 sentence overview of thread count and form-appropriateness",
+    "details": ["specific observation 1", "specific observation 2", "..."]
+  }},
+  "scene_economy": {{
+    "summary": "1-2 sentence overview of scene utility and word distribution",
+    "details": ["specific observation about scene or word count", "..."]
+  }},
+  "try_fail_cycles": {{
+    "summary": "1-2 sentence overview of struggle depth across threads",
+    "details": ["observation about a specific thread's cycle count", "..."]
+  }},
+  "recommendations": [
+    "Specific actionable suggestion referencing scene and thread names",
+    "...",
+    "3-5 total recommendations"
+  ]
+}}
 
-**Scene Economy**
-Which scenes serve no thread (marked "NO THREAD")? Are any scenes doing redundant work? Is word count distributed effectively?
-
-**Try/Fail Cycles**
-Which threads have insufficient struggle before resolution? Are there threads resolved too cleanly?
-
-**Recommendations**
-3-5 specific, actionable suggestions for tightening the story. Be concrete — reference scene and thread names."""
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text before or after.
+- Reference specific scene and thread names from the data above.
+- details arrays: 1-4 items each, concrete and specific.
+- recommendations: 3-5 items, each actionable."""
 
 
 def build_session_recap_prompt(

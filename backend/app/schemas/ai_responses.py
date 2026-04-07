@@ -1,0 +1,137 @@
+"""
+Pydantic schemas for structured AI responses.
+
+Used by AIGateway.generate_structured() to validate JSON responses from Ollama.
+Each schema corresponds to a one-shot AI feature that returns typed, renderable data.
+"""
+
+from pydantic import BaseModel
+
+
+# ── Scene Planner ─────────────────────────────────────────────────────────────
+
+class CharacterFeatureSuggestion(BaseModel):
+    name: str
+    reason: str = ""
+
+
+class ThreadAdvanceSuggestion(BaseModel):
+    name: str
+    how: str = ""
+
+
+class ScenePlanResponse(BaseModel):
+    synopsis: str = ""
+    purpose: str = ""
+    entry_state: str = ""
+    exit_state: str = ""
+    key_events: list[str] = []
+    characters_to_feature: list[CharacterFeatureSuggestion] = []
+    threads_to_advance: list[ThreadAdvanceSuggestion] = []
+
+
+# ── Economy Analysis ──────────────────────────────────────────────────────────
+
+class AnalysisSection(BaseModel):
+    summary: str = ""
+    details: list[str] = []
+
+
+class EconomyAnalysisResponse(BaseModel):
+    thread_balance: AnalysisSection = AnalysisSection()
+    scene_economy: AnalysisSection = AnalysisSection()
+    try_fail_cycles: AnalysisSection = AnalysisSection()
+    recommendations: list[str] = []
+
+
+# ── Attribute Generation ──────────────────────────────────────────────────────
+
+class AttributeSuggestion(BaseModel):
+    text: str
+    rationale: str = ""
+
+
+class AttributeSuggestionsResponse(BaseModel):
+    suggestions: list[AttributeSuggestion] = []
+
+
+# ── Relationship Suggestions ──────────────────────────────────────────────────
+
+class RelationshipSuggestion(BaseModel):
+    character_a: str
+    character_b: str
+    relationship_type: str
+    description: str
+
+
+class RelationshipSuggestionsResponse(BaseModel):
+    suggestions: list[RelationshipSuggestion] = []
+
+
+# ── World Building AI ─────────────────────────────────────────────────────────
+
+class LocationExistenceResponse(BaseModel):
+    built_environment: list[str] = []
+    natural_environment: list[str] = []
+    cultural_presence: list[str] = []
+    questions: list[str] = []
+
+
+class CultureElementSuggestionsResponse(BaseModel):
+    naming_directions: list[str] = []
+    ritual_directions: list[str] = []
+    aesthetic_directions: list[str] = []
+    questions: list[str] = []
+
+
+class LocationElementSuggestionsResponse(BaseModel):
+    creature_directions: list[str] = []
+    flora_directions: list[str] = []
+    naming_directions: list[str] = []
+    questions: list[str] = []
+
+
+class HistoricalImplicationsResponse(BaseModel):
+    physical_remnants: list[str] = []
+    cultural_legacy: list[str] = []
+    political_effects: list[str] = []
+    questions: list[str] = []
+
+
+class SystemAnalysisResponse(BaseModel):
+    edge_cases: list[str] = []
+    story_implications: list[str] = []
+    consistency_questions: list[str] = []
+    questions: list[str] = []
+
+
+class CalendarSuggestionsResponse(BaseModel):
+    festivals: list[str] = []
+    seasonal_events: list[str] = []
+    historical_observances: list[str] = []
+    questions: list[str] = []
+
+
+class TravelAnalysisResponse(BaseModel):
+    journey_considerations: list[str] = []
+    hazards_and_challenges: list[str] = []
+    narrative_possibilities: list[str] = []
+    questions: list[str] = []
+
+
+# ── Structured result wrapper ─────────────────────────────────────────────────
+
+class StructuredResult(BaseModel):
+    """
+    Wrapper returned by AIGateway.generate_structured().
+
+    success=True  → data is valid; use data for rendering
+    success=False → fallback; use raw_data (partial) or raw_text (markdown)
+    """
+    success: bool
+    data: dict | None = None          # Validated and serialized model dict
+    raw_data: dict | None = None      # Parsed JSON that failed schema validation
+    raw_text: str = ""                # Raw text response (fallback)
+    tokens_in: int | None = None
+    tokens_out: int | None = None
+    model: str = ""

@@ -57,6 +57,7 @@ class LocationUpdate(BaseModel):
     habitability: str | None = None
     radiation_level: str | None = None
     position: int | None = None
+    is_stub: bool | None = None
 
 
 class LocationOut(BaseModel):
@@ -78,6 +79,9 @@ class LocationOut(BaseModel):
     habitability: str
     radiation_level: str
     position: int
+    is_stub: bool
+    discovered_from_id: str | None
+    discovered_at: datetime | None
     created_at: datetime
     updated_at: datetime
 

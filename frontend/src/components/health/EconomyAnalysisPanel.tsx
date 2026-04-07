@@ -1,29 +1,36 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, BarChart3, Activity, RefreshCw, Lightbulb } from "lucide-react";
 import { api } from "../../api/client";
-import { useLLMStream } from "../../hooks/useLLMStream";
+import type { StructuredResult } from "../../types";
+import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./EconomyAnalysisPanel.module.css";
+
+const ECONOMY_SCHEMA: SectionConfig[] = [
+  { key: "thread_balance", label: "Thread Balance", icon: BarChart3, color: "var(--color-accent)", type: "text" },
+  { key: "scene_economy", label: "Scene Economy", icon: Activity, color: "var(--color-warning)", type: "text" },
+  { key: "try_fail_cycles", label: "Try/Fail Cycles", icon: RefreshCw, color: "var(--segment-part)", type: "text" },
+  { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
+];
 
 interface Props {
   storyId: string;
 }
 
 export default function EconomyAnalysisPanel({ storyId }: Props) {
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState<StructuredResult | null>(null);
+  const [generating, setGenerating] = useState(false);
 
-  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
-    requestId: `economy:${storyId}`,
-    label: "Analyzing story economy",
-    tabId: "health",
-    onComplete: (full) => setResult(full),
-    onError: () => setResult("⚠ Error running economy analysis."),
-  });
-
-  const displayText = generating ? streamingText : result;
-
-  function analyze() {
-    setResult("");
-    stream((signal) => api.analyzeEconomy(storyId, signal));
+  async function analyze() {
+    setResult(null);
+    setGenerating(true);
+    try {
+      const r = await api.analyzeEconomy(storyId);
+      setResult(r);
+    } catch {
+      setResult({ success: false, raw_text: "⚠ Error running economy analysis." });
+    } finally {
+      setGenerating(false);
+    }
   }
 
   return (
@@ -38,29 +45,23 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
             </p>
           </div>
         </div>
-        <button
-          onClick={analyze}
-          disabled={generating}
-          className={styles.analyzeBtn}
-        >
+        <button onClick={analyze} disabled={generating} className={styles.analyzeBtn}>
           <Sparkles size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>
       </div>
 
-      {displayText && (
+      {generating && (
+        <p className={styles.hint}>Analyzing…</p>
+      )}
+
+      {!generating && result && (
         <div className={styles.result}>
-          {displayText.split("\n").map((line, i) => {
-            if (line.startsWith("**") && line.endsWith("**")) {
-              return <h4 key={i} className={styles.section}>{line.replace(/\*\*/g, "")}</h4>;
-            }
-            if (line.trim() === "") return <div key={i} className={styles.spacer} />;
-            return <p key={i} className={styles.line}>{line}</p>;
-          })}
+          <StructuredResponseRenderer result={result} schema={ECONOMY_SCHEMA} />
         </div>
       )}
 
-      {!displayText && !generating && (
+      {!generating && !result && (
         <p className={styles.hint}>
           Run analysis to identify orphaned scenes, thread imbalance, and pacing issues relative
           to your intended story length.

@@ -10,7 +10,7 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.character import Character
-from ..models.setting import Setting
+from ..models.location import Location
 from ..models.discovered_element import DiscoveredElement
 from ..auth.dependencies import get_current_user
 from ..schemas.discovered_element import (
@@ -89,7 +89,7 @@ async def run_discovery(
 
     # Build existing entity lists to avoid re-suggesting known elements
     existing_characters = [c.name for c in db.query(Character).filter(Character.story_id == story_id).all()]
-    existing_settings = [s.name for s in db.query(Setting).filter(Setting.story_id == story_id).all()]
+    existing_settings = [l.name for l in db.query(Location).filter(Location.story_id == story_id).all()]
 
     element_types = story.discovery_element_types or ["character", "setting", "relationship"]
 
@@ -247,15 +247,18 @@ def approve_discovery(
         merged_to_id = entity.id
 
     elif element.element_type == "setting":
-        entity = Setting(
+        entity = Location(
             id=str(uuid.uuid4()),
             story_id=element.story_id,
             name=name,
             description=description,
+            is_stub=True,
+            discovered_from_id=element.id,
+            discovered_at=now,
         )
         db.add(entity)
         db.flush()
-        merged_to_type = "setting"
+        merged_to_type = "location"
         merged_to_id = entity.id
 
     # For relationship/theme/object: mark approved but no automatic entity creation

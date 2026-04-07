@@ -17,6 +17,7 @@ from ..schemas.character import RelationshipOut
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
+from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
 from ..schemas.structure import StructureNodeCreate, StructureNodeOut
 from ..auth.dependencies import get_current_user
 
@@ -257,7 +258,7 @@ async def summarize_story(
     return StreamingResponse(stream(), media_type="text/plain")
 
 
-@router.post("/{story_id}/suggest-relationships")
+@router.post("/{story_id}/suggest-relationships", response_model=StructuredResult)
 async def suggest_relationships(
     story_id: str,
     db: Session = Depends(get_db),
@@ -292,17 +293,14 @@ async def suggest_relationships(
         tags=["character", "generation", "lorebook", "user-initiated"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return await ai_gateway.generate_structured(
+        response_model=RelationshipSuggestionsResponse,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.get("/{story_id}/structure", response_model=list[StructureNodeOut])

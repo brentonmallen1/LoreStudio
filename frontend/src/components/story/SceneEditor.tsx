@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { StructureNode, SceneLink, InlineNote, Setting, SceneSetting, Location } from "../../types";
+import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -145,7 +145,7 @@ export default function SceneEditor() {
   const doInsertMentionRef = useRef<((item: MentionItem) => void) | null>(null);
 
   // Full settings list (for hover card excerpts)
-  const [settingsList, setSettingsList] = useState<Setting[]>([]);
+  const [settingsList, setSettingsList] = useState<Location[]>([]);
 
   // Mention hover card
   type HoverCard =
@@ -168,7 +168,7 @@ export default function SceneEditor() {
   const hoverCardRef = useRef<HTMLDivElement>(null);
   // Refs so event listeners (stable, empty-deps) always read fresh data
   const charactersRef = useRef(characters);
-  const settingsListRef = useRef<Setting[]>([]);
+  const settingsListRef = useRef<Location[]>([]);
   charactersRef.current = characters;
   settingsListRef.current = settingsList;
 
@@ -278,7 +278,7 @@ export default function SceneEditor() {
     if (!activeStory) { setMentionAllItems([]); setMentionItems([]); setSettingsList([]); return; }
     Promise.all([
       api.listCharacters(activeStory.id),
-      api.listSettings(activeStory.id),
+      api.listLocationsFlat(activeStory.id),
     ]).then(([chars, settings_]) => {
       const items: MentionItem[] = [
         ...chars.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
@@ -430,7 +430,7 @@ export default function SceneEditor() {
             const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
             setHoverCard({
               open: true, type, name, found: true,
-              entityId: setting.id, roleOrLabel: "Setting", excerpt, rect,
+              entityId: setting.id, roleOrLabel: "Location", excerpt, rect,
             });
           } else {
             setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey
+from sqlalchemy import String, Text, Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
@@ -42,6 +42,13 @@ class Location(Base):
     habitability: Mapped[str] = mapped_column(String, default="")
     radiation_level: Mapped[str] = mapped_column(String, default="")
     position: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Discovery provenance — set when created via discovery approval
+    is_stub: Mapped[bool] = mapped_column(Boolean, default=False)
+    discovered_from_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("discovered_elements.id"), nullable=True
+    )
+    discovered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
