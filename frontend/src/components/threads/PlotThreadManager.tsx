@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Edit2, Check, X, List, Network, BookOpen, MapPin, HelpCircle, User, Zap } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, List, Network, BookOpen, MapPin, HelpCircle, User, Zap, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { PlotThread, MICEType, TryFailCycle, StructureNode } from "../../types";
 import ThreadVisualization from "./ThreadVisualization";
 import MICEGuide from "../help/MICEGuide";
 import TryFailCycleEditor from "./TryFailCycleEditor";
+import ThreadAnalysisPanel from "./ThreadAnalysisPanel";
+import { SectionCard } from "../common";
 import styles from "./PlotThreadManager.module.css";
 
 interface Props {
@@ -60,6 +62,7 @@ export default function PlotThreadManager({ storyId }: Props) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [showMICEGuide, setShowMICEGuide] = useState(false);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
@@ -153,6 +156,7 @@ export default function PlotThreadManager({ storyId }: Props) {
     <>
     {showMICEGuide && <MICEGuide onClose={() => setShowMICEGuide(false)} />}
     <div className={styles.manager}>
+    <div className={styles.managerInner}>
       <div className={styles.header}>
         <h2 className={styles.title}>Plot Threads</h2>
         <div className={styles.headerRight}>
@@ -206,121 +210,130 @@ export default function PlotThreadManager({ storyId }: Props) {
           <div key={t.id} className={styles.threadCard}>
             {editingId === t.id ? (
               <div className={styles.editForm}>
-                <input
-                  value={editFields.name}
-                  onChange={(e) => setEditFields((f) => ({ ...f, name: e.target.value }))}
-                  className={styles.nameInput}
-                  placeholder="Thread name"
-                />
-                <textarea
-                  value={editFields.description}
-                  onChange={(e) => setEditFields((f) => ({ ...f, description: e.target.value }))}
-                  className={styles.descInput}
-                  placeholder="Description (optional)"
-                  rows={2}
-                />
+                {/* Thread Details */}
+                <SectionCard title="Thread Details" collapsible={false}>
+                  <input
+                    value={editFields.name}
+                    onChange={(e) => setEditFields((f) => ({ ...f, name: e.target.value }))}
+                    className={styles.nameInput}
+                    placeholder="Thread name"
+                  />
+                  <textarea
+                    value={editFields.description}
+                    onChange={(e) => setEditFields((f) => ({ ...f, description: e.target.value }))}
+                    className={styles.descInput}
+                    placeholder="Description (optional)"
+                    rows={2}
+                  />
+                </SectionCard>
 
-                {/* MICE type selector */}
-                <div className={styles.miceSection}>
-                  <span className={styles.fieldLabel}>
-                    MICE type
-                    <button
-                      className={styles.inlineGuideBtn}
-                      onClick={() => setShowMICEGuide(true)}
-                      title="What is MICE?"
-                      type="button"
-                    >
-                      ?
-                    </button>
-                  </span>
-                  <div className={styles.miceButtons}>
-                    <button
-                      className={`${styles.miceBtn} ${editFields.mice_type === null ? styles.miceBtnActive : ""} ${styles.miceBtnNone}`}
-                      onClick={() => setEditFields((f) => ({ ...f, mice_type: null }))}
-                      type="button"
-                    >
-                      None
-                    </button>
-                    {MICE_OPTIONS.map((opt) => (
+                {/* MICE Framework */}
+                <SectionCard title="MICE Framework" variant="ai">
+                  <div className={styles.miceSection}>
+                    <span className={styles.fieldLabel}>
+                      MICE type
                       <button
-                        key={opt.value}
-                        className={`${styles.miceBtn} ${styles[`miceBtn_${opt.value}`]} ${editFields.mice_type === opt.value ? styles.miceBtnActive : ""}`}
-                        onClick={() => setEditFields((f) => ({ ...f, mice_type: opt.value }))}
-                        title={opt.tooltip}
+                        className={styles.inlineGuideBtn}
+                        onClick={() => setShowMICEGuide(true)}
+                        title="What is MICE?"
                         type="button"
                       >
-                        {opt.icon}
-                        {opt.label}
+                        ?
                       </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Open/close scene pickers (only when MICE type is set) */}
-                {editFields.mice_type && nodes.length > 0 && (
-                  <div className={styles.openCloseRow}>
-                    <div className={styles.openCloseField}>
-                      <label className={styles.fieldLabel}>Opens at</label>
-                      <select
-                        className={styles.statusSelect}
-                        value={editFields.opens_at_node_id ?? ""}
-                        onChange={(e) => setEditFields((f) => ({ ...f, opens_at_node_id: e.target.value || null }))}
-                      >
-                        <option value="">— not set —</option>
-                        {nodes.map((n) => (
-                          <option key={n.id} value={n.id}>
-                            {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className={styles.openCloseField}>
-                      <label className={styles.fieldLabel}>Closes at</label>
-                      <select
-                        className={styles.statusSelect}
-                        value={editFields.closes_at_node_id ?? ""}
-                        onChange={(e) => setEditFields((f) => ({ ...f, closes_at_node_id: e.target.value || null }))}
-                      >
-                        <option value="">— not set —</option>
-                        {nodes.map((n) => (
-                          <option key={n.id} value={n.id}>
-                            {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* Try/fail cycles */}
-                <TryFailCycleEditor
-                  cycles={editFields.try_fail_cycles}
-                  nodes={nodes.filter((n) => !n.children?.length)}
-                  onChange={(cycles) => setEditFields((f) => ({ ...f, try_fail_cycles: cycles }))}
-                />
-
-                <div className={styles.editRow}>
-                  <select
-                    value={editFields.status}
-                    onChange={(e) => setEditFields((f) => ({ ...f, status: e.target.value }))}
-                    className={styles.statusSelect}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-                    ))}
-                  </select>
-                  <div className={styles.colorRow}>
-                    {PRESET_COLORS.map((c) => (
+                    </span>
+                    <div className={styles.miceButtons}>
                       <button
-                        key={c}
-                        className={`${styles.colorSwatch} ${editFields.color === c ? styles.colorSelected : ""}`}
-                        style={{ background: c }}
-                        onClick={() => setEditFields((f) => ({ ...f, color: c }))}
-                        aria-label={`Color ${c}`}
-                      />
-                    ))}
+                        className={`${styles.miceBtn} ${editFields.mice_type === null ? styles.miceBtnActive : ""} ${styles.miceBtnNone}`}
+                        onClick={() => setEditFields((f) => ({ ...f, mice_type: null }))}
+                        type="button"
+                      >
+                        None
+                      </button>
+                      {MICE_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`${styles.miceBtn} ${styles[`miceBtn_${opt.value}`]} ${editFields.mice_type === opt.value ? styles.miceBtnActive : ""}`}
+                          onClick={() => setEditFields((f) => ({ ...f, mice_type: opt.value }))}
+                          title={opt.tooltip}
+                          type="button"
+                        >
+                          {opt.icon}
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                  {editFields.mice_type && nodes.length > 0 && (
+                    <div className={styles.openCloseRow}>
+                      <div className={styles.openCloseField}>
+                        <label className={styles.fieldLabel}>Opens at</label>
+                        <select
+                          className={styles.statusSelect}
+                          value={editFields.opens_at_node_id ?? ""}
+                          onChange={(e) => setEditFields((f) => ({ ...f, opens_at_node_id: e.target.value || null }))}
+                        >
+                          <option value="">— not set —</option>
+                          {nodes.map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.openCloseField}>
+                        <label className={styles.fieldLabel}>Closes at</label>
+                        <select
+                          className={styles.statusSelect}
+                          value={editFields.closes_at_node_id ?? ""}
+                          onChange={(e) => setEditFields((f) => ({ ...f, closes_at_node_id: e.target.value || null }))}
+                        >
+                          <option value="">— not set —</option>
+                          {nodes.map((n) => (
+                            <option key={n.id} value={n.id}>
+                              {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
+                </SectionCard>
+
+                {/* Try/Fail Cycles */}
+                <SectionCard title="Try/Fail Cycles">
+                  <TryFailCycleEditor
+                    cycles={editFields.try_fail_cycles}
+                    nodes={nodes.filter((n) => !n.children?.length)}
+                    onChange={(cycles) => setEditFields((f) => ({ ...f, try_fail_cycles: cycles }))}
+                  />
+                </SectionCard>
+
+                {/* Status & Display */}
+                <SectionCard title="Status & Display" collapsible={false}>
+                  <div className={styles.editRow}>
+                    <select
+                      value={editFields.status}
+                      onChange={(e) => setEditFields((f) => ({ ...f, status: e.target.value }))}
+                      className={styles.statusSelect}
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                      ))}
+                    </select>
+                    <div className={styles.colorRow}>
+                      {PRESET_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          className={`${styles.colorSwatch} ${editFields.color === c ? styles.colorSelected : ""}`}
+                          style={{ background: c }}
+                          onClick={() => setEditFields((f) => ({ ...f, color: c }))}
+                          aria-label={`Color ${c}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </SectionCard>
+
                 <div className={styles.createActions}>
                   <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>
                     <X size={12} /> Cancel
@@ -361,6 +374,14 @@ export default function PlotThreadManager({ storyId }: Props) {
                   </div>
                 </div>
                 <div className={styles.threadActions}>
+                  <button
+                    onClick={() => setAnalyzingId(analyzingId === t.id ? null : t.id)}
+                    className={`${styles.iconBtn} ${analyzingId === t.id ? styles.iconBtnActive : ""}`}
+                    title="Analyze thread"
+                    aria-label="Analyze thread"
+                  >
+                    <Compass size={12} />
+                  </button>
                   <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
                     <Edit2 size={12} />
                   </button>
@@ -370,9 +391,15 @@ export default function PlotThreadManager({ storyId }: Props) {
                 </div>
               </>
             )}
+            {analyzingId === t.id && (
+              <div className={styles.analysisWrap}>
+                <ThreadAnalysisPanel threadId={t.id} />
+              </div>
+            )}
           </div>
         ))}
       </div>
+    </div>
     </div>
     </>
   );

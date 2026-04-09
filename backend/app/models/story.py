@@ -101,3 +101,6 @@ class Story(Base):
     twists: Mapped[list["Twist"]] = relationship(
         "Twist", back_populates="story", cascade="all, delete-orphan"
     )
+    outline_items: Mapped[list["OutlineItem"]] = relationship(
+        "OutlineItem", back_populates="story", cascade="all, delete-orphan"
+    )

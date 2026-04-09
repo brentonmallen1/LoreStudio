@@ -1,0 +1,234 @@
+.item {
+  position: relative;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.2rem 0.4rem 0.2rem 0;
+  border-radius: var(--radius);
+  cursor: default;
+  min-height: 2rem;
+  transition: background var(--transition);
+}
+
+.row:hover {
+  background: var(--color-surface-2);
+}
+
+.row.dragging {
+  opacity: 0.4;
+}
+
+.row.dropAbove {
+  border-top: 2px solid var(--color-accent);
+}
+
+.row.dropBelow {
+  border-bottom: 2px solid var(--color-accent);
+}
+
+/* ── Drag handle ── */
+.dragHandle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.5rem;
+  color: var(--color-text-subtle);
+  cursor: grab;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.row:hover .dragHandle {
+  display: flex;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+/* ── Collapse toggle ── */
+.collapseToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+  border: none;
+  background: none;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+  margin-top: 0.125rem;
+}
+
+.collapseToggle:hover {
+  color: var(--color-text);
+  background: var(--color-surface-3);
+}
+
+.collapsePlaceholder {
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ── Beat type indicator ── */
+.beatDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 0.5rem;
+}
+
+.beatDot.plot      { background: #5b8dd9; }
+.beatDot.character { background: var(--color-ai); }
+.beatDot.theme     { background: var(--color-warning); }
+.beatDot.setting   { background: var(--color-success); }
+.beatDot.none      { background: var(--color-border); }
+
+/* ── Text area ── */
+.textWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.125rem 0;
+}
+
+.text {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  cursor: text;
+  word-break: break-word;
+}
+
+.text.empty {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.textInput {
+  width: 100%;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.beatTypeRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.beatTypeSelect {
+  font-size: 0.72rem;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  padding: 0.1rem 0.3rem;
+  cursor: pointer;
+}
+
+.notesInput {
+  width: 100%;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  font-family: inherit;
+  resize: none;
+  line-height: 1.4;
+}
+
+.notesText {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  margin-top: 0.125rem;
+}
+
+.editActions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.375rem;
+}
+
+/* ── Action buttons (hover) ── */
+.actions {
+  display: none;
+  align-items: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  margin-top: 0.075rem;
+}
+
+.row:hover .actions {
+  display: flex;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition), background var(--transition);
+}
+
+.actionBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-3);
+}
+
+.actionBtn.danger:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+/* ── Beat type badge (view mode) ── */
+.beatBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.1rem 0.35rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.beatBadge.plot      { background: rgba(91,141,217,0.15); color: #5b8dd9; }
+.beatBadge.character { background: color-mix(in srgb, var(--color-ai) 12%, transparent); color: var(--color-ai); }
+.beatBadge.theme     { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
+.beatBadge.setting   { background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); }
+
+/* ── Children ── */
+.children {
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--color-border-light);
+  margin-left: 0.625rem;
+  margin-top: 0.1rem;
+}

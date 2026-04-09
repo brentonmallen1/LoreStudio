@@ -1,3 +1,7 @@
+:root {
+  --thread-analysis-accent: var(--color-accent, #6366f1);
+}
+
 .panel {
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -22,7 +26,7 @@
 }
 
 .icon {
-  color: var(--twist-accent, #7c3aed);
+  color: var(--thread-analysis-accent);
   flex-shrink: 0;
   margin-top: 0.15rem;
 }
@@ -121,8 +125,8 @@
 }
 
 .ratingExcellent {
-  background: color-mix(in srgb, var(--twist-accent, #7c3aed) 15%, transparent);
-  color: var(--twist-accent, #7c3aed);
+  background: color-mix(in srgb, var(--thread-analysis-accent) 15%, transparent);
+  color: var(--thread-analysis-accent);
 }
 
 /* Section cards */
@@ -170,144 +174,78 @@
   line-height: 1.45;
 }
 
-/* Clue verification rows */
-.clueVerifyRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-}
-
-.assessIcon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  margin-top: 0.15rem;
-}
-
-.iconFound { color: var(--color-accent-secondary, #0d9488); }
-.iconMissing { color: var(--color-danger, #ef4444); }
-.iconWarning { color: var(--color-warning, #f59e0b); }
-
-.clueVerifyText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.clueVerifyClue {
-  font-size: 0.77rem;
-  color: var(--color-text);
-  font-style: italic;
-}
-
-.clueVerifyNotes {
+.sectionSubtitle {
   font-size: 0.72rem;
   color: var(--color-text-muted);
-}
-
-.clueVerifyLink {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.1rem;
-}
-
-.clueVerifyLinkHint {
-  font-size: 0.7rem;
-  color: var(--color-text-subtle);
+  margin: 0;
   font-style: italic;
 }
 
-.linkBtn {
-  font-size: 0.68rem;
-  font-family: inherit;
-  font-weight: 600;
-  padding: 0.1rem 0.45rem;
-  border-radius: 99px;
-  border: 1px solid color-mix(in srgb, var(--color-accent-secondary, #0d9488) 40%, transparent);
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 10%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
-  cursor: pointer;
-  transition: background var(--transition);
-}
-
-.linkBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 20%, transparent);
-}
-
-.linkBtn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-/* Distribution */
-.countRow {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.countTruth {
-  padding: 0.15rem 0.5rem;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 12%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
-}
-
-.countMisdirect {
-  padding: 0.15rem 0.5rem;
-  border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
-  color: var(--color-warning, #f59e0b);
-}
-
-.gapItem {
-  font-size: 0.75rem;
-  color: var(--color-warning, #f59e0b);
+.detailItem {
+  font-size: 0.77rem;
+  color: var(--color-text-muted);
   margin: 0;
+  line-height: 1.4;
 }
 
-/* Reveal */
-.subList {
+/* Moment discoveries */
+.momentRow {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.momentHeader {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   flex-wrap: wrap;
 }
 
-.subListLabel {
+.momentType {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--color-text-muted);
+  padding: 0.1rem 0.4rem;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--thread-analysis-accent) 12%, transparent);
+  color: var(--thread-analysis-accent);
 }
 
-.warningTag {
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.7rem;
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
-  color: var(--color-warning, #f59e0b);
+.momentScene {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  font-style: italic;
 }
 
-.strengthTag {
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.7rem;
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 12%, transparent);
+.cycleSuggest {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.68rem;
   color: var(--color-accent-secondary, #0d9488);
+  margin-left: auto;
 }
 
-/* Misdirection / suggestions */
-.suggestionItem {
-  font-size: 0.77rem;
+.momentDesc {
+  font-size: 0.75rem;
   color: var(--color-text-muted);
   margin: 0;
 }
 
+/* Unlinked / warnings */
+.warningItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.77rem;
+  color: var(--color-warning, #f59e0b);
+  margin: 0;
+}
+
+/* Suggestions */
 .suggestionList {
   margin: 0;
   padding-left: 1rem;

@@ -12,6 +12,8 @@ from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
 from ..services.llm.prompts.analysis import (
     build_character_arc_prompt,
+    build_thread_analysis_prompt,
+    build_arc_analysis_prompt,
     build_economy_analysis_prompt,
     build_session_recap_prompt,
 )
@@ -19,7 +21,12 @@ from ..models.plot_thread import PlotThread
 from ..models.activity_log import ActivityLog
 from ..models.interview import CharacterInterview
 from ..services.word_count import WORD_COUNT_RANGES
-from ..schemas.ai_responses import EconomyAnalysisResponse, StructuredResult
+from ..schemas.ai_responses import (
+    EconomyAnalysisResponse,
+    ThreadAnalysisResponse,
+    ArcAnalysisResponse,
+    StructuredResult,
+)
 
 router = APIRouter()
 
@@ -363,3 +370,130 @@ async def recap_last_session(
             yield token
 
     return StreamingResponse(recap_stream(), media_type="text/plain")
+
+
+@router.post("/threads/{thread_id}/analyze", response_model=StructuredResult)
+async def analyze_thread(
+    thread_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze a plot thread's progression, moment mapping, and quality."""
+    thread = db.get(PlotThread, thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    story = db.query(Story).filter(Story.id == thread.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    # Gather scene content for scenes tagged to this thread
+    tagged_node_ids = {a.node_id for a in thread.appearances}
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
+
+    scenes = []
+    for n in all_nodes:
+        if n.id in tagged_node_ids and n.content:
+            scenes.append({
+                "id": n.id,
+                "title": n.title or "Untitled",
+                "content_excerpt": n.content,
+            })
+
+    story_context = story.logline or story.premise or story.narrative_intent or ""
+
+    feature_prompt = build_thread_analysis_prompt(
+        thread=thread,
+        story_title=story.title,
+        story_context=story_context,
+        scenes=scenes,
+    )
+
+    ctx = AICallContext(
+        feature="thread-analysis",
+        user_id=current_user.id,
+        story_id=story.id,
+        tags=["threads", "analysis", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=ThreadAnalysisResponse,
+        messages=[{"role": "user", "content": f"Analyze the plot thread: {thread.name}"}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post("/characters/{character_id}/analyze-arc", response_model=StructuredResult)
+async def analyze_character_arc_structured(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Structured AI analysis of a character's arc: trajectory, drift, health, moment discoveries."""
+    character = db.get(Character, character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    story = db.query(Story).filter(Story.id == character.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == character.story_id).all()
+
+    # Ordered leaf nodes
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    scenes = []
+    name_lower = character.name.lower()
+    for n in leaves:
+        if n.content and name_lower in n.content.lower():
+            scenes.append({
+                "id": n.id,
+                "title": n.title or "Untitled",
+                "content_excerpt": n.content,
+            })
+
+    story_context = story.logline or story.premise or story.narrative_intent or ""
+
+    feature_prompt = build_arc_analysis_prompt(
+        character=character,
+        story_title=story.title,
+        story_context=story_context,
+        scenes=scenes,
+    )
+
+    ctx = AICallContext(
+        feature="arc-analysis",
+        user_id=current_user.id,
+        story_id=story.id,
+        character_id=character_id,
+        tags=["character", "analysis", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=ArcAnalysisResponse,
+        messages=[{"role": "user", "content": f"Analyze {character.name}'s arc."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )

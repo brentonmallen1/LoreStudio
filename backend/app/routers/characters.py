@@ -154,6 +154,10 @@ def update_milestone(
             if body.text:
                 m["text"] = body.text
             m["completed"] = body.completed
+            if body.scene_id is not None:
+                m["scene_id"] = body.scene_id
+            if body.scene_title is not None:
+                m["scene_title"] = body.scene_title
     character.arc_milestones = milestones
     db.commit()
     db.refresh(character)
@@ -325,3 +329,72 @@ async def refresh_character_journey(
             yield token
 
     return StreamingResponse(stream_and_persist(), media_type="text/plain")
+
+
+@router.get("/{character_id}/arc-timeline")
+def get_arc_timeline(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Return ordered leaf scenes where this character appears, plus milestone data.
+    Used by the Arc Journey timeline visualization.
+    """
+    character = _verify_character_access(character_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == character.story_id).all()
+
+    # Build ordered leaf nodes
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    # Find milestone-to-scene mappings
+    milestone_scene_ids: set[str] = {
+        m["scene_id"] for m in (character.arc_milestones or []) if m.get("scene_id")
+    }
+
+    name_lower = character.name.lower()
+    scenes = []
+    for i, n in enumerate(leaves):
+        if n.content and name_lower in n.content.lower():
+            linked_milestones = [
+                m["id"] for m in (character.arc_milestones or []) if m.get("scene_id") == n.id
+            ]
+            scenes.append({
+                "id": n.id,
+                "title": n.title or "Untitled",
+                "position": i,
+                "word_count": n.word_count,
+                "status": n.status,
+                "linked_milestones": linked_milestones,
+            })
+
+    total_leaves = len(leaves)
+    appearance_rate = round(len(scenes) / total_leaves * 100, 1) if total_leaves > 0 else 0.0
+
+    return {
+        "character_id": character.id,
+        "character_name": character.name,
+        "scenes": scenes,
+        "milestones": character.arc_milestones or [],
+        "appearance_rate": appearance_rate,
+        "total_scenes": total_leaves,
+    }

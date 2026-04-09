@@ -10,6 +10,7 @@ def build_twist_analysis_prompt(
     clue_scenes: list[dict],  # [{clue_id, clue_text, points_to, subtlety, scene_title, scene_content}]
     reveal_scene: dict | None,  # {title, content}
     story_title: str,
+    all_scenes: list[dict] | None = None,  # [{id, title}] for suggesting scene links
 ) -> str:
     clue_lines = []
     for c in clue_scenes:
@@ -32,6 +33,12 @@ def build_twist_analysis_prompt(
     else:
         reveal_block = "\nREVEAL SCENE: not yet assigned"
 
+    # Build all-scenes reference block for unlinked clue suggestions
+    scenes_ref_block = ""
+    if all_scenes:
+        lines = [f'  - id: "{s["id"]}" title: "{s["title"]}"' for s in all_scenes]
+        scenes_ref_block = "\nALL STORY SCENES (for suggesting links):\n" + "\n".join(lines) + "\n"
+
     return f"""You are a story craft advisor analyzing a twist in "{story_title}".
 
 TWIST: {twist.name}
@@ -46,7 +53,7 @@ THE MISDIRECTION (what readers are led to believe):
 
 PLANTED CLUES ({len(clue_scenes)} defined):
 {clues_block}
-{reveal_block}
+{reveal_block}{scenes_ref_block}
 
 Analyze this twist and respond with a JSON object matching this exact schema:
 
@@ -55,9 +62,12 @@ Analyze this twist and respond with a JSON object matching this exact schema:
     "summary": "1-2 sentence overview of clue quality and coverage",
     "details": [
       {{
+        "clue_id": "the clue_id from the planted clues data above (empty string if unknown)",
         "clue_text": "the clue text",
         "assessment": "found/missing/needs-work",
-        "notes": "specific observation about this clue"
+        "notes": "specific observation about this clue",
+        "suggested_scene_id": "scene id from ALL STORY SCENES where this clue likely belongs (only for missing/unlinked clues, otherwise empty string)",
+        "suggested_scene_title": "matching title from ALL STORY SCENES (only for missing/unlinked clues, otherwise empty string)"
       }}
     ]
   }},

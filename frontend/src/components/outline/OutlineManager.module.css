@@ -1,0 +1,114 @@
+.manager {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+  width: 100%;
+}
+
+.managerInner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 1.5rem 1.75rem 4rem;
+}
+
+.loading {
+  padding: 2rem 1.75rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: var(--color-text);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: var(--color-text-subtle);
+}
+
+.emptyIcon {
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+
+.emptyTitle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.emptyDesc {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  max-width: 340px;
+  margin: 0 auto 1.25rem;
+}
+
+/* ── New root item form ── */
+.newRootForm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 0.5rem;
+}
+
+.newRootInput {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* ── Outline tree container ── */
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.addRootRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  margin-top: 0.5rem;
+  border-radius: var(--radius);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  font-size: 0.85rem;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+
+.addRootRow:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}

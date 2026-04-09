@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass } from "lucide-react";
+import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass, Pencil } from "lucide-react";
 import { api } from "../../api/client";
 import type { Twist, TwistType, TwistStatus, TwistClue, StructureNode } from "../../types";
 import TwistClueEditor from "./TwistClueEditor";
 import TwistAnalysisPanel from "./TwistAnalysisPanel";
+import { SectionCard } from "../common";
 import styles from "./TwistManager.module.css";
 
 interface Props {
@@ -136,6 +137,7 @@ export default function TwistManager({ storyId }: Props) {
 
   return (
     <div className={styles.manager}>
+    <div className={styles.inner}>
       <div className={styles.header}>
         <h2 className={styles.title}>Twists & Misdirection</h2>
         <button onClick={() => setCreating(true)} className={styles.addBtn}>
@@ -224,7 +226,7 @@ export default function TwistManager({ storyId }: Props) {
                     title="Edit"
                     type="button"
                   >
-                    <Plus size={13} style={{ transform: "rotate(45deg)" }} />
+                    <Pencil size={13} />
                   </button>
                   <button
                     className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
@@ -243,101 +245,100 @@ export default function TwistManager({ storyId }: Props) {
                 <div className={styles.cardBody}>
                   {isEditing ? (
                     <div className={styles.editForm}>
-                      <input
-                        className={styles.nameInput}
-                        value={editFields.name}
-                        onChange={(e) => setEditFields((f) => ({ ...f, name: e.target.value }))}
-                        placeholder="Twist name"
-                      />
-
-                      {/* Type selector */}
-                      <div className={styles.typeRow}>
-                        {TYPE_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            className={`${styles.typeBtn} ${editFields.twist_type === opt.value ? styles.typeBtnActive : ""}`}
-                            onClick={() => setEditFields((f) => ({ ...f, twist_type: opt.value }))}
-                            title={opt.tip}
-                          >
-                            {opt.icon}
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Status selector */}
-                      <div className={styles.statusRow}>
-                        {STATUS_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.value}
-                            type="button"
-                            className={`${styles.statusBtn} ${styles[`statusBtn_${opt.value}`]} ${editFields.status === opt.value ? styles.statusBtnActive : ""}`}
-                            onClick={() => setEditFields((f) => ({ ...f, status: opt.value }))}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Truth */}
-                      <div className={styles.fieldGroup}>
-                        <label className={styles.fieldLabel}>
-                          <span className={styles.labelTruth}>The Truth</span>
-                          <span className={styles.labelHint}>What's actually happening</span>
-                        </label>
-                        <textarea
-                          className={styles.textarea}
-                          value={editFields.the_truth}
-                          onChange={(e) => setEditFields((f) => ({ ...f, the_truth: e.target.value }))}
-                          placeholder="What is really going on?"
-                          rows={3}
+                      {/* Type & Status */}
+                      <SectionCard title="Type & Status" collapsible={false}>
+                        <input
+                          className={styles.nameInput}
+                          value={editFields.name}
+                          onChange={(e) => setEditFields((f) => ({ ...f, name: e.target.value }))}
+                          placeholder="Twist name"
                         />
-                      </div>
+                        <div className={styles.typeRow}>
+                          {TYPE_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`${styles.typeBtn} ${editFields.twist_type === opt.value ? styles.typeBtnActive : ""}`}
+                              onClick={() => setEditFields((f) => ({ ...f, twist_type: opt.value }))}
+                              title={opt.tip}
+                            >
+                              {opt.icon}
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className={styles.statusRow}>
+                          {STATUS_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.value}
+                              type="button"
+                              className={`${styles.statusBtn} ${styles[`statusBtn_${opt.value}`]} ${editFields.status === opt.value ? styles.statusBtnActive : ""}`}
+                              onClick={() => setEditFields((f) => ({ ...f, status: opt.value }))}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </SectionCard>
 
-                      {/* Misdirection */}
-                      <div className={styles.fieldGroup}>
-                        <label className={styles.fieldLabel}>
-                          <span className={styles.labelMisdirect}>The Misdirection</span>
-                          <span className={styles.labelHint}>What readers are led to believe</span>
-                        </label>
-                        <textarea
-                          className={styles.textarea}
-                          value={editFields.the_misdirection}
-                          onChange={(e) => setEditFields((f) => ({ ...f, the_misdirection: e.target.value }))}
-                          placeholder="What do you want readers to think?"
-                          rows={3}
-                        />
-                      </div>
-
-                      {/* Revealed at scene */}
-                      {nodes.length > 0 && (
+                      {/* The Story */}
+                      <SectionCard title="The Story">
                         <div className={styles.fieldGroup}>
                           <label className={styles.fieldLabel}>
-                            <span>Revealed in</span>
-                            <span className={styles.labelHint}>Scene where the truth is exposed</span>
+                            <span className={styles.labelTruth}>The Truth</span>
+                            <span className={styles.labelHint}>What's actually happening</span>
                           </label>
-                          <select
-                            className={styles.select}
-                            value={editFields.revealed_at_node_id ?? ""}
-                            onChange={(e) => setEditFields((f) => ({ ...f, revealed_at_node_id: e.target.value || null }))}
-                          >
-                            <option value="">— not yet assigned —</option>
-                            {nodes.map((n) => (
-                              <option key={n.id} value={n.id}>
-                                {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
-                              </option>
-                            ))}
-                          </select>
+                          <textarea
+                            className={styles.textarea}
+                            value={editFields.the_truth}
+                            onChange={(e) => setEditFields((f) => ({ ...f, the_truth: e.target.value }))}
+                            placeholder="What is really going on?"
+                            rows={3}
+                          />
                         </div>
-                      )}
+                        <div className={styles.fieldGroup}>
+                          <label className={styles.fieldLabel}>
+                            <span className={styles.labelMisdirect}>The Misdirection</span>
+                            <span className={styles.labelHint}>What readers are led to believe</span>
+                          </label>
+                          <textarea
+                            className={styles.textarea}
+                            value={editFields.the_misdirection}
+                            onChange={(e) => setEditFields((f) => ({ ...f, the_misdirection: e.target.value }))}
+                            placeholder="What do you want readers to think?"
+                            rows={3}
+                          />
+                        </div>
+                        {nodes.length > 0 && (
+                          <div className={styles.fieldGroup}>
+                            <label className={styles.fieldLabel}>
+                              <span>Revealed in</span>
+                              <span className={styles.labelHint}>Scene where the truth is exposed</span>
+                            </label>
+                            <select
+                              className={styles.select}
+                              value={editFields.revealed_at_node_id ?? ""}
+                              onChange={(e) => setEditFields((f) => ({ ...f, revealed_at_node_id: e.target.value || null }))}
+                            >
+                              <option value="">— not yet assigned —</option>
+                              {nodes.map((n) => (
+                                <option key={n.id} value={n.id}>
+                                  {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </SectionCard>
 
                       {/* Clues */}
-                      <TwistClueEditor
-                        clues={editFields.clues}
-                        nodes={nodes}
-                        onChange={(clues) => setEditFields((f) => ({ ...f, clues }))}
-                      />
+                      <SectionCard title="Clues" variant="ai">
+                        <TwistClueEditor
+                          clues={editFields.clues}
+                          nodes={nodes}
+                          onChange={(clues) => setEditFields((f) => ({ ...f, clues }))}
+                        />
+                      </SectionCard>
 
                       <div className={styles.editActions}>
                         <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>
@@ -402,6 +403,7 @@ export default function TwistManager({ storyId }: Props) {
           );
         })}
       </div>
+    </div>
     </div>
   );
 }

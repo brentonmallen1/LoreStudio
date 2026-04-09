@@ -331,6 +331,13 @@ export default function StoryHealthPage() {
                       <span className={styles.charArcPct}>{c.arc_pct ?? 0}%</span>
                     </div>
                   )}
+                  <button
+                    className={styles.viewArcBtn}
+                    onClick={() => navigate(`/stories/${storyId}/characters/${c.id}?tab=arc`)}
+                    title="View Arc Journey"
+                  >
+                    Arc Journey →
+                  </button>
                 </div>
               ))}
             </div>

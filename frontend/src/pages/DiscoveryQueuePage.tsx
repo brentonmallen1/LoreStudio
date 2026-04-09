@@ -74,6 +74,7 @@ export default function DiscoveryQueuePage() {
 
   return (
     <div className={styles.page}>
+    <div className={styles.pageInner}>
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className={styles.title}>Discoveries</h2>
@@ -185,6 +186,7 @@ export default function DiscoveryQueuePage() {
           )}
         </>
       )}
+    </div>
     </div>
   );
 }

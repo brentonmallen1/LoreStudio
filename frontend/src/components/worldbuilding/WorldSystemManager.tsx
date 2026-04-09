@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Plus, Zap, Trash2, ChevronDown, ChevronUp, Compass } from "lucide-react";
+import { Plus, Zap, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { WorldSystem } from "../../types";
+import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
 
@@ -21,7 +22,7 @@ export default function WorldSystemManager({ storyId }: Props) {
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("");
   const [newCustomType, setNewCustomType] = useState("");
-  const [expandedTiers, setExpandedTiers] = useState(false);
+  const [tiersCollapsed, setTiersCollapsed] = useState(false);
   const { openWorldBuildingAIPanel } = useUIStore();
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -142,121 +143,114 @@ export default function WorldSystemManager({ storyId }: Props) {
               </div>
             </div>
 
-            <div className={styles.fieldRow}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Name</label>
-                <input className={styles.fieldInput} value={selected.name}
-                  onChange={(e) => scheduleUpdate("name", e.target.value)} />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Type</label>
-                <select
-                  className={styles.fieldSelect}
-                  value={selected.system_type}
-                  onChange={(e) => scheduleUpdate("system_type", e.target.value)}
-                >
-                  <option value="">— select type —</option>
-                  {availableTypes.map((t) => <option key={t} value={t}>{t}</option>)}
-                  <option value="__custom__">Custom…</option>
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Source / Origin</label>
-              <textarea className={styles.fieldTextarea}
-                placeholder="Where does this system come from? What is its basis?"
-                value={selected.source_origin}
-                onChange={(e) => scheduleUpdate("source_origin", e.target.value)} />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Rules</label>
-              <textarea className={styles.fieldTextarea}
-                style={{ minHeight: "7rem" }}
-                placeholder="How does this system work? What are the mechanics?"
-                value={selected.rules}
-                onChange={(e) => scheduleUpdate("rules", e.target.value)} />
-            </div>
-
-            <div className={styles.fieldRow}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Limitations</label>
-                <textarea className={styles.fieldTextarea}
-                  placeholder="What can't it do? What restricts its use?"
-                  value={selected.limitations}
-                  onChange={(e) => scheduleUpdate("limitations", e.target.value)} />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Costs</label>
-                <textarea className={styles.fieldTextarea}
-                  placeholder="What does it cost to use? Physical, mental, social?"
-                  value={selected.costs}
-                  onChange={(e) => scheduleUpdate("costs", e.target.value)} />
-              </div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Notes</label>
-              <textarea className={styles.fieldTextarea}
-                placeholder="Anything else worth noting about this system…"
-                value={selected.notes}
-                onChange={(e) => scheduleUpdate("notes", e.target.value)} />
-            </div>
-
-            <hr className={styles.divider} />
-
-            <div className={styles.fieldGroup}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-                <label className={styles.fieldLabel} style={{ margin: 0 }}>
-                  Hierarchy / Tiers
-                  {selected.hierarchy_tiers.length > 0 && ` (${selected.hierarchy_tiers.length})`}
-                </label>
-                <div style={{ display: "flex", gap: "0.375rem" }}>
-                  {selected.hierarchy_tiers.length > 0 && (
-                    <button className={styles.ghostBtn} onClick={() => setExpandedTiers(!expandedTiers)}>
-                      {expandedTiers ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                      {expandedTiers ? "Collapse" : "Expand"}
-                    </button>
-                  )}
-                  <button className={styles.ghostBtn} onClick={addTier}>
-                    <Plus size={12} /> Add tier
-                  </button>
+            <div className={styles.detailContent}>
+              <SectionCard title="Identity" collapsible={false}>
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Name</label>
+                    <input className={styles.fieldInput} value={selected.name}
+                      onChange={(e) => scheduleUpdate("name", e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Type</label>
+                    <select
+                      className={styles.fieldSelect}
+                      value={selected.system_type}
+                      onChange={(e) => scheduleUpdate("system_type", e.target.value)}
+                    >
+                      <option value="">— select type —</option>
+                      {availableTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                      <option value="__custom__">Custom…</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              {selected.hierarchy_tiers.length === 0 ? (
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                  No tiers defined. Add tiers to represent power levels, ranks, or categories in this system.
-                </p>
-              ) : (expandedTiers || selected.hierarchy_tiers.length <= 3) && (
-                <div className={styles.tierList}>
-                  {selected.hierarchy_tiers.map((tier, i) => (
-                    <div key={i} className={styles.tierItem}>
-                      <span className={styles.tierNumber}>{i + 1}</span>
-                      <div className={styles.tierBody}>
-                        <input
-                          className={styles.fieldInput}
-                          placeholder="Tier name"
-                          value={tier.name}
-                          onChange={(e) => updateTier(i, "name", e.target.value)}
-                          style={{ marginBottom: "0.375rem" }}
-                        />
-                        <input
-                          className={styles.fieldInput}
-                          placeholder="Description"
-                          value={tier.description}
-                          onChange={(e) => updateTier(i, "description", e.target.value)}
-                        />
+              </SectionCard>
+
+              <SectionCard title="How It Works">
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Source / Origin</label>
+                  <textarea className={styles.fieldTextarea}
+                    placeholder="Where does this system come from? What is its basis?"
+                    value={selected.source_origin}
+                    onChange={(e) => scheduleUpdate("source_origin", e.target.value)} />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Rules</label>
+                  <textarea className={styles.fieldTextarea}
+                    style={{ minHeight: "7rem" }}
+                    placeholder="How does this system work? What are the mechanics?"
+                    value={selected.rules}
+                    onChange={(e) => scheduleUpdate("rules", e.target.value)} />
+                </div>
+              </SectionCard>
+
+              <SectionCard title="Constraints">
+                <div className={styles.fieldRow}>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Limitations</label>
+                    <textarea className={styles.fieldTextarea}
+                      placeholder="What can't it do? What restricts its use?"
+                      value={selected.limitations}
+                      onChange={(e) => scheduleUpdate("limitations", e.target.value)} />
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Costs</label>
+                    <textarea className={styles.fieldTextarea}
+                      placeholder="What does it cost to use? Physical, mental, social?"
+                      value={selected.costs}
+                      onChange={(e) => scheduleUpdate("costs", e.target.value)} />
+                  </div>
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Notes</label>
+                  <textarea className={styles.fieldTextarea}
+                    placeholder="Anything else worth noting about this system…"
+                    value={selected.notes}
+                    onChange={(e) => scheduleUpdate("notes", e.target.value)} />
+                </div>
+              </SectionCard>
+
+              <SectionCard
+                title={`Hierarchy / Tiers${selected.hierarchy_tiers.length > 0 ? ` (${selected.hierarchy_tiers.length})` : ""}`}
+                collapsed={tiersCollapsed}
+                onToggle={() => setTiersCollapsed((c) => !c)}
+              >
+                <button className={styles.ghostBtn} onClick={addTier} style={{ alignSelf: "flex-start" }}>
+                  <Plus size={12} /> Add tier
+                </button>
+                {selected.hierarchy_tiers.length === 0 ? (
+                  <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: 0 }}>
+                    No tiers defined. Add tiers to represent power levels, ranks, or categories in this system.
+                  </p>
+                ) : (
+                  <div className={styles.tierList}>
+                    {selected.hierarchy_tiers.map((tier, i) => (
+                      <div key={i} className={styles.tierItem}>
+                        <span className={styles.tierNumber}>{i + 1}</span>
+                        <div className={styles.tierBody}>
+                          <input
+                            className={styles.fieldInput}
+                            placeholder="Tier name"
+                            value={tier.name}
+                            onChange={(e) => updateTier(i, "name", e.target.value)}
+                            style={{ marginBottom: "0.375rem" }}
+                          />
+                          <input
+                            className={styles.fieldInput}
+                            placeholder="Description"
+                            value={tier.description}
+                            onChange={(e) => updateTier(i, "description", e.target.value)}
+                          />
+                        </div>
+                        <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => removeTier(i)}>
+                          <Trash2 size={13} />
+                        </button>
                       </div>
-                      <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => removeTier(i)}>
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </SectionCard>
             </div>
-
           </>
         )}
       </div>

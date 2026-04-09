@@ -18,6 +18,7 @@ const WorldBuildingHub   = lazy(() => import("../components/worldbuilding/WorldB
 const PanelInterviewPanel = lazy(() => import("../components/panels/PanelInterviewPanel"));
 const PlotThreadManager  = lazy(() => import("../components/threads/PlotThreadManager"));
 const TwistManager       = lazy(() => import("../components/twists/TwistManager"));
+const OutlineManager     = lazy(() => import("../components/outline/OutlineManager"));
 const CorkboardView      = lazy(() => import("../components/story/CorkboardView"));
 const TimelineView       = lazy(() => import("../components/story/TimelineView"));
 const SceneLinkGraph     = lazy(() => import("../components/story/SceneLinkGraph"));
@@ -133,6 +134,7 @@ export default function StoryWorkspacePage() {
           <Route path="/compendium" element={<CompendiumPanel storyId={storyId!} />} />
           <Route path="/worldbuilding" element={<WorldBuildingHub />} />
           <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
+          <Route path="/outline" element={<OutlineManager storyId={storyId!} />} />
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
           <Route path="/twists" element={<TwistManager storyId={storyId!} />} />
           <Route path="/media" element={<MediaPage />} />

@@ -124,6 +124,8 @@ export interface ArcMilestone {
   id: string;
   text: string;
   completed: boolean;
+  scene_id?: string | null;
+  scene_title?: string | null;
 }
 
 export interface CharacterAttributes {
@@ -296,6 +298,25 @@ export interface Twist {
   clues: TwistClue[];
   created_at: string;
   updated_at: string;
+}
+
+// ── Outline ──
+
+export type OutlineBeatType = "plot" | "character" | "theme" | "setting";
+
+export interface OutlineItem {
+  id: string;
+  story_id: string;
+  parent_id: string | null;
+  level: number;
+  position: number;
+  text: string;
+  beat_type: OutlineBeatType | null;
+  notes: string;
+  collapsed: boolean;
+  created_at: string;
+  updated_at: string;
+  children: OutlineItem[];
 }
 
 export interface SceneLink {
@@ -730,6 +751,62 @@ export interface RelationshipSuggestion {
 
 export interface RelationshipSuggestionsResponse {
   suggestions: RelationshipSuggestion[];
+}
+
+// ── Thread Analysis ──
+
+export interface ThreadMomentDiscovery {
+  scene_id: string;
+  scene_title: string;
+  moment_type: string;
+  description: string;
+  suggested_cycle_link: boolean;
+}
+
+export interface ThreadAnalysisResponse {
+  progression: AnalysisSection;
+  moment_discoveries: ThreadMomentDiscovery[];
+  quality: AnalysisSection;
+  unlinked_cycles: string[];
+  suggestions: string[];
+  overall_rating: string;
+}
+
+// ── Arc Analysis ──
+
+export interface ArcMomentDiscovery {
+  scene_id: string;
+  scene_title: string;
+  arc_significance: string;
+  suggested_milestone_link: string;
+}
+
+export interface ArcAnalysisResponse {
+  trajectory: AnalysisSection;
+  moment_discoveries: ArcMomentDiscovery[];
+  drift_analysis: AnalysisSection;
+  health: AnalysisSection;
+  unlinked_milestones: string[];
+  suggestions: string[];
+  overall_rating: string;
+}
+
+export interface ArcTimelineScene {
+  id: string;
+  title: string;
+  position: number;
+  word_count: number;
+  status: string;
+  linked_milestones: string[];
+}
+
+export interface ArcTimelineData {
+  character_id: string;
+  character_name: string;
+  scenes: ArcTimelineScene[];
+  milestones: ArcMilestone[];
+  appearance_rate: number;
+  total_scenes: number;
 }
 
 // ── Chronicle ──

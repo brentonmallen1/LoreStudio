@@ -159,13 +159,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ id: "", text, completed: false }),
     }),
-  updateMilestone: (characterId: string, milestoneId: string, data: { text?: string; completed?: boolean }) =>
+  updateMilestone: (characterId: string, milestoneId: string, data: { text?: string; completed?: boolean; scene_id?: string | null; scene_title?: string | null }) =>
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, {
       method: "PATCH",
-      body: JSON.stringify({ id: milestoneId, text: data.text ?? "", completed: data.completed ?? false }),
+      body: JSON.stringify({ id: milestoneId, text: data.text ?? "", completed: data.completed ?? false, scene_id: data.scene_id, scene_title: data.scene_title }),
     }),
   deleteMilestone: (characterId: string, milestoneId: string) =>
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, { method: "DELETE" }),
+  getArcTimeline: (characterId: string) =>
+    request<import("../types").ArcTimelineData>(`/characters/${characterId}/arc-timeline`),
+  analyzeCharacterArc: (characterId: string) =>
+    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, { method: "POST" }),
 
   // Character AI generation
   generateAttributes: (characterId: string, attributeType: string): Promise<import("../types").StructuredResult> =>
@@ -281,6 +285,8 @@ export const api = {
     }),
   removeThreadAppearance: (threadId: string, nodeId: string) =>
     request<void>(`/threads/${threadId}/appearances/${nodeId}`, { method: "DELETE" }),
+  analyzeThread: (threadId: string) =>
+    request<import("../types").StructuredResult>(`/threads/${threadId}/analyze`, { method: "POST" }),
 
   // Twists
   listTwists: (storyId: string) =>
@@ -300,6 +306,34 @@ export const api = {
     request<import("../types").Twist[]>(`/structure/${nodeId}/twists`),
   analyzeTwist: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze`, { method: "POST" }),
+  linkClueToScene: (twistId: string, clueId: string, sceneId: string) =>
+    request<import("../types").Twist>(`/twists/${twistId}/clues/${clueId}/link`, {
+      method: "PATCH",
+      body: JSON.stringify({ scene_id: sceneId }),
+    }),
+
+  // Outline
+  getOutline: (storyId: string) =>
+    request<import("../types").OutlineItem[]>(`/stories/${storyId}/outline`),
+  createOutlineItem: (
+    storyId: string,
+    data: { text: string; parent_id?: string | null; position?: number; beat_type?: string | null; notes?: string },
+  ) =>
+    request<import("../types").OutlineItem>(`/stories/${storyId}/outline`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateOutlineItem: (itemId: string, data: Partial<import("../types").OutlineItem>) =>
+    request<import("../types").OutlineItem>(`/outline/${itemId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteOutlineItem: (itemId: string) => request<void>(`/outline/${itemId}`, { method: "DELETE" }),
+  reorderOutline: (storyId: string, parentId: string | null, itemIds: string[]) =>
+    request<void>(`/stories/${storyId}/outline/reorder`, {
+      method: "POST",
+      body: JSON.stringify({ parent_id: parentId, item_ids: itemIds }),
+    }),
 
   // Panel Interviews
   listPanels: (storyId: string) =>

@@ -122,9 +122,12 @@ class TravelAnalysisResponse(BaseModel):
 # ── Twist Analysis ────────────────────────────────────────────────────────────
 
 class ClueAssessment(BaseModel):
+    clue_id: str = ""                   # ID from the twist's clues array
     clue_text: str = ""
-    assessment: str = ""   # found | missing | needs-work
+    assessment: str = ""               # found | missing | needs-work
     notes: str = ""
+    suggested_scene_id: str = ""       # Suggested scene to link (for unlinked/missing clues)
+    suggested_scene_title: str = ""    # Human-readable title of suggested scene
 
 
 class ClueVerificationSection(BaseModel):
@@ -157,6 +160,44 @@ class TwistAnalysisResponse(BaseModel):
     misdirection_strength: MisdirectionSection = MisdirectionSection()
     overall_rating: str = "fair"   # needs_work | fair | good | excellent
     suggestions: list[str] = []
+
+
+# ── Thread Analysis ──────────────────────────────────────────────────────────
+
+class ThreadMomentDiscovery(BaseModel):
+    scene_id: str = ""
+    scene_title: str = ""
+    moment_type: str = ""   # inciting | complication | turning_point | climax | resolution
+    description: str = ""
+    suggested_cycle_link: bool = False   # Should this become a try/fail cycle entry?
+
+
+class ThreadAnalysisResponse(BaseModel):
+    progression: AnalysisSection = AnalysisSection()   # MICE lifecycle position, current state
+    moment_discoveries: list[ThreadMomentDiscovery] = []
+    quality: AnalysisSection = AnalysisSection()       # Pacing, try/fail depth, resolution setup
+    unlinked_cycles: list[str] = []                    # Cycles with no scene assignment
+    suggestions: list[str] = []
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+
+
+# ── Arc Analysis ──────────────────────────────────────────────────────────────
+
+class ArcMomentDiscovery(BaseModel):
+    scene_id: str = ""
+    scene_title: str = ""
+    arc_significance: str = ""          # What happens to the character here
+    suggested_milestone_link: str = ""  # Milestone text this might fulfill (empty if none)
+
+
+class ArcAnalysisResponse(BaseModel):
+    trajectory: AnalysisSection = AnalysisSection()       # Current position, growth direction
+    moment_discoveries: list[ArcMomentDiscovery] = []
+    drift_analysis: AnalysisSection = AnalysisSection()   # Planned vs actual arc
+    health: AnalysisSection = AnalysisSection()           # Pacing issues, missing beats
+    unlinked_milestones: list[str] = []
+    suggestions: list[str] = []
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
 
 
 # ── Structured result wrapper ─────────────────────────────────────────────────

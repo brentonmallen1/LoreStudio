@@ -5,6 +5,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
 import BeatSheetSelector from "./BeatSheetSelector";
+import { SectionCard } from "../common";
 import styles from "./LorebookPanel.module.css";
 
 const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
@@ -95,9 +96,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
   }
 
   return (
-    <div className={styles.section}>
-      <h3 className={styles.sectionTitle}>Story Goals</h3>
-      <p className={styles.fieldHint}>Explicit goals to hit as you write. Check them off as you accomplish them.</p>
+    <>
       <div className={styles.goalList}>
         {goals.length === 0 && (
           <p className={styles.emptyGoals}>No goals yet. Add one below.</p>
@@ -134,7 +133,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
           <Plus size={13} />
         </button>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -211,34 +210,33 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
       </div>
 
       <div className={styles.scrollArea}>
-        {/* ── Logline ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Logline</h3>
-          <p className={styles.fieldHint}>One sentence: who wants what, against what obstacle, with what at stake.</p>
-          <input
-            value={fields.logline}
-            onChange={(e) => update("logline", e.target.value)}
-            placeholder="A disgraced detective must…"
-            className={styles.input}
-          />
-        </div>
-
-        {/* ── Premise ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Premise</h3>
-          <p className={styles.fieldHint}>Expanded setup: the situation, the characters, and what's at stake.</p>
-          <textarea
-            value={fields.premise}
-            onChange={(e) => update("premise", e.target.value)}
-            placeholder="In a world where…"
-            className={styles.textarea}
-            rows={3}
-          />
-        </div>
+        {/* ── Core Identity ── */}
+        <SectionCard title="Core Identity" collapsible={false}>
+          <div>
+            <p className={styles.subFieldLabel}>Logline</p>
+            <p className={styles.fieldHint}>One sentence: who wants what, against what obstacle, with what at stake.</p>
+            <input
+              value={fields.logline}
+              onChange={(e) => update("logline", e.target.value)}
+              placeholder="A disgraced detective must…"
+              className={styles.input}
+            />
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Premise</p>
+            <p className={styles.fieldHint}>Expanded setup: the situation, the characters, and what's at stake.</p>
+            <textarea
+              value={fields.premise}
+              onChange={(e) => update("premise", e.target.value)}
+              placeholder="In a world where…"
+              className={styles.textarea}
+              rows={3}
+            />
+          </div>
+        </SectionCard>
 
         {/* ── Narrative Intent ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Narrative Intent</h3>
+        <SectionCard title="Narrative Intent" variant="intent">
           <p className={styles.fieldHint}>What is this story about (meaning, not plot)? What question does it ask? What should the reader feel at the end?</p>
           <textarea
             value={fields.narrative_intent}
@@ -247,133 +245,128 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
             className={styles.textarea}
             rows={3}
           />
-        </div>
+        </SectionCard>
 
-        {/* ── Genre + Tone ── */}
-        <div className={styles.row}>
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Genre</h3>
-            <input
-              value={fields.genre}
-              onChange={(e) => update("genre", e.target.value)}
-              placeholder="Literary fiction, thriller…"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Tone</h3>
-            <input
-              value={fields.tone}
-              onChange={(e) => update("tone", e.target.value)}
-              placeholder="Dark, hopeful, satirical…"
-              className={styles.input}
-            />
-          </div>
-        </div>
-
-        {/* ── Narrative Perspective ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Narrative Perspective</h3>
-          <p className={styles.fieldHint}>Point of view for the story. Guides AI tools on voice and perspective.</p>
-          <select
-            value={fields.narrative_perspective}
-            onChange={(e) => update("narrative_perspective", e.target.value)}
-            className={styles.input}
-          >
-            <option value="">Not specified</option>
-            <option value="first_person">First Person</option>
-            <option value="third_limited">Third Person Limited</option>
-            <option value="third_omniscient">Third Person Omniscient</option>
-            <option value="second_person">Second Person</option>
-            <option value="multiple_pov">Multiple POV</option>
-          </select>
-          {(fields.narrative_perspective === "first_person" || fields.narrative_perspective === "third_limited") && (
-            <div className={styles.subField}>
-              <p className={styles.subFieldLabel}>POV Character</p>
-              <select
-                value={fields.pov_character_id}
-                onChange={(e) => updatePovCharacter(e.target.value)}
+        {/* ── Style ── */}
+        <SectionCard title="Style">
+          <div className={styles.row}>
+            <div>
+              <p className={styles.subFieldLabel}>Genre</p>
+              <input
+                value={fields.genre}
+                onChange={(e) => update("genre", e.target.value)}
+                placeholder="Literary fiction, thriller…"
                 className={styles.input}
-              >
-                <option value="">Not specified</option>
-                {characters.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              />
             </div>
-          )}
-        </div>
+            <div>
+              <p className={styles.subFieldLabel}>Tone</p>
+              <input
+                value={fields.tone}
+                onChange={(e) => update("tone", e.target.value)}
+                placeholder="Dark, hopeful, satirical…"
+                className={styles.input}
+              />
+            </div>
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Narrative Perspective</p>
+            <p className={styles.fieldHint}>Point of view for the story. Guides AI tools on voice and perspective.</p>
+            <select
+              value={fields.narrative_perspective}
+              onChange={(e) => update("narrative_perspective", e.target.value)}
+              className={styles.input}
+            >
+              <option value="">Not specified</option>
+              <option value="first_person">First Person</option>
+              <option value="third_limited">Third Person Limited</option>
+              <option value="third_omniscient">Third Person Omniscient</option>
+              <option value="second_person">Second Person</option>
+              <option value="multiple_pov">Multiple POV</option>
+            </select>
+            {(fields.narrative_perspective === "first_person" || fields.narrative_perspective === "third_limited") && (
+              <div className={styles.subField}>
+                <p className={styles.subFieldLabel}>POV Character</p>
+                <select
+                  value={fields.pov_character_id}
+                  onChange={(e) => updatePovCharacter(e.target.value)}
+                  className={styles.input}
+                >
+                  <option value="">Not specified</option>
+                  {characters.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </SectionCard>
 
-        {/* ── Intended Length ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Intended Length</h3>
-          <p className={styles.fieldHint}>Target form and word count range for your story. Used by Story Health and AI tools.</p>
-          <select
-            value={fields.intended_length}
-            onChange={(e) => update("intended_length", e.target.value)}
-            className={styles.input}
-          >
-            {LENGTH_OPTIONS.map((val) => (
-              <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
-            ))}
-          </select>
-        </div>
+        {/* ── Structure ── */}
+        <SectionCard title="Structure">
+          <div>
+            <p className={styles.subFieldLabel}>Intended Length</p>
+            <p className={styles.fieldHint}>Target form and word count range. Used by Story Health and AI tools.</p>
+            <select
+              value={fields.intended_length}
+              onChange={(e) => update("intended_length", e.target.value)}
+              className={styles.input}
+            >
+              {LENGTH_OPTIONS.map((val) => (
+                <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Beat Sheet</p>
+            <p className={styles.fieldHint}>Optional story structure framework. Helps track where key beats fall relative to your word count.</p>
+            <BeatSheetSelector
+              value={activeStory.beat_sheet_id}
+              onChange={updateBeatSheet}
+            />
+          </div>
+        </SectionCard>
 
-        {/* ── Beat Sheet ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Beat Sheet</h3>
-          <p className={styles.fieldHint}>Optional story structure framework. Helps track where key beats fall relative to your word count.</p>
-          <BeatSheetSelector
-            value={activeStory.beat_sheet_id}
-            onChange={updateBeatSheet}
-          />
-        </div>
+        {/* ── Themes & Conflict ── */}
+        <SectionCard title="Themes & Conflict">
+          <div>
+            <p className={styles.subFieldLabel}>Themes</p>
+            <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
+            <ThemeInput
+              themes={fields.themes}
+              onChange={(t) => update("themes", t)}
+            />
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Central Conflict</p>
+            <textarea
+              value={fields.central_conflict}
+              onChange={(e) => update("central_conflict", e.target.value)}
+              placeholder="The core tension driving the story…"
+              className={styles.textarea}
+              rows={2}
+            />
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Target Audience</p>
+            <input
+              value={fields.target_audience}
+              onChange={(e) => update("target_audience", e.target.value)}
+              placeholder="Adult literary fiction readers…"
+              className={styles.input}
+            />
+          </div>
+        </SectionCard>
 
-        {/* ── Themes ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Themes</h3>
-          <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
-          <ThemeInput
-            themes={fields.themes}
-            onChange={(t) => update("themes", t)}
-          />
-        </div>
+        {/* ── Story Goals ── */}
+        <SectionCard title="Story Goals">
+          <p className={styles.fieldHint}>Explicit goals to hit as you write. Check them off as you accomplish them.</p>
+          <GoalsPanel storyId={storyId} />
+        </SectionCard>
 
-        {/* ── Central Conflict ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Central Conflict</h3>
-          <textarea
-            value={fields.central_conflict}
-            onChange={(e) => update("central_conflict", e.target.value)}
-            placeholder="The core tension driving the story…"
-            className={styles.textarea}
-            rows={2}
-          />
-        </div>
-
-        {/* ── Audience ── */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Target Audience</h3>
-          <input
-            value={fields.target_audience}
-            onChange={(e) => update("target_audience", e.target.value)}
-            placeholder="Adult literary fiction readers…"
-            className={styles.input}
-          />
-        </div>
-
-        {/* ── Goals ── */}
-        <GoalsPanel storyId={storyId} />
-
-        {/* ── Story So Far ── */}
-        <div className={styles.section}>
-          <StorySummaryPanel storyId={storyId} />
-        </div>
-
-        {/* ── Perspective Summaries ── */}
-        <div className={styles.section}>
-          <PerspectiveSummaryPanel storyId={storyId} />
-        </div>
+        {/* AI summaries are self-contained cards — render directly without wrapping */}
+        <StorySummaryPanel storyId={storyId} />
+        <PerspectiveSummaryPanel storyId={storyId} />
       </div>
     </div>
   );

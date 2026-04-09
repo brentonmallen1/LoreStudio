@@ -466,6 +466,23 @@
   flex-shrink: 0;
 }
 
+.viewArcBtn {
+  font-size: 0.68rem;
+  font-family: inherit;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.charCard:hover .viewArcBtn {
+  opacity: 1;
+}
+
 /* Arc ring (SVG-based) */
 .arcRing {
   display: flex;

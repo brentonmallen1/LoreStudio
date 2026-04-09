@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
+import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
 
@@ -309,165 +310,158 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               </div>
             )}
 
-            <div className={styles.fieldRow}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Name</label>
-                <input
-                  className={styles.fieldInput}
-                  value={selected.name}
-                  onChange={(e) => scheduleUpdate("name", e.target.value)}
-                />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Type</label>
-                <TypeSelector
-                  value={selected.location_type}
-                  options={availableTypes}
-                  onChange={(v) => scheduleUpdate("location_type", v)}
-                  predefined={PREDEFINED_TYPES}
-                />
-              </div>
-            </div>
-
-            <div className={styles.fieldRow}>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Climate</label>
-                <input
-                  className={styles.fieldInput}
-                  placeholder="e.g. Temperate, Arctic…"
-                  value={selected.climate}
-                  onChange={(e) => scheduleUpdate("climate", e.target.value)}
-                />
-              </div>
-              <div className={styles.fieldGroup}>
-                <label className={styles.fieldLabel}>Political Affiliation</label>
-                <input
-                  className={styles.fieldInput}
-                  placeholder="e.g. Kingdom of Valdris…"
-                  value={selected.political_affiliation}
-                  onChange={(e) => scheduleUpdate("political_affiliation", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Terrain</label>
-              <input
-                className={styles.fieldInput}
-                placeholder="e.g. Mountainous, coastal, dense forest…"
-                value={selected.terrain}
-                onChange={(e) => scheduleUpdate("terrain", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Description</label>
-              <textarea
-                className={styles.fieldTextarea}
-                placeholder="What does this place look like? Who lives here?"
-                value={selected.description}
-                onChange={(e) => scheduleUpdate("description", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Atmosphere</label>
-              <textarea
-                className={styles.fieldTextarea}
-                placeholder="The mood, feel, sensory details of this place…"
-                value={selected.atmosphere}
-                onChange={(e) => scheduleUpdate("atmosphere", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>History</label>
-              <textarea
-                className={styles.fieldTextarea}
-                placeholder="How did this place come to be? What has happened here?"
-                value={selected.history}
-                onChange={(e) => scheduleUpdate("history", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <label className={styles.fieldLabel}>Significance</label>
-              <textarea
-                className={styles.fieldTextarea}
-                placeholder="Why does this place matter to the story?"
-                value={selected.significance}
-                onChange={(e) => scheduleUpdate("significance", e.target.value)}
-              />
-            </div>
-
-            {/* Celestial Properties — shown for space types or when any field is populated */}
-            {(CELESTIAL_TYPES.has(selected.location_type) ||
-              selected.orbital_period || selected.distance_from_parent ||
-              selected.gravity || selected.habitability || selected.radiation_level) && (
-              <>
-                <hr className={styles.divider} />
-                <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel} style={{ fontWeight: 600, color: "var(--color-text)" }}>
-                    Celestial Properties
-                  </label>
-                </div>
+            <div className={styles.detailContent}>
+              <SectionCard title="Identity" collapsible={false}>
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Orbital Period</label>
+                    <label className={styles.fieldLabel}>Name</label>
                     <input
                       className={styles.fieldInput}
-                      placeholder="e.g. 365 days, 11.86 years…"
-                      value={selected.orbital_period}
-                      onChange={(e) => scheduleUpdate("orbital_period", e.target.value)}
+                      value={selected.name}
+                      onChange={(e) => scheduleUpdate("name", e.target.value)}
                     />
                   </div>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Distance from Parent</label>
-                    <input
-                      className={styles.fieldInput}
-                      placeholder="e.g. 1 AU, 384,400 km…"
-                      value={selected.distance_from_parent}
-                      onChange={(e) => scheduleUpdate("distance_from_parent", e.target.value)}
+                    <label className={styles.fieldLabel}>Type</label>
+                    <TypeSelector
+                      value={selected.location_type}
+                      options={availableTypes}
+                      onChange={(v) => scheduleUpdate("location_type", v)}
+                      predefined={PREDEFINED_TYPES}
                     />
                   </div>
                 </div>
+              </SectionCard>
+
+              <SectionCard title="Geography">
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Gravity</label>
+                    <label className={styles.fieldLabel}>Climate</label>
                     <input
                       className={styles.fieldInput}
-                      placeholder="e.g. 1g, 0.38g, microgravity…"
-                      value={selected.gravity}
-                      onChange={(e) => scheduleUpdate("gravity", e.target.value)}
+                      placeholder="e.g. Temperate, Arctic…"
+                      value={selected.climate}
+                      onChange={(e) => scheduleUpdate("climate", e.target.value)}
                     />
                   </div>
                   <div className={styles.fieldGroup}>
-                    <label className={styles.fieldLabel}>Habitability</label>
+                    <label className={styles.fieldLabel}>Political Affiliation</label>
                     <input
                       className={styles.fieldInput}
-                      placeholder="e.g. breathable, pressure suit required…"
-                      value={selected.habitability}
-                      onChange={(e) => scheduleUpdate("habitability", e.target.value)}
+                      placeholder="e.g. Kingdom of Valdris…"
+                      value={selected.political_affiliation}
+                      onChange={(e) => scheduleUpdate("political_affiliation", e.target.value)}
                     />
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Radiation Level</label>
+                  <label className={styles.fieldLabel}>Terrain</label>
                   <input
                     className={styles.fieldInput}
-                    placeholder="e.g. nominal, elevated during flares, lethal…"
-                    value={selected.radiation_level}
-                    onChange={(e) => scheduleUpdate("radiation_level", e.target.value)}
+                    placeholder="e.g. Mountainous, coastal, dense forest…"
+                    value={selected.terrain}
+                    onChange={(e) => scheduleUpdate("terrain", e.target.value)}
                   />
                 </div>
-              </>
-            )}
+              </SectionCard>
 
-            {sceneUsages.length > 0 && (
-              <>
-                <hr className={styles.divider} />
+              <SectionCard title="Narrative">
                 <div className={styles.fieldGroup}>
-                  <label className={styles.fieldLabel}>Used as setting in {sceneUsages.length} scene{sceneUsages.length !== 1 ? "s" : ""}</label>
+                  <label className={styles.fieldLabel}>Description</label>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    placeholder="What does this place look like? Who lives here?"
+                    value={selected.description}
+                    onChange={(e) => scheduleUpdate("description", e.target.value)}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Atmosphere</label>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    placeholder="The mood, feel, sensory details of this place…"
+                    value={selected.atmosphere}
+                    onChange={(e) => scheduleUpdate("atmosphere", e.target.value)}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>History</label>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    placeholder="How did this place come to be? What has happened here?"
+                    value={selected.history}
+                    onChange={(e) => scheduleUpdate("history", e.target.value)}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.fieldLabel}>Significance</label>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    placeholder="Why does this place matter to the story?"
+                    value={selected.significance}
+                    onChange={(e) => scheduleUpdate("significance", e.target.value)}
+                  />
+                </div>
+              </SectionCard>
+
+              {(CELESTIAL_TYPES.has(selected.location_type) ||
+                selected.orbital_period || selected.distance_from_parent ||
+                selected.gravity || selected.habitability || selected.radiation_level) && (
+                <SectionCard title="Celestial Properties">
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Orbital Period</label>
+                      <input
+                        className={styles.fieldInput}
+                        placeholder="e.g. 365 days, 11.86 years…"
+                        value={selected.orbital_period}
+                        onChange={(e) => scheduleUpdate("orbital_period", e.target.value)}
+                      />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Distance from Parent</label>
+                      <input
+                        className={styles.fieldInput}
+                        placeholder="e.g. 1 AU, 384,400 km…"
+                        value={selected.distance_from_parent}
+                        onChange={(e) => scheduleUpdate("distance_from_parent", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Gravity</label>
+                      <input
+                        className={styles.fieldInput}
+                        placeholder="e.g. 1g, 0.38g, microgravity…"
+                        value={selected.gravity}
+                        onChange={(e) => scheduleUpdate("gravity", e.target.value)}
+                      />
+                    </div>
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.fieldLabel}>Habitability</label>
+                      <input
+                        className={styles.fieldInput}
+                        placeholder="e.g. breathable, pressure suit required…"
+                        value={selected.habitability}
+                        onChange={(e) => scheduleUpdate("habitability", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.fieldGroup}>
+                    <label className={styles.fieldLabel}>Radiation Level</label>
+                    <input
+                      className={styles.fieldInput}
+                      placeholder="e.g. nominal, elevated during flares, lethal…"
+                      value={selected.radiation_level}
+                      onChange={(e) => scheduleUpdate("radiation_level", e.target.value)}
+                    />
+                  </div>
+                </SectionCard>
+              )}
+
+              {sceneUsages.length > 0 && (
+                <SectionCard title={`Scene Appearances (${sceneUsages.length})`}>
                   <div className={styles.usageList}>
                     {sceneUsages.map((u) => (
                       <div key={u.id} className={styles.usageItem}>
@@ -477,12 +471,10 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                       </div>
                     ))}
                   </div>
-                </div>
-              </>
-            )}
-
-
-</>
+                </SectionCard>
+              )}
+            </div>
+          </>
         )}
       </div>
 

@@ -41,6 +41,7 @@ from .routers.worldbuilding_ai import router as worldbuilding_ai_router
 from .routers.export import router as export_router
 from .routers.dialogue import router as dialogue_router
 from .routers.twists import router as twists_router
+from .routers.outlines import router as outlines_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets
 
 
@@ -102,6 +103,7 @@ app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-
 app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
+app.include_router(outlines_router, prefix="/api", tags=["outline"])
 
 
 @app.get("/health")

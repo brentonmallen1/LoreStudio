@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Body, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -175,11 +175,20 @@ async def analyze_twist(
         if node:
             reveal_scene = {"title": node.title, "content": node.content or ""}
 
+    # Pass all leaf scenes so the LLM can suggest scene links for unlinked clues
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == twist.story_id).all()
+    children_ids = {n.parent_id for n in all_nodes if n.parent_id}
+    all_scenes_ref = [
+        {"id": n.id, "title": n.title or "Untitled"}
+        for n in all_nodes if n.id not in children_ids
+    ]
+
     feature_prompt = build_twist_analysis_prompt(
         twist=twist,
         clue_scenes=clue_scenes,
         reveal_scene=reveal_scene,
         story_title=story.title,
+        all_scenes=all_scenes_ref,
     )
 
     ctx = AICallContext(
@@ -198,3 +207,31 @@ async def analyze_twist(
         db=db,
         user=current_user,
     )
+
+
+@router.patch("/twists/{twist_id}/clues/{clue_id}/link")
+def link_clue_to_scene(
+    twist_id: str,
+    clue_id: str,
+    scene_id: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Link a clue to a specific scene node (or unlink by passing empty string)."""
+    twist = _verify_twist(twist_id, db, current_user)
+    clues = list(twist.clues or [])
+    scene_title = None
+    if scene_id:
+        node = db.get(StructureNode, scene_id)
+        if node:
+            scene_title = node.title
+    for c in clues:
+        if c.get("id") == clue_id:
+            c["node_id"] = scene_id or None
+            c["scene_title"] = scene_title
+            break
+    twist.clues = clues
+    db.commit()
+    db.refresh(twist)
+    from ..schemas.twist import TwistOut
+    return TwistOut.model_validate(twist)

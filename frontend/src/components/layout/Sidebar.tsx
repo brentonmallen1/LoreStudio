@@ -32,6 +32,7 @@ import {
   Telescope,
   Send,
   Eye,
+  ListTree,
   type LucideIcon,
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
@@ -297,6 +298,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const tabs: { id: string; icon: LucideIcon; label: string; path: string; badge?: number }[] = [
     { id: "overview",      icon: Home,              label: "Overview",         path: "" },
     { id: "story",         icon: PenLine,           label: "Write",            path: "/write" },
+    { id: "outline",       icon: ListTree,          label: "Outline",          path: "/outline" },
     { id: "characters",    icon: Users,             label: "Characters",       path: "/characters" },
     { id: "lorebook",      icon: Scroll,            label: "Lorebook",         path: "/lorebook" },
     { id: "compendium",    icon: BookOpen,          label: "Compendium",       path: "/compendium" },

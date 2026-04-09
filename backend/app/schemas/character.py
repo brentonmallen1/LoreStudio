@@ -7,6 +7,8 @@ class ArcMilestone(BaseModel):
     id: str
     text: str
     completed: bool = False
+    scene_id: str | None = None
+    scene_title: str | None = None
 
 
 class CharacterCreate(BaseModel):

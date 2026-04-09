@@ -20,6 +20,7 @@ from .location_travel import LocationTravel
 from .calendar import Calendar
 from .dialogue import DialogueBlock
 from .twist import Twist
+from .outline import OutlineItem
 
 __all__ = [
     "User",
@@ -50,4 +51,5 @@ __all__ = [
     "Calendar",
     "DialogueBlock",
     "Twist",
+    "OutlineItem",
 ]

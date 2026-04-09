@@ -33,7 +33,7 @@
   padding: 1.25rem 1.75rem 3rem;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.875rem;
 }
 
 /* ── Sections ── */

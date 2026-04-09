@@ -3,7 +3,7 @@ import { UserRound, Plus, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
-import { Modal } from "../common";
+import { Modal, SectionCard } from "../common";
 import styles from "./CharacterFormDialog.module.css";
 
 interface Props {
@@ -126,68 +126,72 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
       onClose={onClose}
       title={isEditing ? `Edit ${character!.name}` : "New Character"}
       icon={<UserRound size={15} />}
-      size="md"
+      size="lg"
       footer={footer}
     >
       <form id="character-form" onSubmit={handleSubmit} className={styles.formBody}>
-        <div className={styles.grid2}>
-          <TextField label="Name *" value={name} onChange={setName} />
-          <div className={styles.field}>
-            <label className={styles.label}>Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className={styles.select}
-            >
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        <TextField
-          label="Personality"
-          value={personality}
-          onChange={setPersonality}
-          rows={2}
-          hint="Key traits that define how they think and behave"
-        />
-        <TextField
-          label="Motivation"
-          value={motivation}
-          onChange={setMotivation}
-          rows={2}
-          hint="What drives them — their core need or goal"
-        />
-        <TextField
-          label="Background"
-          value={background}
-          onChange={setBackground}
-          rows={3}
-          hint="History, upbringing, formative experiences"
-        />
-        <TextField label="Appearance" value={appearance} onChange={setAppearance} rows={2} />
-        <TextField
-          label="Arc notes"
-          value={arcNotes}
-          onChange={setArcNotes}
-          rows={2}
-          hint="How do they change throughout the story?"
-        />
-
-        <div className={styles.field}>
-          <div className={styles.promptsHeader}>
-            <div>
-              <label className={styles.label}>Interview Prompts</label>
-              <p className={styles.hint}>Suggested questions for when you interview this character</p>
+        {/* ── Basics ── */}
+        <SectionCard title="Basics" collapsible={false}>
+          <div className={styles.grid2}>
+            <TextField label="Name *" value={name} onChange={setName} />
+            <div className={styles.field}>
+              <label className={styles.label}>Role</label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className={styles.select}
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
             </div>
-            <button type="button" onClick={addPrompt} className={styles.addPromptBtn}>
-              <Plus size={12} /> Add
-            </button>
           </div>
+        </SectionCard>
+
+        {/* ── Character Depth ── */}
+        <SectionCard title="Character Depth">
+          <TextField
+            label="Personality"
+            value={personality}
+            onChange={setPersonality}
+            rows={2}
+            hint="Key traits that define how they think and behave"
+          />
+          <TextField
+            label="Motivation"
+            value={motivation}
+            onChange={setMotivation}
+            rows={2}
+            hint="What drives them — their core need or goal"
+          />
+          <TextField
+            label="Background"
+            value={background}
+            onChange={setBackground}
+            rows={3}
+            hint="History, upbringing, formative experiences"
+          />
+        </SectionCard>
+
+        {/* ── Presentation & Arc ── */}
+        <SectionCard title="Presentation & Arc">
+          <TextField label="Appearance" value={appearance} onChange={setAppearance} rows={2} />
+          <TextField
+            label="Arc Notes"
+            value={arcNotes}
+            onChange={setArcNotes}
+            rows={2}
+            hint="How do they change throughout the story?"
+          />
+        </SectionCard>
+
+        {/* ── Interview Setup ── */}
+        <SectionCard title="Interview Setup" variant="ai">
+          <p className={styles.sectionHint}>Suggested questions to ask when you interview this character</p>
           <div className={styles.promptList}>
             {interviewPrompts.map((prompt, i) => (
               <div key={i} className={styles.promptRow}>
@@ -207,7 +211,11 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
               </div>
             ))}
           </div>
-        </div>
+          <button type="button" onClick={addPrompt} className={styles.addPromptBtn}>
+            <Plus size={12} /> Add prompt
+          </button>
+        </SectionCard>
+
       </form>
     </Modal>
   );

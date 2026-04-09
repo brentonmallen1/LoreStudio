@@ -1,0 +1,110 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* ── Header ── */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.7rem 1.25rem;
+  background: var(--color-surface-2);
+  border: none;
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.head:hover {
+  background: var(--color-surface-raised);
+}
+
+/* No bottom border when collapsed (head is last child) */
+.card > .head:last-child {
+  border-bottom: none;
+}
+
+/* Non-collapsible: head is a div, not interactive */
+.headStatic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1.25rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.chevron {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.chevronCollapsed {
+  transform: rotate(-90deg);
+}
+
+/* ── Body ── */
+.body {
+  padding: 1rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── AI variant ── */
+.ai {
+  background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
+  border-color: var(--color-ai-border);
+}
+
+.ai .head,
+.ai .headStatic {
+  background: color-mix(in srgb, var(--color-ai) 8%, var(--color-surface-2));
+  border-bottom-color: var(--color-ai-border);
+}
+
+.ai .head:hover {
+  background: color-mix(in srgb, var(--color-ai) 14%, var(--color-surface-2));
+}
+
+.ai .title {
+  color: var(--color-ai);
+}
+
+.ai .chevron {
+  color: var(--color-ai);
+  opacity: 0.7;
+}
+
+/* ── Intent variant ── */
+.intent {
+  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-warning) 25%, var(--color-border));
+}
+
+.intent .head,
+.intent .headStatic {
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface-2));
+  border-bottom-color: color-mix(in srgb, var(--color-warning) 20%, var(--color-border));
+}
+
+.intent .head:hover {
+  background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface-2));
+}

@@ -6,6 +6,7 @@ import styles from "./TwistAnalysisPanel.module.css";
 
 interface Props {
   twistId: string;
+  onClueLinked?: () => void;  // Callback to refresh twist data after linking
 }
 
 type AnyRecord = Record<string, unknown>;
@@ -28,9 +29,23 @@ function asRecord(v: unknown): AnyRecord { return (v as AnyRecord) ?? {}; }
 function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
 function asStringList(v: unknown): string[] { return asList(v).map(str); }
 
-export default function TwistAnalysisPanel({ twistId }: Props) {
+export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
   const [result, setResult] = useState<StructuredResult | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [linking, setLinking] = useState<string | null>(null);  // clue_id being linked
+
+  async function applyClueLink(clueId: string, sceneId: string) {
+    if (!clueId || !sceneId) return;
+    setLinking(clueId);
+    try {
+      await api.linkClueToScene(twistId, clueId, sceneId);
+      onClueLinked?.();
+    } catch {
+      // ignore
+    } finally {
+      setLinking(null);
+    }
+  }
 
   async function analyze() {
     setResult(null);
@@ -97,6 +112,19 @@ export default function TwistAnalysisPanel({ twistId }: Props) {
                   <div className={styles.clueVerifyText}>
                     <span className={styles.clueVerifyClue}>"{str(d.clue_text)}"</span>
                     {!!d.notes && <span className={styles.clueVerifyNotes}>{str(d.notes)}</span>}
+                    {!!d.suggested_scene_id && !!d.clue_id && (
+                      <div className={styles.clueVerifyLink}>
+                        <span className={styles.clueVerifyLinkHint}>→ {str(d.suggested_scene_title)}</span>
+                        <button
+                          className={styles.linkBtn}
+                          disabled={linking === str(d.clue_id)}
+                          onClick={() => applyClueLink(str(d.clue_id), str(d.suggested_scene_id))}
+                          title={`Link to "${str(d.suggested_scene_title)}"`}
+                        >
+                          {linking === str(d.clue_id) ? "Linking…" : "Link"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
