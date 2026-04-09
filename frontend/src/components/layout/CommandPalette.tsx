@@ -184,6 +184,7 @@ export default function CommandPalette() {
       setSubQuery("");
       setSubSelectedIndex(0);
     } else {
+      commandRegistry.recordUsed(action.id);
       action.action();
       close();
     }
@@ -203,6 +204,9 @@ export default function CommandPalette() {
   const actionGroups: Record<string, CommandAction[]> = commandRegistry.grouped(query);
   const hasActionResults = Object.values(actionGroups).some((g) => g.length > 0);
 
+  // Recent items — shown only when no query
+  const recentItems: CommandAction[] = !query.trim() && !subMenu ? commandRegistry.getRecent() : [];
+
   // Sub-menu filtering
   const filteredSubItems = subMenu
     ? (subQuery.trim()
@@ -214,8 +218,9 @@ export default function CommandPalette() {
       : subMenu.items)
     : [];
 
-  // Flat list for keyboard nav — always includes commands, then content results
+  // Flat list for keyboard nav — recent first (when no query), then commands, then content results
   const flatItems: Array<{ action: () => void }> = [
+    ...recentItems.map((a) => ({ action: () => executeAction(a) })),
     ...Object.values(actionGroups).flatMap((items) =>
       items.map((a) => ({ action: () => executeAction(a) }))
     ),
@@ -363,9 +368,37 @@ export default function CommandPalette() {
             </div>
 
             <div className={styles.list} role="listbox" aria-label="Commands" ref={listRef}>
+              {/* ── Recent items (only when no query) ── */}
+              {recentItems.length > 0 && (
+                <div className={styles.group} role="group" aria-label="Recent">
+                  <p className={styles.groupLabel} aria-hidden="true">Recent</p>
+                  {recentItems.map((action, idx) => {
+                    const Icon = action.icon;
+                    return (
+                      <button
+                        key={`recent-${action.id}`}
+                        data-item
+                        role="option"
+                        aria-selected={idx === selectedIndex}
+                        onClick={() => executeAction(action)}
+                        className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                      >
+                        <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                        <span className={styles.itemContent}>
+                          <span className={styles.itemTitle}>{action.label}</span>
+                          {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
+                        </span>
+                        {action.getSubItems && <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                  <div className={styles.groupDivider} aria-hidden="true" />
+                </div>
+              )}
+
               {/* ── Command registry results (always shown) ── */}
               {(() => {
-                let flatIdx = 0;
+                let flatIdx = recentItems.length;
                 return Object.entries(actionGroups).map(([group, items]) => (
                   <div key={group} className={styles.group} role="group" aria-label={group}>
                     <p className={styles.groupLabel} aria-hidden="true">{group}</p>
@@ -404,7 +437,7 @@ export default function CommandPalette() {
               {hasQuery && (
                 hasSearchResults ? (
                   (() => {
-                    let flatIdx = Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
+                    let flatIdx = recentItems.length + Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
                     return resultTypeOrder.map((type) => {
                       const items = groupedResults[type];
                       if (!items?.length) return null;

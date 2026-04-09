@@ -21,6 +21,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
 
   const [name, setName] = useState(character?.name ?? "");
   const [role, setRole] = useState(character?.role ?? "supporting");
+  const [missionStatement, setMissionStatement] = useState(character?.mission_statement ?? "");
   const [personality, setPersonality] = useState(character?.personality ?? "");
   const [motivation, setMotivation] = useState(character?.motivation ?? "");
   const [background, setBackground] = useState(character?.background ?? "");
@@ -50,6 +51,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     const data = {
       name: name.trim(),
       role,
+      mission_statement: missionStatement,
       personality,
       motivation,
       background,
@@ -154,6 +156,13 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
 
         {/* ── Character Depth ── */}
         <SectionCard title="Character Depth">
+          <TextField
+            label="Mission Statement"
+            value={missionStatement}
+            onChange={setMissionStatement}
+            rows={1}
+            hint="One sentence: what does this character fundamentally want or need?"
+          />
           <TextField
             label="Personality"
             value={personality}

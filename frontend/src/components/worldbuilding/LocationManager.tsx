@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import { useStoryStore } from "../../stores/storyStore";
 
 interface Props {
   storyId: string;
@@ -112,6 +114,9 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   const [newParentId, setNewParentId] = useState<string | null>(null);
 
   const { openWorldBuildingAIPanel } = useUIStore();
+  const { structure, setActiveNode } = useStoryStore();
+  const navigate = useNavigate();
+  const nodeMap = new Map(structure.map((n) => [n.id, n]));
 
   // Debounced save
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -463,13 +468,27 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               {sceneUsages.length > 0 && (
                 <SectionCard title={`Scene Appearances (${sceneUsages.length})`}>
                   <div className={styles.usageList}>
-                    {sceneUsages.map((u) => (
-                      <div key={u.id} className={styles.usageItem}>
-                        <MapPin size={12} color="var(--color-text-muted)" />
-                        <span style={{ flex: 1 }}>Scene {u.node_id.slice(0, 8)}…</span>
-                        <span className={styles.usageRole}>{u.role}</span>
-                      </div>
-                    ))}
+                    {sceneUsages.map((u) => {
+                      const node = nodeMap.get(u.node_id);
+                      const title = node?.title || `Scene ${u.node_id.slice(0, 8)}…`;
+                      return (
+                        <div
+                          key={u.id}
+                          className={styles.usageItem}
+                          style={{ cursor: node ? "pointer" : "default" }}
+                          title={node ? `Go to "${title}"` : undefined}
+                          onClick={() => {
+                            if (!node) return;
+                            setActiveNode(node);
+                            navigate(`/stories/${storyId}/write`);
+                          }}
+                        >
+                          <MapPin size={12} color="var(--color-text-muted)" />
+                          <span style={{ flex: 1 }}>{title}</span>
+                          <span className={styles.usageRole}>{u.role}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </SectionCard>
               )}

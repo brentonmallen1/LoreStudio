@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { BookOpen, Copy, Check, Compass } from "lucide-react";
+import { BookOpen, Copy, Check, Compass, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -21,7 +21,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
     storyId ? { context_type: "story-summary", story_id: storyId } : null
   );
 
-  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
+  const { stream, cancel, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId: `story-summary:${storyId}`,
     label: "Generating story summary",
     tabId: "overview",
@@ -85,14 +85,17 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
           </label>
         )}
 
-        <button
-          onClick={generate}
-          disabled={generating}
-          className={styles.generateBtn}
-        >
-          <Compass size={12} />
-          {generating ? "Generating…" : "Generate"}
-        </button>
+        {generating ? (
+          <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
+            <Square size={12} />
+            Cancel
+          </button>
+        ) : (
+          <button onClick={generate} className={styles.generateBtn}>
+            <Compass size={12} />
+            Generate
+          </button>
+        )}
       </div>
 
       <LLMContextSources sources={contextSources} />

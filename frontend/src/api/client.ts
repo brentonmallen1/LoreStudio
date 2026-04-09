@@ -410,6 +410,24 @@ export const api = {
     }),
 
   // Brainstorm ("What's Next?")
+  sendWhatIfMessage: (
+    storyId: string,
+    messages: import("../types").ChatMessage[],
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/whatif`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
+      signal,
+    });
+  },
+
   sendBrainstormMessage: (
     storyId: string,
     nodeId: string,
@@ -476,6 +494,9 @@ export const api = {
   // Story Health
   getStoryHealth: (storyId: string) =>
     request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
+
+  getHealthAlerts: (storyId: string) =>
+    request<{ count: number; absent_characters: string[]; mice_violation_count: number }>(`/stories/${storyId}/health/alerts`),
 
   // Story Overview
   getStoryOverview: (storyId: string) =>

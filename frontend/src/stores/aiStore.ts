@@ -26,6 +26,8 @@ export interface AISession {
   /** Currently streaming text (displayed live, not yet in messages) */
   streamingText?: string;
   isStreaming: boolean;
+  /** Abort controller for the current streaming request */
+  _abortController?: AbortController;
   createdAt: string;
   /** When set, user is asked Continue/Start Fresh before messages are loaded */
   pendingResume?: {
@@ -91,6 +93,8 @@ interface AIStore {
   // ── Messaging ────────────────────────────────────────────────────────────
   /** Add a user message and start streaming the assistant response */
   sendMessage: (sessionId: string, content: string, images?: string[], llmParams?: LLMParams) => void;
+  /** Cancel an in-progress streaming response */
+  cancelStreaming: (sessionId: string) => void;
 
   /** Internal: update streaming text */
   _setStreamingText: (sessionId: string, text: string) => void;
@@ -315,6 +319,13 @@ export const useAIStore = create<AIStore>((set, get) => ({
     // Stream the response
     const abortController = new AbortController();
 
+    // Store controller so cancelStreaming() can abort it
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, _abortController: abortController } : sess
+      ),
+    }));
+
     const updatedSession = get().sessions.find((s) => s.id === sessionId)!;
 
     sessionType
@@ -346,8 +357,17 @@ export const useAIStore = create<AIStore>((set, get) => ({
       .catch((err) => {
         if (err?.name !== "AbortError") {
           get()._finalizeMessage(sessionId, "⚠ Error reaching LLM.");
+        } else {
+          // On abort, finalize with whatever was streamed so far
+          const partial = get().sessions.find((s) => s.id === sessionId)?.streamingText ?? "";
+          get()._finalizeMessage(sessionId, partial || "⚠ Response cancelled.");
         }
       });
+  },
+
+  cancelStreaming: (sessionId) => {
+    const session = get().sessions.find((s) => s.id === sessionId);
+    session?._abortController?.abort();
   },
 
   _setStreamingText: (sessionId, text) => {
@@ -367,6 +387,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
           messages: [...sess.messages, { role: "assistant" as const, content }],
           streamingText: undefined,
           isStreaming: false,
+          _abortController: undefined,
         };
       }),
     }));

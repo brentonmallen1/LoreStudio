@@ -447,7 +447,7 @@
 
 /* Star button — always visible when starred, otherwise reveals on card hover */
 .starActive {
-  color: #d97706;
+  color: var(--color-warning);
   opacity: 1 !important;
 }
 

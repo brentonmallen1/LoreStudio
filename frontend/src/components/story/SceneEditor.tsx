@@ -247,7 +247,7 @@ export default function SceneEditor() {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = setTimeout(async () => {
         setSaveState("saving");
-        const count = countWordsClean(editor.state.doc.textContent);
+        const count = countWordsClean(editor.getText());
         const updated = await api.updateNode(activeNode.id, { content, word_count: count });
         setActiveNode({ ...activeNode, content, word_count: updated.word_count });
         setSaveState("saved");
@@ -291,7 +291,7 @@ export default function SceneEditor() {
     if (!editor) return;
     // Don't read immediately — word count is seeded from activeNode.word_count in the other effect.
     const update = () => {
-      setWordCount(countWordsClean(editor.state.doc.textContent));
+      setWordCount(countWordsClean(editor.getText()));
     };
     editor.on("update", update);
     return () => { editor.off("update", update); };
@@ -1485,6 +1485,13 @@ export default function SceneEditor() {
 
       {showSummary && activeStory && (
         <div className={styles.summaryWrap}>
+          <button
+            className={styles.summaryCloseBtn}
+            onClick={() => setShowSummary(false)}
+            title="Close"
+          >
+            <X size={13} />
+          </button>
           <StorySummaryPanel storyId={activeStory.id} />
         </div>
       )}

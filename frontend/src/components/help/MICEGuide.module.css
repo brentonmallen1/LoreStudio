@@ -269,7 +269,7 @@
   border-radius: 99px;
 }
 
-.outcomeDisaster  { background: color-mix(in srgb, #b83232 15%, transparent); color: #b83232; }
+.outcomeDisaster  { background: color-mix(in srgb, var(--color-danger) 15%, transparent); color: var(--color-danger); }
 .outcomeSetback   { background: color-mix(in srgb, var(--mice-idea) 15%, transparent); color: var(--mice-idea); }
 .outcomeSuccessCost { background: color-mix(in srgb, var(--mice-milieu) 15%, transparent); color: var(--mice-milieu); }
 .outcomeClean     { background: color-mix(in srgb, var(--mice-character) 15%, transparent); color: var(--mice-character); }

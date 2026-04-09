@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ChevronRight,
   ChevronDown,
@@ -45,6 +45,8 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
   const [addingChild, setAddingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
   const { activeNode, setActiveNode, activeTemplate, structure, setStructure } = useStoryStore();
+  const navigate = useNavigate();
+  const location = useLocation();
   const hasChildren = node.children && node.children.length > 0;
   const isActive = activeNode?.id === node.id;
 
@@ -80,7 +82,15 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
         className={`${styles.nodeRowWrap} ${isActive ? styles.nodeRowWrapActive : ""}`}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
-        <button onClick={() => setActiveNode(node)} className={styles.nodeRow}>
+        <button
+          onClick={() => {
+            setActiveNode(node);
+            if (!location.pathname.endsWith("/write")) {
+              navigate(`/stories/${storyId}/write`);
+            }
+          }}
+          className={styles.nodeRow}
+        >
           <span
             className={styles.chevron}
             onClick={hasChildren ? (e) => { e.stopPropagation(); setExpanded((x) => !x); } : undefined}

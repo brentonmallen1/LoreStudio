@@ -333,11 +333,11 @@
 }
 
 .threadDeveloping {
-  background: #f0a050;
+  background: var(--color-warning);
 }
 
 .threadResolved {
-  background: #4caf82;
+  background: var(--color-success);
 }
 
 .threadName {
@@ -361,8 +361,8 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  background: color-mix(in srgb, #f0a050 12%, transparent);
-  border: 1px solid color-mix(in srgb, #f0a050 30%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
   border-radius: 6px;
   font-size: 11px;
   color: var(--color-text-subtle);
@@ -434,7 +434,7 @@
   align-items: center;
   gap: 3px;
   font-size: 10px;
-  color: #f0a050;
+  color: var(--color-warning);
 }
 
 .charArcRow {

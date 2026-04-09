@@ -30,6 +30,7 @@ const DiscoveryQueuePage = lazy(() => import("./DiscoveryQueuePage"));
 const StoryOverviewPage  = lazy(() => import("./StoryOverviewPage"));
 const PublishPage        = lazy(() => import("./PublishPage"));
 const VersionsPage       = lazy(() => import("./VersionsPage"));
+const WhatIfPage         = lazy(() => import("./WhatIfPage"));
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -154,6 +155,7 @@ export default function StoryWorkspacePage() {
           <Route path="/chronicle" element={<ChroniclePage />} />
           <Route path="/publish" element={<PublishPage />} />
           <Route path="/versions" element={<VersionsPage />} />
+          <Route path="/whatif" element={<WhatIfPage />} />
         </Routes>
         </Suspense>
       </main>

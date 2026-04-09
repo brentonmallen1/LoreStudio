@@ -142,6 +142,7 @@ export interface Character {
   story_id: string;
   name: string;
   role: string;
+  mission_statement: string;
   personality: string;
   motivation: string;
   background: string;

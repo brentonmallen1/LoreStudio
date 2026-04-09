@@ -14,6 +14,7 @@ class ArcMilestone(BaseModel):
 class CharacterCreate(BaseModel):
     name: str
     role: str = "supporting"
+    mission_statement: str = ""
     personality: str = ""
     motivation: str = ""
     background: str = ""
@@ -29,6 +30,7 @@ class CharacterCreate(BaseModel):
 class CharacterUpdate(BaseModel):
     name: str | None = None
     role: str | None = None
+    mission_statement: str | None = None
     personality: str | None = None
     motivation: str | None = None
     background: str | None = None
@@ -46,6 +48,7 @@ class CharacterOut(BaseModel):
     story_id: str
     name: str
     role: str
+    mission_statement: str
     personality: str
     motivation: str
     background: str

@@ -146,7 +146,7 @@
 }
 
 .saveIndicator_unsaved {
-  background: #c9a227;
+  background: var(--color-warning);
   opacity: 0.7;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .saveIndicator_saved {
-  background: #4a8c4a;
+  background: var(--color-success);
   opacity: 0.9;
 }
 
@@ -456,7 +456,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4caf7d;
+  background: var(--color-success);
   margin-left: 0.4rem;
   vertical-align: middle;
   flex-shrink: 0;
@@ -467,7 +467,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #e8a838;
+  background: var(--color-warning);
   margin-left: 0.4rem;
   vertical-align: middle;
   flex-shrink: 0;
@@ -490,9 +490,9 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #e8a838;
-  background: color-mix(in srgb, #e8a838 12%, transparent);
-  border: 1px solid color-mix(in srgb, #e8a838 30%, transparent);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.35rem;
   margin-left: 0.35rem;
@@ -652,7 +652,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -852,9 +852,32 @@
 
 /* ── Summary panel ── */
 .summaryWrap {
+  position: relative;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
+}
+
+.summaryCloseBtn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.summaryCloseBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
 }
 
 /* ── Scroll area ── */

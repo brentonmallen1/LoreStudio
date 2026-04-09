@@ -43,12 +43,14 @@ export default function CharacterSheet() {
   const [showStartInterview, setShowStartInterview] = useState(false);
   const [showAiGenerator, setShowAiGenerator] = useState(false);
   const [intentText, setIntentText] = useState("");
+  const [missionText, setMissionText] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   function toggle(id: string) {
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
   }
   const intentSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const missionSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const initialTab = searchParams.get("tab") === "arc" ? "arc" : "overview";
   const [activeTab, setActiveTab] = useState<"overview" | "dialogue" | "arc">(initialTab);
@@ -77,7 +79,10 @@ export default function CharacterSheet() {
   }, [storyId]);
 
   useEffect(() => {
-    if (character) setIntentText(character.narrative_intent ?? "");
+    if (character) {
+      setIntentText(character.narrative_intent ?? "");
+      setMissionText(character.mission_statement ?? "");
+    }
   }, [character?.id]);
 
   function scheduleIntentSave(text: string) {
@@ -85,6 +90,15 @@ export default function CharacterSheet() {
     intentSaveRef.current = setTimeout(async () => {
       if (!character) return;
       const updated = await api.updateCharacter(character.id, { narrative_intent: text });
+      upsertCharacter(updated);
+    }, 900);
+  }
+
+  function scheduleMissionSave(text: string) {
+    if (missionSaveRef.current) clearTimeout(missionSaveRef.current);
+    missionSaveRef.current = setTimeout(async () => {
+      if (!character) return;
+      const updated = await api.updateCharacter(character.id, { mission_statement: text });
       upsertCharacter(updated);
     }, 900);
   }
@@ -238,6 +252,17 @@ export default function CharacterSheet() {
 
             {/* ── Profile ── */}
             <SectionCard title="Profile" collapsed={!!collapsed.profile} onToggle={() => toggle("profile")}>
+              <div className={styles.field}>
+                <p className={styles.missionLabel}>Mission Statement</p>
+                <p className={styles.missionHint}>One sentence: what does this character fundamentally want or need?</p>
+                <textarea
+                  value={missionText}
+                  onChange={(e) => { setMissionText(e.target.value); scheduleMissionSave(e.target.value); }}
+                  placeholder="e.g. To prove they deserve their father's respect, no matter the cost."
+                  className={styles.missionTextarea}
+                  rows={2}
+                />
+              </div>
               <Field label="Personality" value={character.personality} />
               <Field label="Motivation" value={character.motivation} />
               <Field label="Background" value={character.background} />

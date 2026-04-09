@@ -87,6 +87,9 @@ def build_character_interview_system_prompt(
     """
     parts = [f"You are {character.name}."]
 
+    if character.mission_statement:
+        parts.append(f"\nYour core drive: {character.mission_statement}")
+
     if character.personality:
         parts.append(f"\nYour personality: {character.personality}")
 

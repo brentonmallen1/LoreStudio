@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Compass, User2, Brain, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Send, Square, Compass, User2, Brain, ChevronDown, ChevronUp } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import type { ChatMessage, BrainstormIntent } from "../../types";
@@ -168,7 +168,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
     };
   }, []);
 
-  const { stream, text: streamText, isStreaming: streaming } = useLLMStream({
+  const { stream, cancel, text: streamText, isStreaming: streaming } = useLLMStream({
     requestId: `brainstorm:${storyId}:${nodeId}`,
     label: "What's Next?",
     tabId: "story",
@@ -371,14 +371,15 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
             rows={2}
             disabled={streaming}
           />
-          <button
-            className={styles.sendBtn}
-            onClick={() => send()}
-            disabled={(!input.trim() && !selectedImage) || streaming}
-            title="Send"
-          >
-            <Send size={14} />
-          </button>
+          {streaming ? (
+            <button className={styles.sendBtn} onClick={cancel} title="Cancel" style={{ background: "color-mix(in srgb, var(--color-danger) 15%, transparent)", color: "var(--color-danger)" }}>
+              <Square size={13} />
+            </button>
+          ) : (
+            <button className={styles.sendBtn} onClick={() => send()} disabled={!input.trim() && !selectedImage} title="Send">
+              <Send size={14} />
+            </button>
+          )}
         </div>
       )}
     </div>

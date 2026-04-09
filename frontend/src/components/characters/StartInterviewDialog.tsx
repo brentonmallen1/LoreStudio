@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Feather } from "lucide-react";
+import { MessageSquare, RefreshCw, Square, Feather } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character, CharacterJourney, StructureNode, Interview } from "../../types";
@@ -25,7 +25,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   const [starting, setStarting] = useState(false);
   const flatNodes = flattenNodes(structure);
 
-  const { stream: streamRefresh, text: refreshStreamText, isStreaming: refreshing } = useLLMStream({
+  const { stream: streamRefresh, cancel: cancelRefresh, text: refreshStreamText, isStreaming: refreshing } = useLLMStream({
     requestId: `journey-refresh:${character.id}:${contextNodeId}`,
     label: "Refreshing journey context",
     tabId: "characters",
@@ -136,12 +136,12 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                   </span>
                   <button
                     className={styles.refreshBtn}
-                    onClick={handleRefresh}
-                    disabled={refreshing || journey.scene_count === 0}
-                    title="Regenerate journey context"
+                    onClick={refreshing ? cancelRefresh : handleRefresh}
+                    disabled={!refreshing && journey.scene_count === 0}
+                    title={refreshing ? "Cancel refresh" : "Regenerate journey context"}
                   >
-                    <RefreshCw size={11} className={refreshing ? styles.spinning : ""} />
-                    {refreshing ? "Refreshing…" : "Refresh"}
+                    {refreshing ? <Square size={11} /> : <RefreshCw size={11} />}
+                    {refreshing ? "Cancel" : "Refresh"}
                   </button>
                 </div>
 

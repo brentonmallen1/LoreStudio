@@ -59,6 +59,25 @@
   cursor: not-allowed;
 }
 
+.stopBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  border: none;
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.stopBtn:hover {
+  background: color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
 .hints {
   display: flex;
   align-items: center;

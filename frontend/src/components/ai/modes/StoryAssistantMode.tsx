@@ -23,7 +23,7 @@ interface Props {
 
 export default function StoryAssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
   const { stories } = useStoryStore();
 
   const storyId = session.context.storyId ?? "";
@@ -113,6 +113,7 @@ export default function StoryAssistantMode({ session }: Props) {
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}
+        onCancel={() => cancelStreaming(session.id)}
         disabled={session.isStreaming}
         placeholder="Ask about your story…"
       />

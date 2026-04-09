@@ -17,7 +17,7 @@ interface Props {
 
 export default function WritingCoachMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage } = useAIStore();
+  const { sendMessage, cancelStreaming } = useAIStore();
   const [tonePrefs, setTonePrefs] = useState<string[]>(session.context.tonePrefs ?? []);
   const autoSentRef = useRef(false);
 
@@ -135,6 +135,7 @@ export default function WritingCoachMode({ session }: Props) {
           value={state.input}
           onChange={state.setInput}
           onSend={() => handleSend()}
+          onCancel={() => cancelStreaming(session.id)}
           disabled={session.isStreaming}
           placeholder="Continue the conversation…"
         />

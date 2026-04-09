@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Layers, Copy, Check, Compass } from "lucide-react";
+import { Layers, Copy, Check, Compass, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -39,7 +39,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
       : null
   );
 
-  const { stream, text: streamingText, isStreaming: generating } = useLLMStream({
+  const { stream, cancel, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId,
     label: mode === "structure" ? "Summarizing section" : "Summarizing character arc",
     tabId: "lorebook",
@@ -133,14 +133,17 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
               ))}
         </select>
 
-        <button
-          onClick={generate}
-          disabled={generating || !selectedId}
-          className={styles.generateBtn}
-        >
-          <Compass size={12} />
-          {generating ? "Generating…" : "Summarize"}
-        </button>
+        {generating ? (
+          <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
+            <Square size={12} />
+            Cancel
+          </button>
+        ) : (
+          <button onClick={generate} disabled={!selectedId} className={styles.generateBtn}>
+            <Compass size={12} />
+            Summarize
+          </button>
+        )}
       </div>
 
       <LLMContextSources sources={contextSources} />

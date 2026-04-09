@@ -87,7 +87,7 @@
   margin-top: 0.5rem;
 }
 
-.beatDot.plot      { background: #5b8dd9; }
+.beatDot.plot      { background: var(--segment-scene); }
 .beatDot.character { background: var(--color-ai); }
 .beatDot.theme     { background: var(--color-warning); }
 .beatDot.setting   { background: var(--color-success); }
@@ -220,7 +220,7 @@
   letter-spacing: 0.04em;
 }
 
-.beatBadge.plot      { background: rgba(91,141,217,0.15); color: #5b8dd9; }
+.beatBadge.plot      { background: color-mix(in srgb, var(--segment-scene) 15%, transparent); color: var(--segment-scene); }
 .beatBadge.character { background: color-mix(in srgb, var(--color-ai) 12%, transparent); color: var(--color-ai); }
 .beatBadge.theme     { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
 .beatBadge.setting   { background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); }

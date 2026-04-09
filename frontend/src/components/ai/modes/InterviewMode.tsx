@@ -29,7 +29,7 @@ interface Props {
 
 export default function InterviewMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, setInterviewNotes, updateSessionContext } = useAIStore();
+  const { sendMessage, setInterviewNotes, updateSessionContext, cancelStreaming } = useAIStore();
   const { structure, characters, upsertCharacter } = useStoryStore();
   const [showNotes, setShowNotes] = useState(!!(session.interviewNotes));
   const [showApply, setShowApply] = useState(false);
@@ -251,6 +251,7 @@ export default function InterviewMode({ session }: Props) {
         value={state.input}
         onChange={state.setInput}
         onSend={handleSend}
+        onCancel={() => cancelStreaming(session.id)}
         disabled={session.isStreaming}
         placeholder="Ask a question…"
         hintLeft={<span>Shift+Enter for newline</span>}

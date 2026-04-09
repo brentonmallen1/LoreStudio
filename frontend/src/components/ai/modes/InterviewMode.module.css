@@ -71,11 +71,11 @@
 
 .journeyDotFresh {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #4caf7d; flex-shrink: 0;
+  background: var(--color-success); flex-shrink: 0;
 }
 .journeyDotStale {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #e8a838; flex-shrink: 0;
+  background: var(--color-warning); flex-shrink: 0;
 }
 .journeyDotNone {
   width: 6px; height: 6px; border-radius: 50%;
@@ -85,9 +85,9 @@
 .staleTag {
   font-size: 0.62rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.06em;
-  color: #e8a838;
-  background: color-mix(in srgb, #e8a838 12%, transparent);
-  border: 1px solid color-mix(in srgb, #e8a838 28%, transparent);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, transparent);
   border-radius: var(--radius-sm); padding: 0.05rem 0.3rem;
 }
 

@@ -30,7 +30,7 @@ interface Props {
 
 export default function AssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage } = useAIStore();
+  const { sendMessage, cancelStreaming } = useAIStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
 
   const storyId = session.context.storyId ?? "";
@@ -95,6 +95,7 @@ export default function AssistantMode({ session }: Props) {
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}
+        onCancel={() => cancelStreaming(session.id)}
         disabled={session.isStreaming || !storyId}
         placeholder={storyId ? "Ask anything…" : "Add a story context to start…"}
         hintLeft={

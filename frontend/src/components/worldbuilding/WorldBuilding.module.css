@@ -547,6 +547,12 @@
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   font-size: 0.8rem;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.usageItem[style*="pointer"]:hover {
+  background: var(--color-surface-3);
+  border-color: var(--color-border-strong, var(--color-border));
 }
 
 .usageRole {

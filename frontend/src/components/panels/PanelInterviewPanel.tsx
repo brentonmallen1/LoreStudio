@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Send, Users, Settings2 } from "lucide-react";
+import { Plus, Trash2, Send, Square, Users, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PanelInterview, PanelInterviewSummary, LLMParams } from "../../types";
@@ -74,7 +74,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
     panelId ? { context_type: "panel", panel_id: panelId } : null
   );
 
-  const { stream, text: streamingText, isStreaming: sending } = useLLMStream({
+  const { stream, cancel, text: streamingText, isStreaming: sending } = useLLMStream({
     requestId: `panel:${panelId}`,
     label: panelTitle,
     tabId: "panels",
@@ -292,14 +292,15 @@ export default function PanelInterviewPanel({ storyId }: Props) {
                 className={styles.input}
                 disabled={sending}
               />
-              <button
-                onClick={handleSend}
-                disabled={sending || !inputText.trim()}
-                className={styles.sendBtn}
-                aria-label="Send"
-              >
-                <Send size={14} />
-              </button>
+              {sending ? (
+                <button onClick={cancel} className={styles.sendBtn} style={{ background: "color-mix(in srgb, var(--color-danger) 15%, transparent)", color: "var(--color-danger)" }} aria-label="Cancel">
+                  <Square size={13} />
+                </button>
+              ) : (
+                <button onClick={handleSend} disabled={!inputText.trim()} className={styles.sendBtn} aria-label="Send">
+                  <Send size={14} />
+                </button>
+              )}
             </div>
           </>
         )}

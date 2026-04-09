@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-overlay);
   padding: 1rem;
   animation: fadeIn 100ms ease-out;
 }

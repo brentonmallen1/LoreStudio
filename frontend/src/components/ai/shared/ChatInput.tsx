@@ -1,11 +1,12 @@
 import { useRef } from "react";
-import { Send } from "lucide-react";
+import { Send, Square } from "lucide-react";
 import styles from "./ChatInput.module.css";
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onCancel?: () => void;
   disabled?: boolean;
   placeholder?: string;
   hintLeft?: React.ReactNode;
@@ -16,6 +17,7 @@ export default function ChatInput({
   value,
   onChange,
   onSend,
+  onCancel,
   disabled,
   placeholder = "Send a message…",
   hintLeft,
@@ -43,14 +45,24 @@ export default function ChatInput({
           className={styles.textarea}
           disabled={disabled}
         />
-        <button
-          onClick={onSend}
-          disabled={disabled || !value.trim()}
-          className={styles.sendBtn}
-          title="Send (Enter)"
-        >
-          <Send size={14} />
-        </button>
+        {disabled && onCancel ? (
+          <button
+            onClick={onCancel}
+            className={styles.stopBtn}
+            title="Cancel response"
+          >
+            <Square size={13} />
+          </button>
+        ) : (
+          <button
+            onClick={onSend}
+            disabled={disabled || !value.trim()}
+            className={styles.sendBtn}
+            title="Send (Enter)"
+          >
+            <Send size={14} />
+          </button>
+        )}
       </div>
       {(hintLeft || hintRight) && (
         <div className={styles.hints}>

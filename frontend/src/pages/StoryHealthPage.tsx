@@ -113,7 +113,7 @@ export default function StoryHealthPage() {
           <div className={styles.barList}>
             <WordBar label="Draft" value={byStatus.draft ?? 0} max={totalWords} color="var(--color-text-muted)" />
             <WordBar label="Revised" value={byStatus.revised ?? 0} max={totalWords} color="var(--color-accent)" />
-            <WordBar label="Final" value={byStatus.final ?? 0} max={totalWords} color="#4caf82" />
+            <WordBar label="Final" value={byStatus.final ?? 0} max={totalWords} color="var(--color-success)" />
           </div>
           {health.word_count.target && (
             <WordCountProgress

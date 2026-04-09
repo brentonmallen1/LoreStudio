@@ -179,14 +179,14 @@
 }
 
 .stopBtn:hover {
-  background: color-mix(in srgb, #e87070 15%, transparent);
-  color: #e87070;
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
 }
 
 /* ── Goal met / completed ── */
 .goalMet,
 .completed {
-  border-color: color-mix(in srgb, #5ba55b 40%, transparent);
-  background: color-mix(in srgb, #5ba55b 10%, transparent);
-  color: #5ba55b;
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  color: var(--color-success);
 }

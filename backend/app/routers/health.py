@@ -206,3 +206,56 @@ def story_health(
         },
         "mice_violations": mice_violations,
     }
+
+
+@router.get("/stories/{story_id}/health/alerts")
+def story_health_alerts(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lightweight endpoint returning only health alert counts for sidebar badge."""
+    story = _get_story(story_id, db, current_user)
+
+    all_nodes = (
+        db.query(StructureNode)
+        .filter(StructureNode.story_id == story_id)
+        .all()
+    )
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
+
+    children_map: dict[str, list[StructureNode]] = {}
+    roots: list[StructureNode] = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+    leaves = _flatten_leaves(roots, children_map)
+
+    recent_leaves = leaves[-RECENT_SCENE_WINDOW:] if len(leaves) >= RECENT_SCENE_WINDOW else leaves
+    written_leaves = [n for n in leaves if n.word_count > 0]
+
+    absent_characters = []
+    for c in characters:
+        name_lower = c.name.lower()
+        scene_count = sum(1 for n in leaves if n.content and name_lower in n.content.lower())
+        recent_count = sum(1 for n in recent_leaves if n.content and name_lower in n.content.lower())
+        if (
+            len(written_leaves) >= RECENT_SCENE_WINDOW
+            and scene_count > 0
+            and recent_count == 0
+            and c.role in ("protagonist", "antagonist", "supporting")
+        ):
+            absent_characters.append(c.name)
+
+    leaf_order = [n.id for n in leaves]
+    mice_violations = validate_thread_nesting(threads, leaf_order)
+
+    count = len(absent_characters) + len(mice_violations)
+    return {
+        "count": count,
+        "absent_characters": absent_characters,
+        "mice_violation_count": len(mice_violations),
+    }

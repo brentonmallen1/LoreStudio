@@ -41,7 +41,7 @@ interface Props {
 
 export default function SceneAssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
   const { structure } = useStoryStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
   const [showCtx, setShowCtx] = useState(false);
@@ -169,6 +169,7 @@ export default function SceneAssistantMode({ session }: Props) {
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}
+        onCancel={() => cancelStreaming(session.id)}
         disabled={session.isStreaming}
         placeholder="Ask about this scene…"
         hintLeft={

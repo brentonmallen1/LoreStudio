@@ -6,7 +6,7 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 6rem;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--color-overlay);
   animation: fadeIn 100ms ease-out;
 }
 
@@ -89,6 +89,12 @@
 
 .group {
   /* group wrapper */
+}
+
+.groupDivider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.25rem 0;
 }
 
 .groupLabel {

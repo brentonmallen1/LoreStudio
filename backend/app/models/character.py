@@ -21,6 +21,9 @@ class Character(Base):
     traits: Mapped[dict] = mapped_column(JSON, default=dict)  # flexible key-value traits
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)  # intelligence, alignment, etc.
 
+    # One-sentence core drive: visible in interviews and hover cards
+    mission_statement: Mapped[str] = mapped_column(Text, default="")
+
     # Author-facing: what is this character FOR in the story (hidden from character interviews)
     narrative_intent: Mapped[str] = mapped_column(Text, default="")
     narrative_intent_hidden: Mapped[bool] = mapped_column(Boolean, default=True)

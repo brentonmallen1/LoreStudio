@@ -55,9 +55,32 @@ function score(action: CommandAction, query: string): number {
   return 0;
 }
 
+const RECENT_KEY = "ls_cmd_recent";
+const RECENT_MAX = 5;
+
 class CommandRegistry {
   private actions = new Map<string, CommandAction>();
   private listeners = new Set<() => void>();
+
+  getRecentIds(): string[] {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY) ?? "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  recordUsed(id: string) {
+    const prev = this.getRecentIds().filter((r) => r !== id);
+    const next = [id, ...prev].slice(0, RECENT_MAX);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  }
+
+  getRecent(): CommandAction[] {
+    return this.getRecentIds()
+      .map((id) => this.actions.get(id))
+      .filter((a): a is CommandAction => !!a && (!a.when || a.when()));
+  }
 
   register(action: CommandAction) {
     this.actions.set(action.id, action);

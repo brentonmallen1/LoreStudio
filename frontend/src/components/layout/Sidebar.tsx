@@ -34,9 +34,11 @@ import {
   Eye,
   ListTree,
   History,
+  Shuffle,
   type LucideIcon,
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
+import { useHealthStore } from "../../stores/healthStore";
 
 // Map segment types to icons for visual distinction
 const SEGMENT_ICONS: Record<string, LucideIcon> = {
@@ -72,6 +74,8 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
   const [addingChild, setAddingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
   const { activeNode, setActiveNode, activeTemplate, structure, setStructure } = useStoryStore();
+  const nodeNavigate = useNavigate();
+  const nodeLocation = useLocation();
   const hasChildren = node.children && node.children.length > 0;
   const isActive = activeNode?.id === node.id;
 
@@ -107,7 +111,15 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
         className={`${styles.nodeRowWrap} ${isActive ? styles.nodeRowWrapActive : ""}`}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
-        <button onClick={() => setActiveNode(node)} className={styles.nodeRow}>
+        <button
+          onClick={() => {
+            setActiveNode(node);
+            if (!nodeLocation.pathname.endsWith("/write")) {
+              nodeNavigate(`/stories/${storyId}/write`);
+            }
+          }}
+          className={styles.nodeRow}
+        >
           <span
             className={styles.chevron}
             onClick={hasChildren ? (e) => { e.stopPropagation(); setExpanded((x) => !x); } : undefined}
@@ -189,6 +201,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     treeDetached, setTreeDetached,
   } = useUIStore();
   const { pendingCount, refreshCount } = useDiscoveryStore();
+  const { alertCount, refreshAlerts } = useHealthStore();
   const getTabStatus = useLLMStore((s) => s.getTabStatus);
   const markViewed = useLLMStore((s) => s.markViewed);
 
@@ -242,6 +255,11 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (storyId && activeStory?.discovery_enabled) refreshCount(storyId);
   }, [storyId, activeStory?.discovery_enabled]);
 
+  // Refresh health alert badge when story changes
+  useEffect(() => {
+    if (storyId) refreshAlerts(storyId);
+  }, [storyId]);
+
   const tab = (() => {
     const path = location.pathname;
     if (path.includes("/characters")) return "characters";
@@ -250,6 +268,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/panels")) return "panels";
     if (path.includes("/threads")) return "threads";
     if (path.includes("/twists")) return "twists";
+    if (path.includes("/whatif")) return "whatif";
     if (path.includes("/media")) return "media";
     if (path.includes("/health")) return "health";
     if (path.includes("/chronicle")) return "chronicle";
@@ -307,9 +326,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     { id: "panels",        icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
     { id: "threads",       icon: GitBranch,         label: "Plot Threads",     path: "/threads" },
     { id: "twists",        icon: Eye,               label: "Twists",           path: "/twists" },
+    { id: "whatif",        icon: Shuffle,           label: "What If?",         path: "/whatif" },
     { id: "worldbuilding", icon: Globe,             label: "World Building",   path: "/worldbuilding" },
     { id: "media",         icon: Images,            label: "Media & Diagrams", path: "/media" },
-    { id: "health",        icon: Activity,          label: "Story Health",     path: "/health" },
+    { id: "health",        icon: Activity,          label: "Story Health",     path: "/health", badge: alertCount || undefined },
     ...(activeStory?.discovery_enabled
       ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
       : []),
@@ -337,6 +357,15 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
           <span className={styles.storyTitle} title={activeStory?.title}>
             {activeStory?.title ?? "Story"}
           </span>
+          {collapsedProp === undefined && (
+            <button
+              className={styles.collapseToggle}
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose size={15} />
+            </button>
+          )}
         </div>
       )}
 
@@ -345,15 +374,26 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         className={styles.tabRail}
         style={!isCollapsed ? { height: sidebarTabRailHeight, overflowY: "auto", flexShrink: 0 } : undefined}
       >
-        {/* Back button in collapsed state */}
+        {/* Back button + expand toggle in collapsed state */}
         {isCollapsed && (
-          <button
-            onClick={() => navigate("/")}
-            className={styles.railBtn}
-            title="Back to dashboard"
-          >
-            <SquareLibrary size={16} />
-          </button>
+          <>
+            <button
+              onClick={() => navigate("/")}
+              className={styles.railBtn}
+              title="Back to dashboard"
+            >
+              <SquareLibrary size={16} />
+            </button>
+            {collapsedProp === undefined && (
+              <button
+                className={styles.railBtn}
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+              >
+                <PanelLeftOpen size={15} />
+              </button>
+            )}
+          </>
         )}
 
         {tabs.map(({ id, icon: Icon, label, path, badge }) => {
@@ -570,16 +610,6 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         </>
       )}
 
-      {/* Collapse toggle — always at bottom, only when not in focus (prop) mode */}
-      {collapsedProp === undefined && (
-        <button
-          className={styles.collapseToggle}
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-        </button>
-      )}
     </aside>
   );
 }

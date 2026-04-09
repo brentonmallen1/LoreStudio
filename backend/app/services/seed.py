@@ -249,6 +249,7 @@ def seed_demo_story():
             story_id=story.id,
             name="Eleanor Vance",
             role="protagonist",
+            mission_statement="To finally understand who her father really was — and decide whether she can still love him after knowing.",
             personality="Solitary but observant, finds comfort in routine, quietly stubborn. She watches the world with patience and rarely says more than she needs to.",
             motivation="Keep the lighthouse running and honor her father's memory — though she's not sure anymore if she's staying for him or for herself.",
             background="Grew up on Harrow Island, the daughter of the lighthouse keeper. Left for the mainland at nineteen, built a career as a cartographer, but returned when her father fell ill five years ago. He died two months after her arrival. She never left.",
@@ -285,6 +286,7 @@ def seed_demo_story():
             story_id=story.id,
             name="The Visitor (Calder)",
             role="supporting",
+            mission_statement="To learn the truth about her brother's death, even if it means confronting the people who failed him.",
             personality="Enigmatic and precise, speaks carefully as if choosing each word from a limited supply. Unsettling not because of anything threatening, but because of how much they seem to already know. Beneath the composure is grief held at arm's length — she has learned to be patient because impatience cost her too much.",
             motivation="Seeking answers about her brother James's death aboard the Ardent. The Maritime Heritage Foundation gave her a cover story, but this is personal.",
             background="Her real name is Calder. Her brother James was captain of the cargo vessel Ardent, which went down five years ago with all hands lost. She works for the Maritime Heritage Foundation investigating maritime incidents, but this case is different — she came to Harrow Island once before, two weeks before Thomas Vance died, and left with more questions than answers.",
@@ -353,6 +355,7 @@ def seed_demo_story():
             story_id=story.id,
             name="Margaret Holt",
             role="minor",
+            mission_statement="To keep what little remains of the island's human community alive long enough for Eleanor to stop being alone.",
             personality="Economical and unsentimental. Has outlasted most of what she loved about the island without bitterness, which Eleanor finds both admirable and slightly unnerving. She practices a deliberate philosophy of not-knowing: some things aren't hers to ask about, and she's made peace with that. But when asked directly, she answers with precision.",
             motivation="Finish out her years on the island she was born on. Protect what's left of the community — which mostly means protecting Eleanor from the loneliness that took Thomas.",
             background="Born on Harrow Island, married a fisherman named Robert, buried him here twenty years ago. One of three permanent residents who never left. At seventy-four, she keeps a kitchen garden, trades supplies with Eleanor weekly, and watches the lighthouse beam from her window every night — partly habit, partly vigil. She saw the lamp go dark the night of the Ardent but chose not to speak of it until asked.",
@@ -2874,6 +2877,665 @@ def seed_scifi_demo_story():
             node_id=scene10.id,
             role="primary",
             notes="The final scene returns to the observation deck where it all began — the same room, transformed.",
+        ))
+
+        db.commit()
+
+
+def seed_flash_fiction_demo():
+    """
+    Flash fiction demo: 'The Weight of Keys'
+
+    A tight Character-thread MICE story showing how a single question
+    (Will Lena finally let go of the life she had before?) opens and closes
+    across three beats. Ideal for demonstrating the mice-single template,
+    MICE quotient tracking, and plot thread opens_at / closes_at nodes.
+    """
+    with Session(engine) as db:
+        admin = db.query(User).filter(User.username == settings.admin_username).first()
+        if not admin:
+            return
+        if db.query(Story).filter(Story.title == "The Weight of Keys").first():
+            return
+
+        story = Story(
+            user_id=admin.id,
+            title="The Weight of Keys",
+            description="A grieving woman sits outside the house she shared with her late husband, key in hand, unable to go in.",
+            structure_template_id="mice-single",
+            intent="A small story about the difference between holding on and holding still.",
+            genre="Literary Fiction",
+            tone="Quiet, tender, understated",
+            themes=["grief", "letting go", "memory", "stillness"],
+            central_conflict="Lena cannot enter the house — and cannot walk away from it.",
+            narrative_intent="Demonstrate how a single Character MICE thread (opened in the first sentence, closed in the last) can carry an entire flash fiction piece.",
+            premise="Two years after her husband's death, Lena finally drives to the house they shared — and discovers she already knows what she needs to do.",
+            logline="A woman who can't enter her late husband's house finally goes in, and finds that what she feared most is what she needed.",
+            intended_length="flash_fiction",
+            goals=[
+                {"id": str(uuid.uuid4()), "text": "Open the Character MICE thread in the first scene", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Complicate it with a try/fail beat", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Close the thread cleanly in the resolution", "completed": True},
+            ],
+        )
+        db.add(story)
+        db.flush()
+
+        # ── Character ─────────────────────────────────────────────────────────
+        lena = Character(
+            story_id=story.id,
+            name="Lena Marsh",
+            role="protagonist",
+            mission_statement="To stop performing grief and finally feel it — and find out who she is on the other side.",
+            personality="Controlled, careful, accustomed to being competent. She manages everything except this.",
+            motivation="She has held herself together for two years by staying away. Today she drove here without knowing why.",
+            background="Lena is 38. Her husband Marco died in a car accident twenty-six months ago. She sold their car immediately. She kept driving past his house but never stopped — until today.",
+            appearance="Dark coat, hair pulled back, sitting in a rental car. She holds her keys the way some people hold worry beads.",
+            arc_notes="Moves from paralysis (can't enter) through attempt (enters, nearly leaves) to release (stays until dark, leaves the key behind).",
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Arrives at the house for the first time since the funeral", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Crosses the threshold — the MICE thread turns", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Reads the unfinished letter; understands what she came for", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Leaves the key on the table — closes the thread", "completed": True},
+            ],
+            narrative_intent="Lena demonstrates a complete character arc in under 1,000 words. Her transformation is not dramatic — it is precise.",
+            narrative_intent_hidden=True,
+        )
+        db.add(lena)
+        db.flush()
+
+        # ── Plot thread (the single MICE thread) ──────────────────────────────
+        thread = PlotThread(
+            story_id=story.id,
+            name="Will Lena let go?",
+            description="Character thread: Lena is dissatisfied — unable to grieve properly, unable to move on. The story opens the question when she arrives and closes it when she leaves the key.",
+            status="resolved",
+            color="#a78bfa",
+            mice_type="character",
+        )
+        db.add(thread)
+        db.flush()
+
+        # ── Structure: three beats of the mice-single template ────────────────
+
+        # Opening
+        opening = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Opening",
+            title="Outside the Door",
+            synopsis="Lena sits in her car outside the house. The key is in her hand. Two years of staying away come down to this.",
+            position=0,
+            status="final",
+            word_count=243,
+            entry_state="Lena in the rental car, engine off, key in hand. Two years of avoidance.",
+            exit_state="Lena gets out of the car. She is going in.",
+            key_events="Lena arrives; memory of Marco's laugh; she decides to try.",
+            metadata_={
+                "purpose": "Open the Character MICE thread. Lena's dissatisfaction must be clear: she is not living, she is waiting. The thread question is: will she finally allow herself to grieve — and move?",
+                "mice_opens": "Will Lena let go? — opened here, when Lena arrives for the first time.",
+            },
+            content=(
+                "<p>The key is the right one. Lena knows this — she&#x27;s used it a thousand times, "
+                "back when this house was hers too. And yet her hand won&#x27;t turn.</p>"
+                "<p>She has been sitting in the rental car for fourteen minutes. She knows because she "
+                "checked her phone at the two-minute mark and the twelve-minute mark and she is, if "
+                "nothing else, a woman who tracks things. It&#x27;s how she got through the last "
+                "twenty-six months. One thing, then the next thing, then the thing after that. She "
+                "does not think about the space between things.</p>"
+                "<p>The house is the same. Of course it is. The hydrangeas Marco planted the first spring "
+                "are overgrown now — she can see them from here, spilling over the front walk like they "
+                "have somewhere to be. He would have laughed at that. He laughed at things she considered "
+                "problems. She used to find it maddening.</p>"
+                "<p>She opens the car door.</p>"
+                "<p>She doesn&#x27;t think about why. She just does it, the way you do the next thing, "
+                "then the thing after that. The key is already in her hand.</p>"
+            ),
+        )
+        db.add(opening)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread.id, node_id=opening.id,
+            note="Thread opens. Lena arrives for the first time — Character MICE question established."))
+        thread.opens_at_node_id = opening.id
+
+        # Try/Fail Beat
+        tryfail = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Try/Fail Beat",
+            title="What She Finds Inside",
+            synopsis="Lena enters. Every room is a small grief. She nearly leaves — and then finds Marco's unfinished letter.",
+            position=1,
+            status="revised",
+            word_count=318,
+            entry_state="Lena on the front step, key in the lock.",
+            exit_state="Lena sitting at the kitchen table, letter in hand, reading.",
+            key_events="Entry; kitchen unchanged; drawer of unsent mail; Marco's letter to Lena.",
+            metadata_={
+                "purpose": "Try: Lena enters and survives the first wave of grief. Fail: the kitchen is too much — she almost runs. Try again: she opens the drawer instead of leaving. The unfinished letter is the pivot.",
+            },
+            content=(
+                "<p>The kitchen smells like him. She doesn&#x27;t know how that&#x27;s possible after "
+                "two years but it&#x27;s there — coffee and something underneath it, something that&#x27;s "
+                "just <em>him</em>, the particular chemistry of a person. She stands in the doorway and "
+                "does not go in.</p>"
+                "<p>She counts the tiles instead. Forty-two, across and down. She knows this because she "
+                "counted them once when she was waiting for water to boil and she told Marco and he said, "
+                "<em>Forty-two? That can&#x27;t be right</em>, and counted them himself and came up with "
+                "forty-four, and they never agreed on which of them had miscounted.</p>"
+                "<p>She is going to leave. She knows this. She has seen enough — she has been in the house, "
+                "that&#x27;s the thing she came to do, and now she can go.</p>"
+                "<p>The drawer is open a crack. His handwriting is visible on an envelope.</p>"
+                "<p>She pulls the drawer open. There are seven envelopes, unsealed. Electricity bills he "
+                "meant to mail. A birthday card for someone. And at the bottom, her name, in the way he "
+                "only wrote it when he wanted her attention: <em>Lena</em>, with the loop on the L.</p>"
+                "<p>She takes it to the table.</p>"
+            ),
+        )
+        db.add(tryfail)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread.id, node_id=tryfail.id,
+            note="Thread develops. Lena enters (try) and nearly flees (fail) but finds the letter (pivot)."))
+
+        # Resolution
+        resolution = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Resolution",
+            title="The Key on the Table",
+            synopsis="Lena reads Marco's letter — unfinished, honest, ordinary. She stays until dark. Then she leaves her key on the table and walks out.",
+            position=2,
+            status="final",
+            word_count=201,
+            entry_state="Lena at the kitchen table, letter in hand.",
+            exit_state="Lena outside, walking away, lighter. The house is behind her.",
+            key_events="Reading the letter; staying until dark; leaving the key; walking out.",
+            metadata_={
+                "purpose": "Close the Character MICE thread. Lena is no longer the woman who sat in the car. She is not healed — but she has moved. The key on the table is the symbol of release.",
+                "mice_closes": "Will Lena let go? — closed here. She does.",
+            },
+            content=(
+                "<p>The letter is three paragraphs. The handwriting gets looser as it goes, like he got "
+                "tired or distracted, like he meant to come back to it. He never does. He is writing "
+                "about the garden, about the hydrangeas. He thinks she would like them if she gave them "
+                "a chance. He thinks she would like a lot of things if she gave them a chance. He does "
+                "not finish the sentence.</p>"
+                "<p>She stays until the kitchen goes dark. She doesn&#x27;t turn on the lights.</p>"
+                "<p>When she goes, she leaves her key on the table. It belongs here more than she does now. "
+                "She has other keys — her apartment, her car, her office, all the doors of the life she "
+                "built for one. That is enough. That is hers.</p>"
+                "<p>Outside, the hydrangeas are still there. She stops and looks at them for a long time.</p>"
+                "<p>He was right. She does like them.</p>"
+                "<p>She walks to the car. She does not look back.</p>"
+            ),
+        )
+        db.add(resolution)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread.id, node_id=resolution.id,
+            note="Thread closes. Lena releases her claim on the house — and on the grief that was holding her in place."))
+        thread.closes_at_node_id = resolution.id
+        thread.status = "resolved"
+
+        db.commit()
+
+
+def seed_short_story_demo():
+    """
+    Short story demo: 'The Audition'
+
+    Showcases the mice-nested template with two LIFO-ordered threads:
+      1. Character (outer, opens first / closes last):
+         "Will Elena accept that her performing life is ending?"
+      2. Event (inner, opens second / closes first):
+         "Will Elena get through the audition?"
+
+    Three movements × several beats — the Event thread closes at the end
+    of Movement 2, the Character thread closes at the end of Movement 3.
+    """
+    with Session(engine) as db:
+        admin = db.query(User).filter(User.username == settings.admin_username).first()
+        if not admin:
+            return
+        if db.query(Story).filter(Story.title == "The Audition").first():
+            return
+
+        story = Story(
+            user_id=admin.id,
+            title="The Audition",
+            description="A concert pianist with early-stage Parkinson's prepares for what may be her last performance — and discovers that endings can be gifts.",
+            structure_template_id="mice-nested",
+            intent="A story about what it means to give something away before it can be taken.",
+            genre="Literary Fiction",
+            tone="Precise, controlled, with moments of sudden emotion",
+            themes=["legacy", "acceptance", "craft", "letting go", "transmission"],
+            central_conflict="Elena cannot stop being a performer by deciding to — she has to find something worth becoming instead.",
+            narrative_intent="Demonstrate MICE nested structure: a Character thread (dissatisfaction with loss of identity) wraps around an Event thread (the audition itself). The inner thread closes first; the outer closes last.",
+            premise="A celebrated concert pianist enters a conservatory audition knowing her hands are failing her — and walks out with something she didn't expect to find.",
+            logline="On the day a pianist's tremors make her last audition unwinnable, she discovers what she's actually been preparing for.",
+            intended_length="short_story",
+            goals=[
+                {"id": str(uuid.uuid4()), "text": "Establish Elena's dissatisfaction in Movement 1 (Character thread opens)", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Open the Event thread when Elena commits to going on stage", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Close the Event thread at the end of Movement 2 (audition over)", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Close the Character thread at the end of Movement 3 (Elena accepts the transition)", "completed": True},
+            ],
+        )
+        db.add(story)
+        db.flush()
+
+        # ── Character ─────────────────────────────────────────────────────────
+        elena = Character(
+            story_id=story.id,
+            name="Elena Sorokina",
+            role="protagonist",
+            mission_statement="To give her music away before it can be taken — on her own terms, to someone who will carry it.",
+            personality="Precise, exacting, not given to sentiment. She communicates through the music rather than around it. She finds uncertainty intolerable.",
+            motivation="She has played professionally for thirty-one years. She is not willing to let the last thing she plays be a bad performance.",
+            background="Elena is 54. Born in Novosibirsk, studied in Moscow, moved to London at twenty-two. Principal soloist with three orchestras before going independent. Diagnosed with early Parkinson's fourteen months ago. She told no one except her doctor and her accompanist.",
+            appearance="Silver hair cut short, always in black, very still when she isn't playing — as if conserving something.",
+            arc_notes="Moves from controlled denial (performing as though nothing is wrong) through public failure (the tremor in the adagio) to unexpected release (the student, the realization).",
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Character thread opens: Elena acknowledges the tremor is getting worse", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Commits to the audition anyway — this is the try", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Event thread closes: audition over, result known", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Character thread closes: Elena teaches — she understands what she's been preparing for", "completed": True},
+            ],
+            narrative_intent="Elena is a story about craft and transmission. She earns the ending because she never asked for sympathy — only precision.",
+            narrative_intent_hidden=True,
+            interview_prompts=[
+                "When did you first know something was wrong?",
+                "What does it feel like to play a piece you've performed two hundred times?",
+                "What would you tell a student who is afraid of failing?",
+                "What are you preparing for?",
+            ],
+        )
+        db.add(elena)
+        db.flush()
+
+        # ── Plot threads ──────────────────────────────────────────────────────
+
+        thread_character = PlotThread(
+            story_id=story.id,
+            name="Will Elena accept the end of performing?",
+            description="Character thread (outer). Elena's dissatisfaction: she is losing the thing that defines her, and she cannot decide if she is fighting it or surrendering to it. Opens in Movement 1. Closes in Movement 3.",
+            status="resolved",
+            color="#8b5cf6",
+            mice_type="character",
+        )
+        db.add(thread_character)
+
+        thread_event = PlotThread(
+            story_id=story.id,
+            name="Will Elena get through the audition?",
+            description="Event thread (inner). A discrete, bounded question: she has committed to performing, and the audition either goes well or it doesn't. Opens in Movement 1 Beat 2. Closes in Movement 2 Beat 3.",
+            status="resolved",
+            color="#3b82f6",
+            mice_type="event",
+        )
+        db.add(thread_event)
+        db.flush()
+
+        # ── Movement 1: Before ────────────────────────────────────────────────
+        mov1 = StructureNode(
+            story_id=story.id, parent_id=None, level=0, level_type="Movement",
+            title="Movement 1: Before",
+            synopsis="Backstage at the conservatory. Elena's hands are worse than yesterday. She decides to go on anyway.",
+            position=0,
+            metadata_={"purpose": "Open both MICE threads. The Character thread opens first (Elena's dissatisfaction is named). The Event thread opens second (she commits to the stage). By the end of this movement, both questions are live."},
+        )
+        db.add(mov1)
+        db.flush()
+
+        beat1 = StructureNode(
+            story_id=story.id, parent_id=mov1.id, level=1, level_type="Beat",
+            title="The Tremor",
+            synopsis="Elena arrives backstage. She tests her hands. The left trembles. She has been here thirty years and never been afraid of a stage.",
+            position=0,
+            status="final",
+            word_count=291,
+            entry_state="Elena backstage, alone, forty minutes before curtain. She is doing the thing she always does: running through the fingering in her mind, hands still.",
+            exit_state="Elena's left hand has trembled during a warm-up run. She knows the tremor is worse than yesterday. She has not told anyone.",
+            key_events="Warm-up run; tremor noticed; memory of her teacher; the decision not to withdraw.",
+            metadata_={
+                "purpose": "Open the Character MICE thread. Elena's dissatisfaction is established: she is a performer who is losing the ability to perform. She has not accepted this yet.",
+                "mice_opens": "Character thread: 'Will Elena accept the end of performing?' — opened here, in the tremor she cannot explain away.",
+            },
+            content=(
+                "<p>The warm-up room is too bright. It always is, in conservatories — they overlight "
+                "everything, as if talent requires fluorescence. Elena has been in a hundred rooms like "
+                "this. She knows the smell: rosin and old wood and the particular anxiety of people "
+                "trying not to show it.</p>"
+                "<p>She runs the opening bars in her head, fingers moving against her thigh. The Schubert. "
+                "She has played it two hundred and twelve times — she keeps count, she always has — and "
+                "it has never frightened her. Not even the first time, when she was twenty-three and had "
+                "just arrived in London and couldn&#x27;t yet find words in English for what she wanted "
+                "to say. The music said it for her.</p>"
+                "<p>Her left hand trembles.</p>"
+                "<p>Not much. A flutter, like a small thing startled — there and gone. She watches it "
+                "until it stills.</p>"
+                "<p>Yesterday it was the same. The day before, slightly less. She has been watching this "
+                "progression with the same precision she applies to everything, charting it in a small "
+                "notebook she keeps in her coat pocket, because she cannot tolerate imprecision even when "
+                "the data is unwelcome.</p>"
+                "<p>She closes her left hand into a fist. Opens it. The fingers are steady now.</p>"
+                "<p>She will not withdraw. That is not a decision she has to make — it was settled before "
+                "she walked through the stage door, before she drove here, before she got out of bed this "
+                "morning. Some things are decided before you decide them.</p>"
+            ),
+        )
+        db.add(beat1)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_character.id, node_id=beat1.id,
+            note="Character thread opens. Elena notices the tremor and chooses not to withdraw."))
+        thread_character.opens_at_node_id = beat1.id
+
+        beat2 = StructureNode(
+            story_id=story.id, parent_id=mov1.id, level=1, level_type="Beat",
+            title="Twenty Minutes",
+            synopsis="The stage manager calls her. Elena commits to the audition. The Event thread opens.",
+            position=1,
+            status="revised",
+            word_count=156,
+            entry_state="Elena alone, hands settled, time running out.",
+            exit_state="Elena at the stage door. She has committed. The question is no longer whether she goes on — it's whether she gets through.",
+            key_events="Stage manager's call; Elena's last check; walking to the door.",
+            metadata_={
+                "purpose": "Open the Event MICE thread. Elena commits to the stage — a concrete, bounded question now exists: will she get through the audition? This is the inner thread (second opened, first closed).",
+                "mice_opens": "Event thread: 'Will Elena get through the audition?' — opened when she walks through the stage door.",
+            },
+        )
+        db.add(beat2)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_event.id, node_id=beat2.id,
+            note="Event thread opens. Elena commits to the audition — the question is now live."))
+        thread_event.opens_at_node_id = beat2.id
+
+        # ── Movement 2: The Audition ──────────────────────────────────────────
+        mov2 = StructureNode(
+            story_id=story.id, parent_id=None, level=0, level_type="Movement",
+            title="Movement 2: The Audition",
+            synopsis="Elena performs. The first movement is perfect. The second movement begins to fail. She improvises. She finishes. She does not win.",
+            position=1,
+            metadata_={"purpose": "Develop and close the Event thread. The audition is a discrete event with a clear result. The Character thread continues through this movement — Elena's relationship to her own music shifts under pressure."},
+        )
+        db.add(mov2)
+        db.flush()
+
+        beat3 = StructureNode(
+            story_id=story.id, parent_id=mov2.id, level=1, level_type="Beat",
+            title="Allegro",
+            synopsis="The first movement goes perfectly. The panel leans forward. For a few minutes Elena forgets what's wrong.",
+            position=0,
+            status="revised",
+            word_count=178,
+            entry_state="Elena on stage, introduced, the room quiet.",
+            exit_state="First movement complete. The panel is attentive. Elena knows the adagio is next.",
+            key_events="Opening notes; the room's attention; first movement completed cleanly.",
+            metadata_={"purpose": "False hope. Give Elena — and the reader — a moment where it seems like she might get through cleanly. The adagio will break this."},
+        )
+        db.add(beat3)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_event.id, node_id=beat3.id,
+            note="Event thread developing. First movement clean — the audition is going well."))
+        db.add(PlotThreadAppearance(thread_id=thread_character.id, node_id=beat3.id,
+            note="Character thread: Elena in her element. For a moment, the question of loss recedes."))
+
+        beat4 = StructureNode(
+            story_id=story.id, parent_id=mov2.id, level=1, level_type="Beat",
+            title="Adagio",
+            synopsis="The slow movement. Elena's left hand fails in the sixteenth bar. She adjusts, catches it, keeps going — but the panel saw.",
+            position=1,
+            status="revised",
+            word_count=212,
+            entry_state="Elena midway through the performance, moving into the slow movement.",
+            exit_state="The tremor happened. The panel saw. Elena knows the result. She plays the final bars anyway.",
+            key_events="Tremor in bar sixteen; fingering adjustment; the panel's exchanged glance; Elena's decision to finish.",
+            metadata_={"purpose": "The Event thread reaches its crisis. The audition is not going to be won. But the question of whether Elena finishes it still holds."},
+        )
+        db.add(beat4)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_event.id, node_id=beat4.id,
+            note="Event thread crisis. The tremor surfaces publicly. The audition is functionally over."))
+        db.add(PlotThreadAppearance(thread_id=thread_character.id, node_id=beat4.id,
+            note="Character thread: Elena's worst fear is now real. She plays through it anyway. Something shifts."))
+
+        beat5 = StructureNode(
+            story_id=story.id, parent_id=mov2.id, level=1, level_type="Beat",
+            title="The Final Bars",
+            synopsis="Elena finishes the piece. The room applauds — not the way it applauds a winner. She bows. The Event thread closes.",
+            position=2,
+            status="final",
+            word_count=143,
+            entry_state="Elena in the final movement, the outcome decided.",
+            exit_state="Elena has finished. She has walked off stage. The audition is over. She did not win.",
+            key_events="Final bars; the bow; the walk offstage; the panel's silence.",
+            metadata_={
+                "purpose": "Close the Event MICE thread (inner thread). The bounded question 'will Elena get through the audition?' is answered: yes, she finished. The result was not the one she came for. The Character thread remains open.",
+                "mice_closes": "Event thread: 'Will Elena get through the audition?' — closed here. She did.",
+            },
+        )
+        db.add(beat5)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_event.id, node_id=beat5.id,
+            note="Event thread closes. Elena finishes the audition. The inner MICE thread is resolved."))
+        thread_event.closes_at_node_id = beat5.id
+        thread_event.status = "resolved"
+
+        # ── Movement 3: After ─────────────────────────────────────────────────
+        mov3 = StructureNode(
+            story_id=story.id, parent_id=None, level=0, level_type="Movement",
+            title="Movement 3: After",
+            synopsis="Backstage, a young student asks Elena for guidance. Elena teaches — and realizes what she has been preparing for all along.",
+            position=2,
+            metadata_={"purpose": "Close the Character thread (outer thread). Elena's dissatisfaction is resolved not through recovery, but through transmission. She finds the thing worth becoming."},
+        )
+        db.add(mov3)
+        db.flush()
+
+        beat6 = StructureNode(
+            story_id=story.id, parent_id=mov3.id, level=1, level_type="Beat",
+            title="The Student",
+            synopsis="A young pianist — seventeen, auditioning for the first time — asks Elena how she got through it. Elena tells her. The Character thread closes.",
+            position=0,
+            status="final",
+            word_count=268,
+            entry_state="Elena backstage, coat on, ready to leave. The result isn't posted yet but she already knows.",
+            exit_state="Elena has given something away. She walks out lighter than she came in.",
+            key_events="The student's question; Elena's answer; the realization; the exit.",
+            metadata_={
+                "purpose": "Close the Character MICE thread (outer thread). Elena's dissatisfaction — 'I am losing the thing that defines me' — resolves when she discovers that what she's been building for thirty years was never the performances. It was this.",
+                "mice_closes": "Character thread: 'Will Elena accept the end of performing?' — closed here. She does, because she finds what comes next.",
+            },
+            content=(
+                "<p>The girl is sitting on the floor outside the warm-up room, arms wrapped around "
+                "her knees, staring at nothing. Seventeen, maybe eighteen. Elena has seen this posture "
+                "a thousand times — the aftermath of going on stage for the first time and discovering "
+                "it is not what you imagined.</p>"
+                "<p>She almost walks past. She has a car waiting.</p>"
+                "<p>&#x201C;How did you do that?&#x201D; the girl asks. Not rudely — genuinely. &#x201C;The "
+                "second movement. When your hand — I mean. You just kept going.&#x201D;</p>"
+                "<p>Elena stops. She thinks about several answers. She gives the true one.</p>"
+                "<p>&#x201C;I stopped thinking about what I wanted the panel to hear,&#x201D; she says. "
+                "&#x201C;And played what the music needed.&#x201D;</p>"
+                "<p>The girl considers this with the seriousness that only very young musicians bring to "
+                "things. &#x201C;Is that something you learn?&#x201D;</p>"
+                "<p>&#x201C;Yes,&#x201D; Elena says. &#x201C;It takes a long time.&#x201D;</p>"
+                "<p>She sits down on the floor beside her. She does not think about the car.</p>"
+                "<p>Later — much later, walking to the car park in the dark — Elena tries to locate the "
+                "moment when the heaviness lifted. She thinks it was in the middle of explaining something "
+                "she had never put into words before, watching the girl&#x27;s face change as she understood "
+                "it. Thirty-one years of learning something, compressed into twenty minutes of giving it away.</p>"
+                "<p>She has her notebook in her coat pocket. She does not write anything in it.</p>"
+                "<p>She already knows what comes next.</p>"
+            ),
+        )
+        db.add(beat6)
+        db.flush()
+
+        db.add(PlotThreadAppearance(thread_id=thread_character.id, node_id=beat6.id,
+            note="Character thread closes. Elena finds the thing worth becoming — teacher. The outer MICE thread resolves."))
+        thread_character.closes_at_node_id = beat6.id
+        thread_character.status = "resolved"
+
+        # ── Supporting character ───────────────────────────────────────────────
+        student = Character(
+            story_id=story.id,
+            name="Mira Osei",
+            role="supporting",
+            mission_statement="To become a musician good enough to justify how much it costs her family — and to find out if she actually loves it or just needs to prove she can do it.",
+            personality="Serious and precise in the practice room, but startled open when something moves her. She asks questions most students would be too proud to ask.",
+            motivation="She was the best in her youth program for three years. Today she placed fourth. She is sitting on the floor outside the warm-up room trying to understand what that means.",
+            background="Seventeen years old. On scholarship. Her parents drove five hours to be in the auditorium. She heard Elena play in the second movement and couldn't look away.",
+            appearance="Tall, still in her audition dress, sheet music folded in her lap.",
+            arc_notes="Mira is the character who receives what Elena has to give. Her role is to be genuinely ready to learn — not as a student, but as a person.",
+            narrative_intent="Mira exists to make Elena's gift real. Without someone worth teaching, Elena's realization remains abstract. Mira closes the circuit.",
+            narrative_intent_hidden=True,
+        )
+        db.add(student)
+        db.flush()
+
+        db.add(CharacterRelationship(
+            character_id=elena.id,
+            related_character_id=student.id,
+            relationship_type="teacher",
+            description="An encounter that lasts twenty minutes and changes both of them. Elena gives Mira something precise and true. Mira gives Elena permission to stop.",
+        ))
+
+        # ── Lorebook settings ─────────────────────────────────────────────────
+        setting_warmup = Setting(
+            story_id=story.id,
+            name="The Warm-Up Room",
+            description="A bright, over-lit room backstage at the conservatory. Upright piano, folding chairs, industrial carpet. It smells like rosin and anxiety. Every serious musician has spent hours in a room exactly like this.",
+            atmosphere="Fluorescent light. The faint sound of someone running scales behind a closed door. The particular quiet of people trying not to show how frightened they are.",
+            significance="Where Elena's tremor appears. Where she decides not to withdraw. Where she finds Mira at the end. The room frames the story — opening and closing in the same place.",
+        )
+        db.add(setting_warmup)
+
+        setting_stage = Setting(
+            story_id=story.id,
+            name="The Concert Stage",
+            description="A formal recital stage: Steinway grand, three panel judges at a long table, tiered seating mostly empty except for a handful of observers and a few anxious parents. The acoustics are very good. Nothing is hidden.",
+            atmosphere="A silence that feels constructed — the silence of a room waiting to evaluate. Every noise carries. The panel's pens are audible.",
+            significance="Where the Event MICE thread plays out. The stage is a space where Elena has always been in control. Here she loses control publicly, for the first time.",
+        )
+        db.add(setting_stage)
+
+        setting_carpark = Setting(
+            story_id=story.id,
+            name="The Car Park",
+            description="Unremarkable. Concrete, sodium lights, the smell of exhaust. Elena's rental car is in row C.",
+            atmosphere="The ordinary world, reasserting itself after the intensity of the conservatory. Things continue.",
+            significance="The last image: Elena walking to her car in the dark, not writing in her notebook. The absence of notation marks the change in her.",
+        )
+        db.add(setting_carpark)
+
+        # ── Compendium entries ────────────────────────────────────────────────
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            title="Parkinson's and the Professional Musician",
+            entry_type="note",
+            category="research",
+            tags=["medical", "music", "craft"],
+            content=(
+                "Early-stage Parkinson's in musicians most commonly presents as a resting tremor "
+                "that diminishes during intentional movement — which is why Elena can play through "
+                "most of the performance. The tremor returns under fatigue and emotional stress.\n\n"
+                "Many professional musicians with early Parkinson's continue performing for years "
+                "with modifications: tempo adjustments, repertoire selection, avoiding pieces that "
+                "require sustained pianissimo passages (where tremor becomes most visible).\n\n"
+                "The Schubert D. 960 Sonata is a significant choice: the adagio is one of the "
+                "slowest and most exposed movements in the standard repertoire. It requires absolute "
+                "stillness in the left hand. Elena chose it deliberately. She wanted to know."
+            ),
+        ))
+
+        db.add(CompendiumEntry(
+            story_id=story.id,
+            title="Schubert Piano Sonata No. 21 in B-flat major, D. 960",
+            entry_type="note",
+            category="research",
+            tags=["music", "Schubert", "repertoire"],
+            content=(
+                "Schubert's final piano sonata, composed in the last months of his life (1828). "
+                "Often described as a meditation on mortality — not mournful, but spacious. "
+                "The opening movement begins with a trill in the bass that commentators have "
+                "called 'a distant rumble' or 'the approach of something inevitable.'\n\n"
+                "The adagio sostenuto (second movement) is the piece's emotional heart: "
+                "C-sharp minor, extremely slow, one of the most exposed slow movements in the "
+                "standard piano repertoire. Pianists describe it as having 'nowhere to hide.'\n\n"
+                "Elena has performed it 212 times. She chose it for this audition because "
+                "she wanted to play something she knew well enough to play honestly, even if "
+                "her hands failed her. The piece is already about endings."
+            ),
+        ))
+
+        # ── Outline ───────────────────────────────────────────────────────────
+        out_m1 = OutlineItem(
+            story_id=story.id, parent_id=None, level=0, position=0,
+            beat_type="plot",
+            text="Movement 1: Before — Elena prepares backstage; Character thread opens (tremor), Event thread opens (commitment to stage)",
+        )
+        db.add(out_m1)
+        db.flush()
+
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m1.id, level=1, position=0,
+            beat_type="character",
+            text="The Tremor — Elena notices her left hand is worse. She does not withdraw. Character MICE thread opens.",
+        ))
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m1.id, level=1, position=1,
+            beat_type="plot",
+            text="Twenty Minutes — Stage manager calls. Elena commits. Event MICE thread opens.",
+        ))
+
+        out_m2 = OutlineItem(
+            story_id=story.id, parent_id=None, level=0, position=1,
+            beat_type="plot",
+            text="Movement 2: The Audition — Elena performs; Event thread develops and closes at the final bars",
+        )
+        db.add(out_m2)
+        db.flush()
+
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m2.id, level=1, position=0,
+            beat_type="plot",
+            text="Allegro — First movement clean. False hope.",
+        ))
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m2.id, level=1, position=1,
+            beat_type="character",
+            text="Adagio — Left hand fails in bar 16. Elena adjusts. The panel sees. The audition is functionally over.",
+        ))
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m2.id, level=1, position=2,
+            beat_type="plot",
+            text="The Final Bars — Elena finishes. Bows. Walks offstage. Event MICE thread closes: she got through it.",
+        ))
+
+        out_m3 = OutlineItem(
+            story_id=story.id, parent_id=None, level=0, position=2,
+            beat_type="character",
+            text="Movement 3: After — Elena meets Mira; teaches; realizes what she has been preparing for. Character thread closes.",
+        )
+        db.add(out_m3)
+        db.flush()
+
+        db.add(OutlineItem(
+            story_id=story.id, parent_id=out_m3.id, level=1, position=0,
+            beat_type="character",
+            text="The Student — Mira asks how Elena got through it. Elena tells her. Thirty-one years compressed into twenty minutes. Character MICE thread closes.",
         ))
 
         db.commit()

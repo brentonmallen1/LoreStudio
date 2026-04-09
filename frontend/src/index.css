@@ -63,6 +63,18 @@
   --color-success: #4a9c6e;
   --color-surface-raised: #eceae2;
 
+  /* ── MICE type colors (derived from segment vars — theme-aware) ── */
+  --mice-milieu: var(--segment-scene);
+  --mice-idea: var(--segment-chapter);
+  --mice-character: var(--color-ai);
+  --mice-event: var(--segment-act);
+
+  /* ── Twist accent ── */
+  --twist-accent: var(--color-ai-coach);
+
+  /* ── Modal overlay ── */
+  --color-overlay: rgba(0, 0, 0, 0.4);
+
   /* ── Editor typography ─────────────────────────── */
   --font-editor: "Merriweather", Georgia, serif;
   --font-size-editor: 1rem;

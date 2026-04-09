@@ -361,8 +361,8 @@ h3.structureHeading {
 }
 
 .status_final {
-  background: color-mix(in srgb, #4caf82 15%, transparent);
-  color: #4caf82;
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
 }
 
 .wordCount {

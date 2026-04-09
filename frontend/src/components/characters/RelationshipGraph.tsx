@@ -235,6 +235,16 @@ export default function RelationshipGraph({ storyId }: Props) {
             display: "block",
           }}
         >
+          <defs>
+            <marker id="arrow-dim" viewBox="0 0 8 8" refX="8" refY="4"
+              markerWidth="4" markerHeight="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="var(--color-border)" />
+            </marker>
+            <marker id="arrow-lit" viewBox="0 0 8 8" refX="8" refY="4"
+              markerWidth="4" markerHeight="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="var(--color-text-muted)" />
+            </marker>
+          </defs>
           <g transform={`translate(${tx}, ${ty}) scale(${scale})`}>
 
             {/* ── Edges ── */}
@@ -251,14 +261,22 @@ export default function RelationshipGraph({ storyId }: Props) {
               const midY = 0.25 * src.y + 0.5 * cy + 0.25 * tgt.y;
               const labelText = trunc(rel.relationship_type, 18);
               const labelW = labelText.length * 5.5 + 10;
+              // Shorten path to land on target circle border so arrowhead tip is exact
+              const tgtChar = characters.find((c) => c.id === rel.related_character_id);
+              const tgtR = nodeRadius(tgtChar?.role ?? "minor") + 2;
+              const edgeDx = tgt.x - cx, edgeDy = tgt.y - cy;
+              const edgeDlen = Math.sqrt(edgeDx * edgeDx + edgeDy * edgeDy) || 1;
+              const adjTx = tgt.x - (edgeDx / edgeDlen) * tgtR;
+              const adjTy = tgt.y - (edgeDy / edgeDlen) * tgtR;
 
               return (
                 <g key={rel.id} opacity={isLit ? 1 : 0.08} style={{ transition: "opacity 120ms ease" }}>
                   <path
-                    d={`M ${src.x} ${src.y} Q ${cx} ${cy} ${tgt.x} ${tgt.y}`}
+                    d={`M ${src.x} ${src.y} Q ${cx} ${cy} ${adjTx} ${adjTy}`}
                     fill="none"
                     stroke={showLabel ? "var(--color-text-muted)" : "var(--color-border)"}
                     strokeWidth={showLabel ? 1.5 : 1}
+                    markerEnd={showLabel ? "url(#arrow-lit)" : "url(#arrow-dim)"}
                     style={{ transition: "stroke 120ms ease, stroke-width 120ms ease" }}
                   />
                   {/* Label with opaque background for readability */}
