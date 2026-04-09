@@ -922,4 +922,85 @@ export const api = {
     request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, { method: "POST" }),
   applyEntityLinks: (nodeId: string, links: import("../types").ApplyLinkRequest[]) =>
     request<import("../types").StructureNode>(`/structure/${nodeId}/apply-links`, { method: "POST", body: JSON.stringify({ links }) }),
+
+  // Snapshots
+  listSnapshots: (storyId: string) =>
+    request<import("../types").StorySnapshot[]>(`/stories/${storyId}/snapshots`),
+  createSnapshot: (storyId: string, name?: string) =>
+    request<import("../types").StorySnapshot>(`/stories/${storyId}/snapshots`, {
+      method: "POST",
+      body: JSON.stringify({ name: name ?? null }),
+    }),
+  getSnapshot: (storyId: string, snapshotId: string) =>
+    request<import("../types").StorySnapshot>(`/stories/${storyId}/snapshots/${snapshotId}`),
+  renameSnapshot: (storyId: string, snapshotId: string, name: string | null) =>
+    request<import("../types").StorySnapshot>(`/stories/${storyId}/snapshots/${snapshotId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name }),
+    }),
+  deleteSnapshot: (storyId: string, snapshotId: string) =>
+    request<void>(`/stories/${storyId}/snapshots/${snapshotId}`, { method: "DELETE" }),
+  restoreSnapshot: (storyId: string, snapshotId: string, createSafetyBackup = true) =>
+    request<{ restored: boolean; snapshot_id: string }>(
+      `/stories/${storyId}/snapshots/${snapshotId}/restore`,
+      { method: "POST", body: JSON.stringify({ create_safety_backup: createSafetyBackup }) },
+    ),
+  diffSnapshots: (storyId: string, aId: string, bId: string) =>
+    request<import("../types").SnapshotDiff>(
+      `/stories/${storyId}/snapshots/diff?a_id=${aId}&b_id=${bId}`,
+    ),
+  checkAutoBackup: (storyId: string) =>
+    request<{ created: boolean; snapshot?: import("../types").StorySnapshot }>(
+      `/stories/${storyId}/snapshots/check-auto`,
+      { method: "POST" },
+    ),
+  getBackupStatus: (storyId: string) =>
+    request<import("../types").BackupStatus>(`/stories/${storyId}/snapshots/status`),
+  exportSnapshot: (storyId: string, snapshotId: string): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/snapshots/${snapshotId}/export`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+  importIntoStory: (storyId: string, file: File, createSafetyBackup = true): Promise<Response> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append("file", file);
+    return fetch(
+      `${BASE}/stories/${storyId}/snapshots/import?create_safety_backup=${createSafetyBackup}`,
+      {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
+      },
+    );
+  },
+  importAsNewStory: (file: File): Promise<Response> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append("file", file);
+    return fetch(`${BASE}/stories/import`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
+  },
+
+  // Backup settings
+  getBackupSettings: (storyId: string) =>
+    request<import("../types").BackupSettings>(`/stories/${storyId}/backup-settings`),
+  updateBackupSettings: (storyId: string, data: Partial<import("../types").BackupSettings>) =>
+    request<import("../types").BackupSettings>(`/stories/${storyId}/backup-settings`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  // User backup defaults
+  getUserBackupDefaults: () =>
+    request<import("../types").UserBackupDefaults>(`/user/backup-defaults`),
+  updateUserBackupDefaults: (data: Partial<import("../types").UserBackupDefaults>) =>
+    request<import("../types").UserBackupDefaults>(`/user/backup-defaults`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
 };

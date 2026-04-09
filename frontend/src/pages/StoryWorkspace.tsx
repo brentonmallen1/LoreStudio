@@ -29,6 +29,7 @@ const ChroniclePage      = lazy(() => import("./ChroniclePage"));
 const DiscoveryQueuePage = lazy(() => import("./DiscoveryQueuePage"));
 const StoryOverviewPage  = lazy(() => import("./StoryOverviewPage"));
 const PublishPage        = lazy(() => import("./PublishPage"));
+const VersionsPage       = lazy(() => import("./VersionsPage"));
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -60,6 +61,16 @@ export default function StoryWorkspacePage() {
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
   }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, navigate]);
+
+  // Auto-backup: check on load, then every 5 minutes while the story is open
+  useEffect(() => {
+    if (!storyId) return;
+    api.checkAutoBackup(storyId).catch(() => {});
+    const interval = setInterval(() => {
+      api.checkAutoBackup(storyId).catch(() => {});
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [storyId]);
 
   if (loading) {
     return <div className={styles.loading}>Loading…</div>;
@@ -142,6 +153,7 @@ export default function StoryWorkspacePage() {
           <Route path="/discoveries" element={<DiscoveryQueuePage />} />
           <Route path="/chronicle" element={<ChroniclePage />} />
           <Route path="/publish" element={<PublishPage />} />
+          <Route path="/versions" element={<VersionsPage />} />
         </Routes>
         </Suspense>
       </main>

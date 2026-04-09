@@ -12,7 +12,7 @@ interface Props {
   /** Whether the card can be collapsed. Defaults true. */
   collapsible?: boolean;
   /** Visual variant */
-  variant?: "default" | "ai" | "intent";
+  variant?: "default" | "ai" | "intent" | "accent";
   /** Extra class on the outer card element */
   className?: string;
 }
@@ -39,7 +39,7 @@ export default function SectionCard({
     }
   }
 
-  const variantClass = variant === "ai" ? styles.ai : variant === "intent" ? styles.intent : "";
+  const variantClass = variant === "ai" ? styles.ai : variant === "intent" ? styles.intent : variant === "accent" ? styles.accent : "";
   const cardClass = [styles.card, variantClass, className ?? ""].filter(Boolean).join(" ");
 
   if (!collapsible) {

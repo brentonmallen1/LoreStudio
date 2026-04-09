@@ -104,3 +104,9 @@ class Story(Base):
     outline_items: Mapped[list["OutlineItem"]] = relationship(
         "OutlineItem", back_populates="story", cascade="all, delete-orphan"
     )
+    snapshots: Mapped[list["StorySnapshot"]] = relationship(
+        "StorySnapshot", back_populates="story", cascade="all, delete-orphan"
+    )
+    backup_settings: Mapped["StoryBackupSettings | None"] = relationship(
+        "StoryBackupSettings", back_populates="story", uselist=False, cascade="all, delete-orphan"
+    )

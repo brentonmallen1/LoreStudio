@@ -17,3 +17,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     stories: Mapped[list["Story"]] = relationship("Story", back_populates="user", cascade="all, delete-orphan")
+    backup_defaults: Mapped["UserBackupDefaults | None"] = relationship(
+        "UserBackupDefaults", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )

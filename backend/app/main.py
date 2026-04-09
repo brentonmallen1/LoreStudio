@@ -42,6 +42,7 @@ from .routers.export import router as export_router
 from .routers.dialogue import router as dialogue_router
 from .routers.twists import router as twists_router
 from .routers.outlines import router as outlines_router
+from .routers.snapshots import router as snapshots_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets
 
 
@@ -104,6 +105,7 @@ app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
+app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 
 
 @app.get("/health")

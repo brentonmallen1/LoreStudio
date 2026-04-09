@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(_env_path), env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = "sqlite:///./data/lorestudio.db"
+    snapshots_path: str = "./data/snapshots"
     secret_key: str = "dev-secret-key-change-in-production"
     access_token_expire_minutes: int = 10080  # 7 days
 

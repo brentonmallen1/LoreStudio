@@ -574,3 +574,39 @@
   background: var(--color-accent);
   color: var(--color-accent-fg);
 }
+
+/* ── Backup defaults ── */
+.sectionHint {
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  margin: 0 0 0.75rem;
+}
+
+.backupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.fieldRow .label {
+  flex: 1;
+}
+
+.select {
+  font-size: 0.82rem;
+  font-family: inherit;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  cursor: pointer;
+  min-width: 160px;
+}

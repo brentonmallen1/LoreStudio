@@ -7,6 +7,7 @@ services:
       - ${DATA_PATH:-./data}:/app/data
     environment:
       - DATABASE_URL=sqlite:////app/data/lorestudio.db
+      - SNAPSHOTS_PATH=${SNAPSHOTS_PATH:-/app/data/snapshots}
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}

@@ -388,3 +388,40 @@
   background: var(--color-surface-2);
   color: var(--color-text);
 }
+
+/* ── Backup indicator ── */
+.backupIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  margin-right: 0.5rem;
+}
+
+.backupIndicator:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.backupFresh { color: var(--color-text-subtle); }
+.backupStale { color: var(--color-warning, #f59e0b); }
+.backupOverdue { color: var(--color-danger, #ef4444); }
+
+.backupDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotFresh { background: var(--color-accent-secondary, #0d9488); }
+.dotStale { background: var(--color-warning, #f59e0b); }
+.dotOverdue { background: var(--color-danger, #ef4444); }

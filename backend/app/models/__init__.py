@@ -21,6 +21,7 @@ from .calendar import Calendar
 from .dialogue import DialogueBlock
 from .twist import Twist
 from .outline import OutlineItem
+from .snapshot import StorySnapshot, StoryBackupSettings, UserBackupDefaults
 
 __all__ = [
     "User",
@@ -52,4 +53,7 @@ __all__ = [
     "DialogueBlock",
     "Twist",
     "OutlineItem",
+    "StorySnapshot",
+    "StoryBackupSettings",
+    "UserBackupDefaults",
 ]

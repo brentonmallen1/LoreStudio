@@ -1090,3 +1090,102 @@ export interface ApplyLinkRequest {
   entity_name: string;
   entity_type: "character" | "location";
 }
+
+// ---------------------------------------------------------------------------
+// Snapshots & Backups
+// ---------------------------------------------------------------------------
+
+export interface SnapshotSummary {
+  word_count: number;
+  scene_count: number;
+  character_count: number;
+  thread_count: number;
+}
+
+export interface SnapshotDeltaSummary {
+  word_count_delta: number;
+  scenes_added: number;
+  scenes_removed: number;
+  scenes_modified: number;
+  characters_added: number;
+  characters_modified: number;
+  threads_added: number;
+  threads_modified: number;
+}
+
+export interface StorySnapshot {
+  id: string;
+  story_id: string;
+  name: string | null;
+  trigger: "manual" | "auto";
+  snapshot_type: "full" | "delta";
+  base_snapshot_id: string | null;
+  summary: SnapshotSummary | null;
+  delta_summary: SnapshotDeltaSummary | null;
+  created_at: string;
+}
+
+export interface SnapshotDiffEntity {
+  added: Record<string, unknown>[];
+  removed: Record<string, unknown>[];
+  modified: Record<string, unknown>[];
+}
+
+export interface SnapshotDiff {
+  word_count_delta: number;
+  summary: {
+    a: SnapshotSummary;
+    b: SnapshotSummary;
+  };
+  structure_nodes?: SnapshotDiffEntity;
+  characters?: SnapshotDiffEntity;
+  plot_threads?: SnapshotDiffEntity;
+  twists?: SnapshotDiffEntity;
+  locations?: SnapshotDiffEntity;
+  world_systems?: SnapshotDiffEntity;
+  cultures?: SnapshotDiffEntity;
+  eras?: SnapshotDiffEntity;
+  outline_items?: SnapshotDiffEntity;
+}
+
+export type BackupStaleness = "fresh" | "stale" | "overdue";
+
+export interface BackupStatus {
+  last_backup_at: string | null;
+  last_backup_trigger: "manual" | "auto" | null;
+  auto_enabled: boolean;
+  interval_minutes: number;
+  staleness: BackupStaleness;
+  next_auto_at: string | null;
+}
+
+export interface BackupSettings {
+  id: string;
+  story_id: string;
+  auto_enabled: boolean;
+  interval_minutes: number;
+  max_count: number | null;
+  max_age_days: number | null;
+  last_auto_backup_at: string | null;
+  include_diagrams: boolean;
+  include_interviews: boolean;
+  include_chat_sessions: boolean;
+  include_activity_logs: boolean;
+  activity_log_limit: number | null;
+  include_media_assets: boolean;
+}
+
+export interface UserBackupDefaults {
+  id: string;
+  user_id: string;
+  auto_enabled: boolean;
+  interval_minutes: number;
+  max_count: number | null;
+  max_age_days: number | null;
+  include_diagrams: boolean;
+  include_interviews: boolean;
+  include_chat_sessions: boolean;
+  include_activity_logs: boolean;
+  activity_log_limit: number | null;
+  include_media_assets: boolean;
+}

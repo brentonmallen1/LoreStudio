@@ -33,6 +33,7 @@ import {
   Send,
   Eye,
   ListTree,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
@@ -252,6 +253,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/media")) return "media";
     if (path.includes("/health")) return "health";
     if (path.includes("/chronicle")) return "chronicle";
+    if (path.includes("/versions")) return "versions";
     if (path.includes("/publish")) return "publish";
     if (path.includes("/worldbuilding")) return "worldbuilding";
     if (path.includes("/discoveries")) return "discoveries";
@@ -312,6 +314,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
       : []),
     { id: "chronicle",     icon: Clock,             label: "Chronicle",        path: "/chronicle" },
+    { id: "versions",      icon: History,           label: "Versions",         path: "/versions" },
     { id: "publish",       icon: Send,              label: "Publish",          path: "/publish" },
   ];
 

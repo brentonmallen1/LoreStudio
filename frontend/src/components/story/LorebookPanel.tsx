@@ -200,6 +200,11 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
     }, 300);
   }
 
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  function toggle(id: string) {
+    setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
   if (!activeStory) return null;
 
   return (
@@ -211,7 +216,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
 
       <div className={styles.scrollArea}>
         {/* ── Core Identity ── */}
-        <SectionCard title="Core Identity" collapsible={false}>
+        <SectionCard title="Core Identity" variant="accent" collapsed={!!collapsed.identity} onToggle={() => toggle("identity")}>
           <div>
             <p className={styles.subFieldLabel}>Logline</p>
             <p className={styles.fieldHint}>One sentence: who wants what, against what obstacle, with what at stake.</p>
@@ -236,7 +241,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Narrative Intent ── */}
-        <SectionCard title="Narrative Intent" variant="intent">
+        <SectionCard title="Narrative Intent" variant="intent" collapsed={!!collapsed.intent} onToggle={() => toggle("intent")}>
           <p className={styles.fieldHint}>What is this story about (meaning, not plot)? What question does it ask? What should the reader feel at the end?</p>
           <textarea
             value={fields.narrative_intent}
@@ -248,7 +253,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Style ── */}
-        <SectionCard title="Style">
+        <SectionCard title="Style" collapsed={!!collapsed.style} onToggle={() => toggle("style")}>
           <div className={styles.row}>
             <div>
               <p className={styles.subFieldLabel}>Genre</p>
@@ -303,7 +308,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Structure ── */}
-        <SectionCard title="Structure">
+        <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
           <div>
             <p className={styles.subFieldLabel}>Intended Length</p>
             <p className={styles.fieldHint}>Target form and word count range. Used by Story Health and AI tools.</p>
@@ -328,7 +333,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Themes & Conflict ── */}
-        <SectionCard title="Themes & Conflict">
+        <SectionCard title="Themes & Conflict" collapsed={!!collapsed.themes} onToggle={() => toggle("themes")}>
           <div>
             <p className={styles.subFieldLabel}>Themes</p>
             <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
@@ -359,7 +364,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Story Goals ── */}
-        <SectionCard title="Story Goals">
+        <SectionCard title="Story Goals" collapsed={!!collapsed.goals} onToggle={() => toggle("goals")}>
           <p className={styles.fieldHint}>Explicit goals to hit as you write. Check them off as you accomplish them.</p>
           <GoalsPanel storyId={storyId} />
         </SectionCard>

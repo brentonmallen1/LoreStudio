@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather, Database } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
+import { api } from "../../api/client";
+import type { BackupStatus } from "../../types";
 import styles from "./GlobalHeader.module.css";
 
 const THEME_SWATCHES: Record<ThemeName, string[]> = {
@@ -36,8 +38,20 @@ const widthOptions: { value: EditorLineWidth; label: string }[] = [
   { value: "wide", label: "Wide" },
 ];
 
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+}
+
 export default function GlobalHeader() {
   const navigate = useNavigate();
+  const { storyId } = useParams<{ storyId: string }>();
   const { user, logout } = useAuthStore();
   const {
     themeName, colorMode, setThemeName, setColorMode,
@@ -50,6 +64,18 @@ export default function GlobalHeader() {
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
+
+  // Backup status indicator — fetch on load and refresh every 60s
+  // (keeps both the data and the relative-time text current)
+  const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null);
+  useEffect(() => {
+    if (!storyId) { setBackupStatus(null); return; }
+    api.getBackupStatus(storyId).then(setBackupStatus).catch(() => {});
+    const interval = setInterval(() => {
+      api.getBackupStatus(storyId).then(setBackupStatus).catch(() => {});
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [storyId]);
 
   // Cmd+/ to toggle assistant
   useEffect(() => {
@@ -150,6 +176,40 @@ export default function GlobalHeader() {
           )}
           <Link to="/" className={styles.wordmark}>LoreStudio</Link>
         </div>
+
+        {/* Backup indicator — shown when inside a story */}
+        {storyId && (
+          <button
+            className={`${styles.backupIndicator} ${
+              backupStatus
+                ? backupStatus.staleness === "fresh" ? styles.backupFresh
+                : backupStatus.staleness === "stale" ? styles.backupStale
+                : styles.backupOverdue
+                : ""
+            }`}
+            onClick={() => navigate(`/stories/${storyId}/versions`)}
+            title={
+              backupStatus?.last_backup_at
+                ? `Last backup: ${relativeTime(backupStatus.last_backup_at)} · Click to view version history`
+                : "No backups yet · Click to view version history"
+            }
+          >
+            <Database size={12} />
+            {backupStatus?.last_backup_at
+              ? <span>{relativeTime(backupStatus.last_backup_at)}</span>
+              : !backupStatus
+              ? null
+              : <span>No backup</span>
+            }
+            <span className={`${styles.backupDot} ${
+              backupStatus
+                ? backupStatus.staleness === "fresh" ? styles.dotFresh
+                : backupStatus.staleness === "stale" ? styles.dotStale
+                : styles.dotOverdue
+                : styles.dotOverdue
+            }`} />
+          </button>
+        )}
 
         <div className={styles.right}>
           {/* AI Assistant */}

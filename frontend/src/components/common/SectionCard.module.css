@@ -93,6 +93,31 @@
   opacity: 0.7;
 }
 
+/* ── Accent variant ── */
+.accent {
+  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
+  border-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+}
+
+.accent .head,
+.accent .headStatic {
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-2));
+  border-bottom-color: color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+}
+
+.accent .head:hover {
+  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface-2));
+}
+
+.accent .title {
+  color: var(--color-accent);
+}
+
+.accent .chevron {
+  color: var(--color-accent);
+  opacity: 0.7;
+}
+
 /* ── Intent variant ── */
 .intent {
   background: color-mix(in srgb, var(--color-warning) 5%, var(--color-surface));
