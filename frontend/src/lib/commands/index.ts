@@ -42,15 +42,13 @@ commandRegistry.register({
   group: "AI",
   shortcut: "⌘/",
   action: async () => {
-    const { sessions, createSession, setActiveSession, openPanel, setPanelPinned } = useAIStore.getState();
+    const { sessions, createSession, setActiveSession, openPanel } = useAIStore.getState();
     const { activeStory, activeNode } = useStoryStore.getState();
     const existing = sessions.find((s) => s.type === "assistant");
     if (existing) {
       setActiveSession(existing.id);
-      setPanelPinned(true);
       openPanel();
     } else {
-      setPanelPinned(true);
       await createSession("assistant", {
         storyId: activeStory?.id,
         nodeId: activeNode?.id,

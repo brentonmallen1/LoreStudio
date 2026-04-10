@@ -2,6 +2,20 @@ import type { ComponentType } from "react";
 import type { LLMParams } from "../../types";
 
 /**
+ * How much story context to include in the AI's context window.
+ * - current-scene: Only the active scene (default for scene-focused modes)
+ * - entire-story: Full lorebook + story structure (default for story-level modes)
+ * - lorebook-only: World/character data only, no manuscript content
+ */
+export type ContextScope = "current-scene" | "entire-story" | "lorebook-only";
+
+export const SCOPE_LABELS: Record<ContextScope, string> = {
+  "current-scene": "Scene",
+  "entire-story": "Full story",
+  "lorebook-only": "Lorebook",
+};
+
+/**
  * The runtime context for an AI session.
  * All fields are optional — each session type uses a subset.
  */
@@ -12,6 +26,7 @@ export interface SessionContext {
   characterIds?: string[];  // For panel interviews
   selectedText?: string;    // For writing-coach sessions: the highlighted text
   tonePrefs?: string[];     // For writing-coach sessions: e.g. ["darker", "direct"]
+  contextScope?: ContextScope; // How much story context to include
 }
 
 /** A single context option shown in the context picker dropdown */
@@ -97,6 +112,11 @@ export interface SessionTypeConfig {
 
   /** Whether the context can be changed in the panel header (before first message) */
   allowContextSwitch: boolean;
+
+  /** Default context scope for this mode. If omitted, no scope selector is shown. */
+  defaultScope?: ContextScope;
+  /** Scopes the user can choose from. Selector only shown if length > 1. */
+  allowedScopes?: ContextScope[];
 }
 
 /** Resolved display names for context IDs */

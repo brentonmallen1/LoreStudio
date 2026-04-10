@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Minus, X, MessageSquare, Feather, Pin, PinOff } from "lucide-react";
+import { Minus, X, MessageSquare, Feather, Plus, ChevronLeft, User2 } from "lucide-react";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { getSessionType } from "../../lib/ai/sessionTypes";
+import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
 import SessionView from "./SessionView";
 import styles from "./AIPanel.module.css";
+
+type MenuStep = { kind: "types" } | { kind: "pick-character"; forType: string };
 
 export default function AIPanel() {
   const [panelWidth, setPanelWidth] = useState(340);
@@ -43,7 +45,6 @@ export default function AIPanel() {
   const {
     panelOpen,
     panelCollapsed,
-    panelPinned,
     sessions,
     activeSessionId,
     closePanel,
@@ -51,10 +52,29 @@ export default function AIPanel() {
     expandPanel,
     closeSession,
     setActiveSession,
-    setPanelPinned,
     createSession,
   } = useAIStore();
-  const { activeStory, activeNode } = useStoryStore();
+  const { activeStory, activeNode, characters } = useStoryStore();
+
+  // New session menu state
+  const [showNewMenu, setShowNewMenu] = useState(false);
+  const [menuStep, setMenuStep] = useState<MenuStep>({ kind: "types" });
+  const newMenuRef = useRef<HTMLDivElement>(null);
+
+  // Character picker overlay (for session types that require a character, triggered from empty state)
+  const [pickingCharacterFor, setPickingCharacterFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!showNewMenu) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (newMenuRef.current && !newMenuRef.current.contains(e.target as Node)) {
+        setShowNewMenu(false);
+        setMenuStep({ kind: "types" });
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNewMenu]);
 
   // Keep content area from being obscured by the fixed panel
   useEffect(() => {
@@ -62,6 +82,50 @@ export default function AIPanel() {
     document.documentElement.style.setProperty("--ai-panel-offset", `${offset}px`);
     return () => { document.documentElement.style.setProperty("--ai-panel-offset", "0px"); };
   }, [panelOpen, panelCollapsed, panelWidth]);
+
+  function launchSession(typeId: string, fromDropdown = false) {
+    const type = getSessionType(typeId);
+    if (!type) return;
+
+    if (type.requiresCharacter) {
+      if (fromDropdown) {
+        setMenuStep({ kind: "pick-character", forType: typeId });
+      } else {
+        setPickingCharacterFor(typeId);
+      }
+      return;
+    }
+
+    const context = type.getDefaultContext({
+      storyId: activeStory?.id,
+      nodeId: activeNode?.id,
+    });
+    createSession(typeId, context);
+    if (fromDropdown) {
+      setShowNewMenu(false);
+      setMenuStep({ kind: "types" });
+    }
+  }
+
+  function handleCharacterPicked(characterId: string, forType: string) {
+    const type = getSessionType(forType);
+    if (!type) return;
+    const context = type.getDefaultContext({
+      storyId: activeStory?.id,
+      nodeId: activeNode?.id,
+    });
+    createSession(forType, { ...context, characterId });
+    setShowNewMenu(false);
+    setMenuStep({ kind: "types" });
+    setPickingCharacterFor(null);
+  }
+
+  function openNewMenu() {
+    setMenuStep({ kind: "types" });
+    setShowNewMenu((v) => !v);
+  }
+
+  const allTypes = getAllSessionTypes();
 
   if (!panelOpen) return null;
 
@@ -125,14 +189,66 @@ export default function AIPanel() {
             <span className={styles.tabEmpty}>Assistant</span>
           )}
         </div>
-        <div className={styles.tabControls}>
+
+        {/* New session button — between tabs and controls */}
+        <div className={styles.newMenuWrapper} ref={newMenuRef}>
           <button
-            className={`${styles.controlBtn} ${panelPinned ? styles.controlBtnActive : ""}`}
-            onClick={() => setPanelPinned(!panelPinned)}
-            title={panelPinned ? "Unpin panel (will close when empty)" : "Pin panel (keep open)"}
+            className={styles.newSessionBtn}
+            onClick={openNewMenu}
+            title="New session"
+            aria-label="New session"
+            aria-expanded={showNewMenu}
           >
-            {panelPinned ? <Pin size={12} /> : <PinOff size={12} />}
+            <Plus size={12} />
+            <span>New</span>
           </button>
+          {showNewMenu && (
+            <div className={styles.newMenu}>
+              {menuStep.kind === "types" ? (
+                allTypes.map((type) => {
+                  const Icon = type.icon;
+                  return (
+                    <button
+                      key={type.id}
+                      className={styles.newMenuItem}
+                      onClick={() => launchSession(type.id, true)}
+                    >
+                      <Icon size={13} className={styles.newMenuItemIcon} />
+                      <span>{type.label}</span>
+                    </button>
+                  );
+                })
+              ) : menuStep.kind === "pick-character" ? (
+                <>
+                  <button
+                    className={styles.newMenuBack}
+                    onClick={() => setMenuStep({ kind: "types" })}
+                  >
+                    <ChevronLeft size={12} />
+                    Back
+                  </button>
+                  <div className={styles.newMenuSectionLabel}>Select a character</div>
+                  {characters.length === 0 ? (
+                    <div className={styles.newMenuEmpty}>No characters in this story</div>
+                  ) : (
+                    characters.map((c) => (
+                      <button
+                        key={c.id}
+                        className={styles.newMenuItem}
+                        onClick={() => handleCharacterPicked(c.id, menuStep.forType)}
+                      >
+                        <User2 size={13} className={styles.newMenuItemIcon} />
+                        <span>{c.name}</span>
+                      </button>
+                    ))
+                  )}
+                </>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        <div className={styles.tabControls}>
           <button
             className={styles.controlBtn}
             onClick={collapsePanel}
@@ -153,23 +269,55 @@ export default function AIPanel() {
       {/* Session content */}
       {activeSession ? (
         <SessionView session={activeSession} />
+      ) : pickingCharacterFor ? (
+        /* Character picker overlay — shown when Interview is launched from the empty state */
+        <div className={styles.charPicker}>
+          <div className={styles.charPickerHeader}>
+            <button
+              className={styles.charPickerBack}
+              onClick={() => setPickingCharacterFor(null)}
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <span className={styles.charPickerTitle}>Select a character</span>
+          </div>
+          {characters.length === 0 ? (
+            <p className={styles.charPickerEmpty}>No characters in this story.</p>
+          ) : (
+            <div className={styles.charPickerList}>
+              {characters.map((c) => (
+                <button
+                  key={c.id}
+                  className={styles.charPickerItem}
+                  onClick={() => handleCharacterPicked(c.id, pickingCharacterFor)}
+                >
+                  <User2 size={14} className={styles.charPickerIcon} />
+                  <span>{c.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       ) : (
         <div className={styles.empty}>
           <Feather size={24} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>AI Assistant</p>
-          <p className={styles.emptyHint}>
-            Start a new session or use <kbd>⌘K</kbd> to search.
-          </p>
-          <button
-            className={styles.emptyStartBtn}
-            onClick={() => createSession("assistant", {
-              storyId: activeStory?.id,
-              nodeId: activeNode?.id,
+          <p className={styles.emptyHint}>Choose a tool to start a new session.</p>
+          <div className={styles.emptyModes}>
+            {allTypes.map((type) => {
+              const Icon = type.icon;
+              return (
+                <button
+                  key={type.id}
+                  className={styles.emptyModeBtn}
+                  onClick={() => launchSession(type.id)}
+                >
+                  <Icon size={13} className={styles.emptyModeIcon} />
+                  <span>{type.label}</span>
+                </button>
+              );
             })}
-          >
-            <Feather size={13} />
-            New Assistant Session
-          </button>
+          </div>
         </div>
       )}
     </aside>

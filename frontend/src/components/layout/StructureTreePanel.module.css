@@ -315,3 +315,72 @@
   color: var(--color-text);
   outline: none;
 }
+
+/* Drag handle */
+.dragHandle {
+  width: 14px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  cursor: grab;
+  color: var(--color-text-subtle);
+  transition: opacity var(--transition);
+}
+
+.nodeRowWrap:hover .dragHandle {
+  opacity: 0.5;
+}
+
+.dragHandle:hover {
+  opacity: 1 !important;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+/* Drop into folder highlight */
+.dropTarget {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent) !important;
+  outline: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  outline-offset: -1px;
+  border-radius: var(--radius);
+}
+
+/* Drop line — reorder above */
+.dropAbove {
+  position: relative;
+}
+
+.dropAbove::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 1px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Drop line — reorder below */
+.dropBelow {
+  position: relative;
+}
+
+.dropBelow::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: 1px;
+  z-index: 5;
+  pointer-events: none;
+}

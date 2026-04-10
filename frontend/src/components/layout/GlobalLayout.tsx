@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import { useUIStore } from "../../stores/uiStore";
+import { useHistoryStore } from "../../stores/historyStore";
 import AIPanel from "../ai/AIPanel";
 import styles from "./GlobalLayout.module.css";
 
@@ -15,10 +16,33 @@ export default function GlobalLayout() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      // Only fire when not typing in an input/textarea/contenteditable
       const tag = (e.target as HTMLElement)?.tagName;
       const editable = (e.target as HTMLElement)?.isContentEditable;
-      if (tag === "INPUT" || tag === "TEXTAREA" || editable) return;
+      const inTextField = tag === "INPUT" || tag === "TEXTAREA" || editable;
+
+      // Ctrl/Cmd+Z: custom undo outside text fields; let browser handle inside them
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        if (!inTextField) {
+          const entry = useHistoryStore.getState().pop();
+          if (entry) {
+            e.preventDefault();
+            entry.undo();
+          }
+        }
+        return;
+      }
+
+      // Ctrl/Cmd+Shift+Z: redo
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
+        if (!inTextField) {
+          e.preventDefault();
+          useHistoryStore.getState().redo();
+        }
+        return;
+      }
+
+      // All other shortcuts: skip when typing
+      if (inTextField) return;
       if (e.key === "?") {
         e.preventDefault();
         setShortcutsOpen((v) => !v);

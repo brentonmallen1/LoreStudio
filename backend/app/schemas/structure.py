@@ -2,6 +2,16 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class ReorderOperation(BaseModel):
+    node_id: str
+    parent_id: str | None
+    position: int
+
+
+class ReorderStructurePayload(BaseModel):
+    operations: list[ReorderOperation]
+
+
 class StructureNodeCreate(BaseModel):
     parent_id: str | None = None
     level: int = 0

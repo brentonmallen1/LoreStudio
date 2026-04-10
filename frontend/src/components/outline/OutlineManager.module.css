@@ -36,6 +36,110 @@
   gap: 0.5rem;
 }
 
+/* ── Guides dropdown ── */
+.guidesWrap {
+  position: relative;
+}
+
+.guidesBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.guidesBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.guidesMenu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  min-width: 180px;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.guidesMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.77rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.guidesMenuItem:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── Header buttons ── */
+.addBeatBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.addBeatBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.addBeatBtnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: 0.82rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.addBeatBtnPrimary:hover {
+  opacity: 0.88;
+}
+
 /* ── Empty state ── */
 .empty {
   text-align: center;
@@ -112,3 +216,123 @@
   background: var(--color-surface-2);
   color: var(--color-text-muted);
 }
+
+/* ── Bulk action bar ── */
+.bulkBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.75rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.bulkCount {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.bulkLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+.bulkSep {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  flex-shrink: 0;
+  margin: 0 0.1rem;
+}
+
+.bulkActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.bulkActionBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.bulkDanger {
+  border-color: transparent;
+}
+
+.bulkDanger:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border-color: transparent;
+}
+
+.bulkTextBtn {
+  font-size: 0.73rem;
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+  font-family: inherit;
+  transition: opacity var(--transition);
+}
+
+.bulkTextBtn:hover { opacity: 0.75; }
+
+.bulkCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.bulkCloseBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+/* Beat type dots in bulk bar */
+.bulkDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: transform var(--transition), border-color var(--transition);
+}
+
+.bulkDot:hover { transform: scale(1.4); }
+
+.dot_plot      { background: var(--segment-scene); }
+.dot_character { background: var(--color-ai); }
+.dot_theme     { background: var(--color-warning); }
+.dot_setting   { background: var(--color-success); }
+.dot_none      { background: var(--color-border); border-color: var(--color-border-light); }

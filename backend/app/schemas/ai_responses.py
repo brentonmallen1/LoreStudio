@@ -200,6 +200,39 @@ class ArcAnalysisResponse(BaseModel):
     overall_rating: str = "fair"   # needs_work | fair | good | excellent
 
 
+# ── Dialogue Attribution ──────────────────────────────────────────────────────
+
+class DialogueAttributionSuggestion(BaseModel):
+    quote_text: str
+    suggested_speaker: str
+    confidence: float = 0.5   # 0–1
+    reasoning: str = ""
+
+
+class DialogueAttributionResponse(BaseModel):
+    suggestions: list[DialogueAttributionSuggestion] = []
+
+
+# ── Essential Questions Analysis ─────────────────────────────────────────────
+
+class QuestionAssessment(BaseModel):
+    question: str = ""
+    status: str = "unclear"               # clear | partial | unclear
+    evidence: str = ""                    # What data supports this assessment
+    recommendation: str = ""             # What to add/clarify if not clear
+
+
+class EssentialQuestionsResponse(BaseModel):
+    protagonist: QuestionAssessment = QuestionAssessment()
+    want: QuestionAssessment = QuestionAssessment()
+    why: QuestionAssessment = QuestionAssessment()
+    obstacle: QuestionAssessment = QuestionAssessment()
+    stakes: QuestionAssessment = QuestionAssessment()
+    change: QuestionAssessment = QuestionAssessment()
+    overall_clarity: str = "fair"         # needs_work | fair | good | excellent
+    summary: str = ""
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

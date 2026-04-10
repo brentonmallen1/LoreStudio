@@ -5,7 +5,7 @@ from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.outline import OutlineItem
-from ..schemas.outline import OutlineItemCreate, OutlineItemUpdate, OutlineItemOut, ReorderPayload
+from ..schemas.outline import OutlineItemCreate, OutlineItemUpdate, OutlineItemOut, ReorderPayload, BulkReorderPayload
 from ..auth.dependencies import get_current_user
 
 router = APIRouter()
@@ -26,20 +26,24 @@ def _verify_item(item_id: str, db: Session, user: User) -> OutlineItem:
     return item
 
 
-def _build_tree(items: list[OutlineItem]) -> list[OutlineItem]:
-    """Arrange flat list into a parent→children tree (root items only at top level)."""
-    by_id = {item.id: item for item in items}
-    roots = []
-    for item in items:
-        item.children = []
-    for item in items:
-        if item.parent_id and item.parent_id in by_id:
-            by_id[item.parent_id].children.append(item)
-        elif item.parent_id is None:
-            roots.append(item)
+def _build_tree(items: list[OutlineItem]) -> list[OutlineItemOut]:
+    """Arrange flat list into a parent→children tree (root items only at top level).
+
+    Converts to Pydantic objects first to avoid triggering SQLAlchemy cascade
+    delete-orphan events when manipulating the children collection.
+    """
+    by_id: dict[str, OutlineItemOut] = {
+        item.id: OutlineItemOut.model_validate(item) for item in items
+    }
+    roots: list[OutlineItemOut] = []
+    for node in by_id.values():
+        if node.parent_id and node.parent_id in by_id:
+            by_id[node.parent_id].children.append(node)
+        elif node.parent_id is None:
+            roots.append(node)
     roots.sort(key=lambda i: i.position)
-    for item in items:
-        item.children.sort(key=lambda i: i.position)
+    for node in by_id.values():
+        node.children.sort(key=lambda i: i.position)
     return roots
 
 
@@ -158,4 +162,28 @@ def reorder_outline(
         item = db.get(OutlineItem, item_id)
         if item and item.story_id == story_id:
             item.position = position
+    db.commit()
+
+
+@router.post("/stories/{story_id}/outline/bulk-reorder", status_code=status.HTTP_204_NO_CONTENT)
+def bulk_reorder_outline(
+    story_id: str,
+    body: BulkReorderPayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Bulk update parent_id and position for all items after a drag-and-drop."""
+    _verify_story(story_id, db, current_user)
+    for op in body.operations:
+        item = db.get(OutlineItem, op.item_id)
+        if not item or item.story_id != story_id:
+            continue
+        item.parent_id = op.parent_id
+        item.position = op.position
+        # Recompute level from parent
+        if op.parent_id:
+            parent = db.get(OutlineItem, op.parent_id)
+            item.level = (parent.level + 1) if parent else 0
+        else:
+            item.level = 0
     db.commit()

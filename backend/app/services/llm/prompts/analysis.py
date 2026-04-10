@@ -265,3 +265,151 @@ RECENT CHARACTER INTERVIEWS:
 {interviews_text or "None."}
 
 Write a brief, warm, encouraging recap of what the writer worked on. Speak directly to them ("You've been..."). Keep it to 3–5 sentences. Focus on what was accomplished and what threads are still in motion. Don't list everything mechanically — weave it into a natural paragraph that makes them feel the momentum of their work. Don't offer suggestions or critique."""
+
+
+def build_essential_questions_prompt(
+    character: Character,
+    story: Story,
+    scenes_content: str,
+) -> str:
+    """Structured JSON prompt to assess whether the 6 Essential Questions are answerable."""
+    profile_parts = []
+    if character.motivation:
+        profile_parts.append(f"Motivation: {character.motivation}")
+    if character.mission_statement:
+        profile_parts.append(f"Mission: {character.mission_statement}")
+    if character.narrative_intent:
+        profile_parts.append(f"Author's intent for this character: {character.narrative_intent}")
+    if character.arc_notes:
+        profile_parts.append(f"Arc notes: {character.arc_notes}")
+    if character.background:
+        profile_parts.append(f"Background: {character.background}")
+    if character.arc_milestones:
+        milestones = [f"  {'✓' if m.get('completed') else '○'} {m['text']}" for m in character.arc_milestones]
+        profile_parts.append("Arc milestones:\n" + "\n".join(milestones))
+    profile_block = "\n".join(profile_parts) if profile_parts else "(no profile defined)"
+
+    story_parts = []
+    if story.narrative_intent:
+        story_parts.append(f"Narrative intent: {story.narrative_intent}")
+    if story.central_conflict:
+        story_parts.append(f"Central conflict: {story.central_conflict}")
+    if story.premise:
+        story_parts.append(f"Premise: {story.premise}")
+    if story.goals:
+        goal_lines = [f"  {'✓' if g.get('completed') else '○'} {g['text']}" for g in story.goals]
+        story_parts.append("Story goals:\n" + "\n".join(goal_lines))
+    story_block = "\n".join(story_parts) if story_parts else "(no story context defined)"
+
+    return f"""You are a story craft advisor evaluating narrative clarity for the story "{story.title}".
+
+You are assessing whether the six essential story questions can be answered for the character {character.name}.
+
+CHARACTER: {character.name} (role: {character.role})
+{profile_block}
+
+STORY CONTEXT:
+{story_block}
+
+SCENES FEATURING {character.name.upper()}:
+{scenes_content or "(no scenes written yet)"}
+
+For each of the six essential questions, assess whether it is clearly answered (clear), partially answered (partial), or not yet answered (unclear) based on the information above.
+
+Respond with a JSON object matching this exact schema:
+
+{{
+  "protagonist": {{
+    "question": "Who is the protagonist?",
+    "status": "clear | partial | unclear",
+    "evidence": "what in the story data establishes this clearly (or what is missing)",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "want": {{
+    "question": "What do they want?",
+    "status": "clear | partial | unclear",
+    "evidence": "what establishes the external desire line",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "why": {{
+    "question": "Why do they want it?",
+    "status": "clear | partial | unclear",
+    "evidence": "what establishes the internal motivation or emotional stakes",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "obstacle": {{
+    "question": "What's stopping them?",
+    "status": "clear | partial | unclear",
+    "evidence": "what establishes the conflict, opposition, or obstacle force",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "stakes": {{
+    "question": "What's at stake if they fail?",
+    "status": "clear | partial | unclear",
+    "evidence": "what establishes the consequences of failure",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "change": {{
+    "question": "How do they change?",
+    "status": "clear | partial | unclear",
+    "evidence": "what establishes the arc, transformation, or intended change",
+    "recommendation": "what to add or clarify if status is not clear"
+  }},
+  "overall_clarity": "needs_work | fair | good | excellent",
+  "summary": "2-3 sentence overall assessment of narrative clarity for this character"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Base assessment on what is actually written or defined — not what you imagine could be there.
+- If the story has no written scenes yet, assess based solely on the character profile and story context.
+- overall_clarity: needs_work = 3+ unclear, fair = 1-2 unclear, good = all partial or better, excellent = all clear."""
+
+
+def build_dialogue_attribution_prompt(
+    scene_text: str,
+    character_list: str,
+    already_attributed: str,
+) -> str:
+    """
+    Prompt the LLM to infer speakers for unattributed dialogue quotes in a scene.
+
+    Returns a JSON array via the structured output path.
+    """
+    return f"""You are helping a fiction writer identify who is speaking each line of unattributed dialogue in their scene.
+
+CHARACTERS IN THIS SCENE:
+{character_list or "No characters listed."}
+
+ALREADY ATTRIBUTED DIALOGUE (use these as context for speaker voices and conversation flow):
+{already_attributed or "None yet."}
+
+SCENE TEXT:
+{scene_text}
+
+Your task: For each unattributed dialogue quote (lines in double quotes that do NOT already have a <Name> tag), identify the most likely speaker.
+
+Use these signals to infer the speaker:
+- Explicit prose cues ("she said", "he asked", "Maya replied")
+- Conversation flow — dialogue often alternates between speakers
+- Character voice — word choice, tone, vocabulary consistent with a character's profile
+- Narrative context — who is present, what just happened, who would logically speak here
+
+Return ONLY a JSON object in this exact format:
+{{
+  "suggestions": [
+    {{
+      "quote_text": "the exact dialogue text without quotes",
+      "suggested_speaker": "Character Name",
+      "confidence": 0.9,
+      "reasoning": "Brief explanation of why this character is speaking"
+    }}
+  ]
+}}
+
+Rules:
+- Only include quotes that are truly unattributed (no <Name> tag)
+- If you cannot determine the speaker with reasonable confidence, still include it with confidence below 0.4 and explain the ambiguity
+- Use exact character names from the list above
+- confidence is a float 0.0–1.0"""
+

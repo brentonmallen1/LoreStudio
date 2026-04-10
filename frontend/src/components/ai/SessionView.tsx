@@ -4,6 +4,8 @@ import InterviewMode from "./modes/InterviewMode";
 import SceneAssistantMode from "./modes/SceneAssistantMode";
 import StoryAssistantMode from "./modes/StoryAssistantMode";
 import WritingCoachMode from "./modes/WritingCoachMode";
+import WhatIfMode from "./modes/WhatIfMode";
+import PanelMode from "./modes/PanelMode";
 import styles from "./SessionView.module.css";
 
 interface Props {
@@ -22,6 +24,10 @@ export default function SessionView({ session }: Props) {
       return <StoryAssistantMode session={session} />;
     case "writing-coach":
       return <WritingCoachMode session={session} />;
+    case "whatif":
+      return <WhatIfMode session={session} />;
+    case "panel":
+      return <PanelMode session={session} />;
     default:
       return (
         <div className={styles.unknown}>

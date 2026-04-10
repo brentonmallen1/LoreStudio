@@ -3,7 +3,8 @@ Dialogue API endpoints.
 
 GET  /api/scenes/{scene_id}/dialogue              — list dialogue blocks for a scene
 POST /api/scenes/{scene_id}/dialogue/refresh       — re-extract from current content
-POST /api/scenes/{scene_id}/dialogue/suggest-tags  — propose <Name> suffixes for untagged quotes
+POST /api/scenes/{scene_id}/dialogue/suggest-tags  — propose <Name> suffixes for untagged quotes (heuristic)
+POST /api/scenes/{scene_id}/dialogue/ai-suggest    — AI-powered speaker attribution using LLM
 POST /api/scenes/{scene_id}/dialogue/apply-tags    — apply approved tag proposals to scene content
 GET  /api/stories/{story_id}/dialogue/stats        — aggregate stats for health dashboard
 GET  /api/stories/{story_id}/dialogue/interactions — character interaction matrix
@@ -23,7 +24,10 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.dialogue import DialogueBlock
 from ..models.character import Character
-from ..services.dialogue_service import sync_dialogue_blocks, get_dialogue_stats, get_interaction_matrix
+from ..services.dialogue_service import sync_dialogue_blocks, get_dialogue_stats, get_interaction_matrix, _html_to_paragraphs
+from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
+from ..schemas.ai_responses import DialogueAttributionResponse
 from ..auth.dependencies import get_current_user
 
 router = APIRouter()
@@ -190,6 +194,90 @@ def suggest_dialogue_tags(
                 confidence=confidence,
                 source_excerpt=excerpt,
             ))
+
+    return proposals
+
+
+@router.post("/scenes/{scene_id}/dialogue/ai-suggest", response_model=list[ProposedDialogueTag])
+async def ai_suggest_dialogue_speakers(
+    scene_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Use the LLM to infer speakers for unattributed dialogue in a scene.
+
+    Returns a list of ProposedDialogueTag objects (same format as suggest-tags)
+    so the frontend can display and apply them with the same workflow.
+    """
+    node = _get_scene(scene_id, db, current_user)
+    if not node.content:
+        return []
+
+    # Build clean plain-text version of the scene
+    paragraphs = _html_to_paragraphs(node.content)
+    scene_text = "\n\n".join(paragraphs)
+
+    # Character list
+    characters = db.query(Character).filter(Character.story_id == node.story_id).all()
+    char_by_name = {c.name.lower(): c for c in characters}
+    character_list = "\n".join(
+        f"- {c.name}" + (f" ({c.role})" if c.role else "") for c in characters
+    )
+
+    # Already-attributed dialogue (for voice context)
+    already_attributed_lines = []
+    for para in paragraphs:
+        for m in re.finditer(r'"([^"]+)"<([^>]+)>', para):
+            already_attributed_lines.append(f'{m.group(2)}: "{m.group(1)}"')
+        for m in re.finditer(r'\u201c([^\u201d]+)\u201d<([^>]+)>', para):
+            already_attributed_lines.append(f'{m.group(2)}: "\u201c{m.group(1)}\u201d"')
+    already_attributed = "\n".join(already_attributed_lines[:20])  # cap context length
+
+    feature_prompt = build_dialogue_attribution_prompt(scene_text, character_list, already_attributed)
+
+    call_ctx = AICallContext(
+        feature="dialogue-attribution",
+        user_id=current_user.id,
+        story_id=node.story_id,
+        node_id=scene_id,
+        tags=["manuscript", "dialogue", "attribution", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=DialogueAttributionResponse,
+        messages=[{"role": "user", "content": "Identify the speaker for each unattributed dialogue quote."}],
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+    )
+
+    if not result.success or not result.data:
+        return []
+
+    suggestions = result.data.get("suggestions", [])
+    proposals: list[ProposedDialogueTag] = []
+    for s in suggestions:
+        quote_text = s.get("quote_text", "")
+        speaker = s.get("suggested_speaker", "")
+        confidence = float(s.get("confidence", 0.5))
+        reasoning = s.get("reasoning", "")
+
+        if not quote_text or not speaker:
+            continue
+
+        char = char_by_name.get(speaker.lower())
+
+        # Build a short excerpt showing context (just use the quote for now)
+        proposals.append(ProposedDialogueTag(
+            id=str(uuid.uuid4()),
+            quote_content=quote_text,
+            inferred_speaker=speaker,
+            character_id=char.id if char else None,
+            confidence=min(1.0, max(0.0, confidence)),
+            source_excerpt=reasoning[:120] if reasoning else "",
+        ))
 
     return proposals
 

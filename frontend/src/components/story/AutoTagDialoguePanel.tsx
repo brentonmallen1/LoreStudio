@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Tag, User, AlertCircle, CheckSquare, Square } from "lucide-react";
 import { api } from "../../api/client";
+import { useStoryStore } from "../../stores/storyStore";
 import type { ProposedDialogueTag, StructureNode } from "../../types";
 import styles from "./AutoTagDialoguePanel.module.css";
 
 interface Props {
   sceneId: string;
+  storyId?: string;
+  characterNames?: string[];
   onClose: () => void;
   onApplied: (updatedNode: StructureNode) => void;
 }
@@ -21,12 +24,98 @@ function ConfidenceDots({ value }: { value: number }) {
   );
 }
 
-export default function AutoTagDialoguePanel({ sceneId, onClose, onApplied }: Props) {
+interface SpeakerInputProps {
+  value: string;
+  characterNames: string[];
+  storyId?: string;
+  onChange: (val: string) => void;
+  onNewCharacter?: (name: string) => void;
+}
+
+function SpeakerInput({ value, characterNames, storyId, onChange, onNewCharacter }: SpeakerInputProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // When empty show all; when typing filter by prefix; exclude exact match
+  const filtered = value.trim()
+    ? characterNames.filter(
+        (n) => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase()
+      )
+    : characterNames;
+
+  // Show "Create new" option when the typed name doesn't exactly match any character
+  const showCreate = storyId && value.trim() && !characterNames.some(
+    (n) => n.toLowerCase() === value.trim().toLowerCase()
+  );
+
+  const showDropdown = open && (filtered.length > 0 || !!showCreate);
+
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
+
+  return (
+    <div ref={containerRef} className={styles.speakerCombobox}>
+      <input
+        className={styles.speakerInput}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Speaker name…"
+      />
+      {showDropdown && (
+        <div className={styles.speakerDropdown}>
+          {filtered.map((name) => (
+            <button
+              key={name}
+              className={styles.speakerDropdownItem}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                onChange(name);
+                setOpen(false);
+              }}
+            >
+              {name}
+            </button>
+          ))}
+          {showCreate && (
+            <button
+              className={`${styles.speakerDropdownItem} ${styles.speakerDropdownCreate}`}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                const name = value.trim();
+                onChange(name);
+                setOpen(false);
+                onNewCharacter?.(name);
+              }}
+            >
+              + Create "{value.trim()}"
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames = [], onClose, onApplied }: Props) {
+  const { characters, setCharacters } = useStoryStore();
   const [proposals, setProposals] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editedSpeakers, setEditedSpeakers] = useState<Record<string, string>>({});
+  // Tracks names of newly created characters (for the current session)
+  const [localCharacterNames, setLocalCharacterNames] = useState<string[]>(characterNames);
+
+  // Sync when characterNames prop changes
+  useEffect(() => { setLocalCharacterNames(characterNames); }, [characterNames]);
 
   useEffect(() => {
     setLoading(true);
@@ -58,6 +147,17 @@ export default function AutoTagDialoguePanel({ sceneId, onClose, onApplied }: Pr
     });
   }
 
+  async function handleNewCharacter(name: string) {
+    if (!storyId || !name.trim()) return;
+    try {
+      const newChar = await api.createCharacter(storyId, { name: name.trim() });
+      // Add to local list for immediate autocomplete use
+      setLocalCharacterNames((prev) => [...prev, newChar.name]);
+      // Update the global store so @mentions and the editor know about it
+      setCharacters([...characters, newChar]);
+    } catch { /* silently skip if creation fails */ }
+  }
+
   async function handleApply() {
     const tags = proposals
       .filter(p => selected.has(p.id))
@@ -84,12 +184,12 @@ export default function AutoTagDialoguePanel({ sceneId, onClose, onApplied }: Pr
   ).length;
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <Tag size={15} />
-            <span className={styles.title}>Auto-Tag Dialogue</span>
+            <span className={styles.title}>Tag Suggestions</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={15} />
@@ -145,11 +245,12 @@ export default function AutoTagDialoguePanel({ sceneId, onClose, onApplied }: Pr
 
                       <div className={styles.cardBottom}>
                         <User size={12} className={styles.speakerIcon} />
-                        <input
-                          className={styles.speakerInput}
+                        <SpeakerInput
                           value={speakerVal}
-                          onChange={e => setEditedSpeakers(prev => ({ ...prev, [p.id]: e.target.value }))}
-                          placeholder="Speaker name…"
+                          characterNames={localCharacterNames}
+                          storyId={storyId}
+                          onChange={(val) => setEditedSpeakers(prev => ({ ...prev, [p.id]: val }))}
+                          onNewCharacter={handleNewCharacter}
                         />
                         {p.inferred_speaker && (
                           <ConfidenceDots value={p.confidence} />

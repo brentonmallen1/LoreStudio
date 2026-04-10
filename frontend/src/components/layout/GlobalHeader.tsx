@@ -5,7 +5,6 @@ import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
-import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import type { BackupStatus } from "../../types";
 import styles from "./GlobalHeader.module.css";
@@ -59,8 +58,7 @@ export default function GlobalHeader() {
     setEditorFontFamily, setEditorFontSize, setEditorLineWidth,
     setCommandPaletteOpen, viewState, setViewState,
   } = useUIStore();
-  const { panelOpen, sessions, createSession, setActiveSession, togglePanel, setPanelPinned } = useAIStore();
-  const { activeStory, activeNode } = useStoryStore();
+  const { panelOpen, togglePanel } = useAIStore();
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
@@ -88,25 +86,10 @@ export default function GlobalHeader() {
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessions, panelOpen]);
+  }, [panelOpen]);
 
-  async function handleAssistantToggle() {
-    const existingSession = sessions.find((s) => s.type === "assistant");
-    if (existingSession) {
-      setActiveSession(existingSession.id);
-      if (!panelOpen) {
-        setPanelPinned(true);
-        togglePanel();
-      } else {
-        togglePanel();
-      }
-    } else {
-      setPanelPinned(true);
-      await createSession("assistant", {
-        storyId: activeStory?.id,
-        nodeId: activeNode?.id,
-      });
-    }
+  function handleAssistantToggle() {
+    togglePanel();
   }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -215,7 +198,7 @@ export default function GlobalHeader() {
           {/* AI Assistant */}
           <button
             onClick={handleAssistantToggle}
-            className={`${styles.assistantBtn} ${panelOpen && sessions.some(s => s.type === "assistant") ? styles.assistantBtnActive : ""}`}
+            className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}
             title="AI Assistant (⌘/)"
           >
             <Feather size={14} />

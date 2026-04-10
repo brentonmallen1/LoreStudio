@@ -5,6 +5,7 @@ import {
   ChevronDown,
   Plus,
   PanelLeftOpen,
+  GripVertical,
   Flag,
   BookMarked,
   Clapperboard,
@@ -17,6 +18,7 @@ import {
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { useHistoryStore } from "../../stores/historyStore";
 import type { StructureNode } from "../../types";
 import styles from "./StructureTreePanel.module.css";
 
@@ -40,10 +42,79 @@ function segmentColor(levelType: string): string {
   return known.includes(key) ? `var(--segment-${key})` : "var(--color-text-subtle)";
 }
 
-function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: number; storyId?: string }) {
+// ── Reorder helpers ────────────────────────────────────────────────────────────
+
+function reorderInTree(
+  nodes: StructureNode[],
+  draggedId: string,
+  targetId: string,
+  zone: "above" | "below" | "into"
+): StructureNode[] {
+  // Extract dragged node from anywhere in the tree
+  let dragged: StructureNode | null = null;
+
+  function extract(list: StructureNode[]): StructureNode[] {
+    return list.flatMap((n) => {
+      if (n.id === draggedId) { dragged = n; return []; }
+      return [{ ...n, children: extract(n.children ?? []) }];
+    });
+  }
+
+  function insert(list: StructureNode[]): StructureNode[] {
+    if (zone === "into") {
+      return list.map((n) => {
+        if (n.id === targetId) {
+          return { ...n, children: [...(n.children ?? []), dragged!] };
+        }
+        return { ...n, children: insert(n.children ?? []) };
+      });
+    }
+    // above / below: find target in this list, insert dragged next to it
+    const idx = list.findIndex((n) => n.id === targetId);
+    if (idx !== -1) {
+      const copy = [...list];
+      copy.splice(zone === "above" ? idx : idx + 1, 0, dragged!);
+      return copy;
+    }
+    return list.map((n) => ({ ...n, children: insert(n.children ?? []) }));
+  }
+
+  const withoutDragged = extract(nodes);
+  if (!dragged) return nodes; // dragged id not found, bail
+  return insert(withoutDragged);
+}
+
+function flattenPositions(nodes: StructureNode[], parentId: string | null = null) {
+  const ops: { node_id: string; parent_id: string | null; position: number }[] = [];
+  nodes.forEach((n, i) => {
+    ops.push({ node_id: n.id, parent_id: parentId, position: i });
+    ops.push(...flattenPositions(n.children ?? [], n.id));
+  });
+  return ops;
+}
+
+// ── NodeItem ──────────────────────────────────────────────────────────────────
+
+let _draggedId: string | null = null;
+
+type DropZone = "above" | "below" | "into" | null;
+
+function NodeItem({
+  node,
+  depth = 0,
+  storyId,
+  onDrop,
+}: {
+  node: StructureNode;
+  depth?: number;
+  storyId?: string;
+  onDrop: (draggedId: string, targetId: string, zone: "above" | "below" | "into") => void;
+}) {
   const [expanded, setExpanded] = useState(true);
   const [addingChild, setAddingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
+  const [dropZone, setDropZone] = useState<DropZone>(null);
+
   const { activeNode, setActiveNode, activeTemplate, structure, setStructure } = useStoryStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,12 +147,72 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
     setAddingChild(false);
   }
 
+  // ── Drag ──────────────────────────────────────────────────────────────────
+
+  function getZone(e: React.DragEvent): "above" | "below" | "into" {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const pct = (e.clientY - rect.top) / rect.height;
+    if (pct < 0.3) return "above";
+    if (pct > 0.7) return "below";
+    return hasChildren ? "into" : (pct <= 0.5 ? "above" : "below");
+  }
+
+  function handleDragStart(e: React.DragEvent) {
+    _draggedId = node.id;
+    e.dataTransfer.setData("text/plain", node.id);
+    e.dataTransfer.effectAllowed = "move";
+    // Without stopPropagation — let parent know the drag started from a child
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    if (!_draggedId || _draggedId === node.id) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setDropZone(getZone(e));
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+      setDropZone(null);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = e.dataTransfer.getData("text/plain") || _draggedId;
+    _draggedId = null;
+    const zone = getZone(e);
+    setDropZone(null);
+    if (!id || id === node.id) return;
+    onDrop(id, node.id, zone);
+  }
+
+  const Icon = getSegmentIcon(node.level_type);
+
   return (
     <div>
       <div
-        className={`${styles.nodeRowWrap} ${isActive ? styles.nodeRowWrapActive : ""}`}
+        draggable
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={[
+          styles.nodeRowWrap,
+          isActive ? styles.nodeRowWrapActive : "",
+          dropZone === "above" ? styles.dropAbove : "",
+          dropZone === "below" ? styles.dropBelow : "",
+          dropZone === "into" ? styles.dropTarget : "",
+        ].filter(Boolean).join(" ")}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
+        {/* Drag handle */}
+        <span className={styles.dragHandle}>
+          <GripVertical size={11} />
+        </span>
+
         <button
           onClick={() => {
             setActiveNode(node);
@@ -99,7 +230,6 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
             {hasChildren ? (expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />) : null}
           </span>
           {(() => {
-            const Icon = getSegmentIcon(node.level_type);
             return (
               <Icon
                 size={12}
@@ -115,6 +245,7 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
             </span>
           )}
         </button>
+
         {canAddChild && (
           <button
             className={styles.nodeAddChildBtn}
@@ -125,6 +256,7 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
           </button>
         )}
       </div>
+
       {addingChild && (
         <div style={{ paddingLeft: `${6 + (depth + 1) * 14}px` }} className={styles.childAddRow}>
           <input
@@ -141,16 +273,19 @@ function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: n
           />
         </div>
       )}
+
       {hasChildren && expanded && (
         <div>
           {node.children.map((child) => (
-            <NodeItem key={child.id} node={child} depth={depth + 1} storyId={storyId} />
+            <NodeItem key={child.id} node={child} depth={depth + 1} storyId={storyId} onDrop={onDrop} />
           ))}
         </div>
       )}
     </div>
   );
 }
+
+// ── Panel ─────────────────────────────────────────────────────────────────────
 
 interface StructureTreePanelProps {
   onMouseLeave?: () => void;
@@ -162,11 +297,18 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
   const { storyId } = useParams<{ storyId: string }>();
   const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
   const { treePanelWidth, setTreePanelWidth, setTreeDetached } = useUIStore();
+  const pushHistory = useHistoryStore((s) => s.push);
 
   const [addingLevel, setAddingLevel] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [showAddMenu, setShowAddMenu] = useState(false);
   const addMenuRef = useRef<HTMLDivElement>(null);
+
+  // Stale-closure-safe refs for onDrop callbacks
+  const structureRef = useRef(structure);
+  structureRef.current = structure;
+  const storyIdRef = useRef(storyId);
+  storyIdRef.current = storyId;
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -214,7 +356,31 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
     setAddingLevel(null);
   }
 
-  // Horizontal resize (drag left edge to change width)
+  // Called by any NodeItem when a drop occurs
+  function handleDrop(draggedId: string, targetId: string, zone: "above" | "below" | "into") {
+    const prev = structureRef.current;
+    const next = reorderInTree(prev, draggedId, targetId, zone);
+    if (next === prev) return; // dragged not found, no-op
+
+    const ops = flattenPositions(next);
+
+    pushHistory({
+      description: "Reorder sections",
+      undo: async () => {
+        setStructure(prev);
+        await api.reorderStructure(storyIdRef.current!, flattenPositions(prev));
+      },
+    });
+
+    setStructure(next);
+
+    api.reorderStructure(storyIdRef.current!, ops).catch(() => {
+      // Rollback on failure
+      setStructure(prev);
+    });
+  }
+
+  // Horizontal resize
   const isResizing = useRef(false);
   const resizeStartX = useRef(0);
   const resizeStartWidth = useRef(treePanelWidth);
@@ -249,7 +415,6 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
       onMouseLeave={onMouseLeave}
       onMouseEnter={onMouseEnter}
     >
-      {/* Resize handle on right edge */}
       <div className={styles.resizeHandle} onMouseDown={startResize} />
 
       {/* Header */}
@@ -330,7 +495,7 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           <p className={styles.emptyHint}>No sections yet</p>
         )}
         {structure.map((node) => (
-          <NodeItem key={node.id} node={node} storyId={storyId} />
+          <NodeItem key={node.id} node={node} storyId={storyId} onDrop={handleDrop} />
         ))}
       </div>
     </div>

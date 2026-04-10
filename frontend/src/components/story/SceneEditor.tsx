@@ -6,7 +6,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Feather, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
 import {
@@ -15,6 +15,8 @@ import {
   setMentionCallbacks,
   setMentionIsOpen,
   setMentionDialogueCallbacks,
+  setMentionAttributionCallbacks,
+  isMentionAttributionMode,
   FORCE_MENTION_KEY,
   type MentionItem,
 } from "./MentionDropdown";
@@ -25,6 +27,8 @@ import {
   setDialogueModeActive,
 } from "./DialogueExtension";
 import DialogueSyntaxGuide from "../help/DialogueSyntaxGuide";
+import MICEGuide from "../help/MICEGuide";
+import EssentialQuestionsGuide from "../help/EssentialQuestionsGuide";
 import AutoTagDialoguePanel from "./AutoTagDialoguePanel";
 import AutoLinkEntitiesPanel from "./AutoLinkEntitiesPanel";
 import AssetPicker from "../media/AssetPicker";
@@ -96,9 +100,9 @@ import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters } = useStoryStore();
+  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters, setCharacters } = useStoryStore();
   const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel } = useUIStore();
-  const { sessions, panelOpen, openPanel, createSession, setActiveSession } = useAIStore();
+  const { sessions, createSession, setActiveSession } = useAIStore();
   const [showGuideMenu, setShowGuideMenu] = useState(false);
   const guideMenuRef = useRef<HTMLDivElement>(null);
   const { runDiscovery, isAnalyzing: isDiscoveryAnalyzing } = useDiscoveryStore();
@@ -108,10 +112,16 @@ export default function SceneEditor() {
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const [showDialogueGuide, setShowDialogueGuide] = useState(false);
+  const [showMICEGuide, setShowMICEGuide] = useState(false);
+  const [showEssentialGuide, setShowEssentialGuide] = useState(false);
   const [showAutoTag, setShowAutoTag] = useState(false);
   const [showAutoLink, setShowAutoLink] = useState(false);
   const [dialogueIsolation, setDialogueIsolation] = useState(false);
   const [dialogueBlocks, setDialogueBlocks] = useState<import("../../types").DialogueBlock[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<import("../../types").ProposedDialogueTag[]>([]);
+  const [aiSuggestLoading, setAiSuggestLoading] = useState(false);
+  const [dismissedAiSuggestions, setDismissedAiSuggestions] = useState<Set<string>>(new Set());
+  const aiSuggestAbortRef = useRef<AbortController | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [saveState, setSaveState] = useState<"idle" | "unsaved" | "saving" | "saved">("idle");
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -171,6 +181,8 @@ export default function SceneEditor() {
   const [mentionSelIdx, setMentionSelIdx] = useState(0);
   // When true, the mention dropdown was opened via ^ → insert as dialogue attribution
   const [dialogueModeDropdown, setDialogueModeDropdown] = useState(false);
+  // When true, the mention dropdown was opened via < after a quote → complete <Name>
+  const [attributionModeDropdown, setAttributionModeDropdown] = useState(false);
   // Refs for stable access inside ProseMirror callbacks
   const mentionQueryRef = useRef("");
   const mentionSelIdxRef = useRef(0);
@@ -214,6 +226,7 @@ export default function SceneEditor() {
   function setMentionOpen(open: boolean) {
     setMentionOpen_(open);
     setMentionIsOpen(open);
+    if (!open) setAttributionModeDropdown(false);
   }
 
   const editor = useEditor({
@@ -372,13 +385,25 @@ export default function SceneEditor() {
 
 
   // Filtered mention items (characters first, then settings; prefix-matched)
-  const filteredMentionItems = useMemo(
-    () =>
-      mentionAllItems.filter((item) =>
-        item.name.toLowerCase().startsWith(mentionQuery.toLowerCase())
-      ),
-    [mentionAllItems, mentionQuery]
-  );
+  // In attribution/dialogue mode, only show characters (no settings)
+  const filteredMentionItems = useMemo(() => {
+    const characterOnly = dialogueModeDropdown || attributionModeDropdown;
+    const base = mentionAllItems.filter(
+      (item) =>
+        item.name.toLowerCase().startsWith(mentionQuery.toLowerCase()) &&
+        (!characterOnly || item.type === "character")
+    );
+    // Append a "create" virtual item when query is typed and no exact character match
+    const query = mentionQuery.trim();
+    if (
+      query &&
+      activeStory &&
+      !mentionAllItems.some((i) => i.type === "character" && i.name.toLowerCase() === query.toLowerCase())
+    ) {
+      base.push({ type: "create", name: query });
+    }
+    return base;
+  }, [mentionAllItems, mentionQuery, attributionModeDropdown, dialogueModeDropdown, activeStory]);
 
   // Keep refs in sync with latest state (for stable ProseMirror callbacks)
   mentionQueryRef.current = mentionQuery;
@@ -391,11 +416,58 @@ export default function SceneEditor() {
   }, [mentionQuery]);
 
   const doInsertMention = useCallback(
-    (item: MentionItem) => {
+    async (item: MentionItem) => {
       if (!editor) return;
       const { from } = editor.state.selection;
       const query = mentionQueryRef.current;
       const inDialogueMode = isDialogueModeActive();
+      const inAttributionMode = isMentionAttributionMode();
+
+      // Handle "Create new character" virtual item
+      if (item.type === "create" && activeStory) {
+        const name = item.name.trim();
+        let createdName = name;
+        try {
+          const newChar = await api.createCharacter(activeStory.id, { name });
+          createdName = newChar.name;
+          // Update mention items so the new character is recognized immediately
+          const newMentionItem: MentionItem = { type: "character", name: createdName, role: newChar.role };
+          setMentionAllItems((prev) => {
+            const updated = [...prev, newMentionItem];
+            setMentionItems(updated);
+            return updated;
+          });
+          if (editor.view) {
+            editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+          }
+          // Also update the global character store
+          setCharacters([...characters, newChar]);
+        } catch { /* fall through with typed name */ }
+        // Now insert using the created name, in whatever mode we're in
+        const resolvedItem: MentionItem = { type: "character", name: createdName };
+        // Re-call with the real item (same editor state is still valid)
+        doInsertMention(resolvedItem);
+        return;
+      }
+
+      if (inAttributionMode && item.type === "character") {
+        // Replace partial name after < with Name>
+        // textBefore matched /[""\u201d]<([^>]*)$/, so query = text after <
+        const start = from - query.length; // position right after <
+        editor
+          .chain()
+          .focus()
+          .command(({ tr, dispatch }) => {
+            if (dispatch) tr.insertText(`${item.name}>`, start, from);
+            return true;
+          })
+          .run();
+        setAttributionModeDropdown(false);
+        setMentionOpen_(false);
+        setMentionIsOpen(false);
+        setMentionSelIdx(0);
+        return;
+      }
 
       if (inDialogueMode && item.type === "character") {
         const pendingWrap = _pendingWrapRef.current;
@@ -443,9 +515,10 @@ export default function SceneEditor() {
       }
       setMentionOpen(false);
       setDialogueModeDropdown(false);
+      setAttributionModeDropdown(false);
       setMentionSelIdx(0);
     },
-    [editor]
+    [editor, activeStory, characters, setCharacters]
   );
 
   // Keep doInsertMentionRef current (used by Enter keyboard path)
@@ -493,9 +566,14 @@ export default function SceneEditor() {
     });
   }, []); // stable — refs handle freshness
 
-  // Load dialogue blocks when isolation view is toggled on
+  // Load dialogue blocks when isolation view is toggled on; clear AI suggestions on close
   useEffect(() => {
-    if (!dialogueIsolation || !activeNode) { setDialogueBlocks([]); return; }
+    if (!dialogueIsolation || !activeNode) {
+      setDialogueBlocks([]);
+      setAiSuggestions([]);
+      setDismissedAiSuggestions(new Set());
+      return;
+    }
     api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => setDialogueBlocks([]));
   }, [dialogueIsolation, activeNode?.id]);
 
@@ -522,6 +600,25 @@ export default function SceneEditor() {
 
     // ^ trigger is detected by MentionDropdownExtension
     setMentionDialogueCallbacks(openDialogueDropdown, closeDialogueDropdown);
+
+    // < after quote trigger — attribution mode
+    setMentionAttributionCallbacks(
+      (query, bottom, left) => {
+        setMentionQuery(query);
+        setMentionPos({ bottom, left });
+        setMentionOpen_(true);
+        setMentionIsOpen(true);
+        setAttributionModeDropdown(true);
+        setDialogueModeDropdown(false);
+        setMentionSelIdx(0);
+        mentionSelIdxRef.current = 0;
+      },
+      () => {
+        setMentionOpen_(false);
+        setMentionIsOpen(false);
+        setAttributionModeDropdown(false);
+      },
+    );
 
     // /dialogue slash command is detected by DialogueExtension
     setDialogueCallbacks({
@@ -1012,6 +1109,8 @@ export default function SceneEditor() {
                     <Compass size={13} />
                     What's Next?
                   </button>
+                  <div className={styles.guideMenuDivider} />
+                  <div className={styles.guideMenuLabel}>Reference</div>
                   <button
                     onClick={() => { setShowDialogueGuide(true); setShowGuideMenu(false); }}
                     className={styles.guideMenuItem}
@@ -1021,12 +1120,28 @@ export default function SceneEditor() {
                     Dialogue Guide
                   </button>
                   <button
+                    onClick={() => { setShowMICEGuide(true); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="Understand the MICE Quotient — Milieu, Idea, Character, Event"
+                  >
+                    <Layers size={13} />
+                    MICE Guide
+                  </button>
+                  <button
+                    onClick={() => { setShowEssentialGuide(true); setShowGuideMenu(false); }}
+                    className={styles.guideMenuItem}
+                    title="The 6 Essential Questions every story needs to answer"
+                  >
+                    <BookMarked size={13} />
+                    6 Essential Questions
+                  </button>
+                  <button
                     onClick={() => { setShowAutoTag(true); setShowGuideMenu(false); }}
                     className={styles.guideMenuItem}
                     title="Scan for untagged quotes and propose speaker attribution"
                   >
                     <Tag size={13} />
-                    Auto-Tag Dialogue
+                    Tag Suggestions
                   </button>
                   <button
                     onClick={() => { setShowAutoLink(true); setShowGuideMenu(false); }}
@@ -1039,26 +1154,6 @@ export default function SceneEditor() {
                 </div>
               )}
             </div>
-          )}
-          {activeStory && (
-            <button
-              onClick={() => {
-                const existingSession = sessions.find(
-                  (s) => s.type === "scene-assistant" && s.context.nodeId === activeNode?.id
-                );
-                if (existingSession) {
-                  setActiveSession(existingSession.id);
-                  if (!panelOpen) openPanel();
-                } else {
-                  createSession("scene-assistant", { storyId: activeStory?.id, nodeId: activeNode?.id });
-                }
-              }}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${panelOpen && sessions.some((s) => s.type === "scene-assistant" && s.context.nodeId === activeNode?.id) ? styles.topbarBtnAIActive : ""}`}
-              title="Scene Assistant — AI chat grounded in this scene's full context"
-            >
-              <Feather size={13} />
-              <span>Assistant</span>
-            </button>
           )}
           <button
             onClick={() => setDialogueIsolation((v) => !v)}
@@ -1510,6 +1605,43 @@ export default function SceneEditor() {
             <div className={styles.dialogueIsolationHeader}>
               <Quote size={13} />
               Dialogue only — <button className={styles.dialogueIsolationExit} onClick={() => setDialogueIsolation(false)}>back to prose</button>
+              <div className={styles.dialogueIsolationActions}>
+                <button
+                  className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${aiSuggestLoading ? styles.dialogueIsolationBtnLoading : ""}`}
+                  title={aiSuggestLoading ? "Cancel" : "Auto-Tag — use AI to infer speakers for unattributed dialogue"}
+                  onClick={async () => {
+                    if (aiSuggestLoading) {
+                      aiSuggestAbortRef.current?.abort();
+                      return;
+                    }
+                    if (!activeNode) return;
+                    const ctrl = new AbortController();
+                    aiSuggestAbortRef.current = ctrl;
+                    setAiSuggestLoading(true);
+                    setDismissedAiSuggestions(new Set());
+                    try {
+                      const suggestions = await api.aiSuggestDialogueSpeakers(activeNode.id, ctrl.signal);
+                      setAiSuggestions(suggestions);
+                    } catch {
+                      setAiSuggestions([]);
+                    } finally {
+                      setAiSuggestLoading(false);
+                      aiSuggestAbortRef.current = null;
+                    }
+                  }}
+                >
+                  <Compass size={11} className={aiSuggestLoading ? styles.spinIcon : ""} />
+                  {aiSuggestLoading ? "Cancel" : "Auto-Tag"}
+                </button>
+                <button
+                  className={styles.dialogueIsolationBtn}
+                  title="Tag Suggestions — review heuristic speaker proposals for untagged quotes"
+                  onClick={() => setShowAutoTag(true)}
+                >
+                  <Tag size={11} />
+                  Tag Suggestions
+                </button>
+              </div>
             </div>
             {dialogueBlocks.length === 0 ? (
               <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code> to attribute dialogue.</p>
@@ -1528,6 +1660,14 @@ export default function SceneEditor() {
                     const side = sideMap.get(key)!;
                     const isInferred = b.attribution_method === "inferred" || b.attribution_method === "alternating";
                     const isUnattr = b.attribution_method === "unattributed";
+                    // Find matching AI suggestion for unattributed blocks
+                    const aiSuggestion = isUnattr
+                      ? aiSuggestions.find(
+                          (s) =>
+                            !dismissedAiSuggestions.has(s.id) &&
+                            s.quote_content.trim().toLowerCase() === b.content.trim().toLowerCase()
+                        )
+                      : undefined;
                     return (
                       <div
                         key={b.id}
@@ -1540,6 +1680,44 @@ export default function SceneEditor() {
                         <div className={`${styles.dialogueBubble} ${side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft} ${isUnattr ? styles.dialogueBubbleUnattr : ""}`}>
                           "{b.content}"
                         </div>
+                        {aiSuggestion && (
+                          <div className={styles.aiSuggestionRow}>
+                            <Compass size={10} className={styles.aiSuggestionIcon} />
+                            <span className={styles.aiSuggestionSpeaker}>{aiSuggestion.inferred_speaker}</span>
+                            {aiSuggestion.source_excerpt && (
+                              <span className={styles.aiSuggestionReason}>{aiSuggestion.source_excerpt}</span>
+                            )}
+                            <button
+                              className={styles.aiSuggestionAccept}
+                              title="Accept this attribution"
+                              onClick={async () => {
+                                if (!activeNode || !aiSuggestion.inferred_speaker) return;
+                                try {
+                                  const updated = await api.applyDialogueTags(activeNode.id, [{
+                                    quote_content: b.content,
+                                    speaker_name: aiSuggestion.inferred_speaker,
+                                  }]);
+                                  setActiveNode({ ...activeNode, ...updated });
+                                  if (editor && updated.content) {
+                                    editor.commands.setContent(updated.content, false);
+                                  }
+                                  // Refresh dialogue blocks
+                                  api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => {});
+                                  setDismissedAiSuggestions((prev) => new Set([...prev, aiSuggestion.id]));
+                                } catch { /* ignore */ }
+                              }}
+                            >
+                              ✓
+                            </button>
+                            <button
+                              className={styles.aiSuggestionDismiss}
+                              title="Dismiss this suggestion"
+                              onClick={() => setDismissedAiSuggestions((prev) => new Set([...prev, aiSuggestion.id]))}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1567,11 +1745,19 @@ export default function SceneEditor() {
       {showDialogueGuide && (
         <DialogueSyntaxGuide onClose={() => setShowDialogueGuide(false)} />
       )}
+      {showMICEGuide && (
+        <MICEGuide onClose={() => setShowMICEGuide(false)} />
+      )}
+      {showEssentialGuide && (
+        <EssentialQuestionsGuide onClose={() => setShowEssentialGuide(false)} />
+      )}
 
       {/* Auto-Tag Dialogue panel */}
       {showAutoTag && activeNode && (
         <AutoTagDialoguePanel
           sceneId={activeNode.id}
+          storyId={activeStory?.id}
+          characterNames={characters.map((c) => c.name)}
           onClose={() => setShowAutoTag(false)}
           onApplied={(updated) => {
             setActiveNode({ ...activeNode, ...updated });
@@ -1773,19 +1959,30 @@ export default function SceneEditor() {
               Dialogue speaker
             </div>
           )}
+          {attributionModeDropdown && (
+            <div className={styles.mentionDropdownDialogueMode}>
+              Attribute to
+            </div>
+          )}
           {filteredMentionItems.map((item, idx) => (
             <button
               key={`${item.type}:${item.name}`}
-              className={`${styles.mentionItem} ${idx === mentionSelIdx ? styles.mentionItemSelected : ""}`}
+              className={`${styles.mentionItem} ${idx === mentionSelIdx ? styles.mentionItemSelected : ""} ${item.type === "create" ? styles.mentionItemCreate : ""}`}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => doInsertMention(item)}
             >
-              <span className={styles.mentionItemName}>{item.name}</span>
-              {item.type === "character" && item.role ? (
-                <span className={styles.mentionItemRole}>{item.role}</span>
-              ) : item.type === "setting" ? (
-                <span className={styles.mentionItemType}>setting</span>
-              ) : null}
+              {item.type === "create" ? (
+                <span className={styles.mentionItemName}>+ Create "{item.name}"</span>
+              ) : (
+                <>
+                  <span className={styles.mentionItemName}>{item.name}</span>
+                  {item.type === "character" && item.role ? (
+                    <span className={styles.mentionItemRole}>{item.role}</span>
+                  ) : item.type === "setting" ? (
+                    <span className={styles.mentionItemType}>setting</span>
+                  ) : null}
+                </>
+              )}
             </button>
           ))}
         </div>

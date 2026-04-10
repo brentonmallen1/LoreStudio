@@ -7,6 +7,7 @@ import { useStoryStore } from "../stores/storyStore";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import EconomyAnalysisPanel from "../components/health/EconomyAnalysisPanel";
+import EssentialQuestionsPanel from "../components/health/EssentialQuestionsPanel";
 import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import styles from "./StoryHealthPage.module.css";
 
@@ -404,6 +405,13 @@ export default function StoryHealthPage() {
             </div>
           )}
         </section>
+      )}
+
+      {/* Story Compass — 6 Essential Questions */}
+      {storyId && health && health.characters.length > 0 && (
+        <div className={styles.economyWrap}>
+          <EssentialQuestionsPanel storyId={storyId} characters={health.characters} />
+        </div>
       )}
 
       {/* Economy Analysis */}

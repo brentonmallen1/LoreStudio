@@ -269,6 +269,21 @@
   background: var(--color-ai-subtle);
 }
 
+.guideMenuDivider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.2rem 0.4rem;
+}
+
+.guideMenuLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+  padding: 0.35rem 0.6rem 0.1rem;
+}
+
 /* Icon-only button (focus mode) */
 .focusBtn {
   display: flex;
@@ -1281,6 +1296,15 @@
   border-radius: 2px;
 }
 
+/* Speaker tag: <Name> suffix on explicit dialogue */
+.editorWrap :global(.ProseMirror .dialogue-speaker-tag) {
+  color: var(--color-accent);
+  opacity: 0.75;
+  font-size: 0.82em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
 /* Dialogue mode indicator in the mention dropdown header */
 .mentionDropdownDialogueMode {
   font-size: 0.6875rem;
@@ -1318,6 +1342,62 @@
   font-size: 0.75rem;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.dialogueIsolationActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.dialogueIsolationBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.dialogueIsolationBtn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.dialogueIsolationBtnAI {
+  color: var(--color-ai);
+  border-color: var(--color-ai-border);
+}
+
+.dialogueIsolationBtnAI:hover {
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+  border-color: color-mix(in srgb, var(--color-ai) 50%, var(--color-border));
+}
+
+.dialogueIsolationBtnLoading {
+  background: var(--color-ai-subtle);
+  border-color: var(--color-ai-border);
+  animation: aiPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes aiPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.spinIcon {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .dialogueIsolationEmpty {
@@ -1510,6 +1590,13 @@
   flex-shrink: 0;
 }
 
+/* "Create new character" item at the bottom of the mention dropdown */
+.mentionItemCreate {
+  border-top: 1px solid var(--color-border-light);
+  color: var(--color-accent);
+  font-style: italic;
+}
+
 /* ── Mention hover card ── */
 .hoverCard {
   position: fixed;
@@ -1660,4 +1747,65 @@
 .emptyText {
   font-size: 0.875rem;
   color: var(--color-text-subtle);
+}
+
+/* ── AI Dialogue Attribution Suggestions ── */
+.aiSuggestionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  max-width: 75%;
+}
+
+.aiSuggestionIcon {
+  color: var(--color-accent);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.aiSuggestionSpeaker {
+  font-weight: 600;
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.aiSuggestionReason {
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.aiSuggestionAccept,
+.aiSuggestionDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.15rem;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: opacity 0.1s;
+}
+
+.aiSuggestionAccept {
+  color: var(--color-success, var(--color-accent));
+  font-weight: 700;
+}
+
+.aiSuggestionDismiss {
+  color: var(--color-text-muted);
+}
+
+.aiSuggestionAccept:hover,
+.aiSuggestionDismiss:hover {
+  opacity: 0.7;
 }

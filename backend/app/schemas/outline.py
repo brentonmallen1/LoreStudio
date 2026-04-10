@@ -39,3 +39,13 @@ class OutlineItemOut(BaseModel):
 class ReorderPayload(BaseModel):
     parent_id: str | None
     item_ids: list[str]
+
+
+class BulkReorderOp(BaseModel):
+    item_id: str
+    parent_id: str | None
+    position: int
+
+
+class BulkReorderPayload(BaseModel):
+    operations: list[BulkReorderOp]

@@ -1,0 +1,29 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.select {
+  appearance: none;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+  /* No dropdown arrow — keep it compact */
+}
+
+.select:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.select:focus {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 1px;
+}

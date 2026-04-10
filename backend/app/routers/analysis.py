@@ -16,6 +16,7 @@ from ..services.llm.prompts.analysis import (
     build_arc_analysis_prompt,
     build_economy_analysis_prompt,
     build_session_recap_prompt,
+    build_essential_questions_prompt,
 )
 from ..models.plot_thread import PlotThread
 from ..models.activity_log import ActivityLog
@@ -25,6 +26,7 @@ from ..schemas.ai_responses import (
     EconomyAnalysisResponse,
     ThreadAnalysisResponse,
     ArcAnalysisResponse,
+    EssentialQuestionsResponse,
     StructuredResult,
 )
 
@@ -492,6 +494,69 @@ async def analyze_character_arc_structured(
     return await ai_gateway.generate_structured(
         response_model=ArcAnalysisResponse,
         messages=[{"role": "user", "content": f"Analyze {character.name}'s arc."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post("/stories/{story_id}/analyze/essential-questions", response_model=StructuredResult)
+async def analyze_essential_questions(
+    story_id: str,
+    character_id: str | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Assess whether the 6 Essential Questions are answerable for a protagonist."""
+    story = _get_story(story_id, db, current_user)
+
+    # Resolve character: explicit → POV character → first protagonist
+    character = None
+    if character_id:
+        character = db.get(Character, character_id)
+        if not character or character.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Character not found")
+    if not character and story.pov_character_id:
+        character = db.get(Character, story.pov_character_id)
+    if not character:
+        character = (
+            db.query(Character)
+            .filter(Character.story_id == story_id, Character.role == "protagonist")
+            .first()
+        )
+    if not character:
+        character = db.query(Character).filter(Character.story_id == story_id).first()
+    if not character:
+        raise HTTPException(status_code=422, detail="No characters found for this story")
+
+    # Gather scenes featuring this character
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    name_lower = character.name.lower()
+    relevant_scenes = [
+        f"[{n.title}]\n{n.content}"
+        for n in all_nodes
+        if n.content and name_lower in n.content.lower()
+    ]
+    scenes_content = "\n\n".join(relevant_scenes) if relevant_scenes else ""
+
+    feature_prompt = build_essential_questions_prompt(
+        character=character,
+        story=story,
+        scenes_content=scenes_content,
+    )
+
+    ctx = AICallContext(
+        feature="essential-questions",
+        user_id=current_user.id,
+        story_id=story_id,
+        character_id=character.id,
+        tags=["story", "character", "analysis", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=EssentialQuestionsResponse,
+        messages=[{"role": "user", "content": f"Assess the 6 essential questions for {character.name}."}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,

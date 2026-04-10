@@ -4,7 +4,7 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 
 export interface MentionItem {
-  type: "character" | "setting";
+  type: "character" | "setting" | "create";
   name: string;
   role?: string;
 }
@@ -40,6 +40,23 @@ export function setMentionDialogueCallbacks(
 ) {
   _onDialogueOpen = onOpen;
   _onDialogueClose = onClose;
+}
+
+// Attribution-mode callbacks — called when < after a closing quote is detected
+let _attributionMode = false;
+let _onAttributionOpen: ((query: string, bottom: number, left: number) => void) | null = null;
+let _onAttributionClose: (() => void) | null = null;
+
+export function setMentionAttributionCallbacks(
+  onOpen: (query: string, bottom: number, left: number) => void,
+  onClose: () => void,
+) {
+  _onAttributionOpen = onOpen;
+  _onAttributionClose = onClose;
+}
+
+export function isMentionAttributionMode(): boolean {
+  return _attributionMode;
 }
 
 export const FORCE_MENTION_KEY = "forceMentionRebuild";
@@ -258,6 +275,22 @@ export const MentionDropdownExtension = Extension.create({
                   _cb.onOpen(match[1], coords.bottom, coords.left);
                   return;
                 }
+              }
+
+              // Check for < after a closing quote (attribution mode)
+              const attrMatch = textBefore.match(/[""\u201d]<([^>]*)$/);
+              if (attrMatch) {
+                if (!_attributionMode) {
+                  _attributionMode = true;
+                }
+                const coords = view.coordsAtPos(from);
+                _onAttributionOpen?.(attrMatch[1], coords.bottom, coords.left);
+                return;
+              }
+
+              if (_attributionMode) {
+                _attributionMode = false;
+                _onAttributionClose?.();
               }
 
               if (_dialogueMode) {

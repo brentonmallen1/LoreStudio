@@ -1,8 +1,11 @@
 import type { ComponentType, ReactNode } from "react";
 import { Database, Settings2 } from "lucide-react";
 import type { AISession } from "../../stores/aiStore";
+import { useAIStore } from "../../stores/aiStore";
 import type { useAIModeState } from "../../hooks/useAIModeState";
+import { getSessionType, type ContextScope } from "../../lib/ai/sessionTypes";
 import { LLMTransparencyModal, LLMTransparencyTrigger, ChatSettingsModal } from "../llm";
+import ContextScopeSelector from "./ContextScopeSelector";
 import styles from "./AIModeWrapper.module.css";
 
 interface Props {
@@ -43,6 +46,15 @@ export default function AIModeWrapper({
     ctxPct, ctxWarning, tokenTooltip,
   } = state;
 
+  const { updateSessionContext } = useAIStore();
+  const sessionType = getSessionType(session.type);
+  const allowedScopes = sessionType?.allowedScopes;
+  const currentScope: ContextScope = session.context.contextScope ?? sessionType?.defaultScope ?? "current-scene";
+
+  function handleScopeChange(scope: ContextScope) {
+    updateSessionContext(session.id, { contextScope: scope });
+  }
+
   return (
     <>
       <LLMTransparencyModal
@@ -62,6 +74,14 @@ export default function AIModeWrapper({
         {!hideTitle && <span className={styles.title}>{title}</span>}
 
         {headerExtra}
+
+        {allowedScopes && allowedScopes.length > 1 && (
+          <ContextScopeSelector
+            scope={currentScope}
+            allowedScopes={allowedScopes}
+            onChange={handleScopeChange}
+          />
+        )}
 
         {!hideTokenBadge && session.messages.length > 0 && (
           <div

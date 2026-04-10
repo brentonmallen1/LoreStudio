@@ -42,14 +42,11 @@ interface AIStore {
   // ── Panel state ──────────────────────────────────────────────────────────
   panelOpen: boolean;
   panelCollapsed: boolean;
-  /** When pinned, panel stays open even when all sessions are closed */
-  panelPinned: boolean;
 
   openPanel: () => void;
   closePanel: () => void;
   collapsePanel: () => void;
   expandPanel: () => void;
-  setPanelPinned: (pinned: boolean) => void;
   togglePanel: () => void;
 
   // ── Session management ───────────────────────────────────────────────────
@@ -102,6 +99,8 @@ interface AIStore {
   _finalizeMessage: (sessionId: string, content: string) => void;
   /** Internal: record a chronicle session ID */
   _setChronicleSessionId: (sessionId: string, chronicleId: string) => void;
+  /** Internal: set backend session ID after deferred initialization (e.g. PanelMode character selection) */
+  _setBackendSessionId: (sessionId: string, backendSessionId: string) => void;
 
   // ── Chronicle helpers ─────────────────────────────────────────────────────
   /** Pending data for creating a Chronicle session on first message */
@@ -142,13 +141,11 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
 export const useAIStore = create<AIStore>((set, get) => ({
   panelOpen: false,
   panelCollapsed: false,
-  panelPinned: false,
 
   openPanel: () => set({ panelOpen: true, panelCollapsed: false }),
   closePanel: () => set({ panelOpen: false }),
   collapsePanel: () => set({ panelCollapsed: true }),
   expandPanel: () => set({ panelCollapsed: false, panelOpen: true }),
-  setPanelPinned: (pinned) => set({ panelPinned: pinned }),
   togglePanel: () => {
     const { panelOpen, panelCollapsed } = get();
     if (panelCollapsed) {
@@ -203,9 +200,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       if (activeSessionId === id) {
         activeSessionId = sessions[sessions.length - 1]?.id ?? null;
       }
-      // If pinned, keep panel open even with no sessions
-      const panelOpen = sessions.length > 0 || s.panelPinned ? s.panelOpen : false;
-      return { sessions, activeSessionId, panelOpen };
+      return { sessions, activeSessionId };
     });
   },
 
@@ -397,6 +392,14 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: s.sessions.map((sess) =>
         sess.id === sessionId ? { ...sess, chronicleSessionId: chronicleId } : sess
+      ),
+    }));
+  },
+
+  _setBackendSessionId: (sessionId, backendSessionId) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, backendSessionId } : sess
       ),
     }));
   },

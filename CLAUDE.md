@@ -106,6 +106,8 @@ types/index.ts    — All shared TypeScript interfaces
 ### CSS design tokens
 All colors use CSS custom properties defined in `frontend/src/index.css`. Dark mode adds a `.dark` class to `<html>`. Never hardcode colors — always use `var(--color-*)`. Segment type colors use `var(--segment-act)`, `var(--segment-chapter)`, etc. Both light and dark variants are defined.
 
+**AI color:** Use `var(--color-ai)` (purple) for all AI-related UI elements — icons, buttons, highlights, borders. Never use `var(--color-accent)` (warm orange) for anything AI-related.
+
 ### Story structure
 `StoryStructureTemplate` defines named levels (e.g. Act → Chapter → Scene). `StructureNode` is a recursive tree with `level`, `level_type`, `parent_id`. The active template is loaded into `storyStore.activeTemplate` on workspace load — use it to drive type-aware UI (labels, icons, "Add X" buttons).
 
@@ -123,6 +125,11 @@ JWT token stored in `localStorage` as `ls_token`. Sent as `Authorization: Bearer
 
 ### Character interviews
 The character's full profile becomes the LLM system prompt — the character IS the persona, not injected as context. This keeps interviews feeling like talking to the character rather than about them.
+
+### Unified AI assistant
+All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single AI panel opened via the header button. No redundant AI entry points in sub-components (scene editor topbar, etc.) — the header button is the one place. Each tool runs in its own tab within the panel, preserving conversation history.
+
+To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.ts` via `registerSessionType`, (2) add a `case` in `frontend/src/components/ai/SessionView.tsx`, (3) create a mode component using `AIModeWrapper` as the shell.
 
 ## Environment Setup
 

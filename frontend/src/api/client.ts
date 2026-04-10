@@ -111,6 +111,12 @@ export const api = {
   },
   analyzeEconomy: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, { method: "POST" }),
+  analyzeEssentialQuestions: (storyId: string, characterId?: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/essential-questions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ character_id: characterId ?? null }),
+    }),
   suggestRelationships: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/suggest-relationships`, { method: "POST" }),
 
@@ -128,6 +134,11 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteNode: (nodeId: string) => request<void>(`/structure/${nodeId}`, { method: "DELETE" }),
+  reorderStructure: (storyId: string, operations: { node_id: string; parent_id: string | null; position: number }[]) =>
+    request<void>(`/stories/${storyId}/structure/reorder`, {
+      method: "POST",
+      body: JSON.stringify({ operations }),
+    }),
   summarizeNode: (nodeId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/structure/${nodeId}/summarize`, {
@@ -333,6 +344,11 @@ export const api = {
     request<void>(`/stories/${storyId}/outline/reorder`, {
       method: "POST",
       body: JSON.stringify({ parent_id: parentId, item_ids: itemIds }),
+    }),
+  bulkReorderOutline: (storyId: string, operations: { item_id: string; parent_id: string | null; position: number }[]) =>
+    request<void>(`/stories/${storyId}/outline/bulk-reorder`, {
+      method: "POST",
+      body: JSON.stringify({ operations }),
     }),
 
   // Panel Interviews
@@ -937,6 +953,8 @@ export const api = {
     request<import("../types").DialogueBlockWithScene[]>(`/characters/${characterId}/dialogue`),
   suggestDialogueTags: (sceneId: string) =>
     request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, { method: "POST" }),
+  aiSuggestDialogueSpeakers: (sceneId: string, signal?: AbortSignal) =>
+    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/ai-suggest`, { method: "POST", signal }),
   applyDialogueTags: (sceneId: string, tags: import("../types").ApplyTagRequest[]) =>
     request<import("../types").StructureNode>(`/scenes/${sceneId}/dialogue/apply-tags`, { method: "POST", body: JSON.stringify({ tags }) }),
   suggestEntityLinks: (nodeId: string) =>

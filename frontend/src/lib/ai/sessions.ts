@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -35,15 +35,21 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   sendMessage: (session, _content, signal, llmParams) => {
-    const { storyId, nodeId } = session.context;
+    const { storyId, nodeId, contextScope } = session.context;
     if (!storyId) {
       return Promise.reject(new Error("Add a story to context before chatting."));
     }
-    return api.sendChatMessage(storyId, nodeId ?? "__global__", session.messages, signal, llmParams);
+    let effectiveNodeId: string;
+    if (contextScope === "entire-story") effectiveNodeId = "__story__";
+    else if (contextScope === "lorebook-only") effectiveNodeId = "__global__";
+    else effectiveNodeId = nodeId ?? "__global__"; // "current-scene" or unset
+    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
   },
 
   persistsInBackend: false,
   allowContextSwitch: true,
+  defaultScope: "current-scene",
+  allowedScopes: ["current-scene", "entire-story", "lorebook-only"],
 });
 
 // ── Interview ─────────────────────────────────────────────────────────────────
@@ -174,14 +180,16 @@ registerSessionType({
   },
 
   sendMessage: (session, _content, signal, llmParams) => {
-    const { storyId, nodeId } = session.context;
+    const { storyId, nodeId, contextScope } = session.context;
     if (!storyId || !nodeId) throw new Error("Story and node required for scene assistant");
-    // session.messages already includes the user message appended by aiStore
-    return api.sendChatMessage(storyId, nodeId, session.messages, signal, llmParams);
+    const effectiveNodeId = contextScope === "entire-story" ? "__story__" : nodeId;
+    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
   },
 
   persistsInBackend: false,
   allowContextSwitch: true,
+  defaultScope: "current-scene",
+  allowedScopes: ["current-scene", "entire-story"],
 });
 
 // ── Story Assistant ───────────────────────────────────────────────────────────
@@ -244,14 +252,16 @@ registerSessionType({
   },
 
   sendMessage: (session, _content, signal, llmParams) => {
-    const { storyId, nodeId } = session.context;
+    const { storyId, contextScope } = session.context;
     if (!storyId) throw new Error("Story required for story assistant");
-    // session.messages already includes the user message appended by aiStore
-    return api.sendChatMessage(storyId, nodeId ?? "__story__", session.messages, signal, llmParams);
+    const effectiveNodeId = contextScope === "lorebook-only" ? "__global__" : "__story__";
+    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
   },
 
   persistsInBackend: false,
   allowContextSwitch: true,
+  defaultScope: "entire-story",
+  allowedScopes: ["entire-story", "lorebook-only"],
 });
 
 // ── Writing Coach ─────────────────────────────────────────────────────────────
@@ -288,5 +298,82 @@ registerSessionType({
   },
 
   persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── What-If Simulator ─────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "whatif",
+  label: "What-If Simulator",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `What If — ${names.storyTitle}` : "What-If Simulator",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Shuffle,
+  accentVar: "--color-accent-secondary",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId } = session.context;
+    if (!storyId) throw new Error("Story required for What-If");
+    return api.sendWhatIfMessage(storyId, session.messages, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Panel Interview ───────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "panel",
+  label: "Panel Interview",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Panel — ${names.storyTitle}` : "Panel Interview",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Users,
+  accentVar: "--color-accent",
+
+  requiresStory: true,
+  requiresCharacter: false, // Multi-character selection is handled within PanelMode
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: async ({ storyId }) => {
+    if (!storyId) return [];
+    try {
+      const chars = await api.listCharacters(storyId);
+      return chars.map((c) => ({ id: c.id, label: c.name }));
+    } catch {
+      return [];
+    }
+  },
+
+  // Characters are selected in-mode; session starts without a backendSessionId
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, content, signal, llmParams) => {
+    if (!session.backendSessionId) throw new Error("No panel session");
+    return api.sendPanelMessage(session.backendSessionId, content, signal, llmParams);
+  },
+
+  persistsInBackend: true,
   allowContextSwitch: false,
 });

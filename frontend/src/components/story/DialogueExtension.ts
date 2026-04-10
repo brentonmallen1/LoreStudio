@@ -53,19 +53,21 @@ export function setDialogueCallbacks(cb: Partial<DialogueCallbacks>) {
 // ---------------------------------------------------------------------------
 
 // Match "dialogue"<Name> — the entire unit (quote + speaker suffix) is decorated.
-// Returns [start, end, speakerName] covering the full match.
-function findExplicitQuotes(text: string): Array<[number, number, string]> {
-  const results: Array<[number, number, string]> = [];
+// Returns [start, end, speakerName, tagStart] where tagStart is the index of '<'.
+function findExplicitQuotes(text: string): Array<[number, number, string, number]> {
+  const results: Array<[number, number, string, number]> = [];
   let m: RegExpExecArray | null;
   // Straight quotes: "..."<Name>
   const re = /"([^"]+)"<([^>]+)>/g;
   while ((m = re.exec(text)) !== null) {
-    results.push([m.index, m.index + m[0].length, m[2]]);
+    const tagStart = m.index + 1 + m[1].length + 1; // after closing "
+    results.push([m.index, m.index + m[0].length, m[2], tagStart]);
   }
   // Smart quotes: "…"<Name>
   const reSmart = /\u201c([^\u201d]+)\u201d<([^>]+)>/g;
   while ((m = reSmart.exec(text)) !== null) {
-    results.push([m.index, m.index + m[0].length, m[2]]);
+    const tagStart = m.index + 1 + m[1].length + 1; // after closing \u201d
+    results.push([m.index, m.index + m[0].length, m[2], tagStart]);
   }
   return results;
 }
@@ -144,10 +146,18 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
       e,
     ]);
 
-    for (const [s, e, speaker] of explicit) {
+    for (const [s, e, speaker, tagStart] of explicit) {
+      // Quote portion: "dialogue"
       decos.push(
-        Decoration.inline(pos + s, pos + e, {
+        Decoration.inline(pos + s, pos + tagStart, {
           class: "dialogue-explicit",
+          "data-dialogue-speaker": speaker,
+        })
+      );
+      // Speaker tag portion: <Name>
+      decos.push(
+        Decoration.inline(pos + tagStart, pos + e, {
+          class: "dialogue-speaker-tag",
           "data-dialogue-speaker": speaker,
         })
       );

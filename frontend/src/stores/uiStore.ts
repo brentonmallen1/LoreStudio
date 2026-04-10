@@ -100,9 +100,13 @@ interface UIState {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
 
-  // Sidebar tab rail height (resizable, Write tab only)
-  sidebarTabRailHeight: number;
-  setSidebarTabRailHeight: (height: number) => void;
+  // Structure tree height (resizable, Write tab only)
+  treeHeight: number;
+  setTreeHeight: (height: number) => void;
+
+  // Structure tree expanded/collapsed
+  treeExpanded: boolean;
+  setTreeExpanded: (expanded: boolean) => void;
 
   // Structure tree detached to second panel
   treeDetached: boolean;
@@ -279,10 +283,16 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sidebarCollapsed: collapsed });
   },
 
-  sidebarTabRailHeight: Number(localStorage.getItem("ls_tab_rail_height") ?? 280),
-  setSidebarTabRailHeight: (height) => {
-    localStorage.setItem("ls_tab_rail_height", String(height));
-    set({ sidebarTabRailHeight: height });
+  treeHeight: Number(localStorage.getItem("ls_tree_height") ?? 200),
+  setTreeHeight: (height) => {
+    localStorage.setItem("ls_tree_height", String(height));
+    set({ treeHeight: height });
+  },
+
+  treeExpanded: localStorage.getItem("ls_tree_expanded") !== "false",
+  setTreeExpanded: (expanded) => {
+    localStorage.setItem("ls_tree_expanded", String(expanded));
+    set({ treeExpanded: expanded });
   },
 
   treeDetached: localStorage.getItem("ls_tree_detached") === "true",

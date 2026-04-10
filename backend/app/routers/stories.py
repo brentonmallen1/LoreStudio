@@ -18,7 +18,7 @@ from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
-from ..schemas.structure import StructureNodeCreate, StructureNodeOut
+from ..schemas.structure import StructureNodeCreate, StructureNodeOut, ReorderStructurePayload
 from ..auth.dependencies import get_current_user
 
 router = APIRouter()
@@ -334,6 +334,31 @@ def create_structure_node(
     db.commit()
     db.refresh(node)
     return node
+
+
+@router.post("/{story_id}/structure/reorder", status_code=status.HTTP_204_NO_CONTENT)
+def reorder_structure(
+    story_id: str,
+    body: ReorderStructurePayload,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Batch reorder structure nodes. Supports reordering within a parent and reparenting."""
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    for op in body.operations:
+        node = db.get(StructureNode, op.node_id)
+        if node and node.story_id == story_id:
+            if node.parent_id != op.parent_id:
+                node.parent_id = op.parent_id
+                if op.parent_id:
+                    parent = db.get(StructureNode, op.parent_id)
+                    node.level = (parent.level + 1) if parent else 0
+                else:
+                    node.level = 0
+            node.position = op.position
+    db.commit()
 
 
 @router.get("/{story_id}/characters")

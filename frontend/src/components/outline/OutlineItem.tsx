@@ -1,310 +1,288 @@
-import { useState, useRef, useEffect } from "react";
-import {
-  ChevronRight,
-  ChevronDown,
-  Plus,
-  Trash2,
-  GripVertical,
-} from "lucide-react";
-import type { OutlineItem as OutlineItemType, OutlineBeatType } from "../../types";
+import { useState } from "react";
+import { GripVertical, ChevronRight, ChevronDown, Plus, Trash2, FileText } from "lucide-react";
+import type { OutlineItem as OutlineItemType } from "../../types";
 import styles from "./OutlineItem.module.css";
 
-const BEAT_TYPES: { value: OutlineBeatType; label: string }[] = [
-  { value: "plot", label: "Plot" },
-  { value: "character", label: "Character" },
-  { value: "theme", label: "Theme" },
-  { value: "setting", label: "Setting" },
-];
+// Module-level drag ID — same pattern as StructureTreePanel
+export let _draggedId: string | null = null;
 
-interface Props {
+type DropZone = "above" | "below" | "into" | null;
+
+export interface OutlineItemProps {
   item: OutlineItemType;
-  siblings: OutlineItemType[];
-  onSave: (id: string, text: string, beatType: OutlineBeatType | null, notes: string) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
-  onAddChild: (parentId: string) => Promise<string>;
-  onAddSibling: (afterId: string, parentId: string | null) => Promise<string>;
-  onIndent: (itemId: string) => Promise<void>;
-  onOutdent: (itemId: string) => Promise<void>;
-  onCollapse: (id: string, collapsed: boolean) => void;
-  onReorder: (parentId: string | null, itemIds: string[]) => Promise<void>;
-  autoFocus?: boolean;
-  focusedId: string | null;
-  setFocusedId: (id: string | null) => void;
+  depth?: number;
+  selected: Set<string>;
+  hasSelection: boolean;
+  onToggleSelect: (id: string) => void;
+  onDrop: (draggedId: string, targetId: string, zone: "above" | "below" | "into") => void;
+  onUpdate: (id: string, patch: Partial<Pick<OutlineItemType, "text" | "notes" | "beat_type" | "collapsed">>) => void;
+  onDelete: (id: string) => void;
+  onAddSibling: (afterId: string) => void;
+  onAddChild: (parentId: string) => void;
+  onIndent: (id: string) => void;
+  onDedent: (id: string) => void;
+  focusId?: string | null;
 }
 
 export default function OutlineItem({
   item,
-  siblings,
-  onSave,
+  depth = 0,
+  selected,
+  hasSelection,
+  onToggleSelect,
+  onDrop,
+  onUpdate,
   onDelete,
-  onAddChild,
   onAddSibling,
+  onAddChild,
   onIndent,
-  onOutdent,
-  onCollapse,
-  onReorder,
-  autoFocus,
-  focusedId,
-  setFocusedId,
-}: Props) {
-  const isEditing = focusedId === item.id;
-  const [editText, setEditText] = useState(item.text);
-  const [editBeatType, setEditBeatType] = useState<OutlineBeatType | null>(item.beat_type);
-  const [editNotes, setEditNotes] = useState(item.notes);
-  const [showNotes, setShowNotes] = useState(!!item.notes);
-  const [dragOver, setDragOver] = useState<"above" | "below" | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dragItemRef = useRef<string | null>(null);
+  onDedent,
+  focusId,
+}: OutlineItemProps) {
+  const [dropZone, setDropZone] = useState<DropZone>(null);
+  const [collapsed, setCollapsed] = useState(item.collapsed);
+  const [focused, setFocused] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
-  // Sync local edit state when item changes from outside
-  useEffect(() => {
-    if (!isEditing) {
-      setEditText(item.text);
-      setEditBeatType(item.beat_type);
-      setEditNotes(item.notes);
-    }
-  }, [item.text, item.beat_type, item.notes, isEditing]);
+  const isSelected = selected.has(item.id);
+  const hasChildren = (item.children?.length ?? 0) > 0;
 
-  useEffect(() => {
-    if ((isEditing || autoFocus) && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing, autoFocus]);
+  // ── Zone detection ─────────────────────────────────────────────────────────
 
-  function startEdit() {
-    setEditText(item.text);
-    setEditBeatType(item.beat_type);
-    setEditNotes(item.notes);
-    setShowNotes(!!item.notes);
-    setFocusedId(item.id);
+  function getZone(e: React.DragEvent): "above" | "below" | "into" {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const pct = (e.clientY - rect.top) / rect.height;
+    if (pct < 0.3) return "above";
+    if (pct > 0.7) return "below";
+    return "into";
   }
 
-  async function handleSave() {
-    setFocusedId(null);
-    await onSave(item.id, editText, editBeatType, editNotes);
-  }
-
-  function handleCancel() {
-    setEditText(item.text);
-    setEditBeatType(item.beat_type);
-    setEditNotes(item.notes);
-    setFocusedId(null);
-  }
-
-  async function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      await onSave(item.id, editText, editBeatType, editNotes);
-      const newId = await onAddSibling(item.id, item.parent_id);
-      setFocusedId(newId);
-    } else if (e.key === "Escape") {
-      handleCancel();
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      await onSave(item.id, editText, editBeatType, editNotes);
-      if (e.shiftKey) {
-        await onOutdent(item.id);
-      } else {
-        await onIndent(item.id);
-      }
-      setFocusedId(item.id);
-    }
-  }
-
-  // ── Drag reorder ──────────────────────────────────────────────────────────
+  // ── Drag handlers ──────────────────────────────────────────────────────────
 
   function handleDragStart(e: React.DragEvent) {
-    dragItemRef.current = item.id;
+    // Don't start drag from inputs/textareas
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+      e.preventDefault();
+      return;
+    }
+    _draggedId = item.id;
     e.dataTransfer.setData("text/plain", item.id);
     e.dataTransfer.effectAllowed = "move";
   }
 
   function handleDragOver(e: React.DragEvent) {
+    if (!_draggedId || _draggedId === item.id) return;
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = "move";
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const midY = rect.top + rect.height / 2;
-    setDragOver(e.clientY < midY ? "above" : "below");
+    setDropZone(getZone(e));
   }
 
-  function handleDragLeave() {
-    setDragOver(null);
+  function handleDragLeave(e: React.DragEvent) {
+    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+      setDropZone(null);
+    }
   }
 
-  async function handleDrop(e: React.DragEvent) {
+  function handleDrop(e: React.DragEvent) {
     e.preventDefault();
-    const draggedId = e.dataTransfer.getData("text/plain");
-    setDragOver(null);
-    if (!draggedId || draggedId === item.id) return;
-
-    // Only reorder within same parent
-    const draggedItem = siblings.find((s) => s.id === draggedId);
-    if (!draggedItem) return;
-
-    const ordered = siblings.filter((s) => s.id !== draggedId);
-    const dropIdx = ordered.findIndex((s) => s.id === item.id);
-    const insertAt = dragOver === "above" ? dropIdx : dropIdx + 1;
-    ordered.splice(insertAt, 0, draggedItem);
-    await onReorder(item.parent_id, ordered.map((s) => s.id));
+    e.stopPropagation();
+    const id = e.dataTransfer.getData("text/plain") || _draggedId;
+    _draggedId = null;
+    const zone = getZone(e);
+    setDropZone(null);
+    if (!id || id === item.id) return;
+    onDrop(id, item.id, zone);
   }
 
-  const hasChildren = item.children && item.children.length > 0;
-  const collapsed = item.collapsed;
+  function handleDragEnd() {
+    _draggedId = null;
+    setDropZone(null);
+  }
+
+  // ── Beat type cycling ──────────────────────────────────────────────────────
+
+  const beatTypes: Array<OutlineItemType["beat_type"]> = [null, "plot", "character", "theme", "setting"];
+
+  function cycleBeatType() {
+    const idx = beatTypes.indexOf(item.beat_type);
+    const next = beatTypes[(idx + 1) % beatTypes.length];
+    onUpdate(item.id, { beat_type: next });
+  }
+
+  // ── Collapse toggle ────────────────────────────────────────────────────────
+
+  function toggleCollapse() {
+    const next = !collapsed;
+    setCollapsed(next);
+    onUpdate(item.id, { collapsed: next });
+  }
+
+  // ── Class assembly ─────────────────────────────────────────────────────────
+
+  const beatClass = item.beat_type ? (styles as Record<string, string>)[item.beat_type] ?? "" : styles.none;
+
+  const rowClass = [
+    styles.row,
+    focused ? styles.rowFocused : "",
+    isSelected ? styles.rowSelected : "",
+    hasSelection ? styles.rowHasSelection : "",
+    dropZone === "above" ? styles.dropAbove : "",
+    dropZone === "below" ? styles.dropBelow : "",
+    dropZone === "into" ? styles.dropInto : "",
+  ].filter(Boolean).join(" ");
 
   return (
     <div className={styles.item}>
       <div
-        className={[
-          styles.row,
-          dragOver === "above" ? styles.dropAbove : "",
-          dragOver === "below" ? styles.dropBelow : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
         draggable
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onDragEnd={handleDragEnd}
+        className={rowClass}
+        style={{ paddingLeft: `${depth * 1.25}rem` }}
+        onFocus={() => setFocused(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setFocused(false);
+        }}
       >
-        {/* Drag handle */}
-        <span className={styles.dragHandle}>
-          <GripVertical size={14} />
+        {/* Drag grip — left */}
+        <span className={styles.dragGrip}>
+          <GripVertical size={13} />
         </span>
 
         {/* Collapse toggle */}
         {hasChildren ? (
-          <button
-            className={styles.collapseToggle}
-            onClick={() => onCollapse(item.id, !collapsed)}
-            title={collapsed ? "Expand" : "Collapse"}
-          >
-            {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+          <button className={styles.collapseToggle} onClick={toggleCollapse} tabIndex={-1}>
+            {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
           </button>
         ) : (
           <span className={styles.collapsePlaceholder} />
         )}
 
         {/* Beat type dot */}
-        <span className={`${styles.beatDot} ${styles[item.beat_type ?? "none"]}`} />
+        <button
+          className={`${styles.beatDot} ${beatClass}`}
+          onClick={cycleBeatType}
+          title={item.beat_type ? item.beat_type : "No type — click to set"}
+          tabIndex={-1}
+        />
 
         {/* Content */}
-        <div className={styles.textWrap} onClick={!isEditing ? startEdit : undefined}>
-          {isEditing ? (
-            <>
-              <input
-                ref={inputRef}
-                className={styles.textInput}
-                value={editText}
-                onChange={(e) => setEditText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Outline beat…"
-              />
-              <div className={styles.beatTypeRow}>
-                <select
-                  className={styles.beatTypeSelect}
-                  value={editBeatType ?? ""}
-                  onChange={(e) =>
-                    setEditBeatType((e.target.value as OutlineBeatType) || null)
-                  }
-                >
-                  <option value="">No type</option>
-                  {BEAT_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-                {!showNotes && (
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => setShowNotes(true)}
-                    title="Add notes"
-                  >
-                    <span style={{ fontSize: "0.7rem", color: "var(--color-text-subtle)" }}>
-                      + notes
-                    </span>
-                  </button>
-                )}
-              </div>
-              {showNotes && (
-                <textarea
-                  className={styles.notesInput}
-                  value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Notes…"
-                  rows={2}
-                />
-              )}
-              <div className={styles.editActions}>
-                <button className="btn btn-xs btn-primary" onClick={handleSave}>
-                  Save
-                </button>
-                <button className="btn btn-xs" onClick={handleCancel}>
-                  Cancel
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <span className={`${styles.text} ${!item.text ? styles.empty : ""}`}>
-                {item.text || "Untitled beat"}
-              </span>
-              {item.beat_type && (
-                <span className={`${styles.beatBadge} ${styles[item.beat_type]}`}>
-                  {item.beat_type}
-                </span>
-              )}
-              {item.notes && (
-                <span className={styles.notesText}>{item.notes}</span>
-              )}
-            </>
+        <div className={styles.content}>
+          <input
+            className={styles.textInput}
+            value={item.text}
+            // eslint-disable-next-line jsx-a11y/no-autofocus
+            autoFocus={focusId === item.id}
+            data-outline-input
+            onChange={(e) => onUpdate(item.id, { text: e.target.value })}
+            onKeyDown={(e) => {
+              const input = e.target as HTMLInputElement;
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onAddSibling(item.id);
+              } else if (e.key === "Tab" && !e.shiftKey) {
+                e.preventDefault();
+                onIndent(item.id);
+              } else if (e.key === "Tab" && e.shiftKey) {
+                e.preventDefault();
+                onDedent(item.id);
+              } else if (e.key === "ArrowUp" && input.selectionStart === 0 && input.selectionEnd === 0) {
+                e.preventDefault();
+                const all = Array.from(document.querySelectorAll<HTMLInputElement>("[data-outline-input]"));
+                const idx = all.indexOf(input);
+                if (idx > 0) { all[idx - 1].focus(); all[idx - 1].setSelectionRange(0, 0); }
+              } else if (e.key === "ArrowDown" && input.selectionStart === input.value.length) {
+                e.preventDefault();
+                const all = Array.from(document.querySelectorAll<HTMLInputElement>("[data-outline-input]"));
+                const idx = all.indexOf(input);
+                if (idx < all.length - 1) { all[idx + 1].focus(); all[idx + 1].setSelectionRange(0, 0); }
+              }
+            }}
+            placeholder="Outline beat…"
+          />
+          {showNotes && (
+            <textarea
+              className={styles.notesInput}
+              value={item.notes}
+              onChange={(e) => onUpdate(item.id, { notes: e.target.value })}
+              placeholder="Notes…"
+              rows={2}
+            />
+          )}
+          {!showNotes && item.notes && (
+            <p className={styles.notesPreview} onClick={() => setShowNotes(true)}>
+              {item.notes}
+            </p>
           )}
         </div>
 
-        {/* Actions */}
-        {!isEditing && (
-          <div className={styles.actions}>
-            <button
-              className={styles.actionBtn}
-              title="Add child beat"
-              onClick={async () => {
-                const newId = await onAddChild(item.id);
-                setFocusedId(newId);
-              }}
-            >
-              <Plus size={13} />
-            </button>
-            <button
-              className={`${styles.actionBtn} ${styles.danger}`}
-              title="Delete"
-              onClick={() => onDelete(item.id)}
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
-        )}
+        {/* Action buttons */}
+        <div className={styles.actions}>
+          <button
+            className={`${styles.actionBtn} ${showNotes ? styles.actionBtnActive : ""}`}
+            onClick={() => setShowNotes((v) => !v)}
+            title="Toggle notes"
+            tabIndex={-1}
+          >
+            <FileText size={13} />
+          </button>
+          <button
+            className={styles.actionBtn}
+            onClick={() => onAddChild(item.id)}
+            title="Add child"
+            tabIndex={-1}
+          >
+            <Plus size={13} />
+          </button>
+          <button
+            className={`${styles.actionBtn} ${styles.danger}`}
+            onClick={() => onDelete(item.id)}
+            title="Delete"
+            tabIndex={-1}
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+
+        {/* Select checkbox — right */}
+        <label
+          className={styles.selectWrap}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className={styles.selectBox}
+            checked={isSelected}
+            onChange={() => onToggleSelect(item.id)}
+            tabIndex={-1}
+          />
+        </label>
       </div>
 
       {/* Children */}
-      {hasChildren && !collapsed && (
+      {!collapsed && hasChildren && (
         <div className={styles.children}>
           {item.children.map((child) => (
             <OutlineItem
               key={child.id}
               item={child}
-              siblings={item.children}
-              onSave={onSave}
+              depth={depth + 1}
+              selected={selected}
+              hasSelection={hasSelection}
+              onToggleSelect={onToggleSelect}
+              onDrop={onDrop}
+              onUpdate={onUpdate}
               onDelete={onDelete}
-              onAddChild={onAddChild}
               onAddSibling={onAddSibling}
+              onAddChild={onAddChild}
               onIndent={onIndent}
-              onOutdent={onOutdent}
-              onCollapse={onCollapse}
-              onReorder={onReorder}
-              focusedId={focusedId}
-              setFocusedId={setFocusedId}
+              onDedent={onDedent}
+              focusId={focusId}
             />
           ))}
         </div>

@@ -3,15 +3,13 @@
   inset: 0;
   z-index: 200;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-end;
-  pointer-events: none;
+  pointer-events: all;
 }
 
 .panel {
-  pointer-events: all;
   width: 360px;
-  max-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
@@ -196,9 +194,15 @@
   flex-shrink: 0;
 }
 
-.speakerInput {
+.speakerCombobox {
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+
+.speakerInput {
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.25rem 0.4rem;
   font-size: 0.8rem;
   font-family: inherit;
@@ -212,6 +216,44 @@
 
 .speakerInput:focus {
   border-color: var(--color-accent);
+}
+
+.speakerDropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  max-height: 140px;
+  overflow-y: auto;
+}
+
+.speakerDropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.speakerDropdownItem:hover {
+  background: var(--color-bg-hover);
+}
+
+.speakerDropdownCreate {
+  color: var(--color-accent);
+  border-top: 1px solid var(--color-border-light);
+  font-style: italic;
 }
 
 /* ── Confidence dots ── */
