@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, X, Trash2, BookOpen, Snowflake } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil } from "lucide-react";
 import { api } from "../../api/client";
 import { useHistoryStore } from "../../stores/historyStore";
-import type { OutlineItem } from "../../types";
+import type { Outline, OutlineItem } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
 import SnowflakeView from "./SnowflakeView";
+import OutlineInfoModal from "./OutlineInfoModal";
 import styles from "./OutlineManager.module.css";
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
@@ -100,18 +102,15 @@ function insertChildInTree(
   });
 }
 
-// ── Constants ──────────────────────────────────────────────────────────────────
-
 const BEAT_TYPES = ["plot", "character", "theme", "setting"] as const;
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Outline list panel ─────────────────────────────────────────────────────────
 
-interface Props {
-  storyId: string;
+interface OutlinePanelProps {
+  outline: Outline;
 }
 
-export default function OutlineManager({ storyId }: Props) {
-  const [mode, setMode] = useState<"list" | "snowflake">("list");
+function OutlinePanel({ outline }: OutlinePanelProps) {
   const [items, setItems] = useState<OutlineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -119,21 +118,19 @@ export default function OutlineManager({ storyId }: Props) {
   const [newRootText, setNewRootText] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
 
-  // Stale-closure-safe ref (same pattern as StructureTreePanel)
   const itemsRef = useRef(items);
   itemsRef.current = items;
   const pushHistory = useHistoryStore((s) => s.push);
-
-  // Pending debounced API update timers
   const pendingUpdates = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
-    api.getOutline(storyId)
-      .then((data) => setItems(data))
+    setLoading(true);
+    api.getOutlineWithItems(outline.id)
+      .then((data) => setItems(data.items))
       .finally(() => setLoading(false));
-  }, [storyId]);
+  }, [outline.id]);
 
-  // ── DnD ───────────────────────────────────────────────────────────────────
+  // ── DnD ─────────────────────────────────────────────────────────────────────
 
   function handleDrop(draggedId: string, targetId: string, zone: "above" | "below" | "into") {
     const prev = itemsRef.current;
@@ -141,23 +138,21 @@ export default function OutlineManager({ storyId }: Props) {
     if (next === prev) return;
     pushHistory({
       description: "Reorder outline",
-      undo: () => { setItems(prev); api.bulkReorderOutline(storyId, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(storyId, flattenPositions(next)); },
+      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
+      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
     });
     setItems(next);
-    api.bulkReorderOutline(storyId, flattenPositions(next)).catch(() => setItems(prev));
+    api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
 
-  // ── CRUD ──────────────────────────────────────────────────────────────────
+  // ── CRUD ─────────────────────────────────────────────────────────────────────
 
   function handleUpdate(
     id: string,
     patch: Partial<Pick<OutlineItem, "text" | "notes" | "beat_type" | "collapsed">>
   ) {
     setItems((prev) => updateItemInTree(prev, id, patch));
-
     if ("text" in patch || "notes" in patch) {
-      // Debounce text/notes API calls
       if (pendingUpdates.current[id]) clearTimeout(pendingUpdates.current[id]);
       pendingUpdates.current[id] = setTimeout(() => {
         api.updateOutlineItem(id, patch);
@@ -177,42 +172,40 @@ export default function OutlineManager({ storyId }: Props) {
 
   async function handleAddRoot(text: string) {
     if (!text.trim()) return;
-    const item = await api.createOutlineItem(storyId, { text: text.trim(), position: 0 });
+    const item = await api.createOutlineItem(outline.id, { text: text.trim(), position: 0 });
     const withChildren = { ...item, children: [] };
     setItems((prev) => {
       const next = [...prev, withChildren];
-      api.bulkReorderOutline(storyId, flattenPositions(next));
+      api.bulkReorderOutline(outline.id, flattenPositions(next));
       return next;
     });
     setFocusId(item.id);
   }
 
   async function handleAddSibling(afterId: string) {
-    // Find parent + index of afterId in its sibling list
-    function findContext(
+    function findSiblingContext(
       nodes: OutlineItem[],
       id: string,
       parentId: string | null
     ): { parentId: string | null; idx: number } | null {
       for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === id) return { parentId, idx: i };
-        const found = findContext(nodes[i].children ?? [], id, nodes[i].id);
+        const found = findSiblingContext(nodes[i].children ?? [], id, nodes[i].id);
         if (found) return found;
       }
       return null;
     }
 
-    const ctx = findContext(itemsRef.current, afterId, null);
+    const ctx = findSiblingContext(itemsRef.current, afterId, null);
     if (!ctx) return;
 
-    const newItem = await api.createOutlineItem(storyId, {
+    const newItem = await api.createOutlineItem(outline.id, {
       text: "",
       parent_id: ctx.parentId ?? undefined,
       position: ctx.idx + 1,
     });
     const withChildren = { ...newItem, children: [] };
 
-    // Insert after the sibling in local state
     function insertAfter(nodes: OutlineItem[]): OutlineItem[] {
       const idx = nodes.findIndex((n) => n.id === afterId);
       if (idx !== -1) {
@@ -225,14 +218,14 @@ export default function OutlineManager({ storyId }: Props) {
 
     setItems((prev) => {
       const next = insertAfter(prev);
-      api.bulkReorderOutline(storyId, flattenPositions(next));
+      api.bulkReorderOutline(outline.id, flattenPositions(next));
       return next;
     });
     setFocusId(newItem.id);
   }
 
   async function handleAddChild(parentId: string) {
-    const newItem = await api.createOutlineItem(storyId, {
+    const newItem = await api.createOutlineItem(outline.id, {
       text: "",
       parent_id: parentId,
       position: 0,
@@ -240,13 +233,11 @@ export default function OutlineManager({ storyId }: Props) {
     const withChildren = { ...newItem, children: [] };
     setItems((prev) => {
       const next = insertChildInTree(prev, parentId, withChildren);
-      api.bulkReorderOutline(storyId, flattenPositions(next));
+      api.bulkReorderOutline(outline.id, flattenPositions(next));
       return next;
     });
     setFocusId(newItem.id);
   }
-
-  // ── Indent / Dedent ───────────────────────────────────────────────────────
 
   function handleIndent(id: string) {
     const ctx = findContext(itemsRef.current, id);
@@ -256,11 +247,11 @@ export default function OutlineManager({ storyId }: Props) {
     if (next === prev) return;
     pushHistory({
       description: "Indent outline item",
-      undo: () => { setItems(prev); api.bulkReorderOutline(storyId, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(storyId, flattenPositions(next)); },
+      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
+      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
     });
     setItems(next);
-    api.bulkReorderOutline(storyId, flattenPositions(next)).catch(() => setItems(prev));
+    api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
 
   function handleDedent(id: string) {
@@ -271,14 +262,12 @@ export default function OutlineManager({ storyId }: Props) {
     if (next === prev) return;
     pushHistory({
       description: "Dedent outline item",
-      undo: () => { setItems(prev); api.bulkReorderOutline(storyId, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(storyId, flattenPositions(next)); },
+      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
+      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
     });
     setItems(next);
-    api.bulkReorderOutline(storyId, flattenPositions(next)).catch(() => setItems(prev));
+    api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
-
-  // ── Selection ─────────────────────────────────────────────────────────────
 
   function toggleSelect(id: string) {
     setSelected((s) => {
@@ -287,8 +276,6 @@ export default function OutlineManager({ storyId }: Props) {
       return n;
     });
   }
-
-  // ── Bulk operations ───────────────────────────────────────────────────────
 
   function bulkSetBeatType(type: OutlineItem["beat_type"]) {
     Array.from(selected).forEach((id) => handleUpdate(id, { beat_type: type }));
@@ -307,43 +294,10 @@ export default function OutlineManager({ storyId }: Props) {
     });
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
-
-  if (loading) return <div className={styles.loading}>Loading outline…</div>;
-
-  if (mode === "snowflake") {
-    return (
-      <div className={styles.manager}>
-        <div className={styles.managerInner}>
-          <div className={styles.header}>
-            <h2 className={styles.title}>Snowflake Method</h2>
-            <div className={styles.headerRight}>
-              <div className={styles.modeToggle}>
-                <button
-                  className={`${styles.modeBtn} ${styles.modeBtnActive}`}
-                  disabled
-                >
-                  <Snowflake size={12} />
-                  Snowflake
-                </button>
-                <button
-                  className={styles.modeBtn}
-                  onClick={() => setMode("list")}
-                >
-                  List View
-                </button>
-              </div>
-            </div>
-          </div>
-          <SnowflakeView storyId={storyId} onSwitchToList={() => setMode("list")} />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className={styles.loading}>Loading…</div>;
 
   return (
-    <div className={styles.manager}>
-      {/* Bulk action bar — sticky at top */}
+    <>
       {selected.size > 0 && (
         <div className={styles.bulkBar}>
           <span className={styles.bulkCount}>{selected.size} selected</span>
@@ -377,25 +331,9 @@ export default function OutlineManager({ storyId }: Props) {
       )}
 
       <div className={styles.managerInner}>
-        {/* Header */}
         <div className={styles.header}>
-          <h2 className={styles.title}>Outline</h2>
+          <h2 className={styles.title}>{outline.name}</h2>
           <div className={styles.headerRight}>
-            <div className={styles.modeToggle}>
-              <button
-                className={`${styles.modeBtn} ${styles.modeBtnActive}`}
-                disabled
-              >
-                List View
-              </button>
-              <button
-                className={styles.modeBtn}
-                onClick={() => setMode("snowflake")}
-              >
-                <Snowflake size={12} />
-                Snowflake
-              </button>
-            </div>
             <button
               className={styles.addBeatBtnPrimary}
               onClick={() => { setAddingRoot(true); setNewRootText(""); }}
@@ -406,7 +344,6 @@ export default function OutlineManager({ storyId }: Props) {
           </div>
         </div>
 
-        {/* New root item inline form */}
         {addingRoot && (
           <div className={styles.newRootForm}>
             <input
@@ -428,13 +365,12 @@ export default function OutlineManager({ storyId }: Props) {
           </div>
         )}
 
-        {/* Empty state */}
         {items.length === 0 && !addingRoot && (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}><BookOpen size={36} /></div>
-            <p className={styles.emptyTitle}>No outline yet</p>
+            <p className={styles.emptyTitle}>No beats yet</p>
             <p className={styles.emptyDesc}>
-              Add beats to build your story outline. Drag to reorder, drag to center to nest.
+              Add beats to build your outline. Drag to reorder, drag to center to nest.
             </p>
             <button
               className={styles.addBeatBtnPrimary}
@@ -446,7 +382,6 @@ export default function OutlineManager({ storyId }: Props) {
           </div>
         )}
 
-        {/* Tree */}
         {items.length > 0 && (
           <div className={styles.tree}>
             {items.map((item) => (
@@ -474,6 +409,200 @@ export default function OutlineManager({ storyId }: Props) {
           </div>
         )}
       </div>
+    </>
+  );
+}
+
+// ── Tab rename input ───────────────────────────────────────────────────────────
+
+interface TabRenameProps {
+  initialValue: string;
+  onCommit: (name: string) => void;
+  onCancel: () => void;
+}
+
+function TabRenameInput({ initialValue, onCommit, onCancel }: TabRenameProps) {
+  const [value, setValue] = useState(initialValue);
+
+  return (
+    <input
+      autoFocus
+      className={styles.tabRenameInput}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") { e.stopPropagation(); onCommit(value.trim() || initialValue); }
+        if (e.key === "Escape") { e.stopPropagation(); onCancel(); }
+      }}
+      onBlur={() => onCommit(value.trim() || initialValue)}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+}
+
+// ── Main OutlineManager ────────────────────────────────────────────────────────
+
+interface Props {
+  storyId: string;
+}
+
+export default function OutlineManager({ storyId }: Props) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [outlines, setOutlines] = useState<Outline[]>([]);
+  const [activeTab, setActiveTab] = useState<"snowflake" | string>("snowflake");
+  const [loadingOutlines, setLoadingOutlines] = useState(true);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
+  useEffect(() => {
+    api.listOutlines(storyId)
+      .then((data) => {
+        setOutlines(data);
+        // If navigated here with ?tab=<id>, switch to that tab
+        const tabParam = searchParams.get("tab");
+        if (tabParam && data.some((o) => o.id === tabParam)) {
+          setActiveTab(tabParam);
+          setSearchParams({}, { replace: true });
+        }
+      })
+      .finally(() => setLoadingOutlines(false));
+  }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleCreateOutline() {
+    const outline = await api.createOutline(storyId, "Outline");
+    setOutlines((prev) => [...prev, outline]);
+    setActiveTab(outline.id);
+  }
+
+  async function handleDeleteOutline(id: string) {
+    if (!confirm("Delete this outline and all its beats?")) return;
+    await api.deleteOutline(id);
+    setOutlines((prev) => prev.filter((o) => o.id !== id));
+    if (activeTab === id) setActiveTab("snowflake");
+  }
+
+  async function handleRenameCommit(id: string, name: string) {
+    setRenamingId(null);
+    setOutlines((prev) => prev.map((o) => o.id === id ? { ...o, name } : o));
+    api.updateOutline(id, { name });
+  }
+
+  const activeOutline = outlines.find((o) => o.id === activeTab) ?? null;
+
+  return (
+    <div className={styles.manager}>
+      {/* Tab bar */}
+      <div className={styles.tabBar}>
+        <div className={styles.tabs}>
+          {/* Snowflake tab — always first */}
+          <button
+            className={`${styles.tab} ${activeTab === "snowflake" ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab("snowflake")}
+          >
+            <Snowflake size={12} />
+            Snowflake
+          </button>
+
+          {/* Outline tabs */}
+          {outlines.map((outline) => (
+            <div
+              key={outline.id}
+              className={`${styles.tab} ${activeTab === outline.id ? styles.tabActive : ""}`}
+              onClick={() => { if (renamingId !== outline.id) setActiveTab(outline.id); }}
+            >
+              {renamingId === outline.id ? (
+                <TabRenameInput
+                  initialValue={outline.name}
+                  onCommit={(name) => handleRenameCommit(outline.id, name)}
+                  onCancel={() => setRenamingId(null)}
+                />
+              ) : (
+                <>
+                  <span
+                    className={styles.tabName}
+                    onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(outline.id); }}
+                  >
+                    {outline.name}
+                  </span>
+                  <button
+                    className={styles.tabRenameBtn}
+                    onClick={(e) => { e.stopPropagation(); setRenamingId(outline.id); }}
+                    title="Rename"
+                  >
+                    <Pencil size={10} />
+                  </button>
+                  <button
+                    className={styles.tabCloseBtn}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteOutline(outline.id); }}
+                    title="Delete outline"
+                  >
+                    <X size={11} />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
+
+          {/* Add outline button */}
+          <button
+            className={styles.addTabBtn}
+            onClick={handleCreateOutline}
+            title="New blank outline"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+
+        {/* Info button */}
+        <button
+          className={styles.infoBtn}
+          onClick={() => setShowInfoModal(true)}
+          title="About Snowflake & outlines"
+        >
+          <Info size={14} />
+        </button>
+      </div>
+
+      {/* Tab content */}
+      {loadingOutlines ? (
+        <div className={styles.loading}>Loading…</div>
+      ) : activeTab === "snowflake" ? (
+        <div className={styles.manager}>
+          <div className={styles.managerInner}>
+            <div className={styles.header}>
+              <h2 className={styles.title}>Snowflake Method</h2>
+            </div>
+            <SnowflakeView
+              storyId={storyId}
+              onSwitchToList={() => {
+                if (outlines.length > 0) setActiveTab(outlines[0].id);
+                else handleCreateOutline();
+              }}
+            />
+          </div>
+        </div>
+      ) : activeOutline ? (
+        <OutlinePanel
+          key={activeOutline.id}
+          outline={activeOutline}
+        />
+      ) : (
+        <div className={styles.managerInner}>
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}><BookOpen size={36} /></div>
+            <p className={styles.emptyTitle}>No outlines yet</p>
+            <p className={styles.emptyDesc}>
+              Create a blank outline or inject a beat sheet template from the Lorebook.
+            </p>
+            <button className={styles.addBeatBtnPrimary} onClick={handleCreateOutline}>
+              <Plus size={14} />
+              New outline
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showInfoModal && <OutlineInfoModal onClose={() => setShowInfoModal(false)} />}
     </div>
   );
 }

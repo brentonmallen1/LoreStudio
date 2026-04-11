@@ -425,9 +425,23 @@ export interface Twist {
 
 export type OutlineBeatType = "plot" | "character" | "theme" | "setting";
 
-export interface OutlineItem {
+export interface Outline {
   id: string;
   story_id: string;
+  name: string;
+  position: number;
+  source_beat_sheet_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OutlineWithItems extends Outline {
+  items: OutlineItem[];
+}
+
+export interface OutlineItem {
+  id: string;
+  outline_id: string;
   parent_id: string | null;
   level: number;
   position: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ListTree } from "lucide-react";
 import { api } from "../../api/client";
 import type { BeatSheet } from "../../types";
 import styles from "./BeatSheetSelector.module.css";
@@ -7,9 +7,10 @@ import styles from "./BeatSheetSelector.module.css";
 interface Props {
   value: string | null;
   onChange: (id: string | null) => void;
+  onInject?: (beatSheetId: string) => void;
 }
 
-export default function BeatSheetSelector({ value, onChange }: Props) {
+export default function BeatSheetSelector({ value, onChange, onInject }: Props) {
   const [sheets, setSheets] = useState<BeatSheet[]>([]);
   const [expanded, setExpanded] = useState(false);
 
@@ -34,13 +35,24 @@ export default function BeatSheetSelector({ value, onChange }: Props) {
 
       {active && (
         <div className={styles.preview}>
-          <button
-            className={styles.toggleBtn}
-            onClick={() => setExpanded(e => !e)}
-          >
-            {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
-            <span>{active.beats.length} beats</span>
-          </button>
+          <div className={styles.previewRow}>
+            <button
+              className={styles.toggleBtn}
+              onClick={() => setExpanded(e => !e)}
+            >
+              {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+              <span>{active.beats.length} beats</span>
+            </button>
+            {onInject && (
+              <button
+                className={styles.injectBtn}
+                onClick={() => onInject(active.id)}
+              >
+                <ListTree size={12} />
+                Use as Outline
+              </button>
+            )}
+          </div>
           {active.description && (
             <p className={styles.description}>{active.description}</p>
           )}

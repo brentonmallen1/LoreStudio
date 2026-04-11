@@ -14,7 +14,7 @@ interface Props {
 type MetricTab = "words" | "status" | "threads";
 
 const MARGIN = { top: 24, right: 12, bottom: 32, left: 44 };
-const CHART_H = 160;
+const CHART_H = 110;
 const STATUS_H = 48;
 const THREAD_ROW_H = 26;
 const MIN_SLOT_W = 4;

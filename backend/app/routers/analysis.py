@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from ..database import get_db
 from ..models.user import User
@@ -35,6 +36,7 @@ from ..schemas.ai_responses import (
     StructuredResult,
 )
 from ..schemas.nlp_analysis import ProseNLPResponse, SceneNLPAnalysis, EntitySuggestionsResponse
+from ..schemas.chronicle import ActivityLogOut
 from ..services.nlp_analysis_service import analyze_scene, extract_unknown_entities, ALL_CHECKS
 from ..models.location import Location
 
@@ -263,7 +265,7 @@ async def analyze_economy(
         tags=["story", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=EconomyAnalysisResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -271,6 +273,20 @@ async def analyze_economy(
         db=db,
         user=current_user,
     )
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Economy analysis completed",
+        metadata_={
+            "feature": "economy-analysis",
+            "result": result.model_dump() if hasattr(result, "model_dump") else result,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
 
 
 @router.post("/stories/{story_id}/recap")
@@ -562,7 +578,7 @@ async def analyze_essential_questions(
         tags=["story", "character", "analysis", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=EssentialQuestionsResponse,
         messages=[{"role": "user", "content": f"Assess the 6 essential questions for {character.name}."}],
         feature_prompt=feature_prompt,
@@ -570,6 +586,22 @@ async def analyze_essential_questions(
         db=db,
         user=current_user,
     )
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Story Compass: essential questions for {character.name}",
+        metadata_={
+            "feature": "essential-questions",
+            "character_id": character.id,
+            "character_name": character.name,
+            "result": result.model_dump() if hasattr(result, "model_dump") else result,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
 
 
 @router.post("/stories/{story_id}/analyze/show-dont-tell", response_model=StructuredResult)
@@ -727,10 +759,38 @@ def analyze_prose_nlp(
             **analysis,
         ))
 
-    return ProseNLPResponse(
+    result = ProseNLPResponse(
         scenes=scenes,
         checks_run=sorted(checks_set),
     )
+
+    # Count findings across all scenes for the summary
+    warning_count = 0
+    for s in scenes:
+        for check in checks_set:
+            analysis_obj = getattr(s, check, None)
+            if analysis_obj and hasattr(analysis_obj, "findings"):
+                warning_count += sum(
+                    1 for f in (analysis_obj.findings or [])
+                    if f.severity in ("warning", "issue")
+                )
+
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Prose analysis: {len(scenes)} scene(s), {warning_count} warning(s)",
+        metadata_={
+            "feature": "prose-analysis",
+            "result": result.model_dump(),
+            "scene_count": len(scenes),
+            "warning_count": warning_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
 
 
 @router.post("/stories/{story_id}/analyze/entity-suggestions", response_model=EntitySuggestionsResponse)
@@ -768,4 +828,84 @@ def analyze_entity_suggestions(
         if n.content and n.content.strip()
     ]
 
-    return extract_unknown_entities(scene_tuples, known_characters, known_locations)
+    result = extract_unknown_entities(scene_tuples, known_characters, known_locations)
+    char_count = len(result.character_suggestions)
+    loc_count = len(result.location_suggestions)
+
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Entity scan: {char_count} character(s), {loc_count} location(s) found",
+        metadata_={
+            "feature": "entity-suggestions",
+            "result": result.model_dump(),
+            "character_count": char_count,
+            "location_count": loc_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+# ── Analysis History Endpoints ────────────────────────────────────────────────
+
+HEALTH_FEATURES = {"prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions"}
+
+
+@router.get("/stories/{story_id}/analysis/latest", response_model=Optional[ActivityLogOut])
+def get_latest_analysis(
+    story_id: str,
+    feature: str = Query(..., description="Feature key, e.g. prose-analysis"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the most recent analysis_run log for a given feature, or null."""
+    _get_story(story_id, db, current_user)
+    if feature not in HEALTH_FEATURES:
+        raise HTTPException(status_code=400, detail=f"Unknown feature: {feature}")
+    logs = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.story_id == story_id,
+            ActivityLog.user_id == current_user.id,
+            ActivityLog.event_type == "analysis_run",
+        )
+        .order_by(ActivityLog.created_at.desc())
+        .all()
+    )
+    for log in logs:
+        if log.metadata_.get("feature") == feature:
+            return log
+    return None
+
+
+@router.get("/stories/{story_id}/analysis/history", response_model=list[ActivityLogOut])
+def get_analysis_history(
+    story_id: str,
+    features: Optional[str] = Query(None, description="Comma-separated feature keys"),
+    limit: int = Query(50, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return analysis_run logs for a story, optionally filtered by feature."""
+    _get_story(story_id, db, current_user)
+    feature_set = None
+    if features:
+        feature_set = {f.strip() for f in features.split(",") if f.strip() in HEALTH_FEATURES}
+
+    logs = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.story_id == story_id,
+            ActivityLog.user_id == current_user.id,
+            ActivityLog.event_type == "analysis_run",
+        )
+        .order_by(ActivityLog.created_at.desc())
+        .limit(200)
+        .all()
+    )
+    if feature_set:
+        logs = [l for l in logs if l.metadata_.get("feature") in feature_set]
+    return logs[:limit]

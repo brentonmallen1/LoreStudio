@@ -26,7 +26,7 @@ from ..models.interview import CharacterInterview
 from ..models.location import Location, SceneSetting
 from ..models.media import StoryAsset
 from ..models.note import StoryNote
-from ..models.outline import OutlineItem
+from ..models.outline import Outline, OutlineItem
 from ..models.panel_interview import PanelInterview
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.setting import Setting
@@ -312,11 +312,14 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
         for e in db.query(CompendiumEntry).filter(CompendiumEntry.story_id == story_id).all()
     ]
 
-    # Outline
+    # Outlines + items
+    story_outlines = db.query(Outline).filter(Outline.story_id == story_id).all()
+    outline_ids = [o.id for o in story_outlines]
+    data["outlines"] = [_model_to_dict(o) for o in story_outlines]
     data["outline_items"] = [
         _model_to_dict(i)
-        for i in db.query(OutlineItem).filter(OutlineItem.story_id == story_id).all()
-    ]
+        for i in db.query(OutlineItem).filter(OutlineItem.outline_id.in_(outline_ids)).all()
+    ] if outline_ids else []
 
     # Optional configurable content
     if settings is None or settings.include_diagrams:

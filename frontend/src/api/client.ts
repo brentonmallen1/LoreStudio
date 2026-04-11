@@ -144,6 +144,17 @@ export const api = {
       method: "POST",
     }),
 
+  // Analysis history
+  getLatestAnalysis: (storyId: string, feature: string) =>
+    request<import("../types").ActivityLog | null>(`/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`),
+  getAnalysisHistory: (storyId: string, features?: string[], limit?: number) => {
+    const params = new URLSearchParams();
+    if (features?.length) params.set("features", features.join(","));
+    if (limit != null) params.set("limit", String(limit));
+    const qs = params.toString() ? `?${params}` : "";
+    return request<import("../types").ActivityLog[]>(`/stories/${storyId}/analysis/history${qs}`);
+  },
+
   // Structure
   getStructure: (storyId: string) =>
     request<import("../types").StructureNode[]>(`/stories/${storyId}/structure`),
@@ -347,30 +358,48 @@ export const api = {
       body: JSON.stringify({ scene_id: sceneId }),
     }),
 
-  // Outline
-  getOutline: (storyId: string) =>
-    request<import("../types").OutlineItem[]>(`/stories/${storyId}/outline`),
+  // Outlines
+  listOutlines: (storyId: string) =>
+    request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
+  createOutline: (storyId: string, name: string) =>
+    request<import("../types").Outline>(`/stories/${storyId}/outlines`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+  injectBeatSheet: (storyId: string, beatSheetId: string) =>
+    request<import("../types").OutlineWithItems>(`/stories/${storyId}/outlines/inject`, {
+      method: "POST",
+      body: JSON.stringify({ beat_sheet_id: beatSheetId }),
+    }),
+  getOutlineWithItems: (outlineId: string) =>
+    request<import("../types").OutlineWithItems>(`/outlines/${outlineId}`),
+  updateOutline: (outlineId: string, data: { name?: string; position?: number }) =>
+    request<import("../types").Outline>(`/outlines/${outlineId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteOutline: (outlineId: string) => request<void>(`/outlines/${outlineId}`, { method: "DELETE" }),
   createOutlineItem: (
-    storyId: string,
+    outlineId: string,
     data: { text: string; parent_id?: string | null; position?: number; beat_type?: string | null; notes?: string },
   ) =>
-    request<import("../types").OutlineItem>(`/stories/${storyId}/outline`, {
+    request<import("../types").OutlineItem>(`/outlines/${outlineId}/items`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
   updateOutlineItem: (itemId: string, data: Partial<import("../types").OutlineItem>) =>
-    request<import("../types").OutlineItem>(`/outline/${itemId}`, {
+    request<import("../types").OutlineItem>(`/outline-items/${itemId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteOutlineItem: (itemId: string) => request<void>(`/outline/${itemId}`, { method: "DELETE" }),
-  reorderOutline: (storyId: string, parentId: string | null, itemIds: string[]) =>
-    request<void>(`/stories/${storyId}/outline/reorder`, {
+  deleteOutlineItem: (itemId: string) => request<void>(`/outline-items/${itemId}`, { method: "DELETE" }),
+  reorderOutline: (outlineId: string, parentId: string | null, itemIds: string[]) =>
+    request<void>(`/outlines/${outlineId}/reorder`, {
       method: "POST",
       body: JSON.stringify({ parent_id: parentId, item_ids: itemIds }),
     }),
-  bulkReorderOutline: (storyId: string, operations: { item_id: string; parent_id: string | null; position: number }[]) =>
-    request<void>(`/stories/${storyId}/outline/bulk-reorder`, {
+  bulkReorderOutline: (outlineId: string, operations: { item_id: string; parent_id: string | null; position: number }[]) =>
+    request<void>(`/outlines/${outlineId}/bulk-reorder`, {
       method: "POST",
       body: JSON.stringify({ operations }),
     }),

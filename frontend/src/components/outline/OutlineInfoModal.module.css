@@ -1,0 +1,125 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl, 12px);
+  box-shadow: var(--shadow-xl, 0 20px 60px rgba(0, 0, 0, 0.2));
+  max-width: 520px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem 0.9rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.closeBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.method {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.methodHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.iconSnowflake {
+  display: flex;
+  align-items: center;
+  color: var(--color-nlp);
+}
+
+.iconList {
+  display: flex;
+  align-items: center;
+  color: var(--color-accent);
+}
+
+.methodTitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.methodTag {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 0.1rem 0.5rem;
+  margin-left: auto;
+}
+
+.methodDesc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+}
+
+.together {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.9rem;
+}
+
+.togetherText {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}

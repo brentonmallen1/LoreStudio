@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Trash2, Check } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -140,6 +141,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
 // ── Main panel ─────────────────────────────────────────────────────────
 export default function LorebookPanel({ storyId }: { storyId: string }) {
   const { activeStory, setActiveStory, characters } = useStoryStore();
+  const navigate = useNavigate();
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [fields, setFields] = useState({
@@ -190,6 +192,11 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
   function updatePovCharacter(id: string) {
     setFields((prev) => ({ ...prev, pov_character_id: id }));
     scheduleSync({ pov_character_id: id || null } as Parameters<typeof scheduleSync>[0]);
+  }
+
+  async function handleInjectBeatSheet(beatSheetId: string) {
+    const result = await api.injectBeatSheet(storyId, beatSheetId);
+    navigate(`outline?tab=${result.id}`);
   }
 
   function updateBeatSheet(id: string | null) {
@@ -328,6 +335,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
             <BeatSheetSelector
               value={activeStory.beat_sheet_id}
               onChange={updateBeatSheet}
+              onInject={handleInjectBeatSheet}
             />
           </div>
         </SectionCard>
