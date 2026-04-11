@@ -289,6 +289,10 @@ def seed_demo_story():
         )
         db.add(eleanor)
 
+        # Set POV character — Eleanor is the perspective anchor for this third-limited story
+        story.narrative_perspective = "third_limited"
+        story.pov_character_id = eleanor.id
+
         visitor = Character(
             story_id=story.id,
             name="The Visitor (Calder)",

@@ -42,6 +42,7 @@ class StructureNode(Base):
     content_summary: Mapped[str] = mapped_column(Text, default="", server_default="")
     summary_stale: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     beat_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    pov_character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True, default=None)
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
@@ -50,6 +51,7 @@ class StructureNode(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    pov_character: Mapped["Character | None"] = relationship("Character", foreign_keys=[pov_character_id], uselist=False)
     story: Mapped["Story"] = relationship("Story", back_populates="structure_nodes")
     children: Mapped[list["StructureNode"]] = relationship(
         "StructureNode",

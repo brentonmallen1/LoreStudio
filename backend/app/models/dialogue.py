@@ -41,6 +41,10 @@ class DialogueBlock(Base):
     # Raw speaker name from markup (may not match any Character.name)
     speaker_name: Mapped[str] = mapped_column(String, default="")
 
+    # "speech" | "thought" | None (None = unknown / not relevant)
+    # Thoughts are extracted from italicised prose (<em>...</em>) near a quoted attribution
+    dialogue_type: Mapped[str | None] = mapped_column(String, nullable=True)
+
     # Optional author note on what the character means vs what they say
     subtext: Mapped[str | None] = mapped_column(Text, nullable=True)
 

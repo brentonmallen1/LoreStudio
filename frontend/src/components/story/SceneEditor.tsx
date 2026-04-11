@@ -1298,6 +1298,30 @@ export default function SceneEditor() {
               })()}
             </div>
           )}
+          {activeStory && (activeStory.narrative_perspective === "first_person" || activeStory.narrative_perspective === "multiple_pov") && (
+            <div className={styles.overviewField}>
+              <label className={styles.overviewLabel}>POV Character</label>
+              <p className={styles.overviewHint}>Override the story-level narrator for this scene. Use for multiple-POV stories with alternating perspectives.</p>
+              <select
+                className={styles.overviewSelect}
+                value={activeNode.pov_character_id ?? ""}
+                onChange={async (e) => {
+                  const pov_character_id = e.target.value || null;
+                  const updated = await api.updateNode(activeNode.id, { pov_character_id });
+                  setActiveNode({ ...activeNode, ...updated });
+                }}
+              >
+                <option value="">
+                  {activeStory.pov_character_id
+                    ? `Story default (${characters.find(c => c.id === activeStory.pov_character_id)?.name ?? "Unknown"})`
+                    : "— Story default (none) —"}
+                </option>
+                {characters.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className={styles.overviewField}>
             <div className={styles.linkedHeader}>
               <label className={styles.overviewLabel}>Settings</label>
@@ -1672,12 +1696,18 @@ export default function SceneEditor() {
             {dialogueBlocks.length === 0 ? (
               <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code> to attribute dialogue.</p>
             ) : (() => {
+              // Determine effective POV character for this scene
+              const isPovMode = activeStory?.narrative_perspective === "first_person" || activeStory?.narrative_perspective === "multiple_pov";
+              const effectivePovCharId = activeNode?.pov_character_id || activeStory?.pov_character_id || null;
+              const povChar = effectivePovCharId ? characters.find(c => c.id === effectivePovCharId) : null;
+
               // Assign left/right sides based on speaker — first speaker left, second speaker right, alternating on change
               const sideMap = new Map<string, "left" | "right">();
               let sideToggle: "left" | "right" = "left";
               return (
                 <div className={styles.dialogueBubbles}>
                   {dialogueBlocks.map((b) => {
+                    const isThought = b.dialogue_type === "thought";
                     const key = b.speaker_name || "__unknown__";
                     if (!sideMap.has(key)) {
                       sideMap.set(key, sideToggle);
@@ -1685,7 +1715,9 @@ export default function SceneEditor() {
                     }
                     const side = sideMap.get(key)!;
                     const isInferred = b.attribution_method === "inferred" || b.attribution_method === "alternating";
+                    const isPovDefault = b.attribution_method === "pov_default";
                     const isUnattr = b.attribution_method === "unattributed";
+                    const isPovSpeaker = isPovMode && povChar && b.speaker_name.toLowerCase() === povChar.name.toLowerCase();
                     // Find matching AI suggestion for unattributed blocks
                     const aiSuggestion = isUnattr
                       ? aiSuggestions.find(
@@ -1699,12 +1731,30 @@ export default function SceneEditor() {
                         key={b.id}
                         className={`${styles.dialogueBubbleWrap} ${side === "right" ? styles.dialogueBubbleWrapRight : ""}`}
                       >
-                        <div className={styles.dialogueBubbleSpeaker}>
-                          {b.speaker_name || "Unknown"}
-                          {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
-                        </div>
-                        <div className={`${styles.dialogueBubble} ${side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft} ${isUnattr ? styles.dialogueBubbleUnattr : ""}`}>
-                          "{b.content}"
+                        {isThought ? (
+                          <div className={styles.dialogueBubbleSpeaker}>
+                            {isPovSpeaker ? null : (b.speaker_name || "Unknown")}
+                            <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
+                          </div>
+                        ) : isPovSpeaker ? (
+                          <div className={styles.dialogueBubbleSpeaker}>
+                            <span className={styles.dialogueBubblePovLabel}>I</span>
+                            {isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>}
+                          </div>
+                        ) : (
+                          <div className={styles.dialogueBubbleSpeaker}>
+                            {b.speaker_name || "Unknown"}
+                            {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
+                          </div>
+                        )}
+                        <div className={`
+                          ${styles.dialogueBubble}
+                          ${side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft}
+                          ${isUnattr ? styles.dialogueBubbleUnattr : ""}
+                          ${isThought ? styles.dialogueBubbleThought : ""}
+                          ${isPovSpeaker && !isThought ? styles.dialogueBubblePov : ""}
+                        `}>
+                          {isThought ? <em>{b.content}</em> : `"${b.content}"`}
                         </div>
                         {aiSuggestion && (
                           <div className={styles.aiSuggestionRow}>

@@ -47,6 +47,7 @@ class DialogueBlockOut(BaseModel):
     paragraph_index: int
     position_in_paragraph: int
     attribution_method: str
+    dialogue_type: str | None = None
     confidence: float
     subtext: str | None
 
@@ -128,7 +129,14 @@ def refresh_dialogue(
     node = _get_scene(scene_id, db, current_user)
     if not node.content:
         return []
-    return sync_dialogue_blocks(scene_id, node.content, node.story_id, db)
+    story = db.get(Story, node.story_id)
+    pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
+    narrative_perspective = story.narrative_perspective if story else ""
+    return sync_dialogue_blocks(
+        scene_id, node.content, node.story_id, db,
+        pov_character_id=pov_char_id,
+        narrative_perspective=narrative_perspective,
+    )
 
 
 @router.post("/scenes/{scene_id}/dialogue/suggest-tags", response_model=list[ProposedDialogueTag])
@@ -234,7 +242,21 @@ async def ai_suggest_dialogue_speakers(
             already_attributed_lines.append(f'{m.group(2)}: "\u201c{m.group(1)}\u201d"')
     already_attributed = "\n".join(already_attributed_lines[:20])  # cap context length
 
-    feature_prompt = build_dialogue_attribution_prompt(scene_text, character_list, already_attributed)
+    # POV context for first-person narratives
+    story = db.get(Story, node.story_id)
+    narrative_perspective = story.narrative_perspective if story else ""
+    pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
+    pov_character_name = ""
+    if pov_char_id:
+        pov_char = db.get(Character, pov_char_id)
+        if pov_char:
+            pov_character_name = pov_char.name
+
+    feature_prompt = build_dialogue_attribution_prompt(
+        scene_text, character_list, already_attributed,
+        pov_character=pov_character_name,
+        narrative_perspective=narrative_perspective,
+    )
 
     call_ctx = AICallContext(
         feature="dialogue-attribution",
@@ -320,7 +342,14 @@ def apply_dialogue_tags(
     db.commit()
 
     # Re-sync dialogue blocks after content change
-    sync_dialogue_blocks(scene_id, content, node.story_id, db)
+    story = db.get(Story, node.story_id)
+    pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
+    narrative_perspective = story.narrative_perspective if story else ""
+    sync_dialogue_blocks(
+        scene_id, content, node.story_id, db,
+        pov_character_id=pov_char_id,
+        narrative_perspective=narrative_perspective,
+    )
 
     from ..schemas.structure import StructureNodeOut
     db.refresh(node)

@@ -80,17 +80,26 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             <ChevronRight size={12} className={styles.sceneArrow} />
           </button>
           <div className={styles.lines}>
-            {sceneBlocks.map((block) => (
-              <div
-                key={block.id}
-                className={`${styles.line} ${block.attribution_method === "inferred" || block.attribution_method === "alternating" ? styles.lineInferred : ""}`}
-              >
-                <span className={styles.lineContent}>"{block.content}"</span>
-                {(block.attribution_method === "inferred" || block.attribution_method === "alternating") && (
-                  <span className={styles.inferredBadge} title="Inferred attribution">?</span>
-                )}
-              </div>
-            ))}
+            {sceneBlocks.map((block) => {
+              const isInferred = block.attribution_method === "inferred" || block.attribution_method === "alternating";
+              const isThought = block.dialogue_type === "thought";
+              return (
+                <div
+                  key={block.id}
+                  className={`${styles.line} ${isInferred ? styles.lineInferred : ""} ${isThought ? styles.lineThought : ""}`}
+                >
+                  {isThought ? (
+                    <span className={styles.lineContent}><em>{block.content}</em></span>
+                  ) : (
+                    <span className={styles.lineContent}>"{block.content}"</span>
+                  )}
+                  {isThought && <span className={styles.thoughtBadge} title="Inner monologue">thought</span>}
+                  {!isThought && isInferred && (
+                    <span className={styles.inferredBadge} title="Inferred attribution">?</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       ))}

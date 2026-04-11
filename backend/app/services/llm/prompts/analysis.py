@@ -742,17 +742,23 @@ def build_dialogue_attribution_prompt(
     scene_text: str,
     character_list: str,
     already_attributed: str,
+    pov_character: str = "",
+    narrative_perspective: str = "",
 ) -> str:
     """
     Prompt the LLM to infer speakers for unattributed dialogue quotes in a scene.
 
     Returns a JSON array via the structured output path.
     """
+    pov_hint = ""
+    if pov_character and narrative_perspective in ("first_person", "multiple_pov"):
+        pov_hint = f"\nNARRATIVE PERSPECTIVE: First-person. The POV character (narrator) is {pov_character}. Unattributed dialogue is most likely spoken by {pov_character} unless the prose clearly indicates another speaker.\n"
+
     return f"""You are helping a fiction writer identify who is speaking each line of unattributed dialogue in their scene.
 
 CHARACTERS IN THIS SCENE:
 {character_list or "No characters listed."}
-
+{pov_hint}
 ALREADY ATTRIBUTED DIALOGUE (use these as context for speaker voices and conversation flow):
 {already_attributed or "None yet."}
 

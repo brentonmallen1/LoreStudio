@@ -97,6 +97,19 @@
   flex-shrink: 0;
 }
 
+.lineThought {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.thoughtBadge {
+  font-size: 0.62rem;
+  font-style: normal;
+  color: var(--color-nlp);
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
 .empty {
   display: flex;
   flex-direction: column;

@@ -118,6 +118,7 @@ export interface StructureNode {
   content_summary: string;
   summary_stale: boolean;
   beat_id: string | null;
+  pov_character_id: string | null;
   created_at: string;
   updated_at: string;
   children: StructureNode[];
@@ -1303,7 +1304,8 @@ export interface DialogueBlock {
   raw_text: string;
   paragraph_index: number;
   position_in_paragraph: number;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed";
+  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
+  dialogue_type: "speech" | "thought" | null;
   confidence: number;
   subtext: string | null;
 }
@@ -1340,7 +1342,8 @@ export interface DialogueBlockWithScene {
   character_id: string | null;
   speaker_name: string;
   content: string;
-  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed";
+  attribution_method: "explicit" | "inferred" | "alternating" | "manual" | "unattributed" | "pov_default";
+  dialogue_type: "speech" | "thought" | null;
   confidence: number;
   paragraph_index: number;
 }

@@ -1513,6 +1513,34 @@
   background: color-mix(in srgb, var(--color-warning) 12%, var(--color-surface));
 }
 
+/* Thought (inner monologue) bubble */
+.dialogueBubbleThought {
+  background: color-mix(in srgb, var(--color-nlp) 10%, var(--color-surface));
+  border: 1px dashed color-mix(in srgb, var(--color-nlp) 40%, var(--color-border));
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.dialogueBubbleThoughtLabel {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--color-nlp);
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+/* POV character (narrator) bubble — distinct from other characters */
+.dialogueBubblePov {
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+}
+
+.dialogueBubblePovLabel {
+  font-weight: 700;
+  font-style: italic;
+  color: var(--color-accent);
+}
+
 /* ── @mention autocomplete dropdown ── */
 .mentionDropdown {
   position: fixed;

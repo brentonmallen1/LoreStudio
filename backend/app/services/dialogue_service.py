@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from .text_utils import html_to_paragraphs as _html_to_paragraphs
+from .text_utils import html_to_paragraphs as _html_to_paragraphs, extract_em_blocks as _extract_em_blocks
 
 from ..models.dialogue import DialogueBlock
 from ..models.character import Character
@@ -163,14 +163,37 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
 # Public API
 # ---------------------------------------------------------------------------
 
+def extract_thoughts(scene_content: str, para_index_offset: int = 0) -> list[dict]:
+    """Extract inner-monologue blocks from italicized spans (≥2 words) in TipTap HTML."""
+    results = []
+    for para_idx, char_offset, text in _extract_em_blocks(scene_content):
+        results.append({
+            "speaker_name": "",
+            "content": text,
+            "raw_text": f"*{text}*",
+            "paragraph_index": para_idx + para_index_offset,
+            "position_in_paragraph": char_offset,
+            "attribution_method": "unattributed",
+            "confidence": 0.0,
+            "dialogue_type": "thought",
+        })
+    return results
+
+
 def extract_dialogue(scene_content: str, para_index_offset: int = 0) -> list[dict]:
-    """Parse TipTap HTML and return raw dialogue block dicts (unsaved)."""
+    """Parse TipTap HTML and return raw dialogue block dicts (unsaved).
+
+    Returns spoken dialogue blocks only. Call extract_thoughts() separately for
+    inner-monologue blocks.
+    """
     paragraphs = _html_to_paragraphs(scene_content)
     all_blocks = []
     for i, para in enumerate(paragraphs):
         blocks = _extract_from_paragraph(para, i + para_index_offset, known_names=set())
         all_blocks.extend(blocks)
     _apply_alternation(all_blocks)
+    for b in all_blocks:
+        b.setdefault("dialogue_type", "speech")
     return all_blocks
 
 
@@ -179,13 +202,21 @@ def sync_dialogue_blocks(
     scene_content: str,
     story_id: str,
     db: Session,
+    pov_character_id: str | None = None,
+    narrative_perspective: str = "",
 ) -> list[DialogueBlock]:
     """Re-extract dialogue from scene content and sync to the database.
 
-    Deletes existing auto-extracted blocks (explicit/inferred/alternating/unattributed)
+    Deletes existing auto-extracted blocks (explicit/inferred/alternating/unattributed/pov_default)
     and recreates them. Manually corrected blocks (attribution_method='manual') are
     preserved and merged with the new extraction by content match.
+
+    When pov_character_id is provided and narrative_perspective indicates first-person,
+    unattributed spoken dialogue is attributed to the POV character with method='pov_default'.
+    Inner-monologue blocks (<em> spans) are also extracted as dialogue_type='thought'.
     """
+    _FIRST_PERSON_PERSPECTIVES = {"first_person", "multiple_pov"}
+
     # Load manual blocks before wiping
     manual_blocks: list[DialogueBlock] = (
         db.query(DialogueBlock)
@@ -204,9 +235,35 @@ def sync_dialogue_blocks(
     ).delete(synchronize_session=False)
 
     raw_blocks = extract_dialogue(scene_content)
+    thought_blocks = extract_thoughts(scene_content)
+
+    # POV character resolution
+    pov_char = None
+    use_pov_default = (
+        pov_character_id
+        and narrative_perspective in _FIRST_PERSON_PERSPECTIVES
+    )
+    if use_pov_default:
+        pov_char = db.query(Character).filter(Character.id == pov_character_id).first()
+
+    # Apply pov_default to unattributed spoken dialogue
+    if use_pov_default and pov_char:
+        for raw in raw_blocks:
+            if raw["attribution_method"] == "unattributed" and not raw["speaker_name"]:
+                raw["speaker_name"] = pov_char.name
+                raw["attribution_method"] = "pov_default"
+                raw["confidence"] = 0.7
+
+        # Also assign thoughts to POV character
+        for raw in thought_blocks:
+            raw["speaker_name"] = pov_char.name
+            raw["attribution_method"] = "pov_default"
+            raw["confidence"] = 0.8
+
+    all_raw = raw_blocks + thought_blocks
 
     # Resolve character_ids from speaker names
-    speaker_names = {b["speaker_name"] for b in raw_blocks if b["speaker_name"]}
+    speaker_names = {b["speaker_name"] for b in all_raw if b["speaker_name"]}
     characters = (
         db.query(Character)
         .filter(Character.story_id == story_id, Character.name.in_(speaker_names))
@@ -219,7 +276,7 @@ def sync_dialogue_blocks(
     now = datetime.now(timezone.utc)
     saved: list[DialogueBlock] = []
 
-    for raw in raw_blocks:
+    for raw in all_raw:
         content = raw["content"]
 
         # If a manual override exists for this content, keep it
@@ -241,6 +298,7 @@ def sync_dialogue_blocks(
             attribution_method=raw["attribution_method"],
             confidence=raw["confidence"],
             speaker_name=speaker_name,
+            dialogue_type=raw.get("dialogue_type", "speech"),
             created_at=now,
             updated_at=now,
         )

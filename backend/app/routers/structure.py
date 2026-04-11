@@ -56,7 +56,14 @@ def update_node(
 
     # Re-extract dialogue whenever content changes
     if "content" in data and node.content:
-        sync_dialogue_blocks(node.id, node.content, node.story_id, db)
+        story = db.get(Story, node.story_id)
+        pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
+        narrative_perspective = story.narrative_perspective if story else ""
+        sync_dialogue_blocks(
+            node.id, node.content, node.story_id, db,
+            pov_character_id=pov_char_id,
+            narrative_perspective=narrative_perspective,
+        )
 
     return node
 
