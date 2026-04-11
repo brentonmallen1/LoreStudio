@@ -437,6 +437,25 @@ export default function StoryHealthPage() {
                   <span>{dialogueStats.unattributed} unattributed dialogue line{dialogueStats.unattributed !== 1 ? "s" : ""} — consider adding <code>@Name: "..."</code> attribution</span>
                 </div>
               )}
+              {dialogueStats.balance_score !== null && dialogueStats.by_character.length >= 2 && (
+                <div className={styles.barRow} style={{ marginBottom: "2px" }}>
+                  <span className={styles.barLabel} style={{ color: "var(--color-text-subtle)", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Balance</span>
+                  <div className={styles.barTrack}>
+                    <div
+                      className={styles.barFill}
+                      style={{
+                        width: `${dialogueStats.balance_score}%`,
+                        background: dialogueStats.balance_score >= 70
+                          ? "var(--color-success)"
+                          : dialogueStats.balance_score >= 45
+                            ? "var(--color-warning)"
+                            : "var(--color-error, #ef4444)",
+                      }}
+                    />
+                  </div>
+                  <span className={styles.barValue}>{dialogueStats.balance_score}%</span>
+                </div>
+              )}
               <div className={styles.dialogueBars}>
                 {dialogueStats.by_character.slice(0, 8).map((c) => {
                   const maxWords = dialogueStats.by_character[0]?.word_count ?? 1;
@@ -447,7 +466,7 @@ export default function StoryHealthPage() {
                       <div className={styles.barTrack}>
                         <div className={styles.barFill} style={{ width: `${pct}%`, background: "var(--color-accent)" }} />
                       </div>
-                      <span className={styles.barValue}>{c.word_count.toLocaleString()} w · {c.line_count} lines</span>
+                      <span className={styles.barValue}>{c.word_count.toLocaleString()} w</span>
                     </div>
                   );
                 })}

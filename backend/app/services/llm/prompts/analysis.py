@@ -543,6 +543,201 @@ Rules:
 - overall_clarity: needs_work = 3+ unclear, fair = 1-2 unclear, good = all partial or better, excellent = all clear."""
 
 
+def build_pacing_analysis_prompt(
+    story_title: str,
+    story_intent: str | None,
+    intended_length: str | None,
+    scenes_info: list[str],  # ["[Scene Title] (N words, status) — Act X"]
+    total_words: int,
+) -> str:
+    """Prompt to analyze pacing, act balance, and tension curve."""
+    length_note = f"Intended form: {intended_length.replace('_', ' ') if intended_length else 'unspecified'}"
+    return f"""You are a developmental editor analyzing the pacing and structure of "{story_title}".
+
+{length_note}
+Total words written: {total_words:,}
+Story intent: {story_intent or "Not specified"}
+
+SCENES IN ORDER ({len(scenes_info)} total):
+{chr(10).join(scenes_info) if scenes_info else "No scenes yet."}
+
+Analyze the pacing and structural balance of this story. Respond with a JSON object matching this exact schema:
+
+{{
+  "act_balance": {{
+    "summary": "1-2 sentence overview of how word count is distributed across the story's sections",
+    "details": ["specific observation about a section or act", "another observation"]
+  }},
+  "tension_curve": {{
+    "summary": "1-2 sentence overview of the tension arc: is it rising, episodic, front-loaded?",
+    "details": ["where tension peaks based on scene titles and positions", "where it drops"]
+  }},
+  "slow_spots": [
+    "Scene title or section name that appears underweight or low-energy given its position"
+  ],
+  "pacing_strengths": [
+    "Something working well about the pacing or structure"
+  ],
+  "recommendations": [
+    "Specific, actionable suggestion referencing scene names or positions",
+    "3-5 total recommendations"
+  ],
+  "overall_rating": "needs_work | fair | good | excellent"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Base all observations on scene titles, positions, and word counts — not invented content.
+- slow_spots: 0-5 items. Only flag scenes that are clearly underweight for their story position.
+- overall_rating: needs_work = significant imbalance, fair = some concerns, good = mostly solid, excellent = well-paced."""
+
+
+def build_continuity_check_prompt(
+    story_title: str,
+    story_intent: str | None,
+    characters_summary: list[str],
+    scenes_with_content: list[str],  # ["[Scene] content excerpt..."]
+) -> str:
+    """Prompt to check for continuity issues across scenes."""
+    return f"""You are a continuity editor for the story "{story_title}".
+
+Story intent: {story_intent or "Not specified"}
+
+CHARACTERS:
+{chr(10).join(characters_summary) if characters_summary else "No characters defined."}
+
+SCENES (in order, with excerpts):
+{chr(10).join(scenes_with_content) if scenes_with_content else "No scenes written yet."}
+
+Read the scenes carefully and flag any continuity problems — inconsistencies in facts, character knowledge, timeline, or physical details. Respond with this exact JSON schema:
+
+{{
+  "issues": [
+    {{
+      "description": "short label for the inconsistency",
+      "severity": "critical | moderate | minor",
+      "scene_references": ["Scene Title A", "Scene Title B"],
+      "explanation": "what is inconsistent and why it matters",
+      "suggestion": "what the author might consider to resolve it"
+    }}
+  ],
+  "timeline_notes": [
+    "General observation about timeline order or temporal logic"
+  ],
+  "character_notes": [
+    "General observation about character knowledge or state that seems off"
+  ],
+  "summary": "2-3 sentence overall assessment of continuity health",
+  "overall_rating": "needs_work | fair | good | excellent"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Only flag genuine inconsistencies — not stylistic choices or deliberate ambiguity.
+- If there are no continuity issues, return an empty issues array with a positive summary.
+- severity: critical = breaks the story, moderate = noticeable by readers, minor = small detail slip.
+- overall_rating: needs_work = multiple critical issues, fair = moderate issues, good = minor only, excellent = clean."""
+
+
+def build_theme_tracker_prompt(
+    story_title: str,
+    story_intent: str | None,
+    story_themes: list[str],
+    scenes_with_content: list[str],
+) -> str:
+    """Prompt to identify recurring themes, motifs, and their development."""
+    declared_themes = ", ".join(story_themes) if story_themes else "none declared"
+    return f"""You are a literary analyst identifying themes and motifs in "{story_title}".
+
+Story intent: {story_intent or "Not specified"}
+Declared themes: {declared_themes}
+
+SCENES (in order):
+{chr(10).join(scenes_with_content) if scenes_with_content else "No scenes written yet."}
+
+Identify the themes, motifs, and thematic arc of this story. Respond with this exact JSON schema:
+
+{{
+  "themes": [
+    {{
+      "name": "theme name (e.g., 'Isolation and connection')",
+      "description": "1 sentence describing what this theme explores in this story",
+      "scenes": ["Scene Title where this theme is present"],
+      "development": "how this theme develops or changes across the story so far",
+      "strength": "emerging | present | well_developed"
+    }}
+  ],
+  "motifs": [
+    "A recurring image, symbol, object, or phrase and its apparent significance"
+  ],
+  "thematic_arc": "2-3 sentence overview of the overall thematic journey the story seems to be making",
+  "gaps": [
+    "A thematic thread raised but not yet developed or paid off"
+  ],
+  "recommendations": [
+    "Specific suggestion for deepening or connecting themes — referencing scene names"
+  ]
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- themes: 1-6 items. Only name themes actually supported by the text.
+- motifs: 0-5 items. Concrete recurring elements, not abstract ideas.
+- gaps: thematic opportunities suggested by the story's setup but not yet explored.
+- recommendations: 1-4 items, actionable and scene-specific."""
+
+
+def build_plot_hole_detection_prompt(
+    story_title: str,
+    story_intent: str | None,
+    characters_summary: list[str],
+    threads_summary: list[str],
+    scenes_with_content: list[str],
+) -> str:
+    """Prompt to detect logical gaps and plot holes."""
+    return f"""You are a story logic analyst for "{story_title}".
+
+Story intent: {story_intent or "Not specified"}
+
+CHARACTERS:
+{chr(10).join(characters_summary) if characters_summary else "No characters defined."}
+
+PLOT THREADS:
+{chr(10).join(threads_summary) if threads_summary else "No threads defined."}
+
+SCENES (in order, with excerpts):
+{chr(10).join(scenes_with_content) if scenes_with_content else "No scenes written yet."}
+
+Analyze this story for logical gaps, plot holes, and unanswered questions. A plot hole is a gap in logic that cannot be explained by what is written. Respond with this exact JSON schema:
+
+{{
+  "holes": [
+    {{
+      "description": "short label for the plot hole",
+      "severity": "critical | moderate | minor",
+      "scene_references": ["Scene Title involved"],
+      "explanation": "why this is a logical problem in the story as written",
+      "suggestion": "what the author might consider to address it"
+    }}
+  ],
+  "logic_gaps": [
+    "A smaller logical question or inconsistency that is not quite a full plot hole"
+  ],
+  "unanswered_questions": [
+    "A question raised by the story that has not yet been addressed — may be intentional"
+  ],
+  "summary": "2-3 sentence overall assessment of story logic health",
+  "overall_rating": "needs_work | fair | good | excellent"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Only flag genuine logical problems — not red herrings, mysteries, or deliberate ambiguity.
+- If the story is at an early stage with little written, note that in the summary and minimize issues.
+- severity: critical = breaks the story, moderate = noticeable plot problem, minor = small logical slip.
+- overall_rating: needs_work = multiple critical holes, fair = moderate issues, good = minor only, excellent = logically sound."""
+
+
 def build_dialogue_attribution_prompt(
     scene_text: str,
     character_list: str,

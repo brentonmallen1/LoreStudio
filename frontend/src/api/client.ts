@@ -144,6 +144,23 @@ export const api = {
       method: "POST",
     }),
 
+  analyzeEditorialConsistency: (storyId: string) =>
+    request<import("../types").EditorialConsistencyResponse>(`/stories/${storyId}/analyze/editorial-consistency`, {
+      method: "POST",
+    }),
+
+  analyzePacing: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, { method: "POST" }),
+
+  analyzeContinuity: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, { method: "POST" }),
+
+  analyzeThemes: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, { method: "POST" }),
+
+  analyzePlotHoles: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, { method: "POST" }),
+
   // Analysis history
   getLatestAnalysis: (storyId: string, feature: string) =>
     request<import("../types").ActivityLog | null>(`/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`),

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, ChevronRight } from "lucide-react";
+import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -65,6 +65,70 @@ const ANALYSES: AnalysisDef[] = [
       return name ? `Analyzed for ${name}` : "Analysis run";
     },
   },
+  {
+    id: "editorial-consistency",
+    label: "Editorial Check",
+    description: "Tense consistency · POV drift — deterministic, no AI required",
+    type: "nlp",
+    Icon: FileCheck,
+    run: (id) => api.analyzeEditorialConsistency(id),
+    summarize: (log) => {
+      const t = log.metadata_?.tense_shift_count as number | undefined;
+      const p = log.metadata_?.pov_flag_count as number | undefined;
+      const s = log.metadata_?.scene_count as number | undefined;
+      if (t == null || p == null) return log.description;
+      const total = t + p;
+      return total === 0 ? `${s} scenes — clean` : `${t} tense shift${t !== 1 ? "s" : ""} · ${p} POV flag${p !== 1 ? "s" : ""}`;
+    },
+  },
+  {
+    id: "pacing-analysis",
+    label: "Pacing Analysis",
+    description: "Act balance · tension curve · slow spots · structural rhythm",
+    type: "ai",
+    Icon: Activity,
+    run: (id) => api.analyzePacing(id),
+    summarize: (log) => {
+      const n = log.metadata_?.issue_count as number | undefined;
+      return n != null ? (n === 0 ? "No pacing concerns" : `${n} slow spot${n !== 1 ? "s" : ""}`) : "Analysis run";
+    },
+  },
+  {
+    id: "continuity-check",
+    label: "Continuity Check",
+    description: "Flag inconsistencies in character knowledge, timeline, and details",
+    type: "ai",
+    Icon: GitMerge,
+    run: (id) => api.analyzeContinuity(id),
+    summarize: (log) => {
+      const n = log.metadata_?.issue_count as number | undefined;
+      return n != null ? (n === 0 ? "No issues found" : `${n} continuity issue${n !== 1 ? "s" : ""}`) : "Analysis run";
+    },
+  },
+  {
+    id: "theme-tracker",
+    label: "Theme Tracker",
+    description: "Identify recurring themes, motifs, and their development",
+    type: "ai",
+    Icon: Palette,
+    run: (id) => api.analyzeThemes(id),
+    summarize: (log) => {
+      const n = log.metadata_?.theme_count as number | undefined;
+      return n != null ? `${n} theme${n !== 1 ? "s" : ""} identified` : "Analysis run";
+    },
+  },
+  {
+    id: "plot-holes",
+    label: "Plot Holes",
+    description: "Detect logical gaps, inconsistencies, and unanswered story questions",
+    type: "ai",
+    Icon: Skull,
+    run: (id) => api.analyzePlotHoles(id),
+    summarize: (log) => {
+      const n = log.metadata_?.hole_count as number | undefined;
+      return n != null ? (n === 0 ? "No holes found" : `${n} plot hole${n !== 1 ? "s" : ""}`) : "Analysis run";
+    },
+  },
 ];
 
 function formatAge(iso: string): string {
@@ -124,7 +188,6 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   }, [running, runAnalysis]);
 
   const anyRunning = running.size > 0;
-  const hasAny = Object.values(latest).some(Boolean);
 
   return (
     <div className={styles.toolbar}>
@@ -138,6 +201,9 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
           <span className={styles.legendDot} />
           AI — requires Ollama
         </span>
+        <button className={styles.reportsLink} onClick={onViewReports}>
+          View Reports →
+        </button>
       </div>
 
       <div className={styles.actions}>

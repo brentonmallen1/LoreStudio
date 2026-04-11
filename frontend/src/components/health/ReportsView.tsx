@@ -8,9 +8,14 @@ import styles from "./ReportsView.module.css";
 const FEATURE_FILTERS = [
   { id: "all", label: "All" },
   { id: "prose-analysis", label: "Prose" },
-  { id: "economy-analysis", label: "Economy" },
-  { id: "essential-questions", label: "Story Compass" },
+  { id: "editorial-consistency", label: "Editorial" },
   { id: "entity-suggestions", label: "Entities" },
+  { id: "economy-analysis", label: "Economy" },
+  { id: "essential-questions", label: "Compass" },
+  { id: "pacing-analysis", label: "Pacing" },
+  { id: "continuity-check", label: "Continuity" },
+  { id: "theme-tracker", label: "Themes" },
+  { id: "plot-holes", label: "Plot Holes" },
 ];
 
 interface Props {

@@ -278,6 +278,112 @@ export interface EntitySuggestionsResponse {
   location_suggestions: EntitySuggestion[];
 }
 
+// ── Editorial Consistency (NLP) ───────────────────────────────────────────────
+
+export interface TenseShift {
+  sentence: string;
+  char_offset: number;
+  dominant_tense: string;
+  detected_tense: string;
+  severity: string;
+}
+
+export interface TenseConsistencyResult {
+  findings: TenseShift[];
+  dominant_tense: string;
+  past_sentence_count: number;
+  present_sentence_count: number;
+  shift_count: number;
+}
+
+export interface POVDriftFinding {
+  sentence: string;
+  char_offset: number;
+  subjects: string[];
+  severity: string;
+  explanation: string;
+}
+
+export interface POVDriftResult {
+  findings: POVDriftFinding[];
+  dominant_subject: string;
+  perspective_subjects: string[];
+}
+
+export interface SceneEditorialAnalysis {
+  scene_id: string;
+  scene_title: string;
+  word_count: number;
+  tense_consistency: TenseConsistencyResult | null;
+  pov_drift: POVDriftResult | null;
+}
+
+export interface EditorialConsistencyResponse {
+  scenes: SceneEditorialAnalysis[];
+  checks_run: string[];
+  total_tense_shifts: number;
+  total_pov_flags: number;
+}
+
+// ── AI Story Analysis Results ─────────────────────────────────────────────────
+
+export interface PacingAnalysisResult {
+  act_balance: { summary: string; details: string[] };
+  tension_curve: { summary: string; details: string[] };
+  slow_spots: string[];
+  pacing_strengths: string[];
+  recommendations: string[];
+  overall_rating: string;
+}
+
+export interface ContinuityIssue {
+  description: string;
+  severity: string;
+  scene_references: string[];
+  explanation: string;
+  suggestion: string;
+}
+
+export interface ContinuityCheckResult {
+  issues: ContinuityIssue[];
+  timeline_notes: string[];
+  character_notes: string[];
+  summary: string;
+  overall_rating: string;
+}
+
+export interface ThemeEntry {
+  name: string;
+  description: string;
+  scenes: string[];
+  development: string;
+  strength: string;
+}
+
+export interface ThemeTrackerResult {
+  themes: ThemeEntry[];
+  motifs: string[];
+  thematic_arc: string;
+  gaps: string[];
+  recommendations: string[];
+}
+
+export interface PlotHole {
+  description: string;
+  severity: string;
+  scene_references: string[];
+  explanation: string;
+  suggestion: string;
+}
+
+export interface PlotHoleDetectionResult {
+  holes: PlotHole[];
+  logic_gaps: string[];
+  unanswered_questions: string[];
+  summary: string;
+  overall_rating: string;
+}
+
 export interface CharacterRelationship {
   id: string;
   character_id: string;
@@ -554,6 +660,7 @@ export interface PacingEntry {
   status: string;
   level_type: string;
   beat_id: string | null;
+  character_names: string[];
 }
 
 export interface CharacterHealth {
@@ -1209,6 +1316,12 @@ export interface DialogueStats {
     character_id: string | null;
     line_count: number;
     word_count: number;
+  }[];
+  balance_score: number | null;    // 0-100, higher = more balanced
+  monologue_scenes: {
+    scene_id: string;
+    dominant_speaker: string;
+    pct: number;
   }[];
 }
 

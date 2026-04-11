@@ -43,10 +43,40 @@
   color: var(--color-text-subtle);
 }
 
+.zoomBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.zoomBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.scrollWrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 /* SVG */
 .svg {
   display: block;
-  width: 100%;
   overflow: visible;
   user-select: none;
 }

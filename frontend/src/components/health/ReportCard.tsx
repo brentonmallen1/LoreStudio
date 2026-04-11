@@ -1,12 +1,14 @@
 import { useState } from "react";
 import {
-  AlignLeft, Compass, HelpCircle, Search,
+  AlignLeft, HelpCircle, Search, FileCheck,
   ChevronDown, ChevronRight,
   AlertCircle, AlertTriangle, Info,
   User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
+  GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
 } from "lucide-react";
 import type {
   ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
+  EditorialConsistencyResponse, ContinuityCheckResult, ThemeTrackerResult, PlotHoleDetectionResult,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./ReportCard.module.css";
@@ -15,17 +17,30 @@ import styles from "./ReportCard.module.css";
 
 const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; color: string }> = {
   "prose-analysis": { label: "Prose Analysis", Icon: AlignLeft, color: "var(--color-nlp)" },
-  "economy-analysis": { label: "Economy Analysis", Icon: Compass, color: "var(--color-accent)" },
-  "essential-questions": { label: "Story Compass", Icon: HelpCircle, color: "var(--color-accent)" },
-  "entity-suggestions": { label: "Lorebook Entities", Icon: Search, color: "var(--color-nlp)" },
+  "editorial-consistency": { label: "Editorial Check", Icon: FileCheck, color: "var(--color-nlp)" },
+  "economy-analysis": { label: "Economy Analysis", Icon: BarChart3, color: "var(--color-ai)" },
+  "essential-questions": { label: "Story Compass", Icon: HelpCircle, color: "var(--color-ai)" },
+  "entity-suggestions": { label: "Lorebook Scan", Icon: Search, color: "var(--color-nlp)" },
+  "pacing-analysis": { label: "Pacing Analysis", Icon: Activity, color: "var(--color-ai)" },
+  "continuity-check": { label: "Continuity Check", Icon: GitMerge, color: "var(--color-ai)" },
+  "theme-tracker": { label: "Theme Tracker", Icon: Palette, color: "var(--color-ai)" },
+  "plot-holes": { label: "Plot Holes", Icon: Skull, color: "var(--color-ai)" },
 };
 
 // ── Economy schema (mirrors EconomyAnalysisPanel) ─────────────────────────────
 
 const ECONOMY_SCHEMA: SectionConfig[] = [
-  { key: "thread_balance", label: "Thread Balance", icon: BarChart3, color: "var(--color-accent)", type: "text" },
+  { key: "thread_balance", label: "Thread Balance", icon: BarChart3, color: "var(--color-ai)", type: "text" },
   { key: "scene_economy", label: "Scene Economy", icon: Activity, color: "var(--color-warning)", type: "text" },
   { key: "try_fail_cycles", label: "Try/Fail Cycles", icon: RefreshCw, color: "var(--segment-part)", type: "text" },
+  { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
+];
+
+const PACING_SCHEMA: SectionConfig[] = [
+  { key: "act_balance", label: "Act Balance", icon: BarChart3, color: "var(--color-ai)", type: "text" },
+  { key: "tension_curve", label: "Tension Curve", icon: Activity, color: "var(--color-warning)", type: "text" },
+  { key: "slow_spots", label: "Slow Spots", icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
+  { key: "pacing_strengths", label: "Strengths", icon: CheckCircle, color: "var(--color-success)", type: "list" },
   { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
 ];
 
@@ -216,6 +231,198 @@ function EntityResultDisplay({ result }: { result: EntitySuggestionsResponse }) 
   );
 }
 
+// ── Editorial consistency renderer ───────────────────────────────────────────
+
+function EditorialResultDisplay({ result }: { result: EditorialConsistencyResponse }) {
+  const scenes = result.scenes ?? [];
+  const hasIssues = result.total_tense_shifts > 0 || result.total_pov_flags > 0;
+
+  if (scenes.length === 0) return <p className={styles.empty}>No scenes analyzed.</p>;
+
+  return (
+    <div className={styles.proseResults}>
+      <p className={styles.proseSummary}>
+        {result.total_tense_shifts} tense shift{result.total_tense_shifts !== 1 ? "s" : ""} · {result.total_pov_flags} POV flag{result.total_pov_flags !== 1 ? "s" : ""} across {scenes.length} scene{scenes.length !== 1 ? "s" : ""}
+      </p>
+      {!hasIssues && <p className={styles.empty} style={{ fontStyle: "normal", color: "var(--color-success)" }}>No editorial issues found.</p>}
+      {scenes.map((scene) => {
+        const tenseIssues = scene.tense_consistency?.findings ?? [];
+        const povIssues = scene.pov_drift?.findings ?? [];
+        if (tenseIssues.length === 0 && povIssues.length === 0) return null;
+        return (
+          <div key={scene.scene_id} className={styles.sceneBlock}>
+            <div className={styles.sceneHeader}>
+              <span className={styles.sceneTitle}>{scene.scene_title || "Untitled"}</span>
+              <span className={styles.sceneBadge}>{tenseIssues.length + povIssues.length} flag{tenseIssues.length + povIssues.length !== 1 ? "s" : ""}</span>
+            </div>
+            {tenseIssues.length > 0 && (
+              <div className={styles.checkGroup}>
+                <span className={styles.checkLabel}>Tense Shifts ({tenseIssues.length}) — dominant: {scene.tense_consistency?.dominant_tense}</span>
+                {tenseIssues.slice(0, 3).map((f, i) => (
+                  <div key={i} className={styles.finding}>
+                    <AlertTriangle size={11} className={styles.iconWarning} />
+                    <span className={styles.findingText} title={f.sentence}>{f.sentence.slice(0, 120)}{f.sentence.length > 120 ? "…" : ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {povIssues.length > 0 && (
+              <div className={styles.checkGroup}>
+                <span className={styles.checkLabel}>POV Drift ({povIssues.length})</span>
+                {povIssues.slice(0, 3).map((f, i) => (
+                  <div key={i} className={styles.finding}>
+                    <AlertTriangle size={11} className={styles.iconWarning} />
+                    <span className={styles.findingText}>{f.explanation}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Continuity result renderer ────────────────────────────────────────────────
+
+const SEVERITY_ICON: Record<string, React.ElementType> = {
+  critical: XCircle,
+  moderate: AlertTriangle,
+  minor: MinusCircle,
+};
+
+const SEVERITY_COLOR: Record<string, string> = {
+  critical: "var(--color-error, #ef4444)",
+  moderate: "var(--color-warning)",
+  minor: "var(--color-text-muted)",
+};
+
+function ContinuityResultDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as ContinuityCheckResult;
+  const issues = data.issues ?? [];
+  return (
+    <div className={styles.aiResults}>
+      {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
+      {issues.length === 0 ? (
+        <p className={styles.empty} style={{ color: "var(--color-success)" }}>No continuity issues found.</p>
+      ) : (
+        issues.map((issue, i) => {
+          const SevIcon = SEVERITY_ICON[issue.severity] ?? MinusCircle;
+          return (
+            <div key={i} className={styles.issueRow}>
+              <SevIcon size={12} style={{ color: SEVERITY_COLOR[issue.severity], flexShrink: 0, marginTop: 2 }} />
+              <div className={styles.issueBody}>
+                <span className={styles.issueLabel}>{issue.description}</span>
+                {issue.scene_references.length > 0 && (
+                  <span className={styles.issueMeta}>{issue.scene_references.join(" · ")}</span>
+                )}
+                <p className={styles.issueDetail}>{issue.explanation}</p>
+                {issue.suggestion && <p className={styles.issueSuggestion}>{issue.suggestion}</p>}
+              </div>
+            </div>
+          );
+        })
+      )}
+      {(data.timeline_notes?.length > 0 || data.character_notes?.length > 0) && (
+        <div className={styles.notesSection}>
+          {data.timeline_notes?.map((n, i) => <p key={i} className={styles.note}><BookOpen size={10} /> {n}</p>)}
+          {data.character_notes?.map((n, i) => <p key={i} className={styles.note}><User size={10} /> {n}</p>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Theme tracker renderer ────────────────────────────────────────────────────
+
+const STRENGTH_COLOR: Record<string, string> = {
+  well_developed: "var(--color-success)",
+  present: "var(--color-accent)",
+  emerging: "var(--color-text-muted)",
+};
+
+function ThemeResultDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as ThemeTrackerResult;
+  return (
+    <div className={styles.aiResults}>
+      {data.thematic_arc && <p className={styles.aiSummary}>{data.thematic_arc}</p>}
+      {(data.themes ?? []).map((theme, i) => (
+        <div key={i} className={styles.themeRow}>
+          <div className={styles.themeHeader}>
+            <span className={styles.themeDot} style={{ background: STRENGTH_COLOR[theme.strength] ?? "var(--color-text-muted)" }} />
+            <span className={styles.themeName}>{theme.name}</span>
+            <span className={styles.themeMeta}>{theme.strength.replace("_", " ")}</span>
+          </div>
+          <p className={styles.themeDesc}>{theme.description}</p>
+          {theme.scenes.length > 0 && (
+            <p className={styles.issueMeta}>{theme.scenes.join(" · ")}</p>
+          )}
+        </div>
+      ))}
+      {data.motifs?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Motifs</span>
+          {data.motifs.map((m, i) => <p key={i} className={styles.note}>{m}</p>)}
+        </div>
+      )}
+      {data.gaps?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Thematic Gaps</span>
+          {data.gaps.map((g, i) => <p key={i} className={styles.note}>{g}</p>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Plot holes renderer ───────────────────────────────────────────────────────
+
+function PlotHolesResultDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as PlotHoleDetectionResult;
+  const holes = data.holes ?? [];
+  return (
+    <div className={styles.aiResults}>
+      {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
+      {holes.length === 0 ? (
+        <p className={styles.empty} style={{ color: "var(--color-success)" }}>No plot holes detected.</p>
+      ) : (
+        holes.map((hole, i) => {
+          const SevIcon = SEVERITY_ICON[hole.severity] ?? MinusCircle;
+          return (
+            <div key={i} className={styles.issueRow}>
+              <SevIcon size={12} style={{ color: SEVERITY_COLOR[hole.severity], flexShrink: 0, marginTop: 2 }} />
+              <div className={styles.issueBody}>
+                <span className={styles.issueLabel}>{hole.description}</span>
+                {hole.scene_references.length > 0 && (
+                  <span className={styles.issueMeta}>{hole.scene_references.join(" · ")}</span>
+                )}
+                <p className={styles.issueDetail}>{hole.explanation}</p>
+                {hole.suggestion && <p className={styles.issueSuggestion}>{hole.suggestion}</p>}
+              </div>
+            </div>
+          );
+        })
+      )}
+      {data.logic_gaps?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Logic Gaps</span>
+          {data.logic_gaps.map((g, i) => <p key={i} className={styles.note}>{g}</p>)}
+        </div>
+      )}
+      {data.unanswered_questions?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Unanswered Questions</span>
+          {data.unanswered_questions.map((q, i) => <p key={i} className={styles.note}>{q}</p>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
@@ -237,12 +444,22 @@ function renderBody(log: ActivityLog) {
   switch (feature) {
     case "prose-analysis":
       return <ProseResultDisplay result={result as unknown as ProseNLPResponse} />;
+    case "editorial-consistency":
+      return <EditorialResultDisplay result={result as unknown as EditorialConsistencyResponse} />;
     case "economy-analysis":
       return <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={ECONOMY_SCHEMA} />;
+    case "pacing-analysis":
+      return <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={PACING_SCHEMA} />;
     case "essential-questions":
       return <EssentialQuestionsDisplay result={result as unknown as StructuredResult} />;
     case "entity-suggestions":
       return <EntityResultDisplay result={result as unknown as EntitySuggestionsResponse} />;
+    case "continuity-check":
+      return <ContinuityResultDisplay result={result as unknown as StructuredResult} />;
+    case "theme-tracker":
+      return <ThemeResultDisplay result={result as unknown as StructuredResult} />;
+    case "plot-holes":
+      return <PlotHolesResultDisplay result={result as unknown as StructuredResult} />;
     default:
       return <p className={styles.empty}>Unknown analysis type.</p>;
   }

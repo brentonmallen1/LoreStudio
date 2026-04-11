@@ -95,6 +95,14 @@ def story_health(
         words_by_status[n.status] = words_by_status.get(n.status, 0) + n.word_count
         scenes_by_status[n.status] = scenes_by_status.get(n.status, 0) + 1
 
+    # ── Character-per-scene map (name match in content) ──
+    char_scene_map: dict[str, list[str]] = {}   # scene_id → [char_name, ...]
+    for c in characters:
+        name_lower = c.name.lower()
+        for leaf in leaves:
+            if leaf.content and name_lower in leaf.content.lower():
+                char_scene_map.setdefault(leaf.id, []).append(c.name)
+
     # ── Pacing heat map (leaf scenes in order) ──
     pacing = [
         {
@@ -104,6 +112,7 @@ def story_health(
             "status": n.status,
             "level_type": n.level_type,
             "beat_id": n.beat_id,
+            "character_names": char_scene_map.get(n.id, []),
         }
         for n in leaves
     ]

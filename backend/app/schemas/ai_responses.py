@@ -282,6 +282,71 @@ class AudienceAdherenceResponse(BaseModel):
     summary: str = ""
 
 
+# ── Pacing Analysis ───────────────────────────────────────────────────────────
+
+class PacingAnalysisResponse(BaseModel):
+    act_balance: AnalysisSection = AnalysisSection()       # Word distribution across acts/sections
+    tension_curve: AnalysisSection = AnalysisSection()     # Rising/falling tension patterns
+    slow_spots: list[str] = []                             # Scene titles or passages that drag
+    pacing_strengths: list[str] = []                       # What's working well
+    recommendations: list[str] = []
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+
+
+# ── Continuity Check ──────────────────────────────────────────────────────────
+
+class ContinuityIssue(BaseModel):
+    description: str = ""          # What the inconsistency is
+    severity: str = "moderate"     # critical | moderate | minor
+    scene_references: list[str] = []   # Scene titles involved
+    explanation: str = ""
+    suggestion: str = ""           # What to consider doing about it
+
+
+class ContinuityCheckResponse(BaseModel):
+    issues: list[ContinuityIssue] = []
+    timeline_notes: list[str] = []    # General timeline observations
+    character_notes: list[str] = []   # Character knowledge/state observations
+    summary: str = ""
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+
+
+# ── Theme Tracker ─────────────────────────────────────────────────────────────
+
+class ThemeEntry(BaseModel):
+    name: str = ""
+    description: str = ""
+    scenes: list[str] = []        # Scene titles where this theme appears
+    development: str = ""         # How the theme develops across the story
+    strength: str = "emerging"    # emerging | present | well_developed
+
+
+class ThemeTrackerResponse(BaseModel):
+    themes: list[ThemeEntry] = []
+    motifs: list[str] = []        # Recurring images, symbols, phrases
+    thematic_arc: str = ""        # Overall thematic journey summary
+    gaps: list[str] = []          # Thematic opportunities not yet developed
+    recommendations: list[str] = []
+
+
+# ── Plot Hole Detection ───────────────────────────────────────────────────────
+
+class PlotHole(BaseModel):
+    description: str = ""
+    severity: str = "moderate"     # critical | moderate | minor
+    scene_references: list[str] = []
+    explanation: str = ""
+    suggestion: str = ""           # Possible resolution to consider
+
+
+class PlotHoleDetectionResponse(BaseModel):
+    holes: list[PlotHole] = []
+    logic_gaps: list[str] = []     # Minor logical issues, less than full holes
+    unanswered_questions: list[str] = []  # Things raised but not addressed
+    summary: str = ""
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

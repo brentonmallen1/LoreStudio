@@ -20,6 +20,10 @@ from ..services.llm.prompts.analysis import (
     build_essential_questions_prompt,
     build_show_dont_tell_prompt,
     build_audience_adherence_prompt,
+    build_pacing_analysis_prompt,
+    build_continuity_check_prompt,
+    build_theme_tracker_prompt,
+    build_plot_hole_detection_prompt,
     TARGET_AUDIENCES,
 )
 from ..models.plot_thread import PlotThread
@@ -33,11 +37,18 @@ from ..schemas.ai_responses import (
     EssentialQuestionsResponse,
     ShowDontTellAnalysisResponse,
     AudienceAdherenceResponse,
+    PacingAnalysisResponse,
+    ContinuityCheckResponse,
+    ThemeTrackerResponse,
+    PlotHoleDetectionResponse,
     StructuredResult,
 )
-from ..schemas.nlp_analysis import ProseNLPResponse, SceneNLPAnalysis, EntitySuggestionsResponse
+from ..schemas.nlp_analysis import (
+    ProseNLPResponse, SceneNLPAnalysis, EntitySuggestionsResponse,
+    SceneEditorialAnalysis, EditorialConsistencyResponse,
+)
 from ..schemas.chronicle import ActivityLogOut
-from ..services.nlp_analysis_service import analyze_scene, extract_unknown_entities, ALL_CHECKS
+from ..services.nlp_analysis_service import analyze_scene, extract_unknown_entities, ALL_CHECKS, analyze_scene_editorial
 from ..models.location import Location
 
 router = APIRouter()
@@ -849,9 +860,435 @@ def analyze_entity_suggestions(
     db.commit()
     return result
 
+# ── Editorial Consistency (NLP — no LLM) ─────────────────────────────────────
+
+@router.post("/stories/{story_id}/analyze/editorial-consistency", response_model=EditorialConsistencyResponse)
+def analyze_editorial_consistency(
+    story_id: str,
+    node_ids: list[str] | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run tense consistency and POV drift detection across scenes.
+
+    No LLM involved — all analysis is local and deterministic.
+    node_ids=null runs all scenes.
+    """
+    _get_story(story_id, db, current_user)
+
+    if node_ids:
+        nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
+    else:
+        nodes = (
+            db.query(StructureNode)
+            .filter(
+                StructureNode.story_id == story_id,
+                StructureNode.content.isnot(None),
+                StructureNode.content != "",
+            )
+            .all()
+        )
+
+    scenes: list[SceneEditorialAnalysis] = []
+    for node in nodes:
+        if not node.content or not node.content.strip():
+            continue
+        analysis = analyze_scene_editorial(node.content)
+        scenes.append(SceneEditorialAnalysis(
+            scene_id=node.id,
+            scene_title=node.title or "",
+            **analysis,
+        ))
+
+    total_tense = sum(
+        (s.tense_consistency.shift_count if s.tense_consistency else 0)
+        for s in scenes
+    )
+    total_pov = sum(
+        len(s.pov_drift.findings) if s.pov_drift else 0
+        for s in scenes
+    )
+
+    result = EditorialConsistencyResponse(
+        scenes=scenes,
+        checks_run=["tense_consistency", "pov_drift"],
+        total_tense_shifts=total_tense,
+        total_pov_flags=total_pov,
+    )
+
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Editorial consistency: {len(scenes)} scene(s), {total_tense} tense shift(s), {total_pov} POV flag(s)",
+        metadata_={
+            "feature": "editorial-consistency",
+            "result": result.model_dump(),
+            "scene_count": len(scenes),
+            "tense_shift_count": total_tense,
+            "pov_flag_count": total_pov,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
+# ── AI Story Analyses ─────────────────────────────────────────────────────────
+
+@router.post("/stories/{story_id}/analyze/pacing", response_model=StructuredResult)
+async def analyze_pacing(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze pacing, act balance, and tension curve using AI."""
+    story = _get_story(story_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        leaves = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                leaves.append(n)
+            else:
+                leaves.extend(flatten_leaves(kids))
+        return leaves
+
+    leaves = flatten_leaves(roots)
+    total_words = sum(n.word_count for n in all_nodes)
+
+    # Build parent label map for scene context
+    parent_map: dict[str, str] = {}
+    for n in all_nodes:
+        if n.parent_id:
+            parent = next((x for x in all_nodes if x.id == n.parent_id), None)
+            if parent:
+                parent_map[n.id] = parent.title or parent.level_type or ""
+
+    scenes_info = []
+    for leaf in leaves:
+        parent_label = f" [{parent_map[leaf.id]}]" if leaf.id in parent_map else ""
+        scenes_info.append(
+            f'- "{leaf.title or "Untitled"}"{parent_label} ({leaf.word_count} words, {leaf.status})'
+        )
+
+    feature_prompt = build_pacing_analysis_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent,
+        intended_length=story.intended_length,
+        scenes_info=scenes_info,
+        total_words=total_words,
+    )
+
+    ctx = AICallContext(
+        feature="pacing-analysis",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=PacingAnalysisResponse,
+        messages=[{"role": "user", "content": "Analyze this story's pacing."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    issue_count = len(result.data.get("slow_spots", [])) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Pacing analysis: {issue_count} slow spot(s) identified",
+        metadata_={
+            "feature": "pacing-analysis",
+            "result": result.model_dump(),
+            "issue_count": issue_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
+@router.post("/stories/{story_id}/analyze/continuity", response_model=StructuredResult)
+async def analyze_continuity(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Check for continuity issues and inconsistencies across scenes using AI."""
+    story = _get_story(story_id, db, current_user)
+
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    characters_summary = []
+    for c in characters:
+        parts = [f"- {c.name} ({c.role})"]
+        if c.motivation:
+            parts.append(f"  Motivation: {c.motivation}")
+        characters_summary.append("\n".join(parts))
+
+    scenes_with_content = []
+    for leaf in leaves:
+        if leaf.content and leaf.content.strip():
+            excerpt = leaf.content[:600]
+            scenes_with_content.append(
+                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 600 else ""}'
+            )
+
+    feature_prompt = build_continuity_check_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent,
+        characters_summary=characters_summary,
+        scenes_with_content=scenes_with_content,
+    )
+
+    ctx = AICallContext(
+        feature="continuity-check",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=ContinuityCheckResponse,
+        messages=[{"role": "user", "content": "Check this story for continuity issues."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    issue_count = len(result.data.get("issues", [])) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Continuity check: {issue_count} issue(s) found",
+        metadata_={
+            "feature": "continuity-check",
+            "result": result.model_dump(),
+            "issue_count": issue_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
+@router.post("/stories/{story_id}/analyze/themes", response_model=StructuredResult)
+async def analyze_themes(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Identify recurring themes, motifs, and thematic development using AI."""
+    story = _get_story(story_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    scenes_with_content = []
+    for leaf in leaves:
+        if leaf.content and leaf.content.strip():
+            excerpt = leaf.content[:500]
+            scenes_with_content.append(
+                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 500 else ""}'
+            )
+
+    feature_prompt = build_theme_tracker_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent,
+        story_themes=story.themes or [],
+        scenes_with_content=scenes_with_content,
+    )
+
+    ctx = AICallContext(
+        feature="theme-tracker",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=ThemeTrackerResponse,
+        messages=[{"role": "user", "content": "Identify themes and motifs in this story."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    theme_count = len(result.data.get("themes", [])) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Theme tracker: {theme_count} theme(s) identified",
+        metadata_={
+            "feature": "theme-tracker",
+            "result": result.model_dump(),
+            "theme_count": theme_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
+@router.post("/stories/{story_id}/analyze/plot-holes", response_model=StructuredResult)
+async def analyze_plot_holes(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Detect logical gaps and plot holes across scenes using AI."""
+    story = _get_story(story_id, db, current_user)
+
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    characters_summary = [f"- {c.name} ({c.role})" + (f": {c.motivation}" if c.motivation else "") for c in characters]
+    threads_summary = [
+        f'- "{t.name}" [{t.mice_type or "untyped"}] status: {t.status}'
+        for t in threads
+    ]
+    scenes_with_content = []
+    for leaf in leaves:
+        if leaf.content and leaf.content.strip():
+            excerpt = leaf.content[:500]
+            scenes_with_content.append(
+                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 500 else ""}'
+            )
+
+    feature_prompt = build_plot_hole_detection_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent,
+        characters_summary=characters_summary,
+        threads_summary=threads_summary,
+        scenes_with_content=scenes_with_content,
+    )
+
+    ctx = AICallContext(
+        feature="plot-holes",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=PlotHoleDetectionResponse,
+        messages=[{"role": "user", "content": "Detect plot holes in this story."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    hole_count = len(result.data.get("holes", [])) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Plot hole detection: {hole_count} hole(s) found",
+        metadata_={
+            "feature": "plot-holes",
+            "result": result.model_dump(),
+            "hole_count": hole_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
 # ── Analysis History Endpoints ────────────────────────────────────────────────
 
-HEALTH_FEATURES = {"prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions"}
+HEALTH_FEATURES = {
+    "prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions",
+    "editorial-consistency", "pacing-analysis", "continuity-check", "theme-tracker", "plot-holes",
+}
 
 
 @router.get("/stories/{story_id}/analysis/latest", response_model=Optional[ActivityLogOut])

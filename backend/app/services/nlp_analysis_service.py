@@ -32,6 +32,12 @@ from ..schemas.nlp_analysis import (
     SceneNLPAnalysis,
     EntitySuggestion,
     EntitySuggestionsResponse,
+    TenseShift,
+    TenseConsistencyResult,
+    POVDriftFinding,
+    POVDriftResult,
+    SceneEditorialAnalysis,
+    EditorialConsistencyResponse,
 )
 
 
@@ -317,6 +323,146 @@ def analyze_scene(
         result["sentence_variety"] = _analyze_sentence_variety(doc)
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# Editorial consistency checks (tense + POV)
+# ---------------------------------------------------------------------------
+
+# Finite verb POS tags by tense
+_PAST_TAGS = {"VBD", "VBN"}       # past simple, past participle
+_PRESENT_TAGS = {"VBZ", "VBP"}    # 3rd-person singular present, bare present
+
+# Perception/cognition verbs that signal being inside a character's head
+_PERSPECTIVE_VERBS = {
+    "feel", "felt", "think", "thought", "know", "knew", "realize", "realized",
+    "wonder", "wondered", "believe", "believed", "see", "saw", "hear", "heard",
+    "notice", "noticed", "understand", "understood", "remember", "remembered",
+    "sense", "sensed", "decide", "decided", "want", "wanted", "wish", "wished",
+    "hope", "hoped", "fear", "feared", "imagine", "imagined",
+}
+
+
+def check_tense_consistency(doc) -> TenseConsistencyResult:
+    """
+    Detect tense inconsistencies across sentences.
+    Tags VBD/VBN as past and VBZ/VBP as present.
+    Flags sentences that deviate from the document's dominant tense.
+    Only flags sentences with at least 2 finite verbs to reduce false positives.
+    """
+    sentence_data: list[tuple] = []  # (sent, tense, past_count, present_count)
+
+    for sent in doc.sents:
+        past_c = sum(1 for tok in sent if tok.pos_ == "VERB" and tok.tag_ in _PAST_TAGS)
+        pres_c = sum(1 for tok in sent if tok.pos_ == "VERB" and tok.tag_ in _PRESENT_TAGS)
+        if past_c == 0 and pres_c == 0:
+            continue
+        tense = "past" if past_c >= pres_c else "present"
+        sentence_data.append((sent, tense, past_c, pres_c))
+
+    if not sentence_data:
+        return TenseConsistencyResult()
+
+    past_sents = sum(1 for _, t, _, _ in sentence_data if t == "past")
+    pres_sents = sum(1 for _, t, _, _ in sentence_data if t == "present")
+    dominant = "past" if past_sents >= pres_sents else "present"
+    if past_sents == pres_sents:
+        dominant = "mixed"
+
+    findings: list[TenseShift] = []
+    for sent, tense, past_c, pres_c in sentence_data:
+        if tense != dominant and dominant != "mixed" and (past_c + pres_c) >= 2:
+            findings.append(TenseShift(
+                sentence=sent.text.strip(),
+                char_offset=sent.start_char,
+                dominant_tense=dominant,
+                detected_tense=tense,
+                severity="warning",
+            ))
+
+    return TenseConsistencyResult(
+        findings=findings,
+        dominant_tense=dominant,
+        past_sentence_count=past_sents,
+        present_sentence_count=pres_sents,
+        shift_count=len(findings),
+    )
+
+
+def check_pov_drift(doc) -> POVDriftResult:
+    """
+    Detect potential head-hopping by tracking named subjects of perception/cognition verbs.
+    When multiple distinct named characters use perspective verbs in the same scene,
+    it suggests the narrative may be entering more than one character's head.
+    """
+    # Map: sentence → set of named subjects of perspective verbs
+    perspective_subject_counts: dict[str, int] = {}
+    findings: list[POVDriftFinding] = []
+
+    for sent in doc.sents:
+        sent_persp_subjects: set[str] = set()
+        for tok in sent:
+            if tok.lemma_.lower() not in _PERSPECTIVE_VERBS:
+                continue
+            for child in tok.children:
+                if child.dep_ in ("nsubj", "nsubjpass") and child.pos_ in ("PROPN", "NOUN") and len(child.text) > 1 and not child.is_stop:
+                    name = child.text.strip()
+                    sent_persp_subjects.add(name)
+                    perspective_subject_counts[name] = perspective_subject_counts.get(name, 0) + 1
+
+        if sent_persp_subjects:
+            # Cross-reference: are these subjects already in the registry?
+            all_known = set(perspective_subject_counts.keys())
+            other_subjects = {s for s in all_known if s not in sent_persp_subjects and perspective_subject_counts.get(s, 0) > 0}
+            # Only flag if there are perspective verbs with subjects AND we've seen other perspective subjects before
+            if sent_persp_subjects and other_subjects:
+                findings.append(POVDriftFinding(
+                    sentence=sent.text.strip(),
+                    char_offset=sent.start_char,
+                    subjects=sorted(sent_persp_subjects),
+                    severity="warning",
+                    explanation=(
+                        f"{', '.join(sorted(sent_persp_subjects))} uses a perspective verb "
+                        f"after {', '.join(sorted(other_subjects))} earlier in the scene"
+                    ),
+                ))
+
+    dominant = max(perspective_subject_counts, key=perspective_subject_counts.get) if perspective_subject_counts else ""
+    all_subjects = sorted(perspective_subject_counts.keys())[:10]
+
+    # Deduplicate findings (only keep unique sentence offsets)
+    seen_offsets: set[int] = set()
+    unique_findings: list[POVDriftFinding] = []
+    for f in findings:
+        if f.char_offset not in seen_offsets:
+            seen_offsets.add(f.char_offset)
+            unique_findings.append(f)
+
+    return POVDriftResult(
+        findings=unique_findings,
+        dominant_subject=dominant,
+        perspective_subjects=all_subjects,
+    )
+
+
+def analyze_scene_editorial(scene_html: str) -> dict:
+    """
+    Run editorial consistency checks (tense + POV) on a scene.
+    Returns a dict matching SceneEditorialAnalysis fields (excluding scene_id/title).
+    """
+    text = html_to_text(scene_html)
+    if not text.strip():
+        return {"word_count": 0}
+
+    nlp = get_nlp()
+    doc = nlp(text)
+    word_count = len([t for t in doc if not t.is_space and not t.is_punct])
+
+    return {
+        "word_count": word_count,
+        "tense_consistency": check_tense_consistency(doc),
+        "pov_drift": check_pov_drift(doc),
+    }
 
 
 # ---------------------------------------------------------------------------

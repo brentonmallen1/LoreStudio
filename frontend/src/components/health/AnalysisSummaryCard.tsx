@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, ChevronRight } from "lucide-react";
+import { AlignLeft, Compass, HelpCircle, Search } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./AnalysisSummaryCard.module.css";
@@ -68,10 +68,9 @@ function formatAge(iso: string): string {
 
 interface Props {
   storyId: string;
-  onViewReports: () => void;
 }
 
-export default function AnalysisSummaryCard({ storyId, onViewReports }: Props) {
+export default function AnalysisSummaryCard({ storyId }: Props) {
   const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
   const [loading, setLoading] = useState(true);
 

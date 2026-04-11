@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { ZoomIn, ZoomOut } from "lucide-react";
 import type { PacingEntry, PlotThread, BeatSheet } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
 import styles from "./StoryProgressionGraph.module.css";
@@ -11,13 +12,27 @@ interface Props {
   storyId: string;
 }
 
-type MetricTab = "words" | "status" | "threads";
+type MetricTab = "words" | "status" | "threads" | "characters";
 
 const MARGIN = { top: 24, right: 12, bottom: 32, left: 44 };
 const CHART_H = 110;
 const STATUS_H = 48;
 const THREAD_ROW_H = 26;
+const CHAR_ROW_H = 22;
 const MIN_SLOT_W = 4;
+const ZOOM_STEPS = [1, 1.5, 2, 3, 4];
+
+// Stable color palette for character rows (cycles if more than colors)
+const CHAR_COLORS = [
+  "var(--color-accent)",
+  "var(--color-ai)",
+  "var(--color-nlp)",
+  "var(--color-success)",
+  "var(--color-warning)",
+  "#a78bfa",
+  "#f472b6",
+  "#34d399",
+];
 
 const STATUS_COLORS: Record<string, string> = {
   final: "var(--color-success)",
@@ -40,18 +55,23 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   const { structure, setActiveNode } = useStoryStore();
   const [tab, setTab] = useState<MetricTab>("words");
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [zoomIdx, setZoomIdx] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [svgWidth, setSvgWidth] = useState(600);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(600);
+
+  const zoom = ZOOM_STEPS[zoomIdx];
+  const svgWidth = Math.max(containerWidth, containerWidth * zoom);
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
     const obs = new ResizeObserver((entries) => {
       const w = entries[0].contentRect.width;
-      if (w > 0) setSvgWidth(w);
+      if (w > 0) setContainerWidth(w);
     });
     obs.observe(el);
-    setSvgWidth(el.clientWidth || 600);
+    setContainerWidth(el.clientWidth || 600);
     return () => obs.disconnect();
   }, []);
 
@@ -67,6 +87,14 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   const innerW = svgWidth - MARGIN.left - MARGIN.right;
   const slotW = Math.max(MIN_SLOT_W, innerW / Math.max(sceneCount, 1));
   const maxWords = Math.max(...pacing.map((p) => p.word_count), 1);
+
+  // Character data for the characters tab
+  const allCharNames = Array.from(
+    new Set(pacing.flatMap((p) => p.character_names ?? []))
+  ).sort();
+  const charColorMap = Object.fromEntries(
+    allCharNames.map((name, i) => [name, CHAR_COLORS[i % CHAR_COLORS.length]])
+  );
 
   // Beat markers: map position_pct → scene index
   const beatMarkers = (beatSheet?.beats ?? []).map((beat) => {
@@ -102,6 +130,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   const svgHeight = (() => {
     if (tab === "threads") return MARGIN.top + Math.max(threadSpans.length, 1) * THREAD_ROW_H + MARGIN.bottom;
     if (tab === "status") return MARGIN.top + STATUS_H + MARGIN.bottom;
+    if (tab === "characters") return MARGIN.top + Math.max(allCharNames.length, 1) * CHAR_ROW_H + MARGIN.bottom;
     return MARGIN.top + CHART_H + MARGIN.bottom; // words
   })();
 
@@ -149,22 +178,43 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
     ? beatSheet?.beats.find((b) => b.id === tooltipEntry.beat_id)
     : null;
 
+  const TAB_LABELS: Record<MetricTab, string> = {
+    words: "Word Count",
+    status: "Scene Status",
+    threads: "Thread Activity",
+    characters: "Characters",
+  };
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <div className={styles.tabBar}>
-        {(["words", "status", "threads"] as MetricTab[]).map((t) => (
+        {(["words", "status", "threads", "characters"] as MetricTab[]).map((t) => (
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ""}`}
             onClick={() => { setTab(t); setTooltip(null); }}
             type="button"
           >
-            {t === "words" ? "Word Count" : t === "status" ? "Scene Status" : "Thread Activity"}
+            {TAB_LABELS[t]}
           </button>
         ))}
         <span className={styles.sceneCount}>{sceneCount} scene{sceneCount !== 1 ? "s" : ""}</span>
+        {zoom > 1 && (
+          <button className={styles.zoomBtn} onClick={() => setZoomIdx(Math.max(0, zoomIdx - 1))} title="Zoom out">
+            <ZoomOut size={12} />
+          </button>
+        )}
+        <button
+          className={styles.zoomBtn}
+          onClick={() => setZoomIdx(Math.min(ZOOM_STEPS.length - 1, zoomIdx + 1))}
+          disabled={zoomIdx >= ZOOM_STEPS.length - 1}
+          title="Zoom in"
+        >
+          <ZoomIn size={12} />
+        </button>
       </div>
 
+      <div className={styles.scrollWrap} ref={scrollRef}>
       <svg
         className={styles.svg}
         width={svgWidth}
@@ -313,6 +363,57 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
           </>
         )}
 
+        {/* ── CHARACTERS TAB ── */}
+        {tab === "characters" && (
+          <>
+            {allCharNames.length === 0 ? (
+              <text x={MARGIN.left + innerW / 2} y={MARGIN.top + 20} textAnchor="middle"
+                fontSize={11} fill="var(--color-text-subtle)">
+                No character appearances in prose yet
+              </text>
+            ) : (
+              allCharNames.map((name, row) => {
+                const y = MARGIN.top + row * CHAR_ROW_H;
+                const color = charColorMap[name];
+                return (
+                  <g key={name}>
+                    {/* Row background */}
+                    <rect x={MARGIN.left} y={y + 2} width={innerW} height={CHAR_ROW_H - 4}
+                      fill="var(--color-surface-raised)" opacity={0.35} rx={2} />
+                    {/* Scene cells */}
+                    {pacing.map((entry, i) => {
+                      const present = (entry.character_names ?? []).includes(name);
+                      if (!present) return null;
+                      return (
+                        <rect
+                          key={entry.id}
+                          x={xForScene(i) + 1}
+                          y={y + 4}
+                          width={Math.max(slotW - 2, 1)}
+                          height={CHAR_ROW_H - 8}
+                          fill={color}
+                          opacity={tooltip?.sceneIdx === i ? 1 : 0.65}
+                          rx={2}
+                        />
+                      );
+                    })}
+                    {/* Character name label */}
+                    <text
+                      x={MARGIN.left - 6}
+                      y={y + CHAR_ROW_H / 2 + 4}
+                      textAnchor="end"
+                      fontSize={9}
+                      fill="var(--color-text-muted)"
+                    >
+                      {name.length > 14 ? name.slice(0, 13) + "…" : name}
+                    </text>
+                  </g>
+                );
+              })
+            )}
+          </>
+        )}
+
         {/* Hover highlight column */}
         {tooltip !== null && (
           <rect
@@ -326,6 +427,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
           />
         )}
       </svg>
+      </div>
 
       {/* Tooltip */}
       {tooltip !== null && tooltipEntry && (
@@ -360,7 +462,21 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
       )}
 
       {/* Bottom legend */}
-      {tab !== "threads" && (
+      {tab === "characters" ? (
+        <div className={styles.legend}>
+          {allCharNames.slice(0, 6).map((name) => (
+            <span key={name} className={styles.legendItem}>
+              <span className={styles.swatch} style={{ background: charColorMap[name], opacity: 0.75 }} />
+              {name}
+            </span>
+          ))}
+          {allCharNames.length > 6 && (
+            <span className={styles.legendItem} style={{ color: "var(--color-text-muted)" }}>
+              +{allCharNames.length - 6} more
+            </span>
+          )}
+        </div>
+      ) : tab !== "threads" ? (
         <div className={styles.legend}>
           <span className={styles.legendItem}>
             <span className={styles.swatch} style={{ background: "var(--color-text-muted)", opacity: 0.65 }} /> Draft
@@ -377,7 +493,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
             </span>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -251,6 +251,20 @@ def sync_dialogue_blocks(
     return saved
 
 
+def _gini(values: list[int]) -> float:
+    """Compute Gini coefficient for a list of non-negative integers.
+    Returns 0 (perfect equality) to ~1 (one person speaks everything).
+    """
+    if not values or sum(values) == 0:
+        return 0.0
+    n = len(values)
+    sorted_vals = sorted(values)
+    cumsum = 0
+    for i, v in enumerate(sorted_vals):
+        cumsum += (2 * (i + 1) - n - 1) * v
+    return cumsum / (n * sum(sorted_vals))
+
+
 def get_dialogue_stats(story_id: str, db: Session) -> dict:
     """Aggregate dialogue stats across a story for the Health dashboard."""
     from ..models.structure import StructureNode
@@ -261,7 +275,7 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
         db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()
     ]
     if not scene_ids:
-        return {"total_blocks": 0, "by_character": [], "unattributed": 0}
+        return {"total_blocks": 0, "by_character": [], "unattributed": 0, "balance_score": None, "monologue_scenes": []}
 
     blocks = (
         db.query(DialogueBlock)
@@ -285,10 +299,35 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
         by_char[key]["line_count"] += 1
         by_char[key]["word_count"] += len(b.content.split())
 
+    # Balance score: 1 - Gini (higher = more balanced dialogue)
+    word_counts = [v["word_count"] for v in by_char.values()]
+    gini = _gini(word_counts) if len(word_counts) >= 2 else None
+    balance_score = round((1 - gini) * 100) if gini is not None else None
+
+    # Monologue scenes: scenes where one character speaks >80% of dialogue words
+    scene_speakers: dict[str, dict[str, int]] = {}  # scene_id → {speaker: word_count}
+    for b in blocks:
+        sid = b.scene_id
+        spk = b.speaker_name or "Unknown"
+        scene_speakers.setdefault(sid, {})
+        scene_speakers[sid][spk] = scene_speakers[sid].get(spk, 0) + len(b.content.split())
+
+    monologue_scenes = []
+    for sid, speakers in scene_speakers.items():
+        if len(speakers) < 2:
+            continue  # Only one speaker — not really a monologue concern
+        total_scene_words = sum(speakers.values())
+        dominant = max(speakers, key=speakers.get)
+        dominant_pct = speakers[dominant] / total_scene_words if total_scene_words > 0 else 0
+        if dominant_pct >= 0.80:
+            monologue_scenes.append({"scene_id": sid, "dominant_speaker": dominant, "pct": round(dominant_pct * 100)})
+
     return {
         "total_blocks": total,
         "unattributed": unattributed,
         "by_character": sorted(by_char.values(), key=lambda x: x["word_count"], reverse=True),
+        "balance_score": balance_score,          # 0–100, higher = more balanced
+        "monologue_scenes": monologue_scenes,    # scenes dominated by one speaker
     }
 
 

@@ -103,3 +103,50 @@ class SceneNLPAnalysis(BaseModel):
 class ProseNLPResponse(BaseModel):
     scenes: list[SceneNLPAnalysis] = []
     checks_run: list[str] = []   # Which checks were included in this run
+
+
+# ── Editorial Consistency (tense + POV) ──────────────────────────────────────
+
+class TenseShift(BaseModel):
+    sentence: str
+    char_offset: int = 0
+    dominant_tense: str = ""    # "past" | "present"
+    detected_tense: str = ""    # tense detected in this sentence
+    severity: str = "warning"   # warning | info
+
+
+class TenseConsistencyResult(BaseModel):
+    findings: list[TenseShift] = []
+    dominant_tense: str = ""        # "past" | "present" | "mixed" | ""
+    past_sentence_count: int = 0
+    present_sentence_count: int = 0
+    shift_count: int = 0
+
+
+class POVDriftFinding(BaseModel):
+    sentence: str
+    char_offset: int = 0
+    subjects: list[str] = []        # Named subjects of perspective verbs here
+    severity: str = "warning"
+    explanation: str = ""
+
+
+class POVDriftResult(BaseModel):
+    findings: list[POVDriftFinding] = []
+    dominant_subject: str = ""          # Most common perspective-verb subject
+    perspective_subjects: list[str] = []  # All subjects found using perspective verbs
+
+
+class SceneEditorialAnalysis(BaseModel):
+    scene_id: str
+    scene_title: str
+    word_count: int = 0
+    tense_consistency: TenseConsistencyResult | None = None
+    pov_drift: POVDriftResult | None = None
+
+
+class EditorialConsistencyResponse(BaseModel):
+    scenes: list[SceneEditorialAnalysis] = []
+    checks_run: list[str] = []
+    total_tense_shifts: int = 0
+    total_pov_flags: int = 0
