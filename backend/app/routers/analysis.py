@@ -34,6 +34,9 @@ from ..schemas.ai_responses import (
     AudienceAdherenceResponse,
     StructuredResult,
 )
+from ..schemas.nlp_analysis import ProseNLPResponse, SceneNLPAnalysis, EntitySuggestionsResponse
+from ..services.nlp_analysis_service import analyze_scene, extract_unknown_entities, ALL_CHECKS
+from ..models.location import Location
 
 router = APIRouter()
 
@@ -678,3 +681,91 @@ async def analyze_audience_adherence(
         db=db,
         user=current_user,
     )
+
+
+# ── NLP Prose Analysis (spaCy — no LLM) ──────────────────────────────────────
+
+@router.post("/stories/{story_id}/analyze/prose-nlp", response_model=ProseNLPResponse)
+def analyze_prose_nlp(
+    story_id: str,
+    node_ids: list[str] | None = Body(None, embed=True),
+    checks: list[str] | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run spaCy NLP analysis on one or more scenes.
+
+    No LLM involved — all analysis is local and deterministic.
+    node_ids=null runs all scenes; checks=null runs all checks.
+    """
+    story = _get_story(story_id, db, current_user)
+
+    if node_ids:
+        nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
+    else:
+        nodes = (
+            db.query(StructureNode)
+            .filter(
+                StructureNode.story_id == story_id,
+                StructureNode.content.isnot(None),
+                StructureNode.content != "",
+            )
+            .all()
+        )
+
+    checks_set = set(checks) & ALL_CHECKS if checks else ALL_CHECKS
+
+    scenes: list[SceneNLPAnalysis] = []
+    for node in nodes:
+        if not node.content or not node.content.strip():
+            continue
+        analysis = analyze_scene(node.content, checks_set)
+        scenes.append(SceneNLPAnalysis(
+            scene_id=node.id,
+            scene_title=node.title or "",
+            **analysis,
+        ))
+
+    return ProseNLPResponse(
+        scenes=scenes,
+        checks_run=sorted(checks_set),
+    )
+
+
+@router.post("/stories/{story_id}/analyze/entity-suggestions", response_model=EntitySuggestionsResponse)
+def analyze_entity_suggestions(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run NER across all scenes to surface proper nouns not in the Lorebook.
+    Returns character (PERSON) and location (GPE/LOC) suggestions.
+    """
+    _get_story(story_id, db, current_user)
+
+    # Gather known entities from Lorebook
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    locations = db.query(Location).filter(Location.story_id == story_id).all()
+    known_characters = {c.name for c in characters}
+    known_locations = {l.name for l in locations}
+
+    # Gather all scene content
+    nodes = (
+        db.query(StructureNode)
+        .filter(
+            StructureNode.story_id == story_id,
+            StructureNode.content.isnot(None),
+            StructureNode.content != "",
+        )
+        .all()
+    )
+
+    scene_tuples = [
+        (n.id, n.title or "", n.content)
+        for n in nodes
+        if n.content and n.content.strip()
+    ]
+
+    return extract_unknown_entities(scene_tuples, known_characters, known_locations)

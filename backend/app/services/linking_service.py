@@ -14,29 +14,8 @@ Matching strategy:
 
 import re
 import uuid
-from html.parser import HTMLParser
 
-
-# ---------------------------------------------------------------------------
-# HTML → plain text (reusing same approach as dialogue_service)
-# ---------------------------------------------------------------------------
-
-class _TextExtractor(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self._buf: list[str] = []
-
-    def handle_data(self, data):
-        self._buf.append(data)
-
-    def get_text(self) -> str:
-        return "".join(self._buf)
-
-
-def _html_to_text(html: str) -> str:
-    p = _TextExtractor()
-    p.feed(html)
-    return p.get_text()
+from .text_utils import html_to_text as _html_to_text
 
 
 # ---------------------------------------------------------------------------

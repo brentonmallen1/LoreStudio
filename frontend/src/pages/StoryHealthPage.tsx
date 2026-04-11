@@ -8,6 +8,8 @@ import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import EconomyAnalysisPanel from "../components/health/EconomyAnalysisPanel";
 import EssentialQuestionsPanel from "../components/health/EssentialQuestionsPanel";
+import ProseAnalysisPanel from "../components/health/ProseAnalysisPanel";
+import EntitySuggestionsPanel from "../components/health/EntitySuggestionsPanel";
 import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import styles from "./StoryHealthPage.module.css";
 
@@ -418,6 +420,20 @@ export default function StoryHealthPage() {
       {storyId && (
         <div className={styles.economyWrap}>
           <EconomyAnalysisPanel storyId={storyId} />
+        </div>
+      )}
+
+      {/* NLP Prose Analysis */}
+      {storyId && (
+        <div className={styles.economyWrap}>
+          <ProseAnalysisPanel storyId={storyId} />
+        </div>
+      )}
+
+      {/* Lorebook Entity Suggestions */}
+      {storyId && (
+        <div className={styles.economyWrap}>
+          <EntitySuggestionsPanel storyId={storyId} />
         </div>
       )}
 

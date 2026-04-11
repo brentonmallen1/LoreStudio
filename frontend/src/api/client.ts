@@ -132,6 +132,18 @@ export const api = {
       body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
     }),
 
+  analyzeProseNLP: (storyId: string, nodeIds?: string[], checks?: string[]) =>
+    request<import("../types").ProseNLPResponse>(`/stories/${storyId}/analyze/prose-nlp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ node_ids: nodeIds ?? null, checks: checks ?? null }),
+    }),
+
+  analyzeEntitySuggestions: (storyId: string) =>
+    request<import("../types").EntitySuggestionsResponse>(`/stories/${storyId}/analyze/entity-suggestions`, {
+      method: "POST",
+    }),
+
   // Structure
   getStructure: (storyId: string) =>
     request<import("../types").StructureNode[]>(`/stories/${storyId}/structure`),

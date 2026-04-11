@@ -13,9 +13,10 @@ The HTML is stripped to plain text per paragraph before regex parsing.
 import re
 import uuid
 from datetime import datetime, timezone
-from html.parser import HTMLParser
 
 from sqlalchemy.orm import Session
+
+from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
 from ..models.dialogue import DialogueBlock
 from ..models.character import Character
@@ -45,55 +46,6 @@ _STANDALONE_QUOTE_RE = re.compile(
 # Deliberately excludes \s so that @Maya followed by prose words isn't consumed.
 # Multi-word names (e.g. Lady Ashford) require explicit @Name: "..." syntax.
 _MENTION_RE = re.compile(r'@([\w][\w\'-]{0,49})', re.UNICODE)
-
-
-# ---------------------------------------------------------------------------
-# HTML → plain text
-# ---------------------------------------------------------------------------
-
-class _TextExtractor(HTMLParser):
-    """Extract paragraph-level plain text from TipTap HTML."""
-
-    def __init__(self):
-        super().__init__()
-        self._paragraphs: list[str] = []
-        self._current: list[str] = []
-        self._block_tags = {"p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"}
-
-    def handle_starttag(self, tag, attrs):
-        if tag in self._block_tags and self._current:
-            self._flush()
-
-    def handle_endtag(self, tag):
-        if tag in self._block_tags:
-            self._flush()
-
-    def handle_data(self, data):
-        self._current.append(data)
-
-    def handle_entityref(self, name):
-        import html as html_module
-        self._current.append(html_module.unescape(f"&{name};"))
-
-    def handle_charref(self, name):
-        import html as html_module
-        self._current.append(html_module.unescape(f"&#{name};"))
-
-    def _flush(self):
-        text = "".join(self._current).strip()
-        if text:
-            self._paragraphs.append(text)
-        self._current = []
-
-    def get_paragraphs(self) -> list[str]:
-        self._flush()
-        return self._paragraphs
-
-
-def _html_to_paragraphs(html: str) -> list[str]:
-    extractor = _TextExtractor()
-    extractor.feed(html)
-    return extractor.get_paragraphs()
 
 
 # ---------------------------------------------------------------------------

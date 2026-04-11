@@ -192,6 +192,87 @@ export interface PronounRefactorPreviewResponse {
   scenes_scanned: number;
 }
 
+// ── NLP Prose Analysis ───────────────────────────────────────────────────────
+
+export interface PassageFinding {
+  passage: string;
+  char_offset: number;
+  severity: "info" | "warning" | "issue";
+  explanation: string;
+  suggestion?: string;
+}
+
+export interface PassiveVoiceResult {
+  findings: PassageFinding[];
+  sentence_count: number;
+  passive_count: number;
+  percentage: number;
+}
+
+export interface AdverbResult {
+  findings: PassageFinding[];
+  word_count: number;
+  adverb_count: number;
+  percentage: number;
+  threshold: number;
+}
+
+export interface SaidBookismResult {
+  findings: PassageFinding[];
+  total_attributions: number;
+  bookism_count: number;
+}
+
+export interface RepeatedWordResult {
+  findings: PassageFinding[];
+  window_chars: number;
+}
+
+export interface SentenceLengthBucket {
+  label: string;
+  count: number;
+}
+
+export interface SentenceVarietyResult {
+  sentence_count: number;
+  mean_length: number;
+  std_dev: number;
+  min_length: number;
+  max_length: number;
+  histogram: SentenceLengthBucket[];
+  assessment: "monotonous" | "varied" | "erratic" | "too_short" | "";
+}
+
+export interface SceneNLPAnalysis {
+  scene_id: string;
+  scene_title: string;
+  word_count: number;
+  passive_voice?: PassiveVoiceResult;
+  adverb_overuse?: AdverbResult;
+  said_bookisms?: SaidBookismResult;
+  repeated_words?: RepeatedWordResult;
+  sentence_variety?: SentenceVarietyResult;
+}
+
+export interface ProseNLPResponse {
+  scenes: SceneNLPAnalysis[];
+  checks_run: string[];
+}
+
+export interface EntitySuggestion {
+  text: string;
+  label: string;
+  scene_count: number;
+  occurrences: number;
+  scene_ids: string[];
+  scene_titles: string[];
+}
+
+export interface EntitySuggestionsResponse {
+  character_suggestions: EntitySuggestion[];
+  location_suggestions: EntitySuggestion[];
+}
+
 export interface CharacterRelationship {
   id: string;
   character_id: string;

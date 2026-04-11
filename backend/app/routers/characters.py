@@ -30,7 +30,8 @@ from ..schemas.refactoring import (
     PronounRefactorPreviewResponse, PronounRewriteProposal, ApplyPronounRefactorRequest,
 )
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
-from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html, _html_to_text
+from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html
+from ..services.text_utils import html_to_text as _html_to_text
 
 router = APIRouter()
 

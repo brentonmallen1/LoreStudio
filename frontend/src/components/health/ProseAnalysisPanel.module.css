@@ -1,0 +1,339 @@
+.panel {
+  border: 1px solid var(--color-nlp-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-nlp-subtle);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem 0.75rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+}
+
+.icon {
+  color: var(--color-nlp);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 0.15rem;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.runBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-nlp);
+  color: var(--color-nlp-fg);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.runBtn:hover:not(:disabled) {
+  background: var(--color-nlp-hover);
+}
+
+.runBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Check toggles */
+.checkToggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0 1.125rem 0.875rem;
+}
+
+.toggle {
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-nlp-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.toggle:hover {
+  border-color: var(--color-nlp);
+  color: var(--color-nlp);
+}
+
+.toggleOn {
+  background: var(--color-nlp);
+  color: var(--color-nlp-fg);
+  border-color: var(--color-nlp);
+}
+
+.toggleOn:hover {
+  background: var(--color-nlp-hover);
+  border-color: var(--color-nlp-hover);
+  color: var(--color-nlp-fg);
+}
+
+/* Results */
+.results {
+  border-top: 1px solid var(--color-nlp-border);
+}
+
+.summary {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding: 0.625rem 1.125rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.hint {
+  padding: 0.75rem 1.125rem;
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0;
+}
+
+/* Scene block */
+.sceneBlock {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.sceneBlock:last-child {
+  border-bottom: none;
+}
+
+.sceneHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 1.125rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-family: inherit;
+  transition: background var(--transition);
+}
+
+.sceneHeader:hover {
+  background: var(--color-surface-2);
+}
+
+.sceneTitle {
+  flex: 1;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sceneWordCount {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.sceneBadgeClean {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(74, 156, 110, 0.15);
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.sceneBadgeCount {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  background: var(--color-nlp-subtle);
+  color: var(--color-nlp);
+  border: 1px solid var(--color-nlp-border);
+  flex-shrink: 0;
+}
+
+.sceneContent {
+  padding: 0 1.125rem 0.75rem;
+}
+
+.noFindings {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0.5rem 0 0;
+}
+
+/* Check section */
+.checkSection {
+  margin-top: 0.75rem;
+}
+
+.checkSection:first-child {
+  margin-top: 0.5rem;
+}
+
+.checkHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.checkLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-nlp);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.checkStat {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+}
+
+/* Finding row */
+.finding {
+  padding: 0.45rem 0.625rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.3rem;
+  border-left: 2px solid transparent;
+}
+
+.finding_info {
+  background: var(--color-surface-2);
+  border-left-color: var(--color-nlp-border);
+}
+
+.finding_warning {
+  background: rgba(196, 122, 30, 0.08);
+  border-left-color: var(--color-warning);
+}
+
+.finding_issue {
+  background: rgba(184, 50, 50, 0.07);
+  border-left-color: var(--color-danger);
+}
+
+.findingHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.iconInfo { color: var(--color-nlp); }
+.iconWarning { color: var(--color-warning); }
+.iconIssue { color: var(--color-danger); }
+
+.findingExplanation {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.findingPassage {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0 0 0.2rem 1rem;
+  line-height: 1.5;
+  padding: 0;
+  border: none;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.findingSuggestion {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  margin: 0.2rem 0 0 1rem;
+}
+
+/* Sentence variety */
+.varietyBlock {
+  padding: 0.25rem 0;
+}
+
+.varietyStats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 40px;
+  margin-bottom: 0.35rem;
+}
+
+.histBar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+}
+
+.histFill {
+  width: 100%;
+  background: var(--color-nlp);
+  border-radius: 2px 2px 0 0;
+  opacity: 0.7;
+  min-height: 2px;
+  margin-top: auto;
+}
+
+.histLabel {
+  font-size: 0.6rem;
+  color: var(--color-text-subtle);
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.assessment {
+  font-size: 0.72rem;
+  margin: 0;
+}
+
+.assessGood { color: var(--color-success); }
+.assessWarn { color: var(--color-warning); }
+.assessInfo { color: var(--color-text-muted); }

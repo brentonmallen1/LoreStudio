@@ -17,7 +17,8 @@ The LLM touches zero prose. All text changes are mechanical and reviewable.
 from __future__ import annotations
 
 import re
-from html.parser import HTMLParser
+
+from .text_utils import html_to_text as _html_to_text  # noqa: F401 (re-exported for router compat)
 
 
 # ---------------------------------------------------------------------------
@@ -118,28 +119,6 @@ def _fix_conjugation(text: str, target_subject: str) -> str:
 
         text = re.sub(pattern, replacer, text, flags=re.IGNORECASE)
     return text
-
-
-# ---------------------------------------------------------------------------
-# HTML plain-text extraction
-# ---------------------------------------------------------------------------
-
-class _TextExtractor(HTMLParser):
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self._buf: list[str] = []
-
-    def handle_data(self, data: str) -> None:
-        self._buf.append(data)
-
-    def get_text(self) -> str:
-        return "".join(self._buf)
-
-
-def _html_to_text(html: str) -> str:
-    p = _TextExtractor()
-    p.feed(html)
-    return p.get_text()
 
 
 # ---------------------------------------------------------------------------
