@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare } from "lucide-react";
+import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare, Snowflake } from "lucide-react";
 import { api } from "../api/client";
 import type { StoryHealth, BeatSheet, PlotThread, DialogueStats, DialogueInteraction } from "../types";
 import { useStoryStore } from "../stores/storyStore";
@@ -37,7 +37,7 @@ function flattenNodes(nodes: import("../types").StructureNode[]): import("../typ
 export default function StoryHealthPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { activeStory, structure } = useStoryStore();
+  const { activeStory, structure, characters } = useStoryStore();
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [beatSheet, setBeatSheet] = useState<BeatSheet | null>(null);
@@ -227,6 +227,44 @@ export default function StoryHealthPage() {
             </div>
           </section>
         )}
+
+        {/* Snowflake Progress — only shown when any snowflake layer has content */}
+        {activeStory && (activeStory.snowflake_sentence || activeStory.snowflake_paragraph || activeStory.snowflake_synopsis) && (() => {
+          const storyLayers = [
+            { label: "One-Sentence", done: activeStory.snowflake_sentence.trim().length > 0 },
+            { label: "One-Paragraph", done: activeStory.snowflake_paragraph.trim().length > 0 },
+            { label: "One-Page Synopsis", done: activeStory.snowflake_synopsis.trim().length > 0 },
+          ];
+          const charSummaryDone = characters.length > 0 && characters.every((c) => c.snowflake_summary.trim().length > 0);
+          const charSynopsisDone = characters.length > 0 && characters.every((c) => c.snowflake_synopsis.trim().length > 0);
+          const allLayers = [
+            ...storyLayers,
+            { label: `Character Summaries (${characters.filter((c) => c.snowflake_summary.trim().length > 0).length}/${characters.length})`, done: charSummaryDone },
+            { label: `Character Synopses (${characters.filter((c) => c.snowflake_synopsis.trim().length > 0).length}/${characters.length})`, done: charSynopsisDone },
+          ];
+          const completedCount = allLayers.filter((l) => l.done).length;
+          return (
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <Snowflake size={14} className={styles.cardIcon} />
+                <h3 className={styles.cardTitle}>Snowflake Progress</h3>
+              </div>
+              <p className={styles.bigStatSub} style={{ marginBottom: "0.75rem" }}>
+                {completedCount}/{allLayers.length} layers complete
+              </p>
+              <div className={styles.beatList}>
+                {allLayers.map((layer) => (
+                  <div key={layer.label} className={styles.beatItem}>
+                    <span className={layer.done ? styles.beatAssigned : styles.beatUnassigned}>
+                      {layer.done ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+                    </span>
+                    <span className={styles.beatName}>{layer.label}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* Plot Threads */}
         <section className={styles.card}>

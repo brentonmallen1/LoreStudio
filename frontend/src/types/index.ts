@@ -51,6 +51,9 @@ export interface Story {
   discovery_min_confidence: number;
   narrative_perspective: string;
   pov_character_id: string | null;
+  snowflake_sentence: string;
+  snowflake_paragraph: string;
+  snowflake_synopsis: string;
   created_at: string;
   updated_at: string;
 }
@@ -154,6 +157,8 @@ export interface Character {
   attributes: CharacterAttributes;
   narrative_intent: string;
   narrative_intent_hidden: boolean;
+  snowflake_summary: string;
+  snowflake_synopsis: string;
   arc_milestones: ArcMilestone[];
   created_at: string;
   updated_at: string;

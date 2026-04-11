@@ -43,6 +43,8 @@ class CharacterUpdate(BaseModel):
     attributes: dict | None = None
     narrative_intent: str | None = None
     narrative_intent_hidden: bool | None = None
+    snowflake_summary: str | None = None
+    snowflake_synopsis: str | None = None
 
 
 class CharacterOut(BaseModel):
@@ -62,6 +64,8 @@ class CharacterOut(BaseModel):
     attributes: dict
     narrative_intent: str
     narrative_intent_hidden: bool
+    snowflake_summary: str
+    snowflake_synopsis: str
     arc_milestones: list[ArcMilestone]
     created_at: datetime
     updated_at: datetime

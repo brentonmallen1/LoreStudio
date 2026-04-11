@@ -100,6 +100,43 @@
   color: var(--color-text);
 }
 
+/* ── Mode toggle ── */
+.modeToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.modeBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.modeBtn:not(:last-child) {
+  border-right: 1px solid var(--color-border);
+}
+
+.modeBtn:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.modeBtnActive {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  cursor: default;
+}
+
 /* ── Header buttons ── */
 .addBeatBtn {
   display: inline-flex;

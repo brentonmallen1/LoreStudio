@@ -37,6 +37,9 @@ class StoryUpdate(BaseModel):
     discovery_min_confidence: float | None = None
     narrative_perspective: str | None = None
     pov_character_id: str | None = None
+    snowflake_sentence: str | None = None
+    snowflake_paragraph: str | None = None
+    snowflake_synopsis: str | None = None
 
 
 class StoryOut(BaseModel):
@@ -63,6 +66,9 @@ class StoryOut(BaseModel):
     discovery_min_confidence: float
     narrative_perspective: str
     pov_character_id: str | None
+    snowflake_sentence: str
+    snowflake_paragraph: str
+    snowflake_synopsis: str
     created_at: datetime
     updated_at: datetime
 

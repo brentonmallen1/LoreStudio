@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, X, Trash2, BookOpen } from "lucide-react";
+import { Plus, X, Trash2, BookOpen, Snowflake } from "lucide-react";
 import { api } from "../../api/client";
 import { useHistoryStore } from "../../stores/historyStore";
 import type { OutlineItem } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
+import SnowflakeView from "./SnowflakeView";
 import styles from "./OutlineManager.module.css";
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
@@ -110,6 +111,7 @@ interface Props {
 }
 
 export default function OutlineManager({ storyId }: Props) {
+  const [mode, setMode] = useState<"list" | "snowflake">("list");
   const [items, setItems] = useState<OutlineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -309,6 +311,36 @@ export default function OutlineManager({ storyId }: Props) {
 
   if (loading) return <div className={styles.loading}>Loading outline…</div>;
 
+  if (mode === "snowflake") {
+    return (
+      <div className={styles.manager}>
+        <div className={styles.managerInner}>
+          <div className={styles.header}>
+            <h2 className={styles.title}>Snowflake Method</h2>
+            <div className={styles.headerRight}>
+              <div className={styles.modeToggle}>
+                <button
+                  className={`${styles.modeBtn} ${styles.modeBtnActive}`}
+                  disabled
+                >
+                  <Snowflake size={12} />
+                  Snowflake
+                </button>
+                <button
+                  className={styles.modeBtn}
+                  onClick={() => setMode("list")}
+                >
+                  List View
+                </button>
+              </div>
+            </div>
+          </div>
+          <SnowflakeView storyId={storyId} onSwitchToList={() => setMode("list")} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.manager}>
       {/* Bulk action bar — sticky at top */}
@@ -349,6 +381,21 @@ export default function OutlineManager({ storyId }: Props) {
         <div className={styles.header}>
           <h2 className={styles.title}>Outline</h2>
           <div className={styles.headerRight}>
+            <div className={styles.modeToggle}>
+              <button
+                className={`${styles.modeBtn} ${styles.modeBtnActive}`}
+                disabled
+              >
+                List View
+              </button>
+              <button
+                className={styles.modeBtn}
+                onClick={() => setMode("snowflake")}
+              >
+                <Snowflake size={12} />
+                Snowflake
+              </button>
+            </div>
             <button
               className={styles.addBeatBtnPrimary}
               onClick={() => { setAddingRoot(true); setNewRootText(""); }}

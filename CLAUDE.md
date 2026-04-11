@@ -108,6 +108,8 @@ All colors use CSS custom properties defined in `frontend/src/index.css`. Dark m
 
 **AI color:** Use `var(--color-ai)` (purple) for all AI-related UI elements — icons, buttons, highlights, borders. Never use `var(--color-accent)` (warm orange) for anything AI-related.
 
+**NLP color:** Use `var(--color-nlp)` (cyan/teal) for all local NLP analysis UI elements — icons, buttons, highlights, borders. This distinguishes deterministic spaCy-based features from LLM-powered AI features (purple). Each theme defines its own native cyan/teal variant.
+
 ### Story structure
 `StoryStructureTemplate` defines named levels (e.g. Act → Chapter → Scene). `StructureNode` is a recursive tree with `level`, `level_type`, `parent_id`. The active template is loaded into `storyStore.activeTemplate` on workspace load — use it to drive type-aware UI (labels, icons, "Add X" buttons).
 

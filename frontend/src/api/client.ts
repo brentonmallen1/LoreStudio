@@ -411,6 +411,26 @@ export const api = {
   // Beat Sheets
   listBeatSheets: () => request<import("../types").BeatSheet[]>("/beat-sheets"),
 
+  // Snowflake Method
+  getSnowflakeGuidance: (
+    storyId: string,
+    layer: string,
+    content: string,
+    characterId?: string | null,
+    signal?: AbortSignal,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/snowflake/guidance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ layer, content, character_id: characterId ?? null }),
+      signal,
+    });
+  },
+
   // Global search
   search: (query: string) =>
     request<import("../types").SearchResult[]>(`/search?q=${encodeURIComponent(query)}`),

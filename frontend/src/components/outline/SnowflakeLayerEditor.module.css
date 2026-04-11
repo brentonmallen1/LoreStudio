@@ -1,0 +1,183 @@
+.editor {
+  padding: 1rem 0 0.5rem;
+}
+
+/* ── Previous layer reference ── */
+.prevWrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.prevToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition);
+}
+
+.prevToggle:hover {
+  background: var(--color-surface-2);
+}
+
+.prevContent {
+  padding: 0.5rem 0.75rem 0.6rem;
+  font-size: 0.79rem;
+  color: var(--color-text-muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Goal hint ── */
+.goalHint {
+  font-size: 0.79rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: 0.6rem;
+}
+
+/* ── Textarea ── */
+.textarea {
+  width: 100%;
+  resize: vertical;
+  font-size: 0.9rem;
+  font-family: inherit;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.75rem;
+  outline: none;
+  transition: border-color var(--transition);
+  box-sizing: border-box;
+}
+
+.textarea:focus {
+  border-color: var(--color-accent);
+}
+
+.textarea::placeholder {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+}
+
+.wordCount {
+  font-size: 0.73rem;
+  color: var(--color-text-subtle);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guidanceBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-ai);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.guidanceBtn:hover {
+  background: var(--color-surface-2);
+  border-color: var(--color-ai);
+}
+
+.doneBtn {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.doneBtn:hover {
+  opacity: 0.88;
+}
+
+/* ── Character selector ── */
+.charSelector {
+  margin-bottom: 1rem;
+}
+
+.charSelectorLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.charList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.charBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.charBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.charBtnActive {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
+.charRole {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+  text-transform: capitalize;
+}

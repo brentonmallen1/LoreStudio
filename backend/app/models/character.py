@@ -33,6 +33,10 @@ class Character(Base):
 
     # Arc milestones: checkable waypoints for character journey
     arc_milestones: Mapped[list] = mapped_column(JSON, default=list)
+
+    # Snowflake Method layers
+    snowflake_summary: Mapped[str] = mapped_column(Text, default="")   # Layer 3: goal, motivation, conflict, epiphany
+    snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")  # Layer 5: full arc told in first person
     # Format: [{"id": "uuid", "text": "First moment of doubt", "completed": false}]
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(

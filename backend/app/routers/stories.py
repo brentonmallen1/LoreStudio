@@ -17,6 +17,7 @@ from ..schemas.character import RelationshipOut
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
+from ..services.llm.prompts.snowflake import build_snowflake_guidance_prompt, LAYER_SPECS
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
 from ..schemas.structure import StructureNodeCreate, StructureNodeOut, ReorderStructurePayload
 from ..auth.dependencies import get_current_user
@@ -243,6 +244,68 @@ async def summarize_story(
         user_id=current_user.id,
         story_id=story_id,
         tags=["story", "summarization", "user-initiated"],
+    )
+
+    async def stream():
+        async for token in ai_gateway.stream(
+            messages=llm_messages,
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+        ):
+            yield token
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+@router.post("/{story_id}/snowflake/guidance")
+async def snowflake_guidance(
+    story_id: str,
+    layer: str = Body(..., embed=True),
+    content: str = Body("", embed=True),
+    character_id: str | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return AI guidance (questions and observations) for the given Snowflake layer.
+
+    The AI never writes content — it analyzes what the author has written
+    and asks questions to prompt deeper thinking.
+    """
+    if layer not in LAYER_SPECS:
+        raise HTTPException(status_code=400, detail=f"Unknown layer: {layer}")
+
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    # Build a brief story context for the AI
+    context_parts = []
+    if story.title:
+        context_parts.append(f"Title: {story.title}")
+    if story.snowflake_sentence:
+        context_parts.append(f"One-sentence summary: {story.snowflake_sentence}")
+    if story.snowflake_paragraph:
+        context_parts.append(f"One-paragraph summary: {story.snowflake_paragraph}")
+
+    if character_id and layer in ("character_summary", "character_synopsis"):
+        char = db.get(Character, character_id)
+        if char and char.story_id == story_id:
+            if char.name:
+                context_parts.append(f"Character: {char.name} ({char.role})")
+            if char.snowflake_summary and layer == "character_synopsis":
+                context_parts.append(f"Character summary: {char.snowflake_summary}")
+
+    story_context = "\n".join(context_parts)
+    feature_prompt = build_snowflake_guidance_prompt(layer=layer, content=content, story_context=story_context)
+    llm_messages = [{"role": "user", "content": "Please review my work and give me guidance."}]
+
+    ctx = AICallContext(
+        feature="snowflake-guidance",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["snowflake", "guidance", "user-initiated"],
     )
 
     async def stream():

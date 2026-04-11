@@ -33,6 +33,11 @@ class Story(Base):
     narrative_perspective: Mapped[str] = mapped_column(String, default="")
     pov_character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True)
 
+    # Snowflake Method layers
+    snowflake_sentence: Mapped[str] = mapped_column(Text, default="")
+    snowflake_paragraph: Mapped[str] = mapped_column(Text, default="")
+    snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")
+
     # Story goals checklist
     goals: Mapped[list] = mapped_column(JSON, default=list)
 
