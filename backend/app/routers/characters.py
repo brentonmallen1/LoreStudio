@@ -19,7 +19,7 @@ from ..schemas.character import (
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.generation import build_attribute_generation_prompt
-from ..schemas.ai_responses import AttributeSuggestionsResponse, StructuredResult
+from ..schemas.ai_responses import AttributeSuggestionsResponse, StructuredResult, PronounIdentificationResponse
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -29,8 +29,8 @@ from ..schemas.refactoring import (
     RenamePreviewResponse, ApplyRenameRequest,
     PronounRefactorPreviewResponse, PronounRewriteProposal, ApplyPronounRefactorRequest,
 )
-from ..schemas.ai_responses import PronounRefactorResponse
-from ..services.llm.prompts.pronoun_refactor import build_pronoun_refactor_prompt
+from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
+from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html, _html_to_text
 
 router = APIRouter()
 
@@ -454,7 +454,12 @@ async def preview_pronoun_refactor(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Use AI to preview pronoun changes across scenes."""
+    """Preview pronoun changes across scenes.
+
+    The LLM identifies which pronouns refer to this character (identification only,
+    no prose generation). Deterministic substitution + spaCy conjugation fixing
+    compute the actual replacements.
+    """
     character = _verify_character_access(character_id, db, current_user)
     if not new_pronouns.strip():
         raise HTTPException(status_code=400, detail="new_pronouns is required")
@@ -471,62 +476,51 @@ async def preview_pronoun_refactor(
             )
             .all()
         )
-    # Only include scenes that mention the character
     name_lower = character.name.lower()
     scenes_to_scan = [n for n in nodes if n.content and name_lower in n.content.lower()]
 
     proposals: list[PronounRewriteProposal] = []
     for node in scenes_to_scan:
-        from html.parser import HTMLParser
+        plain_text = _html_to_text(node.content)
 
-        class _TextExtractor(HTMLParser):
-            def __init__(self):
-                super().__init__(convert_charrefs=True)
-                self._buf: list[str] = []
-            def handle_data(self, data):
-                self._buf.append(data)
-            def get_text(self) -> str:
-                return "".join(self._buf)
-
-        extractor = _TextExtractor()
-        extractor.feed(node.content)
-        plain_text = extractor.get_text()
-
-        feature_prompt = build_pronoun_refactor_prompt(
+        # Step 1: LLM identifies which pronouns refer to this character
+        feature_prompt = build_pronoun_identification_prompt(
             character_name=character.name,
-            new_pronouns=new_pronouns.strip(),
             scene_content=plain_text,
         )
-
         ctx = AICallContext(
-            feature="pronoun-refactor",
+            feature="pronoun-identification",
             user_id=current_user.id,
             story_id=character.story_id,
             character_id=character_id,
             node_id=node.id,
-            tags=["character", "pronouns", "refactor", "user-initiated"],
+            tags=["character", "pronouns", "identification", "user-initiated"],
         )
-
         result = await ai_gateway.generate_structured(
-            response_model=PronounRefactorResponse,
-            messages=[{"role": "user", "content": "Please analyze the scene and provide rewrites."}],
+            response_model=PronounIdentificationResponse,
+            messages=[{"role": "user", "content": "Please identify the pronouns."}],
             feature_prompt=feature_prompt,
             context=ctx,
             db=db,
             user=current_user,
         )
 
-        if result.success and result.data:
-            rewrites = result.data.get("rewrites", [])
-            for rw in rewrites:
-                proposals.append(PronounRewriteProposal(
-                    id=str(uuid.uuid4()),
-                    node_id=node.id,
-                    node_title=node.title or "(Untitled)",
-                    original=rw.get("original", ""),
-                    rewritten=rw.get("rewritten", ""),
-                    explanation=rw.get("explanation", ""),
-                ))
+        if not result.success or not result.data:
+            continue
+
+        instances = result.data.get("instances", [])
+
+        # Step 2: Deterministic substitution — compute what each identified pronoun becomes
+        scene_proposals = build_pronoun_proposals(instances, plain_text, new_pronouns.strip())
+        for prop in scene_proposals:
+            proposals.append(PronounRewriteProposal(
+                id=str(uuid.uuid4()),
+                node_id=node.id,
+                node_title=node.title or "(Untitled)",
+                original=prop["original"],
+                rewritten=prop["rewritten"],
+                explanation=prop["explanation"],
+            ))
 
     return PronounRefactorPreviewResponse(
         character_id=character.id,
@@ -548,7 +542,6 @@ def apply_pronoun_refactor(
     """Apply selected pronoun rewrites to scenes and update character pronouns."""
     character = _verify_character_access(character_id, db, current_user)
 
-    # Group rewrites by node
     from collections import defaultdict
     by_node: dict[str, list] = defaultdict(list)
     for rw in body.rewrites:
@@ -558,16 +551,12 @@ def apply_pronoun_refactor(
         node = db.get(StructureNode, node_id)
         if not node:
             continue
-        content = node.content
-        for rw in rewrites:
-            # Replace the original phrase with the rewritten one
-            if rw.original in content:
-                content = content.replace(rw.original, rw.rewritten, 1)
-        if content != node.content:
-            node.content = content
+        props = [{"original": rw.original, "rewritten": rw.rewritten} for rw in rewrites]
+        new_content = apply_proposals_to_html(node.content, props, body.new_pronouns)
+        if new_content != node.content:
+            node.content = new_content
             node.summary_stale = True
 
-    # Update character pronouns
     character.pronouns = body.new_pronouns
     db.commit()
     db.refresh(character)

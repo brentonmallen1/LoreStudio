@@ -213,16 +213,16 @@ class DialogueAttributionResponse(BaseModel):
     suggestions: list[DialogueAttributionSuggestion] = []
 
 
-# ── Pronoun Refactoring ───────────────────────────────────────────────────────
+# ── Pronoun Identification (LLM locates, service substitutes) ────────────────
 
-class PronounRewrite(BaseModel):
-    original: str
-    rewritten: str
-    explanation: str
+class PronounInstance(BaseModel):
+    exact_text: str       # 6–10 word context phrase from the text
+    target_word: str      # the specific pronoun within that phrase
+    word_type: str = ""   # subject | object | possessive_det | possessive_pron | reflexive | gendered_noun
 
 
-class PronounRefactorResponse(BaseModel):
-    rewrites: list[PronounRewrite] = []
+class PronounIdentificationResponse(BaseModel):
+    instances: list[PronounInstance] = []
 
 
 # ── Essential Questions Analysis ─────────────────────────────────────────────

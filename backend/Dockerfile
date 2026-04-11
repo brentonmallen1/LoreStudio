@@ -18,6 +18,9 @@ RUN pip install uv
 COPY pyproject.toml ./
 RUN uv sync --frozen
 
+# Download spaCy English model for NLP analysis (pronoun identification, POS tagging, NER)
+RUN uv run python -m spacy download en_core_web_sm
+
 COPY . .
 
 RUN mkdir -p /app/data
