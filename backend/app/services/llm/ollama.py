@@ -1,9 +1,12 @@
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import AsyncIterator
 
 import aiohttp
+
+logger = logging.getLogger(__name__)
 
 from .base import LLMProvider
 from ...config import settings
@@ -118,14 +121,51 @@ class OllamaProvider(LLMProvider):
             return None
 
     async def model_exists(self, model_name: str, base_url: str | None = None) -> bool:
-        """Check if a given model name is available in Ollama (prefix match, ignores :tag)."""
+        """Check if a given model name is available in Ollama.
+
+        Exact match always wins. If the configured name has no tag, also matches
+        any installed variant of that base (e.g. 'gemma4' matches 'gemma4:latest').
+        If the configured name has a tag (e.g. 'gemma4:e4b'), only an exact match
+        counts — we do NOT strip tags and cross-match.
+        """
         models = await self.list_models(base_url=base_url)
-        base = model_name.split(":")[0].lower()
+        has_tag = ":" in model_name
         for m in models:
             name = m.get("name", "")
-            if name == model_name or name.split(":")[0].lower() == base:
+            if name == model_name:
+                return True
+            if not has_tag and name.split(":")[0].lower() == model_name.lower():
                 return True
         return False
+
+    async def ping_model(self, model_name: str, base_url: str | None = None) -> tuple[bool, str]:
+        """Send a minimal 1-token request to verify the model actually responds.
+
+        Returns (success, error_message). On success error_message is empty.
+        Uses num_predict=1 to keep the response fast.
+        """
+        url = base_url or self.base_url
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{url}/api/chat",
+                    json={
+                        "model": model_name,
+                        "messages": [{"role": "user", "content": "hi"}],
+                        "stream": False,
+                        "options": {"num_predict": 1},
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as resp:
+                    if resp.status == 200:
+                        return True, ""
+                    try:
+                        body = await resp.json()
+                        return False, body.get("error", f"HTTP {resp.status}")
+                    except Exception:
+                        return False, f"HTTP {resp.status}"
+        except Exception as e:
+            return False, str(e)
 
     async def chat_stream(self, messages: list[dict], system_prompt: str) -> AsyncIterator[str]:
         """Stream response tokens. Discards metrics — use chat_stream_with_metrics for full data."""
@@ -208,11 +248,16 @@ class OllamaProvider(LLMProvider):
         top_k: int | None = None,
         base_url: str | None = None,
         model: str | None = None,
+        response_schema: dict | None = None,
     ) -> tuple[str, StreamMetrics | None]:
         """
-        Call Ollama with format="json" for structured output.
+        Call Ollama for structured output.
         Returns (raw_response_text, metrics).
         Does NOT stream — waits for the complete response.
+
+        When response_schema is provided (a JSON Schema dict from a Pydantic model),
+        Ollama uses constrained decoding to guarantee the output matches the schema.
+        Falls back to generic format="json" if no schema is given.
         """
         effective_model = model or self.model
         effective_url = base_url or self.base_url
@@ -220,7 +265,7 @@ class OllamaProvider(LLMProvider):
             "model": effective_model,
             "messages": [{"role": "system", "content": system_prompt}] + messages,
             "stream": False,
-            "format": "json",
+            "format": response_schema if response_schema is not None else "json",
             "keep_alive": self.keep_alive,
             "options": {
                 "temperature": temperature if temperature is not None else self.temperature,
@@ -228,14 +273,53 @@ class OllamaProvider(LLMProvider):
                 "top_k": top_k if top_k is not None else self.top_k,
             },
         }
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
+        async with aiohttp.ClientSession() as http_session:
+            async with http_session.post(
                 f"{effective_url}/api/chat",
                 json=payload,
                 timeout=aiohttp.ClientTimeout(total=300),
             ) as resp:
-                resp.raise_for_status()
-                data = await resp.json()
+                if resp.status in (400, 404, 422) and response_schema is not None:
+                    # Ollama <0.5 doesn't support schema-constrained format; fall back to
+                    # generic JSON mode and let Pydantic validation handle the output.
+                    # BUT: 404 can also mean the model doesn't exist — check the body first.
+                    if resp.status == 404:
+                        try:
+                            err_body = await resp.json()
+                            err_msg = err_body.get("error", "")
+                        except Exception:
+                            err_msg = await resp.text()
+                        if "not found" in err_msg.lower() or "model" in err_msg.lower():
+                            raise ValueError(f"Ollama model error: {err_msg}")
+                    logger.warning(
+                        "generate_structured: schema format rejected (%s), retrying with format='json'",
+                        resp.status,
+                    )
+                    payload["format"] = "json"
+                    async with http_session.post(
+                        f"{effective_url}/api/chat",
+                        json=payload,
+                        timeout=aiohttp.ClientTimeout(total=300),
+                    ) as fallback_resp:
+                        if fallback_resp.status == 404:
+                            try:
+                                err_body = await fallback_resp.json()
+                                err_msg = err_body.get("error", "")
+                            except Exception:
+                                err_msg = await fallback_resp.text()
+                            raise ValueError(f"Ollama model error: {err_msg}")
+                        fallback_resp.raise_for_status()
+                        data = await fallback_resp.json()
+                else:
+                    if resp.status == 404:
+                        try:
+                            err_body = await resp.json()
+                            err_msg = err_body.get("error", "")
+                        except Exception:
+                            err_msg = await resp.text()
+                        raise ValueError(f"Ollama model error: {err_msg}")
+                    resp.raise_for_status()
+                    data = await resp.json()
                 content = data.get("message", {}).get("content", "")
                 metrics = StreamMetrics(
                     tokens_in=data.get("prompt_eval_count"),

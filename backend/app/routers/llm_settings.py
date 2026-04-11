@@ -11,12 +11,14 @@ Priority order:
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from ..database import get_db
 from ..models.user import User
 from ..auth.dependencies import get_current_user
 from ..schemas.llm_params import LLMSettingsRead, LLMSettingsUpdate, LLMParams
 from ..config import settings
+from ..services.llm.ollama import ollama_provider
 
 router = APIRouter()
 
@@ -44,6 +46,8 @@ def _build_response(user_llm: dict) -> LLMSettingsRead:
         is_default=is_default,
         ollama_url=user_llm.get("ollama_url"),
         ollama_model=user_llm.get("ollama_model"),
+        effective_ollama_url=user_llm.get("ollama_url") or ollama_provider.base_url,
+        effective_ollama_model=user_llm.get("ollama_model") or ollama_provider.model,
     )
 
 
@@ -75,6 +79,7 @@ def update_llm_settings(
 
     user_settings["llm"] = llm
     current_user.settings = user_settings
+    flag_modified(current_user, "settings")
     db.commit()
 
     return _build_response(llm)
@@ -89,6 +94,7 @@ def reset_llm_settings(
     user_settings = dict(current_user.settings or {})
     user_settings.pop("llm", None)
     current_user.settings = user_settings
+    flag_modified(current_user, "settings")
     db.commit()
 
     return _build_response({})

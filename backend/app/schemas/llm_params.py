@@ -19,6 +19,8 @@ class LLMSettingsRead(LLMParams):
     is_default: bool
     ollama_url: str | None = None    # None = use server default
     ollama_model: str | None = None  # None = use server default
+    effective_ollama_url: str = ""   # Resolved value the backend will actually use
+    effective_ollama_model: str = "" # Resolved value the backend will actually use
 
 
 class LLMSettingsUpdate(BaseModel):

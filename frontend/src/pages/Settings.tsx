@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Sun, Moon, Monitor, Feather, BookOpen, ChevronRight, RefreshCw, Loader2, CheckCircle, XCircle, AlertCircle, Check } from "lucide-react";
+import { Sun, Moon, Monitor, Feather, BookOpen, ChevronRight, RefreshCw, Loader2, CheckCircle, XCircle, Check } from "lucide-react";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../stores/uiStore";
 import { useAuthStore } from "../stores/authStore";
@@ -22,9 +22,10 @@ interface OllamaModel {
 interface ModelPickerProps {
   value: string;
   onChange: (v: string) => void;
+  placeholder?: string;
 }
 
-function ModelPicker({ value, onChange }: ModelPickerProps) {
+function ModelPicker({ value, onChange, placeholder = "e.g. gemma4" }: ModelPickerProps) {
   const [models, setModels] = useState<OllamaModel[] | null>(null);
   const [fetching, setFetching] = useState(false);
   const [open, setOpen] = useState(false);
@@ -80,7 +81,7 @@ function ModelPicker({ value, onChange }: ModelPickerProps) {
           onKeyDown={(e) => {
             if (e.key === "Escape") setOpen(false);
           }}
-          placeholder="e.g. gemma4"
+          placeholder={placeholder}
           spellCheck={false}
         />
         <button
@@ -134,7 +135,7 @@ function ModelPicker({ value, onChange }: ModelPickerProps) {
 type ConnStatus =
   | null
   | "loading"
-  | { connected: boolean; model: string; model_available: boolean; base_url: string };
+  | { connected: boolean; model: string; model_available: boolean; model_in_list: boolean; error: string | null; base_url: string };
 
 function ConnectionStatus({ status }: { status: ConnStatus }) {
   if (!status || status === "loading") return null;
@@ -147,11 +148,19 @@ function ConnectionStatus({ status }: { status: ConnStatus }) {
       </span>
     );
   }
+  if (!status.model_in_list) {
+    return (
+      <span className={styles.connFail}>
+        <XCircle size={13} />
+        {status.error ?? `Model '${status.model}' not found`}
+      </span>
+    );
+  }
   if (!status.model_available) {
     return (
-      <span className={styles.connWarn}>
-        <AlertCircle size={13} />
-        Connected · {status.model} not found
+      <span className={styles.connFail}>
+        <XCircle size={13} />
+        {status.error ?? `Model '${status.model}' did not respond`}
       </span>
     );
   }
@@ -205,35 +214,53 @@ export default function SettingsPage() {
   const [llmTokenBudget, setLlmTokenBudget] = useState<ImageTokenBudget | 0>(0);
   const [llmSaved, setLlmSaved] = useState(false);
 
+  // Store server defaults so we can show them as placeholders
+  const [serverDefaults, setServerDefaults] = useState<{ url: string; model: string } | null>(null);
+
   useEffect(() => {
-    api.getLLMSettings().then((s) => {
-      setLlmSettings(s);
-      setLlmTemperature(s.temperature);
-      setLlmTopP(s.top_p);
-      setLlmTopK(s.top_k);
-      setLlmThinking(s.thinking_enabled);
-      setLlmTokenBudget(s.image_token_budget ?? 0);
-      setOllamaUrl(s.ollama_url ?? OLLAMA_URL_DEFAULT);
-      setOllamaModel(s.ollama_model ?? OLLAMA_MODEL_DEFAULT);
-      ollamaInitialized.current = true;
-    }).catch(() => { ollamaInitialized.current = true; });
+    // Load settings, then auto-check connection
+    api.getLLMSettings()
+      .then((s) => {
+        setLlmSettings(s);
+        setLlmTemperature(s.temperature);
+        setLlmTopP(s.top_p);
+        setLlmTopK(s.top_k);
+        setLlmThinking(s.thinking_enabled);
+        setLlmTokenBudget(s.image_token_budget ?? 0);
+        // Show RAW DB values - empty string if not set
+        setOllamaUrl(s.ollama_url ?? "");
+        setOllamaModel(s.ollama_model ?? "");
+        // Store server defaults for placeholder display
+        setServerDefaults({ url: s.effective_ollama_url, model: s.effective_ollama_model });
+        ollamaInitialized.current = true;
+        // Check connection AFTER settings are loaded
+        return api.ollamaStatus();
+      })
+      .then(setConnStatus)
+      .catch(() => { ollamaInitialized.current = true; });
   }, []);
 
-  // Debounced auto-save when URL or model changes
+  // Debounced auto-save when URL or model changes, then re-check connection
   useEffect(() => {
     if (!ollamaInitialized.current) return;
-    setConnStatus(null);
+    setConnStatus("loading");
     const timer = setTimeout(async () => {
       setOllamaSaveState("saving");
       try {
-        await api.updateLLMSettings({
+        const updated = await api.updateLLMSettings({
           ollama_url: ollamaUrl.trim() || null,
           ollama_model: ollamaModel.trim() || null,
         });
+        // Update server defaults in case they changed
+        setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
         setOllamaSaveState("saved");
+        // Re-check connection with the newly saved values
+        const status = await api.ollamaStatus();
+        setConnStatus(status);
         setTimeout(() => setOllamaSaveState("idle"), 2000);
       } catch {
         setOllamaSaveState("idle");
+        setConnStatus(null);
       }
     }, 800);
     return () => clearTimeout(timer);
@@ -266,8 +293,9 @@ export default function SettingsPage() {
     setLlmTopK(updated.top_k);
     setLlmThinking(updated.thinking_enabled);
     setLlmTokenBudget(updated.image_token_budget ?? 0);
-    setOllamaUrl(updated.ollama_url ?? OLLAMA_URL_DEFAULT);
-    setOllamaModel(updated.ollama_model ?? OLLAMA_MODEL_DEFAULT);
+    setOllamaUrl(updated.ollama_url ?? "");
+    setOllamaModel(updated.ollama_model ?? "");
+    setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
     setConnStatus(null);
   }
 
@@ -277,7 +305,7 @@ export default function SettingsPage() {
       const status = await api.ollamaStatus();
       setConnStatus(status);
     } catch {
-      setConnStatus({ connected: false, model: "", model_available: false, base_url: ollamaUrl });
+      setConnStatus({ connected: false, model: "", model_available: false, model_in_list: false, error: null, base_url: ollamaUrl });
     }
   }
 
@@ -444,28 +472,21 @@ export default function SettingsPage() {
           <h2 className={styles.sectionLabel}>AI / LLM</h2>
           <div className={styles.card}>
             <div className={styles.field}>
-              <div className={styles.labelRow}>
-                <label className={styles.label}>Ollama URL</label>
-                {ollamaSaveState === "saving" && (
-                  <span className={styles.autoSaving}>
-                    <Loader2 size={11} className={styles.spin} /> Saving…
-                  </span>
-                )}
-                {ollamaSaveState === "saved" && (
-                  <span className={styles.autoSaved}>
-                    <Check size={11} /> Saved
-                  </span>
-                )}
-              </div>
+              <label className={styles.label}>Ollama URL</label>
               <input
                 value={ollamaUrl}
                 onChange={(e) => setOllamaUrl(e.target.value)}
                 className={styles.input}
+                placeholder={serverDefaults?.url ?? OLLAMA_URL_DEFAULT}
               />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Model</label>
-              <ModelPicker value={ollamaModel} onChange={(v) => setOllamaModel(v)} />
+              <ModelPicker
+                value={ollamaModel}
+                onChange={(v) => setOllamaModel(v)}
+                placeholder={serverDefaults?.model ?? "e.g. gemma4"}
+              />
             </div>
 
             <div className={styles.connectionRow}>
@@ -480,6 +501,16 @@ export default function SettingsPage() {
                   : null}
                 {connStatus === "loading" ? "Testing…" : "Test Connection"}
               </button>
+              {ollamaSaveState === "saving" && (
+                <span className={styles.autoSaving}>
+                  <Loader2 size={11} className={styles.spin} /> Saving…
+                </span>
+              )}
+              {ollamaSaveState === "saved" && (
+                <span className={styles.autoSaved}>
+                  <Check size={11} /> Saved
+                </span>
+              )}
               <ConnectionStatus status={connStatus} />
             </div>
 
@@ -487,8 +518,8 @@ export default function SettingsPage() {
               <button
                 className={styles.resetBtn}
                 onClick={() => {
-                  setOllamaUrl(OLLAMA_URL_DEFAULT);
-                  setOllamaModel(OLLAMA_MODEL_DEFAULT);
+                  setOllamaUrl("");
+                  setOllamaModel("");
                 }}
                 type="button"
               >

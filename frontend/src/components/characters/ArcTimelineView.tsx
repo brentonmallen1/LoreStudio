@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Loader } from "lucide-react";
 import { api } from "../../api/client";
@@ -21,6 +22,7 @@ export default function ArcTimelineView({ characterId }: Props) {
   const [data, setData] = useState<ArcTimelineData | null>(null);
   const [loading, setLoading] = useState(true);
   const [hoveredScene, setHoveredScene] = useState<string | null>(null);
+  const [tooltipAnchor, setTooltipAnchor] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -107,8 +109,15 @@ export default function ArcTimelineView({ characterId }: Props) {
               <div
                 key={scene.id}
                 className={styles.sceneSlot}
-                onMouseEnter={() => setHoveredScene(scene.id)}
-                onMouseLeave={() => setHoveredScene(null)}
+                onMouseEnter={(e) => {
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                  setHoveredScene(scene.id);
+                  setTooltipAnchor({ x: rect.left + rect.width / 2, y: rect.top });
+                }}
+                onMouseLeave={() => {
+                  setHoveredScene(null);
+                  setTooltipAnchor(null);
+                }}
               >
                 {/* Milestone flag above */}
                 {hasMilestone && (
@@ -138,22 +147,6 @@ export default function ArcTimelineView({ characterId }: Props) {
                 {/* Scene index */}
                 <span className={styles.sceneIndex}>{idx + 1}</span>
 
-                {/* Tooltip */}
-                {isHovered && (
-                  <div className={styles.tooltip}>
-                    <span className={styles.tooltipTitle}>{scene.title}</span>
-                    <span className={styles.tooltipMeta}>{scene.word_count} words · {scene.status}</span>
-                    {sceneMilestones.length > 0 && (
-                      <div className={styles.tooltipMilestones}>
-                        {sceneMilestones.map((m) => (
-                          <span key={m.id} className={styles.tooltipMilestone}>
-                            {m.completed ? "✓" : "○"} {m.text}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -173,6 +166,32 @@ export default function ArcTimelineView({ characterId }: Props) {
           </div>
         </div>
       )}
+
+      {/* Tooltip portal — renders into document.body to escape overflow clipping */}
+      {hoveredScene && tooltipAnchor && (() => {
+        const scene = data.scenes.find((s) => s.id === hoveredScene);
+        const sceneMilestones = scene ? (milestonesByScene[scene.id] ?? []) : [];
+        if (!scene) return null;
+        return createPortal(
+          <div
+            className={styles.tooltipPortal}
+            style={{ left: tooltipAnchor.x, top: tooltipAnchor.y }}
+          >
+            <span className={styles.tooltipTitle}>{scene.title}</span>
+            <span className={styles.tooltipMeta}>{scene.word_count} words · {scene.status}</span>
+            {sceneMilestones.length > 0 && (
+              <div className={styles.tooltipMilestones}>
+                {sceneMilestones.map((m) => (
+                  <span key={m.id} className={styles.tooltipMilestone}>
+                    {m.completed ? "✓" : "○"} {m.text}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>,
+          document.body
+        );
+      })()}
     </div>
   );
 }

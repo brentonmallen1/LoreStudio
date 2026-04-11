@@ -604,6 +604,8 @@ export interface LLMSettings {
   is_default: boolean;
   ollama_url: string | null;
   ollama_model: string | null;
+  effective_ollama_url: string;
+  effective_ollama_model: string;
 }
 
 // ── Scene Chat ──
@@ -1476,4 +1478,64 @@ export interface UserBackupDefaults {
   include_activity_logs: boolean;
   activity_log_limit: number | null;
   include_media_assets: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Document Import Wizard
+// ---------------------------------------------------------------------------
+
+export interface ImportPreviewNode {
+  id: string;
+  parent_id: string | null;
+  title: string;
+  level: number;
+  level_type: string;
+  content_preview: string;
+  word_count: number;
+  source: "heuristic" | "ai" | "user";
+  confidence: number;
+  needs_review: boolean;
+  paragraph_start: number;
+  paragraph_end: number;
+}
+
+export interface ImportPreviewTree {
+  session_id: string;
+  source_format: string;
+  detected_title: string | null;
+  template_id: string;
+  template_levels: { name: string; plural: string }[];
+  nodes: ImportPreviewNode[];
+  warnings: string[];
+  total_word_count: number;
+}
+
+export interface ImportUploadResponse {
+  session_id: string;
+  source_format: string;
+  detected_title: string | null;
+  preview: ImportPreviewTree;
+  has_unstructured_blocks: boolean;
+  ai_available: boolean;
+}
+
+export interface ImportAIAnalyzeResponse {
+  preview: ImportPreviewTree;
+  suggestions_applied: number;
+  reasoning: string;
+}
+
+export interface ImportNodeAdjustment {
+  action: "rename" | "merge_up" | "split" | "relevel";
+  node_id: string;
+  new_title?: string;
+  split_at_paragraph?: number;
+  new_level?: number;
+}
+
+export interface ImportFinalizeRequest {
+  title: string;
+  description: string;
+  template_id: string;
+  genre: string;
 }

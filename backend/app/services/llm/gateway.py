@@ -238,6 +238,7 @@ class AIGateway:
                 top_k=params.top_k,
                 base_url=user_url,
                 model=user_model,
+                response_schema=response_model.model_json_schema(),
             )
         except Exception as e:
             logger.warning("generate_structured Ollama call failed: %s", e)

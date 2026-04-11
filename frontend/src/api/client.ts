@@ -862,7 +862,7 @@ export const api = {
 
   // Ollama connectivity
   ollamaStatus: () =>
-    request<{ connected: boolean; model: string; model_available: boolean; base_url: string }>("/ollama/status"),
+    request<{ connected: boolean; model: string; model_available: boolean; model_in_list: boolean; error: string | null; base_url: string }>("/ollama/status"),
   ollamaModels: () =>
     request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>("/ollama/models"),
   ollamaModelInfo: () =>
@@ -1158,6 +1158,36 @@ export const api = {
   updateUserBackupDefaults: (data: Partial<import("../types").UserBackupDefaults>) =>
     request<import("../types").UserBackupDefaults>(`/user/backup-defaults`, {
       method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  // Document import wizard
+  importUpload: (file: File, templateId = "freeform"): Promise<import("../types").ImportUploadResponse> => {
+    const token = getToken();
+    const form = new FormData();
+    form.append("file", file);
+    return fetch(`${BASE}/import/upload?template_id=${encodeURIComponent(templateId)}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    }).then(async (res) => {
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(detail.detail ?? "Upload failed");
+      }
+      return res.json();
+    });
+  },
+  importAiAnalyze: (sessionId: string) =>
+    request<import("../types").ImportAIAnalyzeResponse>(`/import/${sessionId}/ai-analyze`, { method: "POST" }),
+  importAdjust: (sessionId: string, adjustments: import("../types").ImportNodeAdjustment[]) =>
+    request<import("../types").ImportPreviewTree>(`/import/${sessionId}/adjust`, {
+      method: "POST",
+      body: JSON.stringify({ adjustments }),
+    }),
+  importFinalize: (sessionId: string, data: import("../types").ImportFinalizeRequest) =>
+    request<{ id: string; title: string }>(`/import/${sessionId}/finalize`, {
+      method: "POST",
       body: JSON.stringify(data),
     }),
 };

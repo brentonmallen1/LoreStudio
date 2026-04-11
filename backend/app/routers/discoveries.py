@@ -1,8 +1,8 @@
-import json
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -22,6 +22,19 @@ from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.discovery import build_discovery_prompt
 
 router = APIRouter()
+
+
+class _DiscoveryItem(BaseModel):
+    element_type: str
+    name: str
+    description: str = ""
+    confidence: float = 0.5
+    source_excerpt: str = ""
+
+
+class _DiscoveryResponse(BaseModel):
+    discoveries: list[_DiscoveryItem] = []
+
 
 ELEMENT_TYPE_ICONS = {
     "character": "👤",
@@ -100,8 +113,6 @@ async def run_discovery(
         existing_settings=existing_settings,
     )
 
-    # Collect the full LLM response (non-streaming — we need to parse JSON)
-    full_response = ""
     ctx = AICallContext(
         feature="discovery",
         user_id=current_user.id,
@@ -110,41 +121,28 @@ async def run_discovery(
         tags=["discovery", "user-initiated"],
     )
 
-    async for token in ai_gateway.stream(
+    result = await ai_gateway.generate_structured(
+        response_model=_DiscoveryResponse,
         messages=[{"role": "user", "content": "Analyze this prose for new story elements."}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
-    ):
-        full_response += token
+    )
 
-    # Parse JSON from LLM response
-    try:
-        # Strip any markdown fencing the model might add despite instructions
-        clean = full_response.strip()
-        if clean.startswith("```"):
-            clean = clean.split("```")[1]
-            if clean.startswith("json"):
-                clean = clean[4:]
-            clean = clean.strip()
-        data = json.loads(clean)
-        raw_discoveries = data.get("discoveries", [])
-    except (json.JSONDecodeError, KeyError):
+    if not result.success:
         return []
+
+    raw_discoveries: list[_DiscoveryItem] = _DiscoveryResponse.model_validate(result.data).discoveries
 
     min_confidence = story.discovery_min_confidence or 0.6
     created = []
     for d in raw_discoveries:
-        if not isinstance(d, dict):
+        if d.confidence < min_confidence:
             continue
-        confidence = float(d.get("confidence", 0.0))
-        if confidence < min_confidence:
+        if d.element_type not in element_types:
             continue
-        element_type = d.get("element_type", "")
-        if element_type not in element_types:
-            continue
-        name = (d.get("name") or "").strip()
+        name = d.name.strip()
         if not name:
             continue
 
@@ -152,7 +150,7 @@ async def run_discovery(
         existing = db.query(DiscoveredElement).filter(
             DiscoveredElement.story_id == story_id,
             DiscoveredElement.name == name,
-            DiscoveredElement.element_type == element_type,
+            DiscoveredElement.element_type == d.element_type,
             DiscoveredElement.status == "pending",
         ).first()
         if existing:
@@ -161,12 +159,12 @@ async def run_discovery(
         element = DiscoveredElement(
             id=str(uuid.uuid4()),
             story_id=story_id,
-            element_type=element_type,
+            element_type=d.element_type,
             name=name,
-            description=d.get("description", ""),
-            confidence=confidence,
+            description=d.description,
+            confidence=d.confidence,
             source_node_id=nodes_analyzed[0].id if len(nodes_analyzed) == 1 else None,
-            source_excerpt=d.get("source_excerpt", ""),
+            source_excerpt=d.source_excerpt,
             status="pending",
             created_at=datetime.now(timezone.utc),
         )

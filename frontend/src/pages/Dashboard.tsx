@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Clock } from "lucide-react";
+import { Plus, BookOpen, Clock, FileInput } from "lucide-react";
 import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
+import ImportWizard from "../components/import/ImportWizard";
 import type { Story } from "../types";
 import styles from "./Dashboard.module.css";
 
@@ -14,6 +15,7 @@ export default function DashboardPage() {
   const { stories, setStories, removeStory } = useStoryStore();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,10 +43,16 @@ export default function DashboardPage() {
               {stories.length === 0 ? "No stories yet" : `${stories.length} ${stories.length === 1 ? "story" : "stories"}`}
             </p>
           </div>
-          <button onClick={() => setCreating(true)} className={styles.createBtn}>
-            <Plus size={15} />
-            New Story
-          </button>
+          <div className={styles.headActions}>
+            <button onClick={() => setImporting(true)} className={styles.importBtn}>
+              <FileInput size={14} />
+              Import
+            </button>
+            <button onClick={() => setCreating(true)} className={styles.createBtn}>
+              <Plus size={15} />
+              New Story
+            </button>
+          </div>
         </div>
 
         {stories.length === 0 ? (
@@ -86,6 +94,7 @@ export default function DashboardPage() {
       </main>
 
       {creating && <CreateStoryDialog onClose={() => setCreating(false)} />}
+      {importing && <ImportWizard onClose={() => setImporting(false)} />}
     </div>
   );
 }

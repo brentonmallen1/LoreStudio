@@ -68,6 +68,8 @@
   gap: 1.5rem;
   min-width: max-content;
   padding-bottom: 0.5rem;
+  width: 100%;
+  justify-content: center;
 }
 
 .connectorLine {
@@ -150,19 +152,17 @@
   margin-top: 0.15rem;
 }
 
-/* Tooltip */
-.tooltip {
-  position: absolute;
-  bottom: calc(100% + 0.5rem);
-  left: 50%;
-  transform: translateX(-50%);
+/* Tooltip — rendered via portal into document.body to escape overflow clipping */
+.tooltipPortal {
+  position: fixed;
+  transform: translate(-50%, calc(-100% - 0.5rem));
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.6rem;
   min-width: 140px;
   max-width: 200px;
-  z-index: 100;
+  z-index: 9999;
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
   pointer-events: none;
   display: flex;
