@@ -23,6 +23,20 @@
   gap: 0.25rem;
 }
 
+.pronounsRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pronounsRow .select {
+  flex-shrink: 0;
+}
+
+.pronounsRow .input {
+  flex: 1;
+}
+
 .fieldHead {
   display: flex;
   align-items: baseline;

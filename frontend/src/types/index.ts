@@ -143,6 +143,7 @@ export interface Character {
   name: string;
   role: string;
   mission_statement: string;
+  pronouns: string;
   personality: string;
   motivation: string;
   background: string;
@@ -156,6 +157,39 @@ export interface Character {
   arc_milestones: ArcMilestone[];
   created_at: string;
   updated_at: string;
+}
+
+export interface RenamePreviewItem {
+  node_id: string;
+  node_title: string;
+  occurrences: number;
+  excerpt: string;
+}
+
+export interface RenamePreviewResponse {
+  entity_type: string;
+  old_name: string;
+  new_name: string;
+  affected_scenes: RenamePreviewItem[];
+  total_occurrences: number;
+}
+
+export interface PronounRewriteProposal {
+  id: string;
+  node_id: string;
+  node_title: string;
+  original: string;
+  rewritten: string;
+  explanation: string;
+}
+
+export interface PronounRefactorPreviewResponse {
+  character_id: string;
+  character_name: string;
+  old_pronouns: string;
+  new_pronouns: string;
+  proposals: PronounRewriteProposal[];
+  scenes_scanned: number;
 }
 
 export interface CharacterRelationship {
@@ -808,6 +842,43 @@ export interface ArcTimelineData {
   milestones: ArcMilestone[];
   appearance_rate: number;
   total_scenes: number;
+}
+
+// ── Show Don't Tell Analysis ──
+
+export interface ShowDontTellInstance {
+  passage: string;
+  severity: "strong" | "moderate" | "subtle";
+  issue_type: "emotion" | "state" | "quality" | "exposition";
+  explanation: string;
+  suggestion: string;
+}
+
+export interface ShowDontTellAnalysisResponse {
+  instances: ShowDontTellInstance[];
+  summary: string;
+  overall_rating: string;
+  strengths: string[];
+}
+
+// ── Audience Adherence ──
+
+export interface AudienceIssue {
+  passage: string;
+  issue_type: "vocabulary" | "content" | "theme" | "pacing" | "tone";
+  severity: "critical" | "moderate" | "minor";
+  explanation: string;
+  suggestion: string;
+}
+
+export interface AudienceAdherenceResponse {
+  target_audience: string;
+  issues: AudienceIssue[];
+  vocabulary_assessment: string;
+  content_assessment: string;
+  theme_assessment: string;
+  overall_fit: string;
+  summary: string;
 }
 
 // ── Chronicle ──

@@ -96,6 +96,19 @@
   background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
+.pronounsBadge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  margin-left: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 400;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  color: var(--color-text-subtle);
+}
+
 .actions {
   display: flex;
   align-items: center;

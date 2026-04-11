@@ -16,6 +16,8 @@ dependencies = [
     "aiohttp>=3.11.0",
     "beautifulsoup4>=4.12.0",
     "weasyprint>=68.1",
+    "spacy>=3.8.0",
+    "coreferee>=1.4.0",
 ]
 
 [dependency-groups]

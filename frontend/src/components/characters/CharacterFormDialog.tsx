@@ -4,6 +4,8 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
 import { Modal, SectionCard } from "../common";
+import RenamePreviewDialog from "./RenamePreviewDialog";
+import PronounRefactorDialog from "./PronounRefactorDialog";
 import styles from "./CharacterFormDialog.module.css";
 
 interface Props {
@@ -14,13 +16,19 @@ interface Props {
 }
 
 const ROLES = ["protagonist", "antagonist", "supporting", "minor"];
+const PRONOUN_PRESETS = ["he/him", "she/her", "they/them"];
 
 export default function CharacterFormDialog({ storyId, character, onClose, onSaved }: Props) {
   const { upsertCharacter } = useStoryStore();
   const isEditing = !!character;
 
+  const initialPronouns = character?.pronouns ?? "";
+  const initialPronounSelect = PRONOUN_PRESETS.includes(initialPronouns) ? initialPronouns : (initialPronouns ? "custom" : "");
+
   const [name, setName] = useState(character?.name ?? "");
   const [role, setRole] = useState(character?.role ?? "supporting");
+  const [pronounSelect, setPronounSelect] = useState(initialPronounSelect);
+  const [pronounCustom, setPronounCustom] = useState(initialPronounSelect === "custom" ? initialPronouns : "");
   const [missionStatement, setMissionStatement] = useState(character?.mission_statement ?? "");
   const [personality, setPersonality] = useState(character?.personality ?? "");
   const [motivation, setMotivation] = useState(character?.motivation ?? "");
@@ -31,6 +39,20 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     character?.interview_prompts ?? [""]
   );
   const [loading, setLoading] = useState(false);
+
+  // Post-save dialogs
+  const [renameState, setRenameState] = useState<{
+    preview: import("../../types").RenamePreviewResponse;
+    pendingSaved: Character;
+  } | null>(null);
+  const [pronounRefactorState, setPronounRefactorState] = useState<{
+    characterId: string;
+    newPronouns: string;
+    oldPronouns: string;
+    saved: Character;
+  } | null>(null);
+
+  const effectivePronouns = pronounSelect === "custom" ? pronounCustom : pronounSelect;
 
   function updatePrompt(i: number, value: string) {
     setInterviewPrompts((prev) => prev.map((p, idx) => (idx === i ? value : p)));
@@ -51,6 +73,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     const data = {
       name: name.trim(),
       role,
+      pronouns: effectivePronouns,
       mission_statement: missionStatement,
       personality,
       motivation,
@@ -60,12 +83,46 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
       interview_prompts: interviewPrompts.filter((p) => p.trim()),
     };
     try {
-      const saved = isEditing
-        ? await api.updateCharacter(character!.id, data)
-        : await api.createCharacter(storyId, data);
-      upsertCharacter(saved);
-      onSaved?.(saved);
-      onClose();
+      if (isEditing) {
+        const nameChanged = name.trim() !== character!.name;
+        const pronounsChanged =
+          effectivePronouns !== (character!.pronouns ?? "") &&
+          effectivePronouns.trim() !== "" &&
+          (character!.pronouns ?? "").trim() !== "";
+
+        if (nameChanged) {
+          // Preview rename before saving name
+          const preview = await api.previewCharacterRename(character!.id, name.trim());
+          if (preview.affected_scenes.length > 0) {
+            // Save character first (without name change to avoid confusion), then show rename dialog
+            const saved = await api.updateCharacter(character!.id, { ...data, name: character!.name });
+            upsertCharacter(saved);
+            setRenameState({ preview: { ...preview, old_name: character!.name, new_name: name.trim() }, pendingSaved: saved });
+            return;
+          }
+        }
+
+        const saved = await api.updateCharacter(character!.id, data);
+        upsertCharacter(saved);
+
+        if (pronounsChanged) {
+          setPronounRefactorState({
+            characterId: saved.id,
+            newPronouns: effectivePronouns,
+            oldPronouns: character!.pronouns ?? "",
+            saved,
+          });
+          return;
+        }
+
+        onSaved?.(saved);
+        onClose();
+      } else {
+        const saved = await api.createCharacter(storyId, data);
+        upsertCharacter(saved);
+        onSaved?.(saved);
+        onClose();
+      }
     } finally {
       setLoading(false);
     }
@@ -122,6 +179,46 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     </>
   );
 
+  // Rename preview dialog: user selects which scenes to propagate rename to
+  if (renameState) {
+    return (
+      <RenamePreviewDialog
+        preview={renameState.preview}
+        onApplied={(saved) => {
+          upsertCharacter(saved);
+          onSaved?.(saved);
+          onClose();
+        }}
+        onSkip={() => {
+          onSaved?.(renameState.pendingSaved);
+          onClose();
+        }}
+        characterId={character!.id}
+      />
+    );
+  }
+
+  // Pronoun refactor dialog: offer AI-assisted rewriting
+  if (pronounRefactorState) {
+    return (
+      <PronounRefactorDialog
+        characterId={pronounRefactorState.characterId}
+        oldPronouns={pronounRefactorState.oldPronouns}
+        newPronouns={pronounRefactorState.newPronouns}
+        saved={pronounRefactorState.saved}
+        onDone={(saved) => {
+          upsertCharacter(saved);
+          onSaved?.(saved);
+          onClose();
+        }}
+        onSkip={() => {
+          onSaved?.(pronounRefactorState.saved);
+          onClose();
+        }}
+      />
+    );
+  }
+
   return (
     <Modal
       isOpen
@@ -150,6 +247,33 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Pronouns</label>
+            <div className={styles.pronounsRow}>
+              <select
+                value={pronounSelect}
+                onChange={(e) => {
+                  setPronounSelect(e.target.value);
+                  if (e.target.value !== "custom") setPronounCustom("");
+                }}
+                className={styles.select}
+              >
+                <option value="">Not specified</option>
+                {PRONOUN_PRESETS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+                <option value="custom">Custom…</option>
+              </select>
+              {pronounSelect === "custom" && (
+                <input
+                  value={pronounCustom}
+                  onChange={(e) => setPronounCustom(e.target.value)}
+                  placeholder="e.g. xe/xem"
+                  className={styles.input}
+                />
+              )}
             </div>
           </div>
         </SectionCard>

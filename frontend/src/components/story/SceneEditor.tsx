@@ -204,6 +204,7 @@ export default function SceneEditor() {
         found: boolean;
         entityId: string;
         roleOrLabel: string;
+        pronouns?: string;
         excerpt: string;
         rect: DOMRect;
       };
@@ -664,7 +665,8 @@ export default function SceneEditor() {
             const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
             setHoverCard({
               open: true, type, name, found: true,
-              entityId: char.id, roleOrLabel: char.role || "Character", excerpt, rect,
+              entityId: char.id, roleOrLabel: char.role || "Character",
+              pronouns: char.pronouns || undefined, excerpt, rect,
             });
           } else {
             setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
@@ -889,6 +891,30 @@ export default function SceneEditor() {
         selectedText: selectedText || undefined,
       });
     }
+    setSelectionRect(null);
+  }
+
+  function openShowDontTell() {
+    if (!editor || !activeStory || !activeNode) return;
+    const { from, to, empty } = editor.state.selection;
+    const selectedText = empty ? undefined : editor.state.doc.textBetween(from, to).trim();
+    createSession("show-dont-tell", {
+      storyId: activeStory.id,
+      nodeId: activeNode.id,
+      selectedText: selectedText || undefined,
+    });
+    setSelectionRect(null);
+  }
+
+  function openAudienceAdherence() {
+    if (!editor || !activeStory || !activeNode) return;
+    const { from, to, empty } = editor.state.selection;
+    const selectedText = empty ? undefined : editor.state.doc.textBetween(from, to).trim();
+    createSession("audience-adherence", {
+      storyId: activeStory.id,
+      nodeId: activeNode.id,
+      selectedText: selectedText || undefined,
+    });
     setSelectionRect(null);
   }
 
@@ -1788,6 +1814,8 @@ export default function SceneEditor() {
         onOpenCoach={openWritingCoach}
         onAddNote={triggerAddNote}
         onAttributeDialogue={triggerAttributeDialogue}
+        onAnalyzeShowTell={openShowDontTell}
+        onAnalyzeAudience={openAudienceAdherence}
       />
 
       {/* Inline note popover */}
@@ -1915,6 +1943,9 @@ export default function SceneEditor() {
                 <div className={styles.hoverCardHeader}>
                   <span className={styles.hoverCardName}>{card.name}</span>
                   <span className={styles.hoverCardLabel}>{card.roleOrLabel}</span>
+                  {card.pronouns && (
+                    <span className={styles.hoverCardPronouns}>{card.pronouns}</span>
+                  )}
                 </div>
                 {card.excerpt && (
                   <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>

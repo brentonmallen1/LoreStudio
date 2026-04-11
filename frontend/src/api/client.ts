@@ -119,6 +119,18 @@ export const api = {
     }),
   suggestRelationships: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/suggest-relationships`, { method: "POST" }),
+  analyzeShowDontTell: (storyId: string, nodeId?: string, text?: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/show-dont-tell`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
+    }),
+  analyzeAudienceAdherence: (storyId: string, nodeId?: string, text?: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/audience-adherence`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
+    }),
 
   // Structure
   getStructure: (storyId: string) =>
@@ -961,6 +973,34 @@ export const api = {
     request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, { method: "POST" }),
   applyEntityLinks: (nodeId: string, links: import("../types").ApplyLinkRequest[]) =>
     request<import("../types").StructureNode>(`/structure/${nodeId}/apply-links`, { method: "POST", body: JSON.stringify({ links }) }),
+
+  // Entity rename
+  previewCharacterRename: (characterId: string, newName: string) =>
+    request<import("../types").RenamePreviewResponse>(`/characters/${characterId}/preview-rename`, {
+      method: "POST",
+      body: JSON.stringify({ new_name: newName }),
+    }),
+  applyCharacterRename: (characterId: string, oldName: string, newName: string, nodeIds: string[]) =>
+    request<import("../types").Character>(`/characters/${characterId}/apply-rename`, {
+      method: "POST",
+      body: JSON.stringify({ old_name: oldName, new_name: newName, node_ids: nodeIds }),
+    }),
+
+  // Pronoun refactoring
+  previewPronounRefactor: (characterId: string, newPronouns: string, nodeIds: string[] = []) =>
+    request<import("../types").PronounRefactorPreviewResponse>(`/characters/${characterId}/preview-pronoun-refactor`, {
+      method: "POST",
+      body: JSON.stringify({ new_pronouns: newPronouns, node_ids: nodeIds }),
+    }),
+  applyPronounRefactor: (
+    characterId: string,
+    newPronouns: string,
+    rewrites: { node_id: string; original: string; rewritten: string }[],
+  ) =>
+    request<import("../types").Character>(`/characters/${characterId}/apply-pronoun-refactor`, {
+      method: "POST",
+      body: JSON.stringify({ new_pronouns: newPronouns, rewrites }),
+    }),
 
   // Snapshots
   listSnapshots: (storyId: string) =>

@@ -1,10 +1,187 @@
 """
-Analysis prompts — character arc analysis, MICE economy, session recap.
+Analysis prompts — character arc analysis, MICE economy, session recap, show-don't-tell, audience adherence.
 """
 
 from ....models.character import Character
 from ....models.plot_thread import PlotThread
 from ....models.story import Story
+
+
+TARGET_AUDIENCES: dict[str, dict[str, str]] = {
+    "kids": {
+        "label": "Kids (6-8)",
+        "vocabulary": "Simple, common words only. Avoid polysyllabic or literary vocabulary.",
+        "sentence_structure": "Short, simple sentences. No complex subordinate clauses.",
+        "themes": "Friendship, family, curiosity, simple moral lessons, light adventure.",
+        "content": "No violence, death, fear, or adult themes of any kind.",
+        "pacing": "Fast, action-oriented, plenty of dialogue, short paragraphs.",
+    },
+    "middle_grade": {
+        "label": "Middle Grade (8-12)",
+        "vocabulary": "Accessible vocabulary; new words are fine if introduced in clear context.",
+        "sentence_structure": "Varied length but generally clear. Some complexity is fine.",
+        "themes": "Identity, belonging, friendship, first real challenges, humor, adventure.",
+        "content": "Mild peril and suspense okay. No graphic violence, explicit content, or heavy romance (crushes are fine).",
+        "pacing": "Balanced action and reflection. Chapters can be longer.",
+    },
+    "young_adult": {
+        "label": "Young Adult (12-18)",
+        "vocabulary": "No vocabulary restrictions. Literary language welcome.",
+        "sentence_structure": "Any complexity is appropriate.",
+        "themes": "Identity, first love, moral ambiguity, social issues, trauma and recovery.",
+        "content": "Violence, death, and romance are fine. Explicit sexual content typically avoided in mainstream YA.",
+        "pacing": "Flexible by genre.",
+    },
+    "new_adult": {
+        "label": "New Adult (18-25)",
+        "vocabulary": "No restrictions.",
+        "sentence_structure": "No restrictions.",
+        "themes": "College life, early career, serious relationships, independence, self-discovery.",
+        "content": "Adult content including explicit romance is common in the genre.",
+        "pacing": "Genre-dependent.",
+    },
+    "adult": {
+        "label": "Adult",
+        "vocabulary": "No restrictions.",
+        "sentence_structure": "No restrictions.",
+        "themes": "Full thematic range with no restrictions.",
+        "content": "No content restrictions.",
+        "pacing": "Genre-dependent.",
+    },
+}
+
+
+def build_show_dont_tell_prompt(
+    prose_text: str,
+    story_title: str,
+    genre: str | None = None,
+    tone: str | None = None,
+) -> str:
+    """Structured JSON prompt to identify 'telling' passages and suggest 'showing' alternatives."""
+    context_parts = []
+    if genre:
+        context_parts.append(f"Genre: {genre}")
+    if tone:
+        context_parts.append(f"Tone: {tone}")
+    context_block = "\n".join(context_parts) if context_parts else ""
+
+    return f"""You are a fiction editor analyzing prose from "{story_title}" for "show don't tell" opportunities.
+
+{context_block}
+
+DEFINITIONS:
+- TELLING: Directly stating an emotion, internal state, or quality. ("She was angry." / "The room was dirty." / "He felt nervous.")
+- SHOWING: Demonstrating through observable action, dialogue, sensory detail, or physical manifestation. ("Her jaw clenched. She set down the cup with a click." / "Pizza boxes teetered in the corner, ringed with grease stains." / "He kept checking the door.")
+
+SEVERITY LEVELS:
+- strong: Clear, unambiguous statement of emotion/state/quality that would benefit significantly from showing
+- moderate: Telling that softens or flattens what could be more vivid
+- subtle: Borderline case — may be intentional for pacing; note but don't overweight
+
+ISSUE TYPES:
+- emotion: Direct labeling of an emotional state ("she was happy", "he felt sad")
+- state: Direct labeling of a condition or status ("the house was a mess", "he was tired")
+- quality: Direct assertion of a trait or judgment ("she was beautiful", "the food was delicious")
+- exposition: Narratorial information delivered flatly rather than shown through scene
+
+NOTE: Telling is not always wrong — it is valid for transitions, pacing, summary, and deliberate stylistic effect. Only flag passages where showing would meaningfully strengthen the prose.
+
+PROSE TO ANALYZE:
+{prose_text}
+
+Respond with a JSON object matching this exact schema:
+
+{{
+  "instances": [
+    {{
+      "passage": "the exact text from the prose that is telling (quote it precisely)",
+      "severity": "strong | moderate | subtle",
+      "issue_type": "emotion | state | quality | exposition",
+      "explanation": "1 sentence explaining why this is telling and what it flattens",
+      "suggestion": "a concrete showing alternative (1-3 sentences) that maintains the author's intent"
+    }}
+  ],
+  "summary": "2-3 sentence overall assessment of the prose's showing vs telling balance",
+  "overall_rating": "needs_work | fair | good | excellent",
+  "strengths": [
+    "specific thing the prose does well in terms of showing"
+  ]
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- instances: only flag passages worth revising — skip intentional stylistic telling
+- passage: must be a verbatim excerpt from the text above (keep it short — 10 words max)
+- suggestion: write it in the style and voice of the original prose
+- strengths: 1-3 items, specific to this text
+- overall_rating: needs_work = many strong instances, fair = several moderate, good = mostly showing with minor lapses, excellent = exemplary showing throughout"""
+
+
+def build_audience_adherence_prompt(
+    prose_text: str,
+    story_title: str,
+    target_audience: str,
+) -> str:
+    """Structured JSON prompt to analyze how well prose matches its target audience."""
+    audience_data = TARGET_AUDIENCES.get(target_audience, {})
+    audience_label = audience_data.get("label", target_audience)
+
+    expectations = "\n".join([
+        f"- Vocabulary: {audience_data.get('vocabulary', 'N/A')}",
+        f"- Sentence structure: {audience_data.get('sentence_structure', 'N/A')}",
+        f"- Themes: {audience_data.get('themes', 'N/A')}",
+        f"- Content: {audience_data.get('content', 'N/A')}",
+        f"- Pacing: {audience_data.get('pacing', 'N/A')}",
+    ]) if audience_data else f"Target audience: {target_audience}"
+
+    return f"""You are a developmental editor analyzing prose from "{story_title}" for target audience fit.
+
+TARGET AUDIENCE: {audience_label}
+EXPECTATIONS FOR THIS AUDIENCE:
+{expectations}
+
+PROSE TO ANALYZE:
+{prose_text}
+
+Identify passages that may not fit this audience and provide an overall assessment.
+
+ISSUE TYPES:
+- vocabulary: Words too complex, archaic, or inappropriate for this age group
+- content: Violence, sexuality, themes, or situations beyond what this audience expects
+- theme: Thematic concerns (moral complexity, adult situations) misaligned with audience
+- pacing: Sentence or paragraph length that doesn't match the audience's typical tolerance
+- tone: Register (ironic, dark, clinical) that doesn't serve this audience
+
+SEVERITY:
+- critical: Likely to alienate readers or concern parents/gatekeepers
+- moderate: Worth adjusting for better audience fit
+- minor: Fine-tuning suggestion; probably not essential
+
+Respond with a JSON object matching this exact schema:
+
+{{
+  "target_audience": "{audience_label}",
+  "issues": [
+    {{
+      "passage": "verbatim excerpt from the prose (10 words max)",
+      "issue_type": "vocabulary | content | theme | pacing | tone",
+      "severity": "critical | moderate | minor",
+      "explanation": "1 sentence explaining the mismatch",
+      "suggestion": "concrete alternative or adjustment"
+    }}
+  ],
+  "vocabulary_assessment": "1-2 sentence assessment of vocabulary fit for this audience",
+  "content_assessment": "1-2 sentence assessment of content appropriateness",
+  "theme_assessment": "1-2 sentence assessment of thematic alignment",
+  "overall_fit": "poor | fair | good | excellent",
+  "summary": "2-3 sentence overall assessment of how well this prose serves its target audience"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Only flag genuine mismatches — do not flag things that are perfectly fine for this audience
+- passage: verbatim excerpt (10 words max)
+- overall_fit: poor = multiple critical issues, fair = several moderate issues, good = minor issues only, excellent = well-calibrated throughout"""
 
 
 def build_character_arc_prompt(

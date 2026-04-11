@@ -28,6 +28,9 @@ class Character(Base):
     narrative_intent: Mapped[str] = mapped_column(Text, default="")
     narrative_intent_hidden: Mapped[bool] = mapped_column(Boolean, default=True)
 
+    # Pronouns: he/him, she/her, they/them, or custom
+    pronouns: Mapped[str] = mapped_column(String, default="")
+
     # Arc milestones: checkable waypoints for character journey
     arc_milestones: Mapped[list] = mapped_column(JSON, default=list)
     # Format: [{"id": "uuid", "text": "First moment of doubt", "completed": false}]

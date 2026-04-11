@@ -184,6 +184,9 @@ export default function CharacterSheet() {
             <div className={styles.identity}>
               <h1 className={styles.name}>{character.name}</h1>
               <span className={roleBadgeClass()}>{character.role}</span>
+              {character.pronouns && (
+                <span className={styles.pronounsBadge}>{character.pronouns}</span>
+              )}
             </div>
 
             <div className={styles.actions}>

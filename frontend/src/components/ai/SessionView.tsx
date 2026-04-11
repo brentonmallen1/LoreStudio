@@ -6,6 +6,8 @@ import StoryAssistantMode from "./modes/StoryAssistantMode";
 import WritingCoachMode from "./modes/WritingCoachMode";
 import WhatIfMode from "./modes/WhatIfMode";
 import PanelMode from "./modes/PanelMode";
+import ShowDontTellMode from "./modes/ShowDontTellMode";
+import AudienceAdherenceMode from "./modes/AudienceAdherenceMode";
 import styles from "./SessionView.module.css";
 
 interface Props {
@@ -28,6 +30,10 @@ export default function SessionView({ session }: Props) {
       return <WhatIfMode session={session} />;
     case "panel":
       return <PanelMode session={session} />;
+    case "show-dont-tell":
+      return <ShowDontTellMode session={session} />;
+    case "audience-adherence":
+      return <AudienceAdherenceMode session={session} />;
     default:
       return (
         <div className={styles.unknown}>

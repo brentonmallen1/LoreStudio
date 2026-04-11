@@ -17,6 +17,9 @@ from ..services.llm.prompts.analysis import (
     build_economy_analysis_prompt,
     build_session_recap_prompt,
     build_essential_questions_prompt,
+    build_show_dont_tell_prompt,
+    build_audience_adherence_prompt,
+    TARGET_AUDIENCES,
 )
 from ..models.plot_thread import PlotThread
 from ..models.activity_log import ActivityLog
@@ -27,6 +30,8 @@ from ..schemas.ai_responses import (
     ThreadAnalysisResponse,
     ArcAnalysisResponse,
     EssentialQuestionsResponse,
+    ShowDontTellAnalysisResponse,
+    AudienceAdherenceResponse,
     StructuredResult,
 )
 
@@ -557,6 +562,117 @@ async def analyze_essential_questions(
     return await ai_gateway.generate_structured(
         response_model=EssentialQuestionsResponse,
         messages=[{"role": "user", "content": f"Assess the 6 essential questions for {character.name}."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post("/stories/{story_id}/analyze/show-dont-tell", response_model=StructuredResult)
+async def analyze_show_dont_tell(
+    story_id: str,
+    node_id: str | None = Body(None, embed=True),
+    text: str | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze prose for 'show don't tell' opportunities."""
+    story = _get_story(story_id, db, current_user)
+
+    # Resolve prose text
+    if text:
+        prose_text = text.strip()
+    elif node_id:
+        node = db.get(StructureNode, node_id)
+        if not node or node.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        prose_text = (node.content or "").strip()
+    else:
+        raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
+
+    if not prose_text:
+        raise HTTPException(status_code=422, detail="No prose content to analyze")
+
+    feature_prompt = build_show_dont_tell_prompt(
+        prose_text=prose_text,
+        story_title=story.title,
+        genre=story.genre or None,
+        tone=story.tone or None,
+    )
+
+    ctx = AICallContext(
+        feature="show-dont-tell",
+        user_id=current_user.id,
+        story_id=story_id,
+        node_id=node_id,
+        tags=["manuscript", "analysis", "craft", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=ShowDontTellAnalysisResponse,
+        messages=[{"role": "user", "content": "Analyze this prose for show don't tell."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post("/stories/{story_id}/analyze/audience-adherence", response_model=StructuredResult)
+async def analyze_audience_adherence(
+    story_id: str,
+    node_id: str | None = Body(None, embed=True),
+    text: str | None = Body(None, embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze how well prose matches its declared target audience."""
+    story = _get_story(story_id, db, current_user)
+
+    if not story.target_audience:
+        raise HTTPException(
+            status_code=422,
+            detail="No target audience set. Add one in the Lorebook before running this analysis.",
+        )
+
+    if story.target_audience not in TARGET_AUDIENCES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown target audience '{story.target_audience}'. Set a valid audience in the Lorebook.",
+        )
+
+    # Resolve prose text
+    if text:
+        prose_text = text.strip()
+    elif node_id:
+        node = db.get(StructureNode, node_id)
+        if not node or node.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        prose_text = (node.content or "").strip()
+    else:
+        raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
+
+    if not prose_text:
+        raise HTTPException(status_code=422, detail="No prose content to analyze")
+
+    feature_prompt = build_audience_adherence_prompt(
+        prose_text=prose_text,
+        story_title=story.title,
+        target_audience=story.target_audience,
+    )
+
+    ctx = AICallContext(
+        feature="audience-adherence",
+        user_id=current_user.id,
+        story_id=story_id,
+        node_id=node_id,
+        tags=["manuscript", "analysis", "craft", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=AudienceAdherenceResponse,
+        messages=[{"role": "user", "content": "Analyze this prose for target audience fit."}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,

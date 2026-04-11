@@ -213,6 +213,18 @@ class DialogueAttributionResponse(BaseModel):
     suggestions: list[DialogueAttributionSuggestion] = []
 
 
+# ── Pronoun Refactoring ───────────────────────────────────────────────────────
+
+class PronounRewrite(BaseModel):
+    original: str
+    rewritten: str
+    explanation: str
+
+
+class PronounRefactorResponse(BaseModel):
+    rewrites: list[PronounRewrite] = []
+
+
 # ── Essential Questions Analysis ─────────────────────────────────────────────
 
 class QuestionAssessment(BaseModel):
@@ -230,6 +242,43 @@ class EssentialQuestionsResponse(BaseModel):
     stakes: QuestionAssessment = QuestionAssessment()
     change: QuestionAssessment = QuestionAssessment()
     overall_clarity: str = "fair"         # needs_work | fair | good | excellent
+    summary: str = ""
+
+
+# ── Show Don't Tell Analysis ──────────────────────────────────────────────────
+
+class ShowDontTellInstance(BaseModel):
+    passage: str = ""              # Exact quoted text flagged
+    severity: str = "moderate"     # strong | moderate | subtle
+    issue_type: str = ""           # emotion | state | quality | exposition
+    explanation: str = ""          # Why this is telling
+    suggestion: str = ""           # A "showing" alternative
+
+
+class ShowDontTellAnalysisResponse(BaseModel):
+    instances: list[ShowDontTellInstance] = []
+    summary: str = ""
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+    strengths: list[str] = []
+
+
+# ── Target Audience Adherence ─────────────────────────────────────────────────
+
+class AudienceIssue(BaseModel):
+    passage: str = ""
+    issue_type: str = ""           # vocabulary | content | theme | pacing | tone
+    severity: str = "moderate"     # critical | moderate | minor
+    explanation: str = ""
+    suggestion: str = ""
+
+
+class AudienceAdherenceResponse(BaseModel):
+    target_audience: str = ""
+    issues: list[AudienceIssue] = []
+    vocabulary_assessment: str = ""
+    content_assessment: str = ""
+    theme_assessment: str = ""
+    overall_fit: str = "good"      # poor | fair | good | excellent
     summary: str = ""
 
 

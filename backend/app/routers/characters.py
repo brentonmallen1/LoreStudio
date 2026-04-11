@@ -24,6 +24,13 @@ from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
 )
+from ..services.refactoring_service import preview_entity_rename, apply_entity_rename
+from ..schemas.refactoring import (
+    RenamePreviewResponse, ApplyRenameRequest,
+    PronounRefactorPreviewResponse, PronounRewriteProposal, ApplyPronounRefactorRequest,
+)
+from ..schemas.ai_responses import PronounRefactorResponse
+from ..services.llm.prompts.pronoun_refactor import build_pronoun_refactor_prompt
 
 router = APIRouter()
 
@@ -398,3 +405,170 @@ def get_arc_timeline(
         "appearance_rate": appearance_rate,
         "total_scenes": total_leaves,
     }
+
+
+@router.post("/{character_id}/preview-rename", response_model=RenamePreviewResponse)
+def preview_character_rename(
+    character_id: str,
+    new_name: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Preview which scenes would be affected by renaming this character."""
+    character = _verify_character_access(character_id, db, current_user)
+    if not new_name.strip():
+        raise HTTPException(status_code=400, detail="new_name is required")
+    affected = preview_entity_rename("character", character.name, new_name.strip(), character.story_id, db)
+    return RenamePreviewResponse(
+        entity_type="character",
+        old_name=character.name,
+        new_name=new_name.strip(),
+        affected_scenes=affected,
+        total_occurrences=sum(s.occurrences for s in affected),
+    )
+
+
+@router.post("/{character_id}/apply-rename", response_model=CharacterOut)
+def apply_character_rename(
+    character_id: str,
+    body: ApplyRenameRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Rename character and propagate change to selected scenes."""
+    character = _verify_character_access(character_id, db, current_user)
+    # Apply prose changes first
+    apply_entity_rename("character", body.old_name, body.new_name, body.node_ids, db)
+    # Update character name
+    character.name = body.new_name
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.post("/{character_id}/preview-pronoun-refactor", response_model=PronounRefactorPreviewResponse)
+async def preview_pronoun_refactor(
+    character_id: str,
+    new_pronouns: str = Body(..., embed=True),
+    node_ids: list[str] = Body(default=[]),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Use AI to preview pronoun changes across scenes."""
+    character = _verify_character_access(character_id, db, current_user)
+    if not new_pronouns.strip():
+        raise HTTPException(status_code=400, detail="new_pronouns is required")
+
+    # Determine which scenes to scan
+    if node_ids:
+        nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
+    else:
+        nodes = (
+            db.query(StructureNode)
+            .filter(
+                StructureNode.story_id == character.story_id,
+                StructureNode.content != "",
+            )
+            .all()
+        )
+    # Only include scenes that mention the character
+    name_lower = character.name.lower()
+    scenes_to_scan = [n for n in nodes if n.content and name_lower in n.content.lower()]
+
+    proposals: list[PronounRewriteProposal] = []
+    for node in scenes_to_scan:
+        from html.parser import HTMLParser
+
+        class _TextExtractor(HTMLParser):
+            def __init__(self):
+                super().__init__(convert_charrefs=True)
+                self._buf: list[str] = []
+            def handle_data(self, data):
+                self._buf.append(data)
+            def get_text(self) -> str:
+                return "".join(self._buf)
+
+        extractor = _TextExtractor()
+        extractor.feed(node.content)
+        plain_text = extractor.get_text()
+
+        feature_prompt = build_pronoun_refactor_prompt(
+            character_name=character.name,
+            new_pronouns=new_pronouns.strip(),
+            scene_content=plain_text,
+        )
+
+        ctx = AICallContext(
+            feature="pronoun-refactor",
+            user_id=current_user.id,
+            story_id=character.story_id,
+            character_id=character_id,
+            node_id=node.id,
+            tags=["character", "pronouns", "refactor", "user-initiated"],
+        )
+
+        result = await ai_gateway.generate_structured(
+            response_model=PronounRefactorResponse,
+            messages=[{"role": "user", "content": "Please analyze the scene and provide rewrites."}],
+            feature_prompt=feature_prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+        )
+
+        if result.success and result.data:
+            rewrites = result.data.get("rewrites", [])
+            for rw in rewrites:
+                proposals.append(PronounRewriteProposal(
+                    id=str(uuid.uuid4()),
+                    node_id=node.id,
+                    node_title=node.title or "(Untitled)",
+                    original=rw.get("original", ""),
+                    rewritten=rw.get("rewritten", ""),
+                    explanation=rw.get("explanation", ""),
+                ))
+
+    return PronounRefactorPreviewResponse(
+        character_id=character.id,
+        character_name=character.name,
+        old_pronouns=character.pronouns or "",
+        new_pronouns=new_pronouns.strip(),
+        proposals=proposals,
+        scenes_scanned=len(scenes_to_scan),
+    )
+
+
+@router.post("/{character_id}/apply-pronoun-refactor", response_model=CharacterOut)
+def apply_pronoun_refactor(
+    character_id: str,
+    body: ApplyPronounRefactorRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Apply selected pronoun rewrites to scenes and update character pronouns."""
+    character = _verify_character_access(character_id, db, current_user)
+
+    # Group rewrites by node
+    from collections import defaultdict
+    by_node: dict[str, list] = defaultdict(list)
+    for rw in body.rewrites:
+        by_node[rw.node_id].append(rw)
+
+    for node_id, rewrites in by_node.items():
+        node = db.get(StructureNode, node_id)
+        if not node:
+            continue
+        content = node.content
+        for rw in rewrites:
+            # Replace the original phrase with the rewritten one
+            if rw.original in content:
+                content = content.replace(rw.original, rw.rewritten, 1)
+        if content != node.content:
+            node.content = content
+            node.summary_stale = True
+
+    # Update character pronouns
+    character.pronouns = body.new_pronouns
+    db.commit()
+    db.refresh(character)
+    return character

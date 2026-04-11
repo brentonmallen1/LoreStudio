@@ -1636,6 +1636,13 @@
   flex-shrink: 0;
 }
 
+.hoverCardPronouns {
+  font-size: 0.63rem;
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
 .hoverCardExcerpt {
   font-size: 0.77rem;
   color: var(--color-text-muted);

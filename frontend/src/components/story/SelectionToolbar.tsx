@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, MessageSquare, Quote } from "lucide-react";
+import { Sparkles, MessageSquare, Quote, Eye, Users } from "lucide-react";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -9,9 +9,11 @@ interface Props {
   onOpenCoach: () => void;
   onAddNote: () => void;
   onAttributeDialogue?: () => void;
+  onAnalyzeShowTell?: () => void;
+  onAnalyzeAudience?: () => void;
 }
 
-export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue }: Props) {
+export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue, onAnalyzeShowTell, onAnalyzeAudience }: Props) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Keep toolbar position in sync with selectionRect
@@ -58,6 +60,32 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
         <MessageSquare size={12} />
         Note
       </button>
+      {onAnalyzeShowTell && (
+        <>
+          <div className={styles.divider} />
+          <button
+            className={styles.btn}
+            onClick={onAnalyzeShowTell}
+            title="Show Don't Tell analysis (⌘⇧T)"
+          >
+            <Eye size={12} />
+            Show/Tell
+          </button>
+        </>
+      )}
+      {onAnalyzeAudience && (
+        <>
+          <div className={styles.divider} />
+          <button
+            className={styles.btn}
+            onClick={onAnalyzeAudience}
+            title="Check target audience fit (⌘⇧A)"
+          >
+            <Users size={12} />
+            Audience
+          </button>
+        </>
+      )}
       {onAttributeDialogue && (
         <>
           <div className={styles.divider} />

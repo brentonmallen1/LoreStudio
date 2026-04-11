@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -375,5 +375,67 @@ registerSessionType({
   },
 
   persistsInBackend: true,
+  allowContextSwitch: false,
+});
+
+// ── Show Don't Tell Analysis ──────────────────────────────────────────────────
+
+registerSessionType({
+  id: "show-dont-tell",
+  label: "Show Don't Tell",
+  contextTitle: (_ctx, names) =>
+    names.nodeName ? `Show/Tell: ${names.nodeName}` : "Show Don't Tell",
+  contextItemLabel: (_, names) => names.nodeName ?? "Scene",
+  icon: Eye,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => [],
+
+  initSession: async (_ctx) => ({}),
+
+  // Not used — the mode component calls api.analyzeShowDontTell() directly on mount
+  sendMessage: () => { throw new Error("Show Don't Tell uses direct API call, not sendMessage"); },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Audience Adherence Analysis ───────────────────────────────────────────────
+
+registerSessionType({
+  id: "audience-adherence",
+  label: "Audience Fit",
+  contextTitle: (_ctx, names) =>
+    names.nodeName ? `Audience: ${names.nodeName}` : "Audience Fit",
+  contextItemLabel: (_, names) => names.nodeName ?? "Scene",
+  icon: Users,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => [],
+
+  initSession: async (_ctx) => ({}),
+
+  // Not used — the mode component calls api.analyzeAudienceAdherence() directly on mount
+  sendMessage: () => { throw new Error("Audience Adherence uses direct API call, not sendMessage"); },
+
+  persistsInBackend: false,
   allowContextSwitch: false,
 });

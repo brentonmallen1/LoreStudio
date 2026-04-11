@@ -21,6 +21,9 @@ from .analysis import (
     build_character_arc_prompt,
     build_economy_analysis_prompt,
     build_session_recap_prompt,
+    build_show_dont_tell_prompt,
+    build_audience_adherence_prompt,
+    TARGET_AUDIENCES,
 )
 from .generation import (
     build_attribute_generation_prompt,
@@ -57,6 +60,8 @@ FEATURE_LABELS: dict[str, str] = {
     "what-exists": "Location Existence Analysis",
     "element-suggest": "World Element Suggestions",
     "historical-implications": "Historical Implication Analysis",
+    "show-dont-tell": "Show Don't Tell Analysis",
+    "audience-adherence": "Target Audience Adherence",
 }
 
 
@@ -190,6 +195,18 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
         "ruins, traditions, political effects, inherited attitudes. Reference specific world "
         "elements by name. Never write prose."
     ),
+    "show-dont-tell": (
+        "Identify passages where the prose tells the reader about emotions, states, or qualities "
+        "rather than demonstrating them through action, dialogue, or sensory detail. "
+        "For each flagged passage, explain why it is 'telling' and offer a concrete 'showing' alternative. "
+        "Acknowledge that telling is sometimes appropriate for pacing — focus on passages where "
+        "showing would strengthen the prose. Be specific and constructive."
+    ),
+    "audience-adherence": (
+        "Analyze how well the prose matches its declared target audience in terms of vocabulary, "
+        "content, themes, pacing, and tone. Flag specific passages that may be misaligned and "
+        "suggest concrete adjustments. Be constructive — note what works well, not just what to change."
+    ),
 }
 
 
@@ -215,4 +232,7 @@ __all__ = [
     "build_location_existence_prompt",
     "build_element_suggestion_prompt",
     "build_historical_implication_prompt",
+    "build_show_dont_tell_prompt",
+    "build_audience_adherence_prompt",
+    "TARGET_AUDIENCES",
 ]

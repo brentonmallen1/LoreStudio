@@ -15,6 +15,7 @@ class CharacterCreate(BaseModel):
     name: str
     role: str = "supporting"
     mission_statement: str = ""
+    pronouns: str = ""
     personality: str = ""
     motivation: str = ""
     background: str = ""
@@ -31,6 +32,7 @@ class CharacterUpdate(BaseModel):
     name: str | None = None
     role: str | None = None
     mission_statement: str | None = None
+    pronouns: str | None = None
     personality: str | None = None
     motivation: str | None = None
     background: str | None = None
@@ -49,6 +51,7 @@ class CharacterOut(BaseModel):
     name: str
     role: str
     mission_statement: str
+    pronouns: str
     personality: str
     motivation: str
     background: str

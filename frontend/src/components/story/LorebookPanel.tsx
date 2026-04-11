@@ -354,12 +354,18 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
           </div>
           <div>
             <p className={styles.subFieldLabel}>Target Audience</p>
-            <input
+            <select
               value={fields.target_audience}
               onChange={(e) => update("target_audience", e.target.value)}
-              placeholder="Adult literary fiction readers…"
               className={styles.input}
-            />
+            >
+              <option value="">Not specified</option>
+              <option value="kids">Kids (6–8)</option>
+              <option value="middle_grade">Middle Grade (8–12)</option>
+              <option value="young_adult">Young Adult (12–18)</option>
+              <option value="new_adult">New Adult (18–25)</option>
+              <option value="adult">Adult</option>
+            </select>
           </div>
         </SectionCard>
 
