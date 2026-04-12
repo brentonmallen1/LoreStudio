@@ -14,6 +14,10 @@ import {
   Feather,
   BookOpen,
   Users,
+  Compass,
+  Eye,
+  Activity,
+  Search,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { useUIStore } from "../../stores/uiStore";
@@ -174,4 +178,147 @@ commandRegistry.register({
   icon: LogOut,
   group: "Account",
   action: () => useAuthStore.getState().logout(),
+});
+
+// ── Editor Actions ────────────────────────────────────────────────────────────
+
+commandRegistry.register({
+  id: "editor-writing-coach",
+  label: "Writing Coach",
+  keywords: ["coach", "feedback", "improve", "write", "prose"],
+  icon: Feather,
+  group: "Editor",
+  shortcut: "⌘⇧R",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: async () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    const { createSession } = useAIStore.getState();
+    if (!activeStory || !activeNode) return;
+    await createSession("writing-coach", { storyId: activeStory.id, nodeId: activeNode.id });
+  },
+});
+
+commandRegistry.register({
+  id: "editor-show-dont-tell",
+  label: "Show/Tell Analysis",
+  keywords: ["show", "tell", "show dont tell", "analysis", "prose"],
+  icon: Compass,
+  group: "Editor",
+  shortcut: "⌘⇧T",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: async () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    const { createSession } = useAIStore.getState();
+    if (!activeStory || !activeNode) return;
+    await createSession("show-dont-tell", { storyId: activeStory.id, nodeId: activeNode.id });
+  },
+});
+
+commandRegistry.register({
+  id: "editor-audience",
+  label: "Audience Fit",
+  keywords: ["audience", "reader", "adherence", "tone"],
+  icon: Compass,
+  group: "Editor",
+  shortcut: "⌘⇧A",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: async () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    const { createSession } = useAIStore.getState();
+    if (!activeStory || !activeNode) return;
+    await createSession("audience-adherence", { storyId: activeStory.id, nodeId: activeNode.id });
+  },
+});
+
+commandRegistry.register({
+  id: "editor-scene-search",
+  label: "Find in Scene",
+  keywords: ["find", "search", "replace", "scene"],
+  icon: Search,
+  group: "Editor",
+  shortcut: "⌘F",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openSceneSearch();
+  },
+});
+
+commandRegistry.register({
+  id: "editor-story-search",
+  label: "Find in Story",
+  keywords: ["find", "search", "replace", "story", "all scenes"],
+  icon: Search,
+  group: "Editor",
+  shortcut: "⌘⇧F",
+  when: () => !!useStoryStore.getState().activeStory,
+  action: () => {
+    useUIStore.getState().openStorySearch();
+  },
+});
+
+commandRegistry.register({
+  id: "editor-brainstorm",
+  label: "Brainstorm What's Next",
+  keywords: ["brainstorm", "next", "idea", "continue"],
+  icon: Feather,
+  group: "Editor",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openBrainstormPanel();
+  },
+});
+
+commandRegistry.register({
+  id: "editor-plan-scene",
+  label: "Plan Scene",
+  keywords: ["plan", "scene", "outline", "structure"],
+  icon: BookOpen,
+  group: "Editor",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openPlannerPanel();
+  },
+});
+
+// ── Story Health ──────────────────────────────────────────────────────────────
+
+commandRegistry.register({
+  id: "health-run-all",
+  label: "Story Health Dashboard",
+  keywords: ["health", "analysis", "run all", "check", "pacing", "prose"],
+  icon: Activity,
+  group: "Health",
+  when: () => !!useStoryStore.getState().activeStory,
+  action: () => {
+    const story = useStoryStore.getState().activeStory;
+    if (story) window.location.href = `/stories/${story.id}/health`;
+  },
+});
+
+commandRegistry.register({
+  id: "health-discoveries",
+  label: "NLP Discoveries",
+  keywords: ["nlp", "discovery", "entities", "auto-link"],
+  icon: Eye,
+  group: "Health",
+  when: () => !!useStoryStore.getState().activeStory,
+  action: () => {
+    const story = useStoryStore.getState().activeStory;
+    if (story) window.location.href = `/stories/${story.id}/discoveries`;
+  },
+});
+
+commandRegistry.register({
+  id: "ai-scene-assistant-from-cmd",
+  label: "Scene Assistant",
+  keywords: ["scene", "assistant", "ai", "help"],
+  icon: Feather,
+  group: "AI",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: async () => {
+    const { activeStory, activeNode } = useStoryStore.getState();
+    const { createSession } = useAIStore.getState();
+    if (!activeStory || !activeNode) return;
+    await createSession("scene-assistant", { storyId: activeStory.id, nodeId: activeNode.id });
+  },
 });

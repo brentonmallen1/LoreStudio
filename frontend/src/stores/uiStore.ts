@@ -143,6 +143,16 @@ interface UIState {
   worldBuildingAIContext: WorldBuildingAIContext | null;
   openWorldBuildingAIPanel: (ctx: WorldBuildingAIContext) => void;
   closeWorldBuildingAIPanel: () => void;
+
+  // Scene search (⌘F — inline find bar in editor)
+  sceneSearchOpen: boolean;
+  openSceneSearch: () => void;
+  closeSceneSearch: () => void;
+
+  // Story-wide search (⌘⇧F — slide-out panel)
+  storySearchOpen: boolean;
+  openStorySearch: () => void;
+  closeStorySearch: () => void;
 }
 
 export interface WorldBuildingAIContext {
@@ -332,4 +342,12 @@ export const useUIStore = create<UIState>((set) => ({
   worldBuildingAIContext: null,
   openWorldBuildingAIPanel: (ctx) => set({ worldBuildingAIPanelOpen: true, worldBuildingAIContext: ctx }),
   closeWorldBuildingAIPanel: () => set({ worldBuildingAIPanelOpen: false, worldBuildingAIContext: null }),
+
+  sceneSearchOpen: false,
+  openSceneSearch: () => set({ sceneSearchOpen: true }),
+  closeSceneSearch: () => set({ sceneSearchOpen: false }),
+
+  storySearchOpen: false,
+  openStorySearch: () => set({ storySearchOpen: true }),
+  closeStorySearch: () => set({ storySearchOpen: false }),
 }));

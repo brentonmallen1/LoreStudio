@@ -515,6 +515,19 @@ export const api = {
   search: (query: string) =>
     request<import("../types").SearchResult[]>(`/search?q=${encodeURIComponent(query)}`),
 
+  // Story-wide search & replace
+  storySearch: (storyId: string, query: string, caseSensitive = false) =>
+    request<{ matches: Array<{ node_id: string; node_title: string; excerpt: string; match_count: number; level_type: string }> }>(
+      `/stories/${storyId}/search`,
+      { method: "POST", body: JSON.stringify({ query, case_sensitive: caseSensitive }) }
+    ),
+
+  storyReplace: (storyId: string, query: string, replacement: string, caseSensitive = false, nodeIds?: string[]) =>
+    request<{ replaced_count: number; scenes_affected: number }>(
+      `/stories/${storyId}/replace`,
+      { method: "POST", body: JSON.stringify({ query, replacement, case_sensitive: caseSensitive, node_ids: nodeIds ?? null }) }
+    ),
+
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),

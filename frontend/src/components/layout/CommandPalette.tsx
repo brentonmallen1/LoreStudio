@@ -15,7 +15,26 @@ import {
   Loader2,
   Search,
   ChevronRight,
+  RotateCcw,
+  Home,
+  PenLine,
+  SquareLibrary,
+  Scroll,
+  Globe,
+  MessageSquareMore,
+  ListTree,
+  Shuffle,
+  Images,
+  Activity,
+  Telescope,
+  History,
+  Send,
+  Eye,
+  UserPlus,
+  Plus,
+  BookMarked,
 } from "lucide-react";
+import { useStoryStore as _useStoryStoreForNav } from "../../stores/storyStore";
 import styles from "./CommandPalette.module.css";
 
 function findNode(nodes: import("../../types").StructureNode[], id: string): import("../../types").StructureNode | null {
@@ -45,7 +64,7 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 
 export default function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
-  const { stories, characters, structure, setActiveNode } = useStoryStore();
+  const { stories, characters, structure, setActiveNode, activeStory } = useStoryStore();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
@@ -96,6 +115,107 @@ export default function CommandPalette() {
     });
     forceUpdate((n) => n + 1);
   }, [stories, characters, navigate]);
+
+  // Register story section navigation commands whenever the active story changes
+  useEffect(() => {
+    const hasStory = () => !!_useStoryStoreForNav.getState().activeStory;
+    type NavIcon = import("../../lib/commands/registry").CommandAction["icon"];
+
+    const sections: Array<{ id: string; label: string; keywords: string[]; icon: NavIcon; path: string }> = [
+      { id: "nav-overview",      label: "Go to Overview",      keywords: ["overview", "summary", "dashboard"], icon: Home,             path: "" },
+      { id: "nav-write",         label: "Go to Write",         keywords: ["write", "editor", "scene", "prose"], icon: PenLine,          path: "/write" },
+      { id: "nav-characters",    label: "Go to Characters",    keywords: ["characters", "cast", "people"],      icon: Users,            path: "/characters" },
+      { id: "nav-lorebook",      label: "Go to Lorebook",      keywords: ["lorebook", "canon", "lore"],         icon: SquareLibrary,    path: "/lorebook" },
+      { id: "nav-compendium",    label: "Go to Compendium",    keywords: ["compendium", "research", "notes"],   icon: Scroll,           path: "/compendium" },
+      { id: "nav-worldbuilding", label: "Go to Worldbuilding", keywords: ["worldbuilding", "world", "setting"], icon: Globe,            path: "/worldbuilding" },
+      { id: "nav-panels",        label: "Go to Panels",        keywords: ["panels", "group", "interview"],      icon: MessageSquareMore,path: "/panels" },
+      { id: "nav-outline",       label: "Go to Outline",       keywords: ["outline", "structure", "beats"],     icon: ListTree,         path: "/outline" },
+      { id: "nav-threads",       label: "Go to Threads",       keywords: ["threads", "plot", "subplot"],        icon: GitBranch,        path: "/threads" },
+      { id: "nav-twists",        label: "Go to Twists",        keywords: ["twists", "reveal", "surprise"],      icon: Shuffle,          path: "/twists" },
+      { id: "nav-media",         label: "Go to Media",         keywords: ["media", "images", "attachments"],    icon: Images,           path: "/media" },
+      { id: "nav-health",        label: "Go to Story Health",  keywords: ["health", "analysis", "check"],       icon: Activity,         path: "/health" },
+      { id: "nav-discoveries",   label: "Go to Discoveries",   keywords: ["discoveries", "nlp", "entities"],    icon: Telescope,        path: "/discoveries" },
+      { id: "nav-chronicle",     label: "Go to Chronicle",     keywords: ["chronicle", "history", "log", "ai log"], icon: History,      path: "/chronicle" },
+      { id: "nav-publish",       label: "Go to Publish",       keywords: ["publish", "export", "share"],        icon: Send,             path: "/publish" },
+      { id: "nav-versions",      label: "Go to Versions",      keywords: ["versions", "backup", "snapshots"],   icon: Eye,              path: "/versions" },
+      { id: "nav-whatif",        label: "Go to What-If",       keywords: ["whatif", "what-if", "simulate"],     icon: Shuffle,          path: "/whatif" },
+    ];
+
+    sections.forEach(({ id, label, keywords, icon, path }) => {
+      commandRegistry.update({
+        id,
+        label,
+        keywords: [...keywords, "go to", "navigate"],
+        icon,
+        group: "Navigation",
+        when: hasStory,
+        action: () => {
+          const sid = _useStoryStoreForNav.getState().activeStory?.id;
+          if (sid) navigate(`/stories/${sid}${path}`);
+        },
+      });
+    });
+
+    // Creation commands
+    commandRegistry.update({
+      id: "create-character",
+      label: "New Character",
+      keywords: ["new", "create", "add", "character"],
+      icon: UserPlus,
+      group: "Create",
+      when: hasStory,
+      action: () => {
+        const sid = _useStoryStoreForNav.getState().activeStory?.id;
+        if (sid) navigate(`/stories/${sid}/characters`);
+      },
+    });
+    commandRegistry.update({
+      id: "create-lorebook-entry",
+      label: "New Lorebook Entry",
+      keywords: ["new", "create", "add", "lorebook", "lore", "canon"],
+      icon: BookMarked,
+      group: "Create",
+      when: hasStory,
+      action: () => {
+        const sid = _useStoryStoreForNav.getState().activeStory?.id;
+        if (sid) navigate(`/stories/${sid}/lorebook`);
+      },
+    });
+    commandRegistry.update({
+      id: "create-compendium-entry",
+      label: "New Compendium Entry",
+      keywords: ["new", "create", "add", "compendium", "research", "note"],
+      icon: Scroll,
+      group: "Create",
+      when: hasStory,
+      action: () => {
+        const sid = _useStoryStoreForNav.getState().activeStory?.id;
+        if (sid) navigate(`/stories/${sid}/compendium`);
+      },
+    });
+    commandRegistry.update({
+      id: "create-thread",
+      label: "New Plot Thread",
+      keywords: ["new", "create", "add", "thread", "plot", "subplot"],
+      icon: GitBranch,
+      group: "Create",
+      when: hasStory,
+      action: () => {
+        const sid = _useStoryStoreForNav.getState().activeStory?.id;
+        if (sid) navigate(`/stories/${sid}/threads`);
+      },
+    });
+    commandRegistry.update({
+      id: "create-story",
+      label: "New Story",
+      keywords: ["new", "create", "add", "story"],
+      icon: Plus,
+      group: "Create",
+      action: () => navigate("/"),
+    });
+
+    forceUpdate((n) => n + 1);
+  }, [activeStory?.id, navigate]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -204,8 +324,13 @@ export default function CommandPalette() {
   const actionGroups: Record<string, CommandAction[]> = commandRegistry.grouped(query);
   const hasActionResults = Object.values(actionGroups).some((g) => g.length > 0);
 
-  // Recent items — shown only when no query
-  const recentItems: CommandAction[] = !query.trim() && !subMenu ? commandRegistry.getRecent() : [];
+  // Last run — always pinned at top (not shown in sub-menu view)
+  const lastRun: CommandAction | null = !subMenu ? commandRegistry.getLastRun() : null;
+
+  // Recent items — shown only when no query (and exclude the last-run item to avoid duplication)
+  const recentItems: CommandAction[] = !query.trim() && !subMenu
+    ? commandRegistry.getRecent().filter((a) => a.id !== lastRun?.id)
+    : [];
 
   // Sub-menu filtering
   const filteredSubItems = subMenu
@@ -218,8 +343,9 @@ export default function CommandPalette() {
       : subMenu.items)
     : [];
 
-  // Flat list for keyboard nav — recent first (when no query), then commands, then content results
+  // Flat list for keyboard nav — last-run first (always), then recent (no query), then commands, then content results
   const flatItems: Array<{ action: () => void }> = [
+    ...(lastRun ? [{ action: () => executeAction(lastRun) }] : []),
     ...recentItems.map((a) => ({ action: () => executeAction(a) })),
     ...Object.values(actionGroups).flatMap((items) =>
       items.map((a) => ({ action: () => executeAction(a) }))
@@ -368,11 +494,44 @@ export default function CommandPalette() {
             </div>
 
             <div className={styles.list} role="listbox" aria-label="Commands" ref={listRef}>
+              {/* ── Last Run (always pinned at top) ── */}
+              {lastRun && (() => {
+                const idx = 0;
+                const Icon = lastRun.icon;
+                return (
+                  <div className={styles.lastRunGroup} role="group" aria-label="Last run">
+                    <p className={styles.lastRunLabel} aria-hidden="true">
+                      <RotateCcw size={10} aria-hidden="true" />
+                      Last run
+                    </p>
+                    <button
+                      data-item
+                      role="option"
+                      aria-selected={idx === selectedIndex}
+                      onClick={() => executeAction(lastRun)}
+                      className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                      title={lastRun.shortcut ? `${lastRun.label} (${lastRun.shortcut})` : lastRun.label}
+                    >
+                      <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                      <span className={styles.itemContent}>
+                        <span className={styles.itemTitle}>{lastRun.label}</span>
+                        {lastRun.description && <span className={styles.itemSubtitle}>{lastRun.description}</span>}
+                      </span>
+                      {lastRun.shortcut && (
+                        <span className={styles.shortcutHint} aria-hidden="true">{lastRun.shortcut}</span>
+                      )}
+                      {lastRun.getSubItems && <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />}
+                    </button>
+                  </div>
+                );
+              })()}
+
               {/* ── Recent items (only when no query) ── */}
               {recentItems.length > 0 && (
                 <div className={styles.group} role="group" aria-label="Recent">
                   <p className={styles.groupLabel} aria-hidden="true">Recent</p>
-                  {recentItems.map((action, idx) => {
+                  {recentItems.map((action, i) => {
+                    const idx = (lastRun ? 1 : 0) + i;
                     const Icon = action.icon;
                     return (
                       <button
@@ -398,7 +557,7 @@ export default function CommandPalette() {
 
               {/* ── Command registry results (always shown) ── */}
               {(() => {
-                let flatIdx = recentItems.length;
+                let flatIdx = (lastRun ? 1 : 0) + recentItems.length;
                 return Object.entries(actionGroups).map(([group, items]) => (
                   <div key={group} className={styles.group} role="group" aria-label={group}>
                     <p className={styles.groupLabel} aria-hidden="true">{group}</p>
@@ -437,7 +596,7 @@ export default function CommandPalette() {
               {hasQuery && (
                 hasSearchResults ? (
                   (() => {
-                    let flatIdx = recentItems.length + Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
+                    let flatIdx = (lastRun ? 1 : 0) + recentItems.length + Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
                     return resultTypeOrder.map((type) => {
                       const items = groupedResults[type];
                       if (!items?.length) return null;

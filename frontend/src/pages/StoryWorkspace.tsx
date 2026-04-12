@@ -6,6 +6,7 @@ import { useUIStore } from "../stores/uiStore";
 // Always-loaded layout chrome
 import Sidebar from "../components/layout/Sidebar";
 import StructureTreePanel from "../components/layout/StructureTreePanel";
+import StorySearchPanel from "../components/story/StorySearchPanel";
 import styles from "./StoryWorkspace.module.css";
 
 // Lazy-loaded route panels — only fetched when the user navigates to them
@@ -36,7 +37,7 @@ export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { setActiveStory, setStructure, setCharacters, setActiveTemplate, structure } = useStoryStore();
-  const { viewState, viewMode, treeDetached, setViewMode } = useUIStore();
+  const { viewState, viewMode, treeDetached, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
   const { setActiveNode } = useStoryStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
@@ -72,6 +73,18 @@ export default function StoryWorkspacePage() {
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [storyId]);
+
+  // ⌘⇧F — open story-wide search panel
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "f") {
+        e.preventDefault();
+        openStorySearch();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [openStorySearch]);
 
   if (loading) {
     return <div className={styles.loading}>Loading…</div>;
@@ -113,6 +126,23 @@ export default function StoryWorkspacePage() {
             />
           )}
         </>
+      )}
+
+      {storySearchOpen && storyId && (
+        <StorySearchPanel
+          storyId={storyId}
+          onClose={closeStorySearch}
+          onNavigateToNode={(nodeId) => {
+            const queue = [...structure];
+            while (queue.length) {
+              const n = queue.shift()!;
+              if (n.id === nodeId) { setActiveNode(n); break; }
+              if (n.children) queue.push(...n.children);
+            }
+            navigate(`/stories/${storyId}/write`);
+            setViewMode("tree");
+          }}
+        />
       )}
 
       <main className={styles.main}>

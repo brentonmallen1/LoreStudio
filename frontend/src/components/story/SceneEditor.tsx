@@ -96,12 +96,14 @@ import { useAIStore } from "../../stores/aiStore";
 import BrainstormPanel from "../layout/BrainstormPanel";
 import ScenePlannerPanel from "../layout/ScenePlannerPanel";
 import SelectionToolbar from "./SelectionToolbar";
+import EditorSearchBar from "./EditorSearchBar";
+import { SearchAndReplaceExtension } from "./SearchAndReplaceExtension";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
   const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters, setCharacters } = useStoryStore();
-  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel } = useUIStore();
+  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel, sceneSearchOpen, openSceneSearch, closeSceneSearch } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const [showGuideMenu, setShowGuideMenu] = useState(false);
   const guideMenuRef = useRef<HTMLDivElement>(null);
@@ -239,6 +241,7 @@ export default function SceneEditor() {
       InlineNoteExtension,
       MentionDropdownExtension,
       DialogueExtension,
+      SearchAndReplaceExtension,
     ],
     content: activeNode?.content ?? "",
     onSelectionUpdate: ({ editor }) => {
@@ -283,10 +286,15 @@ export default function SceneEditor() {
     }
   }, [activeNode?.id]);
 
+  // ⌘F — open inline find bar
   // ⌘⇧R — open writing coach for the current selection
   // ⌘⇧D — attribute selected dialogue to a character
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === "f") {
+        e.preventDefault();
+        openSceneSearch();
+      }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "R") {
         e.preventDefault();
         openWritingCoach();
@@ -1639,6 +1647,10 @@ export default function SceneEditor() {
           </button>
           <StorySummaryPanel storyId={activeStory.id} />
         </div>
+      )}
+
+      {sceneSearchOpen && editor && (
+        <EditorSearchBar editor={editor} onClose={closeSceneSearch} />
       )}
 
       <div

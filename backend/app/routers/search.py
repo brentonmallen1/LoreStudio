@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from pydantic import BaseModel
+import re
 
 from ..database import get_db
 from ..models.user import User
@@ -174,3 +176,110 @@ async def search(
         })
 
     return results
+
+
+# ── Story-wide search ─────────────────────────────────────────────────────────
+
+class StorySearchRequest(BaseModel):
+    query: str
+    case_sensitive: bool = False
+
+
+class StoryReplaceRequest(BaseModel):
+    query: str
+    replacement: str
+    case_sensitive: bool = False
+    node_ids: list[str] | None = None  # None means replace in all nodes
+
+
+def _count_and_excerpt(content: str, query: str, case_sensitive: bool) -> tuple[int, str]:
+    """Return (match_count, excerpt) for a content string."""
+    if not content:
+        return 0, ""
+    flags = 0 if case_sensitive else re.IGNORECASE
+    plain = re.sub(r"<[^>]+>", " ", content)
+    plain = re.sub(r"\s+", " ", plain).strip()
+    pattern = re.escape(query)
+    matches = list(re.finditer(pattern, plain, flags))
+    if not matches:
+        return 0, ""
+    count = len(matches)
+    m = matches[0]
+    start = max(0, m.start() - 40)
+    end = min(len(plain), m.end() + 80)
+    snippet = plain[start:end].strip()
+    if start > 0:
+        snippet = "…" + snippet
+    if end < len(plain):
+        snippet = snippet + "…"
+    return count, snippet
+
+
+@router.post("/stories/{story_id}/search")
+async def story_search(
+    story_id: str,
+    req: StorySearchRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    story = db.get(Story, story_id)
+    if not story or story.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    if not req.query:
+        return {"matches": []}
+
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    results = []
+    for node in nodes:
+        count, excerpt = _count_and_excerpt(node.content or "", req.query, req.case_sensitive)
+        if count > 0:
+            results.append({
+                "node_id": node.id,
+                "node_title": node.title or "Untitled",
+                "excerpt": excerpt,
+                "match_count": count,
+                "level_type": node.level_type or "scene",
+            })
+    results.sort(key=lambda r: r["match_count"], reverse=True)
+    return {"matches": results}
+
+
+@router.post("/stories/{story_id}/replace")
+async def story_replace(
+    story_id: str,
+    req: StoryReplaceRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    story = db.get(Story, story_id)
+    if not story or story.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    if not req.query:
+        return {"replaced_count": 0, "scenes_affected": 0}
+
+    flags = 0 if req.case_sensitive else re.IGNORECASE
+    pattern = re.escape(req.query)
+
+    q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
+    if req.node_ids:
+        q = q.filter(StructureNode.id.in_(req.node_ids))
+
+    nodes = q.all()
+    total_replaced = 0
+    scenes_affected = 0
+
+    for node in nodes:
+        if not node.content:
+            continue
+        new_content, n = re.subn(pattern, req.replacement, node.content, flags=flags)
+        if n > 0:
+            node.content = new_content
+            total_replaced += n
+            scenes_affected += 1
+
+    if scenes_affected > 0:
+        db.commit()
+
+    return {"replaced_count": total_replaced, "scenes_affected": scenes_affected}
