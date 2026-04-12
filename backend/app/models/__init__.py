@@ -20,8 +20,13 @@ from .location_travel import LocationTravel
 from .calendar import Calendar
 from .dialogue import DialogueBlock
 from .twist import Twist
-from .outline import OutlineItem
+from .outline import Outline, OutlineItem
 from .snapshot import StorySnapshot, StoryBackupSettings, UserBackupDefaults
+from .plot_thread import PlotThread, PlotThreadAppearance
+from .scene_link import SceneLink
+from .beat_sheet import BeatSheet
+from .panel_interview import PanelInterview
+from .discovered_element import DiscoveredElement
 
 __all__ = [
     "User",
@@ -56,4 +61,11 @@ __all__ = [
     "StorySnapshot",
     "StoryBackupSettings",
     "UserBackupDefaults",
+    "PlotThread",
+    "PlotThreadAppearance",
+    "SceneLink",
+    "BeatSheet",
+    "PanelInterview",
+    "DiscoveredElement",
+    "Outline",
 ]

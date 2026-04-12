@@ -23,6 +23,7 @@ from ..database import get_db
 from ..models.story import Story
 from ..models.user import User
 from ..services.manuscript_builder import build_manuscript_html, get_manuscript_sections
+from ..services.text_utils import html_to_paragraphs
 
 router = APIRouter()
 
@@ -37,6 +38,34 @@ EXPORT_FORMATS: dict[str, tuple[str, str, str]] = {
     "html":            ("html",     "text/html; charset=utf-8",                                                "html"),
     "odt":             ("odt",      "application/vnd.oasis.opendocument.text",                                 "odt"),
     "pdf":             ("pdf",      "application/pdf",                                                         "pdf"),
+    "txt":             ("txt",      "text/plain; charset=utf-8",                                               "txt"),
+}
+
+# PDF layout key → CSS override injected into the document <style> tag
+PDF_LAYOUTS: dict[str, str] = {
+    "default": "",
+    "novel": """
+        body { font-family: "Georgia", serif; font-size: 12pt; line-height: 1.6;
+               margin: 2.5cm 3cm; max-width: none; }
+        p { text-indent: 1.5em; margin: 0; }
+        h1, h2, h3 { font-family: "Georgia", serif; font-weight: normal; }
+    """,
+    "manuscript": """
+        body { font-family: "Courier New", Courier, monospace; font-size: 12pt;
+               line-height: 2; margin: 2.54cm; max-width: none; }
+        p { margin: 0; text-indent: 0; }
+        h1, h2, h3 { font-family: "Courier New", Courier, monospace; }
+    """,
+    "compact": """
+        body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10pt;
+               line-height: 1.4; margin: 1.5cm 2cm; max-width: none; }
+        p { margin: 0.3em 0; }
+    """,
+    "dark": """
+        body { font-family: "Georgia", serif; font-size: 12pt; line-height: 1.6;
+               background: #1a1a1a; color: #e0d8c8; margin: 2cm 3cm; max-width: none; }
+        h1, h2, h3 { color: #c8a96e; }
+    """,
 }
 
 
@@ -47,6 +76,70 @@ class ExportOptions(BaseModel):
     title_page: bool = True
     scene_break: str = "* * *"
     status_filter: Optional[list[str]] = None
+    pdf_layout: str = "default"
+
+
+def _build_plain_text(
+    story: Story,
+    sections,
+    *,
+    include_headers: bool,
+    include_scene_titles: bool,
+    title_page: bool,
+    scene_break: str,
+) -> str:
+    """Build a plain-text manuscript from sections for submission systems."""
+    lines: list[str] = []
+
+    if title_page:
+        lines.append((story.title or "Untitled").upper())
+        if story.author or getattr(story, "metadata_", {}) or True:
+            pass  # title block — just the title for now
+        lines.append("")
+        lines.append("")
+
+    prev_was_leaf = False
+    for section in sections:
+        if section.is_leaf:
+            if prev_was_leaf and scene_break:
+                lines.append("")
+                lines.append(scene_break)
+                lines.append("")
+            elif prev_was_leaf:
+                lines.append("")
+
+            if include_scene_titles:
+                lines.append(section.heading.upper())
+                lines.append("")
+
+            if section.content:
+                # Convert TipTap HTML paragraphs to double-newline separated text
+                paras = html_to_paragraphs(section.content)
+                for p in paras:
+                    lines.append(p)
+                lines.append("")
+
+            prev_was_leaf = True
+        else:
+            if include_headers:
+                lines.append("")
+                lines.append(section.heading.upper())
+                lines.append("")
+            prev_was_leaf = False
+
+    return "\n".join(lines).strip()
+
+
+def _inject_pdf_layout(html: str, layout_key: str) -> str:
+    """Inject per-layout CSS into the HTML <head> before weasyprint renders."""
+    css = PDF_LAYOUTS.get(layout_key, "")
+    if not css:
+        return html
+    style_block = f"<style>{css}</style>"
+    # Insert before </head> if present, else prepend
+    if "</head>" in html:
+        return html.replace("</head>", f"{style_block}\n</head>", 1)
+    return style_block + "\n" + html
 
 
 def _get_story(story_id: str, db: Session, user: User) -> Story:
@@ -111,6 +204,30 @@ async def export_story(
     if not any(s.is_leaf for s in sections):
         raise HTTPException(status_code=422, detail="No scenes to export (check status filter)")
 
+    _, mime_type, ext = EXPORT_FORMATS[options.format]
+
+    safe_title = "".join(
+        c if c.isalnum() or c in "- _" else "_"
+        for c in (story.title or "manuscript")
+    ).strip("_") or "manuscript"
+    filename = f"{safe_title}.{ext}"
+
+    # Plain text: no pandoc or weasyprint needed
+    if options.format == "txt":
+        text_content = _build_plain_text(
+            story,
+            sections,
+            include_headers=options.include_headers,
+            include_scene_titles=options.include_scene_titles,
+            title_page=options.title_page,
+            scene_break=options.scene_break,
+        )
+        return Response(
+            content=text_content.encode("utf-8"),
+            media_type=mime_type,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
     html_content = build_manuscript_html(
         story,
         sections,
@@ -120,18 +237,11 @@ async def export_story(
         scene_break=options.scene_break,
     )
 
-    _, mime_type, ext = EXPORT_FORMATS[options.format]
-
-    safe_title = "".join(
-        c if c.isalnum() or c in "- _" else "_"
-        for c in (story.title or "manuscript")
-    ).strip("_") or "manuscript"
-    filename = f"{safe_title}.{ext}"
-
     # PDF: use weasyprint directly
     if options.format == "pdf":
+        html_for_pdf = _inject_pdf_layout(html_content, options.pdf_layout)
         try:
-            pdf_bytes = weasyprint.HTML(string=html_content).write_pdf()
+            pdf_bytes = weasyprint.HTML(string=html_for_pdf).write_pdf()
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"PDF export failed: {e}")
         return Response(

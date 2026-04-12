@@ -161,6 +161,9 @@ export const api = {
   analyzePlotHoles: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, { method: "POST" }),
 
+  analyzeFirstPass: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, { method: "POST" }),
+
   // Analysis history
   getLatestAnalysis: (storyId: string, feature: string) =>
     request<import("../types").ActivityLog | null>(`/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`),
@@ -229,8 +232,34 @@ export const api = {
     }),
   deleteMilestone: (characterId: string, milestoneId: string) =>
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, { method: "DELETE" }),
+
+  // Discovery notes
+  addDiscoveryNote: (characterId: string, data: { text: string; scene_id?: string | null; scene_title?: string | null }) =>
+    request<import("../types").Character>(`/characters/${characterId}/discovery-notes`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateDiscoveryNote: (characterId: string, noteId: string, data: { text?: string; confirmed?: boolean }) =>
+    request<import("../types").Character>(`/characters/${characterId}/discovery-notes/${noteId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteDiscoveryNote: (characterId: string, noteId: string) =>
+    request<import("../types").Character>(`/characters/${characterId}/discovery-notes/${noteId}`, { method: "DELETE" }),
+
   getArcTimeline: (characterId: string) =>
     request<import("../types").ArcTimelineData>(`/characters/${characterId}/arc-timeline`),
+  getCharacterUnlinkedMentions: (characterId: string) =>
+    request<import("../types").CharacterUnlinkedMentionsResponse>(`/characters/${characterId}/unlinked-mentions`),
+  applyCharacterMentions: (characterId: string, scenes: import("../types").ApplyMentionsForScene[]) =>
+    request<{ updated_scenes: number }>(`/characters/${characterId}/apply-mentions`, {
+      method: "POST",
+      body: JSON.stringify({ scenes }),
+    }),
+  analyzeCharacterVoice: (characterId: string) =>
+    request<import("../types").VoiceDistinctnessResult>(`/characters/${characterId}/analyze-voice`, { method: "POST" }),
+  analyzeCharacterDialogueProse: (characterId: string) =>
+    request<import("../types").CharacterDialogueProseResult>(`/characters/${characterId}/analyze-dialogue`, { method: "POST" }),
   analyzeCharacterArc: (characterId: string) =>
     request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, { method: "POST" }),
 
@@ -276,6 +305,7 @@ export const api = {
     }),
   getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
   deleteInterview: (id: string) => request<void>(`/interviews/${id}`, { method: "DELETE" }),
+  compactInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
 
   // Interview notes
   updateInterview: (id: string, data: { interview_notes?: string; title?: string }) =>
@@ -420,6 +450,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ operations }),
     }),
+  extractOutlineFromProse: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/outlines/extract-from-prose`, { method: "POST" }),
+  analyzeOutlineAlignment: (outlineId: string) =>
+    request<import("../types").StructuredResult>(`/outlines/${outlineId}/analyze-alignment`, { method: "POST" }),
 
   // Panel Interviews
   listPanels: (storyId: string) =>
@@ -1033,6 +1067,8 @@ export const api = {
     request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue`),
   refreshDialogue: (sceneId: string) =>
     request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue/refresh`, { method: "POST" }),
+  getSubtextNotes: (characterId: string) =>
+    request<{ scene_id: string; scene_title: string; blocks: { id: string; content: string; subtext: string }[] }[]>(`/characters/${characterId}/subtext-notes`),
   patchDialogueBlock: (blockId: string, data: { speaker_name?: string; character_id?: string | null; subtext?: string }) =>
     request<import("../types").DialogueBlock>(`/dialogue/${blockId}`, { method: "PATCH", body: JSON.stringify(data) }),
   getDialogueStats: (storyId: string) =>
@@ -1190,4 +1226,44 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+
+  // Publication Prep
+  sendBookDescriptionMessage: (
+    storyId: string,
+    messages: import("../types").ChatMessage[],
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/chat/book-description`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
+      signal,
+    });
+  },
+
+  sendQueryLetterMessage: (
+    storyId: string,
+    messages: import("../types").ChatMessage[],
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/chat/query-letter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
+      signal,
+    });
+  },
+
+  suggestCompTitles: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/publication/comp-titles`, { method: "POST" }),
 };

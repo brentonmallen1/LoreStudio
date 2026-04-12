@@ -5,6 +5,7 @@ import {
   AlertCircle, AlertTriangle, Info,
   User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
   GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
+  ClipboardCheck, Star, TrendingUp, Volume2,
 } from "lucide-react";
 import type {
   ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
@@ -25,6 +26,7 @@ const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; col
   "continuity-check": { label: "Continuity Check", Icon: GitMerge, color: "var(--color-ai)" },
   "theme-tracker": { label: "Theme Tracker", Icon: Palette, color: "var(--color-ai)" },
   "plot-holes": { label: "Plot Holes", Icon: Skull, color: "var(--color-ai)" },
+  "first-pass": { label: "First-Pass Editor", Icon: ClipboardCheck, color: "var(--color-ai)" },
 };
 
 // ── Economy schema (mirrors EconomyAnalysisPanel) ─────────────────────────────
@@ -423,6 +425,52 @@ function PlotHolesResultDisplay({ result }: { result: StructuredResult }) {
   );
 }
 
+// ── First-pass renderer ───────────────────────────────────────────────────────
+
+const FIRST_PASS_SCHEMA: SectionConfig[] = [
+  { key: "goal_alignment",    label: "Goal Alignment",    icon: CheckCircle,   color: "var(--color-success)",  type: "text" },
+  { key: "arc_progress",      label: "Arc Progress",      icon: TrendingUp,    color: "var(--color-ai)",       type: "text" },
+  { key: "tone_consistency",  label: "Tone Consistency",  icon: Volume2,       color: "var(--color-accent)",   type: "text" },
+  { key: "missed_setups",     label: "Missed Setups",     icon: AlertTriangle, color: "var(--color-warning)",  type: "list" },
+  { key: "strengths",         label: "Strengths",         icon: Star,          color: "var(--color-success)",  type: "list" },
+  { key: "recommendations",   label: "Recommendations",   icon: Lightbulb,     color: "var(--segment-beat)",   type: "list" },
+];
+
+function FirstPassGapsDisplay({ gaps }: { gaps: Array<{ area: string; finding: string; severity: string; scene_references: string[]; suggestion: string }> }) {
+  if (!gaps || gaps.length === 0) return null;
+  return (
+    <div className={styles.checkGroup}>
+      <span className={styles.checkLabel}>Intent Gaps ({gaps.length})</span>
+      {gaps.map((gap, i) => {
+        const SevIcon = SEVERITY_ICON[gap.severity] ?? MinusCircle;
+        return (
+          <div key={i} className={styles.issueRow}>
+            <SevIcon size={12} style={{ color: SEVERITY_COLOR[gap.severity], flexShrink: 0, marginTop: 2 }} />
+            <div className={styles.issueBody}>
+              <span className={styles.issueLabel}>[{gap.area}] {gap.finding}</span>
+              {gap.scene_references.length > 0 && (
+                <span className={styles.issueMeta}>{gap.scene_references.join(" · ")}</span>
+              )}
+              {gap.suggestion && <p className={styles.issueSuggestion}>{gap.suggestion}</p>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FirstPassResultDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const gaps = (result.data as Record<string, unknown>).gaps as Array<{ area: string; finding: string; severity: string; scene_references: string[]; suggestion: string }> ?? [];
+  return (
+    <div>
+      <StructuredResponseRenderer result={result} schema={FIRST_PASS_SCHEMA} />
+      <FirstPassGapsDisplay gaps={gaps} />
+    </div>
+  );
+}
+
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
@@ -460,6 +508,8 @@ function renderBody(log: ActivityLog) {
       return <ThemeResultDisplay result={result as unknown as StructuredResult} />;
     case "plot-holes":
       return <PlotHolesResultDisplay result={result as unknown as StructuredResult} />;
+    case "first-pass":
+      return <FirstPassResultDisplay result={result as unknown as StructuredResult} />;
     default:
       return <p className={styles.empty}>Unknown analysis type.</p>;
   }

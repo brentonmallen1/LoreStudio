@@ -1,5 +1,5 @@
 import uuid
-from datetime import timezone
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Body
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -14,7 +14,7 @@ from ..models.dialogue import DialogueBlock
 from ..schemas.character import (
     CharacterCreate, CharacterUpdate, CharacterOut,
     RelationshipCreate, RelationshipOut,
-    ArcMilestone,
+    ArcMilestone, DiscoveryNoteCreate, DiscoveryNoteUpdate,
 )
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
@@ -32,6 +32,9 @@ from ..schemas.refactoring import (
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
 from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html
 from ..services.text_utils import html_to_text as _html_to_text
+from ..services.linking_service import suggest_entity_links, apply_entity_links
+from ..services.nlp_analysis_service import analyze_voice_distinctness, analyze_character_dialogue_prose
+from sqlalchemy.orm.attributes import flag_modified
 
 router = APIRouter()
 
@@ -562,3 +565,251 @@ def apply_pronoun_refactor(
     db.commit()
     db.refresh(character)
     return character
+
+
+class UnlinkedMentionProposal(BaseModel):
+    id: str
+    matched_text: str
+    confidence: float
+    source_excerpt: str
+
+
+class SceneWithUnlinkedMentions(BaseModel):
+    scene_id: str
+    scene_title: str
+    proposals: list[UnlinkedMentionProposal]
+
+
+class CharacterUnlinkedMentionsResponse(BaseModel):
+    character_id: str
+    character_name: str
+    total_unlinked: int
+    scenes: list[SceneWithUnlinkedMentions]
+
+
+@router.get("/{character_id}/unlinked-mentions", response_model=CharacterUnlinkedMentionsResponse)
+def get_character_unlinked_mentions(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Find all unlinked mentions of this character across the story's scenes."""
+    character = _verify_character_access(character_id, db, current_user)
+
+    all_leaves = (
+        db.query(StructureNode)
+        .filter(
+            StructureNode.story_id == character.story_id,
+            StructureNode.content.isnot(None),
+            StructureNode.content != "",
+        )
+        .all()
+    )
+
+    # Only scan leaf nodes (no children)
+    child_ids = {n.parent_id for n in all_leaves if n.parent_id}
+    scenes = [n for n in all_leaves if n.id not in child_ids]
+
+    results: list[SceneWithUnlinkedMentions] = []
+    for scene in scenes:
+        all_proposals = suggest_entity_links(scene.content, character.story_id, db)
+        char_proposals = [
+            p for p in all_proposals
+            if p["entity_type"] == "character" and p["entity_id"] == character_id
+        ]
+        if char_proposals:
+            results.append(SceneWithUnlinkedMentions(
+                scene_id=scene.id,
+                scene_title=scene.title or "Untitled",
+                proposals=[
+                    UnlinkedMentionProposal(
+                        id=p["id"],
+                        matched_text=p["matched_text"],
+                        confidence=p["confidence"],
+                        source_excerpt=p["source_excerpt"],
+                    )
+                    for p in char_proposals
+                ],
+            ))
+
+    total = sum(len(s.proposals) for s in results)
+    return CharacterUnlinkedMentionsResponse(
+        character_id=character_id,
+        character_name=character.name,
+        total_unlinked=total,
+        scenes=results,
+    )
+
+
+class ApplyMentionItem(BaseModel):
+    id: str
+    matched_text: str
+
+
+class ApplyMentionsForScene(BaseModel):
+    scene_id: str
+    proposals: list[ApplyMentionItem]
+
+
+class ApplyMentionsRequest(BaseModel):
+    scenes: list[ApplyMentionsForScene]
+
+
+@router.post("/{character_id}/apply-mentions")
+def apply_character_mentions(
+    character_id: str,
+    body: ApplyMentionsRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Apply selected mention tags to scene content."""
+    character = _verify_character_access(character_id, db, current_user)
+    updated_count = 0
+
+    for scene_data in body.scenes:
+        node = db.get(StructureNode, scene_data.scene_id)
+        if not node or node.story_id != character.story_id:
+            continue
+        links = [
+            {
+                "matched_text": p.matched_text,
+                "entity_name": character.name,
+                "entity_type": "character",
+            }
+            for p in scene_data.proposals
+        ]
+        new_content = apply_entity_links(node.content, links)
+        if new_content != node.content:
+            node.content = new_content
+            node.summary_stale = True
+            updated_count += 1
+
+    db.commit()
+    return {"updated_scenes": updated_count}
+
+
+@router.post("/{character_id}/analyze-voice")
+def analyze_character_voice(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze this character's dialogue voice profile compared to other characters in the story."""
+    character = _verify_character_access(character_id, db, current_user)
+
+    # Get all characters in the story
+    all_characters = db.query(Character).filter(Character.story_id == character.story_id).all()
+
+    # Build dialogue corpus per character
+    dialogue_inputs = []
+    for char in all_characters:
+        blocks = (
+            db.query(DialogueBlock)
+            .filter(DialogueBlock.character_id == char.id)
+            .all()
+        )
+        if blocks:
+            combined_text = " ".join(b.content for b in blocks if b.content)
+            if combined_text.strip():
+                dialogue_inputs.append({
+                    "character_id": char.id,
+                    "character_name": char.name,
+                    "content": combined_text,
+                })
+
+    if not dialogue_inputs:
+        return {"profiles": [], "similar_pairs": [], "overall_distinctness": "distinct", "focus_character_id": character_id}
+
+    result = analyze_voice_distinctness(dialogue_inputs)
+    result["focus_character_id"] = character_id
+    return result
+
+
+@router.post("/{character_id}/discovery-notes", response_model=CharacterOut)
+def add_discovery_note(
+    character_id: str,
+    body: DiscoveryNoteCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Add a discovery note with optional scene link."""
+    character = _verify_character_access(character_id, db, current_user)
+    notes = list(character.discovery_notes or [])
+    notes.append({
+        "id": str(uuid.uuid4()),
+        "text": body.text,
+        "scene_id": body.scene_id,
+        "scene_title": body.scene_title,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "confirmed": False,
+    })
+    character.discovery_notes = notes
+    flag_modified(character, "discovery_notes")
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.patch("/{character_id}/discovery-notes/{note_id}", response_model=CharacterOut)
+def update_discovery_note(
+    character_id: str,
+    note_id: str,
+    body: DiscoveryNoteUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Confirm or edit a discovery note."""
+    character = _verify_character_access(character_id, db, current_user)
+    notes = list(character.discovery_notes or [])
+    for note in notes:
+        if note["id"] == note_id:
+            if body.text is not None:
+                note["text"] = body.text
+            if body.confirmed is not None:
+                note["confirmed"] = body.confirmed
+            if body.scene_id is not None:
+                note["scene_id"] = body.scene_id
+            if body.scene_title is not None:
+                note["scene_title"] = body.scene_title
+            break
+    character.discovery_notes = notes
+    flag_modified(character, "discovery_notes")
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.delete("/{character_id}/discovery-notes/{note_id}", response_model=CharacterOut)
+def delete_discovery_note(
+    character_id: str,
+    note_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Remove a discovery note."""
+    character = _verify_character_access(character_id, db, current_user)
+    character.discovery_notes = [n for n in (character.discovery_notes or []) if n["id"] != note_id]
+    flag_modified(character, "discovery_notes")
+    db.commit()
+    db.refresh(character)
+    return character
+
+
+@router.post("/{character_id}/analyze-dialogue")
+def analyze_character_dialogue_endpoint(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Run NLP prose analysis on this character's dialogue lines only."""
+    character = _verify_character_access(character_id, db, current_user)
+    blocks = (
+        db.query(DialogueBlock)
+        .filter(DialogueBlock.character_id == character_id)
+        .all()
+    )
+    if not blocks:
+        return {"word_count": 0, "line_count": 0}
+
+    dialogue_texts = [b.content for b in blocks if b.content]
+    return analyze_character_dialogue_prose(dialogue_texts)

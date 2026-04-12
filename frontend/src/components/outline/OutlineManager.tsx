@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil } from "lucide-react";
+import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Sparkles, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import { useHistoryStore } from "../../stores/historyStore";
 import type { Outline, OutlineItem } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
 import SnowflakeView from "./SnowflakeView";
 import OutlineInfoModal from "./OutlineInfoModal";
+import ExtractOutlinePanel from "./ExtractOutlinePanel";
+import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
 import styles from "./OutlineManager.module.css";
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
@@ -111,6 +113,7 @@ interface OutlinePanelProps {
 }
 
 function OutlinePanel({ outline }: OutlinePanelProps) {
+  const [showAlignment, setShowAlignment] = useState(false);
   const [items, setItems] = useState<OutlineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -335,6 +338,14 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
           <h2 className={styles.title}>{outline.name}</h2>
           <div className={styles.headerRight}>
             <button
+              className={styles.alignmentBtn}
+              onClick={() => setShowAlignment((v) => !v)}
+              title="Analyze alignment against manuscript"
+            >
+              <Compass size={13} />
+              Alignment
+            </button>
+            <button
               className={styles.addBeatBtnPrimary}
               onClick={() => { setAddingRoot(true); setNewRootText(""); }}
             >
@@ -343,6 +354,13 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
             </button>
           </div>
         </div>
+
+        {showAlignment && (
+          <OutlineAlignmentPanel
+            outlineId={outline.id}
+            onClose={() => setShowAlignment(false)}
+          />
+        )}
 
         {addingRoot && (
           <div className={styles.newRootForm}>
@@ -453,6 +471,7 @@ export default function OutlineManager({ storyId }: Props) {
   const [loadingOutlines, setLoadingOutlines] = useState(true);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showExtractPanel, setShowExtractPanel] = useState(false);
 
   useEffect(() => {
     api.listOutlines(storyId)
@@ -553,14 +572,26 @@ export default function OutlineManager({ storyId }: Props) {
           </button>
         </div>
 
-        {/* Info button */}
-        <button
-          className={styles.infoBtn}
-          onClick={() => setShowInfoModal(true)}
-          title="About Snowflake & outlines"
-        >
-          <Info size={14} />
-        </button>
+        <div className={styles.tabBarActions}>
+          {/* Extract from prose */}
+          <button
+            className={styles.extractBtn}
+            onClick={() => setShowExtractPanel(true)}
+            title="AI: Extract outline from manuscript prose"
+          >
+            <Sparkles size={13} />
+            Extract
+          </button>
+
+          {/* Info button */}
+          <button
+            className={styles.infoBtn}
+            onClick={() => setShowInfoModal(true)}
+            title="About Snowflake & outlines"
+          >
+            <Info size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Tab content */}
@@ -603,6 +634,19 @@ export default function OutlineManager({ storyId }: Props) {
       )}
 
       {showInfoModal && <OutlineInfoModal onClose={() => setShowInfoModal(false)} />}
+
+      {showExtractPanel && (
+        <ExtractOutlinePanel
+          storyId={storyId}
+          onClose={() => setShowExtractPanel(false)}
+          onCreated={(outlineId) => {
+            api.listOutlines(storyId).then((data) => {
+              setOutlines(data);
+              setActiveTab(outlineId);
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

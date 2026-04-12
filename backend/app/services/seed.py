@@ -18,6 +18,7 @@ from ..models.calendar import Calendar
 from ..models.beat_sheet import BeatSheet
 from ..models.twist import Twist
 from ..models.outline import Outline, OutlineItem
+from ..models.dialogue import DialogueBlock
 from ..auth.utils import hash_password
 from ..config import settings
 
@@ -1534,6 +1535,89 @@ def seed_demo_story():
                 },
             ],
         ))
+
+        # ── Dialogue Blocks (with subtext) ───────────────────────────────────
+        # Seed representative dialogue blocks from Act 2 scenes so the
+        # Character Dialogue tab demonstrates Subtext Tracking.
+        db.add(DialogueBlock(
+            scene_id=scene4.id,
+            character_id=eleanor.id,
+            content="You knew. You came here knowing this.",
+            raw_text='"You knew," Eleanor said. "You came here knowing this."',
+            paragraph_index=5,
+            position_in_paragraph=0,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Eleanor Vance",
+            dialogue_type="speech",
+            subtext="She is not accusing — she is confirming. Eleanor needs the betrayal to be deliberate so she has something solid to push against.",
+        ))
+        db.add(DialogueBlock(
+            scene_id=scene4.id,
+            character_id=visitor.id,
+            content="I came here hoping I was wrong.",
+            raw_text='"I came here hoping I was wrong."',
+            paragraph_index=5,
+            position_in_paragraph=1,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Calder",
+            dialogue_type="speech",
+            subtext="She did not hope she was wrong. She hoped she was right, so the five years would mean something. She says this because it is the kindest version of the truth.",
+        ))
+        db.add(DialogueBlock(
+            scene_id=scene5.id,
+            character_id=visitor.id,
+            content="I'm not a historian.",
+            raw_text='"I\'m not a historian."',
+            paragraph_index=1,
+            position_in_paragraph=0,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Calder",
+            dialogue_type="speech",
+            subtext="This is the smallest version of the truth she can offer. She is testing whether Eleanor will accept a partial confession before she has to give a full one.",
+        ))
+        db.add(DialogueBlock(
+            scene_id=scene5.id,
+            character_id=eleanor.id,
+            content="I know.",
+            raw_text='"I know."',
+            paragraph_index=2,
+            position_in_paragraph=0,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Eleanor Vance",
+            dialogue_type="speech",
+            subtext="She has known since the first hour. She has been waiting for Calder to catch up to what she already suspects.",
+        ))
+        db.add(DialogueBlock(
+            scene_id=scene5.id,
+            character_id=eleanor.id,
+            content="You think my father saw something.",
+            raw_text='"You think my father saw something."',
+            paragraph_index=6,
+            position_in_paragraph=0,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Eleanor Vance",
+            dialogue_type="speech",
+            subtext="She is phrasing it as Calder's belief, not her own knowledge, because if she owns the thought it becomes real.",
+        ))
+        db.add(DialogueBlock(
+            scene_id=scene5.id,
+            character_id=eleanor.id,
+            content="Did you know him? My father. Did you ever meet him?",
+            raw_text='"Did you know him? My father. Did you ever meet him?"',
+            paragraph_index=9,
+            position_in_paragraph=0,
+            attribution_method="explicit",
+            confidence=1.0,
+            speaker_name="Eleanor Vance",
+            dialogue_type="speech",
+            subtext="She needs the answer to be no. If Calder met Thomas, then Thomas made choices with full awareness — there is no version where he was simply ignorant.",
+        ))
+        db.flush()
 
         # ── Story Outline ────────────────────────────────────────────────────
         outline = Outline(story_id=story.id, name="Outline", position=0)

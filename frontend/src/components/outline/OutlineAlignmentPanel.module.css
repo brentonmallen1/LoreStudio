@@ -1,0 +1,248 @@
+.panel {
+  border: 1px solid color-mix(in srgb, var(--color-ai) 35%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.875rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-ai) 20%, transparent);
+  gap: 0.5rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.headerIcon {
+  color: var(--color-ai);
+}
+
+.title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.closeBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── Body ── */
+.body {
+  padding: 0.75rem 0.875rem;
+}
+
+/* ── States ── */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+  color: var(--color-ai);
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.errorState {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.errorIcon {
+  color: var(--color-warning, #d97706);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Results ── */
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ── Score bar ── */
+.scoreSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.scoreName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: 60px;
+}
+
+.scoreBar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scoreTrack {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.scoreFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.scoreLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Sections ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* ── Beat rows ── */
+.beatList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.beatRow {
+  border-radius: var(--radius);
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+
+.beat_covered {
+  background: color-mix(in srgb, var(--color-success, #22c55e) 8%, transparent);
+}
+
+.beat_partial {
+  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, transparent);
+}
+
+.beat_missing {
+  background: color-mix(in srgb, var(--color-error, #ef4444) 8%, transparent);
+}
+
+.beatHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.beatText {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.beatScenes {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.beatEvidence {
+  font-size: 0.73rem;
+  color: var(--color-text-muted);
+  margin: 0.3rem 0 0 1.4rem;
+  line-height: 1.4;
+}
+
+/* ── Status icons ── */
+.iconCovered {
+  color: var(--color-success, #22c55e);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.iconPartial {
+  color: var(--color-warning, #d97706);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.iconMissing {
+  color: var(--color-error, #ef4444);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Simple list ── */
+.simpleList {
+  margin: 0;
+  padding: 0 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.simpleList li {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}

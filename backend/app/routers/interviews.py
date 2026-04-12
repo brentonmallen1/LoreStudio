@@ -15,7 +15,9 @@ from ..schemas.interview import (
 )
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
-from ..services.llm.prompts.interviews import build_character_interview_system_prompt, build_interview_summary_prompt
+from ..services.llm.prompts.interviews import (
+    build_character_interview_system_prompt, build_interview_summary_prompt, build_compaction_prompt,
+)
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -163,7 +165,16 @@ async def send_message(
     if prior_interview and prior_interview.interview_notes:
         previous_session_summary = prior_interview.interview_notes
 
+    # Build feature prompt, prepending compacted summary if present
+    compacted_summary_text: str | None = interview.compacted_summary or None
     feature_prompt = build_character_interview_system_prompt(character, journey_summary, previous_session_summary)
+    if compacted_summary_text:
+        feature_prompt = (
+            f"{feature_prompt}\n\n"
+            f"--- Earlier conversation summary (before history was compacted) ---\n"
+            f"{compacted_summary_text}\n"
+            f"--- End of earlier summary ---"
+        )
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
 
     ctx = AICallContext(
@@ -273,6 +284,64 @@ def apply_interview_to_character(
     db.commit()
     db.refresh(character)
     return CharacterOut.model_validate(character)
+
+
+COMPACT_THRESHOLD = 10  # Minimum messages before compaction is allowed
+COMPACT_KEEP = 6       # Most recent messages to keep after compaction
+
+
+@router.post("/{interview_id}/compact", response_model=None)
+async def compact_interview(
+    interview_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Summarize the oldest messages into a compacted context block to free up context space."""
+    interview = _verify_interview_access(interview_id, db, current_user)
+    character = db.get(Character, interview.character_id)
+
+    messages = list(interview.messages)
+    if len(messages) < COMPACT_THRESHOLD:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Interview needs at least {COMPACT_THRESHOLD} messages to compact (has {len(messages)})",
+        )
+
+    to_compact = messages[:-COMPACT_KEEP]
+    to_keep = messages[-COMPACT_KEEP:]
+
+    feature_prompt = build_compaction_prompt(character.name, to_compact)
+    llm_messages = [{"role": "user", "content": "Please summarize these messages."}]
+
+    ctx = AICallContext(
+        feature="interview-compaction",
+        user_id=current_user.id,
+        story_id=character.story_id,
+        character_id=character.id,
+        tags=["character", "interview", "compaction", "user-initiated"],
+    )
+
+    tokens: list[str] = []
+    async for token in ai_gateway.stream(
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        include_core_prompt=False,
+    ):
+        tokens.append(token)
+    result = "".join(tokens)
+
+    # Prepend to existing compacted_summary (in case of multiple compactions)
+    existing = interview.compacted_summary or ""
+    separator = "\n\n---\n\n" if existing else ""
+    interview.compacted_summary = existing + separator + result
+    interview.messages = to_keep
+    interview.compaction_count = (interview.compaction_count or 0) + 1
+    db.commit()
+    db.refresh(interview)
+    return interview
 
 
 @router.delete("/{interview_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -518,6 +518,52 @@
   margin-top: 0.2rem;
 }
 
+.tabBarActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.extractBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--color-ai) 40%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+
+.extractBtn:hover {
+  background: color-mix(in srgb, var(--color-ai) 15%, transparent);
+}
+
+.alignmentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--color-ai) 40%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.alignmentBtn:hover {
+  background: color-mix(in srgb, var(--color-ai) 15%, transparent);
+}
+
 .infoBtn {
   display: flex;
   align-items: center;

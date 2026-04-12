@@ -17,6 +17,8 @@ class CharacterInterview(Base):
     messages: Mapped[list] = mapped_column(JSON, default=list)
     # messages format: [{"role": "user"|"assistant", "content": str, "timestamp": str}]
     interview_notes: Mapped[str] = mapped_column(Text, default="")  # Captured insights summary
+    compacted_summary: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    compaction_count: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

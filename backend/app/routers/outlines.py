@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
+from ..models.structure import StructureNode
 from ..models.outline import Outline, OutlineItem
 from ..models.beat_sheet import BeatSheet
 from ..schemas.outline import (
@@ -13,7 +14,11 @@ from ..schemas.outline import (
     OutlineItemCreate, OutlineItemUpdate, OutlineItemOut,
     ReorderPayload, BulkReorderPayload,
 )
+from ..schemas.ai_responses import ExtractedOutlineResponse, OutlineAlignmentResponse, StructuredResult
 from ..auth.dependencies import get_current_user
+from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.prompts.outline import build_extract_outline_prompt, build_outline_alignment_prompt
+from ..services.text_utils import html_to_text
 
 router = APIRouter()
 
@@ -322,3 +327,170 @@ def bulk_reorder_outline(
         else:
             item.level = 0
     db.commit()
+
+
+# ── AI: Extract outline from manuscript ───────────────────────────────────────
+
+@router.post("/stories/{story_id}/outlines/extract-from-prose", response_model=StructuredResult)
+async def extract_outline_from_prose(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Analyze the manuscript and generate a proposed outline with beats.
+    Returns a StructuredResult containing ExtractedOutlineResponse.
+    The caller reviews proposals and calls POST /stories/{id}/outlines to import selected items.
+    """
+    story = _verify_story(story_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+    total_words = sum(n.word_count or 0 for n in all_nodes)
+
+    scenes_with_content = []
+    for leaf in leaves:
+        if not leaf.content or not leaf.content.strip():
+            continue
+        excerpt = html_to_text(leaf.content)[:400].strip()
+        scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{excerpt}")
+
+    if not scenes_with_content:
+        raise HTTPException(status_code=422, detail="No scene content to analyze. Write some scenes first.")
+
+    feature_prompt = build_extract_outline_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or getattr(story, "intent", None),
+        genre=story.genre or None,
+        scenes_with_content=scenes_with_content,
+        total_words=total_words,
+    )
+
+    ctx = AICallContext(
+        feature="extract-outline",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["outline", "analysis", "user-initiated"],
+    )
+
+    # Resolve scene_id from scene titles in the result
+    title_to_id = {(n.title or "").lower(): n.id for n in leaves}
+
+    result = await ai_gateway.generate_structured(
+        response_model=ExtractedOutlineResponse,
+        messages=[{"role": "user", "content": "Extract a structural outline from this manuscript."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    # Backfill suggested_scene_id from title matching
+    if result.success and result.data and result.data.get("items"):
+        for item in result.data["items"]:
+            if not item.get("suggested_scene_id") and item.get("suggested_scene_title"):
+                scene_id = title_to_id.get(item["suggested_scene_title"].lower(), "")
+                item["suggested_scene_id"] = scene_id
+
+    return result
+
+
+# ── AI: Outline alignment analysis ────────────────────────────────────────────
+
+@router.post("/outlines/{outline_id}/analyze-alignment", response_model=StructuredResult)
+async def analyze_outline_alignment(
+    outline_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Compare an existing outline against the written manuscript."""
+    outline = _verify_outline(outline_id, db, current_user)
+    story = _verify_story(outline.story_id, db, current_user)
+
+    # Gather outline items as flat text
+    items = (
+        db.query(OutlineItem)
+        .filter(OutlineItem.outline_id == outline_id)
+        .order_by(OutlineItem.level.asc(), OutlineItem.position.asc())
+        .all()
+    )
+    if not items:
+        raise HTTPException(status_code=422, detail="Outline has no items to compare against.")
+
+    def item_line(item: OutlineItem) -> str:
+        indent = "  " * item.level
+        return f"{indent}- {item.text}"
+
+    outline_items = [item_line(i) for i in items]
+
+    # Gather scene content
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == outline.story_id).all()
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+    scenes_with_content = []
+    for leaf in leaves:
+        if not leaf.content or not leaf.content.strip():
+            continue
+        excerpt = html_to_text(leaf.content)[:400].strip()
+        scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{excerpt}")
+
+    if not scenes_with_content:
+        raise HTTPException(status_code=422, detail="No scene content to compare against. Write some scenes first.")
+
+    feature_prompt = build_outline_alignment_prompt(
+        story_title=story.title,
+        outline_name=outline.name,
+        outline_items=outline_items,
+        scenes_with_content=scenes_with_content,
+    )
+
+    ctx = AICallContext(
+        feature="outline-alignment",
+        user_id=current_user.id,
+        story_id=outline.story_id,
+        tags=["outline", "analysis", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=OutlineAlignmentResponse,
+        messages=[{"role": "user", "content": f"Compare the outline '{outline.name}' against the manuscript."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )

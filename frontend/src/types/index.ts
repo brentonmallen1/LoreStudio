@@ -132,6 +132,15 @@ export interface ArcMilestone {
   scene_title?: string | null;
 }
 
+export interface DiscoveryNote {
+  id: string;
+  text: string;
+  scene_id: string | null;
+  scene_title: string | null;
+  timestamp: string;
+  confirmed: boolean;
+}
+
 export interface CharacterAttributes {
   intelligence?: string;
   education?: string;
@@ -161,6 +170,7 @@ export interface Character {
   snowflake_summary: string;
   snowflake_synopsis: string;
   arc_milestones: ArcMilestone[];
+  discovery_notes: DiscoveryNote[];
   created_at: string;
   updated_at: string;
 }
@@ -263,6 +273,14 @@ export interface SceneNLPAnalysis {
 export interface ProseNLPResponse {
   scenes: SceneNLPAnalysis[];
   checks_run: string[];
+}
+
+export interface CharacterDialogueProseResult {
+  word_count: number;
+  line_count: number;
+  said_bookisms?: SaidBookismResult;
+  sentence_variety?: SentenceVarietyResult;
+  adverb_overuse?: AdverbResult;
 }
 
 export interface EntitySuggestion {
@@ -418,6 +436,8 @@ export interface Interview {
   context_node_id: string | null;
   messages: InterviewMessage[];
   interview_notes: string;
+  compacted_summary: string | null;
+  compaction_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -793,12 +813,13 @@ export interface Manuscript {
 }
 
 export interface ExportOptions {
-  format: "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf";
+  format: "docx" | "docx_manuscript" | "epub" | "markdown" | "html" | "odt" | "pdf" | "txt";
   include_headers: boolean;
   include_scene_titles: boolean;
   title_page: boolean;
   scene_break: string;
   status_filter: string[] | null;
+  pdf_layout?: "default" | "novel" | "manuscript" | "compact" | "dark";
 }
 
 export interface AssetAttachment {
@@ -1052,6 +1073,38 @@ export interface ArcTimelineData {
   milestones: ArcMilestone[];
   appearance_rate: number;
   total_scenes: number;
+}
+
+// ── Character Unlinked Mentions ──
+
+export interface UnlinkedMentionProposal {
+  id: string;
+  matched_text: string;
+  confidence: number;
+  source_excerpt: string;
+}
+
+export interface SceneWithUnlinkedMentions {
+  scene_id: string;
+  scene_title: string;
+  proposals: UnlinkedMentionProposal[];
+}
+
+export interface CharacterUnlinkedMentionsResponse {
+  character_id: string;
+  character_name: string;
+  total_unlinked: number;
+  scenes: SceneWithUnlinkedMentions[];
+}
+
+export interface ApplyMentionItem {
+  id: string;
+  matched_text: string;
+}
+
+export interface ApplyMentionsForScene {
+  scene_id: string;
+  proposals: ApplyMentionItem[];
 }
 
 // ── Show Don't Tell Analysis ──
@@ -1348,6 +1401,35 @@ export interface DialogueBlockWithScene {
   dialogue_type: "speech" | "thought" | null;
   confidence: number;
   paragraph_index: number;
+  subtext?: string | null;
+}
+
+export interface CharacterVoiceProfile {
+  character_id: string;
+  character_name: string;
+  total_lines: number;
+  vocabulary_size: number;
+  vocabulary_richness: number;
+  signature_words: string[];
+  avg_sentence_length: number;
+  question_ratio: number;
+  exclamation_ratio: number;
+}
+
+export interface VoiceSimilarityPair {
+  char_a_id: string;
+  char_a_name: string;
+  char_b_id: string;
+  char_b_name: string;
+  similarity_score: number;
+  shared_patterns: string[];
+}
+
+export interface VoiceDistinctnessResult {
+  profiles: CharacterVoiceProfile[];
+  similar_pairs: VoiceSimilarityPair[];
+  overall_distinctness: "distinct" | "some_overlap" | "homogeneous";
+  focus_character_id: string;
 }
 
 export interface ProposedDialogueTag {

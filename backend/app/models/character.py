@@ -34,6 +34,10 @@ class Character(Base):
     # Arc milestones: checkable waypoints for character journey
     arc_milestones: Mapped[list] = mapped_column(JSON, default=list)
 
+    # Discovery notes: unconfirmed observations captured mid-story
+    discovery_notes: Mapped[list] = mapped_column(JSON, default=list)
+    # Format: [{"id": "uuid", "text": "...", "scene_id": null, "scene_title": null, "timestamp": "iso", "confirmed": false}]
+
     # Snowflake Method layers
     snowflake_summary: Mapped[str] = mapped_column(Text, default="")   # Layer 3: goal, motivation, conflict, epiphany
     snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")  # Layer 5: full arc told in first person

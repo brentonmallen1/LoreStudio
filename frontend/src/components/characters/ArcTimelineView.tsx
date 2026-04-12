@@ -3,11 +3,14 @@ import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { MapPin, Loader } from "lucide-react";
 import { api } from "../../api/client";
-import type { ArcTimelineData, ArcMilestone } from "../../types";
+import { useStoryStore } from "../../stores/storyStore";
+import MentionReviewPanel from "./MentionReviewPanel";
+import type { ArcTimelineData, ArcMilestone, StructureNode } from "../../types";
 import styles from "./ArcTimelineView.module.css";
 
 interface Props {
   characterId: string;
+  characterName: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -16,9 +19,10 @@ const STATUS_COLORS: Record<string, string> = {
   final:    "var(--status-final, #34d399)",
 };
 
-export default function ArcTimelineView({ characterId }: Props) {
+export default function ArcTimelineView({ characterId, characterName }: Props) {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
+  const { structure, setActiveNode } = useStoryStore();
   const [data, setData] = useState<ArcTimelineData | null>(null);
   const [loading, setLoading] = useState(true);
   const [hoveredScene, setHoveredScene] = useState<string | null>(null);
@@ -32,10 +36,22 @@ export default function ArcTimelineView({ characterId }: Props) {
       .finally(() => setLoading(false));
   }, [characterId]);
 
-  function navigateToScene(_sceneId: string) {
+  function findNode(id: string, nodes: StructureNode[]): StructureNode | null {
+    for (const n of nodes) {
+      if (n.id === id) return n;
+      if (n.children) {
+        const found = findNode(id, n.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  function navigateToScene(sceneId: string) {
     if (!storyId) return;
+    const node = findNode(sceneId, structure);
+    if (node) setActiveNode(node);
     navigate(`/stories/${storyId}/write`);
-    // Scene navigation via storyStore is handled by the write route
   }
 
   if (loading) {
@@ -192,6 +208,16 @@ export default function ArcTimelineView({ characterId }: Props) {
           document.body
         );
       })()}
+
+      {/* Mention Review */}
+      <MentionReviewPanel
+        characterId={characterId}
+        characterName={characterName}
+        onApplied={() => {
+          // Refresh arc timeline after mentions are applied
+          api.getArcTimeline(characterId).then(setData).catch(() => {});
+        }}
+      />
     </div>
   );
 }

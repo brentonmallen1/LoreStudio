@@ -347,6 +347,76 @@ class PlotHoleDetectionResponse(BaseModel):
     overall_rating: str = "fair"   # needs_work | fair | good | excellent
 
 
+# ── First-Pass Editor ────────────────────────────────────────────────────────
+
+class IntentGap(BaseModel):
+    area: str = ""              # goal_alignment | arc_progress | tone | setup | pacing
+    finding: str = ""           # What the analysis found
+    severity: str = "moderate"  # critical | moderate | minor
+    scene_references: list[str] = []
+    suggestion: str = ""        # What to consider
+
+
+class FirstPassAnalysisResponse(BaseModel):
+    goal_alignment: AnalysisSection = AnalysisSection()   # Are stated story goals being met?
+    arc_progress: AnalysisSection = AnalysisSection()     # Are character arcs on track?
+    tone_consistency: AnalysisSection = AnalysisSection() # Is tone consistent with stated intent?
+    missed_setups: list[str] = []                         # Foreshadowing/setup opportunities not taken
+    gaps: list[IntentGap] = []                            # Specific intent-vs-prose mismatches
+    strengths: list[str] = []                             # What is working well relative to intent
+    recommendations: list[str] = []
+    overall_rating: str = "fair"  # needs_work | fair | good | excellent
+
+
+# ── Comp Titles ───────────────────────────────────────────────────────────────
+
+class CompTitle(BaseModel):
+    title: str = ""
+    author: str = ""
+    year: str = ""
+    reasoning: str = ""
+    similarity_aspects: list[str] = []
+
+
+class CompTitlesResponse(BaseModel):
+    suggestions: list[CompTitle] = []
+    positioning_note: str = ""   # Brief note on how these comps position the work
+
+
+# ── Outline Extraction ────────────────────────────────────────────────────────
+
+class ExtractedOutlineItem(BaseModel):
+    text: str = ""
+    beat_type: str = ""          # plot | character | theme | setting | ""
+    suggested_scene_id: str = "" # Scene this beat came from (if identifiable)
+    suggested_scene_title: str = ""
+    confidence: float = 0.8
+    reasoning: str = ""          # Why the model identified this as a beat
+
+
+class ExtractedOutlineResponse(BaseModel):
+    items: list[ExtractedOutlineItem] = []
+    suggested_name: str = ""     # Proposed outline tab name
+
+
+# ── Outline Alignment ─────────────────────────────────────────────────────────
+
+class OutlineAlignmentItem(BaseModel):
+    outline_text: str = ""
+    status: str = "missing"      # covered | partial | missing
+    evidence: str = ""           # What in the manuscript supports/doesn't support this beat
+    scene_references: list[str] = []
+
+
+class OutlineAlignmentResponse(BaseModel):
+    covered_beats: list[OutlineAlignmentItem] = []
+    missing_beats: list[OutlineAlignmentItem] = []
+    unplanned_content: list[str] = []   # Manuscript content not in the outline
+    divergences: list[str] = []         # Where prose went a different direction
+    recommendations: list[str] = []
+    coverage_score: int = 0             # 0-100 percent of outline beats covered
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

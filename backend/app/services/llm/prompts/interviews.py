@@ -175,6 +175,30 @@ def build_interview_summary_prompt(character: Character, messages: list[dict]) -
     )
 
 
+def build_compaction_prompt(character_name: str, messages: list[dict]) -> str:
+    """
+    Summarize oldest interview messages into a compact context block.
+    Preserves key revelations, emotional beats, topics discussed, and relationship progression.
+    """
+    convo = "\n".join(
+        f"{'Author' if m['role'] == 'user' else character_name}: {m['content']}"
+        for m in messages
+    )
+    return (
+        f"You are summarizing the early portion of an interview with the character {character_name}.\n\n"
+        f"Here is the conversation excerpt to summarize:\n{convo}\n\n"
+        "Create a compact memory summary that preserves:\n"
+        "1. Key revelations or confessions the character made\n"
+        "2. Emotional beats and tone shifts in the conversation\n"
+        "3. Topics that were discussed and where they landed\n"
+        "4. Important quotes or phrases (paraphrase only — no invented dialogue)\n"
+        "5. How the relationship between author and character has developed\n\n"
+        "Write as a third-person record in past tense. Be concise but complete — "
+        "this summary will be used to give the character memory of this conversation. "
+        "Do not include anything that wasn't in the conversation."
+    )
+
+
 def build_panel_interview_system_prompt(characters: list[Character]) -> str:
     """
     System prompt for a multi-character panel interview.

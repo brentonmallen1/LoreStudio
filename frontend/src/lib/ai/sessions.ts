@@ -439,3 +439,75 @@ registerSessionType({
   persistsInBackend: false,
   allowContextSwitch: false,
 });
+
+// ── Book Description Generator ────────────────────────────────────────────────
+
+registerSessionType({
+  id: "book-description",
+  label: "Book Description",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Book Description — ${names.storyTitle}` : "Book Description",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Feather,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId } = session.context;
+    if (!storyId) throw new Error("Story required for Book Description");
+    return api.sendBookDescriptionMessage(storyId, session.messages, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Query Letter Drafting ─────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "query-letter",
+  label: "Query Letter",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Query Letter — ${names.storyTitle}` : "Query Letter",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Feather,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId } = session.context;
+    if (!storyId) throw new Error("Story required for Query Letter");
+    return api.sendQueryLetterMessage(storyId, session.messages, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});

@@ -13,11 +13,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.database import Base
-import app.models.user  # noqa
-import app.models.story  # noqa
-import app.models.character  # noqa
-import app.models.structure  # noqa
-import app.models.plot_thread  # noqa
+import app.models  # noqa — imports all models via __init__.py
 
 target_metadata = Base.metadata
 

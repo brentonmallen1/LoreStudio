@@ -1,6 +1,29 @@
 import uuid
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
+
+
+class DiscoveryNote(BaseModel):
+    id: str
+    text: str
+    scene_id: Optional[str] = None
+    scene_title: Optional[str] = None
+    timestamp: str
+    confirmed: bool = False
+
+
+class DiscoveryNoteCreate(BaseModel):
+    text: str
+    scene_id: Optional[str] = None
+    scene_title: Optional[str] = None
+
+
+class DiscoveryNoteUpdate(BaseModel):
+    text: Optional[str] = None
+    confirmed: Optional[bool] = None
+    scene_id: Optional[str] = None
+    scene_title: Optional[str] = None
 
 
 class ArcMilestone(BaseModel):
@@ -67,6 +90,7 @@ class CharacterOut(BaseModel):
     snowflake_summary: str
     snowflake_synopsis: str
     arc_milestones: list[ArcMilestone]
+    discovery_notes: list[DiscoveryNote] = []
     created_at: datetime
     updated_at: datetime
 

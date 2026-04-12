@@ -412,3 +412,51 @@ def dialogue_interactions(
     """Pairwise character interaction data based on shared dialogue scenes."""
     _get_story(story_id, db, current_user)
     return get_interaction_matrix(story_id, db)
+
+
+@router.get("/characters/{character_id}/subtext-notes")
+def get_subtext_notes(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return all dialogue blocks with subtext for a character, grouped by scene.
+
+    Returns: list of { scene_id, scene_title, blocks: [{ id, content, subtext }] }
+    """
+    char = db.get(Character, character_id)
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    # Verify ownership
+    story = db.query(Story).filter(Story.id == char.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    blocks = (
+        db.query(DialogueBlock)
+        .filter(
+            DialogueBlock.character_id == character_id,
+            DialogueBlock.subtext.isnot(None),
+            DialogueBlock.subtext != "",
+        )
+        .order_by(DialogueBlock.scene_id, DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph)
+        .all()
+    )
+
+    # Group by scene
+    scene_map: dict[str, dict] = {}
+    for block in blocks:
+        if block.scene_id not in scene_map:
+            node = db.get(StructureNode, block.scene_id)
+            scene_map[block.scene_id] = {
+                "scene_id": block.scene_id,
+                "scene_title": node.title if node else "Unknown Scene",
+                "blocks": [],
+            }
+        scene_map[block.scene_id]["blocks"].append({
+            "id": block.id,
+            "content": block.content,
+            "subtext": block.subtext,
+        })
+
+    return list(scene_map.values())

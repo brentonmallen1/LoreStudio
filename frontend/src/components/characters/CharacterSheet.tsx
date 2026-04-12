@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass, User, MapPin } from "lucide-react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass, User, MapPin, ExternalLink } from "lucide-react";
 import { SectionCard } from "../common";
 import CharacterDialogueTab from "./CharacterDialogueTab";
 import ArcTimelineView from "./ArcTimelineView";
@@ -37,7 +37,8 @@ function Field({ label, value }: { label: string; value: string }) {
 export default function CharacterSheet() {
   const { characterId, storyId } = useParams<{ characterId: string; storyId: string }>();
   const [searchParams] = useSearchParams();
-  const { characters, upsertCharacter } = useStoryStore();
+  const navigate = useNavigate();
+  const { characters, upsertCharacter, structure, setActiveNode } = useStoryStore();
   const { resumeSession } = useAIStore();
   const [editing, setEditing] = useState(false);
   const [showStartInterview, setShowStartInterview] = useState(false);
@@ -45,6 +46,7 @@ export default function CharacterSheet() {
   const [intentText, setIntentText] = useState("");
   const [missionText, setMissionText] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
+  const [newNote, setNewNote] = useState("");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   function toggle(id: string) {
     setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -131,6 +133,26 @@ export default function CharacterSheet() {
     upsertCharacter(updated);
   }
 
+  async function addDiscoveryNote() {
+    const text = newNote.trim();
+    if (!text || !character) return;
+    const updated = await api.addDiscoveryNote(character.id, { text });
+    upsertCharacter(updated);
+    setNewNote("");
+  }
+
+  async function confirmDiscoveryNote(noteId: string) {
+    if (!character) return;
+    const updated = await api.updateDiscoveryNote(character.id, noteId, { confirmed: true });
+    upsertCharacter(updated);
+  }
+
+  async function deleteDiscoveryNote(noteId: string) {
+    if (!character) return;
+    const updated = await api.deleteDiscoveryNote(character.id, noteId);
+    upsertCharacter(updated);
+  }
+
   async function linkMilestoneToScene(milestoneId: string, sceneId: string, sceneTitle: string) {
     if (!character) return;
     const m = character.arc_milestones.find((x) => x.id === milestoneId);
@@ -162,6 +184,19 @@ export default function CharacterSheet() {
       (interview.messages ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
       interview.interview_notes ?? undefined,
     );
+  }
+
+  function navigateToMilestoneScene(sceneId: string) {
+    if (!storyId) return;
+    const queue = [...structure];
+    let node = null;
+    while (queue.length) {
+      const n = queue.shift()!;
+      if (n.id === sceneId) { node = n; break; }
+      if (n.children) queue.push(...n.children);
+    }
+    if (node) setActiveNode(node);
+    navigate(`/stories/${storyId}/write`);
   }
 
   if (!character) {
@@ -245,7 +280,7 @@ export default function CharacterSheet() {
 
         {activeTab === "arc" && (
           <div className={styles.arcTab}>
-            <ArcTimelineView characterId={character.id} />
+            <ArcTimelineView characterId={character.id} characterName={character.name} />
             <ArcAnalysisPanel characterId={character.id} />
           </div>
         )}
@@ -312,6 +347,15 @@ export default function CharacterSheet() {
                       {m.completed ? <Check size={10} /> : null}
                     </button>
                     <span className={styles.milestoneText}>{m.text}</span>
+                    {m.scene_id && (
+                      <button
+                        className={styles.milestoneNavBtn}
+                        onClick={() => navigateToMilestoneScene(m.scene_id!)}
+                        title={`Go to: ${m.scene_title ?? "linked scene"}`}
+                      >
+                        <ExternalLink size={10} />
+                      </button>
+                    )}
                     {sceneNodes.length > 0 && (
                       <select
                         className={styles.milestoneScenePicker}
@@ -347,6 +391,46 @@ export default function CharacterSheet() {
                   className={styles.milestoneInput}
                 />
                 <button onClick={addMilestone} className={styles.milestoneAddBtn} disabled={!newMilestone.trim()}>
+                  <Plus size={13} />
+                </button>
+              </div>
+            </SectionCard>
+
+            {/* ── Discovery Notes ── */}
+            <SectionCard title="Discovery Notes" collapsed={!!collapsed.notes} onToggle={() => toggle("notes")}>
+              <p className={styles.intentHint}>Capture unconfirmed observations as you write. Confirm them to make them permanent.</p>
+              <div className={styles.discoveryList}>
+                {(character.discovery_notes ?? []).map((note) => (
+                  <div key={note.id} className={`${styles.discoveryNote} ${note.confirmed ? styles.discoveryConfirmed : styles.discoveryPending}`}>
+                    <p className={styles.discoveryText}>{note.text}</p>
+                    {note.scene_title && (
+                      <span className={styles.discoverySource}>from: {note.scene_title}</span>
+                    )}
+                    <div className={styles.discoveryActions}>
+                      {!note.confirmed && (
+                        <button className={styles.confirmBtn} onClick={() => confirmDiscoveryNote(note.id)}>
+                          <Check size={10} /> Confirm
+                        </button>
+                      )}
+                      {note.confirmed && (
+                        <span className={styles.confirmedBadge}><Check size={10} /> Confirmed</span>
+                      )}
+                      <button className={styles.milestoneDelete} onClick={() => deleteDiscoveryNote(note.id)}>
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.milestoneAdd}>
+                <input
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addDiscoveryNote()}
+                  placeholder="Add an observation…"
+                  className={styles.milestoneInput}
+                />
+                <button onClick={addDiscoveryNote} className={styles.milestoneAddBtn} disabled={!newNote.trim()}>
                   <Plus size={13} />
                 </button>
               </div>

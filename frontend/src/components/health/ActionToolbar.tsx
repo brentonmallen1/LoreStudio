@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck } from "lucide-react";
+import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -127,6 +127,18 @@ const ANALYSES: AnalysisDef[] = [
     summarize: (log) => {
       const n = log.metadata_?.hole_count as number | undefined;
       return n != null ? (n === 0 ? "No holes found" : `${n} plot hole${n !== 1 ? "s" : ""}`) : "Analysis run";
+    },
+  },
+  {
+    id: "first-pass",
+    label: "First-Pass Editor",
+    description: "Compare written prose against stated intent, goals, and character arc milestones",
+    type: "ai",
+    Icon: ClipboardCheck,
+    run: (id) => api.analyzeFirstPass(id),
+    summarize: (log) => {
+      const n = log.metadata_?.gap_count as number | undefined;
+      return n != null ? (n === 0 ? "Intent well realized" : `${n} intent gap${n !== 1 ? "s" : ""}`) : "Analysis run";
     },
   },
 ];

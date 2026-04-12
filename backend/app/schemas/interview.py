@@ -37,6 +37,8 @@ class InterviewOut(BaseModel):
     context_node_id: str | None = None
     messages: list[MessageOut]
     interview_notes: str
+    compacted_summary: str | None = None
+    compaction_count: int = 0
     created_at: datetime
     updated_at: datetime
 

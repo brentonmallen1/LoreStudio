@@ -31,7 +31,9 @@ class Story(Base):
 
     # Narrative perspective
     narrative_perspective: Mapped[str] = mapped_column(String, default="")
-    pov_character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True)
+    pov_character_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("characters.id", use_alter=True, name="fk_stories_pov_character_id"), nullable=True
+    )
 
     # Snowflake Method layers
     snowflake_sentence: Mapped[str] = mapped_column(Text, default="")

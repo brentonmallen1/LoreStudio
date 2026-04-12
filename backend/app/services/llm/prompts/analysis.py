@@ -791,3 +791,78 @@ Rules:
 - Use exact character names from the list above
 - confidence is a float 0.0–1.0"""
 
+
+
+def build_first_pass_prompt(
+    story_title: str,
+    story_intent: str | None,
+    story_goals: list[str],
+    genre: str | None,
+    tone: str | None,
+    characters_summary: list[str],   # ["Name (role): arc description, pending milestones"]
+    scenes_info: list[str],          # ["[Scene Title] (N words, status): synopsis"]
+    total_words: int,
+) -> str:
+    """Prompt for the first-pass editor: compare prose against stated intent."""
+    goals_block = "\n".join(f"- {g}" for g in story_goals) if story_goals else "No goals set."
+    return f"""You are a developmental editor performing a first-pass review of "{story_title}".
+
+Your job is NOT to give generic writing advice. Compare the story AS WRITTEN against the author's stated intentions and flag gaps between plan and execution.
+
+STORY INTENT: {story_intent or "Not specified"}
+GENRE: {genre or "Not specified"}
+TONE: {tone or "Not specified"}
+TOTAL WORDS: {total_words:,}
+
+STATED GOALS:
+{goals_block}
+
+CHARACTERS AND ARCS:
+{chr(10).join(characters_summary) if characters_summary else "No characters defined."}
+
+SCENES IN ORDER:
+{chr(10).join(scenes_info) if scenes_info else "No scenes written yet."}
+
+Review the above and assess how well the written story delivers on its stated intent. Respond with this exact JSON schema:
+
+{{
+  "goal_alignment": {{
+    "summary": "1-2 sentence assessment of whether stated story goals are being met",
+    "details": ["specific observation about a goal — met, partially met, or missed"]
+  }},
+  "arc_progress": {{
+    "summary": "1-2 sentence assessment of whether character arcs are tracking toward planned milestones",
+    "details": ["character-specific arc observation referencing their stated trajectory and what scenes show"]
+  }},
+  "tone_consistency": {{
+    "summary": "1-2 sentence assessment of whether scenes feel consistent with the stated tone/genre",
+    "details": ["specific scene or section that drifts from intended tone, if any"]
+  }},
+  "missed_setups": [
+    "A setup, foreshadowing element, or planted detail that should exist given stated goals but isn't visible yet"
+  ],
+  "gaps": [
+    {{
+      "area": "goal_alignment | arc_progress | tone | setup | pacing",
+      "finding": "what the gap is",
+      "severity": "critical | moderate | minor",
+      "scene_references": ["Scene Title(s) involved"],
+      "suggestion": "what to consider adding, adjusting, or planting"
+    }}
+  ],
+  "strengths": [
+    "Something working well relative to the stated intent — be specific"
+  ],
+  "recommendations": [
+    "Specific, actionable recommendation tied to intent or goals — not generic advice"
+  ],
+  "overall_rating": "needs_work | fair | good | excellent"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Every observation must be grounded in the stated intent, goals, or arc milestones — not generic writing advice.
+- If no story intent or goals are set, note this and focus on what can be inferred from the character arcs and scene progression.
+- missed_setups: only include if a gap is clearly implied by the stated goals or arc milestones.
+- gaps: 0-6 items ranked by severity. Only flag genuine mismatches between intent and prose.
+- overall_rating: needs_work = intent not visible in prose, fair = partial alignment, good = mostly aligned, excellent = intent clearly realized."""

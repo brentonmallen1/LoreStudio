@@ -8,10 +8,12 @@
  * The Export panel is built in — click the Export button in the toolbar to reveal it.
  */
 import { useEffect, useState, useCallback } from "react";
-import { BookOpen, RefreshCw, Download, X } from "lucide-react";
+import { BookOpen, RefreshCw, Download, X, Feather, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection } from "../../types";
 import ExportPanel from "./ExportPanel";
+import CompTitlesSuggester from "../publish/CompTitlesSuggester";
+import { useAIStore } from "../../stores/aiStore";
 import styles from "./ManuscriptView.module.css";
 
 type StatusFilter = "all" | "revised_final" | "final";
@@ -92,6 +94,9 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [exportOpen, setExportOpen] = useState(false);
+  const [pubPrepOpen, setPubPrepOpen] = useState(false);
+  const [showCompTitles, setShowCompTitles] = useState(false);
+  const { createSession } = useAIStore();
 
   const load = useCallback(() => {
     setLoading(true);
@@ -134,8 +139,16 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
             <RefreshCw size={13} />
           </button>
           <button
+            className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
+            onClick={() => { setPubPrepOpen((v) => !v); setExportOpen(false); }}
+            title="Publication preparation tools"
+          >
+            <Feather size={13} />
+            Publish Prep
+          </button>
+          <button
             className={`${styles.exportBtn} ${exportOpen ? styles.exportBtnActive : ""}`}
-            onClick={() => setExportOpen((v) => !v)}
+            onClick={() => { setExportOpen((v) => !v); setPubPrepOpen(false); }}
             title="Export manuscript"
           >
             <Download size={13} />
@@ -166,6 +179,70 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
             </div>
           )}
         </div>
+
+        {pubPrepOpen && (
+          <div className={styles.exportDrawer}>
+            <div className={styles.exportDrawerHeader}>
+              <span className={styles.exportDrawerTitle}>Publication Prep</span>
+              <button
+                className={styles.exportDrawerClose}
+                onClick={() => setPubPrepOpen(false)}
+                title="Close"
+              >
+                <X size={13} />
+              </button>
+            </div>
+            <div className={styles.pubPrepBody}>
+              <p className={styles.pubPrepDesc}>
+                AI tools to help prepare your manuscript for submission or self-publishing.
+              </p>
+              <div className={styles.pubPrepActions}>
+                <button
+                  className={styles.pubPrepBtn}
+                  onClick={() => {
+                    createSession("book-description", { storyId });
+                    setPubPrepOpen(false);
+                  }}
+                >
+                  <Feather size={14} className={styles.pubPrepBtnIcon} />
+                  <div>
+                    <div className={styles.pubPrepBtnLabel}>Book Description</div>
+                    <div className={styles.pubPrepBtnDesc}>Draft and refine back-cover copy</div>
+                  </div>
+                </button>
+                <button
+                  className={styles.pubPrepBtn}
+                  onClick={() => {
+                    createSession("query-letter", { storyId });
+                    setPubPrepOpen(false);
+                  }}
+                >
+                  <Feather size={14} className={styles.pubPrepBtnIcon} />
+                  <div>
+                    <div className={styles.pubPrepBtnLabel}>Query Letter</div>
+                    <div className={styles.pubPrepBtnDesc}>Draft a professional query letter</div>
+                  </div>
+                </button>
+                <button
+                  className={`${styles.pubPrepBtn} ${showCompTitles ? styles.pubPrepBtnActive : ""}`}
+                  onClick={() => setShowCompTitles((v) => !v)}
+                >
+                  <Compass size={14} className={styles.pubPrepBtnIcon} />
+                  <div>
+                    <div className={styles.pubPrepBtnLabel}>Comp Titles</div>
+                    <div className={styles.pubPrepBtnDesc}>Suggest comparable published books</div>
+                  </div>
+                </button>
+              </div>
+              {showCompTitles && (
+                <CompTitlesSuggester
+                  storyId={storyId}
+                  onClose={() => setShowCompTitles(false)}
+                />
+              )}
+            </div>
+          </div>
+        )}
 
         {exportOpen && (
           <div className={styles.exportDrawer}>

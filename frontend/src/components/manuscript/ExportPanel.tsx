@@ -13,21 +13,30 @@ interface Props {
 }
 
 type FormatKey = ExportOptions["format"];
+type PdfLayout = NonNullable<ExportOptions["pdf_layout"]>;
 
 const FORMATS: {
   key: FormatKey;
   label: string;
   sublabel: string;
   icon: React.ElementType;
-  previewable: boolean;
 }[] = [
-  { key: "docx",            label: "DOCX",              sublabel: "Microsoft Word",             icon: FileType2,  previewable: false },
-  { key: "docx_manuscript", label: "DOCX — Manuscript", sublabel: "Standard manuscript format", icon: FileType2,  previewable: false },
-  { key: "epub",            label: "ePub",              sublabel: "E-reader format",            icon: BookOpen,   previewable: false },
-  { key: "markdown",        label: "Markdown",          sublabel: "Plain text with formatting", icon: FileCode,   previewable: false },
-  { key: "html",            label: "HTML",              sublabel: "Web / print to PDF",         icon: FileText,   previewable: false },
-  { key: "odt",             label: "ODT",               sublabel: "LibreOffice / OpenDocument",  icon: FileType2, previewable: false },
-  { key: "pdf",             label: "PDF",               sublabel: "Print-ready document",        icon: FileText,  previewable: false },
+  { key: "docx",            label: "DOCX",              sublabel: "Microsoft Word",             icon: FileType2 },
+  { key: "docx_manuscript", label: "DOCX — Manuscript", sublabel: "Standard manuscript format", icon: FileType2 },
+  { key: "epub",            label: "ePub",              sublabel: "E-reader format",            icon: BookOpen  },
+  { key: "markdown",        label: "Markdown",          sublabel: "Plain text with formatting", icon: FileCode  },
+  { key: "txt",             label: "Plain Text",        sublabel: "For submission systems",     icon: FileText  },
+  { key: "html",            label: "HTML",              sublabel: "Web / print to PDF",         icon: FileText  },
+  { key: "odt",             label: "ODT",               sublabel: "LibreOffice / OpenDocument", icon: FileType2 },
+  { key: "pdf",             label: "PDF",               sublabel: "Print-ready document",       icon: FileText  },
+];
+
+const PDF_LAYOUTS: { key: PdfLayout; label: string; desc: string }[] = [
+  { key: "default",    label: "Default",     desc: "LoreStudio default styling" },
+  { key: "novel",      label: "Novel",       desc: "Georgia serif, generous margins, indented paragraphs" },
+  { key: "manuscript", label: "Manuscript",  desc: "Courier, double-spaced, industry standard" },
+  { key: "compact",    label: "Compact",     desc: "Sans-serif, tighter leading, for screen reading" },
+  { key: "dark",       label: "Dark Mode",   desc: "Dark background, warm text" },
 ];
 
 const SCENE_BREAKS = ["* * *", "---", "###", ""];
@@ -39,6 +48,7 @@ export default function ExportPanel({ storyId }: Props) {
   const [titlePage, setTitlePage] = useState(true);
   const [sceneBreak, setSceneBreak] = useState("* * *");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [pdfLayout, setPdfLayout] = useState<PdfLayout>("default");
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +68,7 @@ export default function ExportPanel({ storyId }: Props) {
         title_page: titlePage,
         scene_break: sceneBreak,
         status_filter: sf,
+        ...(format === "pdf" && pdfLayout !== "default" ? { pdf_layout: pdfLayout } : {}),
       };
 
       const res = await api.exportStory(storyId, options);
@@ -69,7 +80,7 @@ export default function ExportPanel({ storyId }: Props) {
       // Extract filename from Content-Disposition header
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const match = disposition.match(/filename="([^"]+)"/);
-      const ext = format === "docx_manuscript" ? "docx" : format === "markdown" ? "md" : format;
+      const ext = format === "docx_manuscript" ? "docx" : format === "markdown" ? "md" : format === "txt" ? "txt" : format;
       const filename = match?.[1] ?? `manuscript.${ext}`;
 
       const blob = await res.blob();
@@ -149,6 +160,21 @@ export default function ExportPanel({ storyId }: Props) {
             <option value="final">Final only</option>
           </select>
         </div>
+
+        {format === "pdf" && (
+          <div className={styles.fieldRow}>
+            <label className={styles.fieldLabel}>PDF layout</label>
+            <select
+              className={styles.fieldSelect}
+              value={pdfLayout}
+              onChange={(e) => setPdfLayout(e.target.value as PdfLayout)}
+            >
+              {PDF_LAYOUTS.map(({ key, label }) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {error && (
@@ -171,6 +197,11 @@ export default function ExportPanel({ storyId }: Props) {
       {format === "html" && (
         <p className={styles.hint}>
           HTML can be opened in any browser and printed to PDF via File → Print.
+        </p>
+      )}
+      {format === "txt" && (
+        <p className={styles.hint}>
+          Plain text strips all formatting — suitable for manuscript submission portals.
         </p>
       )}
     </div>

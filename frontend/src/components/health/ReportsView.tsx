@@ -16,6 +16,7 @@ const FEATURE_FILTERS = [
   { id: "continuity-check", label: "Continuity" },
   { id: "theme-tracker", label: "Themes" },
   { id: "plot-holes", label: "Plot Holes" },
+  { id: "first-pass", label: "First-Pass" },
 ];
 
 interface Props {

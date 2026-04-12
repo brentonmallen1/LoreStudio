@@ -535,3 +535,176 @@ def extract_unknown_entities(
         character_suggestions=_build_suggestions(person_map, "PERSON"),
         location_suggestions=_build_suggestions(location_map, "LOC"),
     )
+
+
+# ---------------------------------------------------------------------------
+# Character-scoped dialogue prose analysis
+# ---------------------------------------------------------------------------
+
+def analyze_character_dialogue_prose(dialogue_texts: list[str]) -> dict:
+    """
+    Run NLP prose checks on a character's dialogue lines only.
+    Checks: said_bookisms, sentence_variety, adverb_overuse.
+
+    dialogue_texts: plain text of each dialogue block.
+    Returns a subset of SceneNLPAnalysis fields.
+    """
+    combined = " ".join(t.strip() for t in dialogue_texts if t.strip())
+    if not combined:
+        return {"word_count": 0, "line_count": 0}
+
+    nlp = get_nlp()
+    doc = nlp(combined)
+    word_count = len([t for t in doc if not t.is_space and not t.is_punct])
+
+    return {
+        "word_count": word_count,
+        "line_count": len(dialogue_texts),
+        "said_bookisms": _detect_said_bookisms(doc),
+        "sentence_variety": _detect_sentence_variety(doc),
+        "adverb_overuse": _detect_adverbs(doc),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Character Voice Distinctness
+# ---------------------------------------------------------------------------
+
+def analyze_voice_distinctness(
+    character_dialogue: list[dict],  # [{character_id, character_name, content (text)}]
+) -> dict:
+    """
+    Analyze dialogue fingerprints per character and compute pairwise similarity.
+
+    For each character computes:
+    - vocabulary size (unique lemmas)
+    - vocabulary richness (unique / total tokens)
+    - signature words (top 5 most distinctive lemmas vs other characters)
+    - avg sentence length, question ratio, exclamation ratio
+
+    Pairwise similarity uses Jaccard on top-50 word sets.
+    """
+    from collections import Counter
+
+    nlp = get_nlp()
+
+    # Collect per-character data
+    char_data: dict[str, dict] = {}  # character_id → {name, words, total, sentences, questions, exclamations}
+
+    for entry in character_dialogue:
+        cid = entry["character_id"]
+        name = entry["character_name"]
+        text = entry.get("content", "").strip()
+        if not text:
+            continue
+
+        doc = nlp(text)
+        tokens = [t.lemma_.lower() for t in doc if not t.is_punct and not t.is_space and not t.is_stop and len(t.text) > 1]
+        sents = list(doc.sents)
+        sent_lengths = [len([t for t in s if not t.is_punct and not t.is_space]) for s in sents]
+        questions = sum(1 for s in sents if s.text.strip().endswith("?"))
+        exclamations = sum(1 for s in sents if s.text.strip().endswith("!"))
+
+        if cid not in char_data:
+            char_data[cid] = {
+                "name": name,
+                "words": Counter(),
+                "total_tokens": 0,
+                "sent_lengths": [],
+                "questions": 0,
+                "exclamations": 0,
+                "total_sents": 0,
+            }
+
+        char_data[cid]["words"].update(tokens)
+        char_data[cid]["total_tokens"] += len(tokens)
+        char_data[cid]["sent_lengths"].extend(sent_lengths)
+        char_data[cid]["questions"] += questions
+        char_data[cid]["exclamations"] += exclamations
+        char_data[cid]["total_sents"] += len(sents)
+
+    if not char_data:
+        return {"profiles": [], "similar_pairs": [], "overall_distinctness": "distinct"}
+
+    # Build profiles
+    profiles = []
+    char_top_words: dict[str, set] = {}  # For Jaccard similarity
+
+    for cid, data in char_data.items():
+        total = data["total_tokens"]
+        vocab_size = len(data["words"])
+        richness = round(vocab_size / total, 3) if total > 0 else 0.0
+
+        # Signature words: words this character uses significantly more than others
+        # Simple version: top 50 words by frequency for this character
+        top50 = {w for w, _ in data["words"].most_common(50)}
+        char_top_words[cid] = top50
+
+        # Find words unique or highly skewed to this character vs others
+        all_others: Counter = Counter()
+        for other_cid, other_data in char_data.items():
+            if other_cid != cid:
+                all_others.update(other_data["words"])
+
+        signature = []
+        for word, count in data["words"].most_common(20):
+            if count > 1 and all_others.get(word, 0) < count:
+                signature.append(word)
+            if len(signature) >= 5:
+                break
+
+        sents = data["sent_lengths"]
+        avg_sent = round(statistics.mean(sents), 1) if sents else 0.0
+        total_s = data["total_sents"]
+        q_ratio = round(data["questions"] / total_s, 3) if total_s > 0 else 0.0
+        excl_ratio = round(data["exclamations"] / total_s, 3) if total_s > 0 else 0.0
+
+        profiles.append({
+            "character_id": cid,
+            "character_name": data["name"],
+            "total_lines": total_s,
+            "vocabulary_size": vocab_size,
+            "vocabulary_richness": richness,
+            "signature_words": signature,
+            "avg_sentence_length": avg_sent,
+            "question_ratio": q_ratio,
+            "exclamation_ratio": excl_ratio,
+        })
+
+    # Pairwise similarity (Jaccard on top-50 words)
+    SIMILARITY_THRESHOLD = 0.35
+    similar_pairs = []
+    char_ids = list(char_data.keys())
+    for i in range(len(char_ids)):
+        for j in range(i + 1, len(char_ids)):
+            a, b = char_ids[i], char_ids[j]
+            set_a = char_top_words[a]
+            set_b = char_top_words[b]
+            intersection = len(set_a & set_b)
+            union = len(set_a | set_b)
+            score = round(intersection / union, 3) if union > 0 else 0.0
+            if score >= SIMILARITY_THRESHOLD:
+                shared = sorted(set_a & set_b)[:5]
+                similar_pairs.append({
+                    "char_a_id": a,
+                    "char_a_name": char_data[a]["name"],
+                    "char_b_id": b,
+                    "char_b_name": char_data[b]["name"],
+                    "similarity_score": score,
+                    "shared_patterns": shared,
+                })
+
+    similar_pairs.sort(key=lambda p: -p["similarity_score"])
+
+    if not similar_pairs:
+        distinctness = "distinct"
+    elif max(p["similarity_score"] for p in similar_pairs) >= 0.6:
+        distinctness = "homogeneous"
+    else:
+        distinctness = "some_overlap"
+
+    return {
+        "profiles": profiles,
+        "similar_pairs": similar_pairs,
+        "overall_distinctness": distinctness,
+    }

@@ -24,6 +24,7 @@ from ..services.llm.prompts.analysis import (
     build_continuity_check_prompt,
     build_theme_tracker_prompt,
     build_plot_hole_detection_prompt,
+    build_first_pass_prompt,
     TARGET_AUDIENCES,
 )
 from ..models.plot_thread import PlotThread
@@ -41,6 +42,7 @@ from ..schemas.ai_responses import (
     ContinuityCheckResponse,
     ThemeTrackerResponse,
     PlotHoleDetectionResponse,
+    FirstPassAnalysisResponse,
     StructuredResult,
 )
 from ..schemas.nlp_analysis import (
@@ -1283,11 +1285,115 @@ async def analyze_plot_holes(
     return result
 
 
+@router.post("/stories/{story_id}/analyze/first-pass", response_model=StructuredResult)
+async def analyze_first_pass(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    First-pass editor: compare the written story against the author's stated intent,
+    goals, and character arc milestones. Surfaces intent-vs-prose gaps.
+    """
+    story = _get_story(story_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+    total_words = sum(n.word_count or 0 for n in all_nodes)
+
+    scenes_info = []
+    for leaf in leaves:
+        synopsis = leaf.synopsis.strip() if leaf.synopsis else leaf.content_summary.strip() if leaf.content_summary else ""
+        desc = f": {synopsis[:120]}" if synopsis else ""
+        scenes_info.append(f'- "{leaf.title or "Untitled"}" ({leaf.word_count or 0} words, {leaf.status or "draft"}){desc}')
+
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    characters_summary = []
+    for c in characters:
+        parts = [f"- {c.name} ({c.role})"]
+        if getattr(c, "narrative_intent", None):
+            parts.append(f"  Arc plan: {c.narrative_intent}")
+        milestones = getattr(c, "arc_milestones", None) or []
+        pending = [m.get("text", "") for m in milestones if not m.get("completed")]
+        if pending:
+            parts.append(f"  Pending milestones: {', '.join(pending[:3])}")
+        characters_summary.append("\n".join(parts))
+
+    # Story goals from metadata
+    story_goals = []
+    if story.metadata_ and isinstance(story.metadata_, dict):
+        goals_raw = story.metadata_.get("story_goals", [])
+        story_goals = [g.get("text", "") for g in goals_raw if isinstance(g, dict) and g.get("text")]
+
+    feature_prompt = build_first_pass_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent or None,
+        story_goals=story_goals,
+        genre=story.genre or None,
+        tone=story.tone or None,
+        characters_summary=characters_summary,
+        scenes_info=scenes_info,
+        total_words=total_words,
+    )
+
+    ctx = AICallContext(
+        feature="first-pass",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "intent", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=FirstPassAnalysisResponse,
+        messages=[{"role": "user", "content": "Perform a first-pass editorial review comparing this story against its stated intent."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    gap_count = len(result.data.get("gaps", [])) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"First-pass editor: {gap_count} intent gap(s) found",
+        metadata_={
+            "feature": "first-pass",
+            "result": result.model_dump(),
+            "gap_count": gap_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
 # ── Analysis History Endpoints ────────────────────────────────────────────────
 
 HEALTH_FEATURES = {
     "prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions",
     "editorial-consistency", "pacing-analysis", "continuity-check", "theme-tracker", "plot-holes",
+    "first-pass",
 }
 
 
