@@ -15,6 +15,10 @@ from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentO
 from ..auth.dependencies import get_current_user
 from ..auth.utils import decode_token
 from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.prompts.character_from_image import CHARACTER_FROM_IMAGE_SYSTEM, CHARACTER_FROM_IMAGE_USER
+from ..services.llm.prompts.scene_atmosphere import SCENE_ATMOSPHERE_SYSTEM, build_scene_atmosphere_prompt
+from ..models.structure import StructureNode
+from pydantic import BaseModel as PydanticBase
 
 router = APIRouter()
 
@@ -285,5 +289,140 @@ async def analyze_image(
                 yield token
         except Exception as e:
             yield f"\n\n[Analysis unavailable: {e}]"
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+@router.post("/media/{asset_id}/analyze/character")
+async def analyze_image_for_character(
+    asset_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream AI character profile suggestions derived from a portrait image."""
+    asset = _verify_asset_access(asset_id, db, current_user)
+
+    if not asset.mime_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Asset is not an image")
+
+    full_path = _get_uploads_dir() / asset.stored_path
+    if not full_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    image_data = base64.b64encode(full_path.read_bytes()).decode()
+
+    llm_messages = [
+        {
+            "role": "user",
+            "content": CHARACTER_FROM_IMAGE_USER,
+            "images": [image_data],
+        }
+    ]
+
+    ctx = AICallContext(
+        feature="character-from-image",
+        user_id=current_user.id,
+        story_id=asset.story_id,
+        tags=["lorebook", "character", "ai-assist", "user-initiated"],
+        extra_metadata={"asset_id": asset_id},
+    )
+
+    async def stream():
+        try:
+            async for token in ai_gateway.stream(
+                messages=llm_messages,
+                feature_prompt=CHARACTER_FROM_IMAGE_SYSTEM,
+                context=ctx,
+                db=db,
+                user=current_user,
+            ):
+                yield token
+        except Exception as e:
+            yield f"\n\n[Analysis unavailable: {e}]"
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+# --- Scene Atmosphere Analysis ---
+
+class SceneAtmosphereRequest(PydanticBase):
+    asset_ids: list[str]
+    node_id: str | None = None
+    user_query: str | None = None
+
+
+@router.post("/stories/{story_id}/analyze/scene-atmosphere")
+async def analyze_scene_atmosphere(
+    story_id: str,
+    body: SceneAtmosphereRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream an AI atmospheric description synthesized from reference images."""
+    story = _verify_story_access(story_id, db, current_user)
+
+    if not body.asset_ids:
+        raise HTTPException(status_code=400, detail="At least one asset_id required")
+
+    # Load scene context if a node was provided
+    scene_title: str | None = None
+    scene_synopsis: str | None = None
+    if body.node_id:
+        node = db.get(StructureNode, body.node_id)
+        if node and node.story_id == story.id:
+            scene_title = node.title
+            scene_synopsis = node.synopsis or None
+
+    # Encode all requested images (skip missing / non-image assets)
+    image_payloads: list[str] = []
+    for asset_id in body.asset_ids[:5]:  # max 5 images
+        asset = db.get(StoryAsset, asset_id)
+        if not asset or asset.story_id != story.id:
+            continue
+        if not asset.mime_type.startswith("image/"):
+            continue
+        full_path = _get_uploads_dir() / asset.stored_path
+        if not full_path.exists():
+            continue
+        image_payloads.append(base64.b64encode(full_path.read_bytes()).decode())
+
+    if not image_payloads:
+        raise HTTPException(status_code=400, detail="No valid image assets found")
+
+    user_prompt = build_scene_atmosphere_prompt(
+        num_images=len(image_payloads),
+        user_query=body.user_query,
+        scene_title=scene_title,
+        scene_synopsis=scene_synopsis,
+    )
+
+    llm_messages = [
+        {
+            "role": "user",
+            "content": user_prompt,
+            "images": image_payloads,
+        }
+    ]
+
+    ctx = AICallContext(
+        feature="scene-atmosphere",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["manuscript", "atmosphere", "ai-assist", "user-initiated"],
+        extra_metadata={"asset_ids": body.asset_ids, "node_id": body.node_id},
+    )
+
+    async def stream():
+        try:
+            async for token in ai_gateway.stream(
+                messages=llm_messages,
+                feature_prompt=SCENE_ATMOSPHERE_SYSTEM,
+                context=ctx,
+                db=db,
+                user=current_user,
+            ):
+                yield token
+        except Exception as e:
+            yield f"\n\n[Atmosphere analysis unavailable: {e}]"
 
     return StreamingResponse(stream(), media_type="text/plain")

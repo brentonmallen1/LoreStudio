@@ -548,6 +548,34 @@ export interface Twist {
   updated_at: string;
 }
 
+// ── Reader Knowledge ──
+
+export type KnowledgeType =
+  | "truth_revealed"
+  | "misdirection_planted"
+  | "clue_planted"
+  | "character_learns"
+  | "reader_only";
+
+export interface ReaderKnowledgeEvent {
+  id: string;
+  story_id: string;
+  node_id: string | null;
+  twist_id: string | null;
+  knowledge_type: KnowledgeType;
+  subject: string;
+  detail: string;
+  reader_knows: boolean;
+  characters_who_know: string[];
+  is_truth: boolean;
+  supersedes_id: string | null;
+  created_at: string;
+  updated_at: string;
+  // Denormalized
+  node_title?: string | null;
+  twist_name?: string | null;
+}
+
 // ── Outline ──
 
 export type OutlineBeatType = "plot" | "character" | "theme" | "setting";

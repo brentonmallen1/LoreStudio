@@ -46,6 +46,7 @@ from .routers.outlines import router as outlines_router
 from .routers.snapshots import router as snapshots_router
 from .routers.import_router import router as import_router
 from .routers.publication import router as publication_router
+from .routers.reader_knowledge import router as reader_knowledge_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets, seed_flash_fiction_demo, seed_short_story_demo
 
 
@@ -114,6 +115,7 @@ app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(publication_router, prefix="/api", tags=["publication"])
+app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
 
 
 @app.get("/health")

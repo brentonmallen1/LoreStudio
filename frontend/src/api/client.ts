@@ -405,6 +405,26 @@ export const api = {
       body: JSON.stringify({ scene_id: sceneId }),
     }),
 
+  // Reader Knowledge
+  listReaderKnowledgeEvents: (storyId: string) =>
+    request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge`),
+  createReaderKnowledgeEvent: (storyId: string, data: Partial<import("../types").ReaderKnowledgeEvent>) =>
+    request<import("../types").ReaderKnowledgeEvent>(`/stories/${storyId}/reader-knowledge`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateReaderKnowledgeEvent: (eventId: string, data: Partial<import("../types").ReaderKnowledgeEvent>) =>
+    request<import("../types").ReaderKnowledgeEvent>(`/reader-knowledge/${eventId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteReaderKnowledgeEvent: (eventId: string) =>
+    request<void>(`/reader-knowledge/${eventId}`, { method: "DELETE" }),
+  scanReaderKnowledgeEvents: (storyId: string) =>
+    request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge/scan`, { method: "POST" }),
+  analyzeTwistImpact: (twistId: string) =>
+    request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
+
   // Outlines
   listOutlines: (storyId: string) =>
     request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
@@ -719,6 +739,24 @@ export const api = {
     return fetch(`${BASE}/media/${assetId}/analyze`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+  analyzeImageForCharacter: (assetId: string): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/media/${assetId}/analyze/character`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+  analyzeSceneAtmosphere: (storyId: string, assetIds: string[], nodeId?: string, userQuery?: string): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/analyze/scene-atmosphere`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ asset_ids: assetIds, node_id: nodeId ?? null, user_query: userQuery ?? null }),
     });
   },
 

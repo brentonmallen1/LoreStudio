@@ -1,8 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Camera, X, Upload, FileText } from "lucide-react";
+import { Camera, X, Upload, FileText, Feather } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset, AssetAttachment } from "../../types";
 import styles from "./PortraitEditor.module.css";
+
+export interface CharacterImageDescription {
+  appearance: string;
+  personality: string;
+  voice: string;
+  age_estimate: string;
+  backstory_hints: string;
+}
 
 interface Props {
   storyId: string;
@@ -10,15 +18,18 @@ interface Props {
   objectId: string;
   placeholder: React.ReactNode;
   size?: number;
+  /** Called with parsed AI description when "Generate from portrait" completes */
+  onAnalyzeForCharacter?: (desc: CharacterImageDescription) => void;
 }
 
-export default function PortraitEditor({ storyId, objectType, objectId, placeholder, size = 80 }: Props) {
+export default function PortraitEditor({ storyId, objectType, objectId, placeholder, size = 80, onAnalyzeForCharacter }: Props) {
   const [portraitAttachment, setPortraitAttachment] = useState<AssetAttachment | null>(null);
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [browsing, setBrowsing] = useState(false);
   const [storyAssets, setStoryAssets] = useState<StoryAsset[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +93,32 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
     }
   }
 
+  async function analyzeForCharacter() {
+    if (!portraitAttachment || !onAnalyzeForCharacter) return;
+    setAnalyzing(true);
+    setOpen(false);
+    try {
+      const res = await api.analyzeImageForCharacter(portraitAttachment.asset_id);
+      if (!res.body) return;
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let raw = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        raw += decoder.decode(value, { stream: true });
+      }
+      // Strip any markdown fencing the model may have added
+      const json = raw.replace(/```(?:json)?\n?/g, "").trim();
+      const parsed = JSON.parse(json) as CharacterImageDescription;
+      onAnalyzeForCharacter(parsed);
+    } catch (e) {
+      console.error("Character analysis failed", e);
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
   return (
     <div className={styles.wrap} ref={panelRef} style={{ width: size, height: size }}>
       {/* Portrait display */}
@@ -91,10 +128,12 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
         ) : (
           <div className={styles.placeholder}>{placeholder}</div>
         )}
+        {analyzing && <div className={styles.analyzingOverlay}><Feather size={16} className={styles.analyzingSpin} /></div>}
         <button
           className={styles.editOverlay}
           onClick={() => setOpen((v) => !v)}
           title="Change portrait"
+          disabled={analyzing}
         >
           <Camera size={16} />
         </button>
@@ -124,6 +163,17 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
                 <FileText size={13} />
                 Browse library
               </button>
+              {portraitUrl && onAnalyzeForCharacter && (
+                <button
+                  className={`${styles.actionBtn} ${styles.analyzeBtn}`}
+                  onClick={analyzeForCharacter}
+                  disabled={analyzing}
+                  title="Use AI to generate character appearance/personality hints from this portrait"
+                >
+                  <Feather size={13} />
+                  {analyzing ? "Analyzing…" : "Generate description"}
+                </button>
+              )}
               {portraitUrl && (
                 <button className={`${styles.actionBtn} ${styles.removeBtn}`} onClick={removePortrait}>
                   <X size={13} />

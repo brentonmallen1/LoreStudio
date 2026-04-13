@@ -116,6 +116,31 @@
 .removeBtn { color: var(--color-danger); }
 .removeBtn:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent) !important; color: var(--color-danger) !important; }
 
+.analyzeBtn { color: var(--color-ai); }
+.analyzeBtn:hover:not(:disabled) { background: var(--color-ai-subtle) !important; color: var(--color-ai) !important; }
+
+.analyzingOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  z-index: 1;
+}
+
+.analyzingSpin {
+  color: var(--color-ai);
+  animation: spin 1.4s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(-10deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.1); }
+  100% { transform: rotate(-10deg) scale(1); }
+}
+
 /* ── Library browser ── */
 .browser {
   display: flex;

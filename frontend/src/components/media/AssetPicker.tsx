@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Paperclip, X, Upload, ImageIcon, FileText, ChevronDown, ChevronUp, ZoomIn } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset, AssetAttachment } from "../../types";
+import Lightbox from "./Lightbox";
 import styles from "./AssetPicker.module.css";
 
 interface Props {
@@ -19,8 +20,7 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
   const [browsing, setBrowsing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [lightboxName, setLightboxName] = useState<string>("");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Only shows non-portrait attachments — portrait is managed by PortraitEditor
@@ -74,9 +74,15 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
     setUploading(false);
   }
 
+  // image-only attachments in display order, for lightbox prev/next
+  const imageAttachments = refAttachments.filter((a) => {
+    const asset = storyAssets.find((s) => s.id === a.asset_id);
+    return asset?.mime_type.startsWith("image/");
+  });
+
   function openLightbox(asset: StoryAsset) {
-    setLightboxUrl(api.assetFileUrl(asset.id));
-    setLightboxName(asset.original_filename);
+    const idx = imageAttachments.findIndex((a) => a.asset_id === asset.id);
+    setLightboxIndex(idx >= 0 ? idx : null);
   }
 
   return (
@@ -189,17 +195,21 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
       </div>
 
       {/* Lightbox */}
-      {lightboxUrl && (
-        <div className={styles.lightboxOverlay} onClick={() => setLightboxUrl(null)}>
-          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.lightboxClose} onClick={() => setLightboxUrl(null)}>
-              <X size={16} />
-            </button>
-            <img src={lightboxUrl} alt={lightboxName} className={styles.lightboxImg} />
-            <p className={styles.lightboxName}>{lightboxName}</p>
-          </div>
-        </div>
-      )}
+      {lightboxIndex !== null && (() => {
+        const att = imageAttachments[lightboxIndex];
+        const asset = att && storyAssets.find((a) => a.id === att.asset_id);
+        if (!asset) return null;
+        return (
+          <Lightbox
+            url={api.assetFileUrl(asset.id)}
+            alt={asset.alt_text || asset.original_filename}
+            filename={asset.original_filename}
+            onClose={() => setLightboxIndex(null)}
+            onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
+            onNext={lightboxIndex < imageAttachments.length - 1 ? () => setLightboxIndex((i) => (i ?? 0) + 1) : undefined}
+          />
+        );
+      })()}
     </>
   );
 }

@@ -1,0 +1,184 @@
+.panel {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.icon {
+  color: var(--color-nlp);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 2px;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.analyzeBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-nlp) 30%, transparent);
+  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
+  color: var(--color-nlp);
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.analyzeBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-nlp) 14%, transparent);
+}
+
+.analyzeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.loadingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.spin {
+  animation: spin 1.2s linear infinite;
+  color: var(--color-nlp);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Assessment */
+
+.assessmentBox {
+  padding: 10px 12px;
+  border: 1px solid var(--color-nlp);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--color-nlp) 6%, transparent);
+}
+
+.assessmentText {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* Sections */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.section {
+  border-left: 3px solid var(--color-border);
+  padding-left: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sectionIcon {
+  display: flex;
+  align-items: center;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Impact row */
+
+.impactRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+}
+
+.impactName {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.impactDetail {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Loose ends */
+
+.looseEndList {
+  margin: 0;
+  padding: 0 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.looseEndItem {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}

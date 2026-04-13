@@ -16,9 +16,12 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Plus, Save, Trash2, Type, Circle, Square } from "lucide-react";
+import { Plus, Save, Trash2, Type, Circle, Square, Download, Palette, LayoutGrid } from "lucide-react";
 import { api } from "../../api/client";
 import type { Diagram } from "../../types";
+import { exportDiagramPng, exportDiagramSvg } from "../../lib/diagramExport";
+import DiagramTemplateSelector from "./DiagramTemplateSelector";
+import type { DiagramTemplate } from "../../lib/diagramTemplates";
 import styles from "./DiagramEditor.module.css";
 
 // ---- Custom Node Types ----
@@ -111,6 +114,18 @@ const NODE_TYPES: NodeTypes = {
   central: CentralNode,
 };
 
+// ---- Node category colors ----
+
+const NODE_CATEGORIES = [
+  { id: "none",      label: "Default",   color: "" },
+  { id: "character", label: "Character", color: "#c26a3a" }, // --color-accent warm orange
+  { id: "setting",   label: "Setting",   color: "#4a7fa3" }, // blue
+  { id: "event",     label: "Event",     color: "#6a7a3a" }, // olive/green
+  { id: "clue",      label: "Clue",      color: "#8b6aa8" }, // --color-ai purple
+  { id: "twist",     label: "Twist",     color: "#a84a4a" }, // red
+  { id: "note",      label: "Note",      color: "#a88a2a" }, // amber
+] as const;
+
 // ---- Helpers ----
 
 function makeNodeId() {
@@ -143,6 +158,10 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
   const [dirty, setDirty] = useState(false);
   const [title, setTitle] = useState(diagram.title);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [templateOpen, setTemplateOpen] = useState(() => diagram.nodes.length === 0);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   // Inject label-change callback into node data
   const nodesWithCb: RFNode[] = nodes.map((n) => ({
@@ -179,6 +198,27 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
   function deleteSelected() {
     setNodes((ns) => ns.filter((n) => !n.selected));
     setEdges((es) => es.filter((e) => !e.selected));
+    setDirty(true);
+  }
+
+  function applyTemplate(template: DiagramTemplate) {
+    const newNodes: RFNode[] = template.nodes.map((n) => ({
+      id: n.id,
+      type: n.type,
+      position: n.position,
+      data: { ...n.data } as RFNodeData,
+    }));
+    setNodes(newNodes);
+    setEdges(template.edges as RFEdge[]);
+    setTemplateOpen(false);
+    setDirty(true);
+  }
+
+  function applyColor(color: string) {
+    setNodes((ns) => ns.map((n) =>
+      n.selected ? { ...n, data: { ...n.data, color: color || undefined } } : n
+    ));
+    setColorPickerOpen(false);
     setDirty(true);
   }
 
@@ -221,6 +261,9 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
         )}
 
         <div className={styles.toolbarActions}>
+          <button onClick={() => setTemplateOpen(true)} className={styles.toolBtn} title="Start from template">
+            <LayoutGrid size={13} />
+          </button>
           <button onClick={() => addNode("mindmap")} className={styles.toolBtn} title="Add node">
             <Circle size={13} /> <Plus size={11} />
           </button>
@@ -229,6 +272,33 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
               <Square size={13} /> <Plus size={11} />
             </button>
           )}
+          <div className={styles.exportWrap}>
+            <button
+              className={styles.toolBtn}
+              title="Color selected nodes"
+              onClick={() => setColorPickerOpen((v) => !v)}
+            >
+              <Palette size={13} />
+            </button>
+            {colorPickerOpen && (
+              <div className={styles.colorMenu}>
+                {NODE_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => applyColor(cat.color)}
+                    className={styles.colorOption}
+                    title={cat.label}
+                  >
+                    <span
+                      className={styles.colorSwatch}
+                      style={{ background: cat.color || "var(--color-surface-raised)", border: cat.color ? "none" : "1px solid var(--color-border)" }}
+                    />
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button onClick={deleteSelected} className={`${styles.toolBtn} ${styles.toolBtnDanger}`} title="Delete selected">
             <Trash2 size={13} />
           </button>
@@ -236,6 +306,25 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             <Save size={13} />
             {saving ? "Saving…" : dirty ? "Save" : "Saved"}
           </button>
+          <div className={styles.exportWrap}>
+            <button
+              className={styles.toolBtn}
+              title="Export diagram"
+              onClick={() => setExportOpen((v) => !v)}
+            >
+              <Download size={13} />
+            </button>
+            {exportOpen && (
+              <div className={styles.exportMenu}>
+                <button onClick={() => { canvasRef.current && exportDiagramPng(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                  Export PNG
+                </button>
+                <button onClick={() => { canvasRef.current && exportDiagramSvg(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                  Export SVG
+                </button>
+              </div>
+            )}
+          </div>
           {onClose && (
             <button onClick={onClose} className={styles.toolBtn} title="Close">
               ✕
@@ -244,7 +333,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
         </div>
       </div>
 
-      <div className={styles.canvas}>
+      <div className={styles.canvas} ref={canvasRef}>
         <ReactFlow
           nodes={nodesWithCb}
           edges={edges}
@@ -263,6 +352,13 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
       <div className={styles.hint}>
         Double-click a node to edit its label · Drag from a handle to connect · Delete key removes selected
       </div>
+
+      {templateOpen && (
+        <DiagramTemplateSelector
+          onSelect={applyTemplate}
+          onClose={() => setTemplateOpen(false)}
+        />
+      )}
     </div>
   );
 }

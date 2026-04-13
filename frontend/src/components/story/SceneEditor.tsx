@@ -6,9 +6,12 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, type LucideIcon } from "lucide-react";
+import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, ImageIcon, type LucideIcon } from "lucide-react";
 import type { DiagramSummary } from "../../types";
+import DiagramThumbnail from "../media/DiagramThumbnail";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
+import { InlineImageExtension, setInlineImageInsertCallback, insertInlineImage } from "./InlineImageExtension";
+import ImageInsertModal from "./ImageInsertModal";
 import {
   MentionDropdownExtension,
   setMentionItems,
@@ -216,6 +219,9 @@ export default function SceneEditor() {
   const notePopoverRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Inline image insert picker
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
+
   // Selection toolbar state
   const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
   const selectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -239,6 +245,7 @@ export default function SceneEditor() {
       CharacterCount,
       Typography,
       InlineNoteExtension,
+      InlineImageExtension,
       MentionDropdownExtension,
       DialogueExtension,
       SearchAndReplaceExtension,
@@ -753,6 +760,10 @@ export default function SceneEditor() {
     });
   }, [handleNoteActivate, handleAddNote]);
 
+  useEffect(() => {
+    setInlineImageInsertCallback(() => setImagePickerOpen(true));
+  }, []);
+
   // Close guide dropdown on outside click
   useEffect(() => {
     if (!showGuideMenu) return;
@@ -1099,6 +1110,13 @@ export default function SceneEditor() {
             className={`${styles.saveIndicator} ${styles[`saveIndicator_${activeNode ? saveState : "idle"}`]}`}
             title={saveState === "unsaved" ? "Unsaved changes" : saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
           />
+          <button
+            onClick={() => setImagePickerOpen(true)}
+            className={styles.topbarBtn}
+            title="Insert image into prose (⌘⇧I)"
+          >
+            <ImageIcon size={13} />
+          </button>
           <button
             onClick={() => setShowOverview((s) => !s)}
             className={`${styles.topbarBtn} ${showOverview ? styles.topbarBtnActive : ""}`}
@@ -1556,18 +1574,13 @@ export default function SceneEditor() {
               <div className={styles.linkedHeader}>
                 <label className={styles.overviewLabel}>Diagrams</label>
               </div>
-              <div className={styles.linkChips}>
+              <div className={styles.diagramThumbnails}>
                 {attachedDiagrams.map((d) => (
-                  <div key={d.id} className={styles.linkChip}>
-                    <button
-                      className={styles.linkChipContent}
-                      onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
-                      title={d.description || undefined}
-                    >
-                      <span className={styles.linkChipLabel}>{d.diagram_type}</span>
-                      <span className={styles.linkChipTitle}>{d.title}</span>
-                    </button>
-                  </div>
+                  <DiagramThumbnail
+                    key={d.id}
+                    diagram={d}
+                    onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
+                  />
                 ))}
               </div>
             </div>
@@ -2203,6 +2216,17 @@ export default function SceneEditor() {
             </div>
           </div>
         </div>
+      )}
+      {/* Insert image picker */}
+      {imagePickerOpen && activeStory && (
+        <ImageInsertModal
+          storyId={activeStory.id}
+          onInsert={(assetId, alt) => {
+            insertInlineImage(editor, assetId, alt);
+            setImagePickerOpen(false);
+          }}
+          onClose={() => setImagePickerOpen(false)}
+        />
       )}
     </div>
   );

@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass, Pencil } from "lucide-react";
+import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass, Pencil, Clock, AlertTriangle } from "lucide-react";
 import { api } from "../../api/client";
 import type { Twist, TwistType, TwistStatus, TwistClue, StructureNode } from "../../types";
 import TwistClueEditor from "./TwistClueEditor";
 import TwistAnalysisPanel from "./TwistAnalysisPanel";
+import TwistImpactPanel from "./TwistImpactPanel";
+import ReaderKnowledgeTimeline from "./ReaderKnowledgeTimeline";
 import { SectionCard } from "../common";
 import styles from "./TwistManager.module.css";
+
+type Tab = "twists" | "reader-knowledge" | "dramatic-irony";
 
 interface Props {
   storyId: string;
@@ -73,6 +77,7 @@ function StatusBadge({ status }: { status: TwistStatus }) {
 }
 
 export default function TwistManager({ storyId }: Props) {
+  const [tab, setTab] = useState<Tab>("twists");
   const [twists, setTwists] = useState<Twist[]>([]);
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +88,7 @@ export default function TwistManager({ storyId }: Props) {
   const [editFields, setEditFields] = useState<EditFields>(defaultEdit());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [analyzeId, setAnalyzeId] = useState<string | null>(null);
+  const [impactId, setImpactId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([api.listTwists(storyId), api.getStructure(storyId)])
@@ -126,6 +132,7 @@ export default function TwistManager({ storyId }: Props) {
     if (expandedId === id) setExpandedId(null);
     if (editingId === id) setEditingId(null);
     if (analyzeId === id) setAnalyzeId(null);
+    if (impactId === id) setImpactId(null);
   }
 
   function toggleExpand(id: string) {
@@ -137,6 +144,37 @@ export default function TwistManager({ storyId }: Props) {
 
   return (
     <div className={styles.manager}>
+      {/* Tab bar */}
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tabBtn} ${tab === "twists" ? styles.tabBtnActive : ""}`}
+          onClick={() => setTab("twists")}
+        >
+          <Eye size={13} />
+          Twists
+        </button>
+        <button
+          className={`${styles.tabBtn} ${tab === "reader-knowledge" ? styles.tabBtnActiveNlp : ""}`}
+          onClick={() => setTab("reader-knowledge")}
+        >
+          <Clock size={13} />
+          Reader Knowledge
+        </button>
+        <button
+          className={`${styles.tabBtn} ${tab === "dramatic-irony" ? styles.tabBtnActiveNlp : ""}`}
+          onClick={() => setTab("dramatic-irony")}
+        >
+          <AlertTriangle size={13} />
+          Dramatic Irony
+        </button>
+      </div>
+
+      {/* Reader Knowledge / Dramatic Irony tabs */}
+      {tab === "reader-knowledge" && <ReaderKnowledgeTimeline storyId={storyId} />}
+      {tab === "dramatic-irony" && <ReaderKnowledgeTimeline storyId={storyId} ironyOnly />}
+
+      {/* Twists tab */}
+      {tab === "twists" && (
     <div className={styles.inner}>
       <div className={styles.header}>
         <h2 className={styles.title}>Twists & Misdirection</h2>
@@ -190,6 +228,7 @@ export default function TwistManager({ storyId }: Props) {
           const isExpanded = expandedId === t.id;
           const isEditing = editingId === t.id;
           const isAnalyzing = analyzeId === t.id;
+          const isImpact = impactId === t.id;
 
           return (
             <div key={t.id} className={styles.twistCard}>
@@ -214,11 +253,19 @@ export default function TwistManager({ storyId }: Props) {
                   <StatusBadge status={t.status} />
                   <button
                     className={`${styles.iconBtn} ${isAnalyzing ? styles.iconBtnActive : ""}`}
-                    onClick={(e) => { e.stopPropagation(); setAnalyzeId(isAnalyzing ? null : t.id); }}
-                    title="Analyze this twist with AI"
+                    onClick={(e) => { e.stopPropagation(); setAnalyzeId(isAnalyzing ? null : t.id); if (!isAnalyzing) setImpactId(null); }}
+                    title="Analyze twist quality"
                     type="button"
                   >
                     <Compass size={13} />
+                  </button>
+                  <button
+                    className={`${styles.iconBtn} ${isImpact ? styles.iconBtnActive : ""}`}
+                    onClick={(e) => { e.stopPropagation(); setImpactId(isImpact ? null : t.id); if (!isImpact) setAnalyzeId(null); }}
+                    title="Analyze downstream impact"
+                    type="button"
+                  >
+                    <AlertTriangle size={13} />
                   </button>
                   <button
                     className={styles.iconBtn}
@@ -399,11 +446,19 @@ export default function TwistManager({ storyId }: Props) {
                   <TwistAnalysisPanel twistId={t.id} />
                 </div>
               )}
+
+              {/* Impact panel */}
+              {isImpact && (
+                <div className={styles.analysisWrap}>
+                  <TwistImpactPanel twistId={t.id} twistName={t.name} />
+                </div>
+              )}
             </div>
           );
         })}
       </div>
     </div>
+      )}
     </div>
   );
 }

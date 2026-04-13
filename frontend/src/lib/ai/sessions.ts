@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -507,6 +507,40 @@ registerSessionType({
     if (!storyId) throw new Error("Story required for Query Letter");
     return api.sendQueryLetterMessage(storyId, session.messages, signal, llmParams);
   },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Scene Atmosphere ──────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "scene-atmosphere",
+  label: "Scene Atmosphere",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Atmosphere — ${names.storyTitle}` : "Scene Atmosphere",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Images,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  // Not used — the mode component calls api.analyzeSceneAtmosphere() directly
+  sendMessage: () => { throw new Error("Scene Atmosphere uses direct API call, not sendMessage"); },
 
   persistsInBackend: false,
   allowContextSwitch: false,

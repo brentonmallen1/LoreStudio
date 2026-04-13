@@ -7,11 +7,14 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.twist import Twist
 from ..models.structure import StructureNode
+from ..models.plot_thread import PlotThread
+from ..models.character import Character
 from ..schemas.twist import TwistCreate, TwistUpdate, TwistOut
 from ..schemas.ai_responses import TwistAnalysisResponse, StructuredResult
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
+from ..services.llm.prompts.twist_impact import TWIST_IMPACT_SYSTEM, build_twist_impact_prompt
 
 router = APIRouter()
 
@@ -203,6 +206,96 @@ async def analyze_twist(
         response_model=TwistAnalysisResponse,
         messages=[{"role": "user", "content": f"Please analyze the twist \"{twist.name}\"."}],
         feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post("/twists/{twist_id}/analyze-impact", response_model=StructuredResult)
+async def analyze_twist_impact(
+    twist_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze downstream effects when a twist resolves: affected threads, arcs, scenes to review."""
+    twist = _verify_twist(twist_id, db, current_user)
+    story = db.get(Story, twist.story_id)
+
+    threads = (
+        db.query(PlotThread)
+        .filter(PlotThread.story_id == twist.story_id)
+        .all()
+    )
+    characters = (
+        db.query(Character)
+        .filter(Character.story_id == twist.story_id)
+        .all()
+    )
+    all_nodes = (
+        db.query(StructureNode)
+        .filter(StructureNode.story_id == twist.story_id)
+        .order_by(StructureNode.order.asc())
+        .all()
+    )
+    child_ids = {n.parent_id for n in all_nodes if n.parent_id}
+    scenes = [
+        {"id": n.id, "title": n.title or "Untitled", "synopsis": n.synopsis or ""}
+        for n in all_nodes
+        if n.id not in child_ids
+    ]
+
+    feature_prompt = build_twist_impact_prompt(
+        twist_name=twist.name,
+        the_truth=twist.the_truth,
+        the_misdirection=twist.the_misdirection,
+        story_title=story.title,
+        threads=[{"id": t.id, "name": t.name, "description": t.description} for t in threads],
+        characters=[{"id": c.id, "name": c.name, "role": getattr(c, "role", "")} for c in characters],
+        scenes=scenes,
+    )
+
+    ctx = AICallContext(
+        feature="twist-impact",
+        user_id=current_user.id,
+        story_id=twist.story_id,
+        extra_metadata={"twist_id": twist_id},
+        tags=["twist", "impact", "analysis", "user-initiated"],
+    )
+
+    from pydantic import BaseModel as PydanticBase
+
+    class AffectedThread(PydanticBase):
+        thread_id: str = ""
+        thread_name: str
+        impact: str
+
+    class AffectedArc(PydanticBase):
+        character_id: str = ""
+        character_name: str
+        arc_change: str
+
+    class SceneReview(PydanticBase):
+        node_id: str = ""
+        scene_title: str
+        reason: str
+
+    class RippleEffect(PydanticBase):
+        area: str
+        description: str
+
+    class TwistImpactResponse(PydanticBase):
+        affected_threads: list[AffectedThread] = []
+        affected_arcs: list[AffectedArc] = []
+        scenes_to_review: list[SceneReview] = []
+        loose_ends: list[str] = []
+        ripple_effects: list[RippleEffect] = []
+        overall_assessment: str = ""
+
+    return await ai_gateway.generate_structured(
+        response_model=TwistImpactResponse,
+        messages=[{"role": "user", "content": f"Analyze the downstream impact of the twist \"{twist.name}\"."}],
+        feature_prompt=TWIST_IMPACT_SYSTEM,
         context=ctx,
         db=db,
         user=current_user,

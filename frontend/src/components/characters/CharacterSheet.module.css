@@ -794,3 +794,90 @@
   color: var(--color-text-muted);
   font-size: 0.875rem;
 }
+
+/* ── AI Portrait Description Panel ── */
+.portraitDescPanel {
+  margin: 0 1.5rem 0.75rem;
+  border: 1px solid var(--color-ai-border);
+  border-radius: 8px;
+  background: var(--color-ai-subtle);
+  overflow: hidden;
+}
+
+.portraitDescHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-ai-border);
+}
+
+.portraitDescTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ai);
+  flex: 1;
+}
+
+.portraitDescAiBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+}
+
+.portraitDescClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: var(--color-ai);
+  cursor: pointer;
+  border-radius: 3px;
+  opacity: 0.7;
+  font-size: 11px;
+}
+.portraitDescClose:hover { opacity: 1; background: var(--color-ai-border); }
+
+.portraitDescBody {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portraitDescField {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portraitDescLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ai);
+  opacity: 0.8;
+}
+
+.portraitDescValue {
+  font-size: 12px;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.portraitDescHint {
+  font-size: 10px;
+  color: var(--color-ai);
+  opacity: 0.7;
+  margin: 0;
+  padding: 6px 12px 8px;
+  border-top: 1px solid var(--color-ai-border);
+}

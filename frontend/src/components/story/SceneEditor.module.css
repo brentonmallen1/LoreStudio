@@ -569,6 +569,13 @@
   border-color: var(--color-accent);
 }
 
+.diagramThumbnails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
 .linkChips {
   display: flex;
   flex-wrap: wrap;

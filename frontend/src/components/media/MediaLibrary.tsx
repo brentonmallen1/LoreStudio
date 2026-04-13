@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from "react";
-import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy } from "lucide-react";
+import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy, ZoomIn } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset } from "../../types";
+import Lightbox from "./Lightbox";
 import styles from "./MediaLibrary.module.css";
 
 interface Props {
@@ -20,10 +21,12 @@ function AssetCard({
   asset,
   onDelete,
   onUpdate,
+  onLightbox,
 }: {
   asset: StoryAsset;
   onDelete: (id: string) => void;
   onUpdate: (id: string, data: { alt_text?: string; description?: string }) => void;
+  onLightbox?: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [altText, setAltText] = useState(asset.alt_text);
@@ -62,9 +65,16 @@ function AssetCard({
 
   return (
     <div className={styles.card}>
-      <div className={styles.cardThumb}>
+      <div
+        className={`${styles.cardThumb} ${isImage && onLightbox ? styles.cardThumbClickable : ""}`}
+        onClick={isImage ? onLightbox : undefined}
+        title={isImage ? "View full size" : undefined}
+      >
         {isImage ? (
-          <img src={fileUrl} alt={asset.alt_text || asset.original_filename} className={styles.thumb} />
+          <>
+            <img src={fileUrl} alt={asset.alt_text || asset.original_filename} className={styles.thumb} />
+            {onLightbox && <span className={styles.thumbZoom}><ZoomIn size={13} /></span>}
+          </>
         ) : (
           <div className={styles.thumbPlaceholder}>
             <FileText size={28} />
@@ -162,7 +172,10 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [filter, setFilter] = useState<"all" | "images" | "documents">("all");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const imageAssets = assets.filter((a) => a.mime_type.startsWith("image/"));
 
   const filtered = assets.filter((a) => {
     if (filter === "images") return a.mime_type.startsWith("image/");
@@ -262,11 +275,30 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
                 asset={asset}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
+                onLightbox={asset.mime_type.startsWith("image/") ? () => {
+                  const idx = imageAssets.findIndex((a) => a.id === asset.id);
+                  setLightboxIndex(idx >= 0 ? idx : null);
+                } : undefined}
               />
             ))}
           </div>
         )}
       </div>
+
+      {lightboxIndex !== null && (() => {
+        const asset = imageAssets[lightboxIndex];
+        if (!asset) return null;
+        return (
+          <Lightbox
+            url={api.assetFileUrl(asset.id)}
+            alt={asset.alt_text || asset.original_filename}
+            filename={asset.original_filename}
+            onClose={() => setLightboxIndex(null)}
+            onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
+            onNext={lightboxIndex < imageAssets.length - 1 ? () => setLightboxIndex((i) => (i ?? 0) + 1) : undefined}
+          />
+        );
+      })()}
     </div>
   );
 }

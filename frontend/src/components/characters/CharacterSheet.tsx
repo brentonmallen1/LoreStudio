@@ -22,7 +22,7 @@ import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
 import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
-import PortraitEditor from "../media/PortraitEditor";
+import PortraitEditor, { type CharacterImageDescription } from "../media/PortraitEditor";
 import styles from "./CharacterSheet.module.css";
 
 
@@ -33,6 +33,7 @@ export default function CharacterSheet() {
   const { characters, upsertCharacter, structure, setActiveNode } = useStoryStore();
   const { resumeSession } = useAIStore();
   const [editing, setEditing] = useState(false);
+  const [portraitDesc, setPortraitDesc] = useState<CharacterImageDescription | null>(null);
   const [showStartInterview, setShowStartInterview] = useState(false);
   const [showAiGenerator, setShowAiGenerator] = useState(false);
   const [intentText, setIntentText] = useState("");
@@ -271,6 +272,7 @@ export default function CharacterSheet() {
                 objectType="character"
                 objectId={character.id}
                 placeholder={<User size={32} />}
+                onAnalyzeForCharacter={(desc) => setPortraitDesc(desc)}
               />
             )}
             <div className={styles.cardInfo}>
@@ -313,6 +315,32 @@ export default function CharacterSheet() {
               </button>
             </div>
           </div>
+
+          {/* AI: Portrait description result */}
+          {portraitDesc && (
+            <div className={styles.portraitDescPanel}>
+              <div className={styles.portraitDescHeader}>
+                <span className={styles.portraitDescTitle}>Portrait Description</span>
+                <span className={styles.portraitDescAiBadge}>AI</span>
+                <button className={styles.portraitDescClose} onClick={() => setPortraitDesc(null)}>✕</button>
+              </div>
+              <div className={styles.portraitDescBody}>
+                {[
+                  { label: "Appearance",     value: portraitDesc.appearance },
+                  { label: "Personality",    value: portraitDesc.personality },
+                  { label: "Voice",          value: portraitDesc.voice },
+                  { label: "Age",            value: portraitDesc.age_estimate },
+                  { label: "Backstory Hints",value: portraitDesc.backstory_hints },
+                ].map(({ label, value }) => (
+                  <div key={label} className={styles.portraitDescField}>
+                    <span className={styles.portraitDescLabel}>{label}</span>
+                    <span className={styles.portraitDescValue}>{value}</span>
+                  </div>
+                ))}
+              </div>
+              <p className={styles.portraitDescHint}>These are AI suggestions — copy what's useful into the character form.</p>
+            </div>
+          )}
 
           <div className={styles.tabs}>
             <button
