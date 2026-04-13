@@ -664,6 +664,7 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   images?: string[];  // base64-encoded image data for multimodal messages
+  isSummary?: boolean; // true when this message is a conversation summary replacement
 }
 
 export interface ChatContextPreview {
@@ -971,6 +972,7 @@ export interface PromptPreviewRequest {
   character_id?: string;
   attribute_type?: string;
   user_message?: string;
+  context_options?: ContextOptions;
 }
 
 export interface ContextSource {
@@ -979,12 +981,26 @@ export interface ContextSource {
   included: boolean;
 }
 
+export interface TokenBreakdown {
+  system_prompt: number;
+  context: number;
+}
+
+export interface ContextOptions {
+  include_characters: boolean;
+  include_threads: boolean;
+  include_settings: boolean;
+  include_siblings: boolean;
+}
+
 export interface PromptPreview {
   context_type: string;
   system_prompt: string;
+  composed_prompt: string;
   user_message: string;
   model: string;
   sources: ContextSource[];
+  token_breakdown?: TokenBreakdown;
 }
 
 export interface LLMInteractionData {
@@ -1172,6 +1188,49 @@ export interface AudienceAdherenceResponse {
   theme_assessment: string;
   overall_fit: string;
   summary: string;
+}
+
+// ── Cliche Analysis ──
+
+export interface ClicheInstance {
+  passage: string;
+  cliche_type: "phrase" | "trope" | "character_type" | "plot_device" | "description";
+  scene_title: string;
+  scene_id: string;
+  explanation: string;
+  severity: "strong" | "moderate" | "subtle";
+  intentional_use_case: string;
+}
+
+export interface ClicheCategory {
+  name: string;
+  count: number;
+  instances: ClicheInstance[];
+}
+
+export interface ClicheAnalysisResponse {
+  categories: ClicheCategory[];
+  total_count: number;
+  density_note: string;
+  genre_context: string;
+  summary: string;
+  overall_rating: "needs_work" | "fair" | "good" | "excellent";
+  strengths: string[];
+}
+
+// ── Discovery Questions ──
+
+export interface DiscoveryQuestion {
+  question: string;
+  context_area: string;
+  why_this_matters: string;
+}
+
+export interface DiscoveryQuestionsResponse {
+  questions: DiscoveryQuestion[];
+  focus_area: "character" | "location" | "scene" | "story";
+  entity_name: string;
+  observation: string;
 }
 
 // ── Chronicle ──

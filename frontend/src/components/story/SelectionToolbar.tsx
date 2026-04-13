@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, MessageSquare, Quote, Eye, Users } from "lucide-react";
+import { Sparkles, MessageSquare, Quote, Eye, Users, Feather } from "lucide-react";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -11,9 +11,10 @@ interface Props {
   onAttributeDialogue?: () => void;
   onAnalyzeShowTell?: () => void;
   onAnalyzeAudience?: () => void;
+  onClicheCoach?: () => void;
 }
 
-export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue, onAnalyzeShowTell, onAnalyzeAudience }: Props) {
+export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue, onAnalyzeShowTell, onAnalyzeAudience, onClicheCoach }: Props) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Keep toolbar position in sync with selectionRect
@@ -96,6 +97,19 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
           >
             <Quote size={12} />
             Attribute
+          </button>
+        </>
+      )}
+      {onClicheCoach && (
+        <>
+          <div className={styles.divider} />
+          <button
+            className={styles.btn}
+            onClick={onClicheCoach}
+            title="Cliche Coach — discuss and address clichés in this passage"
+          >
+            <Feather size={12} />
+            Cliche
           </button>
         </>
       )}

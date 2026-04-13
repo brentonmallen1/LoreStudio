@@ -25,6 +25,9 @@ from ..services.llm.prompts.analysis import (
     build_theme_tracker_prompt,
     build_plot_hole_detection_prompt,
     build_first_pass_prompt,
+    build_cliche_analysis_prompt,
+    build_cliche_coach_system_prompt,
+    build_discovery_questions_prompt,
     TARGET_AUDIENCES,
 )
 from ..models.plot_thread import PlotThread
@@ -43,6 +46,8 @@ from ..schemas.ai_responses import (
     ThemeTrackerResponse,
     PlotHoleDetectionResponse,
     FirstPassAnalysisResponse,
+    ClicheAnalysisResponse,
+    DiscoveryQuestionsResponse,
     StructuredResult,
 )
 from ..schemas.nlp_analysis import (
@@ -1388,12 +1393,279 @@ async def analyze_first_pass(
     return result
 
 
+@router.post("/stories/{story_id}/analyze/cliches", response_model=StructuredResult)
+async def analyze_cliches(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Scan all scenes for clichéd language, tropes, and overused patterns."""
+    story = _get_story(story_id, db, current_user)
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    children_map: dict[str, list] = {}
+    roots = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def flatten_leaves(nodes):
+        result = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                result.append(n)
+            else:
+                result.extend(flatten_leaves(kids))
+        return result
+
+    leaves = flatten_leaves(roots)
+
+    scenes = []
+    total_words = 0
+    for leaf in leaves:
+        if leaf.content and leaf.content.strip():
+            total_words += len(leaf.content.split())
+            scenes.append({
+                "id": leaf.id,
+                "title": leaf.title or "Untitled",
+                "content": leaf.content,
+            })
+
+    if not scenes:
+        raise HTTPException(status_code=422, detail="No scene content to analyze")
+
+    feature_prompt = build_cliche_analysis_prompt(
+        story_title=story.title,
+        genre=story.genre or None,
+        tone=story.tone or None,
+        scenes=scenes,
+        total_words=total_words,
+    )
+
+    ctx = AICallContext(
+        feature="cliche-analysis",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "analysis", "craft", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=ClicheAnalysisResponse,
+        messages=[{"role": "user", "content": "Identify clichéd language and patterns in this story."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    cliche_count = result.data.get("total_count", 0) if result.success and result.data else 0
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Cliche check: {cliche_count} cliché(s) found",
+        metadata_={
+            "feature": "cliche-analysis",
+            "result": result.model_dump(),
+            "cliche_count": cliche_count,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result
+
+
+@router.post("/stories/{story_id}/chat/cliche-coach")
+async def cliche_coach_chat(
+    story_id: str,
+    node_id: str = Body(...),
+    messages: list[dict] = Body(...),
+    selected_text: str | None = Body(None),
+    llm_params=Body(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream a cliche coaching response for selected prose."""
+    from ..schemas.llm_params import LLMParams
+    if llm_params and not isinstance(llm_params, LLMParams):
+        llm_params = LLMParams(**llm_params)
+
+    story = _get_story(story_id, db, current_user)
+    node = db.get(StructureNode, node_id) if node_id not in {"__global__", "__story__"} else None
+    if node_id not in {"__global__", "__story__"} and (not node or node.story_id != story_id):
+        raise HTTPException(status_code=404, detail="Scene not found")
+
+    scene_title = node.title if node else "General"
+    passage = selected_text or (node.content[:500] if node and node.content else "")
+
+    feature_prompt = build_cliche_coach_system_prompt(
+        story_title=story.title,
+        scene_title=scene_title,
+        genre=story.genre or None,
+        selected_text=passage,
+    )
+
+    call_ctx = AICallContext(
+        feature="cliche-coach",
+        user_id=current_user.id,
+        story_id=story_id,
+        node_id=node_id,
+        tags=["manuscript", "chat", "craft", "user-initiated"],
+    )
+
+    async def stream():
+        try:
+            async for token in ai_gateway.stream(
+                messages=messages,
+                feature_prompt=feature_prompt,
+                context=call_ctx,
+                db=db,
+                user=current_user,
+                llm_params=llm_params,
+            ):
+                yield token
+        except Exception as e:
+            yield f"\n\n[Error: {e}]"
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+@router.post("/stories/{story_id}/discovery-questions", response_model=StructuredResult)
+async def generate_discovery_questions(
+    story_id: str,
+    focus_area: str = Body(...),        # "character" | "location" | "scene" | "story"
+    entity_id: str | None = Body(None), # character_id, location_id, or node_id
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate thought-provoking discovery questions for a story element."""
+    story = _get_story(story_id, db, current_user)
+
+    if focus_area not in {"character", "location", "scene", "story"}:
+        raise HTTPException(status_code=422, detail="focus_area must be character, location, scene, or story")
+
+    story_context = {
+        "title": story.title,
+        "genre": story.genre or "",
+        "tone": story.tone or "",
+    }
+
+    # Build entity_data based on focus_area
+    if focus_area == "character":
+        if not entity_id:
+            # Fall back to POV character or first character
+            character = None
+            if story.pov_character_id:
+                character = db.get(Character, story.pov_character_id)
+            if not character:
+                character = db.query(Character).filter(Character.story_id == story_id).first()
+            if not character:
+                raise HTTPException(status_code=422, detail="No characters found for this story")
+        else:
+            character = db.get(Character, entity_id)
+            if not character or character.story_id != story_id:
+                raise HTTPException(status_code=404, detail="Character not found")
+        entity_data = {
+            "name": character.name,
+            "role": character.role or "",
+            "mission_statement": character.mission_statement or "",
+            "personality": character.personality or "",
+            "motivation": character.motivation or "",
+            "background": character.background or "",
+            "appearance": character.appearance or "",
+            "arc_notes": character.arc_notes or "",
+            "narrative_intent": character.narrative_intent or "",
+            "traits": character.traits or {},
+        }
+
+    elif focus_area == "location":
+        if not entity_id:
+            location = db.query(Location).filter(Location.story_id == story_id).first()
+            if not location:
+                raise HTTPException(status_code=422, detail="No locations found for this story")
+        else:
+            location = db.get(Location, entity_id)
+            if not location or location.story_id != story_id:
+                raise HTTPException(status_code=404, detail="Location not found")
+        entity_data = {
+            "name": location.name,
+            "location_type": location.location_type or "",
+            "climate": location.climate or "",
+            "terrain": location.terrain or "",
+            "description": location.description or "",
+            "atmosphere": location.atmosphere or "",
+            "history": location.history or "",
+            "significance": location.significance or "",
+            "political_affiliation": location.political_affiliation or "",
+        }
+
+    elif focus_area == "scene":
+        if not entity_id:
+            raise HTTPException(status_code=422, detail="entity_id required for scene focus")
+        node = db.get(StructureNode, entity_id)
+        if not node or node.story_id != story_id:
+            raise HTTPException(status_code=404, detail="Scene not found")
+        pov_char_name = ""
+        if node.pov_character_id:
+            pov_char = db.get(Character, node.pov_character_id)
+            if pov_char:
+                pov_char_name = pov_char.name
+        entity_data = {
+            "title": node.title or "Untitled",
+            "synopsis": node.synopsis or "",
+            "entry_state": node.entry_state or "",
+            "exit_state": node.exit_state or "",
+            "key_events": node.key_events or [],
+            "pov_character": pov_char_name,
+            "status": node.status or "",
+        }
+
+    else:  # story
+        entity_data = {
+            "title": story.title,
+            "genre": story.genre or "",
+            "tone": story.tone or "",
+            "themes": story.themes or [],
+            "central_conflict": story.central_conflict or "",
+            "logline": story.logline or "",
+            "premise": story.premise or "",
+            "narrative_intent": story.narrative_intent or story.intent or "",
+        }
+
+    feature_prompt = build_discovery_questions_prompt(
+        focus_area=focus_area,
+        entity_data=entity_data,
+        story_context=story_context,
+    )
+
+    ctx = AICallContext(
+        feature="discovery-questions",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story", "discovery", "craft", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=DiscoveryQuestionsResponse,
+        messages=[{"role": "user", "content": f"Generate discovery questions for this {focus_area}."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
 # ── Analysis History Endpoints ────────────────────────────────────────────────
 
 HEALTH_FEATURES = {
     "prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions",
     "editorial-consistency", "pacing-analysis", "continuity-check", "theme-tracker", "plot-holes",
-    "first-pass",
+    "first-pass", "cliche-analysis",
 }
 
 

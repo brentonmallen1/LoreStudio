@@ -19,6 +19,7 @@ can show the author exactly what the AI is seeing.
 import re
 from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.responses import StreamingResponse, JSONResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -34,6 +35,14 @@ from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_wr
 from ..schemas.llm_params import LLMParams
 
 router = APIRouter()
+
+
+class ContextOptions(BaseModel):
+    """Controls which context sections are included in the LLM prompt."""
+    include_characters: bool = True
+    include_threads: bool = True
+    include_settings: bool = True
+    include_siblings: bool = True
 
 # How many characters of prose to include in context (keep tokens reasonable)
 PROSE_CONTEXT_LIMIT = 2000
@@ -56,7 +65,7 @@ def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
 VIRTUAL_NODE_IDS = {"__global__", "__story__"}
 
 
-def _build_context_packet(story: Story, node: StructureNode | None, db: Session) -> dict:
+def _build_context_packet(story: Story, node: StructureNode | None, db: Session, context_options: ContextOptions | None = None) -> dict:
     """Assemble the full context dict — used for both the preview endpoint and chat."""
 
     # ── Lorebook ──
@@ -108,66 +117,72 @@ def _build_context_packet(story: Story, node: StructureNode | None, db: Session)
         node_id_for_threads = None
         node_parent_id = None
 
+    # ── Resolve context option flags (default all True) ──
+    opts = context_options or ContextOptions()
+
     # ── Characters mentioned in prose ──
     char_names_mentioned, setting_names_mentioned = _extract_mentions(node_content)
 
     all_chars = db.query(Character).filter(Character.story_id == story.id).all()
-    mentioned_chars = [
-        c for c in all_chars
-        if any(c.name.lower() == n.lower() for n in char_names_mentioned)
-    ]
-    # Also include all story characters in a lighter form for context
+    # Always include light summary of all characters for context
     all_char_summaries = [
         {"name": c.name, "role": c.role, "motivation": c.motivation[:100] if c.motivation else None}
         for c in all_chars
     ]
 
     mentioned_char_profiles = []
-    for c in mentioned_chars:
-        profile: dict = {"name": c.name, "role": c.role}
-        if c.personality: profile["personality"] = c.personality
-        if c.motivation: profile["motivation"] = c.motivation
-        if c.background: profile["background"] = c.background[:300]
-        if c.arc_notes: profile["arc_notes"] = c.arc_notes
-        if c.narrative_intent and not c.narrative_intent_hidden:
-            profile["narrative_intent"] = c.narrative_intent
-        if c.arc_milestones:
-            profile["arc_milestones_pending"] = [
-                m["text"] for m in c.arc_milestones if not m.get("completed")
-            ]
-        mentioned_char_profiles.append(profile)
+    if opts.include_characters:
+        mentioned_chars = [
+            c for c in all_chars
+            if any(c.name.lower() == n.lower() for n in char_names_mentioned)
+        ]
+        for c in mentioned_chars:
+            profile: dict = {"name": c.name, "role": c.role}
+            if c.personality: profile["personality"] = c.personality
+            if c.motivation: profile["motivation"] = c.motivation
+            if c.background: profile["background"] = c.background[:300]
+            if c.arc_notes: profile["arc_notes"] = c.arc_notes
+            if c.narrative_intent and not c.narrative_intent_hidden:
+                profile["narrative_intent"] = c.narrative_intent
+            if c.arc_milestones:
+                profile["arc_milestones_pending"] = [
+                    m["text"] for m in c.arc_milestones if not m.get("completed")
+                ]
+            mentioned_char_profiles.append(profile)
 
     # ── Settings mentioned ──
-    all_settings = db.query(Setting).filter(Setting.story_id == story.id).all()
-    mentioned_settings = [
-        {"name": s.name, "description": s.description[:200] if s.description else None, "atmosphere": s.atmosphere[:200] if s.atmosphere else None}
-        for s in all_settings
-        if any(s.name.lower() == n.lower() for n in setting_names_mentioned)
-    ]
+    mentioned_settings = []
+    if opts.include_settings:
+        all_settings = db.query(Setting).filter(Setting.story_id == story.id).all()
+        mentioned_settings = [
+            {"name": s.name, "description": s.description[:200] if s.description else None, "atmosphere": s.atmosphere[:200] if s.atmosphere else None}
+            for s in all_settings
+            if any(s.name.lower() == n.lower() for n in setting_names_mentioned)
+        ]
 
     # ── Plot threads touching this scene ──
-    if node_id_for_threads:
-        thread_appearances = db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id == node_id_for_threads).all()
-        active_thread_ids = {a.thread_id for a in thread_appearances}
-        active_threads = db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
-        threads_in_scene = [
-            {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
-            for t in active_threads
+    threads_in_scene: list = []
+    all_open_threads: list = []
+    if opts.include_threads:
+        if node_id_for_threads:
+            thread_appearances = db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id == node_id_for_threads).all()
+            active_thread_ids = {a.thread_id for a in thread_appearances}
+            active_threads = db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
+            threads_in_scene = [
+                {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
+                for t in active_threads
+            ]
+        all_open_threads = [
+            {"name": t.name, "status": t.status}
+            for t in db.query(PlotThread).filter(
+                PlotThread.story_id == story.id,
+                PlotThread.status.in_(["open", "developing"])
+            ).all()
         ]
-    else:
-        threads_in_scene = []
-
-    # All open/developing threads (for wider awareness)
-    all_open_threads = [
-        {"name": t.name, "status": t.status}
-        for t in db.query(PlotThread).filter(
-            PlotThread.story_id == story.id,
-            PlotThread.status.in_(["open", "developing"])
-        ).all()
-    ]
 
     # ── Sibling context (adjacent scenes) ──
-    if node is not None:
+    sibling_context: list = []
+    if opts.include_siblings and node is not None:
         siblings = db.query(StructureNode).filter(
             StructureNode.story_id == story.id,
             StructureNode.parent_id == node_parent_id,
@@ -177,8 +192,6 @@ def _build_context_packet(story: Story, node: StructureNode | None, db: Session)
             {"title": s.title, "synopsis": s.synopsis[:120] if s.synopsis else None, "position": s.position}
             for s in siblings[:6]
         ]
-    else:
-        sibling_context = []
 
     return {
         "story": lorebook,
@@ -220,6 +233,7 @@ async def scene_chat(
     messages: list[dict] = Body(...),
     llm_params: LLMParams | None = Body(None),
     mode: str | None = Body(None),
+    context_options: ContextOptions | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -232,7 +246,7 @@ async def scene_chat(
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
 
-    ctx = _build_context_packet(story, node, db)
+    ctx = _build_context_packet(story, node, db, context_options)
     if mode == "writing-coach":
         feature_prompt = build_writing_coach_system_prompt(ctx)
     else:
@@ -255,6 +269,49 @@ async def scene_chat(
                 db=db,
                 user=current_user,
                 llm_params=llm_params,
+            ):
+                yield token
+        except Exception as e:
+            yield f"\n\n[Error: {e}]"
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
+@router.post("/chat/summarize")
+async def summarize_conversation(
+    messages: list[dict] = Body(...),
+    story_id: str | None = Body(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream a compact summary of the provided conversation messages."""
+    if not messages:
+        from fastapi.responses import Response as FR
+        return FR("No messages to summarize.", media_type="text/plain")
+
+    feature_prompt = (
+        "You are a conversation summarizer. "
+        "Summarize the key points from the following conversation concisely, "
+        "preserving important decisions, questions asked, creative ideas, and "
+        "information exchanged. Write in past tense. Be thorough but concise — "
+        "aim for 2-4 short paragraphs."
+    )
+
+    call_ctx = AICallContext(
+        feature="conversation-summarize",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["chat", "summarization", "user-initiated"],
+    )
+
+    async def stream():
+        try:
+            async for token in ai_gateway.stream(
+                messages=messages,
+                feature_prompt=feature_prompt,
+                context=call_ctx,
+                db=db,
+                user=current_user,
             ):
                 yield token
         except Exception as e:

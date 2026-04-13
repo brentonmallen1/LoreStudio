@@ -5,11 +5,12 @@ import {
   AlertCircle, AlertTriangle, Info,
   User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
   GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
-  ClipboardCheck, Star, TrendingUp, Volume2,
+  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2,
 } from "lucide-react";
 import type {
   ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
   EditorialConsistencyResponse, ContinuityCheckResult, ThemeTrackerResult, PlotHoleDetectionResult,
+  ClicheAnalysisResponse, ClicheInstance,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./ReportCard.module.css";
@@ -27,6 +28,7 @@ const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; col
   "theme-tracker": { label: "Theme Tracker", Icon: Palette, color: "var(--color-ai)" },
   "plot-holes": { label: "Plot Holes", Icon: Skull, color: "var(--color-ai)" },
   "first-pass": { label: "First-Pass Editor", Icon: ClipboardCheck, color: "var(--color-ai)" },
+  "cliche-analysis": { label: "Cliche Check", Icon: Repeat2, color: "var(--color-ai)" },
 };
 
 // ── Economy schema (mirrors EconomyAnalysisPanel) ─────────────────────────────
@@ -471,6 +473,82 @@ function FirstPassResultDisplay({ result }: { result: StructuredResult }) {
   );
 }
 
+// ── Cliche Analysis renderer ──────────────────────────────────────────────────
+
+const SEVERITY_COLOR_CLICHE: Record<string, string> = {
+  strong: "var(--color-error, #e05252)",
+  moderate: "var(--color-warning, #d97706)",
+  subtle: "var(--color-text-muted)",
+};
+
+function ClicheInstanceRow({ instance }: { instance: ClicheInstance }) {
+  const [open, setOpen] = useState(false);
+  const color = SEVERITY_COLOR_CLICHE[instance.severity] ?? "var(--color-text-muted)";
+  return (
+    <div className={styles.issueRow} style={{ alignItems: "flex-start" }}>
+      <MinusCircle size={12} style={{ color, flexShrink: 0, marginTop: 3 }} />
+      <div className={styles.issueBody}>
+        <button
+          className={styles.issueLabel}
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", font: "inherit" }}
+          onClick={() => setOpen((o) => !o)}
+        >
+          "{instance.passage}"
+          <span style={{ marginLeft: 6, fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "normal" }}>
+            [{instance.cliche_type}] · {instance.severity} · {instance.scene_title}
+          </span>
+        </button>
+        {open && (
+          <>
+            <p className={styles.issueSuggestion}>{instance.explanation}</p>
+            {instance.intentional_use_case && (
+              <p className={styles.issueMeta}>When it might work: {instance.intentional_use_case}</p>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ClicheResultDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as ClicheAnalysisResponse;
+  return (
+    <div>
+      <div className={styles.summaryRow} style={{ marginBottom: "0.5rem" }}>
+        <span className={`${styles.ratingBadge} ${styles[`rating_${data.overall_rating}`]}`}>
+          {data.overall_rating?.replace("_", " ") ?? "—"}
+        </span>
+        <span className={styles.instanceCount}>
+          {data.total_count === 0 ? "No clichés found" : `${data.total_count} cliché${data.total_count !== 1 ? "s" : ""} found`}
+        </span>
+      </div>
+      {data.summary && <p className={styles.summaryText}>{data.summary}</p>}
+      {data.density_note && <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>{data.density_note}</p>}
+      {data.categories.map((cat, i) => cat.instances.length > 0 && (
+        <div key={i} className={styles.checkGroup}>
+          <span className={styles.checkLabel}>{cat.name} ({cat.count})</span>
+          {cat.instances.map((inst, j) => (
+            <ClicheInstanceRow key={j} instance={inst} />
+          ))}
+        </div>
+      ))}
+      {data.strengths.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>Strengths</span>
+          {data.strengths.map((s, i) => (
+            <div key={i} className={styles.issueRow}>
+              <CheckCircle size={12} style={{ color: "var(--color-success)", flexShrink: 0, marginTop: 2 }} />
+              <span className={styles.issueBody}>{s}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
@@ -510,6 +588,8 @@ function renderBody(log: ActivityLog) {
       return <PlotHolesResultDisplay result={result as unknown as StructuredResult} />;
     case "first-pass":
       return <FirstPassResultDisplay result={result as unknown as StructuredResult} />;
+    case "cliche-analysis":
+      return <ClicheResultDisplay result={result as unknown as StructuredResult} />;
     default:
       return <p className={styles.empty}>Unknown analysis type.</p>;
   }

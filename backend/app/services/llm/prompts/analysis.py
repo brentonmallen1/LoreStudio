@@ -866,3 +866,309 @@ Rules:
 - missed_setups: only include if a gap is clearly implied by the stated goals or arc milestones.
 - gaps: 0-6 items ranked by severity. Only flag genuine mismatches between intent and prose.
 - overall_rating: needs_work = intent not visible in prose, fair = partial alignment, good = mostly aligned, excellent = intent clearly realized."""
+
+
+def build_cliche_analysis_prompt(
+    story_title: str,
+    genre: str | None,
+    tone: str | None,
+    scenes: list[dict],
+    total_words: int,
+) -> str:
+    """Structured JSON prompt to identify clichés and overused patterns across all scenes."""
+
+    genre_line = f"Genre: {genre}." if genre else ""
+    tone_line = f"Tone: {tone}." if tone else ""
+    scenes_block = "\n\n".join(
+        f"[SCENE: {s['title']} | id: {s['id']}]\n{s['content'][:2000]}"
+        for s in scenes
+    )
+
+    return f"""You are a developmental editor analyzing prose from "{story_title}" for clichéd language and patterns.
+
+{genre_line} {tone_line}
+Approximate word count: {total_words:,}
+
+CLICHE TYPES:
+- phrase: Overused expressions ("dark as night", "heart of gold", "deafening silence", "a storm was coming")
+- trope: Overdone plot patterns used without meaningful subversion
+- character_type: Flat archetypes played straight ("chosen one", "wise mentor dies", "manic pixie dream girl")
+- plot_device: Tired mechanics ("it was all a dream", "convenient amnesia", "long-lost twin")
+- description: Hackneyed descriptive language ("cerulean orbs" for eyes, pathetic fallacy used bluntly)
+
+SEVERITY:
+- strong: So overused it damages credibility — definitely worth reconsidering
+- moderate: Recognizable cliché — consider freshening or intentional use
+- subtle: Borderline — may be intentional genre convention or voice
+
+IMPORTANT: Genre conventions are NOT clichés. Romance readers expect certain emotional beats; fantasy readers expect worldbuilding patterns. Only flag patterns that have become so overused they feel stale *within* their genre.
+
+PROSE TO ANALYZE:
+{scenes_block}
+
+Respond with a JSON object matching this exact schema:
+
+{{
+  "categories": [
+    {{
+      "name": "category name (e.g., Overused Phrases, Character Tropes, Plot Devices)",
+      "count": 2,
+      "instances": [
+        {{
+          "passage": "exact quoted text from the prose — 10–25 words max",
+          "cliche_type": "phrase | trope | character_type | plot_device | description",
+          "scene_title": "scene title from input",
+          "scene_id": "scene id from input",
+          "explanation": "one sentence on why this is considered a cliché",
+          "severity": "strong | moderate | subtle",
+          "intentional_use_case": "when using this intentionally could work (subversion, irony, genre homage, character voice)"
+        }}
+      ]
+    }}
+  ],
+  "total_count": 5,
+  "density_note": "X clichés per 1000 words — brief assessment of frequency",
+  "genre_context": "how the story's genre shapes cliché expectations",
+  "summary": "2–3 sentence overall assessment of originality and freshness",
+  "overall_rating": "needs_work | fair | good | excellent",
+  "strengths": ["specific example of fresh, original language or approach"]
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- passage: verbatim text excerpted from the scenes above — do not paraphrase
+- scene_id: use the id value from the [SCENE: ... | id: ...] header
+- Only flag genuine clichés — not genre conventions used purposefully
+- If the prose is largely cliché-free, say so clearly with overall_rating "good" or "excellent"
+- total_count must equal the sum of all category counts
+- overall_rating: needs_work = many strong clichés, fair = several moderate, good = mostly fresh, excellent = consistently original"""
+
+
+def build_cliche_coach_system_prompt(
+    story_title: str,
+    scene_title: str,
+    genre: str | None,
+    selected_text: str,
+) -> str:
+    """System prompt for the inline Cliche Coach chat session."""
+
+    genre_line = f"Genre: {genre}." if genre else ""
+
+    return f"""You are a thoughtful, encouraging writing coach helping an author examine a passage from their work-in-progress.
+
+Story: "{story_title}"
+Scene: "{scene_title}"
+{genre_line}
+
+The author has selected this passage for discussion:
+"{selected_text}"
+
+Your role is to:
+1. Identify any clichéd elements — phrases, tropes, descriptions, character patterns, plot devices
+2. Explain WHY something is considered a cliché (its origins, why overuse has dulled it)
+3. Help the author make an informed choice by exploring three paths:
+   - Freshen it: Point toward original alternatives that preserve the meaning or feeling
+   - Subvert it: Show how to twist the expectation to create surprise or irony
+   - Use it intentionally: Explain when a cliché can work (character voice, genre homage, deliberate irony)
+
+IMPORTANT PRINCIPLES:
+- You are a coach and editor, not a co-author. Point directions — don't write the prose for them.
+- Ask questions that help the author discover their own solution.
+- Respect genre conventions — what feels clichéd in literary fiction may be beloved convention in romance or cozy mystery.
+- If the passage contains no meaningful clichés, say so honestly and briefly, then offer what you do notice about the writing.
+- Be warm, specific, and respectful of the author's creative choices. Never be dismissive or condescending."""
+
+
+def _score_entity_richness(entity_data: dict) -> str:
+    """Return 'emerging' | 'developing' | 'established' based on how much data the entity has."""
+    # Count non-empty text fields and their total character weight
+    filled = 0
+    char_count = 0
+    for v in entity_data.values():
+        if isinstance(v, str) and v.strip():
+            filled += 1
+            char_count += len(v.strip())
+        elif isinstance(v, (list, dict)) and v:
+            filled += 1
+    # Thresholds: <3 meaningful fields or <150 chars total → emerging
+    #             3-6 fields or 150-600 chars → developing
+    #             7+ fields or >600 chars → established
+    if filled < 3 or char_count < 150:
+        return "emerging"
+    if filled < 7 or char_count < 600:
+        return "developing"
+    return "established"
+
+
+_RICHNESS_GUIDANCE = {
+    "emerging": {
+        "label": "EMERGING (very little data exists)",
+        "instruction": (
+            "This entity is barely sketched. Ask foundational questions that help the writer "
+            "establish the basics — who/what is this, why do they exist in the story, what makes "
+            "them distinct. Questions should be broad enough to open doors, not assume anything."
+        ),
+        "depth": "foundational — help the writer answer 'what is this entity at its core?'",
+    },
+    "developing": {
+        "label": "DEVELOPING (some data exists but gaps remain)",
+        "instruction": (
+            "This entity has a foundation but meaningful gaps remain. Ask questions that build "
+            "on what is already there — probe the tensions, contradictions, and unexplored edges "
+            "that the existing data hints at but doesn't resolve."
+        ),
+        "depth": "connective — help the writer deepen and complicate what already exists",
+    },
+    "established": {
+        "label": "ESTABLISHED (rich, detailed data exists)",
+        "instruction": (
+            "This entity is well-developed. Skip the basics. Ask nuanced questions that explore "
+            "the interplay between established elements, surface hidden contradictions, challenge "
+            "assumptions, or push into the subtext and implication of what's already there. "
+            "These questions should feel like the ones only a careful re-read would surface."
+        ),
+        "depth": "nuanced — challenge and complicate what's already established",
+    },
+}
+
+
+def build_discovery_questions_prompt(
+    focus_area: str,
+    entity_data: dict,
+    story_context: dict,
+) -> str:
+    """Generate thought-provoking discovery questions to help a writer develop a story element.
+
+    focus_area: "character" | "location" | "scene" | "story"
+    entity_data: serialized data for the entity being examined
+    story_context: basic story info (title, genre, tone)
+    """
+
+    story_title = story_context.get("title", "this story")
+    genre = story_context.get("genre", "")
+    tone = story_context.get("tone", "")
+
+    richness = _score_entity_richness(entity_data)
+    richness_meta = _RICHNESS_GUIDANCE[richness]
+
+    genre_line = f"Genre: {genre}." if genre else ""
+    tone_line = f"Tone: {tone}." if tone else ""
+
+    # Build entity block based on focus
+    if focus_area == "character":
+        name = entity_data.get("name", "this character")
+        entity_block = f"""CHARACTER: {name}
+Role: {entity_data.get('role', '')}
+Mission/goal: {entity_data.get('mission_statement', '')}
+Personality: {entity_data.get('personality', '')}
+Motivation: {entity_data.get('motivation', '')}
+Background: {entity_data.get('background', '')}
+Appearance: {entity_data.get('appearance', '')}
+Arc notes: {entity_data.get('arc_notes', '')}
+Narrative intent: {entity_data.get('narrative_intent', '')}
+Traits: {', '.join(f'{k}: {v}' for k, v in (entity_data.get('traits') or {}).items() if v)}"""
+        area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
+- backstory: Origins, formative experiences, family dynamics, what shaped their worldview
+- motivation: Goals, fears, contradictions, what they would sacrifice and why
+- relationship: How they relate to others — power dynamics, loyalty, conflict patterns
+- sensory: Physical mannerisms, voice, how others perceive them in a room
+- arc: Key decision points, transformation trajectory, what they must gain or lose
+- perspective: Get inside their body on an ordinary day — what do they notice first when entering an unfamiliar room? What physical sensation accompanies their anxiety or excitement? What would they be thinking about on a mundane commute? What sound, smell, or object puts them instantly at ease — or on edge?"""
+
+    elif focus_area == "location":
+        name = entity_data.get("name", "this location")
+        entity_block = f"""LOCATION: {name}
+Type: {entity_data.get('location_type', '')}
+Climate: {entity_data.get('climate', '')}
+Terrain: {entity_data.get('terrain', '')}
+Description: {entity_data.get('description', '')}
+Atmosphere: {entity_data.get('atmosphere', '')}
+History: {entity_data.get('history', '')}
+Significance: {entity_data.get('significance', '')}
+Political affiliation: {entity_data.get('political_affiliation', '')}"""
+        area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
+- sensory: What does it look, smell, sound, feel like at different times of day or season?
+- economy: What sustains this place? What do people do here for work and trade?
+- culture: Social norms, unspoken rules, local tensions, what outsiders misunderstand
+- history: What happened here? What traces remain? What is forgotten or suppressed?
+- conflict: What pressures does this place face — political, environmental, social?
+- perspective: Put yourself inside this place on an ordinary day — what is playing on the radio or the setting-appropriate equivalent? What does the air smell like at 7am? What do regulars argue about? What would a first-time visitor notice that a local has completely stopped seeing?"""
+
+    elif focus_area == "scene":
+        name = entity_data.get("title", "this scene")
+        entity_block = f"""SCENE: {name}
+Synopsis: {entity_data.get('synopsis', '')}
+Entry state: {entity_data.get('entry_state', '')}
+Exit state: {entity_data.get('exit_state', '')}
+Key events: {', '.join(entity_data.get('key_events') or [])}
+POV character: {entity_data.get('pov_character', '')}
+Status: {entity_data.get('status', '')}"""
+        area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
+- purpose: What must this scene accomplish? What changes by the end? What cannot be cut?
+- stakes: What is genuinely at risk? What happens if the protagonist fails here?
+- subtext: What is being communicated that isn't spoken aloud?
+- sensory: What physical anchors ground the reader in this specific place and moment?
+- character movement: Who wants what? Who is blocking them? How do power dynamics shift?
+- perspective: Step into the POV character's body — what is their posture doing that they're barely aware of? What ambient sounds or smells fill the room that no one comments on? What does the air taste like? What is the one detail their eye keeps returning to, and why?"""
+
+    else:  # story
+        name = entity_data.get("title", "this story")
+        entity_block = f"""STORY: {name}
+Genre: {entity_data.get('genre', '')}
+Tone: {entity_data.get('tone', '')}
+Themes: {', '.join(entity_data.get('themes') or [])}
+Central conflict: {entity_data.get('central_conflict', '')}
+Logline: {entity_data.get('logline', '')}
+Premise: {entity_data.get('premise', '')}
+Narrative intent: {entity_data.get('narrative_intent', '')}"""
+        area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
+- thematic clarity: What is this story fundamentally about at its deepest level?
+- promise: What does the opening promise the reader? Is that promise being kept?
+- stakes: Why does this story matter? What is truly at risk beyond plot events?
+- transformation: How will the protagonist and/or world be different at the end?
+- worldbuilding: What rules govern this world and how do they create or constrain story?
+- perspective: What is the texture of an ordinary Tuesday in this world? What do people complain about over dinner? What technology, object, or ritual is so ubiquitous that no one mentions it — but a reader from our world would find strange or revealing?"""
+
+    return f"""You are a thoughtful writing guide helping an author develop their story. Your role is to ask the questions a great developmental editor would ask — questions that help the writer make their own discoveries.
+
+Story: "{story_title}"
+{genre_line} {tone_line}
+
+{entity_block}
+
+DEVELOPMENT STAGE: {richness_meta['label']}
+{richness_meta['instruction']}
+Question depth: {richness_meta['depth']}
+
+{area_guidance}
+
+CRITICAL RULES:
+1. Ask questions, never answer them. Never suggest what the answer should be.
+2. Calibrate question depth to the development stage above — do not ask advanced nuance questions for an emerging entity, and do not ask basic "what is this?" questions for an established one.
+3. Identify GAPS — what data above is absent, vague, or thin? Ask about those areas specifically.
+4. Questions should be specific to this entity, not generic writing advice.
+5. Each question should feel like it unlocks something worth hours of thinking.
+6. "Why it matters" explains the story craft reason — how answering this could deepen the work.
+7. Include at least one immersive/perspective question that puts the writer physically inside the experience — sensory, embodied, and grounded in the everyday texture of this entity's world.
+
+Generate 3-5 discovery questions. Respond with this exact JSON schema:
+
+{{
+  "questions": [
+    {{
+      "question": "A specific, probing question about this {focus_area}",
+      "context_area": "backstory | motivation | sensory | conflict | relationship | worldbuilding | arc | stakes | culture | economy | subtext | purpose | perspective",
+      "why_this_matters": "1-2 sentences on how answering this could deepen the story"
+    }}
+  ],
+  "focus_area": "{focus_area}",
+  "entity_name": "{entity_data.get('name', entity_data.get('title', 'Unknown'))}",
+  "observation": "One sentence noting what seems most underdeveloped or unexplored about this {focus_area}"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- questions: 3-5 items, each distinct in context_area
+- Questions must be open-ended (never yes/no)
+- Prioritize areas where the entity data above is empty or minimal
+- Never write prose for the author or suggest specific story choices"""

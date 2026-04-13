@@ -445,6 +445,15 @@
   color: var(--color-danger, #ef4444);
 }
 
+.iconBtn.ai {
+  color: var(--color-ai);
+}
+
+.iconBtn.ai:hover {
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+}
+
 /* Star button — always visible when starred, otherwise reveals on card hover */
 .starActive {
   color: var(--color-warning);

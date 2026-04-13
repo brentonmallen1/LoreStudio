@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "react";
-import { Brain } from "lucide-react";
+import { Brain, Layers } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../../../types";
@@ -87,30 +87,43 @@ export default function MessageList({ messages, streamingText, isStreaming, empt
           {emptyText ?? "Start the conversation by sending a message."}
         </p>
       )}
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className={`${styles.row} ${msg.role === "user" ? styles.userRow : styles.assistantRow}`}
-        >
-          <div className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}>
-            {msg.images?.length ? (
-              <div className={styles.imageList}>
-                {msg.images.map((b64, idx) => (
-                  <img
-                    key={idx}
-                    src={`data:image/jpeg;base64,${b64}`}
-                    alt="attached"
-                    className={styles.image}
-                  />
-                ))}
-              </div>
-            ) : null}
-            {msg.role === "assistant"
-              ? <MessageContent content={msg.content} />
-              : msg.content}
+      {messages.map((msg, i) => {
+        if (msg.isSummary) {
+          return (
+            <details key={i} className={styles.summaryBlock}>
+              <summary className={styles.summarySummary}>
+                <Layers size={11} />
+                Conversation summary
+              </summary>
+              <div className={styles.summaryContent}>{msg.content}</div>
+            </details>
+          );
+        }
+        return (
+          <div
+            key={i}
+            className={`${styles.row} ${msg.role === "user" ? styles.userRow : styles.assistantRow}`}
+          >
+            <div className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}>
+              {msg.images?.length ? (
+                <div className={styles.imageList}>
+                  {msg.images.map((b64, idx) => (
+                    <img
+                      key={idx}
+                      src={`data:image/jpeg;base64,${b64}`}
+                      alt="attached"
+                      className={styles.image}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              {msg.role === "assistant"
+                ? <MessageContent content={msg.content} />
+                : msg.content}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       {isStreaming && streamingText && (
         <div className={`${styles.row} ${styles.assistantRow}`}>
           <div className={`${styles.bubble} ${styles.assistantBubble}`}>

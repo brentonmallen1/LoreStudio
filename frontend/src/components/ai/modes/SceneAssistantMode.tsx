@@ -40,7 +40,6 @@ interface Props {
 }
 
 export default function SceneAssistantMode({ session }: Props) {
-  const state = useAIModeState(session);
   const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
   const { structure } = useStoryStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
@@ -53,9 +52,13 @@ export default function SceneAssistantMode({ session }: Props) {
   const nodeId = session.context.nodeId ?? "";
   const flatNodes = flattenNodes(structure);
 
-  const { sources: contextSources } = useLLMContextSources(
-    storyId && nodeId ? { context_type: "scene-chat", story_id: storyId, node_id: nodeId } : null
+  const contextOptions = session.context.contextOptions;
+  const { sources: contextSources, tokenBreakdown } = useLLMContextSources(
+    storyId && nodeId
+      ? { context_type: "scene-chat", story_id: storyId, node_id: nodeId, context_options: contextOptions }
+      : null
   );
+  const state = useAIModeState(session, tokenBreakdown);
 
   function handleSend(text?: string) {
     const content = (text ?? state.input).trim();
@@ -81,8 +84,9 @@ export default function SceneAssistantMode({ session }: Props) {
       state={state}
       icon={Feather}
       title="Scene Assistant"
+      showContextOptions
       onTransparencyClick={() => state.transparency.open(
-        { context_type: "scene-chat", story_id: storyId, node_id: nodeId, user_message: state.lastUserMsg.current },
+        { context_type: "scene-chat", story_id: storyId, node_id: nodeId, user_message: state.lastUserMsg.current, context_options: contextOptions },
         state.lastResponse.current,
       )}
       headerExtra={

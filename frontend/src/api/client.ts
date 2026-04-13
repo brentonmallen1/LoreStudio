@@ -164,6 +164,15 @@ export const api = {
   analyzeFirstPass: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, { method: "POST" }),
 
+  analyzeCliches: (storyId: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, { method: "POST" }),
+
+  generateDiscoveryQuestions: (storyId: string, focusArea: string, entityId?: string) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/discovery-questions`, {
+      method: "POST",
+      body: JSON.stringify({ focus_area: focusArea, entity_id: entityId ?? null }),
+    }),
+
   // Analysis history
   getLatestAnalysis: (storyId: string, feature: string) =>
     request<import("../types").ActivityLog | null>(`/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`),
@@ -556,7 +565,7 @@ export const api = {
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
-  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams, mode?: string): Promise<Response> => {
+  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams, mode?: string, contextOptions?: import("../types").ContextOptions): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/chat`, {
       method: "POST",
@@ -564,7 +573,35 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null, mode: mode ?? null }),
+      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null, mode: mode ?? null, context_options: contextOptions ?? null }),
+      signal,
+    });
+  },
+
+  // Conversation Summarize
+  summarizeConversation: (messages: import("../types").ChatMessage[], storyId?: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/chat/summarize`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ messages, story_id: storyId ?? null }),
+      signal,
+    });
+  },
+
+  // Cliche Coach
+  sendClicheCoachMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], selectedText?: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/chat/cliche-coach`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ node_id: nodeId, messages, selected_text: selectedText ?? null, llm_params: llmParams ?? null }),
       signal,
     });
   },
@@ -877,6 +914,16 @@ export const api = {
     }),
   deleteChronicleSession: (sessionId: string) =>
     request<void>(`/chronicle/sessions/${sessionId}`, { method: "DELETE" }),
+  forkChronicleSession: (sessionId: string) =>
+    request<import("../types").ChronicleSession>(`/chronicle/sessions/${sessionId}/fork`, { method: "POST" }),
+  generateSessionTitle: (sessionId: string, signal?: AbortSignal): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/chronicle/sessions/${sessionId}/generate-title`, {
+      method: "POST",
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      signal,
+    });
+  },
   addChronicleMessage: (sessionId: string, data: {
     role: string; content: string; model?: string; tokens_in?: number; tokens_out?: number;
   }) =>

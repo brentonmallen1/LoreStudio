@@ -937,6 +937,18 @@ export default function SceneEditor() {
     setSelectionRect(null);
   }
 
+  function openClicheCoach() {
+    if (!editor || !activeStory || !activeNode) return;
+    const { from, to, empty } = editor.state.selection;
+    const selectedText = empty ? undefined : editor.state.doc.textBetween(from, to).trim();
+    createSession("cliche-coach", {
+      storyId: activeStory.id,
+      nodeId: activeNode.id,
+      selectedText: selectedText || undefined,
+    });
+    setSelectionRect(null);
+  }
+
   async function handleUpdateNote(noteId: string, newText: string) {
     if (!activeNode) return;
     const updated = inlineNotes.map((n) => n.id === noteId ? { ...n, note: newText } : n);
@@ -1890,6 +1902,7 @@ export default function SceneEditor() {
         onAttributeDialogue={triggerAttributeDialogue}
         onAnalyzeShowTell={openShowDontTell}
         onAnalyzeAudience={openAudienceAdherence}
+        onClicheCoach={openClicheCoach}
       />
 
       {/* Inline note popover */}

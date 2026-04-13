@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -35,7 +35,7 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   sendMessage: (session, _content, signal, llmParams) => {
-    const { storyId, nodeId, contextScope } = session.context;
+    const { storyId, nodeId, contextScope, contextOptions } = session.context;
     if (!storyId) {
       return Promise.reject(new Error("Add a story to context before chatting."));
     }
@@ -43,7 +43,7 @@ registerSessionType({
     if (contextScope === "entire-story") effectiveNodeId = "__story__";
     else if (contextScope === "lorebook-only") effectiveNodeId = "__global__";
     else effectiveNodeId = nodeId ?? "__global__"; // "current-scene" or unset
-    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
+    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams, undefined, contextOptions);
   },
 
   persistsInBackend: false,
@@ -180,10 +180,10 @@ registerSessionType({
   },
 
   sendMessage: (session, _content, signal, llmParams) => {
-    const { storyId, nodeId, contextScope } = session.context;
+    const { storyId, nodeId, contextScope, contextOptions } = session.context;
     if (!storyId || !nodeId) throw new Error("Story and node required for scene assistant");
     const effectiveNodeId = contextScope === "entire-story" ? "__story__" : nodeId;
-    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
+    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams, undefined, contextOptions);
   },
 
   persistsInBackend: false,
@@ -296,6 +296,76 @@ registerSessionType({
     if (!storyId || !nodeId) throw new Error("Story and scene required for writing coach");
     return api.sendChatMessage(storyId, nodeId, session.messages, signal, llmParams, "writing-coach");
   },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Cliche Coach ──────────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "cliche-coach",
+  label: "Cliche Coach",
+  contextTitle: (_ctx, names) =>
+    names.nodeName ? `Cliche Coach: ${names.nodeName}` : "Cliche Coach",
+  contextItemLabel: (_, names) => names.nodeName ?? "Scene",
+  icon: Feather,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: true,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+    nodeId: currentView.nodeId,
+  }),
+
+  getContextItems: () => {
+    const { structure } = useStoryStore.getState();
+    return flattenNodes(structure);
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId, nodeId, selectedText } = session.context;
+    if (!storyId || !nodeId) throw new Error("Story and scene required for Cliche Coach");
+    return api.sendClicheCoachMessage(storyId, nodeId, session.messages, selectedText, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Discovery Questions ────────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "discovery-questions",
+  label: "Discovery Questions",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Discovery — ${names.storyTitle}` : "Discovery Questions",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Compass,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async () => ({}),
+
+  // Discovery Questions uses direct API call from the mode component, not sendMessage
+  sendMessage: () => { throw new Error("Discovery Questions uses direct API call"); },
 
   persistsInBackend: false,
   allowContextSwitch: false,

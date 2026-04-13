@@ -11,6 +11,8 @@ import AudienceAdherenceMode from "./modes/AudienceAdherenceMode";
 import BookDescriptionMode from "./modes/BookDescriptionMode";
 import QueryLetterMode from "./modes/QueryLetterMode";
 import SceneAtmosphereMode from "./modes/SceneAtmosphereMode";
+import ClicheCoachMode from "./modes/ClicheCoachMode";
+import DiscoveryQuestionsMode from "./modes/DiscoveryQuestionsMode";
 import styles from "./SessionView.module.css";
 
 interface Props {
@@ -43,6 +45,10 @@ export default function SessionView({ session }: Props) {
       return <QueryLetterMode session={session} />;
     case "scene-atmosphere":
       return <SceneAtmosphereMode session={session} />;
+    case "cliche-coach":
+      return <ClicheCoachMode session={session} />;
+    case "discovery-questions":
+      return <DiscoveryQuestionsMode session={session} />;
     default:
       return (
         <div className={styles.unknown}>

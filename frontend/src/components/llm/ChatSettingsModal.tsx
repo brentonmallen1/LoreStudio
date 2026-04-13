@@ -12,6 +12,10 @@ interface Props {
   onApply: (params: LLMParams) => void;
   /** Current session-level overrides, if any. */
   sessionParams?: LLMParams;
+  /** Whether auto-summarize is currently enabled for this session. */
+  autoSummarize?: boolean;
+  /** Called when the user toggles auto-summarize. */
+  onAutoSummarizeChange?: (enabled: boolean) => void;
 }
 
 const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
@@ -23,7 +27,7 @@ const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
   { value: 1120, label: "1120 — High detail (OCR, fine text)" },
 ];
 
-export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionParams }: Props) {
+export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionParams, autoSummarize = false, onAutoSummarizeChange }: Props) {
   const [globalSettings, setGlobalSettings] = useState<LLMSettings | null>(null);
   const [temperature, setTemperature] = useState(1.0);
   const [topP, setTopP] = useState(0.95);
@@ -164,6 +168,23 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
             <span className={styles.toggleTrack} />
           </label>
         </div>
+
+        {onAutoSummarizeChange && (
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleLabel}>
+              <label className={styles.label}>Auto-summarize</label>
+              <span className={styles.hint}>Automatically compress older messages into a summary after 20 exchanges.</span>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={autoSummarize}
+                onChange={(e) => onAutoSummarizeChange(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
+          </div>
+        )}
       </div>
     </Modal>
   );

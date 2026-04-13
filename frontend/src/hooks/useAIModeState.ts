@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { AISession } from "../stores/aiStore";
-import type { LLMParams } from "../types";
+import type { LLMParams, TokenBreakdown } from "../types";
 import { useLLMTransparency } from "./useLLMTransparency";
 import { api } from "../api/client";
 
@@ -10,7 +10,7 @@ const CTX_LIMIT_FALLBACK = 128_000;
 let _cachedCtxLimit: number | null = null;
 let _fetchingCtxLimit = false;
 
-export function useAIModeState(session: AISession) {
+export function useAIModeState(session: AISession, contextBreakdown?: TokenBreakdown | null) {
   const [input, setInput] = useState("");
   const [sessionParams, setSessionParams] = useState<LLMParams | undefined>();
   const [showSettings, setShowSettings] = useState(false);
@@ -41,14 +41,25 @@ export function useAIModeState(session: AISession) {
       });
   }, []);
 
-  const estimatedTokens = Math.round(
+  const historyTokens = Math.round(
     session.messages.reduce((sum, m) => sum + m.content.length, 0) / 4
   );
+  const systemTokens = contextBreakdown?.system_prompt ?? 0;
+  const contextTokens = contextBreakdown?.context ?? 0;
+  const estimatedTokens = historyTokens + systemTokens + contextTokens;
   const ctxPct = Math.min(Math.round((estimatedTokens / ctxLimit) * 100), 100);
-  const ctxWarning: "normal" | "approaching" | "exceeded" =
-    ctxPct >= 80 ? "exceeded" : ctxPct >= 60 ? "approaching" : "normal";
+  const ctxWarning: "normal" | "approaching" | "exceeded" | "critical" =
+    ctxPct >= 95 ? "critical" : ctxPct >= 80 ? "exceeded" : ctxPct >= 60 ? "approaching" : "normal";
 
-  const tokenTooltip = `~${estimatedTokens.toLocaleString()} / ${ctxLimit.toLocaleString()} tokens estimated`;
+  const tokenTooltip = contextBreakdown
+    ? [
+        `System:  ~${systemTokens.toLocaleString()}`,
+        `Context: ~${contextTokens.toLocaleString()}`,
+        `History: ~${historyTokens.toLocaleString()}`,
+        `─────────────────────`,
+        `Total:   ~${estimatedTokens.toLocaleString()} / ${ctxLimit.toLocaleString()}`,
+      ].join("\n")
+    : `~${historyTokens.toLocaleString()} / ${ctxLimit.toLocaleString()} tokens (history only)`;
 
   return {
     input, setInput,

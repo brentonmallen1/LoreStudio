@@ -114,6 +114,43 @@
   text-underline-offset: 2px;
 }
 
+/* Summary blocks — same pattern as thinking blocks, AI accent */
+.summaryBlock {
+  border: 1px solid color-mix(in srgb, var(--color-ai) 25%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-ai) 5%, var(--color-surface));
+  overflow: hidden;
+  align-self: stretch;
+}
+
+.summarySummary {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  padding: 0.4rem 0.65rem;
+  color: var(--color-ai);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+  list-style: none;
+}
+
+.summarySummary::-webkit-details-marker { display: none; }
+.summarySummary:hover { opacity: 0.8; }
+
+.summaryContent {
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-ai) 15%, transparent);
+  font-size: 0.8rem;
+  color: var(--color-text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 /* Thinking blocks */
 .thinkingBlock {
   margin-bottom: 0.45rem;

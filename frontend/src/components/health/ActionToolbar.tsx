@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck } from "lucide-react";
+import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -139,6 +139,18 @@ const ANALYSES: AnalysisDef[] = [
     summarize: (log) => {
       const n = log.metadata_?.gap_count as number | undefined;
       return n != null ? (n === 0 ? "Intent well realized" : `${n} intent gap${n !== 1 ? "s" : ""}`) : "Analysis run";
+    },
+  },
+  {
+    id: "cliche-analysis",
+    label: "Cliche Check",
+    description: "Overused phrases · character tropes · plot devices · tired descriptions",
+    type: "ai",
+    Icon: Repeat2,
+    run: (id) => api.analyzeCliches(id),
+    summarize: (log) => {
+      const n = log.metadata_?.cliche_count as number | undefined;
+      return n != null ? (n === 0 ? "No clichés found" : `${n} cliché${n !== 1 ? "s" : ""} found`) : "Analysis run";
     },
   },
 ];

@@ -52,6 +52,7 @@ export default function AssistantMode({ session }: Props) {
       state={state}
       icon={Feather}
       title="Assistant"
+      showContextOptions
       onTransparencyClick={() => state.transparency.open(
         { context_type: "scene-chat", story_id: storyId, node_id: nodeId, user_message: state.lastUserMsg.current },
         state.lastResponse.current,

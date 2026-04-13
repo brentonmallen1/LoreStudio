@@ -42,6 +42,7 @@ class PromptPreviewRequest(BaseModel):
     character_id: str | None = None
     attribute_type: str | None = None
     user_message: str | None = None
+    context_options: dict | None = None  # Forwarded to _build_context_packet as ContextOptions
 
 
 class ContextSource(BaseModel):
@@ -49,6 +50,12 @@ class ContextSource(BaseModel):
     source: str  # e.g., "character_personality", "scene_content"
     label: str   # Human-readable: "Marcus Chen's personality"
     included: bool  # Whether this data exists and will be included
+
+
+class TokenBreakdown(BaseModel):
+    """Estimated token counts for the composed prompt (using len // 4 heuristic)."""
+    system_prompt: int   # Tokens for the system/feature prompt only
+    context: int         # Additional tokens from core prompt wrapping
 
 
 class PromptPreviewResponse(BaseModel):
@@ -59,6 +66,7 @@ class PromptPreviewResponse(BaseModel):
     model: str
     sources: list[ContextSource] = []
     core_prompt_is_custom: bool = False
+    token_breakdown: TokenBreakdown | None = None
 
 
 def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]:
@@ -96,13 +104,14 @@ def get_prompt_preview(
     if body.context_type == "scene-chat":
         if not body.story_id or not body.node_id:
             raise HTTPException(status_code=400, detail="story_id and node_id required")
-        from .chat import _build_context_packet
+        from .chat import _build_context_packet, ContextOptions
         from ..services.llm.prompts.chat import build_scene_chat_system_prompt
         story = _get_story(body.story_id)
         node = db.get(StructureNode, body.node_id)
         if not node or node.story_id != body.story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
-        ctx = _build_context_packet(story, node, db)
+        ctx_opts = ContextOptions(**(body.context_options or {})) if body.context_options is not None else None
+        ctx = _build_context_packet(story, node, db, ctx_opts)
         system_prompt = build_scene_chat_system_prompt(ctx)
         if not user_message:
             user_message = "[your message to the scene assistant]"
@@ -330,6 +339,11 @@ def get_prompt_preview(
     composed_prompt = ai_gateway.compose_prompt(system_prompt, current_user)
     core_is_custom = bool(user_ai.get("core_prompt"))
 
+    system_tokens = len(system_prompt) // 4
+    composed_tokens = len(composed_prompt) // 4
+    context_tokens = max(0, composed_tokens - system_tokens)
+    token_breakdown = TokenBreakdown(system_prompt=system_tokens, context=context_tokens)
+
     return PromptPreviewResponse(
         context_type=body.context_type,
         system_prompt=system_prompt,
@@ -338,4 +352,5 @@ def get_prompt_preview(
         model=ollama_provider.model,
         sources=sources,
         core_prompt_is_custom=core_is_custom,
+        token_breakdown=token_breakdown,
     )

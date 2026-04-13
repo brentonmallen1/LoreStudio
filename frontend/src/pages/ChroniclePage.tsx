@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Search, MessageSquare, Activity, ChevronLeft, Trash2, Archive,
-  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X, Star, Library,
+  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X, Star, Library, Feather,
 } from "lucide-react";
 import { api } from "../api/client";
-import type { ChronicleSession, ChronicleSessionDetail, ActivityLog, ChronicleSearchResult } from "../types";
+import { useAIStore } from "../stores/aiStore";
+import type { ChronicleSession, ChronicleSessionDetail, ActivityLog, ChronicleSearchResult, ChronicleMessage } from "../types";
 import styles from "./ChroniclePage.module.css";
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -58,6 +59,7 @@ function SessionCard({
   onClick,
   onArchive,
   onDelete,
+  onResume,
   selected,
   onToggle,
   selectionActive,
@@ -66,6 +68,7 @@ function SessionCard({
   onClick: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  onResume: () => void;
   selected: boolean;
   onToggle: () => void;
   selectionActive: boolean;
@@ -94,6 +97,7 @@ function SessionCard({
         </p>
       </div>
       <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
+        <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}><Feather size={13} /></button>
         <button className={styles.iconBtn} title="Archive" onClick={onArchive}><Archive size={13} /></button>
         <button className={`${styles.iconBtn} ${styles.danger}`} title="Delete" onClick={onDelete}><Trash2 size={13} /></button>
       </div>
@@ -268,6 +272,8 @@ function SessionDetail({ sessionId, onBack }: { sessionId: string; onBack: () =>
 
 export default function ChroniclePage() {
   const { storyId } = useParams<{ storyId: string }>();
+  const navigate = useNavigate();
+  const { resumeFromChronicle } = useAIStore();
 
   const [tab, setTab] = useState<ViewTab>("chats");
   const [sessions, setSessions] = useState<ChronicleSession[]>([]);
@@ -367,6 +373,20 @@ export default function ChroniclePage() {
     await api.updateChronicleSession(id, { archived: true });
     setSessions((prev) => prev.filter((s) => s.id !== id));
     setTotalSessions((n) => n - 1);
+  }
+
+  async function handleResume(s: ChronicleSession) {
+    try {
+      const detail = await api.getChronicleSession(s.id);
+      const messages = detail.messages.map((m: ChronicleMessage) => ({
+        role: m.role,
+        content: m.content,
+      }));
+      await resumeFromChronicle(s.id, s.context_type, s.context_id, s.story_id, s.context_label, messages);
+      navigate(`/stories/${s.story_id}`);
+    } catch {
+      // ignore errors
+    }
   }
 
   async function deleteSession(id: string) {
@@ -570,6 +590,7 @@ export default function ChroniclePage() {
                   onClick={() => setSelectedSessionId(s.id)}
                   onArchive={() => archiveSession(s.id)}
                   onDelete={() => deleteSession(s.id)}
+                  onResume={() => handleResume(s)}
                   selected={selectedIds.has(s.id)}
                   onToggle={() => toggleSelect(s.id)}
                   selectionActive={selectedIds.size > 0}
@@ -624,6 +645,7 @@ export default function ChroniclePage() {
                       onClick={() => setSelectedSessionId(r.session!.id)}
                       onArchive={() => archiveSession(r.session!.id)}
                       onDelete={() => deleteSession(r.session!.id)}
+                      onResume={() => handleResume(r.session!)}
                       selected={false}
                       onToggle={() => {}}
                       selectionActive={false}

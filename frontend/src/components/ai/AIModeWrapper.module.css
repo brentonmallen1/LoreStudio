@@ -91,7 +91,82 @@
   color: var(--color-accent);
 }
 
+/* Summarize button uses AI color */
+.summarizeBtn {
+  color: var(--color-ai);
+}
+
+.summarizeBtn:hover {
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+}
+
+/* New chat button uses AI color */
+.newChatBtn {
+  color: var(--color-ai);
+}
+
+.newChatBtn:hover {
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+}
+
+.newChatBtn:disabled {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
+
+/* Context options button wrapper — relative so the dropdown anchors to it */
+.ctxOptionWrap {
+  position: relative;
+}
+
 /* Slot for the contextBar (e.g. InterviewMode's story context row) */
 .contextBarSlot {
   flex-shrink: 0;
+}
+
+/* Context budget warning banner */
+.contextWarning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-warning, #d97706);
+  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-warning, #d97706) 25%, transparent);
+  flex-shrink: 0;
+}
+
+.contextWarning[data-level="critical"] {
+  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, var(--color-surface));
+  border-bottom-color: color-mix(in srgb, var(--color-danger, #ef4444) 25%, transparent);
+}
+
+.contextWarning > span {
+  flex: 1;
+}
+
+.contextWarnBtn {
+  padding: 0.18rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid currentColor;
+  background: none;
+  color: inherit;
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity var(--transition);
+}
+
+.contextWarnBtn:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.contextWarnBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

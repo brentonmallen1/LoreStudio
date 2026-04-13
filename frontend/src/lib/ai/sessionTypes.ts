@@ -27,6 +27,7 @@ export interface SessionContext {
   selectedText?: string;    // For writing-coach sessions: the highlighted text
   tonePrefs?: string[];     // For writing-coach sessions: e.g. ["darker", "direct"]
   contextScope?: ContextScope; // How much story context to include
+  contextOptions?: import("../../types").ContextOptions; // Selective context toggles
 }
 
 /** A single context option shown in the context picker dropdown */

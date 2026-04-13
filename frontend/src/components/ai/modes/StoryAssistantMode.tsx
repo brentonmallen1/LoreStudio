@@ -22,15 +22,15 @@ interface Props {
 }
 
 export default function StoryAssistantMode({ session }: Props) {
-  const state = useAIModeState(session);
   const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
   const { stories } = useStoryStore();
 
   const storyId = session.context.storyId ?? "";
 
-  const { sources: contextSources } = useLLMContextSources(
+  const { sources: contextSources, tokenBreakdown } = useLLMContextSources(
     storyId ? { context_type: "scene-chat", story_id: storyId, node_id: "__story__" } : null
   );
+  const state = useAIModeState(session, tokenBreakdown);
 
   function handleSend(text?: string) {
     const content = (text ?? state.input).trim();

@@ -28,7 +28,6 @@ interface Props {
 }
 
 export default function InterviewMode({ session }: Props) {
-  const state = useAIModeState(session);
   const { sendMessage, setInterviewNotes, updateSessionContext, cancelStreaming } = useAIStore();
   const { structure, characters, upsertCharacter } = useStoryStore();
   const [showNotes, setShowNotes] = useState(!!(session.interviewNotes));
@@ -52,9 +51,10 @@ export default function InterviewMode({ session }: Props) {
   const contextNodeId = session.context.nodeId ?? null;
   const flatNodes = flattenNodes(structure);
 
-  const { sources: contextSources, loading: sourcesLoading } = useLLMContextSources(
+  const { sources: contextSources, loading: sourcesLoading, tokenBreakdown } = useLLMContextSources(
     session.backendSessionId ? { context_type: "interview", interview_id: session.backendSessionId } : null
   );
+  const state = useAIModeState(session, tokenBreakdown);
 
   const { stream: streamSummary, text: summaryStreamText, isStreaming: isSummarizing } = useLLMStream({
     requestId: `interview-summary:${session.backendSessionId ?? session.id}`,

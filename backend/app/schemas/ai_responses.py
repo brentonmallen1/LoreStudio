@@ -417,6 +417,49 @@ class OutlineAlignmentResponse(BaseModel):
     coverage_score: int = 0             # 0-100 percent of outline beats covered
 
 
+# ── Cliche Analysis ──────────────────────────────────────────────────────────
+
+class ClicheInstance(BaseModel):
+    passage: str = ""              # Exact quoted text containing the cliche
+    cliche_type: str = ""          # phrase | trope | character_type | plot_device | description
+    scene_title: str = ""
+    scene_id: str = ""             # For navigation
+    explanation: str = ""          # Why it's a cliche
+    severity: str = "moderate"     # strong | moderate | subtle
+    intentional_use_case: str = "" # When using it might be valid
+
+
+class ClicheCategory(BaseModel):
+    name: str = ""
+    count: int = 0
+    instances: list[ClicheInstance] = []
+
+
+class ClicheAnalysisResponse(BaseModel):
+    categories: list[ClicheCategory] = []
+    total_count: int = 0
+    density_note: str = ""
+    genre_context: str = ""
+    summary: str = ""
+    overall_rating: str = "fair"   # needs_work | fair | good | excellent
+    strengths: list[str] = []
+
+
+# ── Discovery Questions ───────────────────────────────────────────────────────
+
+class DiscoveryQuestion(BaseModel):
+    question: str = ""              # The thought-provoking question
+    context_area: str = ""          # backstory | motivation | sensory | conflict | relationship | worldbuilding | arc | stakes | culture | economy | subtext | purpose
+    why_this_matters: str = ""      # 1-2 sentence explanation of why exploring this helps
+
+
+class DiscoveryQuestionsResponse(BaseModel):
+    questions: list[DiscoveryQuestion] = []   # 3-5 questions
+    focus_area: str = ""                       # character | location | scene | story
+    entity_name: str = ""                      # Name of what was analyzed
+    observation: str = ""                      # Brief note on what seems underdeveloped
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

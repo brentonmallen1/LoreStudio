@@ -21,6 +21,8 @@ export interface AISession {
   backendSessionId?: string;
   /** Chronicle session ID for persistent history */
   chronicleSessionId?: string;
+  /** When true, automatically summarize old messages after crossing a threshold */
+  autoSummarize?: boolean;
   /** Interview-specific captured notes */
   interviewNotes?: string;
   /** Currently streaming text (displayed live, not yet in messages) */
@@ -101,6 +103,31 @@ interface AIStore {
   _setChronicleSessionId: (sessionId: string, chronicleId: string) => void;
   /** Internal: set backend session ID after deferred initialization (e.g. PanelMode character selection) */
   _setBackendSessionId: (sessionId: string, backendSessionId: string) => void;
+
+  /** Clear messages and reset chronicle ID for the session (archive the old one first if desired) */
+  startFreshSession: (sessionId: string) => void;
+
+  /**
+   * Replace conversation history with a summary message + optional recent messages to keep.
+   * The summary is inserted as an assistant message with isSummary: true.
+   */
+  applySummary: (sessionId: string, summaryText: string, keepRecentCount?: number) => void;
+
+  /** Toggle auto-summarize mode for a session */
+  setAutoSummarize: (sessionId: string, enabled: boolean) => void;
+
+  /**
+   * Load a Chronicle session into the AI panel.
+   * Maps context_type → session type, loads messages, sets chronicleSessionId.
+   */
+  resumeFromChronicle: (
+    chronicleSessionId: string,
+    contextType: import("../types").ChronicleSession["context_type"],
+    contextId: string | null,
+    storyId: string,
+    contextLabel: string,
+    messages: import("../types").ChatMessage[],
+  ) => Promise<AISession>;
 
   // ── Chronicle helpers ─────────────────────────────────────────────────────
   /** Pending data for creating a Chronicle session on first message */
@@ -374,6 +401,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
   },
 
   _finalizeMessage: (sessionId, content) => {
+    const AUTO_SUMMARIZE_THRESHOLD = 20;
+    const AUTO_SUMMARIZE_KEEP = 4;
+
     set((s) => ({
       sessions: s.sessions.map((sess) => {
         if (sess.id !== sessionId) return sess;
@@ -386,6 +416,30 @@ export const useAIStore = create<AIStore>((set, get) => ({
         };
       }),
     }));
+
+    // Trigger background auto-summarize if enabled and threshold exceeded
+    const sess = get().sessions.find((s) => s.id === sessionId);
+    if (sess?.autoSummarize && sess.messages.length >= AUTO_SUMMARIZE_THRESHOLD) {
+      const toSummarize = sess.messages.slice(0, sess.messages.length - AUTO_SUMMARIZE_KEEP);
+      import("../api/client").then(({ api }) => {
+        api.summarizeConversation(toSummarize, sess.context.storyId)
+          .then(async (res) => {
+            if (!res.ok || !res.body) return;
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let full = "";
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              full += decoder.decode(value, { stream: true });
+            }
+            if (full.trim()) {
+              get().applySummary(sessionId, full.trim(), AUTO_SUMMARIZE_KEEP);
+            }
+          })
+          .catch(() => { /* silent fail */ });
+      });
+    }
   },
 
   _setChronicleSessionId: (sessionId, chronicleId) => {
@@ -402,5 +456,79 @@ export const useAIStore = create<AIStore>((set, get) => ({
         sess.id === sessionId ? { ...sess, backendSessionId } : sess
       ),
     }));
+  },
+
+  startFreshSession: (sessionId) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId
+          ? { ...sess, messages: [], chronicleSessionId: undefined, contextLocked: false, streamingText: undefined }
+          : sess
+      ),
+    }));
+  },
+
+  applySummary: (sessionId, summaryText, keepRecentCount = 4) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) => {
+        if (sess.id !== sessionId) return sess;
+        const summaryMsg: import("../types").ChatMessage = {
+          role: "assistant",
+          content: summaryText,
+          isSummary: true,
+        };
+        const recent = keepRecentCount > 0
+          ? sess.messages.slice(-keepRecentCount)
+          : [];
+        return { ...sess, messages: [summaryMsg, ...recent] };
+      }),
+    }));
+  },
+
+  setAutoSummarize: (sessionId, enabled) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, autoSummarize: enabled } : sess
+      ),
+    }));
+  },
+
+  resumeFromChronicle: async (chronicleSessionId, contextType, contextId, storyId, _contextLabel, messages) => {
+    const typeMap: Record<string, string> = {
+      scene: "scene-assistant",
+      story: "story-assistant",
+      character: "interview",
+      panel: "panel",
+    };
+    const sessionType = typeMap[contextType] ?? "scene-assistant";
+
+    const context: SessionContext = {
+      storyId,
+      nodeId: contextType === "scene" ? contextId ?? undefined : undefined,
+      characterId: contextType === "character" ? contextId ?? undefined : undefined,
+    };
+
+    const resolvedNames = await resolveNames(context);
+
+    const session: AISession = {
+      id: makeSessionId(),
+      type: sessionType,
+      context,
+      resolvedNames,
+      messages,
+      contextLocked: messages.length > 0,
+      chronicleSessionId,
+      isStreaming: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    set((s) => ({
+      sessions: [...s.sessions, session],
+      activeSessionId: session.id,
+      panelOpen: true,
+      panelCollapsed: false,
+    }));
+
+    return session;
   },
 }));

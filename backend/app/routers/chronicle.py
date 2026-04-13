@@ -18,6 +18,7 @@ Endpoints:
 
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -27,6 +28,7 @@ from ..models.chat_message import ChatMessage
 from ..models.activity_log import ActivityLog
 from ..models.user import User
 from ..auth.dependencies import get_current_user
+from ..services.llm.gateway import ai_gateway, AICallContext
 from ..schemas.chronicle import (
     ChatSessionCreate, ChatSessionUpdate, ChatSessionOut, ChatSessionDetail,
     ChatMessageCreate, ChatMessageOut,
@@ -156,6 +158,89 @@ def update_session(
     db.commit()
     db.refresh(s)
     return _session_to_out(s)
+
+
+@router.post("/chronicle/sessions/{session_id}/fork", response_model=ChatSessionOut)
+def fork_session(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Duplicate a session and all its messages into a new session."""
+    original = _session_or_404(session_id, db, user)
+    fork = ChatSession(
+        story_id=original.story_id,
+        user_id=user.id,
+        context_type=original.context_type,
+        context_id=original.context_id,
+        context_label=original.context_label,
+        title=f"{original.title or original.context_label} (fork)" if (original.title or original.context_label) else "Forked session",
+    )
+    db.add(fork)
+    db.flush()  # get fork.id
+    for msg in original.messages:
+        db.add(ChatMessage(
+            session_id=fork.id,
+            role=msg.role,
+            content=msg.content,
+            model=msg.model,
+            tokens_in=msg.tokens_in,
+            tokens_out=msg.tokens_out,
+        ))
+    db.commit()
+    db.refresh(fork)
+    return _session_to_out(fork)
+
+
+@router.post("/chronicle/sessions/{session_id}/generate-title")
+async def generate_session_title(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Stream a generated title for the session based on first few messages."""
+    s = _session_or_404(session_id, db, user)
+    if not s.messages:
+        raise HTTPException(status_code=400, detail="Session has no messages to title")
+
+    # Use first 5 messages for title generation
+    sample = s.messages[:5]
+    messages = [{"role": m.role, "content": m.content[:500]} for m in sample]
+    messages.append({"role": "user", "content": "Generate a short title (3-6 words) for this conversation. Reply with ONLY the title, no punctuation or quotes."})
+
+    feature_prompt = (
+        "You are a conversation titler. "
+        "Given the start of a conversation, generate a short, descriptive title "
+        "that captures the main topic. Reply with ONLY 3-6 words, no extra text."
+    )
+
+    call_ctx = AICallContext(
+        feature="session-title-generation",
+        user_id=user.id,
+        story_id=s.story_id,
+        tags=["chronicle", "title", "user-initiated"],
+    )
+
+    collected = []
+
+    async def stream_and_save():
+        try:
+            async for token in ai_gateway.stream(
+                messages=messages,
+                feature_prompt=feature_prompt,
+                context=call_ctx,
+                db=db,
+                user=user,
+            ):
+                collected.append(token)
+                yield token
+        finally:
+            title = "".join(collected).strip().strip('"').strip("'")
+            if title:
+                s.title = title[:80]
+                db.commit()
+
+    return StreamingResponse(stream_and_save(), media_type="text/plain")
 
 
 @router.delete("/chronicle/sessions/{session_id}", status_code=204)
