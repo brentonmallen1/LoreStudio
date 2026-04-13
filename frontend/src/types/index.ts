@@ -576,6 +576,8 @@ export interface OutlineItem {
   beat_type: OutlineBeatType | null;
   notes: string;
   collapsed: boolean;
+  scene_id: string | null;
+  scene_title: string | null;
   created_at: string;
   updated_at: string;
   children: OutlineItem[];

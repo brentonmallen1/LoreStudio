@@ -7,6 +7,7 @@ import StoryWorkspacePage from "./pages/StoryWorkspace";
 import SettingsPage from "./pages/Settings";
 import SettingsAIPage from "./pages/SettingsAI";
 import CommandPalette from "./components/layout/CommandPalette";
+import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <CommandPalette />
+      <ScratchPadDrawer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route

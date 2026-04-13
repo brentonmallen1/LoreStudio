@@ -490,6 +490,11 @@ export const api = {
 
   // Beat Sheets
   listBeatSheets: () => request<import("../types").BeatSheet[]>("/beat-sheets"),
+  createBeatSheet: (body: { name: string; description?: string; beats?: import("../types").Beat[] }) =>
+    request<import("../types").BeatSheet>("/beat-sheets", { method: "POST", body: JSON.stringify(body) }),
+  updateBeatSheet: (id: string, body: { name?: string; description?: string; beats?: import("../types").Beat[] }) =>
+    request<import("../types").BeatSheet>(`/beat-sheets/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteBeatSheet: (id: string) => request<void>(`/beat-sheets/${id}`, { method: "DELETE" }),
 
   // Snowflake Method
   getSnowflakeGuidance: (
@@ -941,6 +946,8 @@ export const api = {
     request<import("../types").SceneSetting[]>(`/structure/${nodeId}/scene-settings`),
   getSceneSettingsForLocation: (locationId: string) =>
     request<import("../types").SceneSetting[]>(`/locations/${locationId}/scene-settings`),
+  getScenesForLocation: (locationId: string) =>
+    request<{ scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]>(`/locations/${locationId}/scenes`),
   addSceneSetting: (data: { location_id: string; node_id: string; role?: string; notes?: string }) =>
     request<import("../types").SceneSetting>("/scene-settings", {
       method: "POST",

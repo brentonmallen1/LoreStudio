@@ -9,6 +9,7 @@ from ..models.user import User
 from ..models.story import Story
 from ..models.location import Location, SceneSetting, PREDEFINED_LOCATION_TYPES
 from ..models.setting import Setting
+from ..models.structure import StructureNode
 from ..schemas.location import (
     LocationCreate, LocationUpdate, LocationOut, LocationTree,
     SceneSettingCreate, SceneSettingOut,
@@ -200,6 +201,28 @@ def get_scene_settings_for_location(
 ):
     _verify_location_access(location_id, db, current_user)
     return db.query(SceneSetting).filter(SceneSetting.location_id == location_id).all()
+
+
+@router.get("/locations/{location_id}/scenes")
+def get_scenes_for_location(
+    location_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns scene references with titles for the Location Sheet scenes tab."""
+    _verify_location_access(location_id, db, current_user)
+    settings = db.query(SceneSetting).filter(SceneSetting.location_id == location_id).all()
+    result = []
+    for s in settings:
+        node = db.get(StructureNode, s.node_id)
+        result.append({
+            "scene_setting_id": s.id,
+            "scene_id": s.node_id,
+            "scene_title": node.title if node else "Untitled",
+            "role": s.role,
+            "notes": s.notes,
+        })
+    return result
 
 
 @router.get("/structure/{node_id}/scene-settings", response_model=list[SceneSettingOut])

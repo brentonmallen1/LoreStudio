@@ -146,6 +146,16 @@
   color: var(--color-text-muted);
 }
 
+.scratchDot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
 /* ── User button ── */
 .userBtn {
   display: flex;

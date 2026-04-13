@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, UserCircle2, Trash2, Compass, List, Network } from "lucide-react";
 import { api } from "../../api/client";
@@ -19,6 +19,27 @@ export default function CharacterList({ storyId }: Props) {
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showRelSuggestions, setShowRelSuggestions] = useState(false);
+  const [portraitUrls, setPortraitUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!characters.length) return;
+    Promise.all(
+      characters.map((c) =>
+        api.listAttachments("character", c.id)
+          .then((atts) => {
+            const portrait = atts.find((a) => a.role === "portrait");
+            return { id: c.id, url: portrait ? api.assetFileUrl(portrait.asset_id) : null };
+          })
+          .catch(() => ({ id: c.id, url: null as string | null }))
+      )
+    ).then((results) => {
+      setPortraitUrls((prev) => {
+        const next = { ...prev };
+        results.forEach(({ id, url }) => { if (url) next[id] = url; else delete next[id]; });
+        return next;
+      });
+    });
+  }, [characters.map((c) => c.id).join(",")]);
 
   async function handleDelete(id: string, name: string, e: React.MouseEvent) {
     e.stopPropagation();
@@ -106,7 +127,11 @@ export default function CharacterList({ storyId }: Props) {
                 onClick={() => navigate(`/stories/${storyId}/characters/${c.id}`)}
                 className={styles.card}
               >
-                <div className={styles.avatar}>{c.name[0].toUpperCase()}</div>
+                {portraitUrls[c.id] ? (
+                  <img src={portraitUrls[c.id]} alt={c.name} className={styles.avatarImg} />
+                ) : (
+                  <div className={styles.avatar}>{c.name[0].toUpperCase()}</div>
+                )}
                 <div className={styles.cardBody}>
                   <div className={styles.nameRow}>
                     <span className={styles.characterName}>{c.name}</span>

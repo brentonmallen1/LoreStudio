@@ -1628,7 +1628,6 @@ export default function SceneEditor() {
                 storyId={activeStory.id}
                 objectType="structure_node"
                 objectId={activeNode.id}
-                defaultRole="reference"
                 label="Images & References"
               />
             </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import { SectionCard } from "../common";
@@ -38,6 +38,7 @@ function LocationTreeItem({
   expandedIds,
   onToggleExpand,
   onAddChild,
+  onOpenSheet,
 }: {
   location: Location;
   depth: number;
@@ -46,6 +47,7 @@ function LocationTreeItem({
   expandedIds: Set<string>;
   onToggleExpand: (id: string) => void;
   onAddChild: (parentId: string) => void;
+  onOpenSheet: (id: string) => void;
 }) {
   const isExpanded = expandedIds.has(location.id);
   const hasChildren = location.children && location.children.length > 0;
@@ -73,6 +75,13 @@ function LocationTreeItem({
         {location.is_stub && <span className={styles.stubDot} title="Discovered — needs review" />}
         <button
           className={styles.treeAddBtn}
+          title="Open location sheet"
+          onClick={(e) => { e.stopPropagation(); onOpenSheet(location.id); }}
+        >
+          <ExternalLink size={10} />
+        </button>
+        <button
+          className={styles.treeAddBtn}
           title={`Add location inside "${location.name}"`}
           onClick={(e) => { e.stopPropagation(); onAddChild(location.id); }}
         >
@@ -91,6 +100,7 @@ function LocationTreeItem({
               expandedIds={expandedIds}
               onToggleExpand={onToggleExpand}
               onAddChild={onAddChild}
+              onOpenSheet={onOpenSheet}
             />
           ))}
         </div>
@@ -253,6 +263,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 expandedIds={expandedIds}
                 onToggleExpand={toggleExpand}
                 onAddChild={(parentId) => { setNewParentId(parentId); setShowAddModal(true); }}
+                onOpenSheet={(id) => navigate(`/stories/${storyId}/locations/${id}`)}
               />
             ))
           )}

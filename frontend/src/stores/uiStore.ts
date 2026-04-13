@@ -153,6 +153,11 @@ interface UIState {
   storySearchOpen: boolean;
   openStorySearch: () => void;
   closeStorySearch: () => void;
+
+  // Scratch pad (⌘⇧N — slide-in drawer)
+  scratchPadOpen: boolean;
+  toggleScratchPad: () => void;
+  closeScratchPad: () => void;
 }
 
 export interface WorldBuildingAIContext {
@@ -350,4 +355,8 @@ export const useUIStore = create<UIState>((set) => ({
   storySearchOpen: false,
   openStorySearch: () => set({ storySearchOpen: true }),
   closeStorySearch: () => set({ storySearchOpen: false }),
+
+  scratchPadOpen: false,
+  toggleScratchPad: () => set((s) => ({ scratchPadOpen: !s.scratchPadOpen })),
+  closeScratchPad: () => set({ scratchPadOpen: false }),
 }));

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, ListTree } from "lucide-react";
+import { ChevronDown, ChevronRight, ListTree, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
 import type { BeatSheet } from "../../types";
+import BeatSheetManagerDialog from "./BeatSheetManagerDialog";
 import styles from "./BeatSheetSelector.module.css";
 
 interface Props {
@@ -13,25 +14,39 @@ interface Props {
 export default function BeatSheetSelector({ value, onChange, onInject }: Props) {
   const [sheets, setSheets] = useState<BeatSheet[]>([]);
   const [expanded, setExpanded] = useState(false);
+  const [showManager, setShowManager] = useState(false);
+
+  function loadSheets() {
+    api.listBeatSheets().then(setSheets).catch(() => {});
+  }
 
   useEffect(() => {
-    api.listBeatSheets().then(setSheets).catch(() => {});
+    loadSheets();
   }, []);
 
   const active = sheets.find(s => s.id === value) ?? null;
 
   return (
     <div className={styles.wrap}>
-      <select
-        className={styles.select}
-        value={value ?? ""}
-        onChange={e => onChange(e.target.value || null)}
-      >
-        <option value="">— None —</option>
-        {sheets.map(s => (
-          <option key={s.id} value={s.id}>{s.name}</option>
-        ))}
-      </select>
+      <div className={styles.selectRow}>
+        <select
+          className={styles.select}
+          value={value ?? ""}
+          onChange={e => onChange(e.target.value || null)}
+        >
+          <option value="">— None —</option>
+          {sheets.map(s => (
+            <option key={s.id} value={s.id}>{s.name}</option>
+          ))}
+        </select>
+        <button
+          className={styles.manageBtn}
+          onClick={() => setShowManager(true)}
+          title="Manage beat sheets"
+        >
+          <Settings2 size={13} />
+        </button>
+      </div>
 
       {active && (
         <div className={styles.preview}>
@@ -67,6 +82,13 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
             </ol>
           )}
         </div>
+      )}
+
+      {showManager && (
+        <BeatSheetManagerDialog
+          onClose={() => setShowManager(false)}
+          onSheetsChanged={loadSheets}
+        />
       )}
     </div>
   );

@@ -43,6 +43,8 @@ class OutlineItem(Base):
     beat_type: Mapped[str | None] = mapped_column(String, nullable=True)  # plot, character, theme, setting
     notes: Mapped[str] = mapped_column(Text, default="")
     collapsed: Mapped[bool] = mapped_column(Boolean, default=False)
+    scene_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    scene_title: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

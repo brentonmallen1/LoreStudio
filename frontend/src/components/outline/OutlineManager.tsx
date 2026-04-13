@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Sparkles, Compass } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Sparkles, Compass, CheckSquare } from "lucide-react";
+import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { useHistoryStore } from "../../stores/historyStore";
-import type { Outline, OutlineItem } from "../../types";
+import type { Outline, OutlineItem, StructureNode } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
 import SnowflakeView from "./SnowflakeView";
 import OutlineInfoModal from "./OutlineInfoModal";
@@ -110,16 +111,25 @@ const BEAT_TYPES = ["plot", "character", "theme", "setting"] as const;
 
 interface OutlinePanelProps {
   outline: Outline;
+  storyId: string;
 }
 
-function OutlinePanel({ outline }: OutlinePanelProps) {
+function flattenIds(nodes: OutlineItem[]): string[] {
+  return nodes.flatMap((n) => [n.id, ...flattenIds(n.children ?? [])]);
+}
+
+function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
+  const navigate = useNavigate();
+  const { structure, setActiveNode } = useStoryStore();
   const [showAlignment, setShowAlignment] = useState(false);
   const [items, setItems] = useState<OutlineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectionActive, setSelectionActive] = useState(false);
   const [addingRoot, setAddingRoot] = useState(false);
   const [newRootText, setNewRootText] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [sceneNodes, setSceneNodes] = useState<StructureNode[]>([]);
 
   const itemsRef = useRef(items);
   itemsRef.current = items;
@@ -132,6 +142,20 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
       .then((data) => setItems(data.items))
       .finally(() => setLoading(false));
   }, [outline.id]);
+
+  useEffect(() => {
+    api.getStructure(storyId).then((tree) => {
+      const leaves: StructureNode[] = [];
+      function walk(nodes: StructureNode[]) {
+        for (const n of nodes) {
+          if (!n.children?.length) leaves.push(n);
+          else walk(n.children);
+        }
+      }
+      walk(tree);
+      setSceneNodes(leaves);
+    }).catch(() => {});
+  }, [storyId]);
 
   // ── DnD ─────────────────────────────────────────────────────────────────────
 
@@ -152,7 +176,7 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
 
   function handleUpdate(
     id: string,
-    patch: Partial<Pick<OutlineItem, "text" | "notes" | "beat_type" | "collapsed">>
+    patch: Partial<Pick<OutlineItem, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">>
   ) {
     setItems((prev) => updateItemInTree(prev, id, patch));
     if ("text" in patch || "notes" in patch) {
@@ -272,12 +296,35 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
 
+  function navigateToScene(sceneId: string) {
+    function findNode(nodes: typeof structure): typeof structure[0] | null {
+      for (const n of nodes) {
+        if (n.id === sceneId) return n;
+        if (n.children) { const found = findNode(n.children); if (found) return found; }
+      }
+      return null;
+    }
+    const node = findNode(structure);
+    if (node) setActiveNode(node);
+    navigate(`/stories/${storyId}/write`);
+  }
+
   function toggleSelect(id: string) {
     setSelected((s) => {
       const n = new Set(s);
       if (n.has(id)) n.delete(id); else n.add(id);
       return n;
     });
+  }
+
+  function toggleSelectAll() {
+    const allIds = flattenIds(itemsRef.current);
+    setSelected((s) => s.size === allIds.length ? new Set() : new Set(allIds));
+  }
+
+  function exitSelectionMode() {
+    setSelectionActive(false);
+    setSelected(new Set());
   }
 
   function bulkSetBeatType(type: OutlineItem["beat_type"]) {
@@ -290,7 +337,7 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
     let next = prev;
     ids.forEach((id) => { next = removeItemFromTree(next, id); });
     setItems(next);
-    setSelected(new Set());
+    exitSelectionMode();
     Promise.all(ids.map((id) => api.deleteOutlineItem(id))).catch(() => {
       setItems(prev);
       setSelected(new Set(ids));
@@ -301,33 +348,42 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
 
   return (
     <>
-      {selected.size > 0 && (
+      {selectionActive && (
         <div className={styles.bulkBar}>
-          <span className={styles.bulkCount}>{selected.size} selected</span>
-          <span className={styles.bulkSep} />
-          <span className={styles.bulkLabel}>Type:</span>
-          {BEAT_TYPES.map((type) => (
-            <button
-              key={type}
-              className={`${styles.bulkDot} ${(styles as Record<string, string>)[`dot_${type}`] ?? ""}`}
-              onClick={() => bulkSetBeatType(type)}
-              title={type}
-            />
-          ))}
-          <button
-            className={`${styles.bulkDot} ${styles.dot_none}`}
-            onClick={() => bulkSetBeatType(null)}
-            title="Clear type"
-          />
-          <span className={styles.bulkSep} />
-          <button
-            className={`${styles.bulkActionBtn} ${styles.bulkDanger}`}
-            onClick={bulkDelete}
-          >
-            <Trash2 size={12} />
-            Delete
+          <span className={styles.bulkCount}>
+            {selected.size > 0 ? `${selected.size} selected` : "Select items"}
+          </span>
+          <button className={styles.bulkActionBtn} onClick={toggleSelectAll}>
+            {selected.size === flattenIds(itemsRef.current).length ? "Deselect all" : "Select all"}
           </button>
-          <button className={styles.bulkCloseBtn} onClick={() => setSelected(new Set())}>
+          <span className={styles.bulkSep} />
+          {selected.size > 0 && (
+            <>
+              <span className={styles.bulkLabel}>Type:</span>
+              {BEAT_TYPES.map((type) => (
+                <button
+                  key={type}
+                  className={`${styles.bulkDot} ${(styles as Record<string, string>)[`dot_${type}`] ?? ""}`}
+                  onClick={() => bulkSetBeatType(type)}
+                  title={type}
+                />
+              ))}
+              <button
+                className={`${styles.bulkDot} ${styles.dot_none}`}
+                onClick={() => bulkSetBeatType(null)}
+                title="Clear type"
+              />
+              <span className={styles.bulkSep} />
+              <button
+                className={`${styles.bulkActionBtn} ${styles.bulkDanger}`}
+                onClick={bulkDelete}
+              >
+                <Trash2 size={12} />
+                Delete
+              </button>
+            </>
+          )}
+          <button className={styles.bulkCloseBtn} onClick={exitSelectionMode}>
             <X size={14} />
           </button>
         </div>
@@ -337,6 +393,14 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
         <div className={styles.header}>
           <h2 className={styles.title}>{outline.name}</h2>
           <div className={styles.headerRight}>
+            <button
+              className={`${styles.selectBtn} ${selectionActive ? styles.selectBtnActive : ""}`}
+              onClick={() => selectionActive ? exitSelectionMode() : setSelectionActive(true)}
+              title={selectionActive ? "Exit selection mode" : "Select items"}
+            >
+              <CheckSquare size={13} />
+              {selectionActive ? "Done" : "Select"}
+            </button>
             <button
               className={styles.alignmentBtn}
               onClick={() => setShowAlignment((v) => !v)}
@@ -408,7 +472,7 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
                 item={item}
                 depth={0}
                 selected={selected}
-                hasSelection={selected.size > 0}
+                selectionActive={selectionActive}
                 onToggleSelect={toggleSelect}
                 onDrop={handleDrop}
                 onUpdate={handleUpdate}
@@ -418,6 +482,8 @@ function OutlinePanel({ outline }: OutlinePanelProps) {
                 onIndent={handleIndent}
                 onDedent={handleDedent}
                 focusId={focusId}
+                sceneNodes={sceneNodes}
+                onNavigateToScene={navigateToScene}
               />
             ))}
             <button className={styles.addRootRow} onClick={() => { setAddingRoot(true); setNewRootText(""); }}>
@@ -616,6 +682,7 @@ export default function OutlineManager({ storyId }: Props) {
         <OutlinePanel
           key={activeOutline.id}
           outline={activeOutline}
+          storyId={storyId}
         />
       ) : (
         <div className={styles.managerInner}>

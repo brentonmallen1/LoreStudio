@@ -18,12 +18,63 @@
   margin-bottom: 0;
 }
 
-.headerTop {
+/* ── ID Card ── */
+.idCard {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  margin-bottom: 0;
+}
+
+.portrait {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.portraitImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.portraitPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-subtle);
+}
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+  padding-top: 0.15rem;
+}
+
+.nameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.missionTeaser {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  line-height: 1.45;
 }
 
 /* ── Tabs ── */
@@ -58,10 +109,7 @@
   border-bottom-color: var(--color-accent);
 }
 
-.identity {
-  flex: 1;
-  min-width: 0;
-}
+/* .identity is replaced by .cardInfo in the ID card layout */
 
 .name {
   font-size: 1.75rem;
@@ -248,27 +296,105 @@
   gap: 0.5rem;
 }
 
+.fieldTextarea {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.84rem;
+  font-family: inherit;
+  line-height: 1.55;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color var(--transition);
+}
+.fieldTextarea:focus { outline: none; border-color: var(--color-accent); }
+
 .traitsList {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
 }
 
-.traitTag {
-  display: inline-flex;
+.traitRow {
+  display: flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: 99px;
-  font-size: 0.78rem;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.82rem;
 }
 
 .traitKey {
-  color: var(--color-text-muted);
+  font-weight: 500;
+  color: var(--color-text);
 }
+
+.traitSep {
+  color: var(--color-text-subtle);
+}
+
+.traitVal {
+  color: var(--color-text-muted);
+  flex: 1;
+}
+
+.traitDelete {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0.15rem;
+  border-radius: var(--radius);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.traitDelete:hover { color: var(--color-danger); }
+
+.traitAdd {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.traitInput {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+.traitInput:focus { outline: none; border-color: var(--color-accent); }
+
+.promptRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
+.promptDeleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+.promptDeleteBtn:hover { color: var(--color-danger); }
 
 /* ── Character Attributes ── */
 .attributesSection {

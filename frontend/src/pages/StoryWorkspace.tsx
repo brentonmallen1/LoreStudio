@@ -32,6 +32,7 @@ const StoryOverviewPage  = lazy(() => import("./StoryOverviewPage"));
 const PublishPage        = lazy(() => import("./PublishPage"));
 const VersionsPage       = lazy(() => import("./VersionsPage"));
 const WhatIfPage         = lazy(() => import("./WhatIfPage"));
+const LocationSheet      = lazy(() => import("./LocationSheet"));
 
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -175,6 +176,7 @@ export default function StoryWorkspacePage() {
           <Route path="/lorebook" element={<LorebookPanel storyId={storyId!} />} />
           <Route path="/compendium" element={<CompendiumPanel storyId={storyId!} />} />
           <Route path="/worldbuilding" element={<WorldBuildingHub />} />
+          <Route path="/locations/:locationId" element={<LocationSheet />} />
           <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
           <Route path="/outline" element={<OutlineManager storyId={storyId!} />} />
           <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />

@@ -210,6 +210,46 @@ export default function StructureTreeItem({
     }
   }
 
+  function moveNode(direction: -1 | 1) {
+    if (!storyId) return;
+    const oldMap = childrenMapRef.current;
+    const im = itemMapRef.current;
+    const parentId = Object.keys(oldMap).find((pid) => oldMap[pid].includes(node.id)) ?? "root";
+    const siblings = [...(oldMap[parentId] ?? [])];
+    const idx = siblings.indexOf(node.id);
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= siblings.length) return;
+    [siblings[idx], siblings[newIdx]] = [siblings[newIdx], siblings[idx]];
+    const newMap = { ...oldMap, [parentId]: siblings };
+    const ops = computeOps(newMap);
+    const newStructure = applyChildrenMap(newMap, im);
+    const snapshotStructure = prevStructureRef.current;
+    const snapshotMap = oldMap;
+    pushHistory({
+      description: "Reorder sections",
+      undo: async () => {
+        setChildrenMap(snapshotMap);
+        prevStructureRef.current = snapshotStructure;
+        setStructure(snapshotStructure);
+        await api.reorderStructure(storyId!, computeOps(snapshotMap));
+      },
+    });
+    setChildrenMap(newMap);
+    prevStructureRef.current = newStructure;
+    setStructure(newStructure);
+    api.reorderStructure(storyId, ops).catch(() => {
+      setChildrenMap(snapshotMap);
+      prevStructureRef.current = snapshotStructure;
+      setStructure(snapshotStructure);
+    });
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!e.altKey) return;
+    if (e.key === "ArrowUp") { e.preventDefault(); moveNode(-1); }
+    if (e.key === "ArrowDown") { e.preventDefault(); moveNode(1); }
+  }
+
   const Icon = getSegmentIcon(node.level_type);
   const itemProps = item.getProps();
 
@@ -229,6 +269,7 @@ export default function StructureTreeItem({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onKeyDown={handleKeyDown}
         className={[
           styles.nodeRowWrap,
           isActive ? styles.nodeRowWrapActive : "",

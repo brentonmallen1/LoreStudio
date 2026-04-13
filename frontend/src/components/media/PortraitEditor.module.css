@@ -1,0 +1,170 @@
+.wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* ── Portrait box ── */
+.portrait {
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-subtle);
+}
+
+/* Edit overlay button — always visible as a small corner button, more prominent on hover */
+.editOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition);
+  color: transparent;
+  border-radius: 6px;
+}
+.portrait:hover .editOverlay,
+.editOverlay:focus-visible {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+}
+
+/* ── Edit panel ── */
+.panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  width: 200px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: inherit;
+}
+.closeBtn:hover { color: var(--color-text); background: var(--color-surface-2); }
+
+.panelActions {
+  display: flex;
+  flex-direction: column;
+  padding: 0.4rem;
+  gap: 0.25rem;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+.actionBtn:hover:not(:disabled) { background: var(--color-surface-2); color: var(--color-text); }
+.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.removeBtn { color: var(--color-danger); }
+.removeBtn:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent) !important; color: var(--color-danger) !important; }
+
+/* ── Library browser ── */
+.browser {
+  display: flex;
+  flex-direction: column;
+}
+
+.browserBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.browserEmpty {
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  text-align: center;
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
+.browserGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.gridItem {
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  background: var(--color-surface-2);
+  aspect-ratio: 1;
+  transition: border-color var(--transition);
+}
+.gridItem:hover { border-color: var(--color-accent); }
+.gridItemActive { border-color: var(--color-accent); }
+
+.gridImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

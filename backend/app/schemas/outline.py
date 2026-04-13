@@ -50,6 +50,8 @@ class OutlineItemUpdate(BaseModel):
     beat_type: str | None = None
     notes: str | None = None
     collapsed: bool | None = None
+    scene_id: str | None = None
+    scene_title: str | None = None
 
 
 class OutlineItemOut(BaseModel):
@@ -62,6 +64,8 @@ class OutlineItemOut(BaseModel):
     beat_type: str | None
     notes: str
     collapsed: bool
+    scene_id: str | None = None
+    scene_title: str | None = None
     created_at: datetime
     updated_at: datetime
     children: list["OutlineItemOut"] = []

@@ -22,17 +22,9 @@ import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
 import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
+import PortraitEditor from "../media/PortraitEditor";
 import styles from "./CharacterSheet.module.css";
 
-function Field({ label, value }: { label: string; value: string }) {
-  if (!value) return null;
-  return (
-    <div className={styles.field}>
-      {label && <p className={styles.fieldLabel}>{label}</p>}
-      <p className={styles.fieldValue}>{value}</p>
-    </div>
-  );
-}
 
 export default function CharacterSheet() {
   const { characterId, storyId } = useParams<{ characterId: string; storyId: string }>();
@@ -53,6 +45,11 @@ export default function CharacterSheet() {
   }
   const intentSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const missionSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fieldSaveRefs = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const [localFields, setLocalFields] = useState<Record<string, string>>({});
+  const [newPrompt, setNewPrompt] = useState("");
+  const [newTraitKey, setNewTraitKey] = useState("");
+  const [newTraitValue, setNewTraitValue] = useState("");
 
   const initialTab = searchParams.get("tab") === "arc" ? "arc" : "overview";
   const [activeTab, setActiveTab] = useState<"overview" | "dialogue" | "arc">(initialTab);
@@ -84,6 +81,15 @@ export default function CharacterSheet() {
     if (character) {
       setIntentText(character.narrative_intent ?? "");
       setMissionText(character.mission_statement ?? "");
+      setLocalFields({
+        personality: character.personality ?? "",
+        motivation: character.motivation ?? "",
+        background: character.background ?? "",
+        appearance: character.appearance ?? "",
+        arc_notes: character.arc_notes ?? "",
+        snowflake_summary: character.snowflake_summary ?? "",
+        snowflake_synopsis: character.snowflake_synopsis ?? "",
+      });
     }
   }, [character?.id]);
 
@@ -103,6 +109,49 @@ export default function CharacterSheet() {
       const updated = await api.updateCharacter(character.id, { mission_statement: text });
       upsertCharacter(updated);
     }, 900);
+  }
+
+  function scheduleFieldSave(field: string, value: string) {
+    setLocalFields((prev) => ({ ...prev, [field]: value }));
+    if (fieldSaveRefs.current[field]) clearTimeout(fieldSaveRefs.current[field]);
+    fieldSaveRefs.current[field] = setTimeout(async () => {
+      if (!character) return;
+      const updated = await api.updateCharacter(character.id, { [field]: value });
+      upsertCharacter(updated);
+    }, 800);
+  }
+
+  async function addInterviewPrompt() {
+    if (!newPrompt.trim() || !character) return;
+    const updated = await api.updateCharacter(character.id, {
+      interview_prompts: [...(character.interview_prompts ?? []), newPrompt.trim()],
+    });
+    upsertCharacter(updated);
+    setNewPrompt("");
+  }
+
+  async function removeInterviewPrompt(index: number) {
+    if (!character) return;
+    const prompts = (character.interview_prompts ?? []).filter((_, i) => i !== index);
+    const updated = await api.updateCharacter(character.id, { interview_prompts: prompts });
+    upsertCharacter(updated);
+  }
+
+  async function addTrait() {
+    if (!newTraitKey.trim() || !character) return;
+    const traits = { ...(character.traits ?? {}), [newTraitKey.trim()]: newTraitValue.trim() };
+    const updated = await api.updateCharacter(character.id, { traits });
+    upsertCharacter(updated);
+    setNewTraitKey("");
+    setNewTraitValue("");
+  }
+
+  async function removeTrait(key: string) {
+    if (!character) return;
+    const traits = { ...(character.traits ?? {}) };
+    delete traits[key];
+    const updated = await api.updateCharacter(character.id, { traits });
+    upsertCharacter(updated);
   }
 
   async function toggleIntentHidden() {
@@ -215,15 +264,31 @@ export default function CharacterSheet() {
     <div className={styles.page}>
       <div className={styles.inner}>
         <div className={styles.header}>
-          <div className={styles.headerTop}>
-            <div className={styles.identity}>
-              <h1 className={styles.name}>{character.name}</h1>
-              <span className={roleBadgeClass()}>{character.role}</span>
-              {character.pronouns && (
-                <span className={styles.pronounsBadge}>{character.pronouns}</span>
+          <div className={styles.idCard}>
+            {storyId && (
+              <PortraitEditor
+                storyId={storyId}
+                objectType="character"
+                objectId={character.id}
+                placeholder={<User size={32} />}
+              />
+            )}
+            <div className={styles.cardInfo}>
+              <div className={styles.nameRow}>
+                <h1 className={styles.name}>{character.name}</h1>
+                <span className={roleBadgeClass()}>{character.role}</span>
+                {character.pronouns && (
+                  <span className={styles.pronounsBadge}>{character.pronouns}</span>
+                )}
+              </div>
+              {character.mission_statement && (
+                <p className={styles.missionTeaser}>
+                  "{character.mission_statement.length > 90
+                    ? character.mission_statement.slice(0, 90) + "…"
+                    : character.mission_statement}"
+                </p>
               )}
             </div>
-
             <div className={styles.actions}>
               <button
                 onClick={() => setShowStartInterview(true)}
@@ -301,11 +366,18 @@ export default function CharacterSheet() {
                   rows={2}
                 />
               </div>
-              <Field label="Personality" value={character.personality} />
-              <Field label="Motivation" value={character.motivation} />
-              <Field label="Background" value={character.background} />
-              <Field label="Appearance" value={character.appearance} />
-              <Field label="Arc Notes" value={character.arc_notes} />
+              {(["personality", "motivation", "background", "appearance", "arc_notes"] as const).map((field) => (
+                <div key={field} className={styles.field}>
+                  <p className={styles.fieldLabel}>{field === "arc_notes" ? "Arc Notes" : field.charAt(0).toUpperCase() + field.slice(1)}</p>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    value={localFields[field] ?? ""}
+                    onChange={(e) => scheduleFieldSave(field, e.target.value)}
+                    placeholder={`${field === "arc_notes" ? "Arc notes" : field.charAt(0).toUpperCase() + field.slice(1)}…`}
+                    rows={3}
+                  />
+                </div>
+              ))}
             </SectionCard>
 
             {/* ── Narrative Intent ── */}
@@ -331,6 +403,32 @@ export default function CharacterSheet() {
                 className={styles.intentTextarea}
                 rows={3}
               />
+            </SectionCard>
+
+            {/* ── Snowflake Method ── */}
+            <SectionCard title="Snowflake Method" collapsed={!!collapsed.snowflake} onToggle={() => toggle("snowflake")}>
+              <div className={styles.field}>
+                <p className={styles.fieldLabel}>Character Summary</p>
+                <p className={styles.intentHint}>One sentence: goal, motivation, conflict, and epiphany.</p>
+                <textarea
+                  className={styles.fieldTextarea}
+                  value={localFields.snowflake_summary ?? ""}
+                  onChange={(e) => scheduleFieldSave("snowflake_summary", e.target.value)}
+                  placeholder="e.g. Eleanor wants to restore the lighthouse but must confront her guilt over her brother's disappearance…"
+                  rows={2}
+                />
+              </div>
+              <div className={styles.field}>
+                <p className={styles.fieldLabel}>Character Synopsis</p>
+                <p className={styles.intentHint}>A full paragraph told in first person — the character's inner arc in their own voice.</p>
+                <textarea
+                  className={styles.fieldTextarea}
+                  value={localFields.snowflake_synopsis ?? ""}
+                  onChange={(e) => scheduleFieldSave("snowflake_synopsis", e.target.value)}
+                  placeholder="I grew up believing the light was enough…"
+                  rows={5}
+                />
+              </div>
             </SectionCard>
 
             {/* ── Arc Milestones ── */}
@@ -466,45 +564,93 @@ export default function CharacterSheet() {
             </SectionCard>
 
             {/* ── Interview Prompts ── */}
-            {character.interview_prompts && character.interview_prompts.length > 0 && (
-              <SectionCard title="Interview Prompts" collapsed={!!collapsed.prompts} onToggle={() => toggle("prompts")} variant="ai">
-                <div className={styles.promptList}>
-                  {character.interview_prompts.map((prompt, i) => (
+            <SectionCard title="Interview Prompts" collapsed={!!collapsed.prompts} onToggle={() => toggle("prompts")} variant="ai">
+              <p className={styles.intentHint}>Starting questions for character interviews. Click a prompt to begin.</p>
+              <div className={styles.promptList}>
+                {(character.interview_prompts ?? []).map((prompt, i) => (
+                  <div key={i} className={styles.promptRow}>
                     <button
-                      key={i}
                       onClick={() => setShowStartInterview(true)}
                       className={styles.promptCard}
                     >
                       <span>{prompt}</span>
                       <ChevronRight size={13} className={styles.promptArrow} />
                     </button>
-                  ))}
-                </div>
-                <p className={styles.promptsHint}>Click a prompt to start an interview</p>
-              </SectionCard>
-            )}
+                    <button
+                      className={styles.promptDeleteBtn}
+                      onClick={() => removeInterviewPrompt(i)}
+                      title="Remove prompt"
+                    >
+                      <Trash2 size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.milestoneAdd}>
+                <input
+                  className={styles.milestoneInput}
+                  value={newPrompt}
+                  onChange={(e) => setNewPrompt(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addInterviewPrompt()}
+                  placeholder="Add a prompt…"
+                />
+                <button className={styles.milestoneAddBtn} onClick={addInterviewPrompt} disabled={!newPrompt.trim()}>
+                  <Plus size={13} />
+                </button>
+              </div>
+            </SectionCard>
 
             {/* ── Traits ── */}
-            {character.traits && Object.keys(character.traits).length > 0 && (
-              <SectionCard title="Traits" collapsed={!!collapsed.traits} onToggle={() => toggle("traits")}>
+            <SectionCard title="Traits" collapsed={!!collapsed.traits} onToggle={() => toggle("traits")}>
+              <p className={styles.intentHint}>Freeform key-value traits — any attributes that don't fit standard fields.</p>
+              {Object.keys(character.traits ?? {}).length > 0 && (
                 <div className={styles.traitsList}>
-                  {Object.entries(character.traits).map(([key, value]) => (
-                    <div key={key} className={styles.traitTag}>
-                      <span className={styles.traitKey}>{key}:</span> {String(value)}
+                  {Object.entries(character.traits ?? {}).map(([key, value]) => (
+                    <div key={key} className={styles.traitRow}>
+                      <span className={styles.traitKey}>{key}</span>
+                      <span className={styles.traitSep}>·</span>
+                      <span className={styles.traitVal}>{String(value)}</span>
+                      <button
+                        className={styles.traitDelete}
+                        onClick={() => removeTrait(key)}
+                        title="Remove trait"
+                      >
+                        <Trash2 size={11} />
+                      </button>
                     </div>
                   ))}
                 </div>
-              </SectionCard>
-            )}
+              )}
+              <div className={styles.traitAdd}>
+                <input
+                  className={styles.traitInput}
+                  value={newTraitKey}
+                  onChange={(e) => setNewTraitKey(e.target.value)}
+                  placeholder="Key (e.g. fear)"
+                />
+                <input
+                  className={styles.traitInput}
+                  value={newTraitValue}
+                  onChange={(e) => setNewTraitValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTrait()}
+                  placeholder="Value (e.g. heights)"
+                />
+                <button
+                  className={styles.milestoneAddBtn}
+                  onClick={addTrait}
+                  disabled={!newTraitKey.trim()}
+                >
+                  <Plus size={13} />
+                </button>
+              </div>
+            </SectionCard>
 
-            {/* ── Assets ── */}
+            {/* ── Reference Images ── */}
             {storyId && (
               <AssetPicker
                 storyId={storyId}
                 objectType="character"
                 objectId={character.id}
-                defaultRole="portrait"
-                label="Images & References"
               />
             )}
 

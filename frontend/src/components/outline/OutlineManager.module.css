@@ -564,6 +564,46 @@
   background: color-mix(in srgb, var(--color-ai) 15%, transparent);
 }
 
+.alignmentBtnActive {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  color: var(--color-accent);
+}
+
+.alignmentBtnActive:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.selectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-subtle);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.selectBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.selectBtnActive {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.selectBtnActive:hover {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
 .infoBtn {
   display: flex;
   align-items: center;

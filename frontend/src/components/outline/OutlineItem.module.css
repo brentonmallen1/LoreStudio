@@ -81,8 +81,7 @@
   cursor: pointer;
 }
 
-.row:hover .selectWrap,
-.rowHasSelection .selectWrap,
+.rowSelectionActive .selectWrap,
 .rowSelected .selectWrap {
   display: flex;
 }
@@ -192,16 +191,20 @@
 
 /* ── Action buttons (hover / focused) ── */
 .actions {
-  display: none;
+  display: flex;
   align-items: center;
   gap: 0.15rem;
   flex-shrink: 0;
   margin-top: 0.075rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition);
 }
 
 .row:hover .actions,
 .rowFocused .actions {
-  display: flex;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .actionBtn {
@@ -255,3 +258,49 @@
 .children {
   margin-top: 0.1rem;
 }
+
+/* ── Scene link ── */
+.sceneLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border-radius: 9999px;
+  padding: 0.1rem 0.4rem 0.1rem 0.35rem;
+  margin-top: 0.15rem;
+  max-width: 100%;
+}
+
+.sceneLink span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sceneLinkRemove {
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+.sceneLinkRemove:hover { opacity: 1; }
+
+.scenePicker {
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  width: 100%;
+}
+.scenePicker:focus { outline: none; }

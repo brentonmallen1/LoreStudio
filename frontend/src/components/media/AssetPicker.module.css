@@ -70,19 +70,6 @@
   background: var(--color-surface);
 }
 
-.attachThumb {
-  width: 28px;
-  height: 28px;
-  border-radius: 3px;
-  overflow: hidden;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-raised);
-  color: var(--color-text-muted);
-}
-
 .attachImg {
   width: 100%;
   height: 100%;
@@ -266,4 +253,91 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ── Attach thumb as button ── */
+.attachThumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  border: none;
+  padding: 0;
+  position: relative;
+}
+
+.attachZoom {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  color: transparent;
+  transition: background 0.1s, color 0.1s;
+}
+.attachThumb:hover .attachZoom {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+/* ── Lightbox ── */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.lightboxContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(90vw, 960px);
+  max-height: 90vh;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.lightboxClose:hover { background: rgba(255, 255, 255, 0.25); }
+
+.lightboxImg {
+  max-width: 100%;
+  max-height: calc(90vh - 3rem);
+  border-radius: 6px;
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+}
+
+.lightboxName {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
 }

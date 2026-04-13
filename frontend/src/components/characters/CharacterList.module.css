@@ -207,6 +207,16 @@
   flex-shrink: 0;
 }
 
+.avatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
 .cardBody {
   flex: 1;
   min-width: 0;

@@ -23,3 +23,9 @@ class BeatSheetCreate(BaseModel):
     name: str
     description: str = ""
     beats: list[BeatOut] = []
+
+
+class BeatSheetUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    beats: list[BeatOut] | None = None

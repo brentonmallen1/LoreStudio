@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather, Database } from "lucide-react";
+import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather, Database, PenLine } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
+import { hasScratchPadContent } from "../common/ScratchPadDrawer";
 import { api } from "../../api/client";
 import type { BackupStatus } from "../../types";
 import styles from "./GlobalHeader.module.css";
@@ -57,11 +58,20 @@ export default function GlobalHeader() {
     editorFontFamily, editorFontSize, editorLineWidth,
     setEditorFontFamily, setEditorFontSize, setEditorLineWidth,
     setCommandPaletteOpen, viewState, setViewState,
+    toggleScratchPad, scratchPadOpen,
   } = useUIStore();
   const { panelOpen, togglePanel } = useAIStore();
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
+  const [scratchHasContent, setScratchHasContent] = useState(false);
+
+  // Refresh scratch pad indicator when drawer closes (content may have changed)
+  useEffect(() => {
+    if (!scratchPadOpen) {
+      setScratchHasContent(hasScratchPadContent(storyId ?? null));
+    }
+  }, [scratchPadOpen, storyId]);
 
   // Backup status indicator — fetch on load and refresh every 60s
   // (keeps both the data and the relative-time text current)
@@ -203,6 +213,19 @@ export default function GlobalHeader() {
           >
             <Feather size={14} />
             <span>Assistant</span>
+          </button>
+
+          {/* Scratch Pad */}
+          <button
+            onClick={toggleScratchPad}
+            className={`${styles.iconBtn} ${scratchPadOpen ? styles.iconBtnActive : ""}`}
+            title="Scratch pad (⌘⇧N)"
+            style={{ position: "relative" }}
+          >
+            <PenLine size={15} />
+            {scratchHasContent && !scratchPadOpen && (
+              <span className={styles.scratchDot} />
+            )}
           </button>
 
           {/* Search */}

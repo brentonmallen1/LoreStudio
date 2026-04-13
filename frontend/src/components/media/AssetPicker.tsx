@@ -1,25 +1,30 @@
 import { useState, useEffect, useRef } from "react";
-import { Paperclip, X, Upload, ImageIcon, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Paperclip, X, Upload, ImageIcon, FileText, ChevronDown, ChevronUp, ZoomIn } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset, AssetAttachment } from "../../types";
 import styles from "./AssetPicker.module.css";
 
 interface Props {
   storyId: string;
-  objectType: string;  // character / setting / structure_node / diagram
+  objectType: string;
   objectId: string;
-  defaultRole?: string;
   label?: string;
+  onAttachmentsChange?: () => void;
 }
 
-export default function AssetPicker({ storyId, objectType, objectId, defaultRole = "reference", label = "Attachments" }: Props) {
+export default function AssetPicker({ storyId, objectType, objectId, label = "Reference Images", onAttachmentsChange }: Props) {
   const [attachments, setAttachments] = useState<AssetAttachment[]>([]);
   const [storyAssets, setStoryAssets] = useState<StoryAsset[]>([]);
   const [open, setOpen] = useState(false);
   const [browsing, setBrowsing] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxName, setLightboxName] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Only shows non-portrait attachments — portrait is managed by PortraitEditor
+  const refAttachments = attachments.filter((a) => a.role !== "portrait");
 
   useEffect(() => {
     if (!objectId) return;
@@ -40,17 +45,19 @@ export default function AssetPicker({ storyId, objectType, objectId, defaultRole
     await loadStoryAssets();
   }
 
-  async function attach(assetId: string, role = defaultRole) {
-    const att = await api.attachAsset(assetId, objectType, objectId, role);
+  async function attach(assetId: string) {
+    const att = await api.attachAsset(assetId, objectType, objectId, "reference");
     setAttachments((prev) => {
       const exists = prev.find((a) => a.id === att.id);
       return exists ? prev.map((a) => (a.id === att.id ? att : a)) : [...prev, att];
     });
+    onAttachmentsChange?.();
   }
 
   async function detach(attachmentId: string) {
     await api.detachAsset(attachmentId);
     setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+    onAttachmentsChange?.();
   }
 
   async function handleUpload(files: FileList) {
@@ -58,7 +65,7 @@ export default function AssetPicker({ storyId, objectType, objectId, defaultRole
     for (const file of Array.from(files)) {
       try {
         const asset = await api.uploadAsset(storyId, file);
-        await attach(asset.id, defaultRole);
+        await attach(asset.id);
         setStoryAssets((prev) => [asset, ...prev]);
       } catch (e) {
         console.error("Upload failed", e);
@@ -67,115 +74,132 @@ export default function AssetPicker({ storyId, objectType, objectId, defaultRole
     setUploading(false);
   }
 
+  function openLightbox(asset: StoryAsset) {
+    setLightboxUrl(api.assetFileUrl(asset.id));
+    setLightboxName(asset.original_filename);
+  }
+
   return (
-    <div className={styles.picker}>
-      <button className={styles.header} onClick={() => setOpen((v) => !v)}>
-        <Paperclip size={12} />
-        <span>{label}</span>
-        {attachments.length > 0 && <span className={styles.badge}>{attachments.length}</span>}
-        {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-      </button>
+    <>
+      <div className={styles.picker}>
+        <button className={styles.header} onClick={() => setOpen((v) => !v)}>
+          <Paperclip size={12} />
+          <span>{label}</span>
+          {refAttachments.length > 0 && <span className={styles.badge}>{refAttachments.length}</span>}
+          {open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        </button>
 
-      {open && (
-        <div className={styles.panel}>
-          {loading ? (
-            <p className={styles.hint}>Loading…</p>
-          ) : attachments.length === 0 ? (
-            <p className={styles.hint}>No attachments yet</p>
-          ) : (
-            <div className={styles.attachList}>
-              {attachments.map((att) => {
-                const asset = storyAssets.find((a) => a.id === att.asset_id);
-                const isImage = asset?.mime_type.startsWith("image/");
-                return (
-                  <div key={att.id} className={styles.attachItem}>
-                    <div className={styles.attachThumb}>
-                      {isImage && asset ? (
-                        <img src={api.assetFileUrl(asset.id)} alt={asset.alt_text || asset.original_filename} className={styles.attachImg} />
-                      ) : (
-                        <FileText size={14} />
-                      )}
-                    </div>
-                    <div className={styles.attachInfo}>
-                      <span className={styles.attachName}>{asset?.original_filename ?? att.asset_id}</span>
-                      <span className={styles.attachRole}>{att.role}</span>
-                    </div>
-                    <button onClick={() => detach(att.id)} className={styles.detachBtn} title="Remove">
-                      <X size={11} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className={styles.actions}>
-            <button
-              className={styles.actionBtn}
-              onClick={openBrowser}
-              disabled={browsing}
-            >
-              <ImageIcon size={12} />
-              Browse library
-            </button>
-            <button
-              className={styles.actionBtn}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              <Upload size={12} />
-              {uploading ? "Uploading…" : "Upload & attach"}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,application/pdf,text/plain"
-              style={{ display: "none" }}
-              onChange={(e) => e.target.files && handleUpload(e.target.files)}
-            />
-          </div>
-
-          {browsing && (
-            <div className={styles.browser}>
-              <div className={styles.browserHeader}>
-                <span>Story media</span>
-                <button onClick={() => setBrowsing(false)} className={styles.closeBtn}>
-                  <X size={12} />
-                </button>
-              </div>
-              {storyAssets.length === 0 ? (
-                <p className={styles.hint}>No assets uploaded yet</p>
-              ) : (
-                <div className={styles.browserGrid}>
-                  {storyAssets.map((asset) => {
-                    const alreadyAttached = attachments.some((a) => a.asset_id === asset.id);
-                    const isImage = asset.mime_type.startsWith("image/");
-                    return (
+        {open && (
+          <div className={styles.panel}>
+            {loading ? (
+              <p className={styles.hint}>Loading…</p>
+            ) : refAttachments.length === 0 ? (
+              <p className={styles.hint}>No reference files attached yet</p>
+            ) : (
+              <div className={styles.attachList}>
+                {refAttachments.map((att) => {
+                  const asset = storyAssets.find((a) => a.id === att.asset_id);
+                  const isImage = asset?.mime_type.startsWith("image/");
+                  return (
+                    <div key={att.id} className={styles.attachItem}>
                       <button
-                        key={asset.id}
-                        className={`${styles.browserItem} ${alreadyAttached ? styles.browserItemAttached : ""}`}
-                        onClick={() => !alreadyAttached && attach(asset.id)}
-                        title={alreadyAttached ? "Already attached" : `Attach: ${asset.original_filename}`}
+                        className={styles.attachThumb}
+                        onClick={() => isImage && asset && openLightbox(asset)}
+                        style={{ cursor: isImage ? "zoom-in" : "default" }}
+                        title={isImage ? "View full size" : undefined}
                       >
-                        <div className={styles.browserThumb}>
-                          {isImage ? (
-                            <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.browserImg} />
-                          ) : (
-                            <FileText size={18} />
-                          )}
-                        </div>
-                        <span className={styles.browserName}>{asset.original_filename}</span>
-                        {alreadyAttached && <span className={styles.browserCheck}>✓</span>}
+                        {isImage && asset ? (
+                          <>
+                            <img src={api.assetFileUrl(asset.id)} alt={asset.alt_text || asset.original_filename} className={styles.attachImg} />
+                            <span className={styles.attachZoom}><ZoomIn size={10} /></span>
+                          </>
+                        ) : (
+                          <FileText size={14} />
+                        )}
                       </button>
-                    );
-                  })}
-                </div>
-              )}
+                      <div className={styles.attachInfo}>
+                        <span className={styles.attachName}>{asset?.original_filename ?? att.asset_id}</span>
+                      </div>
+                      <button onClick={() => detach(att.id)} className={styles.detachBtn} title="Remove">
+                        <X size={11} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className={styles.actions}>
+              <button className={styles.actionBtn} onClick={openBrowser} disabled={browsing}>
+                <ImageIcon size={12} />
+                Browse library
+              </button>
+              <button className={styles.actionBtn} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                <Upload size={12} />
+                {uploading ? "Uploading…" : "Upload file"}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf,text/plain"
+                style={{ display: "none" }}
+                onChange={(e) => e.target.files && handleUpload(e.target.files)}
+              />
             </div>
-          )}
+
+            {browsing && (
+              <div className={styles.browser}>
+                <div className={styles.browserHeader}>
+                  <span>Story media</span>
+                  <button onClick={() => setBrowsing(false)} className={styles.closeBtn}><X size={12} /></button>
+                </div>
+                {storyAssets.length === 0 ? (
+                  <p className={styles.hint}>No assets uploaded yet</p>
+                ) : (
+                  <div className={styles.browserGrid}>
+                    {storyAssets.map((asset) => {
+                      const alreadyAttached = refAttachments.some((a) => a.asset_id === asset.id);
+                      const isImage = asset.mime_type.startsWith("image/");
+                      return (
+                        <button
+                          key={asset.id}
+                          className={`${styles.browserItem} ${alreadyAttached ? styles.browserItemAttached : ""}`}
+                          onClick={() => !alreadyAttached && attach(asset.id)}
+                          title={alreadyAttached ? "Already attached" : `Attach: ${asset.original_filename}`}
+                        >
+                          <div className={styles.browserThumb}>
+                            {isImage ? (
+                              <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.browserImg} />
+                            ) : (
+                              <FileText size={18} />
+                            )}
+                          </div>
+                          <span className={styles.browserName}>{asset.original_filename}</span>
+                          {alreadyAttached && <span className={styles.browserCheck}>✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div className={styles.lightboxOverlay} onClick={() => setLightboxUrl(null)}>
+          <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.lightboxClose} onClick={() => setLightboxUrl(null)}>
+              <X size={16} />
+            </button>
+            <img src={lightboxUrl} alt={lightboxName} className={styles.lightboxImg} />
+            <p className={styles.lightboxName}>{lightboxName}</p>
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

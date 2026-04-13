@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { GripVertical, ChevronRight, ChevronDown, Plus, Trash2, FileText } from "lucide-react";
-import type { OutlineItem as OutlineItemType } from "../../types";
+import { GripVertical, ChevronRight, ChevronDown, Plus, Trash2, FileText, Link, X } from "lucide-react";
+import type { OutlineItem as OutlineItemType, StructureNode } from "../../types";
 import styles from "./OutlineItem.module.css";
 
 // Module-level drag ID — same pattern as StructureTreePanel
@@ -12,23 +12,25 @@ export interface OutlineItemProps {
   item: OutlineItemType;
   depth?: number;
   selected: Set<string>;
-  hasSelection: boolean;
+  selectionActive: boolean;
   onToggleSelect: (id: string) => void;
   onDrop: (draggedId: string, targetId: string, zone: "above" | "below" | "into") => void;
-  onUpdate: (id: string, patch: Partial<Pick<OutlineItemType, "text" | "notes" | "beat_type" | "collapsed">>) => void;
+  onUpdate: (id: string, patch: Partial<Pick<OutlineItemType, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">>) => void;
   onDelete: (id: string) => void;
   onAddSibling: (afterId: string) => void;
   onAddChild: (parentId: string) => void;
   onIndent: (id: string) => void;
   onDedent: (id: string) => void;
   focusId?: string | null;
+  sceneNodes?: StructureNode[];
+  onNavigateToScene?: (sceneId: string) => void;
 }
 
 export default function OutlineItem({
   item,
   depth = 0,
   selected,
-  hasSelection,
+  selectionActive,
   onToggleSelect,
   onDrop,
   onUpdate,
@@ -38,11 +40,14 @@ export default function OutlineItem({
   onIndent,
   onDedent,
   focusId,
+  sceneNodes = [],
+  onNavigateToScene,
 }: OutlineItemProps) {
   const [dropZone, setDropZone] = useState<DropZone>(null);
   const [collapsed, setCollapsed] = useState(item.collapsed);
   const [focused, setFocused] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showScenePicker, setShowScenePicker] = useState(false);
 
   const isSelected = selected.has(item.id);
   const hasChildren = (item.children?.length ?? 0) > 0;
@@ -127,7 +132,7 @@ export default function OutlineItem({
     styles.row,
     focused ? styles.rowFocused : "",
     isSelected ? styles.rowSelected : "",
-    hasSelection ? styles.rowHasSelection : "",
+    selectionActive ? styles.rowSelectionActive : "",
     dropZone === "above" ? styles.dropAbove : "",
     dropZone === "below" ? styles.dropBelow : "",
     dropZone === "into" ? styles.dropInto : "",
@@ -205,6 +210,44 @@ export default function OutlineItem({
             }}
             placeholder="Outline beat…"
           />
+          {item.scene_id && !showScenePicker && (
+            <div
+              className={styles.sceneLink}
+              onClick={() => onNavigateToScene?.(item.scene_id!)}
+              style={{ cursor: onNavigateToScene ? "pointer" : "default" }}
+            >
+              <Link size={10} />
+              <span>{item.scene_title || "Linked scene"}</span>
+              <button
+                className={styles.sceneLinkRemove}
+                onClick={(e) => { e.stopPropagation(); onUpdate(item.id, { scene_id: null, scene_title: null }); }}
+                tabIndex={-1}
+              >
+                <X size={10} />
+              </button>
+            </div>
+          )}
+          {showScenePicker && (
+            <select
+              className={styles.scenePicker}
+              value={item.scene_id ?? ""}
+              autoFocus
+              onChange={(e) => {
+                const node = sceneNodes.find((n) => n.id === e.target.value);
+                onUpdate(item.id, {
+                  scene_id: e.target.value || null,
+                  scene_title: node?.title ?? null,
+                });
+                setShowScenePicker(false);
+              }}
+              onBlur={() => setShowScenePicker(false)}
+            >
+              <option value="">— unlink —</option>
+              {sceneNodes.map((n) => (
+                <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>
+              ))}
+            </select>
+          )}
           {showNotes && (
             <textarea
               className={styles.notesInput}
@@ -223,6 +266,16 @@ export default function OutlineItem({
 
         {/* Action buttons */}
         <div className={styles.actions}>
+          {sceneNodes.length > 0 && (
+            <button
+              className={`${styles.actionBtn} ${item.scene_id ? styles.actionBtnActive : ""}`}
+              onClick={() => setShowScenePicker((v) => !v)}
+              title={item.scene_id ? `Linked: ${item.scene_title}` : "Link to scene"}
+              tabIndex={-1}
+            >
+              <Link size={13} />
+            </button>
+          )}
           <button
             className={`${styles.actionBtn} ${showNotes ? styles.actionBtnActive : ""}`}
             onClick={() => setShowNotes((v) => !v)}
@@ -273,7 +326,7 @@ export default function OutlineItem({
               item={child}
               depth={depth + 1}
               selected={selected}
-              hasSelection={hasSelection}
+              selectionActive={selectionActive}
               onToggleSelect={onToggleSelect}
               onDrop={onDrop}
               onUpdate={onUpdate}
@@ -283,6 +336,8 @@ export default function OutlineItem({
               onIndent={onIndent}
               onDedent={onDedent}
               focusId={focusId}
+              sceneNodes={sceneNodes}
+              onNavigateToScene={onNavigateToScene}
             />
           ))}
         </div>
