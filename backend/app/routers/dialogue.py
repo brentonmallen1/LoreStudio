@@ -78,6 +78,26 @@ class ApplyTagsBody(BaseModel):
     tags: list[ApplyTagRequest]
 
 
+class SceneWithDialogueProposals(BaseModel):
+    scene_id: str
+    scene_title: str
+    proposals: list[ProposedDialogueTag]
+
+
+class BatchSuggestResponse(BaseModel):
+    total_proposals: int
+    scenes: list[SceneWithDialogueProposals]
+
+
+class ApplyTagsForScene(BaseModel):
+    scene_id: str
+    tags: list[ApplyTagRequest]
+
+
+class ApplyTagsBatchBody(BaseModel):
+    scenes: list[ApplyTagsForScene]
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -279,7 +299,41 @@ async def ai_suggest_dialogue_speakers(
         return []
 
     suggestions = result.data.get("suggestions", [])
+
+    # Extract the verbatim untagged quotes from the scene so we can snap the LLM's
+    # quote_text back to the exact string. The LLM may paraphrase or alter
+    # punctuation, which would cause the regex apply to silently fail.
+    from ..services.dialogue_service import _STANDALONE_QUOTE_RE
+    actual_quotes: list[str] = []
+    for para in paragraphs:
+        # Skip paragraphs that already have explicit <Name> attribution
+        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+            continue
+        for m in _STANDALONE_QUOTE_RE.finditer(para):
+            content = (m.group(1) or m.group(2) or "").strip()
+            if content and len(content) >= 2:
+                actual_quotes.append(content)
+
+    def _snap_to_actual(llm_text: str) -> str:
+        """Return the actual scene quote that best matches the LLM's version."""
+        lt = llm_text.strip().lower()
+        # Exact match first
+        for q in actual_quotes:
+            if q.lower() == lt:
+                return q
+        # Containment: actual quote is inside or contains the LLM text
+        for q in actual_quotes:
+            ql = q.lower()
+            if lt in ql or ql in lt:
+                return q
+        # Prefix match (LLM truncated the quote)
+        for q in actual_quotes:
+            if q.lower().startswith(lt[:20]) or lt.startswith(q.lower()[:20]):
+                return q
+        return llm_text  # fallback: use LLM text as-is
+
     proposals: list[ProposedDialogueTag] = []
+    used_quotes: set[str] = set()
     for s in suggestions:
         quote_text = s.get("quote_text", "")
         speaker = s.get("suggested_speaker", "")
@@ -289,12 +343,17 @@ async def ai_suggest_dialogue_speakers(
         if not quote_text or not speaker:
             continue
 
+        # Snap to exact scene text so the apply regex will match
+        snapped = _snap_to_actual(quote_text)
+        if snapped in used_quotes:
+            continue
+        used_quotes.add(snapped)
+
         char = char_by_name.get(speaker.lower())
 
-        # Build a short excerpt showing context (just use the quote for now)
         proposals.append(ProposedDialogueTag(
             id=str(uuid.uuid4()),
-            quote_content=quote_text,
+            quote_content=snapped,
             inferred_speaker=speaker,
             character_id=char.id if char else None,
             confidence=min(1.0, max(0.0, confidence)),
@@ -325,16 +384,17 @@ def apply_dialogue_tags(
     for tag in body.tags:
         q = re.escape(tag.quote_content)
         suffix = f"&lt;{tag.speaker_name}&gt;"
-        # Match straight quotes not already followed by &lt;
+        # Match straight quotes not already followed by &lt;.
+        # \s* inside the quotes handles trailing whitespace stripped during extraction.
         content = re.sub(
-            rf'"({q})"(?!&lt;)',
+            rf'"(\s*{q}\s*)"(?!&lt;)',
             rf'"\1"{suffix}',
             content,
         )
         # Match smart quotes not already followed by &lt;
         content = re.sub(
-            rf'\u201c({q})\u201d(?!&lt;)',
-            rf'\u201c\1\u201d{suffix}',
+            f'\u201c(\s*{q}\s*)\u201d(?!&lt;)',
+            f'\u201c\\1\u201d{suffix}',
             content,
         )
 
@@ -460,3 +520,231 @@ def get_subtext_notes(
         })
 
     return list(scene_map.values())
+
+
+@router.get("/characters/{character_id}/scenes-with-unattributed")
+def get_scenes_with_unattributed_dialogue(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return scenes that contain unattributed dialogue (standalone quoted text with no <Name> suffix).
+
+    Returns: list of { scene_id, scene_title, unattributed_count }
+    """
+    char = db.get(Character, character_id)
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    story = db.query(Story).filter(Story.id == char.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    from ..services.dialogue_service import _html_to_paragraphs, _STANDALONE_QUOTE_RE
+
+    scenes = (
+        db.query(StructureNode)
+        .filter(
+            StructureNode.story_id == char.story_id,
+            StructureNode.content.isnot(None),
+            StructureNode.content != "",
+        )
+        .order_by(StructureNode.position)
+        .all()
+    )
+
+    results = []
+    for scene in scenes:
+        paragraphs = _html_to_paragraphs(scene.content)
+        count = 0
+        for para in paragraphs:
+            # Skip paragraphs that already have explicit <Name> attribution
+            if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+                continue
+            count += sum(1 for m in _STANDALONE_QUOTE_RE.finditer(para)
+                         if (m.group(1) or m.group(2) or "").strip())
+        if count > 0:
+            results.append({
+                "scene_id": scene.id,
+                "scene_title": scene.title or "Untitled Scene",
+                "unattributed_count": count,
+            })
+
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Batch tagging endpoints
+# ---------------------------------------------------------------------------
+
+def _run_heuristic_suggestions(scene: StructureNode, char_by_name: dict) -> list[ProposedDialogueTag]:
+    """Run heuristic speaker inference for a scene and return proposals."""
+    from ..services.dialogue_service import _html_to_paragraphs, _STANDALONE_QUOTE_RE, _MENTION_RE
+
+    paragraphs = _html_to_paragraphs(scene.content or "")
+    proposals: list[ProposedDialogueTag] = []
+    for para in paragraphs:
+        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+            continue
+
+        mentions = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(para)]
+        for m in _STANDALONE_QUOTE_RE.finditer(para):
+            content = (m.group(1) or m.group(2) or "").strip()
+            if not content or len(content) < 2:
+                continue
+
+            q_pos = m.start()
+            best_speaker: str | None = None
+            best_dist = 999
+
+            for m_pos, m_name in mentions:
+                dist = abs(q_pos - m_pos)
+                if dist < best_dist and dist <= 150:
+                    best_dist = dist
+                    best_speaker = m_name
+
+            confidence = round(max(0.0, 1.0 - (best_dist / 150)), 2) if best_speaker else 0.0
+
+            excerpt_start = max(0, q_pos - 25)
+            excerpt_end = min(len(para), q_pos + len(content) + 30)
+            excerpt = para[excerpt_start:excerpt_end]
+            if excerpt_start > 0:
+                excerpt = "…" + excerpt
+            if excerpt_end < len(para):
+                excerpt = excerpt + "…"
+
+            char = char_by_name.get(best_speaker.lower()) if best_speaker else None
+
+            proposals.append(ProposedDialogueTag(
+                id=str(uuid.uuid4()),
+                quote_content=content,
+                inferred_speaker=best_speaker,
+                character_id=char.id if char else None,
+                confidence=confidence,
+                source_excerpt=excerpt,
+            ))
+
+    return proposals
+
+
+@router.post("/stories/{story_id}/dialogue/suggest-tags-batch", response_model=BatchSuggestResponse)
+def suggest_dialogue_tags_story_wide(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Batch-suggest dialogue tags across all scenes in a story."""
+    story = _get_story(story_id, db, current_user)
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    char_by_name = {c.name.lower(): c for c in characters}
+
+    scenes = (
+        db.query(StructureNode)
+        .filter(
+            StructureNode.story_id == story_id,
+            StructureNode.content.isnot(None),
+            StructureNode.content != "",
+        )
+        .order_by(StructureNode.position)
+        .all()
+    )
+
+    result_scenes: list[SceneWithDialogueProposals] = []
+    for scene in scenes:
+        proposals = _run_heuristic_suggestions(scene, char_by_name)
+        if proposals:
+            result_scenes.append(SceneWithDialogueProposals(
+                scene_id=scene.id,
+                scene_title=scene.title or "Untitled Scene",
+                proposals=proposals,
+            ))
+
+    return BatchSuggestResponse(
+        total_proposals=sum(len(s.proposals) for s in result_scenes),
+        scenes=result_scenes,
+    )
+
+
+@router.post("/characters/{character_id}/dialogue/suggest-tags-batch", response_model=BatchSuggestResponse)
+def suggest_dialogue_tags_for_character(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Batch-suggest dialogue tags filtered to quotes spoken by this character."""
+    char = db.get(Character, character_id)
+    if not char:
+        raise HTTPException(status_code=404, detail="Character not found")
+    story = db.query(Story).filter(Story.id == char.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    characters = db.query(Character).filter(Character.story_id == char.story_id).all()
+    char_by_name = {c.name.lower(): c for c in characters}
+
+    scenes = (
+        db.query(StructureNode)
+        .filter(
+            StructureNode.story_id == char.story_id,
+            StructureNode.content.isnot(None),
+            StructureNode.content != "",
+        )
+        .order_by(StructureNode.position)
+        .all()
+    )
+
+    result_scenes: list[SceneWithDialogueProposals] = []
+    for scene in scenes:
+        # Return ALL untagged quotes — the UI in character mode lets the user
+        # confirm which quotes belong to this character (speaker is fixed to char name).
+        proposals = _run_heuristic_suggestions(scene, char_by_name)
+        if proposals:
+            result_scenes.append(SceneWithDialogueProposals(
+                scene_id=scene.id,
+                scene_title=scene.title or "Untitled Scene",
+                proposals=proposals,
+            ))
+
+    return BatchSuggestResponse(
+        total_proposals=sum(len(s.proposals) for s in result_scenes),
+        scenes=result_scenes,
+    )
+
+
+@router.post("/stories/{story_id}/dialogue/apply-tags-batch")
+def apply_dialogue_tags_batch(
+    story_id: str,
+    body: ApplyTagsBatchBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Apply dialogue tags across multiple scenes at once."""
+    story = _get_story(story_id, db, current_user)
+    updated_count = 0
+
+    for scene_entry in body.scenes:
+        node = db.get(StructureNode, scene_entry.scene_id)
+        if not node or node.story_id != story_id:
+            continue
+
+        content = node.content or ""
+        for tag in scene_entry.tags:
+            q = re.escape(tag.quote_content)
+            suffix = f"&lt;{tag.speaker_name}&gt;"
+            # Allow optional whitespace inside the quotes — content is stripped on
+            # extraction but the raw HTML may have trailing spaces before the closing mark.
+            content = re.sub(rf'"(\s*{q}\s*)"(?!&lt;)', rf'"\1"{suffix}', content)
+            content = re.sub(f'\u201c(\s*{q}\s*)\u201d(?!&lt;)', f'\u201c\\1\u201d{suffix}', content)
+
+        node.content = content
+        db.commit()
+
+        pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
+        narrative_perspective = story.narrative_perspective if story else ""
+        sync_dialogue_blocks(
+            scene_entry.scene_id, content, story_id, db,
+            pov_character_id=pov_char_id,
+            narrative_perspective=narrative_perspective,
+        )
+        updated_count += 1
+
+    return {"updated_count": updated_count}

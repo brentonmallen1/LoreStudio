@@ -58,10 +58,12 @@ const FEATURES: FeatureDef[] = [
 ];
 
 function formatAge(iso: string): string {
-  const d = new Date(iso);
-  const diffMs = Date.now() - d.getTime();
+  const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
   const diffH = diffMs / (1000 * 60 * 60);
-  if (diffH < 1) return `${Math.round(diffMs / 60000)}m ago`;
+  if (diffH < 1) {
+    const mins = Math.round(diffMs / 60000);
+    return mins <= 0 ? "just now" : `${mins}m ago`;
+  }
   if (diffH < 24) return `${Math.round(diffH)}h ago`;
   return `${Math.round(diffH / 24)}d ago`;
 }

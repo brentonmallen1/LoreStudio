@@ -13,6 +13,7 @@ import QueryLetterMode from "./modes/QueryLetterMode";
 import SceneAtmosphereMode from "./modes/SceneAtmosphereMode";
 import ClicheCoachMode from "./modes/ClicheCoachMode";
 import DiscoveryQuestionsMode from "./modes/DiscoveryQuestionsMode";
+import AttributeGeneratorMode from "./modes/AttributeGeneratorMode";
 import styles from "./SessionView.module.css";
 
 interface Props {
@@ -49,6 +50,8 @@ export default function SessionView({ session }: Props) {
       return <ClicheCoachMode session={session} />;
     case "discovery-questions":
       return <DiscoveryQuestionsMode session={session} />;
+    case "attribute-generator":
+      return <AttributeGeneratorMode session={session} />;
     default:
       return (
         <div className={styles.unknown}>

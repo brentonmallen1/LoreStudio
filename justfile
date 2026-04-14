@@ -11,6 +11,7 @@ setup: setup-backend setup-frontend
 
 setup-backend:
     cd backend && uv sync
+    cd backend && uv run python -m spacy download en_core_web_sm
 
 setup-frontend:
     cd frontend && npm install
@@ -25,7 +26,7 @@ dev:
     wait
 
 backend:
-    cd backend && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    cd backend && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run uvicorn app.main:app --reload --reload-exclude '.venv' --host 0.0.0.0 --port 8000
 
 frontend:
     cd frontend && npm run dev
@@ -33,17 +34,17 @@ frontend:
 # ── Database ───────────────────────────────────
 # Run all pending migrations
 db-migrate:
-    cd backend && uv run alembic upgrade head
+    cd backend && uv run python -m alembic upgrade head
 
 # Create a new migration (usage: just db-revision "add thing")
 db-revision name:
-    cd backend && uv run alembic revision --autogenerate -m "{{name}}"
+    cd backend && uv run python -m alembic revision --autogenerate -m "{{name}}"
 
 # Reset database (destructive!)
 db-reset:
     rm -f backend/data/lorestudio.db
     cd backend && PYTHONPATH=. uv run python scripts/reset_db.py
-    cd backend && uv run alembic stamp head
+    cd backend && uv run python -m alembic stamp head
 
 # ── Docker ─────────────────────────────────────
 build:

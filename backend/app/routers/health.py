@@ -31,6 +31,8 @@ from ..auth.dependencies import get_current_user
 router = APIRouter()
 
 RECENT_SCENE_WINDOW = 5  # "absent" = not in last N leaf scenes
+# Tertiary characters are intentionally background-only — don't flag their absence
+SIGNIFICANT_ROLES = {"protagonist", "deuteragonist", "antagonist", "love_interest", "confidant", "foil"}
 
 
 def _get_story(story_id: str, db: Session, user: User) -> Story:
@@ -159,7 +161,7 @@ def story_health(
             len(written_leaves) >= RECENT_SCENE_WINDOW
             and scene_count > 0
             and recent_count == 0
-            and c.role in ("protagonist", "antagonist", "supporting")
+            and c.role in SIGNIFICANT_ROLES
         ):
             absent_characters.append(c.name)
 
@@ -193,6 +195,14 @@ def story_health(
     leaf_order = [n.id for n in leaves]
     mice_violations = validate_thread_nesting(threads, leaf_order)
 
+    # ── Scene summary stats ──
+    content_leaves = [n for n in leaves if n.content and n.content.strip()]
+    summary_fresh = sum(1 for n in content_leaves if n.content_summary and not n.summary_stale)
+    summary_stale = sum(1 for n in content_leaves if n.content_summary and n.summary_stale)
+    summary_missing = sum(1 for n in content_leaves if not n.content_summary)
+    summary_timestamps = [n.summary_updated_at for n in content_leaves if n.summary_updated_at]
+    summary_last_updated = max(summary_timestamps).isoformat() if summary_timestamps else None
+
     return {
         "intended_length": story.intended_length or "",
         "word_count": {
@@ -203,6 +213,13 @@ def story_health(
         "scenes": {
             "total": len(leaves),
             "by_status": scenes_by_status,
+        },
+        "scene_summaries": {
+            "total": len(content_leaves),
+            "fresh": summary_fresh,
+            "stale": summary_stale,
+            "missing": summary_missing,
+            "last_updated": summary_last_updated,
         },
         "pacing": pacing,
         "characters": char_screen_time,
@@ -255,7 +272,7 @@ def story_health_alerts(
             len(written_leaves) >= RECENT_SCENE_WINDOW
             and scene_count > 0
             and recent_count == 0
-            and c.role in ("protagonist", "antagonist", "supporting")
+            and c.role in SIGNIFICANT_ROLES
         ):
             absent_characters.append(c.name)
 

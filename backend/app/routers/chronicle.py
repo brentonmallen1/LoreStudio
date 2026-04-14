@@ -53,12 +53,11 @@ def _session_or_404(session_id: str, db: Session, user: User) -> ChatSession:
     return s
 
 
-def _session_to_out(s: ChatSession) -> ChatSessionOut:
-    last = s.messages[-1] if s.messages else None
-    preview = None
-    if last:
-        text = last.content[:120].replace("\n", " ").strip()
-        preview = f"{text}…" if len(last.content) > 120 else text
+def _session_to_out(
+    s: ChatSession,
+    message_count: int = 0,
+    last_message_preview: str | None = None,
+) -> ChatSessionOut:
     return ChatSessionOut(
         id=s.id,
         story_id=s.story_id,
@@ -70,9 +69,48 @@ def _session_to_out(s: ChatSession) -> ChatSessionOut:
         archived=s.archived,
         created_at=s.created_at,
         updated_at=s.updated_at,
-        message_count=len(s.messages),
-        last_message_preview=preview,
+        message_count=message_count,
+        last_message_preview=last_message_preview,
     )
+
+
+def _enrich_sessions(sessions: list[ChatSession], db: Session) -> list[ChatSessionOut]:
+    """Build ChatSessionOut for a list of sessions using aggregate DB queries instead of lazy loads."""
+    if not sessions:
+        return []
+    session_ids = [s.id for s in sessions]
+
+    # Count messages per session in one query
+    counts = (
+        db.query(ChatMessage.session_id, func.count(ChatMessage.id).label("cnt"))
+        .filter(ChatMessage.session_id.in_(session_ids))
+        .group_by(ChatMessage.session_id)
+        .all()
+    )
+    count_map = {row.session_id: row.cnt for row in counts}
+
+    # Get last message per session in one query using a subquery
+    max_created = (
+        db.query(ChatMessage.session_id, func.max(ChatMessage.created_at).label("max_at"))
+        .filter(ChatMessage.session_id.in_(session_ids))
+        .group_by(ChatMessage.session_id)
+        .subquery()
+    )
+    last_msgs = (
+        db.query(ChatMessage)
+        .join(max_created, (ChatMessage.session_id == max_created.c.session_id) &
+              (ChatMessage.created_at == max_created.c.max_at))
+        .all()
+    )
+    last_map: dict[str, str | None] = {}
+    for msg in last_msgs:
+        text = msg.content[:120].replace("\n", " ").strip()
+        last_map[msg.session_id] = f"{text}…" if len(msg.content) > 120 else text
+
+    return [
+        _session_to_out(s, count_map.get(s.id, 0), last_map.get(s.id))
+        for s in sessions
+    ]
 
 
 # ── Session endpoints ──────────────────────────────────────────────────
@@ -103,7 +141,7 @@ def list_sessions(
     sessions = q.order_by(ChatSession.updated_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
     return SessionListResponse(
-        sessions=[_session_to_out(s) for s in sessions],
+        sessions=_enrich_sessions(sessions, db),
         total=total,
         page=page,
         page_size=page_size,
@@ -391,10 +429,10 @@ def search_chronicle(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    results: list[SearchResult] = []
     term = f"%{q}%"
+    offset = (page - 1) * page_size
 
-    # Search chat messages — group by session, return matching sessions
+    # Search chat messages — one distinct session per match, sorted and paginated in DB
     msg_q = (
         db.query(ChatSession, ChatMessage)
         .join(ChatMessage, ChatMessage.session_id == ChatSession.id)
@@ -403,35 +441,44 @@ def search_chronicle(
             ChatSession.archived == False,
             ChatMessage.content.ilike(term),
         )
+        .order_by(ChatSession.updated_at.desc())
     )
     if story_id:
         msg_q = msg_q.filter(ChatSession.story_id == story_id)
 
     seen_sessions: set[str] = set()
+    session_results: list[tuple[ChatSession, str]] = []
     for session, message in msg_q.all():
         if session.id not in seen_sessions:
             seen_sessions.add(session.id)
-            # Build a short excerpt around the match
             content = message.content
             idx = content.lower().find(q.lower())
             start = max(0, idx - 60)
             end = min(len(content), idx + 120)
             excerpt = ("…" if start > 0 else "") + content[start:end] + ("…" if end < len(content) else "")
-            results.append(SearchResult(
-                type="session",
-                session=_session_to_out(session),
-                excerpt=excerpt,
-            ))
+            session_results.append((session, excerpt))
 
-    # Search activity logs
-    log_q = db.query(ActivityLog).filter(
-        ActivityLog.user_id == user.id,
-        ActivityLog.description.ilike(term),
+    # Search activity logs with DB-level ordering and limit
+    log_q = (
+        db.query(ActivityLog)
+        .filter(ActivityLog.user_id == user.id, ActivityLog.description.ilike(term))
+        .order_by(ActivityLog.created_at.desc())
+        .limit(page_size * 5)  # reasonable cap
     )
     if story_id:
         log_q = log_q.filter(ActivityLog.story_id == story_id)
 
-    for log in log_q.all():
+    log_results = log_q.all()
+
+    # Enrich sessions without lazy-loading messages
+    session_map = {s.id: s for s, _ in session_results}
+    enriched = {out.id: out for out in _enrich_sessions(list(session_map.values()), db)}
+
+    # Merge and sort all results by recency
+    results: list[SearchResult] = []
+    for session, excerpt in session_results:
+        results.append(SearchResult(type="session", session=enriched[session.id], excerpt=excerpt))
+    for log in log_results:
         results.append(SearchResult(
             type="activity",
             log=ActivityLogOut(
@@ -442,13 +489,12 @@ def search_chronicle(
                 category=log.category,
                 description=log.description,
                 metadata_=log.metadata_,
+                starred=getattr(log, "starred", False),
                 created_at=log.created_at,
             ),
             excerpt=log.description[:200],
         ))
 
-    total = len(results)
-    # Sort by recency: sessions by updated_at, logs by created_at
     def sort_key(r: SearchResult):
         if r.session:
             return r.session.updated_at
@@ -457,7 +503,8 @@ def search_chronicle(
         return datetime.min
 
     results.sort(key=sort_key, reverse=True)
-    paginated = results[(page - 1) * page_size: page * page_size]
+    total = len(results)
+    paginated = results[offset: offset + page_size]
 
     return SearchResponse(results=paginated, total=total, query=q)
 
@@ -476,11 +523,19 @@ def get_stats(
 
     sessions = session_q.all()
     total_sessions = len(sessions)
-    total_messages = sum(len(s.messages) for s in sessions)
-
     sessions_by_type: dict[str, int] = {}
     for s in sessions:
         sessions_by_type[s.context_type] = sessions_by_type.get(s.context_type, 0) + 1
+
+    # Count messages in one aggregate query instead of lazy-loading per session
+    session_ids = [s.id for s in sessions]
+    total_messages = 0
+    if session_ids:
+        total_messages = (
+            db.query(func.count(ChatMessage.id))
+            .filter(ChatMessage.session_id.in_(session_ids))
+            .scalar()
+        ) or 0
 
     log_q = db.query(ActivityLog).filter(ActivityLog.user_id == user.id)
     if story_id:

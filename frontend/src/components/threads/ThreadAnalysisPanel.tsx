@@ -61,7 +61,12 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
             </p>
           </div>
         </div>
-        <button onClick={analyze} disabled={generating} className={styles.analyzeBtn}>
+        <button
+          onClick={analyze}
+          disabled={generating}
+          className={styles.analyzeBtn}
+          title="Review this thread's progression, key moments, try/fail cycles, and narrative quality"
+        >
           <Compass size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>

@@ -333,6 +333,46 @@
   line-height: 1.4;
 }
 
+/* Summary row — cliche and character depth headers */
+.summaryRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ratingBadge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: capitalize;
+  flex-shrink: 0;
+}
+
+/* Rating color variants */
+.rating_excellent   { background: color-mix(in srgb, var(--color-ai) 15%, transparent); color: var(--color-ai); }
+.rating_good        { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
+.rating_fair        { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+.rating_needs_work  { background: color-mix(in srgb, var(--color-error, #ef4444) 15%, transparent); color: var(--color-error, #ef4444); }
+/* cliche-specific variants */
+.rating_minimal_impact      { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
+.rating_moderate_impact     { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+.rating_significant_impact  { background: color-mix(in srgb, var(--color-error, #ef4444) 15%, transparent); color: var(--color-error, #ef4444); }
+
+.instanceCount {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.summaryText {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  margin: 0 0 0.25rem;
+  line-height: 1.5;
+  font-style: italic;
+}
+
 /* Theme rows */
 .themeRow {
   background: var(--color-bg);

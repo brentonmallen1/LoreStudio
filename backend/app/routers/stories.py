@@ -1,6 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import StreamingResponse
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -19,7 +20,7 @@ from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import build_snowflake_guidance_prompt, LAYER_SPECS
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
-from ..schemas.structure import StructureNodeCreate, StructureNodeOut, ReorderStructurePayload
+from ..schemas.structure import StructureNodeCreate, StructureNodeOut, StructureNodeMeta, ReorderStructurePayload
 from ..auth.dependencies import get_current_user
 
 router = APIRouter()
@@ -366,20 +367,43 @@ async def suggest_relationships(
     )
 
 
-@router.get("/{story_id}/structure", response_model=list[StructureNodeOut])
+@router.get("/{story_id}/structure", response_model=list[StructureNodeMeta])
 def get_story_structure(
     story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    roots = (
+    # Single flat query — avoids N+1 from recursive lazy-loaded children
+    all_nodes = (
         db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id, StructureNode.parent_id == None)
+        .filter(StructureNode.story_id == story_id)
         .order_by(StructureNode.position)
         .all()
     )
-    return roots
+    # Python attribute names for all column properties (handles metadata_ → "metadata" DB column)
+    col_attrs = [prop.key for prop in sa_inspect(StructureNode).mapper.column_attrs]
+    # Build flat dict map, then assemble into tree
+    node_dicts: dict[str, dict] = {}
+    for node in all_nodes:
+        d = {attr: getattr(node, attr) for attr in col_attrs}
+        d["children"] = []
+        node_dicts[d["id"]] = d
+    roots = []
+    for d in node_dicts.values():
+        pid = d["parent_id"]
+        if pid is None:
+            roots.append(d)
+        elif pid in node_dicts:
+            node_dicts[pid]["children"].append(d)
+
+    def _sort(nodes: list) -> list:
+        nodes.sort(key=lambda n: n["position"])
+        for n in nodes:
+            _sort(n["children"])
+        return nodes
+
+    return _sort(roots)
 
 
 @router.post("/{story_id}/structure", response_model=StructureNodeOut, status_code=status.HTTP_201_CREATED)
@@ -442,10 +466,9 @@ def list_story_relationships(
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    char_ids = [c.id for c in db.query(Character).filter(Character.story_id == story_id).all()]
-    if not char_ids:
-        return []
-    return db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(char_ids)).all()
+    from sqlalchemy import select
+    char_subq = select(Character.id).where(Character.story_id == story_id)
+    return db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(char_subq)).all()
 
 
 @router.post("/{story_id}/characters", status_code=status.HTTP_201_CREATED)

@@ -2,7 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MessageSquare, ChevronRight, AlertCircle, Compass, ChevronUp, ChevronDown, MessageCircle, StickyNote } from "lucide-react";
 import { api } from "../../api/client";
+import { useStoryStore } from "../../stores/storyStore";
 import type { DialogueBlockWithScene, VoiceDistinctnessResult, CharacterDialogueProseResult } from "../../types";
+import AutoTagPanel from "../cleanup/AutoTagPanel";
 import styles from "./CharacterDialogueTab.module.css";
 
 interface Props {
@@ -13,14 +15,20 @@ interface Props {
 export default function CharacterDialogueTab({ characterId, characterName }: Props) {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
+  const { characters, structure, setActiveNode } = useStoryStore();
+  const characterNames = characters.map((c) => c.name);
   const [blocks, setBlocks] = useState<DialogueBlockWithScene[]>([]);
   const [loading, setLoading] = useState(true);
   const [voiceResult, setVoiceResult] = useState<VoiceDistinctnessResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [showVoice, setShowVoice] = useState(false);
   const [proseResult, setProseResult] = useState<CharacterDialogueProseResult | null>(null);
   const [analyzingProse, setAnalyzingProse] = useState(false);
+  const [proseError, setProseError] = useState<string | null>(null);
   const [showProse, setShowProse] = useState(false);
+  const voicePanelRef = useRef<HTMLDivElement>(null);
+  const prosePanelRef = useRef<HTMLDivElement>(null);
   const [showSubtextNotes, setShowSubtextNotes] = useState(false);
   const [subtextDraft, setSubtextDraft] = useState<Record<string, string>>({});
   const [subtextOpen, setSubtextOpen] = useState<Set<string>>(new Set());
@@ -50,12 +58,14 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
   async function analyzeVoice() {
     setAnalyzing(true);
+    setVoiceError(null);
     try {
       const result = await api.analyzeCharacterVoice(characterId);
       setVoiceResult(result);
       setShowVoice(true);
+      setTimeout(() => voicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
     } catch {
-      // ignore
+      setVoiceError("Voice analysis failed — ensure the story has attributed dialogue.");
     } finally {
       setAnalyzing(false);
     }
@@ -63,18 +73,36 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
   async function analyzeDialogueProse() {
     setAnalyzingProse(true);
+    setProseError(null);
     try {
       const result = await api.analyzeCharacterDialogueProse(characterId);
       setProseResult(result);
       setShowProse(true);
+      setTimeout(() => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
     } catch {
-      // ignore
+      setProseError("Prose analysis failed — ensure the story has attributed dialogue.");
     } finally {
       setAnalyzingProse(false);
     }
   }
 
-  useEffect(() => {
+  async function navigateToScene(sceneId: string) {
+    try {
+      const fullNode = await api.getNode(sceneId);
+      setActiveNode(fullNode);
+    } catch {
+      // Fall back to the lightweight structure tree node
+      const queue = [...structure];
+      while (queue.length) {
+        const n = queue.shift()!;
+        if (n.id === sceneId) { setActiveNode(n); break; }
+        if (n.children) queue.push(...n.children);
+      }
+    }
+    navigate(`/stories/${storyId}/write`);
+  }
+
+useEffect(() => {
     setLoading(true);
     api.getCharacterDialogue(characterId)
       .then(setBlocks)
@@ -88,13 +116,37 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
   if (blocks.length === 0) {
     return (
-      <div className={styles.empty}>
-        <MessageSquare size={24} className={styles.emptyIcon} />
-        <p>No attributed dialogue found for {characterName}.</p>
-        <p className={styles.emptyHint}>
-          Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the
-          Auto-tag feature in a scene to assign unattributed quotes.
-        </p>
+      <div className={styles.root}>
+        <div className={styles.analysisBar}>
+          <button disabled className={styles.nlpBtn} title="No attributed dialogue yet — add dialogue first">
+            <Compass size={12} />
+            Analyze voice
+          </button>
+          <button disabled className={styles.nlpBtn} title="No attributed dialogue yet — add dialogue first">
+            <Compass size={12} />
+            Analyze prose
+          </button>
+        </div>
+        {storyId && (
+          <div className={styles.tagPanel}>
+            <AutoTagPanel
+              mode="character"
+              storyId={storyId}
+              characterId={characterId}
+              characterName={characterName}
+              characterNames={characterNames}
+              onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
+            />
+          </div>
+        )}
+        <div className={styles.empty}>
+          <MessageSquare size={24} className={styles.emptyIcon} />
+          <p>No attributed dialogue found for {characterName}.</p>
+          <p className={styles.emptyHint}>
+            Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the
+            panel above to find and tag unattributed quotes.
+          </p>
+        </div>
       </div>
     );
   }
@@ -122,19 +174,45 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
     <div className={styles.root}>
       {/* ── Analysis bar ── */}
       <div className={styles.analysisBar}>
-        <button onClick={analyzeVoice} disabled={analyzing || blocks.length === 0} className={styles.nlpBtn}>
+        <button
+          onClick={analyzeVoice}
+          disabled={analyzing}
+          className={styles.nlpBtn}
+          title="Analyse how distinctive this character's voice is compared to others (local NLP — no AI required)"
+        >
           <Compass size={12} />
           {analyzing ? "Analyzing…" : "Analyze voice"}
         </button>
-        <button onClick={analyzeDialogueProse} disabled={analyzingProse || blocks.length === 0} className={styles.nlpBtn}>
+        <button
+          onClick={analyzeDialogueProse}
+          disabled={analyzingProse}
+          className={styles.nlpBtn}
+          title="Analyse prose quality markers (adverbs, said-bookisms) in this character's dialogue (local NLP — no AI required)"
+        >
           <Compass size={12} />
           {analyzingProse ? "Analyzing…" : "Analyze prose"}
         </button>
+        {voiceError && <span className={styles.analysisError}>{voiceError}</span>}
+        {proseError && <span className={styles.analysisError}>{proseError}</span>}
       </div>
+
+      {/* ── Tag Dialogue panel ── */}
+      {storyId && (
+        <div className={styles.tagPanel}>
+          <AutoTagPanel
+            mode="character"
+            storyId={storyId}
+            characterId={characterId}
+            characterName={characterName}
+            characterNames={characterNames}
+            onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
+          />
+        </div>
+      )}
 
       {/* ── Voice results ── */}
       {voiceResult && showVoice && (
-        <div className={styles.voicePanel}>
+        <div ref={voicePanelRef} className={styles.voicePanel}>
           <div className={styles.voicePanelHeader}>
             <span className={styles.voiceTitle}>
               Voice Analysis
@@ -208,7 +286,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
       {/* ── Prose analysis results ── */}
       {proseResult && showProse && (
-        <div className={styles.voicePanel}>
+        <div ref={prosePanelRef} className={styles.voicePanel}>
           <div className={styles.voicePanelHeader}>
             <span className={styles.voiceTitle}>Dialogue Prose Analysis</span>
             <button onClick={() => setShowProse(false)} className={styles.voiceClose}>
@@ -280,7 +358,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
         <div key={sceneId} className={styles.sceneGroup}>
           <button
             className={styles.sceneHeader}
-            onClick={() => storyId && navigate(`/stories/${storyId}/scenes/${sceneId}`)}
+            onClick={() => storyId && navigateToScene(sceneId)}
             title="Go to scene"
           >
             <span className={styles.sceneTitle}>{title}</span>
@@ -372,6 +450,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           )}
         </div>
       )}
+
     </div>
   );
 }

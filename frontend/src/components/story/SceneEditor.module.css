@@ -513,6 +513,13 @@
   margin-left: 0.35rem;
 }
 
+.summaryTimestamp {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  margin-left: 0.4rem;
+  font-weight: 400;
+}
+
 .summaryRefreshBtn {
   display: flex;
   align-items: center;

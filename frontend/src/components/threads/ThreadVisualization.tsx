@@ -63,15 +63,15 @@ export default function ThreadVisualization({ storyId }: Props) {
   const { setActiveNode } = useStoryStore();
 
   const [threads, setThreads]         = useState<PlotThread[]>([]);
-  const [structure, setStructure]     = useState<StructureNode[]>([]);
   const [loading, setLoading]         = useState(true);
   const [hovThread, setHovThread]     = useState<string | null>(null);
   const [hovCol, setHovCol]           = useState<number | null>(null);
   const [hidden, setHidden]           = useState<Set<string>>(new Set());
+  const { structure } = useStoryStore();
 
   useEffect(() => {
-    Promise.all([api.listThreads(storyId), api.getStructure(storyId)])
-      .then(([t, s]) => { setThreads(t); setStructure(s); })
+    api.listThreads(storyId)
+      .then((t) => setThreads(t))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);

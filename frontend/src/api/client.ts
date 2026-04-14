@@ -109,13 +109,14 @@ export const api = {
       signal,
     });
   },
-  analyzeEconomy: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, { method: "POST" }),
-  analyzeEssentialQuestions: (storyId: string, characterId?: string) =>
+  analyzeEconomy: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, { method: "POST", signal }),
+  analyzeEssentialQuestions: (storyId: string, characterId?: string, signal?: AbortSignal) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/essential-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ character_id: characterId ?? null }),
+      signal,
     }),
   suggestRelationships: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/suggest-relationships`, { method: "POST" }),
@@ -132,40 +133,46 @@ export const api = {
       body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
     }),
 
-  analyzeProseNLP: (storyId: string, nodeIds?: string[], checks?: string[]) =>
+  analyzeProseNLP: (storyId: string, nodeIds?: string[], checks?: string[], signal?: AbortSignal) =>
     request<import("../types").ProseNLPResponse>(`/stories/${storyId}/analyze/prose-nlp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ node_ids: nodeIds ?? null, checks: checks ?? null }),
+      signal,
     }),
 
-  analyzeEntitySuggestions: (storyId: string) =>
+  analyzeEntitySuggestions: (storyId: string, signal?: AbortSignal) =>
     request<import("../types").EntitySuggestionsResponse>(`/stories/${storyId}/analyze/entity-suggestions`, {
       method: "POST",
+      signal,
     }),
 
-  analyzeEditorialConsistency: (storyId: string) =>
+  analyzeEditorialConsistency: (storyId: string, signal?: AbortSignal) =>
     request<import("../types").EditorialConsistencyResponse>(`/stories/${storyId}/analyze/editorial-consistency`, {
       method: "POST",
+      signal,
     }),
 
-  analyzePacing: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, { method: "POST" }),
+  analyzePacing: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, { method: "POST", signal }),
 
-  analyzeContinuity: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, { method: "POST" }),
+  analyzeContinuity: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, { method: "POST", signal }),
 
-  analyzeThemes: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, { method: "POST" }),
+  analyzeThemes: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, { method: "POST", signal }),
 
-  analyzePlotHoles: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, { method: "POST" }),
+  analyzePlotHoles: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, { method: "POST", signal }),
 
-  analyzeFirstPass: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, { method: "POST" }),
+  analyzeFirstPass: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, { method: "POST", signal }),
 
-  analyzeCliches: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, { method: "POST" }),
+  analyzeCliches: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, { method: "POST", signal }),
+
+  analyzeCharacterDimensionality: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/character-dimensionality`, { method: "POST", signal }),
 
   generateDiscoveryQuestions: (storyId: string, focusArea: string, entityId?: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/discovery-questions`, {
@@ -192,6 +199,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  getNode: (nodeId: string) =>
+    request<import("../types").StructureNode>(`/structure/${nodeId}`),
   updateNode: (nodeId: string, data: Partial<import("../types").StructureNode>) =>
     request<import("../types").StructureNode>(`/structure/${nodeId}`, {
       method: "PATCH",
@@ -211,6 +220,25 @@ export const api = {
       signal,
     });
   },
+
+  summarizeScenesBatch: (
+    storyId: string,
+    upToNodeId?: string,
+    forceRefresh?: boolean,
+    signal?: AbortSignal,
+  ) =>
+    request<{ total_scenes: number; summarized_count: number; skipped_count: number; failed_count: number }>(
+      `/stories/${storyId}/summarize-batch`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          up_to_node_id: upToNodeId ?? null,
+          force_refresh: forceRefresh ?? false,
+        }),
+        signal,
+      },
+    ),
 
   // Characters
   listCharacters: (storyId: string) =>
@@ -271,6 +299,8 @@ export const api = {
     request<import("../types").CharacterDialogueProseResult>(`/characters/${characterId}/analyze-dialogue`, { method: "POST" }),
   analyzeCharacterArc: (characterId: string) =>
     request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, { method: "POST" }),
+  assessCharacterDimensionality: (characterId: string) =>
+    request<import("../types").StructuredResult>(`/characters/${characterId}/assess-dimensionality`, { method: "POST" }),
 
   // Character AI generation
   generateAttributes: (characterId: string, attributeType: string): Promise<import("../types").StructuredResult> =>
@@ -1182,12 +1212,20 @@ export const api = {
     request<import("../types").DialogueInteraction[]>(`/stories/${storyId}/dialogue/interactions`),
   getCharacterDialogue: (characterId: string) =>
     request<import("../types").DialogueBlockWithScene[]>(`/characters/${characterId}/dialogue`),
+  getScenesWithUnattributedDialogue: (characterId: string) =>
+    request<{ scene_id: string; scene_title: string; unattributed_count: number }[]>(`/characters/${characterId}/scenes-with-unattributed`),
   suggestDialogueTags: (sceneId: string) =>
     request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, { method: "POST" }),
   aiSuggestDialogueSpeakers: (sceneId: string, signal?: AbortSignal) =>
     request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/ai-suggest`, { method: "POST", signal }),
   applyDialogueTags: (sceneId: string, tags: import("../types").ApplyTagRequest[]) =>
     request<import("../types").StructureNode>(`/scenes/${sceneId}/dialogue/apply-tags`, { method: "POST", body: JSON.stringify({ tags }) }),
+  suggestDialogueTagsStoryWide: (storyId: string) =>
+    request<import("../types").BatchSuggestResponse>(`/stories/${storyId}/dialogue/suggest-tags-batch`, { method: "POST" }),
+  suggestDialogueTagsForCharacter: (characterId: string) =>
+    request<import("../types").BatchSuggestResponse>(`/characters/${characterId}/dialogue/suggest-tags-batch`, { method: "POST" }),
+  applyDialogueTagsBatch: (storyId: string, scenes: { scene_id: string; tags: import("../types").ApplyTagRequest[] }[]) =>
+    request<{ updated_count: number }>(`/stories/${storyId}/dialogue/apply-tags-batch`, { method: "POST", body: JSON.stringify({ scenes }) }),
   suggestEntityLinks: (nodeId: string) =>
     request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, { method: "POST" }),
   applyEntityLinks: (nodeId: string, links: import("../types").ApplyLinkRequest[]) =>

@@ -61,11 +61,40 @@ class StructureNodeOut(BaseModel):
     timeline_position: int | None = None
     content_summary: str = ""
     summary_stale: bool = True
+    summary_updated_at: datetime | None = None
     beat_id: str | None = None
     pov_character_id: str | None = None
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime
     children: list["StructureNodeOut"] = []
+
+    model_config = {"from_attributes": True}
+
+
+class StructureNodeMeta(BaseModel):
+    """Lightweight node schema for tree/sidebar — excludes content and content_summary prose."""
+    id: str
+    story_id: str
+    parent_id: str | None
+    level: int
+    level_type: str
+    title: str
+    synopsis: str
+    position: int
+    word_count: int
+    status: str
+    entry_state: str = ""
+    exit_state: str = ""
+    key_events: str = ""
+    timeline_position: int | None = None
+    summary_stale: bool = True
+    summary_updated_at: datetime | None = None
+    beat_id: str | None = None
+    pov_character_id: str | None = None
+    metadata_: dict = {}
+    created_at: datetime
+    updated_at: datetime
+    children: list["StructureNodeMeta"] = []
 
     model_config = {"from_attributes": True}

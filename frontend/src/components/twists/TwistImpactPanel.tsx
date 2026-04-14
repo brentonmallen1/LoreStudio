@@ -49,7 +49,12 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
             <p className={styles.subtitle}>Downstream effects when "{twistName}" resolves</p>
           </div>
         </div>
-        <button className={styles.analyzeBtn} onClick={analyze} disabled={loading}>
+        <button
+          className={styles.analyzeBtn}
+          onClick={analyze}
+          disabled={loading}
+          title="Trace which threads, character arcs, and scenes are affected when this twist resolves"
+        >
           <Compass size={12} className={loading ? styles.spin : undefined} />
           {loading ? "Analyzing…" : result ? "Re-analyze" : "Analyze impact"}
         </button>

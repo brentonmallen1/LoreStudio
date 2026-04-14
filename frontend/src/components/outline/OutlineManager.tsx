@@ -10,6 +10,7 @@ import SnowflakeView from "./SnowflakeView";
 import OutlineInfoModal from "./OutlineInfoModal";
 import ExtractOutlinePanel from "./ExtractOutlinePanel";
 import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./OutlineManager.module.css";
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
@@ -657,6 +658,7 @@ export default function OutlineManager({ storyId }: Props) {
           >
             <Info size={14} />
           </button>
+          <AIFeatureInfoTrigger pageId="outline" size="sm" />
         </div>
       </div>
 

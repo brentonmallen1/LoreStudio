@@ -4,7 +4,7 @@ import {
   ChevronRight,
   ChevronDown,
   Plus,
-  PanelLeftOpen,
+  PanelRightOpen,
   GripVertical,
   Flag,
   BookMarked,
@@ -13,6 +13,10 @@ import {
   Zap,
   Puzzle,
   Milestone,
+  List,
+  Share2,
+  FileText,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { api } from "../../api/client";
@@ -215,7 +219,7 @@ function NodeItem({
 
         <button
           onClick={() => {
-            setActiveNode(node);
+            api.getNode(node.id).then(setActiveNode);
             if (!location.pathname.endsWith("/write")) {
               navigate(`/stories/${storyId}/write`);
             }
@@ -296,7 +300,7 @@ interface StructureTreePanelProps {
 export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay }: StructureTreePanelProps) {
   const { storyId } = useParams<{ storyId: string }>();
   const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
-  const { treePanelWidth, setTreePanelWidth, setTreeDetached } = useUIStore();
+  const { treePanelWidth, setTreePanelWidth, setTreeDetached, viewMode, setViewMode } = useUIStore();
   const pushHistory = useHistoryStore((s) => s.push);
 
   const [addingLevel, setAddingLevel] = useState<number | null>(null);
@@ -462,11 +466,43 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           <button
             className={styles.dockBtn}
             onClick={() => setTreeDetached(false)}
-            title="Dock back to sidebar"
+            title="Close structure tree"
           >
-            <PanelLeftOpen size={13} />
+            <PanelRightOpen size={13} />
           </button>
         </div>
+      </div>
+
+      {/* View mode toggle */}
+      <div className={styles.viewToggle}>
+        <button
+          className={`${styles.viewBtn} ${viewMode === "tree" ? styles.viewActive : ""}`}
+          onClick={() => setViewMode("tree")}
+          title="Tree view"
+        >
+          <List size={12} />
+        </button>
+        <button
+          className={`${styles.viewBtn} ${viewMode === "storyboard" ? styles.viewActive : ""}`}
+          onClick={() => setViewMode("storyboard")}
+          title="Storyboard view"
+        >
+          <Share2 size={12} />
+        </button>
+        <button
+          className={`${styles.viewBtn} ${viewMode === "summary" ? styles.viewActive : ""}`}
+          onClick={() => setViewMode("summary")}
+          title="Summary overview"
+        >
+          <FileText size={12} />
+        </button>
+        <button
+          className={`${styles.viewBtn} ${viewMode === "manuscript" ? styles.viewActive : ""}`}
+          onClick={() => setViewMode("manuscript")}
+          title="Manuscript view"
+        >
+          <BookOpen size={12} />
+        </button>
       </div>
 
       {/* Tree */}

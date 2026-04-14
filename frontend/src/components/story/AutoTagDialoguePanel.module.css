@@ -282,6 +282,40 @@
   color: var(--color-warning);
 }
 
+/* ── Spinner ── */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── AI Refine button (in toolbar) ── */
+.aiRefineBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ai);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  font-family: inherit;
+}
+
+.aiRefineBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
+}
+
+.aiRefineBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ── Footer ── */
 .footer {
   display: flex;
@@ -289,6 +323,28 @@
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
+}
+
+.autoBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-ai);
+  color: white;
+  font-size: 0.84rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.autoBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .applyBtn {

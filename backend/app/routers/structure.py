@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ from ..models.structure import StructureNode
 from ..schemas.structure import StructureNodeUpdate, StructureNodeOut
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
-from ..services.llm.prompts.summaries import build_scene_summary_prompt
+from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
 from ..services.dialogue_service import sync_dialogue_blocks
 from ..services.linking_service import suggest_entity_links, apply_entity_links
 
@@ -74,19 +75,47 @@ async def summarize_node(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Stream an AI-generated summary of the scene content, then persist it."""
+    """Stream an AI-generated summary of a scene or section, then persist it."""
+    from fastapi.responses import Response
+
     node = _verify_node_access(node_id, db, current_user)
-
-    if not node.content or not node.content.strip():
-        from fastapi.responses import Response
-        return Response("No content to summarize.", media_type="text/plain")
-
-    feature_prompt = build_scene_summary_prompt(node.title, node.content)
-    llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
-
     story = db.query(Story).filter(Story.id == node.story_id).first()
+
+    # Leaf node: has direct prose content
+    if node.content and node.content.strip():
+        feature_prompt = build_scene_summary_prompt(node.title, node.content)
+        llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
+        feature = "scene-summary"
+    else:
+        # Section node: gather all child content recursively
+        all_nodes = db.query(StructureNode).filter(StructureNode.story_id == node.story_id).all()
+        child_map: dict[str | None, list[StructureNode]] = {}
+        for n in all_nodes:
+            child_map.setdefault(n.parent_id, []).append(n)
+
+        def gather_content(n: StructureNode) -> list[str]:
+            pieces = []
+            if n.content and n.content.strip():
+                pieces.append(f"[{n.title}]\n{n.content}")
+            for child in sorted(child_map.get(n.id, []), key=lambda c: c.position):
+                pieces.extend(gather_content(child))
+            return pieces
+
+        content_pieces = gather_content(node)
+        if not content_pieces:
+            return Response("No content to summarize in this section.", media_type="text/plain")
+
+        feature_prompt = build_structure_section_summary_prompt(
+            story_title=story.title,
+            story_intent=getattr(story, "narrative_intent", None) or getattr(story, "intent", None),
+            node_title=node.title,
+            content_text="\n\n".join(content_pieces),
+        )
+        llm_messages = [{"role": "user", "content": "Summarize this section."}]
+        feature = "structure-summary"
+
     ctx = AICallContext(
-        feature="scene-summary",
+        feature=feature,
         user_id=current_user.id,
         story_id=node.story_id,
         node_id=node_id,
@@ -96,6 +125,7 @@ async def summarize_node(
     async def on_complete(result: AICallResult) -> None:
         node.content_summary = result.content
         node.summary_stale = False
+        node.summary_updated_at = datetime.now(timezone.utc)
         db.commit()
         _invalidate_journey_summaries(node_id, db)
 

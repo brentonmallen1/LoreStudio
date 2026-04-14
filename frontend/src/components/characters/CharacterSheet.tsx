@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Compass, User, MapPin, ExternalLink } from "lucide-react";
+import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Wand2, Compass, Users, User, MapPin, ExternalLink } from "lucide-react";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { SectionCard } from "../common";
 import CharacterDialogueTab from "./CharacterDialogueTab";
 import ArcTimelineView from "./ArcTimelineView";
 import ArcAnalysisPanel from "./ArcAnalysisPanel";
+import CharacterDimensionalityPanel from "./CharacterDimensionalityPanel";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAIStore } from "../../stores/aiStore";
@@ -19,7 +21,7 @@ const ATTRIBUTE_DEFS: { key: keyof CharacterAttributes; label: string; options: 
   { key: "social_manner",   label: "Social Manner",   options: ["Refined", "Polished", "Casual", "Rough", "Crude"] },
 ];
 import CharacterFormDialog from "./CharacterFormDialog";
-import AttributeGeneratorPanel from "./AttributeGeneratorPanel";
+import AttributeGeneratorDialog from "./AttributeGeneratorDialog";
 import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../media/PortraitEditor";
@@ -35,7 +37,8 @@ export default function CharacterSheet() {
   const [editing, setEditing] = useState(false);
   const [portraitDesc, setPortraitDesc] = useState<CharacterImageDescription | null>(null);
   const [showStartInterview, setShowStartInterview] = useState(false);
-  const [showAiGenerator, setShowAiGenerator] = useState(false);
+  const [showAttributeDialog, setShowAttributeDialog] = useState(false);
+  const [showDimensionality, setShowDimensionality] = useState(false);
   const [intentText, setIntentText] = useState("");
   const [missionText, setMissionText] = useState("");
   const [newMilestone, setNewMilestone] = useState("");
@@ -62,21 +65,18 @@ export default function CharacterSheet() {
     api.getCharacter(characterId).then(upsertCharacter).catch(console.error);
   }, [characterId]);
 
-  // Load leaf scenes for milestone scene-picker
+  // Derive leaf scenes from the store's structure (already loaded by StoryWorkspace)
   useEffect(() => {
-    if (!storyId) return;
-    api.getStructure(storyId).then((tree) => {
-      const leaves: StructureNode[] = [];
-      function walk(nodes: StructureNode[]) {
-        for (const n of nodes) {
-          if (!n.children?.length) leaves.push(n);
-          else walk(n.children);
-        }
+    const leaves: StructureNode[] = [];
+    function walk(nodes: StructureNode[]) {
+      for (const n of nodes) {
+        if (!n.children?.length) leaves.push(n);
+        else walk(n.children);
       }
-      walk(tree);
-      setSceneNodes(leaves);
-    }).catch(() => {});
-  }, [storyId]);
+    }
+    walk(structure);
+    setSceneNodes(leaves);
+  }, [structure]);
 
   useEffect(() => {
     if (character) {
@@ -256,9 +256,21 @@ export default function CharacterSheet() {
   }
 
   function roleBadgeClass() {
-    if (character!.role === "protagonist") return `${styles.roleBadge} ${styles.protagonist}`;
-    if (character!.role === "antagonist") return `${styles.roleBadge} ${styles.antagonist}`;
+    const role = character!.role;
+    if (role === "protagonist") return `${styles.roleBadge} ${styles.protagonist}`;
+    if (role === "antagonist")  return `${styles.roleBadge} ${styles.antagonist}`;
+    if (role === "deuteragonist") return `${styles.roleBadge} ${styles.deuteragonist}`;
+    if (role === "love_interest") return `${styles.roleBadge} ${styles.loveInterest}`;
+    if (role === "confidant")  return `${styles.roleBadge} ${styles.confidant}`;
+    if (role === "foil")       return `${styles.roleBadge} ${styles.foil}`;
+    if (role === "tertiary")   return `${styles.roleBadge} ${styles.tertiary}`;
     return styles.roleBadge;
+  }
+
+  function formatLabel(value: string) {
+    return value
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   return (
@@ -278,11 +290,24 @@ export default function CharacterSheet() {
             <div className={styles.cardInfo}>
               <div className={styles.nameRow}>
                 <h1 className={styles.name}>{character.name}</h1>
-                <span className={roleBadgeClass()}>{character.role}</span>
+                <span className={roleBadgeClass()}>{formatLabel(character.role)}</span>
+                {character.character_type && (
+                  <span className={styles.charTypeBadge} title="Character type — development &amp; complexity">{formatLabel(character.character_type)}</span>
+                )}
                 {character.pronouns && (
                   <span className={styles.pronounsBadge}>{character.pronouns}</span>
                 )}
               </div>
+              {(character.jungian_archetype || character.narrative_archetype) && (
+                <div className={styles.archetypeRow}>
+                  {character.jungian_archetype && (
+                    <span className={styles.jungianBadge} title="Jungian archetype — core identity">{formatLabel(character.jungian_archetype)}</span>
+                  )}
+                  {character.narrative_archetype && (
+                    <span className={styles.narrativeBadge} title="Narrative archetype — Hero's Journey function">{formatLabel(character.narrative_archetype)}</span>
+                  )}
+                </div>
+              )}
               {character.mission_statement && (
                 <p className={styles.missionTeaser}>
                   "{character.mission_statement.length > 90
@@ -295,16 +320,10 @@ export default function CharacterSheet() {
               <button
                 onClick={() => setShowStartInterview(true)}
                 className={styles.interviewBtn}
+                title="Interview this character"
               >
                 <MessageSquare size={14} />
                 Interview
-              </button>
-              <button
-                onClick={() => setShowAiGenerator((s) => !s)}
-                className={styles.editBtn}
-                title="AI suggestions"
-              >
-                <Compass size={14} />
               </button>
               <button
                 onClick={() => setEditing(true)}
@@ -313,6 +332,7 @@ export default function CharacterSheet() {
               >
                 <Edit2 size={14} />
               </button>
+              <AIFeatureInfoTrigger pageId="character-sheet" size="sm" />
             </div>
           </div>
 
@@ -380,6 +400,43 @@ export default function CharacterSheet() {
 
         {activeTab === "overview" && (
           <div className={styles.overview}>
+
+            {/* ── Character Tools ── */}
+            <div className={styles.toolsStrip}>
+              <button
+                className={styles.toolCard}
+                onClick={() => setShowAttributeDialog(true)}
+                title="Use AI to suggest traits, backstory, quirks, or appearance"
+              >
+                <div className={styles.toolCardIcon}>
+                  <Wand2 size={14} />
+                </div>
+                <div className={styles.toolCardBody}>
+                  <span className={styles.toolCardLabel}>Suggest Attributes</span>
+                  <span className={styles.toolCardDesc}>Generate traits, backstory, quirks, or appearance</span>
+                </div>
+                <Compass size={14} className={styles.toolCardCompass} />
+              </button>
+              <button
+                className={`${styles.toolCard} ${showDimensionality ? styles.toolCardActive : ""}`}
+                onClick={() => setShowDimensionality((v) => !v)}
+                title="AI assessment of dimensionality, contradictions, and development"
+              >
+                <div className={styles.toolCardIcon}>
+                  <Users size={14} />
+                </div>
+                <div className={styles.toolCardBody}>
+                  <span className={styles.toolCardLabel}>Character Depth</span>
+                  <span className={styles.toolCardDesc}>Assess dimensionality, contradictions, development</span>
+                </div>
+                <Compass size={14} className={styles.toolCardCompass} />
+              </button>
+            </div>
+            {showDimensionality && (
+              <div className={styles.toolPanelWrapper}>
+                <CharacterDimensionalityPanel characterId={character.id} />
+              </div>
+            )}
 
             {/* ── Profile ── */}
             <SectionCard title="Profile" collapsed={!!collapsed.profile} onToggle={() => toggle("profile")}>
@@ -686,10 +743,10 @@ export default function CharacterSheet() {
         )}
       </div>
 
-      {showAiGenerator && (
-        <AttributeGeneratorPanel
+      {showAttributeDialog && (
+        <AttributeGeneratorDialog
           character={character}
-          onClose={() => setShowAiGenerator(false)}
+          onClose={() => setShowAttributeDialog(false)}
         />
       )}
 

@@ -9,9 +9,12 @@ class Character(Base):
     __tablename__ = "characters"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False)
+    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[str] = mapped_column(String, default="supporting")  # protagonist, antagonist, supporting, minor
+    role: Mapped[str] = mapped_column(String, default="deuteragonist")  # protagonist, deuteragonist, antagonist, love_interest, confidant, foil, tertiary
+    character_type: Mapped[str] = mapped_column(String, default="")  # round, flat, dynamic, static, stock, symbolic
+    jungian_archetype: Mapped[str] = mapped_column(String, default="")  # lover, hero, magician, outlaw, explorer, sage, innocent, creator, ruler, caregiver, everyman, jester
+    narrative_archetype: Mapped[str] = mapped_column(String, default="")  # hero, mentor, threshold_guardian, herald, shapeshifter, shadow, trickster, ally
     personality: Mapped[str] = mapped_column(Text, default="")
     motivation: Mapped[str] = mapped_column(Text, default="")
     background: Mapped[str] = mapped_column(Text, default="")
@@ -65,8 +68,8 @@ class CharacterRelationship(Base):
     __tablename__ = "character_relationships"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False)
-    related_character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False)
+    character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
+    related_character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
     relationship_type: Mapped[str] = mapped_column(String, default="acquaintance")
     description: Mapped[str] = mapped_column(Text, default="")
 

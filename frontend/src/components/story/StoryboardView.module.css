@@ -1,0 +1,332 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+/* ── Toolbar ─────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filterSelect {
+  font-size: 0.75rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  max-width: 200px;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.toolBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.toolBtnSave {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.toolBtnSave:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+}
+
+/* ── Legend ─────────────────────────────────────────── */
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.legendLabel {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.legendSwatchNote {
+  border-style: dashed;
+  border-color: var(--color-text-muted);
+}
+
+/* ── Canvas ─────────────────────────────────────────── */
+
+.canvas {
+  flex: 1;
+  position: relative;
+}
+
+/* ReactFlow overrides */
+.canvas :global(.react-flow__background) {
+  background: var(--color-bg);
+}
+
+.canvas :global(.react-flow__controls) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.canvas :global(.react-flow__controls-button) {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-subtle);
+}
+
+.canvas :global(.react-flow__controls-button:hover) {
+  background: var(--color-surface-raised);
+}
+
+.canvas :global(.react-flow__edge-path) {
+  stroke: var(--color-text-muted);
+  stroke-width: 1.5;
+}
+
+.canvas :global(.react-flow__edge.selected .react-flow__edge-path) {
+  stroke: var(--color-accent);
+}
+
+.canvas :global(.react-flow__connection-line) {
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+}
+
+/* ── Hint bar ────────────────────────────────────────── */
+
+.hint {
+  padding: 4px 12px;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+/* ── Shared handle ───────────────────────────────────── */
+
+.handle {
+  width: 8px !important;
+  height: 8px !important;
+  background: var(--color-accent) !important;
+  border: 2px solid var(--color-bg) !important;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.structureNode:hover .handle,
+.structureNodeSelected .handle,
+.noteNode:hover .handle,
+.noteNodeSelected .handle {
+  opacity: 1;
+}
+
+/* ── Structure Node ──────────────────────────────────── */
+
+.structureNode {
+  width: 208px;
+  padding: 10px 12px 8px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+  position: relative;
+}
+
+.structureNode:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.structureNodeSelected {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.snHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.snBadge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  opacity: 0.9;
+}
+
+.snTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snSummary {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.snNoSummary {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* ── Note Node ───────────────────────────────────────── */
+
+.noteNode {
+  padding: 10px 14px;
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-text-muted);
+  border-radius: 8px;
+  min-width: 100px;
+  max-width: 180px;
+  cursor: pointer;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.noteNode:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.noteNodeSelected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.noteLabel {
+  font-size: 0.78rem;
+  color: var(--color-text);
+  display: block;
+  text-align: center;
+}
+
+.noteInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.78rem;
+  font-family: inherit;
+  color: var(--color-text);
+  text-align: center;
+  width: 100%;
+  min-width: 60px;
+  padding: 0;
+}
+
+.noteDeleteBtn {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0;
+  transition: background 0.1s, color 0.1s;
+}
+
+.noteDeleteBtn:hover {
+  background: var(--color-danger, #e55);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* ── Summary state dots ──────────────────────────────── */
+
+.dotFresh {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-ai);
+  flex-shrink: 0;
+}
+
+.dotStale {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-ai);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ai) 25%, transparent);
+  flex-shrink: 0;
+}

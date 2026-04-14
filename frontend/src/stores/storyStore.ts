@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Story, StructureNode, Character, StoryStructureTemplate } from "../types";
+import type { Story, StructureNode, Character, StoryStructureTemplate, BeatSheet } from "../types";
 
 interface StoryState {
   stories: Story[];
@@ -23,6 +23,9 @@ interface StoryState {
   setCharacters: (characters: Character[]) => void;
   upsertCharacter: (character: Character) => void;
   removeCharacter: (id: string) => void;
+
+  beatSheets: BeatSheet[];
+  setBeatSheets: (sheets: BeatSheet[]) => void;
 }
 
 export const useStoryStore = create<StoryState>((set) => ({
@@ -57,4 +60,7 @@ export const useStoryStore = create<StoryState>((set) => ({
         : [...s.characters, character],
     })),
   removeCharacter: (id) => set((s) => ({ characters: s.characters.filter((x) => x.id !== id) })),
+
+  beatSheets: [],
+  setBeatSheets: (sheets) => set({ beatSheets: sheets }),
 }));

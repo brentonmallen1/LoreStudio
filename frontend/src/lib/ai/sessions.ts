@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass, Wand2 } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -611,6 +611,37 @@ registerSessionType({
 
   // Not used — the mode component calls api.analyzeSceneAtmosphere() directly
   sendMessage: () => { throw new Error("Scene Atmosphere uses direct API call, not sendMessage"); },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Attribute Generator ───────────────────────────────────────────────────────
+
+registerSessionType({
+  id: "attribute-generator",
+  label: "Attribute Suggestions",
+  contextTitle: (_ctx, names) =>
+    names.characterName ? `Attributes — ${names.characterName}` : "Attribute Suggestions",
+  contextItemLabel: (_, names) => names.characterName ?? "Character",
+  icon: Wand2,
+  accentVar: "--color-ai",
+
+  requiresStory: false,
+  requiresCharacter: true,
+  requiresNode: false,
+
+  getDefaultContext: () => ({}),
+
+  getContextItems: () => {
+    const chars = useStoryStore.getState().characters;
+    return chars.map((c) => ({ id: c.id, label: c.name }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  // Not used — the mode component calls api.generateAttributes() directly
+  sendMessage: () => { throw new Error("Attribute Generator uses direct API call, not sendMessage"); },
 
   persistsInBackend: false,
   allowContextSwitch: false,

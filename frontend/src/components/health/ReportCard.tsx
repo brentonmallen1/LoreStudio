@@ -5,12 +5,12 @@ import {
   AlertCircle, AlertTriangle, Info,
   User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
   GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
-  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2,
+  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2, Users,
 } from "lucide-react";
 import type {
   ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
   EditorialConsistencyResponse, ContinuityCheckResult, ThemeTrackerResult, PlotHoleDetectionResult,
-  ClicheAnalysisResponse, ClicheInstance,
+  ClicheAnalysisResponse, ClicheInstance, CharacterDimensionEntry, CharacterDimensionalityResult,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./ReportCard.module.css";
@@ -29,6 +29,7 @@ const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; col
   "plot-holes": { label: "Plot Holes", Icon: Skull, color: "var(--color-ai)" },
   "first-pass": { label: "First-Pass Editor", Icon: ClipboardCheck, color: "var(--color-ai)" },
   "cliche-analysis": { label: "Cliche Check", Icon: Repeat2, color: "var(--color-ai)" },
+  "character-dimensionality": { label: "Character Depth", Icon: Users, color: "var(--color-ai)" },
 };
 
 // ── Economy schema (mirrors EconomyAnalysisPanel) ─────────────────────────────
@@ -549,14 +550,113 @@ function ClicheResultDisplay({ result }: { result: StructuredResult }) {
   );
 }
 
+// ── Character Dimensionality ─────────────────────────────────────────────────
+
+const DIMENSION_COLOR: Record<string, string> = {
+  flat:        "var(--color-text-muted)",
+  developing:  "var(--color-warning, #d97706)",
+  dimensional: "var(--color-accent-secondary, #0d9488)",
+  complex:     "var(--color-ai)",
+};
+
+function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
+  const [open, setOpen] = useState(false);
+  const color = DIMENSION_COLOR[char.dimension_score] ?? "var(--color-text-muted)";
+  return (
+    <div className={styles.checkGroup}>
+      <button
+        className={styles.checkLabel}
+        style={{ background: "none", border: "none", padding: "0.15rem 0", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", alignItems: "center", gap: "0.4rem", width: "100%" }}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
+        <span style={{ flex: 1 }}>{char.character_name}</span>
+        <span style={{ fontSize: "0.68rem", color, fontWeight: 600, textTransform: "capitalize" }}>{char.dimension_score}</span>
+        <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>{char.role}</span>
+      </button>
+      {open && (
+        <div style={{ paddingLeft: "1rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+          {char.strengths.length > 0 && (
+            <div>
+              <span className={styles.issueMeta} style={{ color: "var(--color-accent-secondary, #0d9488)" }}>Strengths</span>
+              {char.strengths.map((s, i) => (
+                <div key={i} className={styles.issueRow}>
+                  <CheckCircle size={11} style={{ color: "var(--color-accent-secondary, #0d9488)", flexShrink: 0, marginTop: 2 }} />
+                  <span className={styles.issueBody}>{s}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.gaps.length > 0 && (
+            <div>
+              <span className={styles.issueMeta} style={{ color: "var(--color-warning, #d97706)" }}>Gaps</span>
+              {char.gaps.map((g, i) => (
+                <div key={i} className={styles.issueRow}>
+                  <AlertTriangle size={11} style={{ color: "var(--color-warning, #d97706)", flexShrink: 0, marginTop: 2 }} />
+                  <span className={styles.issueBody}>{g}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {char.contradictions && (
+            <p className={styles.issueSuggestion}><strong>Contradictions:</strong> {char.contradictions}</p>
+          )}
+          {char.relationship_depth && (
+            <p className={styles.issueMeta}><strong>Relationships:</strong> {char.relationship_depth}</p>
+          )}
+          {char.recommendations.length > 0 && (
+            <div>
+              <span className={styles.issueMeta}>Recommendations</span>
+              {char.recommendations.map((r, i) => (
+                <div key={i} className={styles.issueRow}>
+                  <Lightbulb size={11} style={{ color: "var(--color-ai)", flexShrink: 0, marginTop: 2 }} />
+                  <span className={styles.issueBody}>{r}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CharacterDimensionalityDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as CharacterDimensionalityResult;
+  return (
+    <div>
+      <div className={styles.summaryRow} style={{ marginBottom: "0.5rem" }}>
+        <span className={`${styles.ratingBadge} ${styles[`rating_${data.overall_rating}`]}`}>
+          {data.overall_rating?.replace("_", " ") ?? "—"}
+        </span>
+        <span className={styles.instanceCount}>{data.characters.length} character{data.characters.length !== 1 ? "s" : ""}</span>
+      </div>
+      {data.summary && <p className={styles.summaryText}>{data.summary}</p>}
+      {data.cast_balance && <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>{data.cast_balance}</p>}
+      {(data.characters ?? []).map((char, i) => (
+        <CharacterDimensionRow key={i} char={char} />
+      ))}
+      {data.ensemble_dynamics && (
+        <div className={styles.checkGroup} style={{ marginTop: "0.35rem" }}>
+          <span className={styles.checkLabel} style={{ color: "var(--color-ai)" }}>Ensemble Dynamics</span>
+          <p className={styles.issueSuggestion}>{data.ensemble_dynamics}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
+  const diffMs = Math.max(0, Date.now() - d.getTime());
   const diffH = diffMs / (1000 * 60 * 60);
-  if (diffH < 1) return `${Math.round(diffMs / 60000)}m ago`;
+  if (diffH < 1) {
+    const mins = Math.round(diffMs / 60000);
+    return mins <= 0 ? "just now" : `${mins}m ago`;
+  }
   if (diffH < 24) return `${Math.round(diffH)}h ago`;
   if (diffH < 48) return "Yesterday";
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -590,6 +690,8 @@ function renderBody(log: ActivityLog) {
       return <FirstPassResultDisplay result={result as unknown as StructuredResult} />;
     case "cliche-analysis":
       return <ClicheResultDisplay result={result as unknown as StructuredResult} />;
+    case "character-dimensionality":
+      return <CharacterDimensionalityDisplay result={result as unknown as StructuredResult} />;
     default:
       return <p className={styles.empty}>Unknown analysis type.</p>;
   }

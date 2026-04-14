@@ -324,12 +324,28 @@
   white-space: pre-wrap;
 }
 
+.thinkingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-style: italic;
+  margin-bottom: 0.3rem;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 .cursor {
   animation: blink 1s step-end infinite;
 }
 
 @keyframes blink {
   50% { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
 }
 
 /* Follow-up prompts */

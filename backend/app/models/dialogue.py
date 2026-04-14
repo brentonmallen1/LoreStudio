@@ -16,8 +16,8 @@ class DialogueBlock(Base):
     __tablename__ = "dialogue_blocks"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    scene_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False)
-    character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True)
+    scene_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False, index=True)
+    character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True, index=True)
 
     # The dialogue text (without surrounding quotes or attribution markup)
     content: Mapped[str] = mapped_column(Text, nullable=False)

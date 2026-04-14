@@ -32,7 +32,7 @@ from ..schemas.refactoring import (
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
 from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html
 from ..services.text_utils import html_to_text as _html_to_text
-from ..services.linking_service import suggest_entity_links, apply_entity_links
+from ..services.linking_service import suggest_entity_links, suggest_entity_links_preloaded, apply_entity_links
 from ..services.nlp_analysis_service import analyze_voice_distinctness, analyze_character_dialogue_prose
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -610,9 +610,15 @@ def get_character_unlinked_mentions(
     child_ids = {n.parent_id for n in all_leaves if n.parent_id}
     scenes = [n for n in all_leaves if n.id not in child_ids]
 
+    # Pre-load entities once so suggest_entity_links doesn't query DB per scene
+    from ..models.character import Character as _Char
+    from ..models.location import Location as _Loc
+    _all_chars = db.query(_Char).filter(_Char.story_id == character.story_id).all()
+    _all_locs = db.query(_Loc).filter(_Loc.story_id == character.story_id).all()
+
     results: list[SceneWithUnlinkedMentions] = []
     for scene in scenes:
-        all_proposals = suggest_entity_links(scene.content, character.story_id, db)
+        all_proposals = suggest_entity_links_preloaded(scene.content, _all_chars, _all_locs)
         char_proposals = [
             p for p in all_proposals
             if p["entity_type"] == "character" and p["entity_id"] == character_id
@@ -700,22 +706,29 @@ def analyze_character_voice(
     # Get all characters in the story
     all_characters = db.query(Character).filter(Character.story_id == character.story_id).all()
 
-    # Build dialogue corpus per character
+    # Fetch all dialogue blocks in one query, then group in Python
+    char_ids = [c.id for c in all_characters]
+    all_blocks = (
+        db.query(DialogueBlock)
+        .filter(DialogueBlock.character_id.in_(char_ids))
+        .all()
+    )
+    blocks_by_char: dict[str, list[DialogueBlock]] = {}
+    for b in all_blocks:
+        if b.character_id:
+            blocks_by_char.setdefault(b.character_id, []).append(b)
+
+    char_map = {c.id: c for c in all_characters}
     dialogue_inputs = []
-    for char in all_characters:
-        blocks = (
-            db.query(DialogueBlock)
-            .filter(DialogueBlock.character_id == char.id)
-            .all()
-        )
-        if blocks:
-            combined_text = " ".join(b.content for b in blocks if b.content)
-            if combined_text.strip():
-                dialogue_inputs.append({
-                    "character_id": char.id,
-                    "character_name": char.name,
-                    "content": combined_text,
-                })
+    for char_id, blocks in blocks_by_char.items():
+        char = char_map[char_id]
+        combined_text = " ".join(b.content for b in blocks if b.content)
+        if combined_text.strip():
+            dialogue_inputs.append({
+                "character_id": char.id,
+                "character_name": char.name,
+                "content": combined_text,
+            })
 
     if not dialogue_inputs:
         return {"profiles": [], "similar_pairs": [], "overall_distinctness": "distinct", "focus_character_id": character_id}

@@ -9,7 +9,6 @@ import type { LLMSettings, ImageTokenBudget, UserBackupDefaults } from "../types
 import styles from "./Settings.module.css";
 
 const OLLAMA_URL_DEFAULT = "http://localhost:11434";
-const OLLAMA_MODEL_DEFAULT = "gemma4";
 
 // ── Model picker combobox ─────────────────────────────────────────────────────
 
@@ -187,8 +186,8 @@ const THEME_SWATCHES: Record<string, string[]> = {
 export default function SettingsPage() {
   const { themeName, colorMode, setThemeName, setColorMode, editorFontFamily, editorFontSize, editorLineWidth, setEditorFontFamily, setEditorFontSize, setEditorLineWidth } = useUIStore();
   const { user } = useAuthStore();
-  const [ollamaUrl, setOllamaUrl] = useState(OLLAMA_URL_DEFAULT);
-  const [ollamaModel, setOllamaModel] = useState(OLLAMA_MODEL_DEFAULT);
+  const [ollamaUrl, setOllamaUrl] = useState("");
+  const [ollamaModel, setOllamaModel] = useState("");
   const [ollamaSaveState, setOllamaSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const ollamaInitialized = useRef(false);
   const [connStatus, setConnStatus] = useState<ConnStatus>(null);
@@ -218,7 +217,6 @@ export default function SettingsPage() {
   const [serverDefaults, setServerDefaults] = useState<{ url: string; model: string } | null>(null);
 
   useEffect(() => {
-    // Load settings, then auto-check connection
     api.getLLMSettings()
       .then((s) => {
         setLlmSettings(s);
@@ -233,17 +231,14 @@ export default function SettingsPage() {
         // Store server defaults for placeholder display
         setServerDefaults({ url: s.effective_ollama_url, model: s.effective_ollama_model });
         ollamaInitialized.current = true;
-        // Check connection AFTER settings are loaded
-        return api.ollamaStatus();
       })
-      .then(setConnStatus)
       .catch(() => { ollamaInitialized.current = true; });
   }, []);
 
-  // Debounced auto-save when URL or model changes, then re-check connection
+  // Debounced auto-save when URL or model changes
   useEffect(() => {
     if (!ollamaInitialized.current) return;
-    setConnStatus("loading");
+    setConnStatus(null); // prior test result is stale when settings change
     const timer = setTimeout(async () => {
       setOllamaSaveState("saving");
       try {
@@ -251,16 +246,11 @@ export default function SettingsPage() {
           ollama_url: ollamaUrl.trim() || null,
           ollama_model: ollamaModel.trim() || null,
         });
-        // Update server defaults in case they changed
         setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
         setOllamaSaveState("saved");
-        // Re-check connection with the newly saved values
-        const status = await api.ollamaStatus();
-        setConnStatus(status);
         setTimeout(() => setOllamaSaveState("idle"), 2000);
       } catch {
         setOllamaSaveState("idle");
-        setConnStatus(null);
       }
     }, 800);
     return () => clearTimeout(timer);

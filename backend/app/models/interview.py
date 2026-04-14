@@ -9,7 +9,7 @@ class CharacterInterview(Base):
     __tablename__ = "character_interviews"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False)
+    character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String, default="")
     context_node_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("structure_nodes.id", ondelete="SET NULL"), nullable=True, default=None

@@ -36,7 +36,10 @@ class ArcMilestone(BaseModel):
 
 class CharacterCreate(BaseModel):
     name: str
-    role: str = "supporting"
+    role: str = "deuteragonist"
+    character_type: str = ""
+    jungian_archetype: str = ""
+    narrative_archetype: str = ""
     mission_statement: str = ""
     pronouns: str = ""
     personality: str = ""
@@ -54,6 +57,9 @@ class CharacterCreate(BaseModel):
 class CharacterUpdate(BaseModel):
     name: str | None = None
     role: str | None = None
+    character_type: str | None = None
+    jungian_archetype: str | None = None
+    narrative_archetype: str | None = None
     mission_statement: str | None = None
     pronouns: str | None = None
     personality: str | None = None
@@ -75,6 +81,9 @@ class CharacterOut(BaseModel):
     story_id: str
     name: str
     role: str
+    character_type: str
+    jungian_archetype: str
+    narrative_archetype: str
     mission_statement: str
     pronouns: str
     personality: str

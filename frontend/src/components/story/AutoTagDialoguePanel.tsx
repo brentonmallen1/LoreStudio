@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, Tag, User, AlertCircle, CheckSquare, Square } from "lucide-react";
+import { X, Tag, User, AlertCircle, CheckSquare, Square, BrainCircuit, Loader } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ProposedDialogueTag, StructureNode } from "../../types";
@@ -109,6 +109,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
   const [proposals, setProposals] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  const [aiRefining, setAiRefining] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editedSpeakers, setEditedSpeakers] = useState<Record<string, string>>({});
   // Tracks names of newly created characters (for the current session)
@@ -158,6 +159,21 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
     } catch { /* silently skip if creation fails */ }
   }
 
+  async function handleAiRefine() {
+    setAiRefining(true);
+    try {
+      const aiProposals = await api.aiSuggestDialogueSpeakers(sceneId);
+      setProposals(aiProposals);
+      const preSelected = new Set(aiProposals.filter(p => p.inferred_speaker).map(p => p.id));
+      setSelected(preSelected);
+      setEditedSpeakers({});
+    } catch {
+      // ignore
+    } finally {
+      setAiRefining(false);
+    }
+  }
+
   async function handleApply() {
     const tags = proposals
       .filter(p => selected.has(p.id))
@@ -173,7 +189,12 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
     try {
       const updated = await api.applyDialogueTags(sceneId, tags);
       onApplied(updated);
-      onClose();
+      // Rescan so the panel shows remaining untagged dialogue
+      const fresh = await api.suggestDialogueTags(sceneId);
+      setProposals(fresh);
+      setSelected(new Set(fresh.filter(p => p.inferred_speaker).map(p => p.id)));
+      setEditedSpeakers({});
+      if (fresh.length === 0) onClose();
     } finally {
       setApplying(false);
     }
@@ -215,6 +236,15 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
                 <button className={styles.selectAllBtn} onClick={toggleAll}>
                   {selected.size === proposals.length ? <CheckSquare size={13} /> : <Square size={13} />}
                   {selected.size === proposals.length ? "Deselect all" : "Select all"}
+                </button>
+                <button
+                  className={styles.aiRefineBtn}
+                  onClick={handleAiRefine}
+                  disabled={aiRefining || applying}
+                  title="Use AI to re-analyze speakers for this scene"
+                >
+                  {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
+                  {aiRefining ? "Refining…" : "AI Refine"}
                 </button>
                 <span className={styles.count}>{proposals.length} proposal{proposals.length !== 1 ? "s" : ""}</span>
               </div>
@@ -274,7 +304,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
             <button
               className={styles.applyBtn}
               onClick={handleApply}
-              disabled={applying || applicableCount === 0}
+              disabled={applying || aiRefining || applicableCount === 0}
             >
               {applying ? "Applying…" : `Apply ${applicableCount > 0 ? `(${applicableCount})` : ""}`}
             </button>

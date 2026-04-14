@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Shuffle, Send, Square, RotateCcw, Sparkles } from "lucide-react";
+import { Shuffle, Send, Square, RotateCcw, Sparkles, Brain } from "lucide-react";
 import { api } from "../api/client";
 import type { ChatMessage } from "../types";
 import { useLLMStream } from "../hooks/useLLMStream";
@@ -14,12 +14,23 @@ const EXAMPLE_PROMPTS = [
   "What if a supporting character was the real villain?",
 ];
 
+const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
+const PARTIAL_THINKING_RE = /<\|channel>thought\n[\s\S]*$/;
+
+function stripThinking(content: string): { mainContent: string; hasThinking: boolean; isThinking: boolean } {
+  let processed = content.replace(THINKING_RE, () => "");
+  const isThinking = PARTIAL_THINKING_RE.test(processed);
+  if (isThinking) processed = processed.replace(PARTIAL_THINKING_RE, "");
+  return { mainContent: processed.trim(), hasThinking: processed !== content, isThinking };
+}
+
 function MessageBubble({ msg }: { msg: ChatMessage }) {
   const isUser = msg.role === "user";
+  const { mainContent } = isUser ? { mainContent: msg.content } : stripThinking(msg.content);
   return (
     <div className={`${styles.bubble} ${isUser ? styles.bubbleUser : styles.bubbleAssistant}`}>
       <div className={styles.bubbleLabel}>{isUser ? "You" : "Analyst"}</div>
-      <div className={styles.bubbleText}>{msg.content}</div>
+      <div className={styles.bubbleText}>{mainContent}</div>
     </div>
   );
 }
@@ -117,12 +128,21 @@ export default function WhatIfPage() {
         ) : (
           <>
             {messages.map((m, i) => <MessageBubble key={i} msg={m} />)}
-            {isStreaming && streamText && (
-              <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
-                <div className={styles.bubbleLabel}>Analyst</div>
-                <div className={styles.bubbleText}>{streamText}</div>
-              </div>
-            )}
+            {isStreaming && streamText && (() => {
+              const { mainContent, isThinking } = stripThinking(streamText);
+              return (
+                <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
+                  <div className={styles.bubbleLabel}>Analyst</div>
+                  {isThinking && (
+                    <div className={styles.thinkingIndicator}>
+                      <Brain size={11} />
+                      Thinking…
+                    </div>
+                  )}
+                  {mainContent && <div className={styles.bubbleText}>{mainContent}</div>}
+                </div>
+              );
+            })()}
             {isStreaming && !streamText && (
               <div className={styles.thinking}>
                 <span className={styles.dot} />

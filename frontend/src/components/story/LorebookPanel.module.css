@@ -14,11 +14,18 @@
   flex-shrink: 0;
 }
 
+.panelTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
 .panelTitle {
   font-size: 1rem;
   font-weight: 600;
   color: var(--color-text);
-  margin: 0 0 0.2rem;
+  margin: 0;
 }
 
 .panelSubtitle {

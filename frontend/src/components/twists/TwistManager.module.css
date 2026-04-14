@@ -48,8 +48,8 @@
   border-bottom-color: var(--color-bg);
 }
 
-.tabBtnActiveNlp {
-  color: var(--color-nlp);
+.tabBtnActiveAi {
+  color: var(--color-ai);
   background: var(--color-bg);
   border-color: var(--color-border);
   border-bottom-color: var(--color-bg);

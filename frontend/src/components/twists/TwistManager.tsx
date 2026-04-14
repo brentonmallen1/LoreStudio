@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass, Pencil, Clock, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, Eye, RotateCcw, GitBranch, User, BookOpen, Compass, Brain, Pencil, AlertTriangle } from "lucide-react";
 import { api } from "../../api/client";
 import type { Twist, TwistType, TwistStatus, TwistClue, StructureNode } from "../../types";
 import TwistClueEditor from "./TwistClueEditor";
@@ -7,6 +7,7 @@ import TwistAnalysisPanel from "./TwistAnalysisPanel";
 import TwistImpactPanel from "./TwistImpactPanel";
 import ReaderKnowledgeTimeline from "./ReaderKnowledgeTimeline";
 import { SectionCard } from "../common";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./TwistManager.module.css";
 
 type Tab = "twists" | "reader-knowledge" | "dramatic-irony";
@@ -154,14 +155,14 @@ export default function TwistManager({ storyId }: Props) {
           Twists
         </button>
         <button
-          className={`${styles.tabBtn} ${tab === "reader-knowledge" ? styles.tabBtnActiveNlp : ""}`}
+          className={`${styles.tabBtn} ${tab === "reader-knowledge" ? styles.tabBtnActiveAi : ""}`}
           onClick={() => setTab("reader-knowledge")}
         >
-          <Clock size={13} />
+          <Brain size={13} />
           Reader Knowledge
         </button>
         <button
-          className={`${styles.tabBtn} ${tab === "dramatic-irony" ? styles.tabBtnActiveNlp : ""}`}
+          className={`${styles.tabBtn} ${tab === "dramatic-irony" ? styles.tabBtnActiveAi : ""}`}
           onClick={() => setTab("dramatic-irony")}
         >
           <AlertTriangle size={13} />
@@ -178,6 +179,7 @@ export default function TwistManager({ storyId }: Props) {
     <div className={styles.inner}>
       <div className={styles.header}>
         <h2 className={styles.title}>Twists & Misdirection</h2>
+        <AIFeatureInfoTrigger pageId="twists" size="sm" />
         <button onClick={() => setCreating(true)} className={styles.addBtn}>
           <Plus size={13} />
           New twist

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Minus, X, MessageSquare, Feather, Plus, ChevronLeft, User2 } from "lucide-react";
+import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
@@ -249,6 +250,7 @@ export default function AIPanel() {
         </div>
 
         <div className={styles.tabControls}>
+          <AIFeatureInfoTrigger pageId="ai-panel" size="sm" />
           <button
             className={styles.controlBtn}
             onClick={collapsePanel}

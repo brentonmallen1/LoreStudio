@@ -207,3 +207,23 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+
+.generateLink {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font: inherit;
+  font-size: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.generateLink:hover {
+  opacity: 0.8;
+}

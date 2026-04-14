@@ -1,0 +1,116 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-section-title);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--color-text-subtle);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Type picker grid */
+.typeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.typeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.typeBtn:hover {
+  border-color: var(--color-ai-border);
+  background: color-mix(in srgb, var(--color-ai) 5%, var(--color-surface));
+}
+
+.typeBtnActive {
+  border-color: var(--color-ai);
+  background: color-mix(in srgb, var(--color-ai) 10%, var(--color-surface));
+}
+
+.typeLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.typeBtnActive .typeLabel {
+  color: var(--color-ai);
+}
+
+.typeDesc {
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+  line-height: 1.4;
+}
+
+/* Footer buttons */
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.cancelBtn:hover {
+  background: var(--color-surface-2);
+}
+
+.generateBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+
+.generateBtn:hover:not(:disabled) {
+  background: var(--color-ai-hover);
+}
+
+.generateBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

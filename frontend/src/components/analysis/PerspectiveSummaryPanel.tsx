@@ -139,7 +139,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
             Cancel
           </button>
         ) : (
-          <button onClick={generate} disabled={!selectedId} className={styles.generateBtn}>
+          <button onClick={generate} disabled={!selectedId} className={styles.generateBtn} title="Use AI to summarize a story section or character arc from a specific narrative perspective">
             <Compass size={12} />
             Summarize
           </button>

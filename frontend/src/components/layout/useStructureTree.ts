@@ -7,6 +7,7 @@ import {
 } from "@headless-tree/core";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
+import { api } from "../../api/client";
 
 type ChildrenMap = Record<string, string[]>;
 type ItemMap = Record<string, StructureNode>;
@@ -89,7 +90,7 @@ export function useStructureTree(storyId: string) {
     },
     onPrimaryAction: (item: ItemInstance<StructureNode>) => {
       const node = itemMapRef.current[item.getId()];
-      if (node) setActiveNode(node);
+      if (node) api.getNode(node.id).then(setActiveNode);
     },
   });
 

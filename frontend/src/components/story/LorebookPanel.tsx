@@ -7,6 +7,7 @@ import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
 import BeatSheetSelector from "./BeatSheetSelector";
 import { SectionCard } from "../common";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./LorebookPanel.module.css";
 
 const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
@@ -217,7 +218,10 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
   return (
     <div className={styles.panel}>
       <div className={styles.panelHeader}>
-        <h2 className={styles.panelTitle}>Lorebook</h2>
+        <div className={styles.panelTitleRow}>
+          <h2 className={styles.panelTitle}>Lorebook</h2>
+          <AIFeatureInfoTrigger pageId="lorebook" />
+        </div>
         <p className={styles.panelSubtitle}>Reference and grounding for your story. Auto-saves as you type.</p>
       </div>
 

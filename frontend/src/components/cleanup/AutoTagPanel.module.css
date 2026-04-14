@@ -1,0 +1,366 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Toolbar row ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.scanBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-ai);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.scanBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
+}
+
+.scanBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.autoBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-ai);
+  color: white;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.autoBtn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.autoBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.countBadge {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+/* ── Spinner ── */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Scene navigator ── */
+.browser {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sceneNav {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.3rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: background var(--transition);
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.sceneTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
+  text-align: center;
+}
+
+.sceneCounter {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.aiBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ai);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.aiBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
+}
+
+.aiBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Proposal list header ── */
+.proposalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.proposalHint {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.selectAllBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  color: var(--color-ai);
+  padding: 0;
+}
+
+.selectAllBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Proposal cards ── */
+.proposals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.cardSelected {
+  border-color: var(--color-ai);
+  background: color-mix(in srgb, var(--color-ai) 5%, transparent);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cardSelected .checkbox {
+  color: var(--color-ai);
+}
+
+.quote {
+  flex: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  font-style: italic;
+  line-height: 1.4;
+  min-width: 0;
+}
+
+/* ── Confidence dots ── */
+.confidence {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.dotFilled {
+  background: var(--color-ai);
+}
+
+.excerpt {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-left: 1.2rem;
+}
+
+.speakerIcon {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.speakerFixed {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-ai);
+}
+
+.noSpeaker {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Speaker combo ── */
+.speakerCombo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.speakerInput {
+  width: 100%;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.speakerInput:focus {
+  outline: none;
+  border-color: var(--color-ai);
+}
+
+.speakerDropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.speakerOption {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text);
+}
+
+.speakerOption:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Apply row ── */
+.applyRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+}
+
+.applyBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  border: none;
+  background: var(--color-ai);
+  color: white;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.applyBtn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.applyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

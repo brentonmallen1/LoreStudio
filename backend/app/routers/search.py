@@ -45,10 +45,12 @@ async def search(
     results = []
     like = f"%{q}%"
 
-    # Fetch the user's story IDs once
-    story_ids = [s.id for s in db.query(Story.id).filter(Story.user_id == user.id).all()]
-    if not story_ids:
+    # Fetch the user's stories once and build a lookup map
+    user_stories = db.query(Story).filter(Story.user_id == user.id).all()
+    if not user_stories:
         return results
+    story_ids = [s.id for s in user_stories]
+    story_map = {s.id: s for s in user_stories}
 
     # Stories
     stories = (
@@ -87,7 +89,7 @@ async def search(
         .all()
     )
     for c in characters:
-        story = db.get(Story, c.story_id)
+        story = story_map.get(c.story_id)
         results.append({
             "type": "character",
             "id": c.id,
@@ -112,7 +114,7 @@ async def search(
         .all()
     )
     for n in nodes:
-        story = db.get(Story, n.story_id)
+        story = story_map.get(n.story_id)
         # Pick the best excerpt source
         excerpt_src = ""
         if q.lower() in (n.content or "").lower():
@@ -144,7 +146,7 @@ async def search(
         .all()
     )
     for s in settings:
-        story = db.get(Story, s.story_id)
+        story = story_map.get(s.story_id)
         results.append({
             "type": "setting",
             "id": s.id,
@@ -165,7 +167,7 @@ async def search(
         .all()
     )
     for t in threads:
-        story = db.get(Story, t.story_id)
+        story = story_map.get(t.story_id)
         results.append({
             "type": "thread",
             "id": t.id,

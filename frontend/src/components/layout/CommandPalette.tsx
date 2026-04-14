@@ -37,14 +37,6 @@ import {
 import { useStoryStore as _useStoryStoreForNav } from "../../stores/storyStore";
 import styles from "./CommandPalette.module.css";
 
-function findNode(nodes: import("../../types").StructureNode[], id: string): import("../../types").StructureNode | null {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-    const found = findNode(node.children ?? [], id);
-    if (found) return found;
-  }
-  return null;
-}
 
 const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
   story: BookOpen,
@@ -64,7 +56,7 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 
 export default function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
-  const { stories, characters, structure, setActiveNode, activeStory } = useStoryStore();
+  const { stories, characters, setActiveNode, activeStory } = useStoryStore();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
@@ -280,8 +272,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}/characters/${result.id}`);
         break;
       case "scene": {
-        const node = findNode(structure, result.id);
-        if (node) setActiveNode(node);
+        api.getNode(result.id).then(setActiveNode);
         navigate(`/stories/${result.story_id}`);
         break;
       }

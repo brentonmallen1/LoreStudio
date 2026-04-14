@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare, Snowflake } from "lucide-react";
+import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare, Snowflake, ScrollText } from "lucide-react";
+import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import { api } from "../api/client";
-import type { StoryHealth, BeatSheet, PlotThread, DialogueStats, DialogueInteraction } from "../types";
+import type { StoryHealth, PlotThread, DialogueStats, DialogueInteraction } from "../types";
 import { useStoryStore } from "../stores/storyStore";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import ActionToolbar from "../components/health/ActionToolbar";
 import ReportsView from "../components/health/ReportsView";
+import MaintenanceView from "../components/health/MaintenanceView";
 import styles from "./StoryHealthPage.module.css";
 
 function WordBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
@@ -24,6 +26,14 @@ function WordBar({ label, value, max, color }: { label: string; value: number; m
   );
 }
 
+function _formatAge(iso: string): string {
+  const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
+  const diffH = diffMs / (1000 * 60 * 60);
+  if (diffH < 1) { const mins = Math.round(diffMs / 60000); return mins <= 0 ? "just now" : `${mins}m ago`; }
+  if (diffH < 24) return `${Math.round(diffH)}h ago`;
+  return `${Math.round(diffH / 24)}d ago`;
+}
+
 function flattenNodes(nodes: import("../types").StructureNode[]): import("../types").StructureNode[] {
   const out: import("../types").StructureNode[] = [];
   function walk(n: import("../types").StructureNode) { out.push(n); n.children.forEach(walk); }
@@ -34,11 +44,13 @@ function flattenNodes(nodes: import("../types").StructureNode[]): import("../typ
 export default function StoryHealthPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { activeStory, structure, characters } = useStoryStore();
-  const [view, setView] = useState<"dashboard" | "reports">("dashboard");
+  const { activeStory, structure, characters, beatSheets } = useStoryStore();
+  const [view, setView] = useState<"dashboard" | "reports" | "maintenance">("dashboard");
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
-  const [beatSheet, setBeatSheet] = useState<BeatSheet | null>(null);
+  const beatSheet = activeStory?.beat_sheet_id
+    ? (beatSheets.find(s => s.id === activeStory.beat_sheet_id) ?? null)
+    : null;
   const [threads, setThreads] = useState<PlotThread[]>([]);
   const [dialogueStats, setDialogueStats] = useState<DialogueStats | null>(null);
   const [dialogueInteractions, setDialogueInteractions] = useState<DialogueInteraction[]>([]);
@@ -64,12 +76,6 @@ export default function StoryHealthPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  useEffect(() => {
-    if (!activeStory?.beat_sheet_id) { setBeatSheet(null); return; }
-    api.listBeatSheets()
-      .then(sheets => setBeatSheet(sheets.find(s => s.id === activeStory.beat_sheet_id) ?? null))
-      .catch(() => {});
-  }, [activeStory?.beat_sheet_id]);
 
   const handleAnalysisComplete = useCallback(() => {
     setAnalysisVersion((v) => v + 1);
@@ -98,6 +104,7 @@ export default function StoryHealthPage() {
       {/* Page header */}
       <div className={styles.header}>
         <h2 className={styles.title}>Story Health</h2>
+        <AIFeatureInfoTrigger pageId="story-health" size="md" />
         <div className={styles.viewToggle}>
           <button
             className={`${styles.viewTab} ${view === "dashboard" ? styles.viewTabActive : ""}`}
@@ -111,6 +118,12 @@ export default function StoryHealthPage() {
           >
             Reports
           </button>
+          <button
+            className={`${styles.viewTab} ${view === "maintenance" ? styles.viewTabActive : ""}`}
+            onClick={() => setView("maintenance")}
+          >
+            Maintenance
+          </button>
         </div>
         <button onClick={load} className={styles.refreshBtn} title="Refresh">
           <RefreshCw size={13} />
@@ -118,12 +131,14 @@ export default function StoryHealthPage() {
         </button>
       </div>
 
-      {/* Analysis action toolbar */}
-      {storyId && (
+      {/* Analysis action toolbar — dashboard and reports only */}
+      {storyId && view !== "maintenance" && (
         <ActionToolbar storyId={storyId} onAnalysisComplete={handleAnalysisComplete} onViewReports={() => setView("reports")} />
       )}
 
-      {view === "reports" ? (
+      {view === "maintenance" ? (
+        storyId ? <MaintenanceView storyId={storyId} /> : null
+      ) : view === "reports" ? (
         storyId ? <ReportsView storyId={storyId} key={analysisVersion} /> : null
       ) : (
         <div className={styles.grid}>
@@ -172,6 +187,37 @@ export default function StoryHealthPage() {
               </div>
             </div>
           </section>
+
+          {/* Scene Summaries */}
+          {health.scene_summaries && (
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <ScrollText size={14} className={styles.cardIcon} />
+                <h3 className={styles.cardTitle}>Scene Summaries</h3>
+              </div>
+              <p className={styles.bigStat}>{health.scene_summaries.fresh}/{health.scene_summaries.total}</p>
+              <p className={styles.bigStatSub}>scenes summarized</p>
+              <div className={styles.statusPills}>
+                <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}>
+                  <span className={styles.pillNum}>{health.scene_summaries.fresh}</span>
+                  <span className={styles.pillLabel}>Fresh</span>
+                </div>
+                <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent)" }}>
+                  <span className={styles.pillNum}>{health.scene_summaries.stale}</span>
+                  <span className={styles.pillLabel}>Stale</span>
+                </div>
+                <div className={styles.statusPill} style={{ background: "var(--color-surface-raised)" }}>
+                  <span className={styles.pillNum}>{health.scene_summaries.missing}</span>
+                  <span className={styles.pillLabel}>Missing</span>
+                </div>
+              </div>
+              {health.scene_summaries.last_updated && (
+                <p className={styles.emptyNote} style={{ marginTop: "0.5rem" }}>
+                  Last updated {_formatAge(health.scene_summaries.last_updated)}
+                </p>
+              )}
+            </section>
+          )}
 
           {/* Story Goals */}
           <section className={styles.card}>

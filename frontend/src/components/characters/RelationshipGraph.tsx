@@ -6,23 +6,36 @@ import {
   type SimulationNodeDatum, type SimulationLinkDatum,
 } from "d3-force";
 import { api } from "../../api/client";
-import type { Character, CharacterRelationship } from "../../types";
+import { useStoryStore } from "../../stores/storyStore";
+import type { CharacterRelationship } from "../../types";
 import styles from "./RelationshipGraph.module.css";
 
 // ── Node sizing by role ────────────────────────────────────────
 const ROLE_RADIUS: Record<string, number> = {
-  protagonist: 24,
-  antagonist:  20,
-  supporting:  16,
-  minor:       12,
+  protagonist:   24,
+  antagonist:    20,
+  deuteragonist: 18,
+  love_interest: 17,
+  confidant:     16,
+  foil:          16,
+  // legacy aliases
+  supporting:    16,
+  minor:         12,
+  tertiary:      12,
 };
-function nodeRadius(role: string): number { return ROLE_RADIUS[role] ?? 16; }
+function nodeRadius(role: string): number { return ROLE_RADIUS[role] ?? 14; }
 
 const ROLE_STROKE: Record<string, string> = {
-  protagonist: "var(--color-accent)",
-  antagonist:  "var(--color-danger)",
-  supporting:  "var(--color-text-muted)",
-  minor:       "var(--color-border)",
+  protagonist:   "var(--color-accent)",
+  antagonist:    "var(--color-danger)",
+  deuteragonist: "color-mix(in srgb, var(--color-accent) 55%, transparent)",
+  love_interest: "color-mix(in srgb, var(--color-danger) 50%, var(--color-accent))",
+  confidant:     "var(--color-text-muted)",
+  foil:          "var(--color-warning, #c9a227)",
+  // legacy aliases
+  supporting:    "var(--color-text-muted)",
+  minor:         "var(--color-border)",
+  tertiary:      "var(--color-border-subtle)",
 };
 function nodeStroke(role: string): string { return ROLE_STROKE[role] ?? "var(--color-border)"; }
 
@@ -73,8 +86,8 @@ export default function RelationshipGraph({ storyId }: Props) {
   const navigate = useNavigate();
   const wrapRef  = useRef<HTMLDivElement>(null);
   const svgRef   = useRef<SVGSVGElement>(null);
+  const { characters } = useStoryStore();
 
-  const [characters, setCharacters] = useState<Character[]>([]);
   const [rels, setRels]             = useState<CharacterRelationship[]>([]);
   const [loading, setLoading]       = useState(true);
   const [dims, setDims]             = useState({ w: 700, h: 480 });
@@ -110,10 +123,10 @@ export default function RelationshipGraph({ storyId }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  // Data fetch
+  // Characters come from store; only fetch relationships
   useEffect(() => {
-    Promise.all([api.listCharacters(storyId), api.listStoryRelationships(storyId)])
-      .then(([chars, relationships]) => { setCharacters(chars); setRels(relationships); })
+    api.listStoryRelationships(storyId)
+      .then((relationships) => setRels(relationships))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);

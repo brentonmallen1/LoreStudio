@@ -35,6 +35,7 @@ import EssentialQuestionsGuide from "../help/EssentialQuestionsGuide";
 import AutoTagDialoguePanel from "./AutoTagDialoguePanel";
 import AutoLinkEntitiesPanel from "./AutoLinkEntitiesPanel";
 import AssetPicker from "../media/AssetPicker";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 
 /**
  * Count words after stripping dialogue speaker tags (e.g., <Maya>).
@@ -102,10 +103,11 @@ import SelectionToolbar from "./SelectionToolbar";
 import EditorSearchBar from "./EditorSearchBar";
 import { SearchAndReplaceExtension } from "./SearchAndReplaceExtension";
 import { useLLMStream } from "../../hooks/useLLMStream";
+import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters, setCharacters } = useStoryStore();
+  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters, setCharacters, beatSheets } = useStoryStore();
   const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel, sceneSearchOpen, openSceneSearch, closeSceneSearch } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const [showGuideMenu, setShowGuideMenu] = useState(false);
@@ -155,15 +157,10 @@ export default function SceneEditor() {
   const [editLinkType, setEditLinkType] = useState("foreshadowing");
   const [editLinkNote, setEditLinkNote] = useState("");
 
-  // Beat sheet state (for beat assignment dropdown)
-  const [beatSheet, setBeatSheet] = useState<import("../../types").BeatSheet | null>(null);
-
-  useEffect(() => {
-    if (!activeStory?.beat_sheet_id) { setBeatSheet(null); return; }
-    api.listBeatSheets()
-      .then(sheets => setBeatSheet(sheets.find(s => s.id === activeStory.beat_sheet_id) ?? null))
-      .catch(() => {});
-  }, [activeStory?.beat_sheet_id]);
+  // Beat sheet — derived from store, no fetch needed
+  const beatSheet = activeStory?.beat_sheet_id
+    ? (beatSheets.find(s => s.id === activeStory.beat_sheet_id) ?? null)
+    : null;
 
   // Attached diagrams state
   const [attachedDiagrams, setAttachedDiagrams] = useState<DiagramSummary[]>([]);
@@ -313,7 +310,7 @@ export default function SceneEditor() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  });
+  }, []);
 
   // Subscribe to editor updates for live word count (seeded from activeNode.word_count)
   useEffect(() => {
@@ -365,26 +362,25 @@ export default function SceneEditor() {
     api.getSceneSettingsForNode(activeNode.id).then(setSceneSettings).catch(() => {});
   }, [activeNode?.id]);
 
+  // Load locations once — used for scene settings picker and @mention autocomplete
   useEffect(() => {
-    if (!activeStory) { setFlatLocations([]); return; }
-    api.listLocationsFlat(activeStory.id).then(setFlatLocations).catch(() => {});
-  }, [activeStory?.id]);
-
-  // Load characters and settings for @mention autocomplete
-  useEffect(() => {
-    if (!activeStory) { setMentionAllItems([]); setMentionItems([]); setSettingsList([]); return; }
-    Promise.all([
-      api.listCharacters(activeStory.id),
-      api.listLocationsFlat(activeStory.id),
-    ]).then(([chars, settings_]) => {
+    if (!activeStory) {
+      setFlatLocations([]);
+      setMentionAllItems([]);
+      setMentionItems([]);
+      setSettingsList([]);
+      return;
+    }
+    api.listLocationsFlat(activeStory.id).then((locations) => {
+      setFlatLocations(locations);
+      setSettingsList(locations);
+      // Characters come from store — no second API call needed
       const items: MentionItem[] = [
-        ...chars.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
-        ...settings_.map((s) => ({ type: "setting" as const, name: s.name })),
+        ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
+        ...locations.map((s) => ({ type: "setting" as const, name: s.name })),
       ];
       setMentionAllItems(items);
       setMentionItems(items);
-      setSettingsList(settings_);
-      // Force decoration rebuild after items are loaded
       if (editor?.view) {
         editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
       }
@@ -721,7 +717,7 @@ export default function SceneEditor() {
       el.removeEventListener("mouseover", handleMouseOver);
       el.removeEventListener("mouseout", handleMouseOut);
     };
-  }, [activeNode]); // Re-run when activeNode loads so scrollAreaRef is available
+  }, [activeNode?.id]); // Re-run when activeNode changes so scrollAreaRef is available
 
   function scheduleOverviewSave(patch: { synopsis?: string; metadata_?: { purpose?: string } }) {
     if (overviewSaveRef.current) clearTimeout(overviewSaveRef.current);
@@ -1229,6 +1225,7 @@ export default function SceneEditor() {
           </button>
           <div className={styles.sprintTimerWrap}><SprintTimer currentWordCount={wordCount} /></div>
           <FontPicker />
+          <AIFeatureInfoTrigger pageId="scene-editor" size="sm" />
         </div>
       </div>
 
@@ -1450,6 +1447,14 @@ export default function SceneEditor() {
                 )}
                 {activeNode?.summary_stale && contentSummary && (
                   <span className={styles.staleBadge}>Stale</span>
+                )}
+                {(contentSummary || summaryStreamText) && activeNode?.summary_updated_at && (
+                  <span
+                    className={styles.summaryTimestamp}
+                    title={formatDate(activeNode.summary_updated_at)}
+                  >
+                    {formatRelative(activeNode.summary_updated_at)}
+                  </span>
                 )}
               </label>
               <button

@@ -524,6 +524,46 @@
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
 
+/* ── Write tab row (tab button + tree panel toggle) ── */
+.writeTabRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.writeTabBtn {
+  flex: 1;
+  min-width: 0;
+}
+
+.treeToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.treeToggleBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.treeToggleBtnActive {
+  color: var(--color-accent);
+}
+
+.treeToggleBtnActive:hover {
+  color: var(--color-accent);
+}
+
 /* ── Collapse toggle ── */
 .collapseToggle {
   display: flex;

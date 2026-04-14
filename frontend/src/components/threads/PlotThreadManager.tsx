@@ -7,6 +7,7 @@ import MICEGuide from "../help/MICEGuide";
 import TryFailCycleEditor from "./TryFailCycleEditor";
 import ThreadAnalysisPanel from "./ThreadAnalysisPanel";
 import { SectionCard } from "../common";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./PlotThreadManager.module.css";
 
 interface Props {
@@ -161,6 +162,7 @@ export default function PlotThreadManager({ storyId }: Props) {
         <h2 className={styles.title}>Plot Threads</h2>
         <div className={styles.headerRight}>
           {viewToggle}
+          <AIFeatureInfoTrigger pageId="plot-threads" size="sm" />
           <button onClick={() => setShowMICEGuide(true)} className={styles.guideBtn} title="Learn about the MICE Quotient framework">
             <BookOpen size={13} />
             MICE Guide

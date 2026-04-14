@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronRight, ListTree, Settings2 } from "lucide-react";
 import { api } from "../../api/client";
-import type { BeatSheet } from "../../types";
+import { useStoryStore } from "../../stores/storyStore";
 import BeatSheetManagerDialog from "./BeatSheetManagerDialog";
 import styles from "./BeatSheetSelector.module.css";
 
@@ -12,17 +12,13 @@ interface Props {
 }
 
 export default function BeatSheetSelector({ value, onChange, onInject }: Props) {
-  const [sheets, setSheets] = useState<BeatSheet[]>([]);
+  const { beatSheets: sheets, setBeatSheets } = useStoryStore();
   const [expanded, setExpanded] = useState(false);
   const [showManager, setShowManager] = useState(false);
 
   function loadSheets() {
-    api.listBeatSheets().then(setSheets).catch(() => {});
+    api.listBeatSheets().then(setBeatSheets).catch(() => {});
   }
-
-  useEffect(() => {
-    loadSheets();
-  }, []);
 
   const active = sheets.find(s => s.id === value) ?? null;
 

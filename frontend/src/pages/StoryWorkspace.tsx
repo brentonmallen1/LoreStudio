@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, Routes, Route } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -20,9 +20,8 @@ const PanelInterviewPanel = lazy(() => import("../components/panels/PanelIntervi
 const PlotThreadManager  = lazy(() => import("../components/threads/PlotThreadManager"));
 const TwistManager       = lazy(() => import("../components/twists/TwistManager"));
 const OutlineManager     = lazy(() => import("../components/outline/OutlineManager"));
-const CorkboardView      = lazy(() => import("../components/story/CorkboardView"));
-const TimelineView       = lazy(() => import("../components/story/TimelineView"));
-const SceneLinkGraph     = lazy(() => import("../components/story/SceneLinkGraph"));
+const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
+const StoryboardView      = lazy(() => import("../components/story/StoryboardView"));
 const ManuscriptView     = lazy(() => import("../components/manuscript/ManuscriptView"));
 const MediaPage          = lazy(() => import("./MediaPage"));
 const StoryHealthPage    = lazy(() => import("./StoryHealthPage"));
@@ -37,7 +36,9 @@ const LocationSheet      = lazy(() => import("./LocationSheet"));
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { setActiveStory, setStructure, setCharacters, setActiveTemplate, structure } = useStoryStore();
+  const { setActiveStory, setStructure, setCharacters, setActiveTemplate, setBeatSheets, structure } = useStoryStore();
+  const location = useLocation();
+  const onWriteTab = location.pathname.endsWith("/write");
   const { viewState, viewMode, treeDetached, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
   const { setActiveNode } = useStoryStore();
   const [loading, setLoading] = useState(true);
@@ -53,11 +54,13 @@ export default function StoryWorkspacePage() {
       api.getStructure(storyId),
       api.listCharacters(storyId),
       api.listStructureTemplates(),
+      api.listBeatSheets(),
     ])
-      .then(([story, structure, characters, templates]) => {
+      .then(([story, structure, characters, templates, beatSheets]) => {
         setActiveStory(story);
         setStructure(structure);
         setCharacters(characters);
+        setBeatSheets(beatSheets);
         const tmpl = templates.find((t) => t.id === story.structure_template_id) ?? null;
         setActiveTemplate(tmpl);
       })
@@ -111,7 +114,7 @@ export default function StoryWorkspacePage() {
       )}
 
       {viewState === "normal" && <Sidebar />}
-      {viewState === "normal" && treeDetached && <StructureTreePanel />}
+      {viewState === "normal" && treeDetached && onWriteTab && <StructureTreePanel />}
       {isFocused && sidebarRevealed && (
         <>
           <Sidebar
@@ -119,7 +122,7 @@ export default function StoryWorkspacePage() {
             onMouseLeave={startSidebarHide}
             onMouseEnter={cancelSidebarHide}
           />
-          {treeDetached && (
+          {treeDetached && onWriteTab && (
             <StructureTreePanel
               onMouseLeave={startSidebarHide}
               onMouseEnter={cancelSidebarHide}
@@ -152,9 +155,8 @@ export default function StoryWorkspacePage() {
           <Route path="/" element={<StoryOverviewPage />} />
           <Route path="/overview" element={<StoryOverviewPage />} />
           <Route path="/write" element={
-            viewMode === "corkboard" ? <CorkboardView /> :
-            viewMode === "timeline" ? <TimelineView /> :
-            viewMode === "graph" ? <SceneLinkGraph /> :
+            viewMode === "storyboard" ? <StoryboardView /> :
+            viewMode === "summary" ? <SummaryOverviewView /> :
             viewMode === "manuscript" ? (
               <ManuscriptView
                 storyId={storyId!}

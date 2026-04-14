@@ -1,25 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
-  ChevronRight,
-  ChevronDown,
-  Plus,
   Users,
   SquareLibrary,
   Scroll,
   MessageSquareMore,
   GitBranch,
-  LayoutGrid,
-  List,
   Clock,
   UserCircle2,
-  Flag,
-  BookMarked,
-  Clapperboard,
-  Layers,
-  Zap,
-  Puzzle,
-  Milestone,
   Images,
   Activity,
   Home,
@@ -39,149 +27,12 @@ import {
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { useHealthStore } from "../../stores/healthStore";
-
-// Map segment types to icons for visual distinction
-const SEGMENT_ICONS: Record<string, LucideIcon> = {
-  act: Flag,
-  chapter: BookMarked,
-  scene: Clapperboard,
-  section: Layers,
-  beat: Zap,
-  part: Puzzle,
-  stage: Milestone,
-};
-
-function getSegmentIcon(levelType: string): LucideIcon {
-  return SEGMENT_ICONS[levelType.toLowerCase()] ?? Layers;
-}
-
-function segmentColor(levelType: string): string {
-  const key = levelType.toLowerCase();
-  const known = ["act", "chapter", "scene", "section", "beat", "part", "stage"];
-  return known.includes(key) ? `var(--segment-${key})` : "var(--color-text-subtle)";
-}
-import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useLLMStore } from "../../stores/llmStore";
 import { TabActivityIndicator } from "./TabActivityIndicator";
-import type { StructureNode } from "../../types";
 import AIActivityIndicator from "./AIActivityIndicator";
 import styles from "./Sidebar.module.css";
-
-function NodeItem({ node, depth = 0, storyId }: { node: StructureNode; depth?: number; storyId?: string }) {
-  const [expanded, setExpanded] = useState(true);
-  const [addingChild, setAddingChild] = useState(false);
-  const [childTitle, setChildTitle] = useState("");
-  const { activeNode, setActiveNode, activeTemplate, structure, setStructure } = useStoryStore();
-  const nodeNavigate = useNavigate();
-  const nodeLocation = useLocation();
-  const hasChildren = node.children && node.children.length > 0;
-  const isActive = activeNode?.id === node.id;
-
-  const childLevel = depth + 1;
-  const childLevelDef = activeTemplate?.levels[childLevel];
-  const canAddChild = !!childLevelDef && !!storyId;
-
-  async function addChild() {
-    if (!storyId || !childTitle.trim() || !childLevelDef) return;
-    const created = await api.createNode(storyId, {
-      title: childTitle.trim(),
-      parent_id: node.id,
-      level: childLevel,
-      level_type: childLevelDef.name.toLowerCase(),
-      position: node.children?.length ?? 0,
-    });
-    function insertChild(nodes: StructureNode[]): StructureNode[] {
-      return nodes.map((n) =>
-        n.id === node.id
-          ? { ...n, children: [...(n.children ?? []), { ...created, children: [] }] }
-          : { ...n, children: insertChild(n.children ?? []) }
-      );
-    }
-    setStructure(insertChild(structure));
-    if (!expanded) setExpanded(true);
-    setChildTitle("");
-    setAddingChild(false);
-  }
-
-  return (
-    <div>
-      <div
-        className={`${styles.nodeRowWrap} ${isActive ? styles.nodeRowWrapActive : ""}`}
-        style={{ paddingLeft: `${6 + depth * 14}px` }}
-      >
-        <button
-          onClick={() => {
-            setActiveNode(node);
-            if (!nodeLocation.pathname.endsWith("/write")) {
-              nodeNavigate(`/stories/${storyId}/write`);
-            }
-          }}
-          className={styles.nodeRow}
-        >
-          <span
-            className={styles.chevron}
-            onClick={hasChildren ? (e) => { e.stopPropagation(); setExpanded((x) => !x); } : undefined}
-            role={hasChildren ? "button" : undefined}
-          >
-            {hasChildren ? (
-              expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />
-            ) : null}
-          </span>
-          {(() => {
-            const Icon = getSegmentIcon(node.level_type);
-            return (
-              <Icon
-                size={12}
-                className={styles.nodeTypeIcon}
-                style={isActive ? undefined : { color: segmentColor(node.level_type) }}
-              />
-            );
-          })()}
-          <span className={styles.nodeLabel}>{node.title}</span>
-          {node.status !== "draft" && (
-            <span className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}>
-              {node.status === "final" ? "✓" : "~"}
-            </span>
-          )}
-        </button>
-        {canAddChild && (
-          <button
-            className={styles.nodeAddChildBtn}
-            onClick={(e) => { e.stopPropagation(); setAddingChild((s) => !s); setChildTitle(""); }}
-            title={`Add ${childLevelDef.name}`}
-          >
-            <Plus size={11} />
-          </button>
-        )}
-      </div>
-      {addingChild && (
-        <div style={{ paddingLeft: `${6 + (depth + 1) * 14}px` }} className={styles.childAddRow}>
-          <input
-            autoFocus
-            value={childTitle}
-            onChange={(e) => setChildTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addChild();
-              if (e.key === "Escape") setAddingChild(false);
-            }}
-            onBlur={() => { if (!childTitle.trim()) setAddingChild(false); }}
-            placeholder={`${childLevelDef!.name} title…`}
-            className={styles.addInput}
-          />
-        </div>
-      )}
-      {hasChildren && expanded && (
-        <div className={styles.children}>
-          {node.children.map((child) => (
-            <NodeItem key={child.id} node={child} depth={depth + 1} storyId={storyId} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -193,12 +44,9 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const navigate = useNavigate();
   const location = useLocation();
   const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
-  const { activeStory, structure, setStructure, characters, activeTemplate, activeNode } = useStoryStore();
+  const { activeStory, characters } = useStoryStore();
   const {
-    viewMode, setViewMode,
     sidebarCollapsed, setSidebarCollapsed,
-    treeHeight, setTreeHeight,
-    treeExpanded, setTreeExpanded,
     treeDetached, setTreeDetached,
   } = useUIStore();
   const { pendingCount, refreshCount } = useDiscoveryStore();
@@ -207,44 +55,6 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const markViewed = useLLMStore((s) => s.markViewed);
 
   const isCollapsed = collapsedProp ?? sidebarCollapsed;
-
-  const [addingLevel, setAddingLevel] = useState<number | null>(null);
-  const [newTitle, setNewTitle] = useState("");
-  const [showAddMenu, setShowAddMenu] = useState(false);
-  const addMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (addMenuRef.current && !addMenuRef.current.contains(e.target as Node)) {
-        setShowAddMenu(false);
-      }
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, []);
-
-  // Tree section vertical resize — uses pointer capture so the scrollable tabRail above
-  // cannot steal pointer events mid-drag
-  const resizeStartY = useRef(0);
-  const resizeStartHeight = useRef(treeHeight);
-
-  function handleTreeResizePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    resizeStartY.current = e.clientY;
-    resizeStartHeight.current = treeHeight;
-  }
-
-  function handleTreeResizePointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
-    const dy = e.clientY - resizeStartY.current;
-    // Handle is at top of tree: drag up (dy < 0) grows tree
-    setTreeHeight(Math.max(80, Math.min(500, resizeStartHeight.current - dy)));
-  }
-
-  function handleTreeResizePointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  }
 
   // Refresh discovery badge count when story changes
   useEffect(() => {
@@ -276,42 +86,6 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     if (path.includes("/write")) return "story";
     return "overview";
   })();
-
-  function insertNodeIntoTree(nodes: StructureNode[], parentId: string, newNode: StructureNode): StructureNode[] {
-    return nodes.map((n) =>
-      n.id === parentId
-        ? { ...n, children: [...(n.children ?? []), newNode] }
-        : { ...n, children: insertNodeIntoTree(n.children ?? [], parentId, newNode) }
-    );
-  }
-
-  async function addNode() {
-    if (!storyId || !newTitle.trim() || addingLevel === null) return;
-    const levelDef = activeTemplate?.levels[addingLevel];
-    if (!levelDef) return;
-
-    if (addingLevel === 0) {
-      const node = await api.createNode(storyId, {
-        title: newTitle.trim(),
-        level: 0,
-        level_type: levelDef.name.toLowerCase(),
-        position: structure.length,
-      });
-      setStructure([...structure, { ...node, children: [] }]);
-    } else {
-      if (!activeNode) return;
-      const node = await api.createNode(storyId, {
-        title: newTitle.trim(),
-        parent_id: activeNode.id,
-        level: addingLevel,
-        level_type: levelDef.name.toLowerCase(),
-        position: activeNode.children?.length ?? 0,
-      });
-      setStructure(insertNodeIntoTree(structure, activeNode.id, { ...node, children: [] }));
-    }
-    setNewTitle("");
-    setAddingLevel(null);
-  }
 
   const tabs: { id: string; icon: LucideIcon; label: string; path: string; badge?: number }[] = [
     { id: "overview",      icon: Home,              label: "Overview",         path: "" },
@@ -366,9 +140,9 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         </div>
       )}
 
-      {/* Vertical tab rail — natural height, no fixed size */}
+      {/* Vertical tab rail */}
       <nav className={styles.tabRail}>
-        {/* Expand button (replaces dashboard icon) when collapsed in normal mode; dashboard icon in overlay mode */}
+        {/* Expand button when collapsed in normal mode; dashboard icon in overlay mode */}
         {isCollapsed && (
           collapsedProp === undefined
             ? (
@@ -393,12 +167,57 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
 
         {tabs.map(({ id, icon: Icon, label, path, badge }) => {
           const activityStatus = getTabStatus(id);
+          const isWriteTab = id === "story";
+
+          if (isWriteTab) {
+            return (
+              <div key={id} className={styles.writeTabRow}>
+                <button
+                  onClick={() => {
+                    navigate(`/stories/${storyId}${path}`);
+                    markViewed(id);
+                  }}
+                  className={`${styles.railBtn} ${styles.writeTabBtn} ${tab === id ? styles.railBtnActive : ""}`}
+                  title={isCollapsed ? label : undefined}
+                >
+                  <Icon size={16} />
+                  {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
+                  {badge ? (
+                    <span style={{
+                      marginLeft: "auto",
+                      background: "var(--color-accent)",
+                      color: "white",
+                      borderRadius: "9px",
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      padding: "1px 5px",
+                      minWidth: "16px",
+                      textAlign: "center",
+                      lineHeight: "14px",
+                      flexShrink: 0,
+                    }}>{badge}</span>
+                  ) : (
+                    <TabActivityIndicator status={activityStatus} />
+                  )}
+                </button>
+                {!isCollapsed && (
+                  <button
+                    className={`${styles.treeToggleBtn} ${treeDetached ? styles.treeToggleBtnActive : ""}`}
+                    onClick={() => setTreeDetached(!treeDetached)}
+                    title={treeDetached ? "Close structure tree" : "Open structure tree"}
+                  >
+                    <PanelRightOpen size={13} />
+                  </button>
+                )}
+              </div>
+            );
+          }
+
           return (
             <button
               key={id}
               onClick={() => {
                 navigate(`/stories/${storyId}${path}`);
-                if (isCollapsed && id === "story" && !treeDetached) setTreeDetached(true);
                 markViewed(id);
               }}
               className={`${styles.railBtn} ${tab === id ? styles.railBtnActive : ""}`}
@@ -428,160 +247,9 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         })}
       </nav>
 
-      {/* Resize handle between nav tabs and tree section */}
-      {!isCollapsed && tab === "story" && treeExpanded && !treeDetached && (
-        <div
-          className={styles.railResizeHandle}
-          onPointerDown={handleTreeResizePointerDown}
-          onPointerMove={handleTreeResizePointerMove}
-          onPointerUp={handleTreeResizePointerUp}
-        />
-      )}
-
-      {/* Content tree — expanded only */}
+      {/* Content panels — expanded only */}
       {!isCollapsed && (
         <>
-          {/* Tree section header (story tab only — shows + add menu + detach + collapse buttons) */}
-          {tab === "story" && (
-            <div className={styles.treeHeader}>
-              <button
-                className={styles.treeHeaderBtn}
-                onClick={() => setTreeExpanded(!treeExpanded)}
-                title={treeExpanded ? "Collapse structure tree" : "Expand structure tree"}
-              >
-                {treeExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </button>
-              <span className={styles.treeHeaderLabel}>Structure</span>
-              <div className={styles.treeHeaderRight}>
-                {!treeDetached && treeExpanded && (
-                  <div className={styles.addMenuWrap} ref={addMenuRef}>
-                    <button
-                      className={`${styles.treeAddBtn} ${showAddMenu ? styles.treeAddBtnActive : ""}`}
-                      onClick={() => { setShowAddMenu((v) => !v); setAddingLevel(null); setNewTitle(""); }}
-                      title="Add structure node"
-                    >
-                      <Plus size={12} />
-                    </button>
-                    {showAddMenu && (
-                      <div className={styles.addMenu}>
-                        {activeTemplate?.levels.map((level, idx) => {
-                          const enabled = idx === 0 || (activeNode?.level === idx - 1);
-                          const hint = idx > 0 && !enabled
-                            ? `Select a ${activeTemplate.levels[idx - 1].name} first`
-                            : undefined;
-                          const Icon = getSegmentIcon(level.name.toLowerCase());
-                          return (
-                            <button
-                              key={level.name}
-                              className={`${styles.addMenuItem} ${!enabled ? styles.addMenuItemDisabled : ""}`}
-                              onClick={() => {
-                                if (!enabled) return;
-                                setAddingLevel(idx);
-                                setNewTitle("");
-                                setShowAddMenu(false);
-                              }}
-                              title={hint}
-                              disabled={!enabled}
-                            >
-                              <Icon size={11} style={{ color: segmentColor(level.name.toLowerCase()) }} />
-                              <span>Add {level.name}</span>
-                              {hint && <span className={styles.addMenuHint}>{hint}</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-                <button
-                  className={styles.treeHeaderBtn}
-                  onClick={() => setTreeDetached(!treeDetached)}
-                  title={treeDetached ? "Dock tree back to sidebar" : "Detach tree to side panel"}
-                >
-                  <PanelRightOpen size={12} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Tree content + resize handle — write tab, tree expanded, not detached */}
-          {tab === "story" && treeExpanded && !treeDetached && (
-            <>
-              <div className={styles.viewToggle}>
-                <button
-                  className={`${styles.viewBtn} ${viewMode === "tree" ? styles.viewActive : ""}`}
-                  onClick={() => setViewMode("tree")}
-                  title="Tree view"
-                >
-                  <List size={12} />
-                </button>
-                <button
-                  className={`${styles.viewBtn} ${viewMode === "corkboard" ? styles.viewActive : ""}`}
-                  onClick={() => setViewMode("corkboard")}
-                  title="Corkboard view"
-                >
-                  <LayoutGrid size={12} />
-                </button>
-                <button
-                  className={`${styles.viewBtn} ${viewMode === "timeline" ? styles.viewActive : ""}`}
-                  onClick={() => setViewMode("timeline")}
-                  title="Timeline view"
-                >
-                  <Clock size={12} />
-                </button>
-                <button
-                  className={`${styles.viewBtn} ${viewMode === "graph" ? styles.viewActive : ""}`}
-                  onClick={() => setViewMode("graph")}
-                  title="Scene link graph"
-                >
-                  <GitBranch size={12} />
-                </button>
-                <button
-                  className={`${styles.viewBtn} ${viewMode === "manuscript" ? styles.viewActive : ""}`}
-                  onClick={() => setViewMode("manuscript")}
-                  title="Manuscript view"
-                >
-                  <BookOpen size={12} />
-                </button>
-              </div>
-              <div className={styles.tree} style={{ height: treeHeight, flex: "none" }}>
-                {addingLevel !== null && (
-                  <div className={styles.addInlineRow}>
-                    <input
-                      autoFocus
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") addNode();
-                        if (e.key === "Escape") setAddingLevel(null);
-                      }}
-                      onBlur={() => { if (!newTitle.trim()) setAddingLevel(null); }}
-                      placeholder={
-                        addingLevel === 0
-                          ? `${activeTemplate?.levels[0]?.name ?? "Section"} title…`
-                          : `${activeTemplate?.levels[addingLevel]?.name ?? "Node"} title (under "${activeNode?.title}")…`
-                      }
-                      className={styles.addInput}
-                    />
-                  </div>
-                )}
-                {structure.length === 0 && addingLevel === null && (
-                  <p className={styles.emptyHint}>No sections yet</p>
-                )}
-                {structure.map((node) => (
-                  <NodeItem key={node.id} node={node} storyId={storyId} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Detached notice — story tab, tree in side panel */}
-          {tab === "story" && treeDetached && (
-            <div className={styles.tree}>
-              <p className={styles.emptyHint}>Structure tree is open in side panel</p>
-            </div>
-          )}
-
           {/* Characters list */}
           {tab === "characters" && (
             <div className={styles.tree}>
@@ -617,7 +285,6 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
           <AIActivityIndicator />
         </>
       )}
-
     </aside>
   );
 }

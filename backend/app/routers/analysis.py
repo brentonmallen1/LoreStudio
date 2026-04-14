@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional
+from pydantic import BaseModel
 
 from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.character import Character
+from ..models.character import Character, CharacterRelationship
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
@@ -28,6 +29,7 @@ from ..services.llm.prompts.analysis import (
     build_cliche_analysis_prompt,
     build_cliche_coach_system_prompt,
     build_discovery_questions_prompt,
+    build_character_dimensionality_prompt,
     TARGET_AUDIENCES,
 )
 from ..models.plot_thread import PlotThread
@@ -48,21 +50,32 @@ from ..schemas.ai_responses import (
     FirstPassAnalysisResponse,
     ClicheAnalysisResponse,
     DiscoveryQuestionsResponse,
+    CharacterDimensionalityResponse,
     StructuredResult,
 )
 from ..schemas.nlp_analysis import (
-    ProseNLPResponse, SceneNLPAnalysis, EntitySuggestionsResponse,
-    SceneEditorialAnalysis, EditorialConsistencyResponse,
+    ProseNLPResponse,
+    SceneNLPAnalysis,
+    EntitySuggestionsResponse,
+    SceneEditorialAnalysis,
+    EditorialConsistencyResponse,
 )
 from ..schemas.chronicle import ActivityLogOut
-from ..services.nlp_analysis_service import analyze_scene, extract_unknown_entities, ALL_CHECKS, analyze_scene_editorial
+from ..services.nlp_analysis_service import (
+    analyze_scene,
+    extract_unknown_entities,
+    ALL_CHECKS,
+    analyze_scene_editorial,
+)
 from ..models.location import Location
 
 router = APIRouter()
 
 
 def _get_story(story_id: str, db: Session, user: User) -> Story:
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
+    story = (
+        db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
+    )
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
@@ -81,19 +94,31 @@ async def summarize_structure_section(
     if not node or node.story_id != story_id:
         raise HTTPException(status_code=404, detail="Section not found")
 
-    # Gather this node and all children recursively
+    # Load all nodes in the section in one query, build child map in Python
+    all_section_nodes = (
+        db.query(StructureNode)
+        .filter(StructureNode.story_id == story_id)
+        .order_by(StructureNode.position)
+        .all()
+    )
+    child_map: dict[str | None, list[StructureNode]] = {}
+    for n in all_section_nodes:
+        child_map.setdefault(n.parent_id, []).append(n)
+
     def gather_content(n: StructureNode) -> list[str]:
         pieces = []
         if n.content and n.content.strip():
             pieces.append(f"[{n.title}]\n{n.content}")
-        for child in sorted(n.children, key=lambda c: c.position):
+        for child in sorted(child_map.get(n.id, []), key=lambda c: c.position):
             pieces.extend(gather_content(child))
         return pieces
 
     content_pieces = gather_content(node)
     if not content_pieces:
+
         async def no_content():
             yield f"'{node.title}' has no written content yet."
+
         return StreamingResponse(no_content(), media_type="text/plain")
 
     content_text = "\n\n".join(content_pieces)
@@ -167,7 +192,11 @@ async def summarize_character_arc(
         if pending:
             milestones_text += f"\nRemaining milestones: {', '.join(pending)}"
 
-    scenes_text = "\n\n".join(relevant_scenes) if relevant_scenes else "No scenes mentioning this character yet."
+    scenes_text = (
+        "\n\n".join(relevant_scenes)
+        if relevant_scenes
+        else "No scenes mentioning this character yet."
+    )
 
     feature_prompt = build_character_arc_prompt(
         character=character,
@@ -176,7 +205,9 @@ async def summarize_character_arc(
         milestones_text=milestones_text,
         scenes_text=scenes_text,
     )
-    llm_messages = [{"role": "user", "content": f"Where is {character.name} in their arc?"}]
+    llm_messages = [
+        {"role": "user", "content": f"Where is {character.name} in their arc?"}
+    ]
 
     ctx = AICallContext(
         feature="character-arc",
@@ -237,7 +268,7 @@ async def analyze_economy(
     threads_summary = []
     for t in threads:
         threads_summary.append(
-            f"- \"{t.name}\" [{t.mice_type or 'untyped'}] — status: {t.status}, "
+            f'- "{t.name}" [{t.mice_type or "untyped"}] — status: {t.status}, '
             f"appears in {len(t.appearances)} scene(s), "
             f"{len(t.try_fail_cycles or [])} try/fail cycle(s)"
         )
@@ -252,8 +283,12 @@ async def analyze_economy(
     for leaf in leaves:
         thread_names = scene_thread_map.get(leaf.id, [])
         scenes_info.append(
-            f"- \"{leaf.title or 'Untitled'}\" ({leaf.word_count} words, {leaf.status})"
-            + (f" — serves: {', '.join(thread_names)}" if thread_names else " — NO THREAD")
+            f'- "{leaf.title or "Untitled"}" ({leaf.word_count} words, {leaf.status})'
+            + (
+                f" — serves: {', '.join(thread_names)}"
+                if thread_names
+                else " — NO THREAD"
+            )
         )
 
     # Word count context
@@ -338,13 +373,17 @@ async def recap_last_session(
             summary = n.content_summary.strip() if n.content_summary else ""
             synopsis = n.synopsis.strip() if n.synopsis else ""
             description = summary or synopsis or "(no summary)"
-            lines.append(f'- "{n.title}" ({n.word_count} words, {n.status}): {description}')
+            lines.append(
+                f'- "{n.title}" ({n.word_count} words, {n.status}): {description}'
+            )
         scenes_text = "\n".join(lines)
 
     # ── Recent activity logs ──
     recent_logs = (
         db.query(ActivityLog)
-        .filter(ActivityLog.story_id == story_id, ActivityLog.user_id == current_user.id)
+        .filter(
+            ActivityLog.story_id == story_id, ActivityLog.user_id == current_user.id
+        )
         .order_by(ActivityLog.created_at.desc())
         .limit(10)
         .all()
@@ -374,27 +413,36 @@ async def recap_last_session(
         for iv in recent_interviews:
             char_name = char_name_map.get(iv.character_id, "unknown character")
             msg_count = len(iv.messages or [])
-            notes_snippet = iv.interview_notes[:200].strip() if iv.interview_notes else ""
+            notes_snippet = (
+                iv.interview_notes[:200].strip() if iv.interview_notes else ""
+            )
             lines.append(
                 f'- Interview with {char_name} ("{iv.title or "untitled"}", {msg_count} messages)'
-                + (f': {notes_snippet}' if notes_snippet else '')
+                + (f": {notes_snippet}" if notes_snippet else "")
             )
         interviews_text = "\n".join(lines)
 
     # ── Nothing to recap ──
     if not recent_scenes and not recent_logs and not recent_interviews:
+
         async def empty_stream():
             yield "Nothing to recap yet — no scenes, activity, or interviews recorded for this story."
+
         return StreamingResponse(empty_stream(), media_type="text/plain")
 
     feature_prompt = build_session_recap_prompt(
         story_title=story.title,
-        story_overview=story.logline or story.premise or story.narrative_intent or "No description provided.",
+        story_overview=story.logline
+        or story.premise
+        or story.narrative_intent
+        or "No description provided.",
         scenes_text=scenes_text,
         activity_text=activity_text,
         interviews_text=interviews_text,
     )
-    llm_messages = [{"role": "user", "content": "Give me a recap of what I've been working on."}]
+    llm_messages = [
+        {"role": "user", "content": "Give me a recap of what I've been working on."}
+    ]
 
     ctx = AICallContext(
         feature="session-recap",
@@ -426,22 +474,30 @@ async def analyze_thread(
     thread = db.get(PlotThread, thread_id)
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
-    story = db.query(Story).filter(Story.id == thread.story_id, Story.user_id == current_user.id).first()
+    story = (
+        db.query(Story)
+        .filter(Story.id == thread.story_id, Story.user_id == current_user.id)
+        .first()
+    )
     if not story:
         raise HTTPException(status_code=404, detail="Thread not found")
 
     # Gather scene content for scenes tagged to this thread
     tagged_node_ids = {a.node_id for a in thread.appearances}
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
+    all_nodes = (
+        db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
+    )
 
     scenes = []
     for n in all_nodes:
         if n.id in tagged_node_ids and n.content:
-            scenes.append({
-                "id": n.id,
-                "title": n.title or "Untitled",
-                "content_excerpt": n.content,
-            })
+            scenes.append(
+                {
+                    "id": n.id,
+                    "title": n.title or "Untitled",
+                    "content_excerpt": n.content,
+                }
+            )
 
     story_context = story.logline or story.premise or story.narrative_intent or ""
 
@@ -461,7 +517,9 @@ async def analyze_thread(
 
     return await ai_gateway.generate_structured(
         response_model=ThreadAnalysisResponse,
-        messages=[{"role": "user", "content": f"Analyze the plot thread: {thread.name}"}],
+        messages=[
+            {"role": "user", "content": f"Analyze the plot thread: {thread.name}"}
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -479,11 +537,19 @@ async def analyze_character_arc_structured(
     character = db.get(Character, character_id)
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
-    story = db.query(Story).filter(Story.id == character.story_id, Story.user_id == current_user.id).first()
+    story = (
+        db.query(Story)
+        .filter(Story.id == character.story_id, Story.user_id == current_user.id)
+        .first()
+    )
     if not story:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == character.story_id).all()
+    all_nodes = (
+        db.query(StructureNode)
+        .filter(StructureNode.story_id == character.story_id)
+        .all()
+    )
 
     # Ordered leaf nodes
     children_map: dict[str, list] = {}
@@ -510,11 +576,13 @@ async def analyze_character_arc_structured(
     name_lower = character.name.lower()
     for n in leaves:
         if n.content and name_lower in n.content.lower():
-            scenes.append({
-                "id": n.id,
-                "title": n.title or "Untitled",
-                "content_excerpt": n.content,
-            })
+            scenes.append(
+                {
+                    "id": n.id,
+                    "title": n.title or "Untitled",
+                    "content_excerpt": n.content,
+                }
+            )
 
     story_context = story.logline or story.premise or story.narrative_intent or ""
 
@@ -543,7 +611,9 @@ async def analyze_character_arc_structured(
     )
 
 
-@router.post("/stories/{story_id}/analyze/essential-questions", response_model=StructuredResult)
+@router.post(
+    "/stories/{story_id}/analyze/essential-questions", response_model=StructuredResult
+)
 async def analyze_essential_questions(
     story_id: str,
     character_id: str | None = Body(None, embed=True),
@@ -570,7 +640,9 @@ async def analyze_essential_questions(
     if not character:
         character = db.query(Character).filter(Character.story_id == story_id).first()
     if not character:
-        raise HTTPException(status_code=422, detail="No characters found for this story")
+        raise HTTPException(
+            status_code=422, detail="No characters found for this story"
+        )
 
     # Gather scenes featuring this character
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
@@ -598,7 +670,12 @@ async def analyze_essential_questions(
 
     result = await ai_gateway.generate_structured(
         response_model=EssentialQuestionsResponse,
-        messages=[{"role": "user", "content": f"Assess the 6 essential questions for {character.name}."}],
+        messages=[
+            {
+                "role": "user",
+                "content": f"Assess the 6 essential questions for {character.name}.",
+            }
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -622,7 +699,9 @@ async def analyze_essential_questions(
     return result
 
 
-@router.post("/stories/{story_id}/analyze/show-dont-tell", response_model=StructuredResult)
+@router.post(
+    "/stories/{story_id}/analyze/show-dont-tell", response_model=StructuredResult
+)
 async def analyze_show_dont_tell(
     story_id: str,
     node_id: str | None = Body(None, embed=True),
@@ -642,7 +721,9 @@ async def analyze_show_dont_tell(
             raise HTTPException(status_code=404, detail="Scene not found")
         prose_text = (node.content or "").strip()
     else:
-        raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
+        raise HTTPException(
+            status_code=422, detail="Either node_id or text must be provided"
+        )
 
     if not prose_text:
         raise HTTPException(status_code=422, detail="No prose content to analyze")
@@ -664,7 +745,9 @@ async def analyze_show_dont_tell(
 
     return await ai_gateway.generate_structured(
         response_model=ShowDontTellAnalysisResponse,
-        messages=[{"role": "user", "content": "Analyze this prose for show don't tell."}],
+        messages=[
+            {"role": "user", "content": "Analyze this prose for show don't tell."}
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -672,7 +755,9 @@ async def analyze_show_dont_tell(
     )
 
 
-@router.post("/stories/{story_id}/analyze/audience-adherence", response_model=StructuredResult)
+@router.post(
+    "/stories/{story_id}/analyze/audience-adherence", response_model=StructuredResult
+)
 async def analyze_audience_adherence(
     story_id: str,
     node_id: str | None = Body(None, embed=True),
@@ -704,7 +789,9 @@ async def analyze_audience_adherence(
             raise HTTPException(status_code=404, detail="Scene not found")
         prose_text = (node.content or "").strip()
     else:
-        raise HTTPException(status_code=422, detail="Either node_id or text must be provided")
+        raise HTTPException(
+            status_code=422, detail="Either node_id or text must be provided"
+        )
 
     if not prose_text:
         raise HTTPException(status_code=422, detail="No prose content to analyze")
@@ -725,7 +812,9 @@ async def analyze_audience_adherence(
 
     return await ai_gateway.generate_structured(
         response_model=AudienceAdherenceResponse,
-        messages=[{"role": "user", "content": "Analyze this prose for target audience fit."}],
+        messages=[
+            {"role": "user", "content": "Analyze this prose for target audience fit."}
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -734,6 +823,7 @@ async def analyze_audience_adherence(
 
 
 # ── NLP Prose Analysis (spaCy — no LLM) ──────────────────────────────────────
+
 
 @router.post("/stories/{story_id}/analyze/prose-nlp", response_model=ProseNLPResponse)
 def analyze_prose_nlp(
@@ -771,11 +861,13 @@ def analyze_prose_nlp(
         if not node.content or not node.content.strip():
             continue
         analysis = analyze_scene(node.content, checks_set)
-        scenes.append(SceneNLPAnalysis(
-            scene_id=node.id,
-            scene_title=node.title or "",
-            **analysis,
-        ))
+        scenes.append(
+            SceneNLPAnalysis(
+                scene_id=node.id,
+                scene_title=node.title or "",
+                **analysis,
+            )
+        )
 
     result = ProseNLPResponse(
         scenes=scenes,
@@ -789,7 +881,8 @@ def analyze_prose_nlp(
             analysis_obj = getattr(s, check, None)
             if analysis_obj and hasattr(analysis_obj, "findings"):
                 warning_count += sum(
-                    1 for f in (analysis_obj.findings or [])
+                    1
+                    for f in (analysis_obj.findings or [])
                     if f.severity in ("warning", "issue")
                 )
 
@@ -811,7 +904,10 @@ def analyze_prose_nlp(
     return result
 
 
-@router.post("/stories/{story_id}/analyze/entity-suggestions", response_model=EntitySuggestionsResponse)
+@router.post(
+    "/stories/{story_id}/analyze/entity-suggestions",
+    response_model=EntitySuggestionsResponse,
+)
 def analyze_entity_suggestions(
     story_id: str,
     db: Session = Depends(get_db),
@@ -867,9 +963,14 @@ def analyze_entity_suggestions(
     db.commit()
     return result
 
+
 # ── Editorial Consistency (NLP — no LLM) ─────────────────────────────────────
 
-@router.post("/stories/{story_id}/analyze/editorial-consistency", response_model=EditorialConsistencyResponse)
+
+@router.post(
+    "/stories/{story_id}/analyze/editorial-consistency",
+    response_model=EditorialConsistencyResponse,
+)
 def analyze_editorial_consistency(
     story_id: str,
     node_ids: list[str] | None = Body(None, embed=True),
@@ -902,20 +1003,18 @@ def analyze_editorial_consistency(
         if not node.content or not node.content.strip():
             continue
         analysis = analyze_scene_editorial(node.content)
-        scenes.append(SceneEditorialAnalysis(
-            scene_id=node.id,
-            scene_title=node.title or "",
-            **analysis,
-        ))
+        scenes.append(
+            SceneEditorialAnalysis(
+                scene_id=node.id,
+                scene_title=node.title or "",
+                **analysis,
+            )
+        )
 
     total_tense = sum(
-        (s.tense_consistency.shift_count if s.tense_consistency else 0)
-        for s in scenes
+        (s.tense_consistency.shift_count if s.tense_consistency else 0) for s in scenes
     )
-    total_pov = sum(
-        len(s.pov_drift.findings) if s.pov_drift else 0
-        for s in scenes
-    )
+    total_pov = sum(len(s.pov_drift.findings) if s.pov_drift else 0 for s in scenes)
 
     result = EditorialConsistencyResponse(
         scenes=scenes,
@@ -944,6 +1043,7 @@ def analyze_editorial_consistency(
 
 
 # ── AI Story Analyses ─────────────────────────────────────────────────────────
+
 
 @router.post("/stories/{story_id}/analyze/pacing", response_model=StructuredResult)
 async def analyze_pacing(
@@ -1016,7 +1116,9 @@ async def analyze_pacing(
         user=current_user,
     )
 
-    issue_count = len(result.data.get("slow_spots", [])) if result.success and result.data else 0
+    issue_count = (
+        len(result.data.get("slow_spots", [])) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1078,7 +1180,7 @@ async def analyze_continuity(
         if leaf.content and leaf.content.strip():
             excerpt = leaf.content[:600]
             scenes_with_content.append(
-                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 600 else ""}'
+                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 600 else ''}"
             )
 
     feature_prompt = build_continuity_check_prompt(
@@ -1097,14 +1199,18 @@ async def analyze_continuity(
 
     result = await ai_gateway.generate_structured(
         response_model=ContinuityCheckResponse,
-        messages=[{"role": "user", "content": "Check this story for continuity issues."}],
+        messages=[
+            {"role": "user", "content": "Check this story for continuity issues."}
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
     )
 
-    issue_count = len(result.data.get("issues", [])) if result.success and result.data else 0
+    issue_count = (
+        len(result.data.get("issues", [])) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1158,7 +1264,7 @@ async def analyze_themes(
         if leaf.content and leaf.content.strip():
             excerpt = leaf.content[:500]
             scenes_with_content.append(
-                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 500 else ""}'
+                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 500 else ''}"
             )
 
     feature_prompt = build_theme_tracker_prompt(
@@ -1177,14 +1283,18 @@ async def analyze_themes(
 
     result = await ai_gateway.generate_structured(
         response_model=ThemeTrackerResponse,
-        messages=[{"role": "user", "content": "Identify themes and motifs in this story."}],
+        messages=[
+            {"role": "user", "content": "Identify themes and motifs in this story."}
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
     )
 
-    theme_count = len(result.data.get("themes", [])) if result.success and result.data else 0
+    theme_count = (
+        len(result.data.get("themes", [])) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1235,17 +1345,19 @@ async def analyze_plot_holes(
 
     leaves = flatten_leaves(roots)
 
-    characters_summary = [f"- {c.name} ({c.role})" + (f": {c.motivation}" if c.motivation else "") for c in characters]
+    characters_summary = [
+        f"- {c.name} ({c.role})" + (f": {c.motivation}" if c.motivation else "")
+        for c in characters
+    ]
     threads_summary = [
-        f'- "{t.name}" [{t.mice_type or "untyped"}] status: {t.status}'
-        for t in threads
+        f'- "{t.name}" [{t.mice_type or "untyped"}] status: {t.status}' for t in threads
     ]
     scenes_with_content = []
     for leaf in leaves:
         if leaf.content and leaf.content.strip():
             excerpt = leaf.content[:500]
             scenes_with_content.append(
-                f'[{leaf.title or "Untitled"}]\n{excerpt}{"..." if len(leaf.content) > 500 else ""}'
+                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 500 else ''}"
             )
 
     feature_prompt = build_plot_hole_detection_prompt(
@@ -1272,7 +1384,9 @@ async def analyze_plot_holes(
         user=current_user,
     )
 
-    hole_count = len(result.data.get("holes", [])) if result.success and result.data else 0
+    hole_count = (
+        len(result.data.get("holes", [])) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1326,9 +1440,17 @@ async def analyze_first_pass(
 
     scenes_info = []
     for leaf in leaves:
-        synopsis = leaf.synopsis.strip() if leaf.synopsis else leaf.content_summary.strip() if leaf.content_summary else ""
+        synopsis = (
+            leaf.synopsis.strip()
+            if leaf.synopsis
+            else leaf.content_summary.strip()
+            if leaf.content_summary
+            else ""
+        )
         desc = f": {synopsis[:120]}" if synopsis else ""
-        scenes_info.append(f'- "{leaf.title or "Untitled"}" ({leaf.word_count or 0} words, {leaf.status or "draft"}){desc}')
+        scenes_info.append(
+            f'- "{leaf.title or "Untitled"}" ({leaf.word_count or 0} words, {leaf.status or "draft"}){desc}'
+        )
 
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     characters_summary = []
@@ -1346,7 +1468,11 @@ async def analyze_first_pass(
     story_goals = []
     if story.metadata_ and isinstance(story.metadata_, dict):
         goals_raw = story.metadata_.get("story_goals", [])
-        story_goals = [g.get("text", "") for g in goals_raw if isinstance(g, dict) and g.get("text")]
+        story_goals = [
+            g.get("text", "")
+            for g in goals_raw
+            if isinstance(g, dict) and g.get("text")
+        ]
 
     feature_prompt = build_first_pass_prompt(
         story_title=story.title,
@@ -1368,14 +1494,21 @@ async def analyze_first_pass(
 
     result = await ai_gateway.generate_structured(
         response_model=FirstPassAnalysisResponse,
-        messages=[{"role": "user", "content": "Perform a first-pass editorial review comparing this story against its stated intent."}],
+        messages=[
+            {
+                "role": "user",
+                "content": "Perform a first-pass editorial review comparing this story against its stated intent.",
+            }
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
     )
 
-    gap_count = len(result.data.get("gaps", [])) if result.success and result.data else 0
+    gap_count = (
+        len(result.data.get("gaps", [])) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1429,11 +1562,13 @@ async def analyze_cliches(
     for leaf in leaves:
         if leaf.content and leaf.content.strip():
             total_words += len(leaf.content.split())
-            scenes.append({
-                "id": leaf.id,
-                "title": leaf.title or "Untitled",
-                "content": leaf.content,
-            })
+            scenes.append(
+                {
+                    "id": leaf.id,
+                    "title": leaf.title or "Untitled",
+                    "content": leaf.content,
+                }
+            )
 
     if not scenes:
         raise HTTPException(status_code=422, detail="No scene content to analyze")
@@ -1455,14 +1590,21 @@ async def analyze_cliches(
 
     result = await ai_gateway.generate_structured(
         response_model=ClicheAnalysisResponse,
-        messages=[{"role": "user", "content": "Identify clichéd language and patterns in this story."}],
+        messages=[
+            {
+                "role": "user",
+                "content": "Identify clichéd language and patterns in this story.",
+            }
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,
     )
 
-    cliche_count = result.data.get("total_count", 0) if result.success and result.data else 0
+    cliche_count = (
+        result.data.get("total_count", 0) if result.success and result.data else 0
+    )
     log = ActivityLog(
         user_id=current_user.id,
         story_id=story_id,
@@ -1492,12 +1634,19 @@ async def cliche_coach_chat(
 ):
     """Stream a cliche coaching response for selected prose."""
     from ..schemas.llm_params import LLMParams
+
     if llm_params and not isinstance(llm_params, LLMParams):
         llm_params = LLMParams(**llm_params)
 
     story = _get_story(story_id, db, current_user)
-    node = db.get(StructureNode, node_id) if node_id not in {"__global__", "__story__"} else None
-    if node_id not in {"__global__", "__story__"} and (not node or node.story_id != story_id):
+    node = (
+        db.get(StructureNode, node_id)
+        if node_id not in {"__global__", "__story__"}
+        else None
+    )
+    if node_id not in {"__global__", "__story__"} and (
+        not node or node.story_id != story_id
+    ):
         raise HTTPException(status_code=404, detail="Scene not found")
 
     scene_title = node.title if node else "General"
@@ -1538,8 +1687,8 @@ async def cliche_coach_chat(
 @router.post("/stories/{story_id}/discovery-questions", response_model=StructuredResult)
 async def generate_discovery_questions(
     story_id: str,
-    focus_area: str = Body(...),        # "character" | "location" | "scene" | "story"
-    entity_id: str | None = Body(None), # character_id, location_id, or node_id
+    focus_area: str = Body(...),  # "character" | "location" | "scene" | "story"
+    entity_id: str | None = Body(None),  # character_id, location_id, or node_id
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -1547,7 +1696,10 @@ async def generate_discovery_questions(
     story = _get_story(story_id, db, current_user)
 
     if focus_area not in {"character", "location", "scene", "story"}:
-        raise HTTPException(status_code=422, detail="focus_area must be character, location, scene, or story")
+        raise HTTPException(
+            status_code=422,
+            detail="focus_area must be character, location, scene, or story",
+        )
 
     story_context = {
         "title": story.title,
@@ -1563,9 +1715,13 @@ async def generate_discovery_questions(
             if story.pov_character_id:
                 character = db.get(Character, story.pov_character_id)
             if not character:
-                character = db.query(Character).filter(Character.story_id == story_id).first()
+                character = (
+                    db.query(Character).filter(Character.story_id == story_id).first()
+                )
             if not character:
-                raise HTTPException(status_code=422, detail="No characters found for this story")
+                raise HTTPException(
+                    status_code=422, detail="No characters found for this story"
+                )
         else:
             character = db.get(Character, entity_id)
             if not character or character.story_id != story_id:
@@ -1587,7 +1743,9 @@ async def generate_discovery_questions(
         if not entity_id:
             location = db.query(Location).filter(Location.story_id == story_id).first()
             if not location:
-                raise HTTPException(status_code=422, detail="No locations found for this story")
+                raise HTTPException(
+                    status_code=422, detail="No locations found for this story"
+                )
         else:
             location = db.get(Location, entity_id)
             if not location or location.story_id != story_id:
@@ -1606,7 +1764,9 @@ async def generate_discovery_questions(
 
     elif focus_area == "scene":
         if not entity_id:
-            raise HTTPException(status_code=422, detail="entity_id required for scene focus")
+            raise HTTPException(
+                status_code=422, detail="entity_id required for scene focus"
+            )
         node = db.get(StructureNode, entity_id)
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
@@ -1652,7 +1812,12 @@ async def generate_discovery_questions(
 
     return await ai_gateway.generate_structured(
         response_model=DiscoveryQuestionsResponse,
-        messages=[{"role": "user", "content": f"Generate discovery questions for this {focus_area}."}],
+        messages=[
+            {
+                "role": "user",
+                "content": f"Generate discovery questions for this {focus_area}.",
+            }
+        ],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -1660,16 +1825,404 @@ async def generate_discovery_questions(
     )
 
 
+# ── Character Dimensionality ─────────────────────────────────────────────────
+
+
+def _gather_character_data(
+    character: Character, db: Session, all_nodes: list | None = None
+) -> dict:
+    """Build a character data dict suitable for the dimensionality prompt."""
+    # Relationships
+    rels = (
+        db.query(CharacterRelationship)
+        .filter(CharacterRelationship.character_id == character.id)
+        .all()
+    )
+    # Resolve related character names
+    rel_char_ids = [r.related_character_id for r in rels]
+    rel_chars = (
+        {
+            c.id: c.name
+            for c in db.query(Character).filter(Character.id.in_(rel_char_ids)).all()
+        }
+        if rel_char_ids
+        else {}
+    )
+    relationships = [
+        {
+            "other_name": rel_chars.get(r.related_character_id, "Unknown"),
+            "relationship_type": r.relationship_type,
+            "description": r.description or "",
+        }
+        for r in rels
+    ]
+
+    # Scene count
+    scene_count = 0
+    if all_nodes:
+        name_lower = character.name.lower()
+        scene_count = sum(
+            1 for n in all_nodes if n.content and name_lower in n.content.lower()
+        )
+
+    return {
+        "id": character.id,
+        "name": character.name,
+        "role": character.role or "",
+        "personality": character.personality or "",
+        "motivation": character.motivation or "",
+        "background": character.background or "",
+        "appearance": character.appearance or "",
+        "arc_notes": character.arc_notes or "",
+        "narrative_intent": character.narrative_intent or "",
+        "mission_statement": character.mission_statement or "",
+        "snowflake_summary": character.snowflake_summary or "",
+        "snowflake_synopsis": character.snowflake_synopsis or "",
+        "traits": character.traits or {},
+        "arc_milestones": character.arc_milestones or [],
+        "relationships": relationships,
+        "scene_count": scene_count,
+    }
+
+
+@router.post(
+    "/characters/{character_id}/assess-dimensionality", response_model=StructuredResult
+)
+async def assess_character_dimensionality(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Assess dimensionality of a single character — depth, contradictions, relationship complexity."""
+    character = db.get(Character, character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    story = (
+        db.query(Story)
+        .filter(Story.id == character.story_id, Story.user_id == current_user.id)
+        .first()
+    )
+    if not story:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story.id).all()
+    char_data = _gather_character_data(character, db, all_nodes)
+
+    feature_prompt = build_character_dimensionality_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent or story.intent
+        if hasattr(story, "intent")
+        else story.narrative_intent,
+        characters_data=[char_data],
+        single_character=True,
+    )
+
+    ctx = AICallContext(
+        feature="character-dimensionality",
+        user_id=current_user.id,
+        story_id=story.id,
+        character_id=character_id,
+        tags=["character", "dimensionality", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=CharacterDimensionalityResponse,
+        messages=[
+            {
+                "role": "user",
+                "content": f"Assess the dimensionality of {character.name}.",
+            }
+        ],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+
+@router.post(
+    "/stories/{story_id}/analyze/character-dimensionality",
+    response_model=StructuredResult,
+)
+async def analyze_all_character_dimensionality(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Assess dimensionality across all characters in the story for the Story Health view."""
+    story = _get_story(story_id, db, current_user)
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    if not characters:
+        raise HTTPException(status_code=400, detail="No characters found in this story")
+
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    # Summarized data per character — include relationship/milestone counts for efficiency
+    characters_data = []
+    for c in characters:
+        rels = (
+            db.query(CharacterRelationship)
+            .filter(CharacterRelationship.character_id == c.id)
+            .all()
+        )
+        name_lower = c.name.lower()
+        scene_count = sum(
+            1 for n in all_nodes if n.content and name_lower in n.content.lower()
+        )
+        characters_data.append(
+            {
+                "id": c.id,
+                "name": c.name,
+                "role": c.role or "",
+                "personality": (c.personality or "")[:200],
+                "motivation": (c.motivation or "")[:200],
+                "background": (c.background or "")[:200],
+                "arc_notes": (c.arc_notes or "")[:200],
+                "narrative_intent": (c.narrative_intent or "")[:150],
+                "mission_statement": c.mission_statement or "",
+                "traits": c.traits or {},
+                "relationship_count": len(rels),
+                "milestone_count": len(c.arc_milestones or []),
+                "scene_count": scene_count,
+            }
+        )
+
+    feature_prompt = build_character_dimensionality_prompt(
+        story_title=story.title,
+        story_intent=story.narrative_intent,
+        characters_data=characters_data,
+        single_character=False,
+    )
+
+    ctx = AICallContext(
+        feature="character-dimensionality",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["character", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=CharacterDimensionalityResponse,
+        messages=[
+            {
+                "role": "user",
+                "content": "Assess character dimensionality across the cast.",
+            }
+        ],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Character depth: {len(characters)} character(s) assessed",
+        metadata_={
+            "feature": "character-dimensionality",
+            "result": result.model_dump() if hasattr(result, "model_dump") else result,
+            "character_count": len(characters),
+        },
+    )
+    db.add(log)
+    db.commit()
+
+    return result
+
+
+# ── Batch Scene Summary Generation ───────────────────────────────────────────
+
+
+class BatchSummarizeRequest(BaseModel):
+    up_to_node_id: str | None = (
+        None  # Only summarize scenes up to this node (inclusive)
+    )
+    force_refresh: bool = False  # Re-summarize even scenes that are already fresh
+
+
+class BatchSummarizeResponse(BaseModel):
+    total_scenes: int
+    summarized_count: int
+    skipped_count: int
+    failed_count: int
+
+
+@router.post(
+    "/stories/{story_id}/summarize-batch", response_model=BatchSummarizeResponse
+)
+async def summarize_scenes_batch(
+    story_id: str,
+    body: BatchSummarizeRequest = Body(default=BatchSummarizeRequest()),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Generate AI summaries for all scenes with stale or missing summaries.
+
+    Skips scenes without prose content. Optionally restricted to scenes
+    up to a specific node (useful when preparing context for a character interview).
+    """
+    from ..services.llm.prompts.summaries import build_scene_summary_prompt
+    from ..models.activity_log import ActivityLog as _ActivityLog
+    from datetime import datetime, timezone
+
+    _get_story(story_id, db, current_user)
+
+    # Gather all leaf nodes (scenes) for the story
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+
+    # Build position-ordered leaf list
+    children_map: dict[str, list[StructureNode]] = {}
+    roots: list[StructureNode] = []
+    for n in all_nodes:
+        if n.parent_id:
+            children_map.setdefault(n.parent_id, []).append(n)
+        else:
+            roots.append(n)
+
+    def _flatten_leaves(nodes: list[StructureNode]) -> list[StructureNode]:
+        out: list[StructureNode] = []
+        for n in sorted(nodes, key=lambda x: x.position):
+            kids = children_map.get(n.id, [])
+            if not kids:
+                out.append(n)
+            else:
+                out.extend(_flatten_leaves(kids))
+        return out
+
+    leaves = _flatten_leaves(roots)
+
+    # Optionally restrict to scenes up to (and including) up_to_node_id
+    if body.up_to_node_id:
+        cutoff_idx = next(
+            (i for i, n in enumerate(leaves) if n.id == body.up_to_node_id), None
+        )
+        if cutoff_idx is not None:
+            leaves = leaves[: cutoff_idx + 1]
+
+    # Filter to scenes that need work
+    to_summarize = [
+        n
+        for n in leaves
+        if n.content
+        and n.content.strip()
+        and (body.force_refresh or not n.content_summary or n.summary_stale)
+    ]
+    total_scenes = len(leaves)
+    skipped = total_scenes - len(to_summarize)
+    summarized = 0
+    failed = 0
+
+    for node in to_summarize:
+        try:
+            feature_prompt = build_scene_summary_prompt(node.title, node.content)
+            llm_messages = [
+                {"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}
+            ]
+            ctx = AICallContext(
+                feature="scene-summary-batch",
+                user_id=current_user.id,
+                story_id=story_id,
+                node_id=node.id,
+                tags=["manuscript", "summarization", "batch"],
+            )
+            full_response: list[str] = []
+            async for token in ai_gateway.stream(
+                messages=llm_messages,
+                feature_prompt=feature_prompt,
+                context=ctx,
+                db=db,
+                user=current_user,
+            ):
+                full_response.append(token)
+
+            summary = "".join(full_response).strip()
+            # Strip any thinking blocks the model may have emitted
+            import re
+
+            summary = re.sub(
+                r"<\|channel>thought\n[\s\S]*?<channel\|>", "", summary
+            ).strip()
+
+            if summary:
+                node.content_summary = summary
+                node.summary_stale = False
+                node.summary_updated_at = datetime.now(timezone.utc)
+                db.commit()
+                # Invalidate stale character journey summaries for this node
+                try:
+                    from ..models.character_journey import CharacterJourneySummary
+
+                    affected = (
+                        db.query(CharacterJourneySummary)
+                        .filter(
+                            CharacterJourneySummary.source_node_ids.contains(node.id)
+                        )
+                        .all()
+                    )
+                    for j in affected:
+                        j.is_stale = True
+                    if affected:
+                        db.commit()
+                except Exception:
+                    pass
+                summarized += 1
+            else:
+                failed += 1
+        except Exception:
+            failed += 1
+
+    # Log the batch run
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Scene summaries generated: {summarized} summarized, {skipped} skipped, {failed} failed",
+        metadata_={
+            "feature": "scene-summary-batch",
+            "total_scenes": total_scenes,
+            "summarized_count": summarized,
+            "skipped_count": skipped,
+            "failed_count": failed,
+        },
+    )
+    db.add(log)
+    db.commit()
+
+    return BatchSummarizeResponse(
+        total_scenes=total_scenes,
+        summarized_count=summarized,
+        skipped_count=skipped,
+        failed_count=failed,
+    )
+
+
 # ── Analysis History Endpoints ────────────────────────────────────────────────
 
 HEALTH_FEATURES = {
-    "prose-analysis", "entity-suggestions", "economy-analysis", "essential-questions",
-    "editorial-consistency", "pacing-analysis", "continuity-check", "theme-tracker", "plot-holes",
-    "first-pass", "cliche-analysis",
+    "prose-analysis",
+    "entity-suggestions",
+    "economy-analysis",
+    "essential-questions",
+    "editorial-consistency",
+    "pacing-analysis",
+    "continuity-check",
+    "theme-tracker",
+    "plot-holes",
+    "first-pass",
+    "cliche-analysis",
+    "character-dimensionality",
+    "scene-summary-batch",
 }
 
 
-@router.get("/stories/{story_id}/analysis/latest", response_model=Optional[ActivityLogOut])
+@router.get(
+    "/stories/{story_id}/analysis/latest", response_model=Optional[ActivityLogOut]
+)
 def get_latest_analysis(
     story_id: str,
     feature: str = Query(..., description="Feature key, e.g. prose-analysis"),
@@ -1708,7 +2261,9 @@ def get_analysis_history(
     _get_story(story_id, db, current_user)
     feature_set = None
     if features:
-        feature_set = {f.strip() for f in features.split(",") if f.strip() in HEALTH_FEATURES}
+        feature_set = {
+            f.strip() for f in features.split(",") if f.strip() in HEALTH_FEATURES
+        }
 
     logs = (
         db.query(ActivityLog)

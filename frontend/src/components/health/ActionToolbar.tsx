@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2 } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2, Users, ScrollText, Square } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -10,18 +10,33 @@ interface AnalysisDef {
   description: string;
   type: "nlp" | "ai";
   Icon: React.ElementType;
-  run: (storyId: string) => Promise<unknown>;
+  run: (storyId: string, signal: AbortSignal) => Promise<unknown>;
   summarize: (log: ActivityLog) => string;
 }
 
 const ANALYSES: AnalysisDef[] = [
+  {
+    id: "scene-summary-batch",
+    label: "Scene Summaries",
+    description: "Generate AI summaries for all scenes · powers context-aware character interviews",
+    type: "ai",
+    Icon: ScrollText,
+    run: (id, signal) => api.summarizeScenesBatch(id, undefined, undefined, signal),
+    summarize: (log) => {
+      const s = log.metadata_?.summarized_count as number | undefined;
+      const k = log.metadata_?.skipped_count as number | undefined;
+      if (s == null) return log.description;
+      if (s === 0 && k != null && k > 0) return `${k} scene${k !== 1 ? "s" : ""} already fresh`;
+      return `${s} scene${s !== 1 ? "s" : ""} summarized`;
+    },
+  },
   {
     id: "prose-analysis",
     label: "Prose Check",
     description: "Passive voice · adverbs · said-bookisms · repeated words · sentence variety",
     type: "nlp",
     Icon: AlignLeft,
-    run: (id) => api.analyzeProseNLP(id),
+    run: (id, signal) => api.analyzeProseNLP(id, undefined, undefined, signal),
     summarize: (log) => {
       const w = log.metadata_?.warning_count as number | undefined;
       const s = log.metadata_?.scene_count as number | undefined;
@@ -35,7 +50,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Named characters & locations in prose not yet in your Lorebook",
     type: "nlp",
     Icon: Search,
-    run: (id) => api.analyzeEntitySuggestions(id),
+    run: (id, signal) => api.analyzeEntitySuggestions(id, signal),
     summarize: (log) => {
       const c = log.metadata_?.character_count as number | undefined;
       const l = log.metadata_?.location_count as number | undefined;
@@ -50,7 +65,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Thread balance · scene economy · MICE tightness · pacing for intended length",
     type: "ai",
     Icon: BarChart3,
-    run: (id) => api.analyzeEconomy(id),
+    run: (id, signal) => api.analyzeEconomy(id, signal),
     summarize: () => "Analysis run",
   },
   {
@@ -59,7 +74,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Are the 6 essential story questions answerable for your protagonist?",
     type: "ai",
     Icon: HelpCircle,
-    run: (id) => api.analyzeEssentialQuestions(id),
+    run: (id, signal) => api.analyzeEssentialQuestions(id, undefined, signal),
     summarize: (log) => {
       const name = log.metadata_?.character_name as string | undefined;
       return name ? `Analyzed for ${name}` : "Analysis run";
@@ -71,7 +86,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Tense consistency · POV drift — deterministic, no AI required",
     type: "nlp",
     Icon: FileCheck,
-    run: (id) => api.analyzeEditorialConsistency(id),
+    run: (id, signal) => api.analyzeEditorialConsistency(id, signal),
     summarize: (log) => {
       const t = log.metadata_?.tense_shift_count as number | undefined;
       const p = log.metadata_?.pov_flag_count as number | undefined;
@@ -87,7 +102,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Act balance · tension curve · slow spots · structural rhythm",
     type: "ai",
     Icon: Activity,
-    run: (id) => api.analyzePacing(id),
+    run: (id, signal) => api.analyzePacing(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.issue_count as number | undefined;
       return n != null ? (n === 0 ? "No pacing concerns" : `${n} slow spot${n !== 1 ? "s" : ""}`) : "Analysis run";
@@ -99,7 +114,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Flag inconsistencies in character knowledge, timeline, and details",
     type: "ai",
     Icon: GitMerge,
-    run: (id) => api.analyzeContinuity(id),
+    run: (id, signal) => api.analyzeContinuity(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.issue_count as number | undefined;
       return n != null ? (n === 0 ? "No issues found" : `${n} continuity issue${n !== 1 ? "s" : ""}`) : "Analysis run";
@@ -111,7 +126,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Identify recurring themes, motifs, and their development",
     type: "ai",
     Icon: Palette,
-    run: (id) => api.analyzeThemes(id),
+    run: (id, signal) => api.analyzeThemes(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.theme_count as number | undefined;
       return n != null ? `${n} theme${n !== 1 ? "s" : ""} identified` : "Analysis run";
@@ -123,7 +138,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Detect logical gaps, inconsistencies, and unanswered story questions",
     type: "ai",
     Icon: Skull,
-    run: (id) => api.analyzePlotHoles(id),
+    run: (id, signal) => api.analyzePlotHoles(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.hole_count as number | undefined;
       return n != null ? (n === 0 ? "No holes found" : `${n} plot hole${n !== 1 ? "s" : ""}`) : "Analysis run";
@@ -135,7 +150,7 @@ const ANALYSES: AnalysisDef[] = [
     description: "Compare written prose against stated intent, goals, and character arc milestones",
     type: "ai",
     Icon: ClipboardCheck,
-    run: (id) => api.analyzeFirstPass(id),
+    run: (id, signal) => api.analyzeFirstPass(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.gap_count as number | undefined;
       return n != null ? (n === 0 ? "Intent well realized" : `${n} intent gap${n !== 1 ? "s" : ""}`) : "Analysis run";
@@ -147,10 +162,22 @@ const ANALYSES: AnalysisDef[] = [
     description: "Overused phrases · character tropes · plot devices · tired descriptions",
     type: "ai",
     Icon: Repeat2,
-    run: (id) => api.analyzeCliches(id),
+    run: (id, signal) => api.analyzeCliches(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.cliche_count as number | undefined;
       return n != null ? (n === 0 ? "No clichés found" : `${n} cliché${n !== 1 ? "s" : ""} found`) : "Analysis run";
+    },
+  },
+  {
+    id: "character-dimensionality",
+    label: "Character Depth",
+    description: "Dimensionality · contradictions · relationship complexity · role appropriateness",
+    type: "ai",
+    Icon: Users,
+    run: (id, signal) => api.analyzeCharacterDimensionality(id, signal),
+    summarize: (log) => {
+      const n = log.metadata_?.character_count as number | undefined;
+      return n != null ? `${n} character${n !== 1 ? "s" : ""} assessed` : "Assessment run";
     },
   },
 ];
@@ -176,6 +203,7 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   const [running, setRunning] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchLatest = useCallback(() => {
     Promise.all(
@@ -189,27 +217,45 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
 
   useEffect(() => { fetchLatest(); }, [fetchLatest]);
 
-  const runAnalysis = useCallback(async (analysis: AnalysisDef) => {
+  const runAnalysis = useCallback(async (analysis: AnalysisDef, signal: AbortSignal) => {
     setRunning((prev) => new Set(prev).add(analysis.id));
     setErrors((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
     try {
-      await analysis.run(storyId);
-      onAnalysisComplete();
-      fetchLatest();
-    } catch {
-      setErrors((prev) => new Set(prev).add(analysis.id));
+      await analysis.run(storyId, signal);
+      if (!signal.aborted) {
+        onAnalysisComplete();
+        fetchLatest();
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return;
+      if (!signal.aborted) {
+        setErrors((prev) => new Set(prev).add(analysis.id));
+      }
     } finally {
       setRunning((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
     }
   }, [storyId, onAnalysisComplete, fetchLatest]);
 
+  const runSingle = useCallback((analysis: AnalysisDef) => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    runAnalysis(analysis, controller.signal);
+  }, [runAnalysis]);
+
   const runAll = useCallback(async () => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     for (const analysis of ANALYSES) {
-      if (!running.has(analysis.id)) {
-        await runAnalysis(analysis);
-      }
+      if (controller.signal.aborted) break;
+      await runAnalysis(analysis, controller.signal);
     }
-  }, [running, runAnalysis]);
+  }, [runAnalysis]);
+
+  const stopAll = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setRunning(new Set());
+  }, []);
 
   const anyRunning = running.size > 0;
 
@@ -241,9 +287,10 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
             <button
               key={analysis.id}
               className={`${styles.actionBtn} ${hasError ? styles.actionBtnError : ""}`}
-              onClick={() => runAnalysis(analysis)}
+              onClick={() => runSingle(analysis)}
               disabled={isRunning || anyRunning}
               style={{ "--btn-color": typeColor } as React.CSSProperties}
+              title={analysis.description}
             >
               <div className={styles.btnMain}>
                 <div className={styles.btnIcon}>
@@ -272,18 +319,25 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
           );
         })}
 
-        <button
-          className={styles.runAllBtn}
-          onClick={runAll}
-          disabled={anyRunning}
-          title="Run all analyses sequentially"
-        >
-          {anyRunning
-            ? <Loader2 size={13} className={styles.spinner} />
-            : <Play size={13} />
-          }
-          {anyRunning ? "Running…" : "Run All"}
-        </button>
+        {anyRunning ? (
+          <button
+            className={styles.stopBtn}
+            onClick={stopAll}
+            title="Stop running analyses"
+          >
+            <Square size={13} />
+            Stop
+          </button>
+        ) : (
+          <button
+            className={styles.runAllBtn}
+            onClick={runAll}
+            title="Run all analyses sequentially"
+          >
+            <Play size={13} />
+            Run All
+          </button>
+        )}
       </div>
     </div>
   );

@@ -15,7 +15,58 @@ interface Props {
   onSaved?: (character: Character) => void;
 }
 
-const ROLES = ["protagonist", "antagonist", "supporting", "minor"];
+interface ClassificationOption {
+  value: string;
+  label: string;
+  description: string;
+  sub?: string; // e.g. "Strengths: …" or "Weaknesses: …"
+}
+
+const ROLES: ClassificationOption[] = [
+  { value: "protagonist",   label: "Protagonist",   description: "Main character — the narrative follows their choices and growth." },
+  { value: "deuteragonist", label: "Deuteragonist", description: "Secondary lead — a close companion or ally whose path intertwines with the protagonist's.", sub: "e.g. Ron Weasley, Samwise Gamgee" },
+  { value: "antagonist",   label: "Antagonist",    description: "Opposes the protagonist — through villainy, rivalry, or conflicting values." },
+  { value: "love_interest", label: "Love Interest", description: "A character whose romantic or emotional connection to the protagonist adds stakes and complexity." },
+  { value: "confidant",    label: "Confidant",     description: "The character the protagonist trusts with their doubts and fears — they carry secrets." },
+  { value: "foil",         label: "Foil",          description: "Contrasts the protagonist's qualities to highlight them — the cautious to their bold." },
+  { value: "tertiary",     label: "Tertiary",      description: "Background character who populates the world — real, but not central to the main plot." },
+];
+
+const CHARACTER_TYPES: ClassificationOption[] = [
+  { value: "round",    label: "Round",    description: "Complex and multi-dimensional — contradictory, capable of surprising even themselves." },
+  { value: "flat",     label: "Flat",     description: "Defined by one or two clear traits — reliable and consistent, but not deeply layered." },
+  { value: "dynamic",  label: "Dynamic",  description: "Changes or grows throughout the story — the arc is built into who they are." },
+  { value: "static",   label: "Static",   description: "Fundamentally unchanged — a fixed point that can be an anchor or a limitation." },
+  { value: "stock",    label: "Stock",    description: "A recognizable type — the wise elder, the loyal friend — shaped by convention." },
+  { value: "symbolic", label: "Symbolic", description: "Represents something larger — an idea, a theme, a force — more than a realistic individual." },
+];
+
+const JUNGIAN_ARCHETYPES: ClassificationOption[] = [
+  { value: "lover",     label: "Lover",     description: "Guided by the heart — passionate, humane, and connected.", sub: "Strengths: humanism, passion · Weaknesses: naivety, irrationality" },
+  { value: "hero",      label: "Hero",      description: "Rises to meet challenges with courage and perseverance.", sub: "Strengths: courage, honor · Weaknesses: overconfidence, hubris" },
+  { value: "magician",  label: "Magician",  description: "Masters the underlying forces — knowledge as power.", sub: "Strengths: omniscience, discipline · Weaknesses: corruptibility, arrogance" },
+  { value: "outlaw",    label: "Outlaw",    description: "Defies convention — independent, skeptical, willing to break rules.", sub: "Strengths: independence, skepticism · Weaknesses: self-involvement, criminality" },
+  { value: "explorer",  label: "Explorer",  description: "Driven to discover — restless, curious, always seeking what's next.", sub: "Strengths: curiosity, self-improvement · Weaknesses: restlessness, never settled" },
+  { value: "sage",      label: "Sage",      description: "Guided by wisdom and long experience — insightful but cautious.", sub: "Strengths: wisdom, insight · Weaknesses: hesitant to act, overly cautious" },
+  { value: "innocent",  label: "Innocent",  description: "Morally pure — sincerely good, but vulnerable and naive.", sub: "Strengths: kindness, sincerity · Weaknesses: vulnerability, lack of skill" },
+  { value: "creator",   label: "Creator",   description: "A driven visionary — builds things, holds a strong conviction.", sub: "Strengths: creativity, willpower · Weaknesses: self-involved, single-minded" },
+  { value: "ruler",     label: "Ruler",     description: "Carries authority — natural command, status, and resources.", sub: "Strengths: power, status · Weaknesses: aloof, perceived as out of touch" },
+  { value: "caregiver", label: "Caregiver", description: "Lives in service to others — selfless, loyal, and reliable.", sub: "Strengths: selflessness, loyalty · Weaknesses: lacks ambition, may lack self-worth" },
+  { value: "everyman",  label: "Everyman",  description: "Grounded and relatable — no special powers, just ordinary humanity.", sub: "Strengths: relatable, grounded · Weaknesses: unprepared for the extraordinary" },
+  { value: "jester",    label: "Jester",    description: "Finds truth through humor — disarming, funny, and often perceptive.", sub: "Strengths: insight, disarming · Weaknesses: obnoxious, avoids real feeling" },
+];
+
+const NARRATIVE_ARCHETYPES: ClassificationOption[] = [
+  { value: "hero",               label: "Hero",               description: "Central figure on a transformative journey — the story follows their arc." },
+  { value: "mentor",             label: "Mentor",             description: "Wise guide who prepares the hero — with knowledge, challenge, or example." },
+  { value: "threshold_guardian", label: "Threshold Guardian", description: "Tests the hero before they can progress — ensures only the ready pass." },
+  { value: "herald",             label: "Herald",             description: "Announces that change is coming — their arrival sets the story in motion." },
+  { value: "shapeshifter",       label: "Shapeshifter",       description: "Uncertain loyalty — keeps the hero and reader guessing about their allegiance." },
+  { value: "shadow",             label: "Shadow",             description: "Dark mirror — represents what the hero fears becoming; the antagonist." },
+  { value: "trickster",          label: "Trickster",          description: "Disrupts through humor or chaos — often reveals uncomfortable truths." },
+  { value: "ally",               label: "Ally",               description: "Walks alongside the hero — loyal, capable, essential to the journey." },
+];
+
 const PRONOUN_PRESETS = ["he/him", "she/her", "they/them"];
 
 export default function CharacterFormDialog({ storyId, character, onClose, onSaved }: Props) {
@@ -26,7 +77,10 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
   const initialPronounSelect = PRONOUN_PRESETS.includes(initialPronouns) ? initialPronouns : (initialPronouns ? "custom" : "");
 
   const [name, setName] = useState(character?.name ?? "");
-  const [role, setRole] = useState(character?.role ?? "supporting");
+  const [role, setRole] = useState(character?.role ?? "deuteragonist");
+  const [characterType, setCharacterType] = useState(character?.character_type ?? "");
+  const [jungianArchetype, setJungianArchetype] = useState(character?.jungian_archetype ?? "");
+  const [narrativeArchetype, setNarrativeArchetype] = useState(character?.narrative_archetype ?? "");
   const [pronounSelect, setPronounSelect] = useState(initialPronounSelect);
   const [pronounCustom, setPronounCustom] = useState(initialPronounSelect === "custom" ? initialPronouns : "");
   const [missionStatement, setMissionStatement] = useState(character?.mission_statement ?? "");
@@ -73,6 +127,9 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     const data = {
       name: name.trim(),
       role,
+      character_type: characterType,
+      jungian_archetype: jungianArchetype,
+      narrative_archetype: narrativeArchetype,
       pronouns: effectivePronouns,
       mission_statement: missionStatement,
       personality,
@@ -242,11 +299,34 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                 className={styles.select}
               >
                 {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
+                  <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
               </select>
+              {(() => {
+                const selected = ROLES.find((r) => r.value === role);
+                return selected ? (
+                  <p className={styles.classificationHint}>{selected.description}{selected.sub ? <><br /><span className={styles.classificationSub}>{selected.sub}</span></> : null}</p>
+                ) : null;
+              })()}
+            </div>
+          </div>
+          <div className={styles.grid2}>
+            <div className={styles.field}>
+              <label className={styles.label}>Character Type</label>
+              <select
+                value={characterType}
+                onChange={(e) => setCharacterType(e.target.value)}
+                className={styles.select}
+              >
+                <option value="">Not specified</option>
+                {CHARACTER_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+              {characterType && (() => {
+                const selected = CHARACTER_TYPES.find((t) => t.value === characterType);
+                return selected ? <p className={styles.classificationHint}>{selected.description}</p> : null;
+              })()}
             </div>
           </div>
           <div className={styles.field}>
@@ -274,6 +354,51 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                   className={styles.input}
                 />
               )}
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── Archetypes ── */}
+        <SectionCard title="Archetypes">
+          <p className={styles.sectionHint}>Optional classifications that inform how the AI portrays this character in interviews and panels.</p>
+          <div className={styles.grid2}>
+            <div className={styles.field}>
+              <label className={styles.label}>Jungian Archetype</label>
+              <p className={styles.hint}>Core identity — from Carl Jung's 12 personality archetypes</p>
+              <select
+                value={jungianArchetype}
+                onChange={(e) => setJungianArchetype(e.target.value)}
+                className={styles.select}
+              >
+                <option value="">None</option>
+                {JUNGIAN_ARCHETYPES.map((a) => (
+                  <option key={a.value} value={a.value}>{a.label}</option>
+                ))}
+              </select>
+              {jungianArchetype && (() => {
+                const selected = JUNGIAN_ARCHETYPES.find((a) => a.value === jungianArchetype);
+                return selected ? (
+                  <p className={styles.classificationHint}>{selected.description}{selected.sub ? <><br /><span className={styles.classificationSub}>{selected.sub}</span></> : null}</p>
+                ) : null;
+              })()}
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>Narrative Archetype</label>
+              <p className={styles.hint}>Story function — from the Hero's Journey framework</p>
+              <select
+                value={narrativeArchetype}
+                onChange={(e) => setNarrativeArchetype(e.target.value)}
+                className={styles.select}
+              >
+                <option value="">None</option>
+                {NARRATIVE_ARCHETYPES.map((a) => (
+                  <option key={a.value} value={a.value}>{a.label}</option>
+                ))}
+              </select>
+              {narrativeArchetype && (() => {
+                const selected = NARRATIVE_ARCHETYPES.find((a) => a.value === narrativeArchetype);
+                return selected ? <p className={styles.classificationHint}>{selected.description}</p> : null;
+              })()}
             </div>
           </div>
         </SectionCard>

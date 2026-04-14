@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Compass, Plus, Trash2, Scan, X, ChevronDown, ChevronRight, Check } from "lucide-react";
+import { Compass, Brain, Plus, Trash2, X, ChevronDown, ChevronRight, Check } from "lucide-react";
 import { api } from "../../api/client";
 import type { ReaderKnowledgeEvent, KnowledgeType, StructureNode } from "../../types";
 import styles from "./ReaderKnowledgeTimeline.module.css";
@@ -190,7 +190,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={15} className={styles.headerIcon} />
+          <Brain size={15} className={styles.headerIcon} />
           <h3 className={styles.headerTitle}>
             {ironyOnly ? "Dramatic Irony" : "Reader Knowledge Timeline"}
           </h3>
@@ -198,9 +198,14 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
         </div>
         <div className={styles.headerRight}>
           {!ironyOnly && (
-            <button className={styles.scanBtn} onClick={handleScan} disabled={scanning}>
-              <Scan size={12} className={scanning ? styles.scanSpin : undefined} />
-              {scanning ? "Scanning…" : "Scan with AI"}
+            <button
+              className={styles.scanBtn}
+              onClick={handleScan}
+              disabled={scanning}
+              title="Analyze scene synopses to auto-detect truth reveals, misdirections, clues, and knowledge gaps"
+            >
+              <Compass size={12} className={scanning ? styles.scanSpin : undefined} />
+              {scanning ? "Detecting…" : "Auto-detect Events"}
             </button>
           )}
           {!ironyOnly && (

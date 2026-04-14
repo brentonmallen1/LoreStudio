@@ -31,23 +31,8 @@ def _already_linked(text: str, name: str, entity_type: str) -> bool:
         return bool(re.search(rf'\[\[{re.escape(name)}\]\]', text, re.IGNORECASE))
 
 
-def suggest_entity_links(
-    scene_content: str,
-    story_id: str,
-    db,  # SQLAlchemy Session
-) -> list[dict]:
-    """
-    Scan scene HTML for unlinked character and location name mentions.
-    Returns a list of proposal dicts.
-    """
-    from ..models.character import Character
-    from ..models.location import Location
-
-    plain = _html_to_text(scene_content)
-
-    characters = db.query(Character).filter(Character.story_id == story_id).all()
-    locations = db.query(Location).filter(Location.story_id == story_id).all()
-
+def _build_proposals(plain: str, characters: list, locations: list) -> list[dict]:
+    """Core proposal logic operating on pre-extracted plain text and entity lists."""
     proposals: list[dict] = []
 
     # Characters → @Name links
@@ -130,6 +115,31 @@ def suggest_entity_links(
     # Sort by position in text
     proposals.sort(key=lambda p: p["text_start"])
     return proposals
+
+
+def suggest_entity_links_preloaded(
+    scene_content: str,
+    characters: list,
+    locations: list,
+) -> list[dict]:
+    """Scan scene HTML using pre-loaded entity lists — use in loops to avoid per-scene DB queries."""
+    plain = _html_to_text(scene_content)
+    return _build_proposals(plain, characters, locations)
+
+
+def suggest_entity_links(
+    scene_content: str,
+    story_id: str,
+    db,
+) -> list[dict]:
+    """Scan scene HTML for unlinked character and location name mentions."""
+    from ..models.character import Character
+    from ..models.location import Location
+
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    locations = db.query(Location).filter(Location.story_id == story_id).all()
+    plain = _html_to_text(scene_content)
+    return _build_proposals(plain, characters, locations)
 
 
 def apply_entity_links(

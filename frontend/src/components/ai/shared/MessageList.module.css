@@ -184,6 +184,18 @@
   white-space: pre-wrap;
 }
 
+/* Animated in-progress thinking indicator shown during streaming */
+.thinkingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-text-subtle);
+  font-size: 0.72rem;
+  font-style: italic;
+  margin-bottom: 0.3rem;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 .typing {
   padding: 0.55rem 0.75rem;
   font-size: 0.82rem;

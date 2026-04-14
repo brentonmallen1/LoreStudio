@@ -299,7 +299,7 @@ export default function StructureTreeItem({
         <button
           className={styles.nodeRow}
           onClick={() => {
-            setActiveNode(node);
+            api.getNode(node.id).then(setActiveNode);
             if (!location.pathname.endsWith("/write")) {
               navigate(`/stories/${storyId}/write`);
             }

@@ -19,9 +19,9 @@
   gap: 0.35rem;
   padding: 0.28rem 0.65rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-nlp, #0891b2);
-  background: color-mix(in srgb, var(--color-nlp, #0891b2) 8%, transparent);
-  color: var(--color-nlp, #0891b2);
+  border: 1px solid var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
+  color: var(--color-nlp);
   font-size: 0.77rem;
   cursor: pointer;
   transition: background var(--transition);
@@ -29,12 +29,96 @@
 }
 
 .nlpBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-nlp, #0891b2) 16%, transparent);
+  background: color-mix(in srgb, var(--color-nlp) 16%, transparent);
+}
+
+.analysisError {
+  font-size: 0.74rem;
+  color: var(--color-error, #c0392b);
+  flex: 1 1 100%;
+  margin-top: 0.25rem;
 }
 
 .nlpBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.aiBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-ai-border);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
+  font-size: 0.77rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  white-space: nowrap;
+}
+
+.aiBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
+}
+
+/* ── Tag Dialogue panel ── */
+.tagPanel {
+  border: 1px solid var(--color-ai-border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
+  padding: 0.625rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.tagHint {
+  font-size: 0.77rem;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.tagSceneList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.tagSceneRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.tagSceneRow:hover {
+  border-color: var(--color-ai-border);
+  background: color-mix(in srgb, var(--color-ai) 5%, var(--color-surface));
+}
+
+.tagSceneTitle {
+  flex: 1;
+  font-size: 0.8rem;
+  color: var(--color-text);
+}
+
+.tagSceneCount {
+  font-size: 0.72rem;
+  color: var(--color-ai);
+  font-weight: 500;
+}
+
+.tagSceneArrow {
+  color: var(--color-ai);
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .analysisHint {
@@ -74,7 +158,7 @@
   border-radius: 99px;
 }
 
-.distinctness_distinct { background: color-mix(in srgb, var(--color-nlp, #0891b2) 12%, transparent); color: var(--color-nlp, #0891b2); }
+.distinctness_distinct { background: color-mix(in srgb, var(--color-nlp) 12%, transparent); color: var(--color-nlp); }
 .distinctness_some_overlap { background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent); color: var(--color-warning, #f59e0b); }
 .distinctness_homogeneous { background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent); color: var(--color-danger, #ef4444); }
 
@@ -111,7 +195,7 @@
 .profileValue {
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-nlp, #0891b2);
+  color: var(--color-nlp);
 }
 
 .signatureWords {

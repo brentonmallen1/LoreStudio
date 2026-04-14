@@ -33,25 +33,40 @@ const FOLLOW_UP_PROMPTS = [
 ];
 
 const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
+const PARTIAL_THINKING_RE = /<\|channel>thought\n[\s\S]*$/;
 
 function MessageContent({ content, s }: { content: string; s: Record<string, string> }) {
   const thinkingBlocks: string[] = [];
-  const mainContent = content.replace(THINKING_RE, (_, thought) => {
+
+  let processed = content.replace(THINKING_RE, (_, thought) => {
     thinkingBlocks.push(thought.trim());
     return "";
-  }).trim();
+  });
 
-  if (thinkingBlocks.length === 0) return <>{content}</>;
+  const isThinking = PARTIAL_THINKING_RE.test(processed);
+  if (isThinking) {
+    processed = processed.replace(PARTIAL_THINKING_RE, "");
+  }
+
+  const mainContent = processed.trim();
 
   return (
     <>
-      <details className={s.thinkingBlock}>
-        <summary className={s.thinkingSummary}>
+      {thinkingBlocks.length > 0 && (
+        <details className={s.thinkingBlock}>
+          <summary className={s.thinkingSummary}>
+            <Brain size={11} />
+            Thinking
+          </summary>
+          <div className={s.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
+        </details>
+      )}
+      {isThinking && (
+        <div className={s.thinkingIndicator}>
           <Brain size={11} />
-          Thinking
-        </summary>
-        <div className={s.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
-      </details>
+          Thinking…
+        </div>
+      )}
       {mainContent}
     </>
   );

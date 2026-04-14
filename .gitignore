@@ -57,5 +57,6 @@ tasks/
 # (docker-compose.yml itself is committed; ignore local overrides)
 docker-compose.override.yml
 snapshots/
+uploads/
 
 .claude

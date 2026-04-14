@@ -561,7 +561,7 @@ def analyze_character_dialogue_prose(dialogue_texts: list[str]) -> dict:
         "word_count": word_count,
         "line_count": len(dialogue_texts),
         "said_bookisms": _detect_said_bookisms(doc),
-        "sentence_variety": _detect_sentence_variety(doc),
+        "sentence_variety": _analyze_sentence_variety(doc),
         "adverb_overuse": _detect_adverbs(doc),
     }
 

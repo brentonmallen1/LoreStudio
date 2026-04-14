@@ -74,7 +74,12 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
             </p>
           </div>
         </div>
-        <button onClick={analyze} disabled={generating} className={styles.analyzeBtn}>
+        <button
+          onClick={analyze}
+          disabled={generating}
+          className={styles.analyzeBtn}
+          title="Review clue quality, foreshadowing distribution, and reveal effectiveness for this twist"
+        >
           <Compass size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>

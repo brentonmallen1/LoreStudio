@@ -212,6 +212,33 @@
   cursor: not-allowed;
 }
 
+/* Stop button — replaces Run All while any analysis is in flight */
+.stopBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 40%, var(--color-border));
+  background: color-mix(in srgb, var(--color-error, #ef4444) 10%, var(--color-bg));
+  color: var(--color-error, #ef4444);
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: stretch;
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.stopBtn:hover {
+  background: color-mix(in srgb, var(--color-error, #ef4444) 18%, var(--color-bg));
+  border-color: var(--color-error, #ef4444);
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

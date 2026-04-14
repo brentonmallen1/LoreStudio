@@ -191,3 +191,16 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ── Classification hints ── */
+.classificationHint {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+  margin-top: 0.2rem;
+  line-height: 1.45;
+}
+
+.classificationSub {
+  color: var(--color-text-muted);
+  font-style: italic;
+}

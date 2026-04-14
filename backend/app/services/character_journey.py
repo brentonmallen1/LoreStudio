@@ -26,17 +26,19 @@ def get_nodes_up_to(story_id: str, up_to_node_id: str, db: Session) -> list[Stru
         .all()
     )
 
-    # Flatten the tree in document order using DFS
-    def flatten(nodes: list[StructureNode]) -> list[StructureNode]:
+    # Build children map once — O(N) instead of O(N²) lookup inside flatten
+    child_map: dict[str | None, list[StructureNode]] = {}
+    for n in all_nodes:
+        child_map.setdefault(n.parent_id, []).append(n)
+
+    def flatten(parent_id: str | None) -> list[StructureNode]:
         result = []
-        for n in sorted(nodes, key=lambda x: x.position):
+        for n in sorted(child_map.get(parent_id, []), key=lambda x: x.position):
             result.append(n)
-            children = [x for x in all_nodes if x.parent_id == n.id]
-            result.extend(flatten(children))
+            result.extend(flatten(n.id))
         return result
 
-    roots = [n for n in all_nodes if n.parent_id is None]
-    ordered = flatten(roots)
+    ordered = flatten(None)
 
     # Collect up to and including target
     result = []

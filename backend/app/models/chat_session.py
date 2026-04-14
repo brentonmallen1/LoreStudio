@@ -9,8 +9,8 @@ class ChatSession(Base):
     __tablename__ = "chat_sessions"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
 
     # What this chat is about
     context_type: Mapped[str] = mapped_column(String, nullable=False)  # "scene", "character", "story", "panel"

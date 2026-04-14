@@ -6,13 +6,25 @@ import type { ChatMessage } from "../../../types";
 import styles from "./MessageList.module.css";
 
 const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
+// Matches an incomplete (still-streaming) thinking block — opening tag with no closing tag yet
+const PARTIAL_THINKING_RE = /<\|channel>thought\n[\s\S]*$/;
 
 function MessageContent({ content }: { content: string }) {
   const thinkingBlocks: string[] = [];
-  const mainContent = content.replace(THINKING_RE, (_, thought) => {
+
+  // Extract complete thinking blocks
+  let processed = content.replace(THINKING_RE, (_, thought) => {
     thinkingBlocks.push(thought.trim());
     return "";
-  }).trim();
+  });
+
+  // Detect and strip an in-progress (unclosed) thinking block
+  const isThinking = PARTIAL_THINKING_RE.test(processed);
+  if (isThinking) {
+    processed = processed.replace(PARTIAL_THINKING_RE, "");
+  }
+
+  const mainContent = processed.trim();
 
   return (
     <>
@@ -25,11 +37,19 @@ function MessageContent({ content }: { content: string }) {
           <div className={styles.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
         </details>
       )}
-      <div className={styles.markdown}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {mainContent}
-        </ReactMarkdown>
-      </div>
+      {isThinking && (
+        <div className={styles.thinkingIndicator}>
+          <Brain size={11} />
+          Thinking…
+        </div>
+      )}
+      {mainContent && (
+        <div className={styles.markdown}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {mainContent}
+          </ReactMarkdown>
+        </div>
+      )}
     </>
   );
 }

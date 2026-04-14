@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Settings, Telescope } from "lucide-react";
+import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import { useStoryStore } from "../stores/storyStore";
 import { useDiscoveryStore } from "../stores/discoveryStore";
 import DiscoveryCard from "../components/discovery/DiscoveryCard";
@@ -83,6 +84,7 @@ export default function DiscoveryQueuePage() {
           )}
         </div>
         <div className={styles.headerActions}>
+          <AIFeatureInfoTrigger pageId="discovery-queue" size="sm" />
           <button
             className={styles.settingsBtn}
             onClick={() => setSettingsOpen(v => !v)}

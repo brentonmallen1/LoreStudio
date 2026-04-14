@@ -10,10 +10,10 @@ class CharacterJourneySummary(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     character_id: Mapped[str] = mapped_column(
-        String, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False
+        String, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False, index=True
     )
     up_to_node_id: Mapped[str] = mapped_column(
-        String, ForeignKey("structure_nodes.id", ondelete="CASCADE"), nullable=False
+        String, ForeignKey("structure_nodes.id", ondelete="CASCADE"), nullable=False, index=True
     )
     # First-person narrative of what the character has experienced up to this point
     summary: Mapped[str] = mapped_column(Text, nullable=False)

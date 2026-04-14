@@ -91,7 +91,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
             Cancel
           </button>
         ) : (
-          <button onClick={generate} className={styles.generateBtn}>
+          <button onClick={generate} className={styles.generateBtn} title="Use AI to generate a narrative summary of your story's content to date">
             <Compass size={12} />
             Generate
           </button>

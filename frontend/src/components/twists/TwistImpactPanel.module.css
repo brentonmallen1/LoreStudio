@@ -21,7 +21,7 @@
 }
 
 .icon {
-  color: var(--color-nlp);
+  color: var(--color-ai);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -45,9 +45,9 @@
   gap: 5px;
   padding: 5px 12px;
   border-radius: 5px;
-  border: 1px solid color-mix(in srgb, var(--color-nlp) 30%, transparent);
-  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
-  color: var(--color-nlp);
+  border: 1px solid color-mix(in srgb, var(--color-ai) 30%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
+  color: var(--color-ai);
   font-size: 0.78rem;
   cursor: pointer;
   font-family: inherit;
@@ -55,7 +55,7 @@
 }
 
 .analyzeBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-nlp) 14%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 14%, transparent);
 }
 
 .analyzeBtn:disabled {
@@ -80,7 +80,7 @@
 
 .spin {
   animation: spin 1.2s linear infinite;
-  color: var(--color-nlp);
+  color: var(--color-ai);
 }
 
 @keyframes spin {
@@ -91,9 +91,9 @@
 
 .assessmentBox {
   padding: 10px 12px;
-  border: 1px solid var(--color-nlp);
+  border: 1px solid var(--color-ai);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--color-nlp) 6%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 6%, transparent);
 }
 
 .assessmentText {

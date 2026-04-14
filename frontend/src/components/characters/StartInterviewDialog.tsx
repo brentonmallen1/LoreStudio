@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, RefreshCw, Square, Feather } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, RefreshCw, Square, Feather, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character, CharacterJourney, StructureNode, Interview } from "../../types";
@@ -18,7 +19,8 @@ function flattenNodes(nodes: StructureNode[]): StructureNode[] {
 }
 
 export default function StartInterviewDialog({ character, onStarted, onClose }: Props) {
-  const { structure } = useStoryStore();
+  const { structure, activeStory } = useStoryStore();
+  const navigate = useNavigate();
   const [contextNodeId, setContextNodeId] = useState<string>("");
   const [journey, setJourney] = useState<CharacterJourney | null>(null);
   const [loadingJourney, setLoadingJourney] = useState(false);
@@ -158,8 +160,17 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                   <p className={styles.journeyText}>{journey.summary}</p>
                 ) : journey.scene_count === 0 ? (
                   <p className={styles.journeyHint}>
-                    {character.name} doesn't appear in any summarized scenes before this point.
-                    Generate scene summaries to enable context-aware interviews.
+                    {character.name} doesn't appear in any summarized scenes before this point.{" "}
+                    {activeStory ? (
+                      <button
+                        type="button"
+                        className={styles.generateLink}
+                        onClick={() => { onClose(); navigate(`/stories/${activeStory.id}/health`); }}
+                      >
+                        Generate scene summaries <ExternalLink size={10} />
+                      </button>
+                    ) : "Generate scene summaries"}{" "}
+                    to enable context-aware interviews.
                   </p>
                 ) : (
                   <p className={styles.journeyHint}>

@@ -460,6 +460,28 @@ class DiscoveryQuestionsResponse(BaseModel):
     observation: str = ""                      # Brief note on what seems underdeveloped
 
 
+# ── Character Dimensionality ─────────────────────────────────────────────────
+
+class CharacterDimensionEntry(BaseModel):
+    character_id: str = ""
+    character_name: str = ""
+    role: str = ""                   # protagonist | antagonist | supporting | minor
+    dimension_score: str = "flat"    # flat | developing | dimensional | complex
+    strengths: list[str] = []        # What makes this character feel real
+    gaps: list[str] = []             # Where the character feels thin or undefined
+    contradictions: str = ""         # Internal tensions that add (or lack) depth
+    relationship_depth: str = ""     # How well-developed their relationships are
+    recommendations: list[str] = []  # Specific, actionable suggestions
+
+
+class CharacterDimensionalityResponse(BaseModel):
+    characters: list[CharacterDimensionEntry] = []
+    cast_balance: str = ""      # Are characters developed appropriately for their roles?
+    ensemble_dynamics: str = "" # How well do characters play off each other?
+    summary: str = ""
+    overall_rating: str = "fair"  # needs_work | fair | good | excellent
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

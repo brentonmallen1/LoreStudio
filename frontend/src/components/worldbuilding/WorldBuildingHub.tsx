@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Globe, MapPin, Zap, Users, Clock, ArrowLeftRight, Calendar } from "lucide-react";
+import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { useParams, useLocation } from "react-router-dom";
 import LocationManager from "./LocationManager";
 import WorldSystemManager from "./WorldSystemManager";
@@ -36,6 +37,7 @@ export default function WorldBuildingHub() {
       <div className={styles.hubHeader}>
         <Globe size={18} color="var(--color-text-muted)" />
         <h1 className={styles.hubTitle}>World Building</h1>
+        <AIFeatureInfoTrigger pageId="worldbuilding" size="md" />
       </div>
 
       <div className={styles.tabBar}>

@@ -19,8 +19,11 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.listStories().then(setStories).catch(console.error);
-  }, [setStories]);
+    // Only fetch if the store is empty — avoids refetch on every navigation back to dashboard
+    if (stories.length === 0) {
+      api.listStories().then(setStories).catch(console.error);
+    }
+  }, []);
 
   async function handleDelete(story: Story, e: React.MouseEvent) {
     e.stopPropagation();

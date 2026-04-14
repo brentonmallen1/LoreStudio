@@ -124,8 +124,8 @@ interface UIState {
   endSprint: () => void;
 
   // Story view mode
-  viewMode: "tree" | "corkboard" | "timeline" | "graph" | "manuscript";
-  setViewMode: (mode: "tree" | "corkboard" | "timeline" | "graph" | "manuscript") => void;
+  viewMode: "tree" | "storyboard" | "summary" | "manuscript";
+  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript") => void;
 
 
   // Brainstorm panel ("What's Next?")
@@ -331,7 +331,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
-  viewMode: "tree" as "tree" | "corkboard" | "timeline" | "graph" | "manuscript",
+  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript",
   setViewMode: (mode) => set({ viewMode: mode }),
 
 

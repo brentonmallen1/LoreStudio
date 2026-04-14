@@ -9,7 +9,7 @@ class PlotThread(Base):
     __tablename__ = "plot_threads"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False)
+    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String, default="open")  # open | developing | resolved
@@ -35,8 +35,8 @@ class PlotThreadAppearance(Base):
     __tablename__ = "plot_thread_appearances"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    thread_id: Mapped[str] = mapped_column(String, ForeignKey("plot_threads.id"), nullable=False)
-    node_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False)
+    thread_id: Mapped[str] = mapped_column(String, ForeignKey("plot_threads.id"), nullable=False, index=True)
+    node_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False, index=True)
     note: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 

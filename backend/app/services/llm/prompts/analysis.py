@@ -1172,3 +1172,127 @@ Rules:
 - Questions must be open-ended (never yes/no)
 - Prioritize areas where the entity data above is empty or minimal
 - Never write prose for the author or suggest specific story choices"""
+
+
+# ── Character Dimensionality ──────────────────────────────────────────────────
+
+def build_character_dimensionality_prompt(
+    story_title: str,
+    story_intent: str | None,
+    characters_data: list[dict],
+    single_character: bool = False,
+) -> str:
+    """Build a prompt to assess character dimensionality.
+
+    When single_character=True the list contains exactly one character and the
+    prompt returns a single CharacterDimensionEntry wrapped in a one-element
+    'characters' array so the response schema stays consistent.
+    """
+
+    dimension_scale = """\
+DIMENSION SCALE (use exactly these values for dimension_score):
+- flat: One defining trait, predictable reactions, no internal conflict or contradiction
+- developing: Basic motivation established, some backstory hints, but behavior is still largely one-note
+- dimensional: Clear wants/fears/contradictions, relationships feel earned, reader can predict behavior yet still be surprised
+- complex: Layered psychology, actions stem from competing internal forces, changes feel inevitable yet unexpected"""
+
+    role_expectations = """\
+ROLE EXPECTATIONS — score dimensionality relative to story importance:
+- protagonist / antagonist: Should reach at least "dimensional"; anything lower is a craft problem
+- supporting: "developing" is appropriate; "flat" warrants a recommendation
+- minor: "flat" is acceptable; note only if it undermines a key scene"""
+
+    if single_character:
+        char = characters_data[0]
+        relationships_block = ""
+        if char.get("relationships"):
+            rel_lines = "\n".join(
+                f"  - {r['other_name']} ({r['relationship_type']}): {r.get('description', '')[:100]}"
+                for r in char["relationships"][:8]
+            )
+            relationships_block = f"Relationships:\n{rel_lines}"
+
+        milestones_block = ""
+        if char.get("arc_milestones"):
+            m_lines = "\n".join(
+                f"  - {'[x]' if m.get('completed') else '[ ]'} {m.get('text', '')}"
+                for m in char["arc_milestones"][:10]
+            )
+            milestones_block = f"Arc milestones:\n{m_lines}"
+
+        char_block = f"""CHARACTER: {char.get('name', 'Unknown')}
+Role: {char.get('role', '')}
+Personality: {char.get('personality', '')}
+Motivation: {char.get('motivation', '')}
+Background: {char.get('background', '')}
+Appearance: {char.get('appearance', '')}
+Arc notes: {char.get('arc_notes', '')}
+Narrative intent: {char.get('narrative_intent', '')}
+Mission statement: {char.get('mission_statement', '')}
+Snowflake summary: {char.get('snowflake_summary', '')}
+Snowflake synopsis: {char.get('snowflake_synopsis', '')}
+Traits: {', '.join(f"{k}: {v}" for k, v in (char.get('traits') or {}).items() if v)}
+Scenes featuring this character: {char.get('scene_count', 0)}
+{relationships_block}
+{milestones_block}"""
+
+    else:
+        char_lines = []
+        for c in characters_data:
+            motivation = (c.get("motivation") or "")[:80]
+            personality = (c.get("personality") or "")[:80]
+            arc = (c.get("arc_notes") or "")[:80]
+            rel_count = c.get("relationship_count", 0)
+            milestones = c.get("milestone_count", 0)
+            char_lines.append(
+                f"- {c['name']} (role={c.get('role', '?')}, scenes={c.get('scene_count', 0)}, "
+                f"relationships={rel_count}, milestones={milestones})\n"
+                f"  motivation: {motivation or 'none'}\n"
+                f"  personality: {personality or 'none'}\n"
+                f"  arc: {arc or 'none'}"
+            )
+        char_block = "CHARACTERS:\n" + "\n".join(char_lines)
+
+    ensemble_instruction = (
+        "" if single_character
+        else '\n  "cast_balance": "Assessment of whether character development matches their role importance",'
+             '\n  "ensemble_dynamics": "How well characters contrast, complement, and complicate each other",'
+    )
+
+    return f"""You are a character analyst working on the story "{story_title}".
+
+Story intent: {story_intent or "Not specified"}
+
+{char_block}
+
+{dimension_scale}
+
+{role_expectations}
+
+IMPORTANT: Base your assessment on what IS present in the data above. If fields are empty, that is itself evidence of flatness or underdevelopment. Be specific — cite actual details from the data in strengths, gaps, and contradictions.
+
+Respond with this exact JSON schema:
+
+{{
+  "characters": [
+    {{
+      "character_id": "the character's id string",
+      "character_name": "character name",
+      "role": "protagonist | antagonist | supporting | minor",
+      "dimension_score": "flat | developing | dimensional | complex",
+      "strengths": ["specific things in the data that make this character feel real or interesting"],
+      "gaps": ["specific missing or underdeveloped areas that limit depth"],
+      "contradictions": "describe internal tensions present — or explain their absence",
+      "relationship_depth": "assess how well-developed their relationships are based on available data",
+      "recommendations": ["1-3 specific, actionable suggestions to deepen this character"]
+    }}
+  ],{ensemble_instruction}
+  "summary": "2-3 sentence overall assessment of the cast",
+  "overall_rating": "needs_work | fair | good | excellent"
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- overall_rating reflects the entire cast: needs_work = flat protagonists or key characters, excellent = all characters appropriately developed
+- recommendations must be specific to THIS character's data, not generic writing advice
+- Never suggest prose, story choices, or what should happen — only what to develop or explore"""

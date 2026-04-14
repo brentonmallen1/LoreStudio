@@ -117,6 +117,7 @@ export interface StructureNode {
   timeline_position: number | null;
   content_summary: string;
   summary_stale: boolean;
+  summary_updated_at: string | null;
   beat_id: string | null;
   pov_character_id: string | null;
   created_at: string;
@@ -155,6 +156,9 @@ export interface Character {
   story_id: string;
   name: string;
   role: string;
+  character_type: string;
+  jungian_archetype: string;
+  narrative_archetype: string;
   mission_statement: string;
   pronouns: string;
   personality: string;
@@ -764,6 +768,13 @@ export interface StoryHealth {
     total: number;
     by_status: Record<string, number>;
   };
+  scene_summaries: {
+    total: number;
+    fresh: number;
+    stale: number;
+    missing: number;
+    last_updated: string | null;
+  };
   pacing: PacingEntry[];
   characters: CharacterHealth[];
   absent_characters: string[];
@@ -1233,6 +1244,28 @@ export interface DiscoveryQuestionsResponse {
   observation: string;
 }
 
+// ── Character Dimensionality ──
+
+export interface CharacterDimensionEntry {
+  character_id: string;
+  character_name: string;
+  role: string;
+  dimension_score: "flat" | "developing" | "dimensional" | "complex";
+  strengths: string[];
+  gaps: string[];
+  contradictions: string;
+  relationship_depth: string;
+  recommendations: string[];
+}
+
+export interface CharacterDimensionalityResult {
+  characters: CharacterDimensionEntry[];
+  cast_balance: string;
+  ensemble_dynamics: string;
+  summary: string;
+  overall_rating: "needs_work" | "fair" | "good" | "excellent";
+}
+
 // ── Chronicle ──
 
 export interface ChronicleMessage {
@@ -1533,6 +1566,17 @@ export interface ProposedDialogueTag {
 export interface ApplyTagRequest {
   quote_content: string;
   speaker_name: string;
+}
+
+export interface SceneWithDialogueProposals {
+  scene_id: string;
+  scene_title: string;
+  proposals: ProposedDialogueTag[];
+}
+
+export interface BatchSuggestResponse {
+  total_proposals: number;
+  scenes: SceneWithDialogueProposals[];
 }
 
 export interface ProposedEntityLink {
