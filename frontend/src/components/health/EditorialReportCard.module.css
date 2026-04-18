@@ -1,0 +1,411 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-editorial-border);
+  border-left: 3px solid var(--color-editorial);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-editorial-surface);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 0.5rem;
+  transition: background var(--transition);
+}
+
+.header:hover {
+  background: color-mix(in srgb, var(--color-editorial) 10%, transparent);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.headerLeft svg {
+  flex-shrink: 0;
+  color: var(--color-editorial);
+}
+
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.metaChip {
+  font-size: 0.72rem;
+  color: var(--color-editorial);
+  background: var(--color-editorial-subtle);
+  border: 1px solid var(--color-editorial-border);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.metaSep {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition);
+}
+
+.deleteBtn:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.confirmDelete {
+  padding: 0.6rem 0.75rem;
+  background: color-mix(in srgb, var(--color-danger) 6%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-danger) 20%, transparent);
+  font-size: 0.8rem;
+}
+
+.confirmDelete p {
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.confirmYes {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-danger);
+  background: var(--color-danger);
+  color: white;
+  cursor: pointer;
+}
+
+.confirmNo {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* ── Body ── */
+.body {
+  padding: 0.5rem 0;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0 0.75rem 0.5rem;
+  padding: 0.4rem 0.65rem;
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--color-warning);
+  line-height: 1.4;
+}
+
+/* ── Sections ── */
+.section {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.section:first-of-type {
+  border-top: none;
+}
+
+.sectionToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.sectionToggle:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.sectionToggleActive {
+  color: var(--color-editorial);
+  background: var(--color-editorial-surface);
+}
+
+.sectionToggleActive svg:first-child {
+  color: var(--color-editorial);
+}
+
+.count {
+  margin-left: auto;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--color-surface-2);
+  border-radius: 999px;
+  color: var(--color-text-subtle);
+}
+
+.sectionToggleActive .count {
+  background: var(--color-editorial-subtle);
+  color: var(--color-editorial);
+}
+
+.sectionContent {
+  padding: 0 0.75rem 0.5rem;
+}
+
+/* ── Shared item styles ── */
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.empty {
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0.25rem 0;
+}
+
+.summary {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-editorial);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.itemDeviation {
+  border-color: var(--color-editorial-border);
+  background: var(--color-editorial-surface);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sectionTag {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--color-editorial-subtle);
+  color: var(--color-editorial);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+.rankBadge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.itemIssue {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.itemText {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.context {
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0;
+}
+
+.anchor {
+  font-size: 0.74rem;
+  font-style: italic;
+  color: var(--color-editorial);
+  border-left: 2px solid var(--color-editorial-border);
+  padding-left: 0.5rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Impact badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.68rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+}
+
+.badgeHigh { background: color-mix(in srgb, var(--color-danger) 12%, transparent); color: var(--color-danger); }
+.badgeMed  { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
+.badgeLow  { background: var(--color-surface-3); color: var(--color-text-subtle); }
+
+/* ── Type badges ── */
+.typeBadge {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+}
+
+.typeStrength { background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); }
+.typeConcern  { background: color-mix(in srgb, var(--color-danger) 10%, transparent); color: var(--color-danger); }
+.typeSuggestion { background: var(--color-editorial-subtle); color: var(--color-editorial); }
+
+/* ── Intent gap ── */
+.aligned {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0.5rem;
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+}
+
+.alignedLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.alignedTag {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-2);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+.intentRow {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+}
+
+.intentLabel {
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.intentText {
+  color: var(--color-text-muted);
+}
+
+/* ── Voice ── */
+.voiceBox {
+  padding: 0.5rem 0.6rem;
+  background: var(--color-editorial-surface);
+  border: 1px solid var(--color-editorial-border);
+  border-radius: var(--radius-sm);
+}
+
+.voiceLabel {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-editorial);
+  margin-bottom: 0.3rem;
+}
+
+.voiceText {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ratingPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.ratingGood { background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); }
+.ratingWarn { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
+.ratingBad  { background: color-mix(in srgb, var(--color-danger) 12%, transparent); color: var(--color-danger); }
+
+.driftTag {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+}

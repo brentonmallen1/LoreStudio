@@ -1,0 +1,169 @@
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--color-bg);
+  padding: 2rem;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 800px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.rowUnset {
+  opacity: 0.65;
+}
+
+.positionCol {
+  flex-shrink: 0;
+  width: 44px;
+  text-align: right;
+}
+
+.posNum {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.unsetLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.card {
+  flex: 1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: box-shadow var(--transition-md), border-color var(--transition-md);
+  min-width: 0;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reorderedBadge {
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.parentLabel {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.125rem;
+}
+
+.statusBadge {
+  font-size: 0.62rem;
+  font-weight: 500;
+  padding: 0.08rem 0.35rem;
+  border-radius: 99px;
+  border: 1px solid;
+  text-transform: capitalize;
+}
+
+.draft {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+.revised {
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.final {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.wordCount {
+  font-size: 0.65rem;
+  color: var(--color-text-subtle);
+}
+
+.setPositionBtn {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-family: inherit;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.setPositionBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}

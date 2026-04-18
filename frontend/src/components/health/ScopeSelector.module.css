@@ -1,0 +1,105 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-editorial-border);
+  background: var(--color-editorial-subtle);
+  color: var(--color-editorial);
+  cursor: pointer;
+  min-width: 130px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.trigger:hover {
+  background: color-mix(in srgb, var(--color-editorial) 15%, transparent);
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 50;
+  padding: 0.3rem 0;
+}
+
+.scopeOption {
+  width: 100%;
+  text-align: left;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--color-text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.scopeOption:hover {
+  background: var(--color-surface-2);
+}
+
+.scopeOptionActive {
+  color: var(--color-editorial);
+  font-weight: 600;
+  background: var(--color-editorial-surface);
+}
+
+.groupLabel {
+  padding: 0.4rem 0.75rem 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-top: 1px solid var(--color-border-light);
+  margin-top: 0.15rem;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.checkRow:hover {
+  background: var(--color-surface-2);
+}
+
+.check {
+  accent-color: var(--color-editorial);
+  cursor: pointer;
+}
+
+.checkLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}

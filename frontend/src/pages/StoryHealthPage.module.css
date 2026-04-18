@@ -65,6 +65,16 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+.viewTabEditorial.viewTabActive {
+  color: var(--color-editorial);
+  background: var(--color-editorial-surface);
+  box-shadow: inset 0 0 0 1px var(--color-editorial-border);
+}
+
+.viewTabEditorial:hover {
+  color: var(--color-editorial) !important;
+}
+
 .refreshBtn {
   display: flex;
   align-items: center;

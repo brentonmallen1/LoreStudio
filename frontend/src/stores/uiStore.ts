@@ -124,8 +124,8 @@ interface UIState {
   endSprint: () => void;
 
   // Story view mode
-  viewMode: "tree" | "storyboard" | "summary" | "manuscript";
-  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript") => void;
+  viewMode: "tree" | "storyboard" | "summary" | "manuscript" | "todos";
+  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript" | "todos") => void;
 
 
   // Brainstorm panel ("What's Next?")
@@ -137,6 +137,15 @@ interface UIState {
   plannerPanelOpen: boolean;
   openPlannerPanel: () => void;
   closePlannerPanel: () => void;
+
+  // Dialogue insert trigger (command palette → SceneEditor)
+  dialogueInsertTrigger: number;
+  triggerDialogueInsert: () => void;
+
+  // Writing guides modal trigger (command palette → SceneEditor)
+  writingGuidesTab: "dialogue" | "mice" | "essential" | null;
+  openWritingGuides: (tab: "dialogue" | "mice" | "essential") => void;
+  closeWritingGuides: () => void;
 
   // World Building AI panel
   worldBuildingAIPanelOpen: boolean;
@@ -331,7 +340,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
-  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript",
+  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript" | "todos",
   setViewMode: (mode) => set({ viewMode: mode }),
 
 
@@ -342,6 +351,13 @@ export const useUIStore = create<UIState>((set) => ({
   plannerPanelOpen: false,
   openPlannerPanel: () => set({ plannerPanelOpen: true }),
   closePlannerPanel: () => set({ plannerPanelOpen: false }),
+
+  dialogueInsertTrigger: 0,
+  triggerDialogueInsert: () => set((s) => ({ dialogueInsertTrigger: s.dialogueInsertTrigger + 1 })),
+
+  writingGuidesTab: null,
+  openWritingGuides: (tab) => set({ writingGuidesTab: tab }),
+  closeWritingGuides: () => set({ writingGuidesTab: null }),
 
   worldBuildingAIPanelOpen: false,
   worldBuildingAIContext: null,

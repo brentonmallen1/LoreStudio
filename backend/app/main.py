@@ -42,12 +42,14 @@ from .routers.worldbuilding_ai import router as worldbuilding_ai_router
 from .routers.export import router as export_router
 from .routers.dialogue import router as dialogue_router
 from .routers.twists import router as twists_router
+from .routers.todos import router as todos_router
 from .routers.outlines import router as outlines_router
 from .routers.snapshots import router as snapshots_router
 from .routers.import_router import router as import_router
 from .routers.publication import router as publication_router
 from .routers.reader_knowledge import router as reader_knowledge_router
-from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets, seed_flash_fiction_demo, seed_short_story_demo
+from .routers.editorial import router as editorial_router
+from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets, seed_flash_fiction_demo, seed_short_story_demo, seed_first_person_demo
 
 
 @asynccontextmanager
@@ -60,6 +62,7 @@ async def lifespan(app: FastAPI):
     seed_scifi_demo_story()
     seed_flash_fiction_demo()
     seed_short_story_demo()
+    seed_first_person_demo()
     yield
 
 
@@ -111,11 +114,13 @@ app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-
 app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
+app.include_router(todos_router, prefix="/api", tags=["todos"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(publication_router, prefix="/api", tags=["publication"])
 app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
+app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 
 @app.get("/health")

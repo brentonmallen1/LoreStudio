@@ -451,6 +451,26 @@ const FEATURES: Record<string, AIFeatureInfo> = {
 
   // ── Scene Editor ─────────────────────────────────────────────────────────────
 
+  "scene-plan": {
+    id: "scene-plan",
+    label: "Plan Scene",
+    type: "ai",
+    shortDescription: "AI-guided scene planning before you write",
+    fullDescription:
+      "Helps you plan a scene before writing it — proposing purpose, character goals, entry/exit states, and key beats based on your story context.",
+    contextSources: ["Scene title & synopsis", "Adjacent scenes", "Characters in scene", "Active plot threads", "Story structure"],
+    backendFeatureId: "scene-plan",
+  },
+  "brainstorm": {
+    id: "brainstorm",
+    label: "What's Next?",
+    type: "ai",
+    shortDescription: "Brainstorm directions for this scene or next scene",
+    fullDescription:
+      "A brainstorming partner that suggests narrative directions, complications, and next moves based on where the scene currently stands — without writing the prose for you.",
+    contextSources: ["Scene synopsis & purpose", "Current scene prose", "Plot threads", "Character arcs", "Adjacent scenes"],
+    backendFeatureId: "brainstorm",
+  },
   "auto-tag-dialogue": {
     id: "auto-tag-dialogue",
     label: "Auto-Tag Dialogue",
@@ -572,6 +592,60 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     contextSources: ["Scene prose text for the selected scope", "Character profile (for character perspective)", "Story intent"],
     backendFeatureId: "structure-summary",
   },
+
+  // ── Import — NLP ───────────────────────────────────────────────────────────
+
+  "import-ner-characters": {
+    id: "import-ner-characters",
+    label: "Find Character Names",
+    type: "nlp",
+    shortDescription: "Detect character names via named entity recognition",
+    fullDescription:
+      "Uses spaCy's named entity recognition to identify PERSON entities throughout your manuscript. Fast and fully local — no AI or internet required. Found names become character candidates you can review before adding to the Lorebook.",
+    contextSources: ["Imported manuscript text (all paragraphs)"],
+  },
+  "import-ner-locations": {
+    id: "import-ner-locations",
+    label: "Find Location Names",
+    type: "nlp",
+    shortDescription: "Detect location names via named entity recognition",
+    fullDescription:
+      "Uses spaCy's named entity recognition to identify GPE (geopolitical places) and LOC (locations) entities in your manuscript. Fast and fully local — no AI required. Found names become location candidates you can review before adding to the Lorebook.",
+    contextSources: ["Imported manuscript text (all paragraphs)"],
+  },
+
+  // ── Import — AI ────────────────────────────────────────────────────────────
+
+  "import-ai-character-details": {
+    id: "import-ai-character-details",
+    label: "Extract Character Details",
+    type: "ai",
+    shortDescription: "AI extracts personality, appearance, and motivation from prose",
+    fullDescription:
+      "For each character candidate found by NLP, gathers surrounding prose excerpts and asks the AI to extract attributes like role, personality, motivation, appearance, and background. Only information explicitly present in the text is extracted.",
+    contextSources: ["Character name", "Prose excerpts where the character appears"],
+    backendFeatureId: "import-character-extraction",
+  },
+  "import-ai-location-details": {
+    id: "import-ai-location-details",
+    label: "Extract Location Details",
+    type: "ai",
+    shortDescription: "AI extracts description, atmosphere, and significance from prose",
+    fullDescription:
+      "For each location candidate found by NLP, gathers prose excerpts and asks the AI to extract type, physical description, atmosphere, and narrative significance. Only information explicitly present in the text is extracted.",
+    contextSources: ["Location name", "Prose excerpts where the location appears"],
+    backendFeatureId: "import-location-extraction",
+  },
+  "import-ai-relationships": {
+    id: "import-ai-relationships",
+    label: "Detect Relationships",
+    type: "ai",
+    shortDescription: "AI identifies relationships between character candidates",
+    fullDescription:
+      "Analyzes scenes where multiple character candidates appear together to detect and describe their relationships (family, romantic, professional, rival, etc.). Requires at least 2 shared scene appearances to attempt detection.",
+    contextSources: ["Character candidate names", "Scenes where both characters appear together"],
+    backendFeatureId: "import-relationship-extraction",
+  },
 };
 
 export default FEATURES;
@@ -633,6 +707,9 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "wb-travel",
   ],
   "scene-editor": [
+    "story-summary",
+    "scene-plan",
+    "brainstorm",
     "auto-tag-dialogue",
     "auto-link-entities",
   ],
@@ -655,6 +732,13 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "story-summary",
     "perspective-summary",
   ],
+  "import": [
+    "import-ner-characters",
+    "import-ner-locations",
+    "import-ai-character-details",
+    "import-ai-location-details",
+    "import-ai-relationships",
+  ],
 };
 
 /**
@@ -671,4 +755,5 @@ export const PAGE_LABELS: Record<string, string> = {
   "twists": "Twists & Misdirection",
   "plot-threads": "Plot Threads",
   "lorebook": "Lorebook",
+  "import": "Document Import",
 };

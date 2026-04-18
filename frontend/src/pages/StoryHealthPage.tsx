@@ -11,6 +11,7 @@ import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import ActionToolbar from "../components/health/ActionToolbar";
 import ReportsView from "../components/health/ReportsView";
 import MaintenanceView from "../components/health/MaintenanceView";
+import { EditorView } from "../components/health/EditorView";
 import styles from "./StoryHealthPage.module.css";
 
 function WordBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
@@ -45,7 +46,7 @@ export default function StoryHealthPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { activeStory, structure, characters, beatSheets } = useStoryStore();
-  const [view, setView] = useState<"dashboard" | "reports" | "maintenance">("dashboard");
+  const [view, setView] = useState<"dashboard" | "reports" | "maintenance" | "editor">("dashboard");
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const beatSheet = activeStory?.beat_sheet_id
@@ -124,6 +125,12 @@ export default function StoryHealthPage() {
           >
             Maintenance
           </button>
+          <button
+            className={`${styles.viewTab} ${view === "editor" ? styles.viewTabActive : ""} ${styles.viewTabEditorial}`}
+            onClick={() => setView("editor")}
+          >
+            Editor
+          </button>
         </div>
         <button onClick={load} className={styles.refreshBtn} title="Refresh">
           <RefreshCw size={13} />
@@ -132,7 +139,7 @@ export default function StoryHealthPage() {
       </div>
 
       {/* Analysis action toolbar — dashboard and reports only */}
-      {storyId && view !== "maintenance" && (
+      {storyId && view !== "maintenance" && view !== "editor" && (
         <ActionToolbar storyId={storyId} onAnalysisComplete={handleAnalysisComplete} onViewReports={() => setView("reports")} />
       )}
 
@@ -140,6 +147,8 @@ export default function StoryHealthPage() {
         storyId ? <MaintenanceView storyId={storyId} /> : null
       ) : view === "reports" ? (
         storyId ? <ReportsView storyId={storyId} key={analysisVersion} /> : null
+      ) : view === "editor" ? (
+        storyId ? <EditorView storyId={storyId} /> : null
       ) : (
         <div className={styles.grid}>
 

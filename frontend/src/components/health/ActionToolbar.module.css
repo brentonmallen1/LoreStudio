@@ -1,28 +1,133 @@
 .toolbar {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
   margin-bottom: 12px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* Legend row */
-.legend {
+/* ── Header row (always visible) ── */
+.toolbarHeader {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.toolbarHeader:hover {
+  background: var(--color-surface-raised);
+}
+
+.toolbarChevron {
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.toolbarTitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  flex: 1;
+}
+
+.toolbarHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Collapsible body ── */
+.toolbarBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Category tabs ── */
+.categoryTabs {
+  display: flex;
+  gap: 2px;
+  padding-top: 0.5rem;
+}
+
+.categoryTab {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-family: inherit;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+
+.categoryTab:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.categoryTabActive {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.tabBadge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.tabBadgeActive {
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  color: var(--color-accent);
+}
+
+/* ── Category meta row (description + legend) ── */
+.categoryMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.categoryDesc {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  flex: 1;
+  min-width: 0;
 }
 
 .legendItem {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   font-size: 0.68rem;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .legendDot {
@@ -37,32 +142,15 @@
   width: 1px;
   height: 10px;
   background: var(--color-border);
+  flex-shrink: 0;
 }
 
-.reportsLink {
-  margin-left: auto;
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-  transition: color var(--transition);
-}
-
-.reportsLink:hover {
-  color: var(--color-text);
-}
-
-/* Actions row */
+/* ── Actions grid ── */
 .actions {
   display: flex;
   align-items: stretch;
   gap: 0.5rem;
   flex-wrap: wrap;
-  justify-content: center;
-  width: 100%;
 }
 
 /* Card-style analysis button */
@@ -80,8 +168,8 @@
   cursor: pointer;
   text-align: left;
   flex: 1;
-  min-width: 190px;
-  max-width: 280px;
+  min-width: 200px;
+  max-width: 300px;
   transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
@@ -172,7 +260,6 @@
   opacity: 0.7;
 }
 
-
 /* Top-right compass indicator */
 .typeCompass {
   color: var(--btn-color, var(--color-text-subtle));
@@ -181,24 +268,21 @@
   margin-top: 1px;
 }
 
-/* Run All button */
+/* ── Run All / Stop buttons (in header) ── */
 .runAllBtn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--radius);
   border: none;
   background: var(--color-accent);
   color: var(--color-accent-fg, #fff);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  align-self: stretch;
   transition: background var(--transition), opacity var(--transition);
   white-space: nowrap;
 }
@@ -212,24 +296,20 @@
   cursor: not-allowed;
 }
 
-/* Stop button — replaces Run All while any analysis is in flight */
 .stopBtn {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--radius);
   border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 40%, var(--color-border));
   background: color-mix(in srgb, var(--color-error, #ef4444) 10%, var(--color-bg));
   color: var(--color-error, #ef4444);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  align-self: stretch;
   transition: background var(--transition), border-color var(--transition);
   white-space: nowrap;
 }
@@ -237,6 +317,22 @@
 .stopBtn:hover {
   background: color-mix(in srgb, var(--color-error, #ef4444) 18%, var(--color-bg));
   border-color: var(--color-error, #ef4444);
+}
+
+.reportsLink {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color var(--transition);
+  white-space: nowrap;
+}
+
+.reportsLink:hover {
+  color: var(--color-text);
 }
 
 @keyframes spin {

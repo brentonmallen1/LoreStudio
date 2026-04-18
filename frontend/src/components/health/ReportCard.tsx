@@ -5,12 +5,13 @@ import {
   AlertCircle, AlertTriangle, Info,
   User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
   GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
-  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2, Users,
+  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2, Users, UserCheck,
 } from "lucide-react";
 import type {
   ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
   EditorialConsistencyResponse, ContinuityCheckResult, ThemeTrackerResult, PlotHoleDetectionResult,
   ClicheAnalysisResponse, ClicheInstance, CharacterDimensionEntry, CharacterDimensionalityResult,
+  VoiceFidelityResult, VoiceFidelityFinding,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./ReportCard.module.css";
@@ -30,6 +31,7 @@ const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; col
   "first-pass": { label: "First-Pass Editor", Icon: ClipboardCheck, color: "var(--color-ai)" },
   "cliche-analysis": { label: "Cliche Check", Icon: Repeat2, color: "var(--color-ai)" },
   "character-dimensionality": { label: "Character Depth", Icon: Users, color: "var(--color-ai)" },
+  "voice-fidelity": { label: "Voice Fidelity", Icon: UserCheck, color: "var(--color-ai)" },
 };
 
 // ── Economy schema (mirrors EconomyAnalysisPanel) ─────────────────────────────
@@ -647,6 +649,99 @@ function CharacterDimensionalityDisplay({ result }: { result: StructuredResult }
   );
 }
 
+// ── Voice Fidelity renderer ───────────────────────────────────────────────────
+
+const FIDELITY_COLOR: Record<string, string> = {
+  excellent: "var(--color-success, #22c55e)",
+  good: "var(--color-nlp)",
+  fair: "var(--color-warning, #d97706)",
+  needs_work: "var(--color-error, #e05252)",
+};
+
+const SEVERITY_COLOR_FIDELITY: Record<string, string> = {
+  issue: "var(--color-error, #e05252)",
+  warning: "var(--color-warning, #d97706)",
+  info: "var(--color-text-muted)",
+};
+
+const SEVERITY_ICON_FIDELITY: Record<string, React.ElementType> = {
+  issue: XCircle,
+  warning: AlertTriangle,
+  info: Info,
+};
+
+function VoiceFidelityDisplay({ result }: { result: StructuredResult }) {
+  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const data = result.data as unknown as VoiceFidelityResult;
+  const findings = (data.findings ?? []).filter((f: VoiceFidelityFinding) => f.severity !== "info");
+
+  return (
+    <div className={styles.aiResults}>
+      <div className={styles.summaryRow} style={{ marginBottom: "0.5rem" }}>
+        <span className={styles.ratingBadge} style={{ background: `color-mix(in srgb, ${FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)"} 15%, transparent)`, color: FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)" }}>
+          {data.overall_fidelity?.replace("_", " ") ?? "—"}
+        </span>
+        {data.character_name && (
+          <span className={styles.instanceCount}>{data.character_name}</span>
+        )}
+      </div>
+      {data.attribute_summary && <p className={styles.issueMeta} style={{ marginBottom: "0.4rem" }}>{data.attribute_summary}</p>}
+      {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
+
+      {findings.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Findings</span>
+          {findings.map((f: VoiceFidelityFinding, i: number) => {
+            const SevIcon = SEVERITY_ICON_FIDELITY[f.severity] ?? MinusCircle;
+            const color = SEVERITY_COLOR_FIDELITY[f.severity] ?? "var(--color-text-muted)";
+            return (
+              <div key={i} className={styles.issueRow}>
+                <SevIcon size={12} style={{ color, flexShrink: 0, marginTop: 2 }} />
+                <div className={styles.issueBody}>
+                  {f.dialogue_excerpt && (
+                    <span className={styles.issueMeta} style={{ fontStyle: "italic" }}>
+                      "{f.dialogue_excerpt.slice(0, 100)}{f.dialogue_excerpt.length > 100 ? "…" : ""}"
+                    </span>
+                  )}
+                  <span className={styles.issueLabel}>{f.explanation}</span>
+                  {f.attribute_context && <span className={styles.issueMeta}>{f.attribute_context}</span>}
+                  {f.suggestion && <p className={styles.issueSuggestion}>{f.suggestion}</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {data.authentic_examples?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>Lines that ring true</span>
+          {data.authentic_examples.slice(0, 4).map((ex: string, i: number) => (
+            <div key={i} className={styles.issueRow}>
+              <CheckCircle size={12} style={{ color: "var(--color-success)", flexShrink: 0, marginTop: 2 }} />
+              <span className={styles.issueBody} style={{ fontStyle: "italic" }}>
+                "{ex.slice(0, 100)}{ex.length > 100 ? "…" : ""}"
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.recommendations?.length > 0 && (
+        <div className={styles.checkGroup}>
+          <span className={styles.checkLabel}>Recommendations</span>
+          {data.recommendations.map((rec: string, i: number) => (
+            <div key={i} className={styles.issueRow}>
+              <Lightbulb size={12} style={{ color: "var(--color-ai)", flexShrink: 0, marginTop: 2 }} />
+              <span className={styles.issueBody}>{rec}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
@@ -692,6 +787,8 @@ function renderBody(log: ActivityLog) {
       return <ClicheResultDisplay result={result as unknown as StructuredResult} />;
     case "character-dimensionality":
       return <CharacterDimensionalityDisplay result={result as unknown as StructuredResult} />;
+    case "voice-fidelity":
+      return <VoiceFidelityDisplay result={result as unknown as StructuredResult} />;
     default:
       return <p className={styles.empty}>Unknown analysis type.</p>;
   }

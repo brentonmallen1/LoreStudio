@@ -17,6 +17,7 @@ import {
   Share2,
   FileText,
   BookOpen,
+  CheckSquare,
   type LucideIcon,
 } from "lucide-react";
 import { api } from "../../api/client";
@@ -502,6 +503,14 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           title="Manuscript view"
         >
           <BookOpen size={12} />
+        </button>
+        <button
+          className={`${styles.viewBtn} ${viewMode === "todos" ? styles.viewActive : ""}`}
+          onClick={() => setViewMode("todos")}
+          title="TODOs"
+          style={viewMode === "todos" ? {} : { color: "var(--color-todo)" }}
+        >
+          <CheckSquare size={12} />
         </button>
       </div>
 

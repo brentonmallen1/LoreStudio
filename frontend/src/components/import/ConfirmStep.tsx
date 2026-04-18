@@ -1,18 +1,27 @@
 import { useState } from "react";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle, ArrowLeft, User, MapPin, Link2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import type { ImportPreviewTree, ImportUploadResponse } from "../../types";
+import type { ExtractionCandidate, ImportPreviewTree, ImportUploadResponse } from "../../types";
 import styles from "./ConfirmStep.module.css";
 
 interface Props {
   uploadResponse: ImportUploadResponse;
   preview: ImportPreviewTree;
+  extractionCandidates: ExtractionCandidate[];
+  extractionSelected: Set<string>;
   onBack: () => void;
   onFinalized: (storyId: string) => void;
 }
 
-export default function ConfirmStep({ uploadResponse, preview, onBack, onFinalized }: Props) {
+export default function ConfirmStep({
+  uploadResponse,
+  preview,
+  extractionCandidates,
+  extractionSelected,
+  onBack,
+  onFinalized,
+}: Props) {
   const [title, setTitle] = useState(
     preview.detected_title || uploadResponse.source_format.toUpperCase() + " Import"
   );
@@ -26,6 +35,12 @@ export default function ConfirmStep({ uploadResponse, preview, onBack, onFinaliz
     (n) => !preview.nodes.some((other) => other.parent_id === n.id)
   ).length;
 
+  const selectedCandidates = extractionCandidates.filter((c) => extractionSelected.has(c.id));
+  const selectedChars = selectedCandidates.filter((c) => c.entity_type === "character").length;
+  const selectedLocs = selectedCandidates.filter((c) => c.entity_type === "location").length;
+  const selectedRels = selectedCandidates.filter((c) => c.entity_type === "relationship").length;
+  const hasExtraction = selectedCandidates.length > 0;
+
   async function handleCreate() {
     if (!title.trim()) return;
     setLoading(true);
@@ -36,8 +51,9 @@ export default function ConfirmStep({ uploadResponse, preview, onBack, onFinaliz
         description,
         template_id: preview.template_id,
         genre: "",
+        extraction_candidate_ids: Array.from(extractionSelected),
+        extraction_candidates: extractionCandidates,
       });
-      // Refresh story list
       const stories = await api.listStories();
       stories.forEach(upsertStory);
       onFinalized(result.id);
@@ -60,6 +76,32 @@ export default function ConfirmStep({ uploadResponse, preview, onBack, onFinaliz
           </p>
         </div>
       </div>
+
+      {hasExtraction && (
+        <div className={styles.extractionSummary}>
+          <span className={styles.extractionLabel}>Lorebook entries to create:</span>
+          <div className={styles.extractionCounts}>
+            {selectedChars > 0 && (
+              <span className={styles.extractionCount}>
+                <User size={11} />
+                {selectedChars} character{selectedChars !== 1 ? "s" : ""}
+              </span>
+            )}
+            {selectedLocs > 0 && (
+              <span className={styles.extractionCount}>
+                <MapPin size={11} />
+                {selectedLocs} location{selectedLocs !== 1 ? "s" : ""}
+              </span>
+            )}
+            {selectedRels > 0 && (
+              <span className={styles.extractionCount}>
+                <Link2 size={11} />
+                {selectedRels} relationship{selectedRels !== 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className={styles.fields}>
         <div className={styles.field}>

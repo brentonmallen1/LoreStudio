@@ -6,23 +6,10 @@ interface Props {
   onClose: () => void;
 }
 
-export default function DialogueSyntaxGuide({ onClose }: Props) {
-  const footer = (
-    <button onClick={onClose} className={styles.closeBtn}>
-      Close
-    </button>
-  );
-
+export function DialogueSyntaxContent() {
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title="Dialogue Attribution"
-      icon={<Quote size={15} />}
-      size="lg"
-      footer={footer}
-    >
-      <div className={styles.intro}>
+    <>
+    <div className={styles.intro}>
         <p>
           LoreStudio can track <strong>who says what</strong> across your story — enabling dialogue stats,
           character voice analysis, and future audio playback. Attribution is always optional: write
@@ -142,6 +129,21 @@ export default function DialogueSyntaxGuide({ onClose }: Props) {
         <strong>Export:</strong> All attribution syntax is stripped automatically on export.
         <code>"Hello"&lt;Maya&gt;</code> becomes just <code>"Hello"</code> in your manuscript.
       </div>
+    </>
+  );
+}
+
+export default function DialogueSyntaxGuide({ onClose }: Props) {
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="Dialogue Attribution"
+      icon={<Quote size={15} />}
+      size="lg"
+      footer={<button onClick={onClose} className={styles.closeBtn}>Close</button>}
+    >
+      <DialogueSyntaxContent />
     </Modal>
   );
 }

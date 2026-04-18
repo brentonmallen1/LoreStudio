@@ -28,6 +28,7 @@ from .beat_sheet import BeatSheet
 from .panel_interview import PanelInterview
 from .discovered_element import DiscoveredElement
 from .reader_knowledge import ReaderKnowledgeEvent
+from .todo import StoryTodo
 
 __all__ = [
     "User",
@@ -70,4 +71,5 @@ __all__ = [
     "DiscoveredElement",
     "Outline",
     "ReaderKnowledgeEvent",
+    "StoryTodo",
 ]

@@ -19,7 +19,10 @@ from ..schemas.character import (
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.generation import build_attribute_generation_prompt
-from ..schemas.ai_responses import AttributeSuggestionsResponse, StructuredResult, PronounIdentificationResponse
+from ..schemas.ai_responses import (
+    AttributeSuggestionsResponse, StructuredResult, PronounIdentificationResponse,
+    VoiceFidelityResponse,
+)
 from ..services.character_journey import (
     get_cached_journey, get_nodes_up_to, get_scenes_with_character,
     build_journey_prompt, save_journey,
@@ -34,6 +37,8 @@ from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_
 from ..services.text_utils import html_to_text as _html_to_text
 from ..services.linking_service import suggest_entity_links, suggest_entity_links_preloaded, apply_entity_links
 from ..services.nlp_analysis_service import analyze_voice_distinctness, analyze_character_dialogue_prose
+from ..models.activity_log import ActivityLog
+from ..services.llm.prompts.analysis import build_voice_fidelity_prompt
 from sqlalchemy.orm.attributes import flag_modified
 
 router = APIRouter()
@@ -826,3 +831,66 @@ def analyze_character_dialogue_endpoint(
 
     dialogue_texts = [b.content for b in blocks if b.content]
     return analyze_character_dialogue_prose(dialogue_texts)
+
+
+@router.post("/{character_id}/analyze-voice-fidelity", response_model=StructuredResult)
+async def analyze_voice_fidelity(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """AI analysis of whether character dialogue is authentic to their defined attributes."""
+    character = _verify_character_access(character_id, db, current_user)
+
+    blocks = (
+        db.query(DialogueBlock)
+        .filter(DialogueBlock.character_id == character_id)
+        .all()
+    )
+    if not blocks:
+        return StructuredResult(
+            success=False,
+            raw_text="No dialogue found for this character.",
+        )
+
+    dialogue_lines = [b.content for b in blocks if b.content]
+    attributes = character.attributes or {}
+
+    feature_prompt = build_voice_fidelity_prompt(
+        character_name=character.name,
+        attributes=attributes,
+        dialogue_lines=dialogue_lines,
+    )
+
+    ctx = AICallContext(
+        feature="voice-fidelity",
+        user_id=current_user.id,
+        story_id=character.story_id,
+        tags=["character", "dialogue", "analysis", "user-initiated"],
+    )
+
+    result = await ai_gateway.generate_structured(
+        response_model=VoiceFidelityResponse,
+        messages=[{"role": "user", "content": f"Evaluate the voice fidelity of {character.name}'s dialogue."}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
+
+    log = ActivityLog(
+        user_id=current_user.id,
+        story_id=character.story_id,
+        event_type="analysis_run",
+        category="health",
+        description=f"Voice fidelity analysis for {character.name}",
+        metadata_={
+            "feature": "voice-fidelity",
+            "character_id": character_id,
+            "character_name": character.name,
+            "result": result.model_dump() if hasattr(result, "model_dump") else result,
+        },
+    )
+    db.add(log)
+    db.commit()
+    return result

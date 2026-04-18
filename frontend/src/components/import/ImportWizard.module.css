@@ -10,7 +10,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
 }

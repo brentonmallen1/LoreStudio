@@ -30,18 +30,15 @@ export function setDialogueModeActive(v: boolean) {
   _dialogueModeActive = v;
 }
 
-// Callbacks wired by SceneEditor for @@ and /dialogue trigger handling
+// Callbacks wired by SceneEditor for dialogue trigger handling
 export interface DialogueCallbacks {
   onDialogueOpen: (query: string, bottom: number, left: number) => void;
   onDialogueClose: () => void;
-  // Called when /dialogue is typed — clear the slash command text and open picker
-  onSlashDialogue: (from: number, to: number, bottom: number, left: number) => void;
 }
 
 const _dcb: DialogueCallbacks = {
   onDialogueOpen: () => {},
   onDialogueClose: () => {},
-  onSlashDialogue: () => {},
 };
 
 export function setDialogueCallbacks(cb: Partial<DialogueCallbacks>) {
@@ -196,7 +193,6 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
 // ---------------------------------------------------------------------------
 
 const dialogueDecoKey = new PluginKey<DecorationSet>("dialogueDecos");
-const dialogueTriggerKey = new PluginKey("dialogueTrigger");
 
 export const DialogueExtension = Extension.create({
   name: "dialogueMarkup",
@@ -217,59 +213,6 @@ export const DialogueExtension = Extension.create({
         },
         props: {
           decorations: (state) => dialogueDecoKey.getState(state),
-        },
-      }),
-
-      // Trigger plugin — detects @@ for dialogue-mode insertion
-      new Plugin({
-        key: dialogueTriggerKey,
-        view() {
-          return {
-            update(view, prevState) {
-              const { state } = view;
-              if (
-                state.selection === prevState.selection &&
-                state.doc === prevState.doc
-              ) {
-                return;
-              }
-
-              const { from, empty } = state.selection;
-              if (!empty) {
-                _dcb.onDialogueClose();
-                return;
-              }
-
-              const $from = state.doc.resolve(from);
-              const blockStart = $from.start();
-              const textBefore = state.doc.textBetween(
-                blockStart,
-                from,
-                "\n",
-                "\0"
-              );
-
-              // Check for /dialogue slash command (full word typed)
-              const slashMatch = textBefore.match(/\/dialogue$/i);
-              if (slashMatch) {
-                const slashStart = from - slashMatch[0].length;
-                const prevChar =
-                  slashStart > blockStart
-                    ? state.doc.textBetween(slashStart - 1, slashStart)
-                    : null;
-                if (prevChar === null || prevChar === " " || prevChar === "\t" || slashStart === blockStart) {
-                  const coords = view.coordsAtPos(from);
-                  setDialogueModeActive(true);
-                  _dcb.onSlashDialogue(slashStart, from, coords.bottom, coords.left);
-                  return;
-                }
-              }
-
-              // Note: ^ detection is handled by MentionDropdownExtension's trigger
-              // plugin (registered before this one). DialogueExtension only handles
-              // the /dialogue slash command here.
-            },
-          };
         },
       }),
     ];

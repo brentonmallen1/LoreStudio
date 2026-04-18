@@ -482,6 +482,29 @@ class CharacterDimensionalityResponse(BaseModel):
     overall_rating: str = "fair"  # needs_work | fair | good | excellent
 
 
+# ── Voice Fidelity ────────────────────────────────────────────────────────────
+
+class VoiceFidelityFinding(BaseModel):
+    dialogue_excerpt: str = ""
+    # etymology_mismatch, vocabulary_mismatch, formality_drift,
+    # education_inconsistency, manner_conflict, authentic
+    issue_type: str = ""
+    severity: str = "info"   # issue | warning | info
+    explanation: str = ""
+    attribute_context: str = ""   # Which attribute(s) are relevant
+    suggestion: str = ""
+
+
+class VoiceFidelityResponse(BaseModel):
+    character_name: str = ""
+    attribute_summary: str = ""      # One-sentence summary of relevant attributes
+    findings: list[VoiceFidelityFinding] = []
+    authentic_examples: list[str] = []   # Dialogue excerpts that ring true
+    overall_fidelity: str = "good"       # excellent | good | fair | needs_work
+    summary: str = ""
+    recommendations: list[str] = []
+
+
 # ── Structured result wrapper ─────────────────────────────────────────────────
 
 class StructuredResult(BaseModel):

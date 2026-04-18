@@ -83,6 +83,26 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+  cursor: text;
+}
+
+.nodeTitle:hover {
+  color: var(--color-accent);
+}
+
+.nodeTitleInput {
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.35rem;
+  min-width: 0;
+  outline: none;
+  width: 18ch;
+  max-width: 260px;
 }
 
 .statusBadge {
@@ -1052,12 +1072,140 @@
   transform: scale(1.2);
 }
 
+/* ── Editorial note highlight ── */
+.editorWrap :global(.ProseMirror .note-anchor--editorial) {
+  background: var(--color-editorial-highlight);
+  border-bottom: 1px solid var(--color-editorial-marker);
+}
+
+.editorWrap :global(.ProseMirror .note-anchor--editorial:hover) {
+  background: color-mix(in srgb, var(--color-editorial-marker) 28%, transparent);
+}
+
+/* ── Editorial gutter marker (diamond) ── */
+.editorWrap :global(.note-gutter-marker--editorial) {
+  background: transparent;
+  border-radius: 0;
+  /* Diamond via clip-path */
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: var(--color-editorial-marker);
+  left: -1.75rem;
+}
+
+.editorWrap :global(.note-gutter-marker--editorial.note-gutter-marker:hover) {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* ── Hide editorial notes ── */
+.hideEditorialNotes :global(.note-anchor--editorial),
+.hideEditorialNotes :global(.note-gutter-marker--editorial) {
+  display: none !important;
+}
+
+/* ── TODO gutter marker (right-facing triangle) ── */
+.editorWrap :global(.todo-gutter-marker) {
+  position: absolute;
+  left: -2.5rem;
+  top: 0.3em;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--color-todo);
+  cursor: pointer;
+  opacity: 0.75;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  transition: opacity var(--transition);
+}
+
+.editorWrap :global(.todo-gutter-marker:hover) {
+  opacity: 1;
+}
+
+/* Tooltip that appears on hover */
+.editorWrap :global(.todo-gutter-tooltip) {
+  display: none;
+  position: absolute;
+  left: 1.2rem;
+  top: -0.6rem;
+  background: var(--color-surface-elevated, var(--color-surface));
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  white-space: pre-wrap;
+  max-width: 220px;
+  min-width: 100px;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  line-height: 1.4;
+}
+
+.editorWrap :global(.todo-gutter-marker:hover .todo-gutter-tooltip) {
+  display: block;
+}
+
 /* ── Inline notes list (overview panel) ── */
 .inlineNoteList {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   margin-top: 0.15rem;
+}
+
+/* ── Note legend ── */
+.noteLegend {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.noteLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+.noteLegendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-note-marker);
+  flex-shrink: 0;
+}
+
+.noteLegendDiamond {
+  width: 8px;
+  height: 8px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  background: var(--color-editorial-marker);
+  flex-shrink: 0;
+}
+
+.noteLegendToggle {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-editorial-border);
+  background: transparent;
+  color: var(--color-editorial);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.noteLegendToggle:hover {
+  background: var(--color-editorial-subtle);
 }
 
 .inlineNoteItem {
@@ -1067,6 +1215,11 @@
   border-radius: var(--radius-sm);
   background: var(--color-surface-2);
   overflow: hidden;
+}
+
+.inlineNoteItemEditorial {
+  border-color: var(--color-editorial-border);
+  background: var(--color-editorial-surface);
 }
 
 .inlineNoteContent {
@@ -1094,6 +1247,16 @@
 .inlineNoteAnchor {
   font-style: italic;
   color: var(--color-note-marker);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.inlineNoteAnchorEditorial {
+  font-style: italic;
+  color: var(--color-editorial-marker);
   font-size: 0.74rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1639,6 +1802,86 @@
   font-style: italic;
 }
 
+/* ── Slash command picker ── */
+.slashDropdown {
+  position: fixed;
+  z-index: 300;
+  width: 290px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.slashDropdownHint {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 0.375rem 0.75rem 0.2rem;
+  margin: 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.slashItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  gap: 0.15rem;
+  transition: background var(--transition);
+  position: relative;
+}
+
+.slashItem:hover {
+  background: var(--color-surface-2);
+}
+
+.slashItemSelected {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent) !important;
+}
+
+.slashItemLabel {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.slashItemSelected .slashItemLabel {
+  color: var(--color-accent);
+}
+
+.slashItemDesc {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  padding-right: 2.5rem;
+}
+
+.slashItemKbd {
+  position: absolute;
+  right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.6rem;
+  font-family: inherit;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
 /* ── Mention hover card ── */
 .hoverCard {
   position: fixed;
@@ -1878,3 +2121,80 @@
 .dark .editorWrap :global(.ls-search-current) {
   background: rgba(255, 160, 40, 0.45);
 }
+
+/* ── Todo input popup (opened by /todo slash command) ── */
+.todoInputPopup {
+  position: fixed;
+  z-index: 300;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 0.75rem;
+  min-width: 280px;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.todoInputHint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-todo);
+  margin: 0;
+}
+
+.todoInputField {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  box-sizing: border-box;
+  font-family: var(--font-ui);
+}
+
+.todoInputField:focus {
+  border-color: var(--color-todo);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-todo) 20%, transparent);
+}
+
+.todoInputActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.todoInputSubmit {
+  flex: 1;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--color-todo);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: opacity var(--transition);
+}
+
+.todoInputSubmit:hover { opacity: 0.85; }
+.todoInputSubmit:disabled { opacity: 0.4; cursor: default; }
+
+.todoInputCancel {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.todoInputCancel:hover { color: var(--color-text); }

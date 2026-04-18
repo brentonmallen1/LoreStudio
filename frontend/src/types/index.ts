@@ -91,6 +91,9 @@ export interface InlineNote {
   anchor: string;
   note: string;
   position: number;
+  type?: "author" | "editorial";
+  category?: string;  // e.g. "fresh-eyes", "priority", "voice", "intent-gap"
+  source?: string;    // e.g. "editorial-{report_id}"
 }
 
 export interface SegmentMeta {
@@ -578,6 +581,22 @@ export interface ReaderKnowledgeEvent {
   // Denormalized
   node_title?: string | null;
   twist_name?: string | null;
+}
+
+// ── Todos ──
+
+export interface StoryTodo {
+  id: string;
+  story_id: string;
+  node_id: string | null;
+  content: string;
+  done: boolean;
+  position: number;
+  doc_from: number | null;
+  doc_to: number | null;
+  created_at: string;
+  updated_at: string;
+  node_title: string | null;
 }
 
 // ── Outline ──
@@ -1554,6 +1573,33 @@ export interface VoiceDistinctnessResult {
   focus_character_id: string;
 }
 
+// ── Voice Fidelity ────────────────────────────────────────────────────────────
+
+export interface VoiceFidelityFinding {
+  dialogue_excerpt: string;
+  issue_type:
+    | "etymology_mismatch"
+    | "vocabulary_mismatch"
+    | "formality_drift"
+    | "education_inconsistency"
+    | "manner_conflict"
+    | "authentic";
+  severity: "issue" | "warning" | "info";
+  explanation: string;
+  attribute_context: string;
+  suggestion: string;
+}
+
+export interface VoiceFidelityResult {
+  character_name: string;
+  attribute_summary: string;
+  findings: VoiceFidelityFinding[];
+  authentic_examples: string[];
+  overall_fidelity: "excellent" | "good" | "fair" | "needs_work";
+  summary: string;
+  recommendations: string[];
+}
+
 export interface ProposedDialogueTag {
   id: string;
   quote_content: string;
@@ -1753,4 +1799,69 @@ export interface ImportFinalizeRequest {
   description: string;
   template_id: string;
   genre: string;
+  extraction_candidate_ids?: string[];
+  extraction_candidates?: ExtractionCandidate[];
+}
+
+// ── Import: Entity Extraction ──────────────────────────────────────────────
+
+export interface ExtractionOptions {
+  characters_nlp: boolean;
+  locations_nlp: boolean;
+  characters_ai: boolean;
+  locations_ai: boolean;
+  relationships_ai: boolean;
+}
+
+export interface AIEnrichOptions {
+  characters_ai: boolean;
+  locations_ai: boolean;
+  relationships_ai: boolean;
+}
+
+export interface ExtractedCharacter {
+  role: string;
+  personality: string;
+  motivation: string;
+  appearance: string;
+  background: string;
+  confidence: number;
+}
+
+export interface ExtractedLocation {
+  location_type: string;
+  description: string;
+  atmosphere: string;
+  significance: string;
+  confidence: number;
+}
+
+export interface ExtractedRelationship {
+  relationship_type: string;
+  description: string;
+  role_influence: string;
+  confidence: number;
+}
+
+export interface ExtractionCandidate {
+  id: string;
+  name: string;
+  entity_type: "character" | "location" | "relationship";
+  source: "nlp" | "ai";
+  occurrences: number;
+  scene_count: number;
+  confidence: number;
+  scene_ids: string[];
+  char_a_name?: string;
+  char_b_name?: string;
+  extracted_character?: ExtractedCharacter;
+  extracted_location?: ExtractedLocation;
+  extracted_relationship?: ExtractedRelationship;
+}
+
+export interface ExtractionPreview {
+  candidates: ExtractionCandidate[];
+  ai_available: boolean;
+  nlp_elapsed_ms: number;
+  ai_elapsed_ms: number | null;
 }

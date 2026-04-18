@@ -118,3 +118,7 @@ class FinalizeImportRequest(BaseModel):
     description: str = ""
     template_id: str
     genre: str = ""
+    # Entity extraction: IDs of candidates the user approved for creation
+    extraction_candidate_ids: list[str] = []
+    # Full candidate list (with extracted data) needed to create entities
+    extraction_candidates: list = []

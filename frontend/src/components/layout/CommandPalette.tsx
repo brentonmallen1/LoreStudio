@@ -56,7 +56,7 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 
 export default function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
-  const { stories, characters, setActiveNode, activeStory } = useStoryStore();
+  const { stories, characters, setActiveNode, activeStory, structure } = useStoryStore();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState("");
@@ -74,6 +74,7 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const prevWriteNodeIds = useRef(new Set<string>());
 
   const close = useCallback(() => {
     setCommandPaletteOpen(false);
@@ -107,6 +108,40 @@ export default function CommandPalette() {
     });
     forceUpdate((n) => n + 1);
   }, [stories, characters, navigate]);
+
+  // Register write-section (structure node) navigation commands
+  useEffect(() => {
+    // Unregister nodes from previous render (handles deletions)
+    prevWriteNodeIds.current.forEach((id) => commandRegistry.unregister(id));
+    const nextIds = new Set<string>();
+
+    if (activeStory) {
+      function flatten(nodes: typeof structure): typeof structure {
+        return nodes.flatMap((n) => [n, ...flatten(n.children)]);
+      }
+      flatten(structure).forEach((node) => {
+        const id = `write-node-${node.id}`;
+        nextIds.add(id);
+        commandRegistry.update({
+          id,
+          label: node.title || `Untitled ${node.level_type}`,
+          description: node.synopsis ? node.synopsis.slice(0, 80) : undefined,
+          keywords: ["write", node.level_type, "scene", "chapter", "go to", "navigate", node.title.toLowerCase()].filter(Boolean),
+          icon: Clapperboard,
+          group: "Write",
+          when: () => _useStoryStoreForNav.getState().activeStory?.id === node.story_id,
+          action: async () => {
+            const fullNode = await api.getNode(node.id);
+            setActiveNode(fullNode);
+            navigate(`/stories/${activeStory.id}/write`);
+          },
+        });
+      });
+    }
+
+    prevWriteNodeIds.current = nextIds;
+    forceUpdate((n) => n + 1);
+  }, [structure, activeStory?.id, navigate, setActiveNode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Register story section navigation commands whenever the active story changes
   useEffect(() => {
@@ -273,7 +308,7 @@ export default function CommandPalette() {
         break;
       case "scene": {
         api.getNode(result.id).then(setActiveNode);
-        navigate(`/stories/${result.story_id}`);
+        navigate(`/stories/${result.story_id}/write`);
         break;
       }
       case "setting":
@@ -315,8 +350,8 @@ export default function CommandPalette() {
   const actionGroups: Record<string, CommandAction[]> = commandRegistry.grouped(query);
   const hasActionResults = Object.values(actionGroups).some((g) => g.length > 0);
 
-  // Last run — always pinned at top (not shown in sub-menu view)
-  const lastRun: CommandAction | null = !subMenu ? commandRegistry.getLastRun() : null;
+  // Last run — pinned at top only when no query (hidden while searching so top result is auto-selected)
+  const lastRun: CommandAction | null = !subMenu && !hasQuery ? commandRegistry.getLastRun() : null;
 
   // Recent items — shown only when no query (and exclude the last-run item to avoid duplication)
   const recentItems: CommandAction[] = !query.trim() && !subMenu

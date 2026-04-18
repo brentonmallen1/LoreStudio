@@ -563,3 +563,129 @@
   border-radius: 3px;
   font-size: 0.75rem;
 }
+
+/* ── Voice Fidelity ── */
+
+.fidelityAttributeSummary {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0.35rem 0 0.5rem;
+  padding: 0 0.75rem;
+}
+
+.fidelitySummary {
+  font-size: 0.78rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+  padding: 0 0.75rem;
+}
+
+.fidelityExcellent {
+  background: color-mix(in srgb, var(--color-success, #22c55e) 18%, transparent);
+  color: var(--color-success, #16a34a);
+}
+
+.fidelityGood {
+  background: color-mix(in srgb, var(--color-nlp) 18%, transparent);
+  color: var(--color-nlp);
+}
+
+.fidelityFair {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 18%, transparent);
+  color: var(--color-warning, #b45309);
+}
+
+.fidelityNeedsWork {
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 18%, transparent);
+  color: var(--color-danger, #dc2626);
+}
+
+.fidelityFindings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0.75rem 0.75rem;
+}
+
+.findingRow {
+  border-radius: var(--radius);
+  padding: 0.5rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.severityIssue {
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, var(--color-bg));
+  border-left: 3px solid var(--color-danger, #ef4444);
+}
+
+.severityWarning {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 8%, var(--color-bg));
+  border-left: 3px solid var(--color-warning, #f59e0b);
+}
+
+.severityInfo {
+  background: color-mix(in srgb, var(--color-ai) 6%, var(--color-bg));
+  border-left: 3px solid var(--color-ai);
+}
+
+.findingExcerpt {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.findingExplanation {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.findingContext {
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.findingSuggestion {
+  font-size: 0.72rem;
+  color: var(--color-ai);
+  margin: 0;
+  font-style: italic;
+}
+
+.authenticSection {
+  margin: 0 0.75rem 0.75rem;
+}
+
+.authenticExample {
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-text-muted);
+  margin: 0.2rem 0 0;
+  padding-left: 0.5rem;
+  border-left: 2px solid color-mix(in srgb, var(--color-success, #22c55e) 50%, transparent);
+}
+
+.fidelityRecommendations {
+  margin: 0 0.75rem 0.5rem;
+}
+
+.recommendationList {
+  margin: 0.3rem 0 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.recommendationList li {
+  font-size: 0.75rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}

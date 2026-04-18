@@ -12,6 +12,7 @@ Pipeline:
 CRITICAL: AI never regenerates or rewrites content. It only returns paragraph
 indices where breaks should occur. All text comes from the original document.
 """
+
 import asyncio
 import logging
 import os
@@ -83,7 +84,9 @@ def _detect_pandoc_format(filename: str, mime_type: str) -> tuple[str, str]:
     else:
         pandoc_fmt = "markdown"
 
-    display = {"docx": "docx", "doc": "docx", "rtf": "rtf", "markdown": "markdown"}.get(pandoc_fmt, "markdown")
+    display = {"docx": "docx", "doc": "docx", "rtf": "rtf", "markdown": "markdown"}.get(
+        pandoc_fmt, "markdown"
+    )
     return pandoc_fmt, display
 
 
@@ -91,7 +94,10 @@ def _detect_pandoc_format(filename: str, mime_type: str) -> tuple[str, str]:
 # Step 1: Parse document via pandoc
 # ---------------------------------------------------------------------------
 
-def parse_document(file_bytes: bytes, filename: str, mime_type: str) -> tuple[list[ParsedParagraph], Optional[str], str]:
+
+def parse_document(
+    file_bytes: bytes, filename: str, mime_type: str
+) -> tuple[list[ParsedParagraph], Optional[str], str]:
     """
     Convert an uploaded file to HTML via pandoc, then extract paragraphs.
 
@@ -109,10 +115,13 @@ def parse_document(file_bytes: bytes, filename: str, mime_type: str) -> tuple[li
     try:
         cmd = [
             "pandoc",
-            "--from", pandoc_fmt,
-            "--to", "html",
+            "--from",
+            pandoc_fmt,
+            "--to",
+            "html",
             "--standalone",
-            "--output", output_path,
+            "--output",
+            output_path,
             input_path,
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
@@ -137,7 +146,11 @@ def _extract_paragraphs(html: str) -> tuple[list[ParsedParagraph], Optional[str]
     # Try to extract document title
     detected_title: Optional[str] = None
     title_tag = soup.find("title")
-    if title_tag and title_tag.text.strip() and title_tag.text.strip() not in ("", "Untitled"):
+    if (
+        title_tag
+        and title_tag.text.strip()
+        and title_tag.text.strip() not in ("", "Untitled")
+    ):
         detected_title = title_tag.text.strip()
 
     body = soup.find("body") or soup
@@ -160,13 +173,15 @@ def _extract_paragraphs(html: str) -> tuple[list[ParsedParagraph], Optional[str]
             word_count = len(text.split()) if text else 0
             preview = text[:120]
 
-            paragraphs.append(ParsedParagraph(
-                index=index,
-                html=raw_html,
-                text_preview=preview,
-                tag=tag_name,
-                word_count=word_count,
-            ))
+            paragraphs.append(
+                ParsedParagraph(
+                    index=index,
+                    html=raw_html,
+                    text_preview=preview,
+                    tag=tag_name,
+                    word_count=word_count,
+                )
+            )
             index += 1
 
     return paragraphs, detected_title
@@ -178,15 +193,17 @@ def _extract_paragraphs(html: str) -> tuple[list[ParsedParagraph], Optional[str]
 
 # Patterns that indicate a scene break within flowing prose
 _SCENE_BREAK_RE = re.compile(
-    r"^\s*(\*\s*){2,}\s*\*\s*$"    # * * *
-    r"|^\s*(-\s*){2,}\s*-\s*$"      # - - -
-    r"|^\s*#{3,}\s*$"               # ###
-    r"|^\s*[_—–]{3,}\s*$",          # ___ or — or –
+    r"^\s*(\*\s*){2,}\s*\*\s*$"  # * * *
+    r"|^\s*(-\s*){2,}\s*-\s*$"  # - - -
+    r"|^\s*#{3,}\s*$"  # ###
+    r"|^\s*[_—–]{3,}\s*$",  # ___ or — or –
     re.MULTILINE,
 )
 
 
-def detect_structure_heuristic(paragraphs: list[ParsedParagraph]) -> list[BreakPosition]:
+def detect_structure_heuristic(
+    paragraphs: list[ParsedParagraph],
+) -> list[BreakPosition]:
     """
     Extract structural break positions from HTML heading tags and scene-break markers.
 
@@ -204,40 +221,50 @@ def detect_structure_heuristic(paragraphs: list[ParsedParagraph]) -> list[BreakP
         tag = para.tag
 
         if tag == "h1":
-            breaks.append(BreakPosition(
-                after_index=para.index - 1,  # break BEFORE this heading
-                level=0,
-                source="heuristic",
-                confidence=1.0,
-            ))
+            breaks.append(
+                BreakPosition(
+                    after_index=para.index - 1,  # break BEFORE this heading
+                    level=0,
+                    source="heuristic",
+                    confidence=1.0,
+                )
+            )
         elif tag == "h2":
-            breaks.append(BreakPosition(
-                after_index=para.index - 1,
-                level=1,
-                source="heuristic",
-                confidence=1.0,
-            ))
+            breaks.append(
+                BreakPosition(
+                    after_index=para.index - 1,
+                    level=1,
+                    source="heuristic",
+                    confidence=1.0,
+                )
+            )
         elif tag in ("h3", "h4", "h5", "h6"):
-            breaks.append(BreakPosition(
-                after_index=para.index - 1,
-                level=2,
-                source="heuristic",
-                confidence=0.9,
-            ))
+            breaks.append(
+                BreakPosition(
+                    after_index=para.index - 1,
+                    level=2,
+                    source="heuristic",
+                    confidence=0.9,
+                )
+            )
         elif tag == "hr":
-            breaks.append(BreakPosition(
-                after_index=para.index - 1,
-                level=2,
-                source="heuristic",
-                confidence=1.0,
-            ))
+            breaks.append(
+                BreakPosition(
+                    after_index=para.index - 1,
+                    level=2,
+                    source="heuristic",
+                    confidence=1.0,
+                )
+            )
         elif tag == "p" and _SCENE_BREAK_RE.match(para.text_preview):
-            breaks.append(BreakPosition(
-                after_index=para.index - 1,
-                level=2,
-                source="heuristic",
-                confidence=0.95,
-            ))
+            breaks.append(
+                BreakPosition(
+                    after_index=para.index - 1,
+                    level=2,
+                    source="heuristic",
+                    confidence=0.95,
+                )
+            )
 
     # Remove breaks with invalid negative indices (before the first paragraph)
     breaks = [b for b in breaks if b.after_index >= 0]
@@ -249,14 +276,22 @@ def detect_structure_heuristic(paragraphs: list[ParsedParagraph]) -> list[BreakP
 # Step 3: Apply breaks — split paragraphs into sections
 # ---------------------------------------------------------------------------
 
+
 class _Section:
     """Internal representation of a document section."""
-    def __init__(self, level: int, source: str, confidence: float, title_para: Optional[ParsedParagraph] = None):
+
+    def __init__(
+        self,
+        level: int,
+        source: str,
+        confidence: float,
+        title_para: Optional[ParsedParagraph] = None,
+    ):
         self.id = str(uuid.uuid4())
         self.level = level
         self.source = source
         self.confidence = confidence
-        self.title_para = title_para       # heading paragraph, if any
+        self.title_para = title_para  # heading paragraph, if any
         self.content_paras: list[ParsedParagraph] = []
         self.parent_id: Optional[str] = None
 
@@ -324,7 +359,9 @@ def apply_breaks(
     # Skip scene-break marker paragraphs (pure "* * *" / hr lines)
     skip_indices: set[int] = set()
     for para in paragraphs:
-        if para.tag == "hr" or (para.tag == "p" and _SCENE_BREAK_RE.match(para.text_preview)):
+        if para.tag == "hr" or (
+            para.tag == "p" and _SCENE_BREAK_RE.match(para.text_preview)
+        ):
             skip_indices.add(para.index)
 
     sections: list[_Section] = []
@@ -335,11 +372,13 @@ def apply_breaks(
         break_before = break_after.get(prev_index)
 
         # Determine if a new section should begin at this paragraph
-        start_new = break_before is not None or (
-            # Heading encountered without an explicit break → implicit new section
-            para.tag in _HEADING_TAGS and current_section is None
-        ) or (
-            para.tag in _HEADING_TAGS and current_section is not None
+        start_new = (
+            break_before is not None
+            or (
+                # Heading encountered without an explicit break → implicit new section
+                para.tag in _HEADING_TAGS and current_section is None
+            )
+            or (para.tag in _HEADING_TAGS and current_section is not None)
         )
 
         if start_new:
@@ -380,6 +419,7 @@ def apply_breaks(
 # ---------------------------------------------------------------------------
 # Step 4: Build preview tree
 # ---------------------------------------------------------------------------
+
 
 def build_preview_tree(
     sections: list[_Section],
@@ -436,28 +476,33 @@ def build_preview_tree(
         if sec.word_count > 3000 and sec.source == "heuristic" and sec.confidence < 0.8:
             warnings.append(
                 f"Large unstructured block (~{sec.word_count} words). "
-                "Consider using 'Get AI Suggestions' to detect scene breaks."
+                "Consider using 'Auto-segment' to detect scene breaks."
             )
 
-        nodes.append(PreviewNode(
-            id=sec.id,
-            parent_id=parent_id,
-            title=sec.title or f"Untitled {_level_type(sec.level).title()}",
-            level=sec.level,
-            level_type=_level_type(sec.level),
-            content_preview=sec.content_preview,
-            word_count=sec.word_count,
-            source=sec.source,
-            confidence=sec.confidence,
-            needs_review=sec.confidence < 0.7 or (not sec.title and sec.word_count > 500),
-            paragraph_start=sec.paragraph_start,
-            paragraph_end=sec.paragraph_end,
-        ))
+        nodes.append(
+            PreviewNode(
+                id=sec.id,
+                parent_id=parent_id,
+                title=sec.title or f"Untitled {_level_type(sec.level).title()}",
+                level=sec.level,
+                level_type=_level_type(sec.level),
+                content_preview=sec.content_preview,
+                word_count=sec.word_count,
+                source=sec.source,
+                confidence=sec.confidence,
+                needs_review=sec.confidence < 0.7
+                or (not sec.title and sec.word_count > 500),
+                paragraph_start=sec.paragraph_start,
+                paragraph_end=sec.paragraph_end,
+            )
+        )
 
     total_words = sum(p.word_count for p in paragraphs)
     has_only_one_node = len(nodes) == 1
     if has_only_one_node and total_words > 1000:
-        warnings.append("Document has no detectable structure. Use 'Get AI Suggestions' to find scene breaks.")
+        warnings.append(
+            "Document has no detectable structure. Use 'Auto-segment' to find scene breaks."
+        )
 
     return ImportPreviewTree(
         session_id=session_id,
@@ -475,7 +520,10 @@ def build_preview_tree(
 # Step 5 (optional): AI structure detection
 # ---------------------------------------------------------------------------
 
-def _build_ai_prompt(paragraphs: list[ParsedParagraph], template_levels: list[dict]) -> str:
+
+def _build_ai_prompt(
+    paragraphs: list[ParsedParagraph], template_levels: list[dict]
+) -> str:
     level_names = " → ".join(t["name"] for t in template_levels)
     lines = [
         "You are analyzing a document to identify its structure.",
@@ -496,13 +544,13 @@ def _build_ai_prompt(paragraphs: list[ParsedParagraph], template_levels: list[di
     lines += [
         "",
         "Return a JSON object with this exact schema:",
-        '{',
+        "{",
         '  "scene_breaks_after": [<list of int paragraph indices>],',
         '  "chapter_breaks_after": [<list of int paragraph indices>],',
         '  "part_breaks_after": [<list of int paragraph indices>],',
         '  "title_suggestions": {"<paragraph_index>": "<suggested title>"},',
         '  "reasoning": "<brief explanation of key decisions>"',
-        '}',
+        "}",
         "",
         "Rules:",
         "- Only include indices where a break actually belongs.",
@@ -534,7 +582,9 @@ async def detect_structure_ai(
     sample = paragraphs[:max_paragraphs]
 
     feature_prompt = _build_ai_prompt(sample, template_levels)
-    messages = [{"role": "user", "content": "Analyze the document structure as instructed."}]
+    messages = [
+        {"role": "user", "content": "Analyze the document structure as instructed."}
+    ]
 
     result: StructuredResult = await ai_gateway.generate_structured(
         response_model=AIBreakSuggestion,
@@ -557,25 +607,36 @@ async def detect_structure_ai(
     if result.success and result.data:
         data = result.data
     elif result.raw_data and isinstance(result.raw_data, dict):
-        logger.info("AI structure detection: using raw_data fallback (schema validation failed)")
+        logger.info(
+            "AI structure detection: using raw_data fallback (schema validation failed)"
+        )
         data = result.raw_data
     else:
         logger.warning("AI structure detection: no usable data in response")
-        return [], None  # Return empty breaks rather than 503 — Ollama ran but found nothing
+        return (
+            [],
+            None,
+        )  # Return empty breaks rather than 503 — Ollama ran but found nothing
     max_idx = len(paragraphs) - 1
     breaks: list[BreakPosition] = []
 
     for idx in data.get("scene_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(BreakPosition(after_index=idx, level=2, source="ai", confidence=0.75))
+            breaks.append(
+                BreakPosition(after_index=idx, level=2, source="ai", confidence=0.75)
+            )
 
     for idx in data.get("chapter_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(BreakPosition(after_index=idx, level=1, source="ai", confidence=0.70))
+            breaks.append(
+                BreakPosition(after_index=idx, level=1, source="ai", confidence=0.70)
+            )
 
     for idx in data.get("part_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(BreakPosition(after_index=idx, level=0, source="ai", confidence=0.65))
+            breaks.append(
+                BreakPosition(after_index=idx, level=0, source="ai", confidence=0.65)
+            )
 
     breaks.sort(key=lambda b: b.after_index)
     return breaks, None
@@ -596,7 +657,9 @@ def _merge_breaks(
 
     for ai_break in ai:
         # Skip if heuristic already placed a break nearby
-        near_existing = any(abs(ai_break.after_index - h_idx) <= 1 for h_idx in heuristic_indices)
+        near_existing = any(
+            abs(ai_break.after_index - h_idx) <= 1 for h_idx in heuristic_indices
+        )
         if not near_existing:
             merged.append(ai_break)
 
@@ -607,6 +670,7 @@ def _merge_breaks(
 # ---------------------------------------------------------------------------
 # User adjustments to preview tree
 # ---------------------------------------------------------------------------
+
 
 def apply_adjustment(
     preview: ImportPreviewTree,
@@ -623,7 +687,9 @@ def apply_adjustment(
 
     if adjustment.action == "rename" and adjustment.new_title:
         idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        nodes[idx] = target.model_copy(update={"title": adjustment.new_title, "source": "user"})
+        nodes[idx] = target.model_copy(
+            update={"title": adjustment.new_title, "source": "user"}
+        )
 
     elif adjustment.action == "relevel" and adjustment.new_level is not None:
         template_levels = preview.template_levels
@@ -635,12 +701,14 @@ def apply_adjustment(
             return template_levels[-1]["name"].lower()
 
         idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        nodes[idx] = target.model_copy(update={
-            "level": new_level,
-            "level_type": _level_type(new_level),
-            "source": "user",
-            "confidence": 1.0,
-        })
+        nodes[idx] = target.model_copy(
+            update={
+                "level": new_level,
+                "level_type": _level_type(new_level),
+                "source": "user",
+                "confidence": 1.0,
+            }
+        )
 
     elif adjustment.action == "merge_up":
         # Merge this node into its previous sibling (append content)
@@ -648,12 +716,14 @@ def apply_adjustment(
         if target_idx > 0:
             prev = nodes[target_idx - 1]
             merged_preview = (prev.content_preview + " " + target.content_preview)[:200]
-            nodes[target_idx - 1] = prev.model_copy(update={
-                "word_count": prev.word_count + target.word_count,
-                "content_preview": merged_preview,
-                "paragraph_end": target.paragraph_end,
-                "source": "user",
-            })
+            nodes[target_idx - 1] = prev.model_copy(
+                update={
+                    "word_count": prev.word_count + target.word_count,
+                    "content_preview": merged_preview,
+                    "paragraph_end": target.paragraph_end,
+                    "source": "user",
+                }
+            )
             nodes.pop(target_idx)
 
     # Re-assign parent_ids after any structural change
@@ -687,6 +757,7 @@ def _reassign_parents(nodes: list[PreviewNode]) -> list[PreviewNode]:
 # ---------------------------------------------------------------------------
 # Step 6: Create story from finalized preview
 # ---------------------------------------------------------------------------
+
 
 def create_story_from_import(
     preview: ImportPreviewTree,
@@ -764,3 +835,385 @@ def create_story_from_import(
     db.commit()
     db.refresh(story)
     return story
+
+
+# ---------------------------------------------------------------------------
+# Step 7 (optional): Entity extraction from imported content
+# ---------------------------------------------------------------------------
+
+
+def _assemble_node_html(node, paragraphs: list[ParsedParagraph]) -> str:
+    """Assemble HTML for a preview node from its paragraph range."""
+    para_map = {p.index: p for p in paragraphs}
+    parts = []
+    for idx in range(node.paragraph_start, node.paragraph_end + 1):
+        para = para_map.get(idx)
+        if para and para.tag not in ("h1", "h2", "h3", "h4", "h5", "h6", "hr"):
+            if not _SCENE_BREAK_RE.match(para.text_preview):
+                parts.append(para.html)
+    return "".join(parts)
+
+
+def _gather_excerpts(
+    candidate_name: str,
+    scene_ids: list[str],
+    preview_nodes,
+    paragraphs: list[ParsedParagraph],
+    occurrences: int = 10,
+) -> list[str]:
+    """
+    Gather prose excerpts for an entity from the scenes where it appears.
+    Context budget scales inversely with occurrence count — rare entities get
+    more context per mention since fewer examples are available.
+    """
+    from ..services.text_utils import html_to_text
+
+    # Rare characters need more context; frequent ones can sample less
+    max_chars = max(1500, min(4000, int(5000 - (occurrences * 70))))
+
+    node_map = {n.id: n for n in preview_nodes}
+    excerpts: list[str] = []
+    total_chars = 0
+
+    for scene_id in scene_ids:
+        node = node_map.get(scene_id)
+        if not node:
+            continue
+        html = _assemble_node_html(node, paragraphs)
+        text = html_to_text(html).strip()
+        if not text:
+            continue
+
+        # Find the portion around the entity name mention (~800 chars centered)
+        lower_text = text.lower()
+        lower_name = candidate_name.lower()
+        idx = lower_text.find(lower_name)
+        if idx >= 0:
+            start = max(0, idx - 200)
+            end = min(len(text), idx + len(candidate_name) + 600)
+            snippet = text[start:end].strip()
+        else:
+            snippet = text[:800].strip()
+
+        header = f"[{node.title}]"
+        excerpt = f"{header}\n{snippet}"
+        if total_chars + len(excerpt) > max_chars:
+            break
+        excerpts.append(excerpt)
+        total_chars += len(excerpt)
+
+    return excerpts
+
+
+def extract_entities_nlp(
+    paragraphs: list[ParsedParagraph],
+    preview_nodes,
+    options,
+) -> list:
+    """
+    Run spaCy NER across preview nodes and return entity candidates.
+    Returns list of ExtractionCandidate objects.
+    """
+    from ..services.nlp_analysis_service import extract_unknown_entities
+    from ..schemas.import_extraction import ExtractionCandidate
+    import uuid as _uuid
+
+    # Build "scenes" from preview nodes
+    scenes = []
+    for node in preview_nodes:
+        html = _assemble_node_html(node, paragraphs)
+        if html.strip():
+            scenes.append((node.id, node.title, html))
+
+    if not scenes:
+        return []
+
+    result = extract_unknown_entities(scenes, set(), set())
+
+    candidates: list[ExtractionCandidate] = []
+
+    if options.characters_nlp:
+        for suggestion in result.character_suggestions:
+            if suggestion.occurrences < 2:
+                continue
+            candidates.append(
+                ExtractionCandidate(
+                    id=str(_uuid.uuid4()),
+                    name=suggestion.text,
+                    entity_type="character",
+                    source="nlp",
+                    occurrences=suggestion.occurrences,
+                    scene_count=suggestion.scene_count,
+                    confidence=min(0.5 + suggestion.occurrences * 0.05, 0.95),
+                    scene_ids=suggestion.scene_ids,
+                )
+            )
+
+    if options.locations_nlp:
+        for suggestion in result.location_suggestions:
+            if suggestion.occurrences < 2:
+                continue
+            candidates.append(
+                ExtractionCandidate(
+                    id=str(_uuid.uuid4()),
+                    name=suggestion.text,
+                    entity_type="location",
+                    source="nlp",
+                    occurrences=suggestion.occurrences,
+                    scene_count=suggestion.scene_count,
+                    confidence=min(0.4 + suggestion.occurrences * 0.05, 0.9),
+                    scene_ids=suggestion.scene_ids,
+                )
+            )
+
+    return candidates
+
+
+async def extract_entities_ai(
+    candidates: list,
+    paragraphs: list[ParsedParagraph],
+    preview_nodes,
+    options,
+    ctx,
+    db: Session,
+    user,
+) -> list:
+    """
+    Enrich NLP candidates with AI-extracted attributes.
+
+    Character and location extractions run concurrently (bounded by semaphore)
+    since each is an independent Ollama call. Relationship detection runs after,
+    as it depends on the enriched character list.
+    """
+    from ..services.llm.gateway import ai_gateway
+    from ..schemas.import_extraction import (
+        ExtractedCharacter,
+        ExtractedLocation,
+        ExtractedRelationship,
+        ExtractionCandidate,
+    )
+    from .llm.prompts.import_extraction import (
+        build_character_extraction_prompt,
+        build_location_extraction_prompt,
+        build_relationship_extraction_prompt,
+    )
+    import uuid as _uuid
+
+    # Local Ollama processes one request at a time on a single GPU, but allowing
+    # a small buffer of concurrent requests pipelines HTTP overhead and keeps
+    # Ollama's queue fed, reducing total wall time.
+    _AI_CONCURRENCY = 3
+    semaphore = asyncio.Semaphore(_AI_CONCURRENCY)
+
+    async def _enrich_character(index: int, candidate):
+        excerpts = _gather_excerpts(candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences)
+        prompt = build_character_extraction_prompt(candidate.name, candidate.occurrences, excerpts)
+        async with semaphore:
+            result = await ai_gateway.generate_structured(
+                response_model=ExtractedCharacter,
+                messages=[{"role": "user", "content": f"Extract character details for: {candidate.name}"}],
+                feature_prompt=prompt,
+                context=ctx,
+                db=db,
+                user=user,
+                include_core_prompt=False,
+            )
+        if result.success and result.data:
+            extracted = ExtractedCharacter.model_validate(result.data)
+            return index, candidate.model_copy(update={"extracted_character": extracted, "source": "ai"})
+        return index, candidate
+
+    async def _enrich_location(index: int, candidate):
+        excerpts = _gather_excerpts(candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences)
+        prompt = build_location_extraction_prompt(candidate.name, candidate.occurrences, excerpts)
+        async with semaphore:
+            result = await ai_gateway.generate_structured(
+                response_model=ExtractedLocation,
+                messages=[{"role": "user", "content": f"Extract location details for: {candidate.name}"}],
+                feature_prompt=prompt,
+                context=ctx,
+                db=db,
+                user=user,
+                include_core_prompt=False,
+            )
+        if result.success and result.data:
+            extracted = ExtractedLocation.model_validate(result.data)
+            return index, candidate.model_copy(update={"extracted_location": extracted, "source": "ai"})
+        return index, candidate
+
+    # Build concurrent tasks for all character and location candidates
+    tasks = []
+    for i, candidate in enumerate(candidates):
+        if candidate.entity_type == "character" and options.characters_ai:
+            tasks.append(_enrich_character(i, candidate))
+        elif candidate.entity_type == "location" and options.locations_ai:
+            tasks.append(_enrich_location(i, candidate))
+
+    enriched = list(candidates)
+    if tasks:
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for result in results:
+            if isinstance(result, Exception):
+                logger.warning("AI enrichment task failed: %s", result)
+                continue
+            idx, updated = result
+            enriched[idx] = updated
+
+    # Relationship detection runs after enrichment (depends on enriched char list).
+    # Pair discovery and AI calls for relationships also run concurrently.
+    if options.relationships_ai:
+        char_candidates = [c for c in enriched if c.entity_type == "character"]
+
+        scene_to_chars: dict[str, list] = {}
+        for cand in char_candidates:
+            for sid in cand.scene_ids:
+                scene_to_chars.setdefault(sid, []).append(cand)
+
+        pair_scenes: dict[tuple[str, str], list[str]] = {}
+        for scene_id, chars in scene_to_chars.items():
+            for j in range(len(chars)):
+                for k in range(j + 1, len(chars)):
+                    a, b = chars[j], chars[k]
+                    key = (min(a.name, b.name), max(a.name, b.name))
+                    pair_scenes.setdefault(key, []).append(scene_id)
+
+        from ..services.text_utils import html_to_text
+        node_map = {n.id: n for n in preview_nodes}
+
+        async def _detect_relationship(name_a: str, name_b: str, shared_scenes: list[str]):
+            excerpts = []
+            for scene_id in shared_scenes[:3]:
+                node = node_map.get(scene_id)
+                if node:
+                    text = html_to_text(_assemble_node_html(node, paragraphs)).strip()
+                    if text:
+                        excerpts.append(f"[{node.title}]\n{text[:600]}")
+            if not excerpts:
+                return None
+            prompt = build_relationship_extraction_prompt(name_a, name_b, excerpts)
+            async with semaphore:
+                result = await ai_gateway.generate_structured(
+                    response_model=ExtractedRelationship,
+                    messages=[{"role": "user", "content": f"Determine relationship between {name_a} and {name_b}"}],
+                    feature_prompt=prompt,
+                    context=ctx,
+                    db=db,
+                    user=user,
+                    include_core_prompt=False,
+                )
+            if result.success and result.data:
+                extracted = ExtractedRelationship.model_validate(result.data)
+                if extracted.confidence >= 0.4:
+                    return ExtractionCandidate(
+                        id=str(_uuid.uuid4()),
+                        name=f"{name_a} ↔ {name_b}",
+                        entity_type="relationship",
+                        source="ai",
+                        occurrences=len(shared_scenes),
+                        scene_count=len(shared_scenes),
+                        confidence=extracted.confidence,
+                        char_a_name=name_a,
+                        char_b_name=name_b,
+                        extracted_relationship=extracted,
+                    )
+            return None
+
+        rel_tasks = [
+            _detect_relationship(name_a, name_b, scenes)
+            for (name_a, name_b), scenes in pair_scenes.items()
+            if len(scenes) >= 2
+        ]
+        if rel_tasks:
+            rel_results = await asyncio.gather(*rel_tasks, return_exceptions=True)
+            for rel in rel_results:
+                if rel and not isinstance(rel, Exception):
+                    enriched.append(rel)
+
+    return enriched
+
+
+def create_entities_from_extraction(
+    candidates: list,
+    selected_ids: set[str],
+    story_id: str,
+    db: Session,
+) -> dict:
+    """
+    Create Character, Location, and CharacterRelationship records from
+    approved extraction candidates.
+    Returns counts of created entities.
+    """
+    from ..models.character import Character, CharacterRelationship
+    from ..models.location import Location
+    import uuid as _uuid
+
+    char_name_to_id: dict[str, str] = {}
+    counts = {
+        "created_characters": 0,
+        "created_locations": 0,
+        "created_relationships": 0,
+    }
+
+    for candidate in candidates:
+        if candidate.id not in selected_ids:
+            continue
+
+        if candidate.entity_type == "character":
+            char_id = str(_uuid.uuid4())
+            char_name_to_id[candidate.name] = char_id
+            data = candidate.extracted_character or {}
+            if hasattr(data, "model_dump"):
+                data = data.model_dump()
+            char = Character(
+                id=char_id,
+                story_id=story_id,
+                name=candidate.name,
+                role=data.get("role", "") or "",
+                personality=data.get("personality", "") or "",
+                motivation=data.get("motivation", "") or "",
+                appearance=data.get("appearance", "") or "",
+                background=data.get("background", "") or "",
+            )
+            db.add(char)
+            counts["created_characters"] += 1
+
+        elif candidate.entity_type == "location":
+            data = candidate.extracted_location or {}
+            if hasattr(data, "model_dump"):
+                data = data.model_dump()
+            loc = Location(
+                id=str(_uuid.uuid4()),
+                story_id=story_id,
+                name=candidate.name,
+                location_type=data.get("location_type", "") or "",
+                description=data.get("description", "") or "",
+                atmosphere=data.get("atmosphere", "") or "",
+                significance=data.get("significance", "") or "",
+            )
+            db.add(loc)
+            counts["created_locations"] += 1
+
+    # Second pass: create relationships (need character IDs from first pass)
+    for candidate in candidates:
+        if candidate.id not in selected_ids or candidate.entity_type != "relationship":
+            continue
+        char_a_id = char_name_to_id.get(candidate.char_a_name or "")
+        char_b_id = char_name_to_id.get(candidate.char_b_name or "")
+        if not char_a_id or not char_b_id:
+            continue
+        data = candidate.extracted_relationship or {}
+        if hasattr(data, "model_dump"):
+            data = data.model_dump()
+        rel = CharacterRelationship(
+            id=str(_uuid.uuid4()),
+            character_id=char_a_id,
+            related_character_id=char_b_id,
+            relationship_type=data.get("relationship_type", "acquaintance")
+            or "acquaintance",
+            description=data.get("description", "") or "",
+        )
+        db.add(rel)
+        counts["created_relationships"] += 1
+
+    db.commit()
+    return counts

@@ -1,0 +1,158 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+.svgWrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Status/loading overlays — positioned inside svgWrap (always mounted for wheel listener) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.emptyHint {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Controls ── */
+.resetBtn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition), color var(--transition);
+}
+
+.resetBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.zoomLabel {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 3rem;
+  font-size: 0.7rem;
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.2rem 0.45rem;
+  box-shadow: var(--shadow-xs);
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Legend ── */
+.legend {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.625rem 1.25rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  min-height: 2.25rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+/* Horizontal line swatch for edge color */
+.legendLine {
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+/* Small arrowhead for directional types */
+.legendArrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid currentColor;
+  flex-shrink: 0;
+}
+
+/* Status dot section in legend */
+.legendStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  margin-left: 0.25rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--color-border);
+}
+
+.statusDot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.legendCount {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  margin-left: auto;
+}

@@ -60,3 +60,6 @@ snapshots/
 uploads/
 
 .claude
+.mcp.json
+.chunkhound.json
+.chunkhound/

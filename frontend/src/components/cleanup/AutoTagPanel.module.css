@@ -8,6 +8,7 @@
 .toolbar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.6rem;
   flex-wrap: wrap;
 }
@@ -18,16 +19,19 @@
   gap: 0.35rem;
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-ai);
-  background: color-mix(in srgb, var(--color-ai) 8%, transparent);
-  color: var(--color-ai);
+  border: 1px solid var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
+  color: var(--color-nlp);
   font-size: 0.78rem;
+  font-family: inherit;
   cursor: pointer;
   transition: background var(--transition);
+  margin-bottom: 0.75rem;
+
 }
 
 .scanBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-ai) 16%, transparent);
+  background: color-mix(in srgb, var(--color-nlp) 16%, transparent);
 }
 
 .scanBtn:disabled {
@@ -42,7 +46,7 @@
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-ai);
+  background: var(--color-nlp);
   color: white;
   font-size: 0.78rem;
   cursor: pointer;
@@ -168,7 +172,7 @@
   border: none;
   cursor: pointer;
   font-size: 0.72rem;
-  color: var(--color-ai);
+  color: var(--color-nlp);
   padding: 0;
 }
 
@@ -195,8 +199,8 @@
 }
 
 .cardSelected {
-  border-color: var(--color-ai);
-  background: color-mix(in srgb, var(--color-ai) 5%, transparent);
+  border-color: var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 5%, transparent);
 }
 
 .cardTop {
@@ -218,7 +222,7 @@
 }
 
 .cardSelected .checkbox {
-  color: var(--color-ai);
+  color: var(--color-nlp);
 }
 
 .quote {
@@ -248,7 +252,7 @@
 }
 
 .dotFilled {
-  background: var(--color-ai);
+  background: var(--color-nlp);
 }
 
 .excerpt {
@@ -273,7 +277,7 @@
 .speakerFixed {
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--color-ai);
+  color: var(--color-nlp);
 }
 
 .noSpeaker {
@@ -303,7 +307,7 @@
 
 .speakerInput:focus {
   outline: none;
-  border-color: var(--color-ai);
+  border-color: var(--color-nlp);
 }
 
 .speakerDropdown {
@@ -349,7 +353,7 @@
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-ai);
+  background: var(--color-nlp);
   color: white;
   font-size: 0.78rem;
   cursor: pointer;

@@ -2217,6 +2217,7 @@ HEALTH_FEATURES = {
     "cliche-analysis",
     "character-dimensionality",
     "scene-summary-batch",
+    "voice-fidelity",
 }
 
 

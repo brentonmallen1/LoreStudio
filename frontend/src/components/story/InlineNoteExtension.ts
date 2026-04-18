@@ -23,15 +23,22 @@ function buildGutterDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
   doc.descendants((node, pos) => {
     if (!node.isBlock) return;
-    let firstNoteId: string | null = null;
+    let firstAuthorNoteId: string | null = null;
+    let firstEditorialNoteId: string | null = null;
     node.forEach((inline) => {
-      if (!firstNoteId) {
-        const m = inline.marks.find((mk) => mk.type.name === "inlineNote");
-        if (m) firstNoteId = m.attrs.noteId as string;
+      const m = inline.marks.find((mk) => mk.type.name === "inlineNote");
+      if (m) {
+        const noteType = m.attrs.noteType as string | null;
+        if (noteType === "editorial" && !firstEditorialNoteId) {
+          firstEditorialNoteId = m.attrs.noteId as string;
+        } else if (noteType !== "editorial" && !firstAuthorNoteId) {
+          firstAuthorNoteId = m.attrs.noteId as string;
+        }
       }
     });
-    if (firstNoteId) {
-      const noteId = firstNoteId;
+
+    if (firstAuthorNoteId) {
+      const noteId = firstAuthorNoteId;
       const el = document.createElement("button");
       el.type = "button";
       el.className = "note-gutter-marker";
@@ -41,7 +48,22 @@ function buildGutterDecos(doc: PMNode): DecorationSet {
         _cb.onNoteActivate(noteId, el.getBoundingClientRect());
       });
       decos.push(
-        Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}` })
+        Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:author` })
+      );
+    }
+
+    if (firstEditorialNoteId) {
+      const noteId = firstEditorialNoteId;
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "note-gutter-marker note-gutter-marker--editorial";
+      el.setAttribute("aria-label", "View editorial note");
+      el.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        _cb.onNoteActivate(noteId, el.getBoundingClientRect());
+      });
+      decos.push(
+        Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:editorial` })
       );
     }
   });
@@ -58,10 +80,13 @@ export const InlineNoteExtension = Mark.create({
       noteId: {
         default: null,
         parseHTML: (el) => (el as HTMLElement).getAttribute("data-note-id"),
-        renderHTML: (attrs) => ({
-          "data-note-id": attrs.noteId,
-          class: "note-anchor",
-        }),
+        renderHTML: (attrs) => ({ "data-note-id": attrs.noteId }),
+      },
+      noteType: {
+        default: "author",
+        parseHTML: (el) =>
+          (el as HTMLElement).getAttribute("data-note-type") ?? "author",
+        renderHTML: (attrs) => ({ "data-note-type": attrs.noteType }),
       },
     };
   },
@@ -71,7 +96,15 @@ export const InlineNoteExtension = Mark.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ["span", mergeAttributes(HTMLAttributes), 0];
+    const isEditorial = HTMLAttributes["data-note-type"] === "editorial";
+    const cls = isEditorial
+      ? "note-anchor note-anchor--editorial"
+      : "note-anchor";
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, { class: cls }),
+      0,
+    ];
   },
 
   addKeyboardShortcuts() {

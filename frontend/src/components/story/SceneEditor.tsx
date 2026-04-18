@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location, Twist } from "../../types";
+import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location, Twist, StoryTodo } from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -29,9 +29,19 @@ import {
   isDialogueModeActive,
   setDialogueModeActive,
 } from "./DialogueExtension";
-import DialogueSyntaxGuide from "../help/DialogueSyntaxGuide";
-import MICEGuide from "../help/MICEGuide";
-import EssentialQuestionsGuide from "../help/EssentialQuestionsGuide";
+import {
+  SlashCommandExtension,
+  setSlashCallbacks,
+  setSlashIsOpen,
+  SLASH_COMMANDS,
+} from "./SlashCommandExtension";
+import {
+  TodoExtension,
+  setTodoGutterItems,
+  setTodoGutterCallbacks,
+  FORCE_TODO_REBUILD,
+} from "./TodoExtension";
+import WritingGuidesModal, { type WritingGuideTab } from "../help/WritingGuidesModal";
 import AutoTagDialoguePanel from "./AutoTagDialoguePanel";
 import AutoLinkEntitiesPanel from "./AutoLinkEntitiesPanel";
 import AssetPicker from "../media/AssetPicker";
@@ -107,8 +117,8 @@ import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, characters, setCharacters, beatSheets } = useStoryStore();
-  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel, sceneSearchOpen, openSceneSearch, closeSceneSearch } = useUIStore();
+  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, setStructure, characters, setCharacters, beatSheets } = useStoryStore();
+  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel, sceneSearchOpen, openSceneSearch, closeSceneSearch, dialogueInsertTrigger, writingGuidesTab, openWritingGuides, closeWritingGuides } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const [showGuideMenu, setShowGuideMenu] = useState(false);
   const guideMenuRef = useRef<HTMLDivElement>(null);
@@ -116,11 +126,12 @@ export default function SceneEditor() {
   const navigate = useNavigate();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const overviewSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
-  const [showDialogueGuide, setShowDialogueGuide] = useState(false);
-  const [showMICEGuide, setShowMICEGuide] = useState(false);
-  const [showEssentialGuide, setShowEssentialGuide] = useState(false);
+  const [writingGuidesLocalTab, setWritingGuidesLocalTab] = useState<WritingGuideTab>("dialogue");
   const [showAutoTag, setShowAutoTag] = useState(false);
   const [showAutoLink, setShowAutoLink] = useState(false);
   const [dialogueIsolation, setDialogueIsolation] = useState(false);
@@ -167,6 +178,7 @@ export default function SceneEditor() {
 
   // Inline notes state
   const [inlineNotes, setInlineNotes] = useState<InlineNote[]>([]);
+  const [hideEditorialNotes, setHideEditorialNotes] = useState(false);
   type NotePopover =
     | { open: false }
     | { open: true; isNew: true; from: number; to: number; anchor: string; rect: DOMRect | null }
@@ -174,6 +186,21 @@ export default function SceneEditor() {
   const [notePopover, setNotePopover] = useState<NotePopover>({ open: false });
   const [noteInputText, setNoteInputText] = useState("");
   const [noteEditText, setNoteEditText] = useState("");
+
+  // Slash command picker state
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashPos, setSlashPos] = useState({ bottom: 0, left: 0 });
+  const [slashQuery, setSlashQuery] = useState("");
+  const [slashRange, setSlashRange] = useState<{ from: number; to: number } | null>(null);
+  const [slashSelIdx, setSlashSelIdx] = useState(0);
+
+  // Todo gutter state
+  const [sceneTodos, setSceneTodos] = useState<StoryTodo[]>([]);
+  // Inline todo input (shown when /todo is executed)
+  const [todoInputOpen, setTodoInputOpen] = useState(false);
+  const [todoInputPos, setTodoInputPos] = useState({ bottom: 0, left: 0 });
+  const [todoInputText, setTodoInputText] = useState("");
+  const [todoInputDocFrom, setTodoInputDocFrom] = useState<number | null>(null);
 
   // @mention autocomplete state
   const [mentionAllItems, setMentionAllItems] = useState<MentionItem[]>([]);
@@ -244,7 +271,9 @@ export default function SceneEditor() {
       InlineNoteExtension,
       InlineImageExtension,
       MentionDropdownExtension,
+      SlashCommandExtension,
       DialogueExtension,
+      TodoExtension,
       SearchAndReplaceExtension,
     ],
     content: activeNode?.content ?? "",
@@ -355,6 +384,49 @@ export default function SceneEditor() {
     api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
     api.getTwistsForScene(activeNode.id).then(setLinkedTwists).catch(() => {});
   }, [activeNode?.id]);
+
+  // Load scene todos for gutter markers
+  useEffect(() => {
+    if (!activeNode) { setSceneTodos([]); setTodoGutterItems([]); return; }
+    api.getTodosForScene(activeNode.id).then((todos) => {
+      setSceneTodos(todos);
+      setTodoGutterItems(todos.filter((t) => t.doc_from != null).map((t) => ({
+        id: t.id,
+        content: t.content,
+        done: t.done,
+        doc_from: t.doc_from!,
+      })));
+      // Force decoration rebuild after async load
+      // (editor may already exist at this point)
+    }).catch(() => {});
+  }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync todo gutter items whenever sceneTodos changes
+  useEffect(() => {
+    setTodoGutterItems(sceneTodos.filter((t) => t.doc_from != null && !t.done).map((t) => ({
+      id: t.id,
+      content: t.content,
+      done: t.done,
+      doc_from: t.doc_from!,
+    })));
+    // Ask the editor to rebuild decorations
+    if (editor) {
+      const { state, dispatch } = editor.view;
+      const tr = state.tr.setMeta(FORCE_TODO_REBUILD, true);
+      dispatch(tr);
+    }
+  }, [sceneTodos, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Wire todo gutter callbacks
+  useEffect(() => {
+    setTodoGutterCallbacks({
+      onMarkerClick: (_todoId) => {
+        // Navigate to list view to see/edit the todo
+        const { setViewMode } = useUIStore.getState();
+        setViewMode("todos");
+      },
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load scene settings (location links) when active node/story changes
   useEffect(() => {
@@ -550,6 +622,8 @@ export default function SceneEditor() {
         mentionSelIdxRef.current = 0;
       },
       onClose: () => {
+        // Don't close when dialogue picker is open — it reuses the same dropdown
+        if (isDialogueModeActive()) return;
         setMentionOpen_(false);
         setMentionIsOpen(false);
       },
@@ -589,9 +663,8 @@ export default function SceneEditor() {
     api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => setDialogueBlocks([]));
   }, [dialogueIsolation, activeNode?.id]);
 
-  // Wire up ^ dialogue-mode callbacks — reuses the same mention dropdown but marks it dialogue mode.
-  // ^ detection lives in MentionDropdownExtension (registered first) to avoid plugin ordering
-  // conflicts; /dialogue slash command detection remains in DialogueExtension.
+  // Wire up ^ dialogue-mode callbacks — reuses the mention dropdown in dialogue mode.
+  // ^ detection lives in MentionDropdownExtension; /dialogue is handled by SlashCommandExtension.
   useEffect(() => {
     const openDialogueDropdown = (query: string, bottom: number, left: number) => {
       setDialogueModeActive(true);
@@ -632,21 +705,128 @@ export default function SceneEditor() {
       },
     );
 
-    // /dialogue slash command is detected by DialogueExtension
-    setDialogueCallbacks({
-      onSlashDialogue: (slashFrom, slashTo, bottom, left) => {
-        // Erase the /dialogue text, then open picker in dialogue mode
-        if (editor) {
-          editor.chain().focus().command(({ tr, dispatch }) => {
-            if (dispatch) tr.delete(slashFrom, slashTo);
-            return true;
-          }).run();
-        }
-        openDialogueDropdown("", bottom, left);
+    setDialogueCallbacks({});
+  }, []); // stable — no editor dependency needed
+
+  // Wire up slash command picker callbacks
+  useEffect(() => {
+    setSlashCallbacks({
+      onOpen: (query, slashFrom, slashTo, bottom, left) => {
+        setSlashQuery(query);
+        setSlashRange({ from: slashFrom, to: slashTo });
+        setSlashPos({ bottom, left });
+        setSlashOpen(true);
+        setSlashIsOpen(true);
+        setSlashSelIdx(0);
+      },
+      onClose: () => {
+        setSlashOpen(false);
+        setSlashIsOpen(false);
+        setSlashQuery("");
+        setSlashRange(null);
+      },
+      onArrowDown: () => setSlashSelIdx((i) => Math.min(i + 1, SLASH_COMMANDS.length - 1)),
+      onArrowUp: () => setSlashSelIdx((i) => Math.max(i - 1, 0)),
+      onExecute: () => {
+        if (!editor || !slashRange) return;
+        const matchingCmds = SLASH_COMMANDS.filter((c) => c.name.startsWith(slashQuery));
+        const cmd = matchingCmds[slashSelIdx] ?? matchingCmds[0];
+        if (!cmd) return;
+        executeSlashCommand(cmd.name, slashRange.from, slashRange.to);
       },
     });
-  }, [editor]); // editor used in onSlashDialogue
+  }, [editor, slashRange, slashQuery, slashSelIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Execute a slash command by name — called from keyboard handler (safe to dispatch)
+  function executeSlashCommand(name: string, slashFrom: number, slashTo: number) {
+    // Close the slash picker first
+    setSlashOpen(false);
+    setSlashIsOpen(false);
+    setSlashQuery("");
+    setSlashRange(null);
+
+    if (!editor) return;
+
+    if (name === "dialogue") {
+      // Set dialogue mode BEFORE dispatching so the onClose guard in mention callbacks holds
+      setDialogueModeActive(true);
+      // Delete the slash text (/dialogue or partial like /d)
+      const coords = editor.view.coordsAtPos(slashFrom);
+      editor.chain().command(({ tr, dispatch }) => {
+        if (dispatch) tr.delete(slashFrom, slashTo);
+        return true;
+      }).run();
+      // Open the dialogue speaker picker
+      setMentionQuery("");
+      setMentionPos({ bottom: coords.bottom, left: coords.left });
+      setMentionOpen_(true);
+      setMentionIsOpen(true);
+      setDialogueModeDropdown(true);
+      setMentionSelIdx(0);
+      mentionSelIdxRef.current = 0;
+    }
+
+    if (name === "todo") {
+      const coords = editor.view.coordsAtPos(slashFrom);
+      // Delete the slash text, capture cursor position for the todo
+      const docFrom = slashFrom;
+      editor.chain().command(({ tr, dispatch }) => {
+        if (dispatch) tr.delete(slashFrom, slashTo);
+        return true;
+      }).run();
+      // Open the inline todo input
+      setTodoInputDocFrom(docFrom);
+      setTodoInputText("");
+      setTodoInputPos({ bottom: coords.bottom, left: coords.left });
+      setTodoInputOpen(true);
+    }
+  }
+
+  // Submit the inline todo input created by /todo
+  async function submitTodoInput() {
+    const content = todoInputText.trim();
+    if (!content || !activeNode || !activeStory) {
+      setTodoInputOpen(false);
+      return;
+    }
+    setTodoInputOpen(false);
+    try {
+      const newTodo = await api.createTodo(activeStory.id, {
+        content,
+        node_id: activeNode.id,
+        doc_from: todoInputDocFrom,
+        doc_to: todoInputDocFrom,
+      });
+      setSceneTodos((prev) => [...prev, newTodo]);
+    } catch {
+      // ignore — todo will be visible in list view
+    }
+  }
+
+  // Command palette → dialogue insert trigger
+  const prevDialogueInsertTrigger = useRef(dialogueInsertTrigger);
+  useEffect(() => {
+    if (dialogueInsertTrigger === prevDialogueInsertTrigger.current) return;
+    prevDialogueInsertTrigger.current = dialogueInsertTrigger;
+    if (!editor) return;
+    editor.commands.focus();
+    const { from } = editor.state.selection;
+    const coords = editor.view.coordsAtPos(from);
+    // Open the dialogue speaker picker (same effect as pressing ^)
+    setDialogueModeActive(true);
+    setMentionQuery("");
+    setMentionPos({ bottom: coords.bottom, left: coords.left });
+    setMentionOpen_(true);
+    setMentionIsOpen(true);
+    setDialogueModeDropdown(true);
+    setMentionSelIdx(0);
+    mentionSelIdxRef.current = 0;
+  }, [dialogueInsertTrigger, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Command palette → writing guides modal
+  useEffect(() => {
+    if (writingGuidesTab) setWritingGuidesLocalTab(writingGuidesTab);
+  }, [writingGuidesTab]);
 
   // Hover card event delegation — stable listener that reads from refs
   useEffect(() => {
@@ -1057,6 +1237,24 @@ export default function SceneEditor() {
     setActiveNode({ ...activeNode, ...updated });
   }
 
+  async function saveTitleEdit() {
+    setEditingTitle(false);
+    if (!activeNode) return;
+    const trimmed = editTitleValue.trim();
+    if (!trimmed || trimmed === activeNode.title) return;
+    const nodeId = activeNode.id;
+    await api.updateNode(nodeId, { title: trimmed });
+    function patchTitle(nodes: StructureNode[]): StructureNode[] {
+      return nodes.map((n) =>
+        n.id === nodeId
+          ? { ...n, title: trimmed }
+          : { ...n, children: patchTitle(n.children ?? []) }
+      );
+    }
+    setStructure(patchTitle(structure));
+    setActiveNode({ ...activeNode, title: trimmed });
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.topbar}>
@@ -1098,7 +1296,28 @@ export default function SceneEditor() {
               {levelLabel}
             </span>
           )}
-          <span className={styles.nodeTitle}>{activeNode.title}</span>
+          {editingTitle ? (
+            <input
+              ref={titleInputRef}
+              className={styles.nodeTitleInput}
+              value={editTitleValue}
+              autoFocus
+              onChange={(e) => setEditTitleValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { e.preventDefault(); saveTitleEdit(); }
+                if (e.key === "Escape") setEditingTitle(false);
+              }}
+              onBlur={saveTitleEdit}
+            />
+          ) : (
+            <span
+              className={styles.nodeTitle}
+              onClick={() => { setEditTitleValue(activeNode.title); setEditingTitle(true); }}
+              title="Click to rename"
+            >
+              {activeNode.title}
+            </span>
+          )}
           <button
             className={`${styles.statusBadge} ${statusClass}`}
             onClick={cycleStatus}
@@ -1172,7 +1391,7 @@ export default function SceneEditor() {
                   <div className={styles.guideMenuDivider} />
                   <div className={styles.guideMenuLabel}>Reference</div>
                   <button
-                    onClick={() => { setShowDialogueGuide(true); setShowGuideMenu(false); }}
+                    onClick={() => { setWritingGuidesLocalTab("dialogue"); openWritingGuides("dialogue"); setShowGuideMenu(false); }}
                     className={styles.guideMenuItem}
                     title="Learn how to attribute dialogue to characters"
                   >
@@ -1180,7 +1399,7 @@ export default function SceneEditor() {
                     Dialogue Guide
                   </button>
                   <button
-                    onClick={() => { setShowMICEGuide(true); setShowGuideMenu(false); }}
+                    onClick={() => { setWritingGuidesLocalTab("mice"); openWritingGuides("mice"); setShowGuideMenu(false); }}
                     className={styles.guideMenuItem}
                     title="Understand the MICE Quotient — Milieu, Idea, Character, Event"
                   >
@@ -1188,7 +1407,7 @@ export default function SceneEditor() {
                     MICE Guide
                   </button>
                   <button
-                    onClick={() => { setShowEssentialGuide(true); setShowGuideMenu(false); }}
+                    onClick={() => { setWritingGuidesLocalTab("essential"); openWritingGuides("essential"); setShowGuideMenu(false); }}
                     className={styles.guideMenuItem}
                     title="The 6 Essential Questions every story needs to answer"
                   >
@@ -1504,6 +1723,25 @@ export default function SceneEditor() {
                 Add Note
               </button>
             </div>
+            <div className={styles.noteLegend}>
+              <span className={styles.noteLegendItem}>
+                <span className={styles.noteLegendDot} />
+                Author
+              </span>
+              <span className={styles.noteLegendItem}>
+                <span className={styles.noteLegendDiamond} />
+                Editorial
+              </span>
+              {inlineNotes.some((n) => n.type === "editorial") && (
+                <button
+                  className={styles.noteLegendToggle}
+                  onClick={() => setHideEditorialNotes((s) => !s)}
+                  title={hideEditorialNotes ? "Show editorial notes" : "Hide editorial notes"}
+                >
+                  {hideEditorialNotes ? "Show" : "Hide"} editorial
+                </button>
+              )}
+            </div>
             {inlineNotes.length === 0 ? (
               <p className={styles.overviewHint}>
                 Select text in the editor and click Add Note (or press{" "}
@@ -1513,12 +1751,12 @@ export default function SceneEditor() {
             ) : (
               <div className={styles.inlineNoteList}>
                 {inlineNotes.map((note) => (
-                  <div key={note.id} className={styles.inlineNoteItem}>
+                  <div key={note.id} className={`${styles.inlineNoteItem}${note.type === "editorial" ? ` ${styles.inlineNoteItemEditorial}` : ""}`}>
                     <button
                       className={styles.inlineNoteContent}
                       onClick={() => scrollToNote(note.id)}
                     >
-                      <span className={styles.inlineNoteAnchor}>
+                      <span className={note.type === "editorial" ? styles.inlineNoteAnchorEditorial : styles.inlineNoteAnchor}>
                         &ldquo;{note.anchor.length > 35 ? note.anchor.slice(0, 35) + "…" : note.anchor}&rdquo;
                       </span>
                       {note.note && (
@@ -1843,7 +2081,7 @@ export default function SceneEditor() {
             })()}
           </div>
         ) : (
-          <div className={styles.editorWrap}>
+          <div className={`${styles.editorWrap}${hideEditorialNotes ? ` ${styles.hideEditorialNotes}` : ""}`}>
             <EditorContent editor={editor} />
           </div>
         )}
@@ -1858,16 +2096,12 @@ export default function SceneEditor() {
       )}
       </div>{/* end contentRow */}
 
-      {/* Dialogue Syntax Guide modal */}
-      {showDialogueGuide && (
-        <DialogueSyntaxGuide onClose={() => setShowDialogueGuide(false)} />
-      )}
-      {showMICEGuide && (
-        <MICEGuide onClose={() => setShowMICEGuide(false)} />
-      )}
-      {showEssentialGuide && (
-        <EssentialQuestionsGuide onClose={() => setShowEssentialGuide(false)} />
-      )}
+      {/* Writing reference guides — tabbed modal */}
+      <WritingGuidesModal
+        isOpen={!!writingGuidesTab}
+        onClose={closeWritingGuides}
+        initialTab={writingGuidesLocalTab}
+      />
 
       {/* Auto-Tag Dialogue panel */}
       {showAutoTag && activeNode && (
@@ -2067,6 +2301,76 @@ export default function SceneEditor() {
           </div>
         );
       })()}
+
+      {/* Slash command picker */}
+      {slashOpen && (() => {
+        const matchingCmds = SLASH_COMMANDS.filter((c) => c.name.startsWith(slashQuery));
+        if (!matchingCmds.length) return null;
+        return (
+          <div
+            className={styles.slashDropdown}
+            style={{
+              top: Math.min(slashPos.bottom + 4, window.innerHeight - 160),
+              left: Math.max(8, Math.min(slashPos.left, window.innerWidth - 300)),
+            }}
+          >
+            <p className={styles.slashDropdownHint}>Slash commands</p>
+            {matchingCmds.map((cmd, idx) => (
+              <button
+                key={cmd.name}
+                className={`${styles.slashItem} ${idx === slashSelIdx ? styles.slashItemSelected : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  if (slashRange) executeSlashCommand(cmd.name, slashRange.from, slashRange.to);
+                }}
+              >
+                <span className={styles.slashItemLabel}>{cmd.label}</span>
+                <span className={styles.slashItemDesc}>{cmd.description}</span>
+                <kbd className={styles.slashItemKbd}>Tab</kbd>
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Inline TODO input popup (opened by /todo) */}
+      {todoInputOpen && (
+        <div
+          className={styles.todoInputPopup}
+          style={{
+            top: Math.min(todoInputPos.bottom + 4, window.innerHeight - 120),
+            left: Math.max(8, Math.min(todoInputPos.left, window.innerWidth - 300)),
+          }}
+        >
+          <p className={styles.todoInputHint}>New TODO</p>
+          <input
+            className={styles.todoInputField}
+            autoFocus
+            value={todoInputText}
+            onChange={(e) => setTodoInputText(e.target.value)}
+            placeholder="What needs doing?"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); submitTodoInput(); }
+              if (e.key === "Escape") { e.preventDefault(); setTodoInputOpen(false); }
+            }}
+          />
+          <div className={styles.todoInputActions}>
+            <button
+              className={styles.todoInputSubmit}
+              onMouseDown={(e) => { e.preventDefault(); submitTodoInput(); }}
+              disabled={!todoInputText.trim()}
+            >
+              Add TODO
+            </button>
+            <button
+              className={styles.todoInputCancel}
+              onMouseDown={(e) => { e.preventDefault(); setTodoInputOpen(false); }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* @mention autocomplete dropdown */}
       {mentionOpen && filteredMentionItems.length > 0 && (

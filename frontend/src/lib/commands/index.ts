@@ -18,6 +18,8 @@ import {
   Eye,
   Activity,
   Search,
+  Quote,
+  BookMarked,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { useUIStore } from "../../stores/uiStore";
@@ -277,6 +279,55 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openPlannerPanel();
+  },
+});
+
+commandRegistry.register({
+  id: "editor-dialogue-insert",
+  label: "Insert Dialogue Line",
+  keywords: ["dialogue", "dialog", "speaker", "insert", "quote", "attribution"],
+  icon: Quote,
+  group: "Editor",
+  shortcut: "^",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().triggerDialogueInsert();
+  },
+});
+
+commandRegistry.register({
+  id: "editor-dialogue-guide",
+  label: "Dialogue Guide",
+  keywords: ["dialogue", "dialog", "guide", "syntax", "attribution", "speaker", "help"],
+  icon: Quote,
+  group: "Editor",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openWritingGuides("dialogue");
+  },
+});
+
+commandRegistry.register({
+  id: "editor-mice-guide",
+  label: "MICE Quotient Guide",
+  keywords: ["mice", "milieu", "idea", "character", "event", "guide", "quotient", "threads"],
+  icon: BookOpen,
+  group: "Editor",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openWritingGuides("mice");
+  },
+});
+
+commandRegistry.register({
+  id: "editor-essential-questions-guide",
+  label: "6 Essential Questions Guide",
+  keywords: ["essential", "questions", "guide", "protagonist", "stakes", "conflict", "arc"],
+  icon: BookMarked,
+  group: "Editor",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().openWritingGuides("essential");
   },
 });
 

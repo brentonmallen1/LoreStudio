@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Tag, Loader, ChevronLeft, ChevronRight, CheckSquare, Square, Zap, BrainCircuit, User, AlertCircle } from "lucide-react";
+import { Compass, Tag, Loader, ChevronLeft, ChevronRight, CheckSquare, Square, Zap, BrainCircuit, User, AlertCircle } from "lucide-react";
 import { api } from "../../api/client";
 import type { BatchSuggestResponse, ProposedDialogueTag, SceneWithDialogueProposals } from "../../types";
 import styles from "./AutoTagPanel.module.css";
@@ -228,7 +228,7 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
     <div className={styles.root}>
       <div className={styles.toolbar}>
         <button onClick={scan} disabled={scanning || applying} className={styles.scanBtn}>
-          {scanning ? <Loader size={12} className={styles.spinner} /> : <Tag size={12} />}
+          {scanning ? <Loader size={12} className={styles.spinner} /> : <Compass size={12} />}
           {scanning ? "Scanning…" : data ? "Rescan" : "Find Dialogue to Tag"}
         </button>
 

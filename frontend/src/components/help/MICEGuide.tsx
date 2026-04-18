@@ -50,23 +50,10 @@ const MICE_TYPES = [
   },
 ];
 
-export default function MICEGuide({ onClose }: Props) {
-  const footer = (
-    <button onClick={onClose} className={styles.closeBtn}>
-      Close
-    </button>
-  );
-
+export function MICEContent() {
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title="The MICE Quotient"
-      icon={<BookOpen size={15} />}
-      size="lg"
-      footer={footer}
-    >
-      <div className={styles.intro}>
+    <>
+    <div className={styles.intro}>
         <p>
           The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're telling —
           and when it's over. Every story thread belongs to one of four types. Tagging your threads helps you
@@ -228,6 +215,21 @@ export default function MICEGuide({ onClose }: Props) {
           </div>
         </CollapsibleSection>
       </div>
+    </>
+  );
+}
+
+export default function MICEGuide({ onClose }: Props) {
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="The MICE Quotient"
+      icon={<BookOpen size={15} />}
+      size="lg"
+      footer={<button onClick={onClose} className={styles.closeBtn}>Close</button>}
+    >
+      <MICEContent />
     </Modal>
   );
 }

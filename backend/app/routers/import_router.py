@@ -9,11 +9,14 @@ Session lifecycle (in-memory, 30-minute TTL):
 
 All endpoints require authentication.
 """
+import logging
 import time
 import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -29,13 +32,23 @@ from ..schemas.import_schemas import (
     UpdatePreviewRequest,
     UploadResponse,
 )
+from ..schemas.import_extraction import (
+    AIEnrichOptions,
+    EnrichCandidatesRequest,
+    ExtractionCandidate,
+    ExtractionOptions,
+    ExtractionPreview,
+)
 from ..services.import_service import (
     apply_adjustment,
     apply_breaks,
     build_preview_tree,
     create_story_from_import,
+    create_entities_from_extraction,
     detect_structure_ai,
     detect_structure_heuristic,
+    extract_entities_ai,
+    extract_entities_nlp,
     parse_document,
     _merge_breaks,
 )
@@ -298,6 +311,131 @@ def adjust_preview(
     return preview
 
 
+@router.post("/import/{session_id}/extract-preview", response_model=ExtractionPreview)
+async def extract_preview(
+    session_id: str,
+    options: ExtractionOptions,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run entity extraction on the imported document.
+
+    Stage 1 (NLP): spaCy NER identifies character/location name candidates.
+    Stage 2 (AI, optional): Ollama extracts attributes for each candidate.
+
+    Returns an ExtractionPreview for user review. Does NOT create entities yet.
+    """
+    import time
+    from ..services.llm.gateway import AICallContext
+
+    session = _get_session(session_id, current_user.id)
+
+    # Stage 1: NLP
+    nlp_start = time.monotonic()
+    candidates = extract_entities_nlp(session.paragraphs, session.preview.nodes, options)
+    nlp_elapsed = int((time.monotonic() - nlp_start) * 1000)
+
+    # Check AI availability
+    ai_available = False
+    try:
+        from ..services.llm.ollama import ollama_provider
+        ai_available = await ollama_provider.is_available()
+    except Exception:
+        pass
+
+    ai_elapsed: Optional[int] = None
+
+    # Stage 2: AI enrichment (only if AI is enabled in options and Ollama is up)
+    needs_ai = (options.characters_ai or options.locations_ai or options.relationships_ai)
+    if needs_ai and ai_available and candidates:
+        ai_start = time.monotonic()
+        ctx = AICallContext(
+            feature="import-extraction",
+            user_id=current_user.id,
+        )
+        candidates = await extract_entities_ai(
+            candidates=candidates,
+            paragraphs=session.paragraphs,
+            preview_nodes=session.preview.nodes,
+            options=options,
+            ctx=ctx,
+            db=db,
+            user=current_user,
+        )
+        ai_elapsed = int((time.monotonic() - ai_start) * 1000)
+
+    return ExtractionPreview(
+        candidates=candidates,
+        ai_available=ai_available,
+        nlp_elapsed_ms=nlp_elapsed,
+        ai_elapsed_ms=ai_elapsed,
+    )
+
+
+@router.post("/import/{session_id}/enrich-candidates", response_model=ExtractionPreview)
+async def enrich_candidates(
+    session_id: str,
+    body: EnrichCandidatesRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Run AI enrichment on a user-approved set of NLP candidates.
+
+    Called after the user has reviewed NLP results and removed false positives.
+    Takes the approved candidates (with scene_ids) and extracts attributes via Ollama.
+    """
+    import time
+    from ..services.llm.gateway import AICallContext
+
+    session = _get_session(session_id, current_user.id)
+
+    # Check AI availability
+    ai_available = False
+    try:
+        from ..services.llm.ollama import ollama_provider
+        ai_available = await ollama_provider.is_available()
+    except Exception:
+        pass
+
+    if not ai_available:
+        raise HTTPException(status_code=503, detail="Ollama is unavailable. Is it running?")
+
+    # Convert options: wrap AIEnrichOptions into ExtractionOptions shape
+    options = ExtractionOptions(
+        characters_nlp=False,
+        locations_nlp=False,
+        characters_ai=body.options.characters_ai,
+        locations_ai=body.options.locations_ai,
+        relationships_ai=body.options.relationships_ai,
+    )
+
+    ctx = AICallContext(
+        feature="import-extraction",
+        user_id=current_user.id,
+    )
+
+    ai_start = time.monotonic()
+    enriched = await extract_entities_ai(
+        candidates=body.candidates,
+        paragraphs=session.paragraphs,
+        preview_nodes=session.preview.nodes,
+        options=options,
+        ctx=ctx,
+        db=db,
+        user=current_user,
+    )
+    ai_elapsed = int((time.monotonic() - ai_start) * 1000)
+
+    return ExtractionPreview(
+        candidates=enriched,
+        ai_available=True,
+        nlp_elapsed_ms=0,
+        ai_elapsed_ms=ai_elapsed,
+    )
+
+
 @router.post("/import/{session_id}/finalize")
 def finalize_import(
     session_id: str,
@@ -346,7 +484,18 @@ def finalize_import(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Import failed: {e}")
 
+    # Create extracted entities if user selected any
+    entity_counts = {"created_characters": 0, "created_locations": 0, "created_relationships": 0}
+    if body.extraction_candidate_ids and body.extraction_candidates:
+        try:
+            from ..schemas.import_extraction import ExtractionCandidate
+            candidates = [ExtractionCandidate.model_validate(c) for c in body.extraction_candidates]
+            selected_ids = set(body.extraction_candidate_ids)
+            entity_counts = create_entities_from_extraction(candidates, selected_ids, story.id, db)
+        except Exception as e:
+            logger.warning("Entity extraction creation failed (non-fatal): %s", e)
+
     # Clean up session
     _sessions.pop(session_id, None)
 
-    return {"id": story.id, "title": story.title}
+    return {"id": story.id, "title": story.title, **entity_counts}

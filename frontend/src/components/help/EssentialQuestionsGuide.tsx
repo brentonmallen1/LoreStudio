@@ -70,23 +70,10 @@ const QUESTIONS = [
   },
 ];
 
-export default function EssentialQuestionsGuide({ onClose }: Props) {
-  const footer = (
-    <button onClick={onClose} className={styles.closeBtn}>
-      Close
-    </button>
-  );
-
+export function EssentialQuestionsContent() {
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title="The 6 Essential Questions"
-      icon={<BookOpen size={15} />}
-      size="lg"
-      footer={footer}
-    >
-      <div className={styles.intro}>
+    <>
+    <div className={styles.intro}>
         <p>
           Before a story can work, six fundamental questions need answers. They don't all need to be
           resolved on the page — some live in the author's notes, some in subtext — but they need to
@@ -158,6 +145,21 @@ export default function EssentialQuestionsGuide({ onClose }: Props) {
           </div>
         </CollapsibleSection>
       </div>
+    </>
+  );
+}
+
+export default function EssentialQuestionsGuide({ onClose }: Props) {
+  return (
+    <Modal
+      isOpen
+      onClose={onClose}
+      title="The 6 Essential Questions"
+      icon={<BookOpen size={15} />}
+      size="lg"
+      footer={<button onClick={onClose} className={styles.closeBtn}>Close</button>}
+    >
+      <EssentialQuestionsContent />
     </Modal>
   );
 }

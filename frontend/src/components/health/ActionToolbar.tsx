@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2, Users, ScrollText, Square } from "lucide-react";
+import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2, Users, ScrollText, Square, ChevronDown, ChevronRight } from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -182,6 +182,40 @@ const ANALYSES: AnalysisDef[] = [
   },
 ];
 
+interface CategoryDef {
+  id: string;
+  label: string;
+  description: string;
+  analysisIds: string[];
+}
+
+const CATEGORIES: CategoryDef[] = [
+  {
+    id: "prose",
+    label: "Prose Quality",
+    description: "Technical writing issues — voice, style, consistency",
+    analysisIds: ["prose-analysis", "editorial-consistency", "cliche-analysis"],
+  },
+  {
+    id: "structure",
+    label: "Story Structure",
+    description: "Plot, pacing, and narrative architecture",
+    analysisIds: ["economy-analysis", "pacing-analysis", "plot-holes"],
+  },
+  {
+    id: "continuity",
+    label: "Content & Continuity",
+    description: "Coherence, consistency, and completeness",
+    analysisIds: ["scene-summary-batch", "entity-suggestions", "continuity-check"],
+  },
+  {
+    id: "depth",
+    label: "Depth & Intent",
+    description: "Character, theme, and authorial purpose",
+    analysisIds: ["essential-questions", "theme-tracker", "character-dimensionality", "first-pass"],
+  },
+];
+
 function formatAge(iso: string): string {
   const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
   const diffH = diffMs / (1000 * 60 * 60);
@@ -204,6 +238,29 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem("ls_health_actions_collapsed") === "true"; }
+    catch { return false; }
+  });
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    try { return localStorage.getItem("ls_health_actions_tab") ?? CATEGORIES[0].id; }
+    catch { return CATEGORIES[0].id; }
+  });
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("ls_health_actions_collapsed", String(next)); } catch {}
+      return next;
+    });
+  }, []);
+
+  const handleTabChange = useCallback((tabId: string) => {
+    setActiveTab(tabId);
+    try { localStorage.setItem("ls_health_actions_tab", tabId); } catch {}
+  }, []);
 
   const fetchLatest = useCallback(() => {
     Promise.all(
@@ -259,86 +316,127 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
 
   const anyRunning = running.size > 0;
 
+  const activeCategory = CATEGORIES.find((c) => c.id === activeTab) ?? CATEGORIES[0];
+  const visibleAnalyses = ANALYSES.filter((a) => activeCategory.analysisIds.includes(a.id));
+
+  // Count tools with results per category for tab badges
+  const resultCountByCategory = CATEGORIES.reduce<Record<string, number>>((acc, cat) => {
+    acc[cat.id] = cat.analysisIds.filter((id) => latest[id] != null).length;
+    return acc;
+  }, {});
+
   return (
     <div className={styles.toolbar}>
-      <div className={styles.legend}>
-        <span className={styles.legendItem} style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}>
-          <span className={styles.legendDot} />
-          Local NLP — fast, no AI required
+      {/* Header row — always visible */}
+      <div className={styles.toolbarHeader} onClick={toggleCollapsed} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleCollapsed(); }}>
+        <span className={styles.toolbarChevron}>
+          {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
         </span>
-        <span className={styles.legendSep} />
-        <span className={styles.legendItem} style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}>
-          <span className={styles.legendDot} />
-          AI — requires Ollama
-        </span>
-        <button className={styles.reportsLink} onClick={onViewReports}>
-          View Reports →
-        </button>
-      </div>
-
-      <div className={styles.actions}>
-        {ANALYSES.map((analysis) => {
-          const isRunning = running.has(analysis.id);
-          const hasError = errors.has(analysis.id);
-          const log = latest[analysis.id];
-          const typeColor = analysis.type === "nlp" ? "var(--color-nlp)" : "var(--color-ai)";
-
-          return (
-            <button
-              key={analysis.id}
-              className={`${styles.actionBtn} ${hasError ? styles.actionBtnError : ""}`}
-              onClick={() => runSingle(analysis)}
-              disabled={isRunning || anyRunning}
-              style={{ "--btn-color": typeColor } as React.CSSProperties}
-              title={analysis.description}
-            >
-              <div className={styles.btnMain}>
-                <div className={styles.btnIcon}>
-                  {isRunning
-                    ? <Loader2 size={14} className={styles.spinner} />
-                    : <analysis.Icon size={14} />
-                  }
-                </div>
-                <div className={styles.btnBody}>
-                  <span className={styles.btnLabel}>
-                    {isRunning ? "Running…" : analysis.label}
-                  </span>
-                  <span className={styles.btnDesc}>{analysis.description}</span>
-                  {isRunning ? null : log ? (
-                    <span className={styles.btnMeta}>
-                      <span className={styles.btnSummary}>{analysis.summarize(log)}</span>
-                      <span className={styles.btnAge}>{formatAge(log.created_at)}</span>
-                    </span>
-                  ) : (
-                    <span className={styles.btnNotRun}>Not run yet</span>
-                  )}
-                </div>
-              </div>
-              <Compass size={16} className={styles.typeCompass} />
+        <span className={styles.toolbarTitle}>Analysis Tools</span>
+        <div className={styles.toolbarHeaderActions} onClick={(e) => e.stopPropagation()}>
+          <button className={styles.reportsLink} onClick={onViewReports}>
+            View Reports →
+          </button>
+          {anyRunning ? (
+            <button className={styles.stopBtn} onClick={stopAll} title="Stop running analyses">
+              <Square size={11} />
+              Stop
             </button>
-          );
-        })}
-
-        {anyRunning ? (
-          <button
-            className={styles.stopBtn}
-            onClick={stopAll}
-            title="Stop running analyses"
-          >
-            <Square size={13} />
-            Stop
-          </button>
-        ) : (
-          <button
-            className={styles.runAllBtn}
-            onClick={runAll}
-            title="Run all analyses sequentially"
-          >
-            <Play size={13} />
-            Run All
-          </button>
-        )}
+          ) : (
+            <button className={styles.runAllBtn} onClick={runAll} title="Run all analyses across all categories">
+              <Play size={11} />
+              Run All
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Collapsible body */}
+      {!collapsed && (
+        <div className={styles.toolbarBody}>
+          {/* Category tab bar */}
+          <div className={styles.categoryTabs}>
+            {CATEGORIES.map((cat) => {
+              const count = resultCountByCategory[cat.id];
+              const isActive = cat.id === activeTab;
+              return (
+                <button
+                  key={cat.id}
+                  className={`${styles.categoryTab} ${isActive ? styles.categoryTabActive : ""}`}
+                  onClick={() => handleTabChange(cat.id)}
+                  title={cat.description}
+                >
+                  {cat.label}
+                  {count > 0 && (
+                    <span className={`${styles.tabBadge} ${isActive ? styles.tabBadgeActive : ""}`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Category description + legend */}
+          <div className={styles.categoryMeta}>
+            <span className={styles.categoryDesc}>{activeCategory.description}</span>
+            <span className={styles.legendSep} />
+            <span className={styles.legendItem} style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}>
+              <span className={styles.legendDot} />
+              Local NLP
+            </span>
+            <span className={styles.legendItem} style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}>
+              <span className={styles.legendDot} />
+              AI
+            </span>
+          </div>
+
+          {/* Analysis buttons for active category */}
+          <div className={styles.actions}>
+            {visibleAnalyses.map((analysis) => {
+              const isRunning = running.has(analysis.id);
+              const hasError = errors.has(analysis.id);
+              const log = latest[analysis.id];
+              const typeColor = analysis.type === "nlp" ? "var(--color-nlp)" : "var(--color-ai)";
+
+              return (
+                <button
+                  key={analysis.id}
+                  className={`${styles.actionBtn} ${hasError ? styles.actionBtnError : ""}`}
+                  onClick={() => runSingle(analysis)}
+                  disabled={isRunning || anyRunning}
+                  style={{ "--btn-color": typeColor } as React.CSSProperties}
+                  title={analysis.description}
+                >
+                  <div className={styles.btnMain}>
+                    <div className={styles.btnIcon}>
+                      {isRunning
+                        ? <Loader2 size={14} className={styles.spinner} />
+                        : <analysis.Icon size={14} />
+                      }
+                    </div>
+                    <div className={styles.btnBody}>
+                      <span className={styles.btnLabel}>
+                        {isRunning ? "Running…" : analysis.label}
+                      </span>
+                      <span className={styles.btnDesc}>{analysis.description}</span>
+                      {isRunning ? null : log ? (
+                        <span className={styles.btnMeta}>
+                          <span className={styles.btnSummary}>{analysis.summarize(log)}</span>
+                          <span className={styles.btnAge}>{formatAge(log.created_at)}</span>
+                        </span>
+                      ) : (
+                        <span className={styles.btnNotRun}>Not run yet</span>
+                      )}
+                    </div>
+                  </div>
+                  <Compass size={16} className={styles.typeCompass} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

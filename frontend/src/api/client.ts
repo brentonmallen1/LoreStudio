@@ -191,6 +191,30 @@ export const api = {
     return request<import("../types").ActivityLog[]>(`/stories/${storyId}/analysis/history${qs}`);
   },
 
+  // Editorial pass
+  runEditorialPass: (
+    storyId: string,
+    contextLevel: "full" | "summaries" | "section",
+    scopeType: "story" | "chapters" | "scenes",
+    scopeIds: string[],
+    signal?: AbortSignal,
+  ) =>
+    request<import("../types").ActivityLog>(`/stories/${storyId}/editorial/run`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ context_level: contextLevel, scope_type: scopeType, scope_ids: scopeIds }),
+      signal,
+    }),
+
+  getEditorialReports: (storyId: string) =>
+    request<import("../types").ActivityLog[]>(`/stories/${storyId}/editorial/reports`),
+
+  deleteEditorialReport: (storyId: string, reportId: string) =>
+    request<void>(`/stories/${storyId}/editorial/reports/${reportId}`, { method: "DELETE" }),
+
+  clearAllEditorialNotes: (storyId: string) =>
+    request<void>(`/stories/${storyId}/editorial/notes`, { method: "DELETE" }),
+
   // Structure
   getStructure: (storyId: string) =>
     request<import("../types").StructureNode[]>(`/stories/${storyId}/structure`),
@@ -297,6 +321,8 @@ export const api = {
     request<import("../types").VoiceDistinctnessResult>(`/characters/${characterId}/analyze-voice`, { method: "POST" }),
   analyzeCharacterDialogueProse: (characterId: string) =>
     request<import("../types").CharacterDialogueProseResult>(`/characters/${characterId}/analyze-dialogue`, { method: "POST" }),
+  analyzeCharacterVoiceFidelity: (characterId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-voice-fidelity`, { method: "POST", signal }),
   analyzeCharacterArc: (characterId: string) =>
     request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, { method: "POST" }),
   assessCharacterDimensionality: (characterId: string) =>
@@ -463,6 +489,44 @@ export const api = {
     request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge/scan`, { method: "POST" }),
   analyzeTwistImpact: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
+
+  // Todos
+  listTodos: (storyId: string) =>
+    request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos`),
+  getTodosForScene: (nodeId: string) =>
+    request<import("../types").StoryTodo[]>(`/structure/${nodeId}/todos`),
+  createTodo: (storyId: string, data: {
+    content: string;
+    node_id?: string | null;
+    done?: boolean;
+    doc_from?: number | null;
+    doc_to?: number | null;
+  }) =>
+    request<import("../types").StoryTodo>(`/stories/${storyId}/todos`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateTodo: (todoId: string, data: {
+    content?: string;
+    node_id?: string | null;
+    done?: boolean;
+    position?: number;
+    doc_from?: number | null;
+    doc_to?: number | null;
+  }) =>
+    request<import("../types").StoryTodo>(`/todos/${todoId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteTodo: (todoId: string) =>
+    request<void>(`/todos/${todoId}`, { method: "DELETE" }),
+  reorderTodos: (storyId: string, todoIds: string[]) =>
+    request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos/reorder`, {
+      method: "POST",
+      body: JSON.stringify({ todo_ids: todoIds }),
+    }),
+  deleteDoneTodos: (storyId: string) =>
+    request<void>(`/stories/${storyId}/todos/done`, { method: "DELETE" }),
 
   // Outlines
   listOutlines: (storyId: string) =>
@@ -1363,6 +1427,20 @@ export const api = {
     request<import("../types").ImportPreviewTree>(`/import/${sessionId}/adjust`, {
       method: "POST",
       body: JSON.stringify({ adjustments }),
+    }),
+  importExtractPreview: (sessionId: string, options: import("../types").ExtractionOptions) =>
+    request<import("../types").ExtractionPreview>(`/import/${sessionId}/extract-preview`, {
+      method: "POST",
+      body: JSON.stringify(options),
+    }),
+  importEnrichCandidates: (
+    sessionId: string,
+    candidates: import("../types").ExtractionCandidate[],
+    options: import("../types").AIEnrichOptions,
+  ) =>
+    request<import("../types").ExtractionPreview>(`/import/${sessionId}/enrich-candidates`, {
+      method: "POST",
+      body: JSON.stringify({ candidates, options }),
     }),
   importFinalize: (sessionId: string, data: import("../types").ImportFinalizeRequest) =>
     request<{ id: string; title: string }>(`/import/${sessionId}/finalize`, {

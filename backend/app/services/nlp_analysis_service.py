@@ -469,6 +469,33 @@ def analyze_scene_editorial(scene_html: str) -> dict:
 # Public: NER-based Lorebook suggestions
 # ---------------------------------------------------------------------------
 
+_NLP_CHUNK_SIZE = 50_000  # chars; split scenes larger than this before NLP
+
+
+def _iter_text_chunks(text: str, chunk_size: int = _NLP_CHUNK_SIZE) -> list[str]:
+    """
+    Split long text into chunks at sentence boundaries to stay within
+    a comfortable spaCy processing window. Overlaps are intentionally
+    avoided — entity counts may under-count for entities spanning chunks,
+    but that's acceptable for name discovery.
+    """
+    if len(text) <= chunk_size:
+        return [text]
+
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        # Walk back to last whitespace to avoid splitting mid-word
+        if end < len(text):
+            boundary = text.rfind(" ", start, end)
+            if boundary > start:
+                end = boundary
+        chunks.append(text[start:end])
+        start = end
+    return chunks
+
+
 def extract_unknown_entities(
     scenes: list[tuple[str, str, str]],  # (scene_id, scene_title, scene_html)
     known_characters: set[str],
@@ -477,24 +504,37 @@ def extract_unknown_entities(
     """
     Run NER across all scenes and surface proper nouns not in the Lorebook.
 
+    Uses nlp.pipe() for batched processing — significantly faster than one
+    call per scene on large manuscripts. Long scenes are chunked first.
     Aggregates by entity text: returns occurrence counts and scene lists.
     Filters out very short strings (< 3 chars) and numbers.
     """
     nlp = get_nlp()
 
-    # Track: entity_text → {label, scene_ids, scene_titles, occurrences}
     person_map: dict[str, dict] = defaultdict(lambda: {"scene_ids": [], "scene_titles": [], "occurrences": 0})
     location_map: dict[str, dict] = defaultdict(lambda: {"scene_ids": [], "scene_titles": [], "occurrences": 0})
 
     known_chars_lower = {n.lower() for n in known_characters}
     known_locs_lower = {n.lower() for n in known_locations}
 
+    # Build flat list of (scene_id, scene_title, chunk_text) — one entry per chunk.
+    # Most scenes produce a single chunk; very large scenes produce multiple.
+    pipe_items: list[tuple[str, str, str]] = []
     for scene_id, scene_title, scene_html in scenes:
         text = html_to_text(scene_html)
         if not text.strip():
             continue
+        for chunk in _iter_text_chunks(text):
+            pipe_items.append((scene_id, scene_title, chunk))
 
-        doc = nlp(text)
+    if not pipe_items:
+        return EntitySuggestionsResponse()
+
+    # Process all chunks in a single batched pass through spaCy.
+    texts = [chunk for _, _, chunk in pipe_items]
+    docs = nlp.pipe(texts, batch_size=32)
+
+    for (scene_id, scene_title, _), doc in zip(pipe_items, docs):
         seen_in_scene: set[str] = set()
 
         for ent in doc.ents:

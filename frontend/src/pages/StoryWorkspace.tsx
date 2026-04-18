@@ -22,6 +22,7 @@ const TwistManager       = lazy(() => import("../components/twists/TwistManager"
 const OutlineManager     = lazy(() => import("../components/outline/OutlineManager"));
 const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
 const StoryboardView      = lazy(() => import("../components/story/StoryboardView"));
+const TodoListView        = lazy(() => import("../components/story/TodoListView"));
 const ManuscriptView     = lazy(() => import("../components/manuscript/ManuscriptView"));
 const MediaPage          = lazy(() => import("./MediaPage"));
 const StoryHealthPage    = lazy(() => import("./StoryHealthPage"));
@@ -157,6 +158,7 @@ export default function StoryWorkspacePage() {
           <Route path="/write" element={
             viewMode === "storyboard" ? <StoryboardView /> :
             viewMode === "summary" ? <SummaryOverviewView /> :
+            viewMode === "todos" ? <TodoListView /> :
             viewMode === "manuscript" ? (
               <ManuscriptView
                 storyId={storyId!}

@@ -18,6 +18,7 @@ from ..models.calendar import Calendar
 from ..models.beat_sheet import BeatSheet
 from ..models.twist import Twist
 from ..models.outline import Outline, OutlineItem
+from ..models.todo import StoryTodo
 from ..models.dialogue import DialogueBlock
 from ..auth.utils import hash_password
 from ..config import settings
@@ -1706,6 +1707,50 @@ def seed_demo_story():
             outline_id=outline.id, parent_id=act3.id, level=1, position=2,
             beat_type="character",
             text="Eleanor chooses what to do with the truth — and what to write in the log",
+        ))
+
+        # ── Demo TODOs ──────────────────────────────────────────────────────
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=scene1.id,
+            content="Expand Eleanor's sensory description of the lighthouse at night — smell of salt, creak of the lantern room",
+            done=False,
+            position=0,
+        ))
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=scene1.id,
+            content="Verify the 1953 storm date against the timeline in the logbook references",
+            done=False,
+            position=1,
+        ))
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=scene2.id,
+            content="Strengthen Marcus's dialogue — he's too forthcoming for the mystery tone, soften his reveals",
+            done=False,
+            position=2,
+        ))
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=scene3.id,
+            content="Plant a second foreshadowing detail about the Ardent wreck — currently only one visual cue",
+            done=False,
+            position=3,
+        ))
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=None,
+            content="Decide: does Eleanor know what happened to the Ardent at the start, or does she piece it together? Affects Act I tone",
+            done=False,
+            position=4,
+        ))
+        db.add(StoryTodo(
+            story_id=story.id,
+            node_id=None,
+            content="Research fog signal patterns for pre-1960 lighthouses — need authentic detail for Ch1",
+            done=True,
+            position=5,
         ))
 
         db.commit()
@@ -3678,5 +3723,279 @@ def seed_short_story_demo():
             beat_type="character",
             text="The Student — Mira asks how Elena got through it. Elena tells her. Thirty-one years compressed into twenty minutes. Character MICE thread closes.",
         ))
+
+        db.commit()
+
+
+def seed_first_person_demo():
+    """
+    First-person demo: 'Sixty Minutes'
+
+    A journalist confronts a tech CEO at a cafe. Written entirely in first
+    person to exercise POV-aware dialogue attribution:
+
+      • Unattributed narrator speech  → pov_default / speech (confidence 0.7)
+      • Inner monologue (<em> blocks) → pov_default / thought (confidence 0.8)
+      • Explicit &lt;Name&gt; attribution   → explicit (confidence 1.0)
+      • @mention proximity            → inferred (confidence proportional to distance)
+      • Unattributed after 2 speakers → alternating (confidence 0.6)
+
+    Ideal for testing the Auto-Tag Dialogue panel and first-person POV features.
+    """
+    with Session(engine) as db:
+        admin = db.query(User).filter(User.username == settings.admin_username).first()
+        if not admin:
+            return
+        if db.query(Story).filter(Story.title == "Sixty Minutes").first():
+            return
+
+        story = Story(
+            user_id=admin.id,
+            title="Sixty Minutes",
+            description="An investigative journalist sits across from a tech CEO with sixty minutes to get him to say the one thing he doesn&#x27;t want to say.",
+            structure_template_id="mice-single",
+            intent="A story about the patience required to ask the right question at the right moment.",
+            genre="Psychological Thriller",
+            tone="Tense, controlled, observant",
+            themes=["power", "accountability", "patience", "truth", "performance"],
+            central_conflict="Maya needs Victor to slip. Victor is very good at not slipping.",
+            narrative_intent="Demonstrate first-person narration: close interiority, deliberate pacing, and a narrator who is both participant and observer in the same scene.",
+            premise="Journalist Maya Chen has one hour with tech CEO Victor Harlan \u2014 and one question she knows he\u2019ll lie about.",
+            logline="An investigative journalist goes into a one-hour interview knowing exactly what she\u2019s looking for \u2014 and has to wait fifty-eight minutes to find it.",
+            intended_length="flash_fiction",
+            goals=[
+                {"id": str(uuid.uuid4()), "text": "Establish the asymmetry: Maya knows more than Victor thinks", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Generate varied dialogue attribution patterns for the Auto-Tag panel", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Close the Event thread when Victor makes his mistake", "completed": True},
+            ],
+        )
+        db.add(story)
+        db.flush()
+
+        # ── Characters ─────────────────────────────────────────────────────────
+        maya = Character(
+            story_id=story.id,
+            name="Maya Chen",
+            role="protagonist",
+            character_type="static",
+            pronouns="she/her",
+            jungian_archetype="hero",
+            narrative_archetype="detective",
+            mission_statement="To ask the right question at the right moment \u2014 and let the silence do the rest.",
+            personality="Patient, methodical, disarmingly pleasant. She uses warmth as a tool and is aware that she does.",
+            motivation="She has been working this story for eight months. This interview is the last piece.",
+            background="Maya is 34. Investigative journalist, nine years in. Currently at a digital outlet known for data privacy reporting. She does not record until the subject is comfortable.",
+            appearance="Dark blazer, small notebook she doesn&#x27;t really use. Hair down, which she calculated is less threatening than up.",
+            arc_notes="No arc \u2014 Maya knows what she needs and gets it. The story is about method, not transformation.",
+            arc_milestones=[
+                {"id": str(uuid.uuid4()), "text": "Arrives and establishes rapport", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Steers the conversation to the 2019 pilot", "completed": True},
+                {"id": str(uuid.uuid4()), "text": "Hears the slip and closes her notebook", "completed": True},
+            ],
+            narrative_intent="Maya is a first-person narrator who is also a professional interviewer \u2014 every word she speaks is deliberate. Her interiority reveals the gap between what she says and what she\u2019s actually doing.",
+            narrative_intent_hidden=True,
+            interview_prompts=[
+                "When did you know you had him?",
+                "What do you do with the fifty-seven minutes before the slip?",
+                "Do you ever feel sympathy for the people you interview?",
+            ],
+        )
+        db.add(maya)
+        db.flush()
+
+        story.narrative_perspective = "first_person"
+        story.pov_character_id = maya.id
+
+        victor = Character(
+            story_id=story.id,
+            name="Victor Harlan",
+            role="deuteragonist",
+            character_type="static",
+            pronouns="he/him",
+            jungian_archetype="ruler",
+            narrative_archetype="shadow",
+            mission_statement="To remain in control of the narrative at all costs.",
+            personality="Controlled, self-aware, accustomed to being the smartest person in the room. He performs warmth rather than feeling it.",
+            motivation="He built Harlanic from a seed round. He is not going to let one reporter burn it down.",
+            background="Victor is 47. Founded Harlanic Analytics at 31. Three acquisitions, two near-misses with regulators, one Senate subcommittee appearance he got through without consequence. He has a comms team of eleven people.",
+            appearance="Open collar, expensive watch worn loose. The kind of casual that costs money.",
+            arc_notes="No arc \u2014 Victor is a force to push against. He is very good at this, and that&#x27;s the point.",
+            interview_prompts=[
+                "What does accountability mean to a company like yours?",
+                "Walk me through the decision to shut down Project Telemetry.",
+                "What would you want people to know about you that they don&#x27;t?",
+            ],
+        )
+        db.add(victor)
+        db.flush()
+
+        db.add(CharacterRelationship(
+            character_id=maya.id,
+            related_character_id=victor.id,
+            relationship_type="interviewer / subject",
+            description="Maya has studied Victor for eight months. Victor has been interviewed hundreds of times. The power dynamic is mutual and contested.",
+        ))
+
+        # ── Plot thread ────────────────────────────────────────────────────────
+        thread = PlotThread(
+            story_id=story.id,
+            name="What is Victor hiding?",
+            description="Event thread: Maya&#x27;s single goal is to get Victor to confirm, on record, what she already knows about the 2019 pilot. The thread opens when she sits down. It closes when he slips.",
+            status="resolved",
+            color="#3b82f6",
+            mice_type="event",
+        )
+        db.add(thread)
+        db.flush()
+
+        # ── Structure ──────────────────────────────────────────────────────────
+
+        # Opening beat
+        opening = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Opening",
+            title="Before He Arrives",
+            synopsis="Maya arrives early, arranges herself, and reviews what she knows. Victor is four minutes late.",
+            position=0,
+            status="final",
+            word_count=218,
+            entry_state="Maya alone at the corner table, ten minutes early.",
+            exit_state="Victor walks in. Maya sets her notebook on the table.",
+            key_events="Maya&#x27;s inner monologue establishes the stakes; Victor arrives; first exchange.",
+            metadata_={
+                "purpose": "Establish first-person interiority. Maya is in control before Victor arrives \u2014 her thoughts are tactical, not anxious. The Event thread opens the moment she sits down.",
+                "mice_opens": "What is Victor hiding? \u2014 thread opens here, when Maya arrives with eight months of research.",
+                "pov_note": "Unattributed lines are Maya\u2019s (pov_default). Italicized text is inner monologue (thought). Victor\u2019s first line uses @mention proximity (inferred). His second uses explicit &lt;Name&gt; attribution.",
+            },
+            content=(
+                "<p>I get there ten minutes early. I always do \u2014 not from anxiety, but because "
+                "the first thing a subject sees when they walk in should be a reporter who is already "
+                "settled, already comfortable, already at home in a room they&#x27;ve only just entered. "
+                "It establishes something without anyone having to say it.</p>"
+                "<p>The caf\u00e9 is his choice. That tells me things. It&#x27;s loud enough that he "
+                "feels unmonitored, central enough that he can be seen having a normal lunch. "
+                "The table in the corner is mine \u2014 I got here first.</p>"
+                "<p><em>He&#x27;s going to be late. They always are.</em></p>"
+                "<p>I open my notebook to a clean page and set it on the table where he&#x27;ll see it. "
+                "It&#x27;s a prop. Everything I need is already in my head.</p>"
+                "<p>He walks in at four minutes past. @Victor scans the room and finds me \u2014 "
+                "he does the thing where the smile reaches his eyes. He extends his hand "
+                "before he sits down. \"Maya. Great to finally meet you.\"</p>"
+                "<p>\"Thank you for making the time.\"&lt;Maya Chen&gt;</p>"
+            ),
+        )
+        db.add(opening)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread.id, node_id=opening.id,
+            note="Thread opens. Maya arrives with her research \u2014 the Event question is now in play.",
+        ))
+        thread.opens_at_node_id = opening.id
+
+        # Try/Fail beat
+        confrontation = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Try/Fail Beat",
+            title="The Fifty-Seven Minutes",
+            synopsis="The interview moves through easy territory, then harder. Maya steers. Victor parries. They are both good at this.",
+            position=1,
+            status="revised",
+            word_count=381,
+            entry_state="Victor seated, comfortable. Maya&#x27;s recorder is on the table \u2014 he agreed to it.",
+            exit_state="Victor has deflected everything. Maya has one question left. She has been saving it.",
+            key_events="Professional rapport; Victor&#x27;s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
+            metadata_={
+                "purpose": "The try/fail engine: Maya tries to get Victor to engage with the 2019 pilot directly. He evades without lying. She tries again. The tension is that he\u2019s very good at this.",
+                "dialogue_note": "The rapid exchange demonstrates alternating attribution. After two speakers are established (Maya via explicit, Victor via explicit), subsequent unattributed lines resolve to the alternating method.",
+            },
+            content=(
+                "<p>He orders sparkling water. <em>Of course he does.</em></p>"
+                "<p>We go through the easy part first \u2014 Harlanic\u2019s growth, the Series C, "
+                "the acquisition of Dataloom. He has done this interview a hundred times; his answers "
+                "arrive already trimmed to quote length. I write things down and ask follow-ups "
+                "that let him hear himself sounding good. This is the investment phase.</p>"
+                "<p>\"What does compliance look like in practice?\"</p>"
+                "<p>\"Consent architecture. Opt-out by default in the EU. "
+                "Regular third-party audits.\"&lt;Victor Harlan&gt;</p>"
+                "<p><em>He\u2019s reciting. That\u2019s fine. I let him.</em></p>"
+                "<p>Twenty minutes in, I ask about growth markets. Thirty minutes in, I ask about the "
+                "Senate hearing. He gives me the subcommittee answer and I nod like I haven&#x27;t "
+                "read the transcript.</p>"
+                "<p>At forty minutes I shift.</p>"
+                "<p>\"You ran a behavioral inference pilot in 2019.\"&lt;Maya Chen&gt;</p>"
+                "<p>\"We ran several pilots that year.\"&lt;Victor Harlan&gt;</p>"
+                "<p>\"This one used data from a children&#x27;s education platform.\"</p>"
+                "<p>\"I&#x27;d have to look at the specifics.\"&lt;Victor Harlan&gt;</p>"
+                "<p>\"It was called Project Telemetry internally.\"</p>"
+                "<p>\"I don&#x27;t recall that name.\"&lt;Victor Harlan&gt;</p>"
+                "<p><em>He does. I can see it in the half-second before his face does anything.</em></p>"
+                "<p>I write something in my notebook. I haven&#x27;t asked the real question yet. "
+                "I\u2019m going to wait until he\u2019s forgotten I was going to ask it.</p>"
+            ),
+        )
+        db.add(confrontation)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread.id, node_id=confrontation.id,
+            note="Thread develops. Maya tries the direct approach (fail) and backs off to let Victor relax before the final question.",
+        ))
+
+        # Resolution beat
+        resolution = StructureNode(
+            story_id=story.id,
+            parent_id=None,
+            level=0,
+            level_type="Resolution",
+            title="The Slip",
+            synopsis="Maya circles back to the pilot at minute fifty-eight. Victor, comfortable again, makes the mistake.",
+            position=2,
+            status="final",
+            word_count=267,
+            entry_state="Victor relaxed, talking about the company\u2019s future. Twelve minutes left on the hour.",
+            exit_state="Maya closes her notebook. She has what she came for.",
+            key_events="Maya\u2019s final question; Victor\u2019s slip; Maya ends the interview.",
+            metadata_={
+                "purpose": "Close the Event thread. Victor has been managing the conversation for fifty-seven minutes. The slip is small \u2014 a word, a tense \u2014 but it\u2019s enough. Maya recognizes it immediately.",
+                "mice_closes": "What is Victor hiding? \u2014 closes here. Victor confirms the pilot existed and had a compliance gap.",
+                "dialogue_note": "@Victor proximity attribution demonstrates the inferred method: the @mention and the quote are in the same paragraph, giving the dialogue service a speaker candidate without explicit tagging.",
+            },
+            content=(
+                "<p>We talk about the future for twelve minutes. He\u2019s loose now \u2014 "
+                "the hard part is over, he thinks. He\u2019s describing a partnership with a "
+                "hospital network, something he\u2019s clearly proud of.</p>"
+                "<p>\"It\u2019s a different kind of data relationship.\"&lt;Victor Harlan&gt; "
+                "He leans forward slightly. "
+                "\"Consensual all the way down.\"&lt;Victor Harlan&gt;</p>"
+                "<p><em>All the way down. As opposed to what?</em></p>"
+                "<p>\"That\u2019s an interesting phrase. What\u2019s the contrast?\"</p>"
+                "<p>@Victor sets his water glass down. "
+                "\"Just \u2014 industry standard is often consent-adjacent. "
+                "We\u2019re going further than that.\"</p>"
+                "<p>\"Like the Telemetry pilot wasn\u2019t.\"</p>"
+                "<p>A beat. Not long \u2014 maybe a second and a half.</p>"
+                "<p>\"That program was structured differently,\"&lt;Victor Harlan&gt; he says, "
+                "\"and it was shut down when we identified the compliance gap.\"&lt;Victor Harlan&gt;</p>"
+                "<p><em>There it is. He just told me it existed, that it had a compliance gap, "
+                "and that they shut it down. He thinks he said nothing. He said everything.</em></p>"
+                "<p>\"I appreciate your time,\" I say, and close my notebook.</p>"
+                "<p>He starts to say something about the hospital partnership again. "
+                "I smile and let him. There\u2019s nothing he can take back now.</p>"
+            ),
+        )
+        db.add(resolution)
+        db.flush()
+
+        db.add(PlotThreadAppearance(
+            thread_id=thread.id, node_id=resolution.id,
+            note="Thread closes. Victor\u2019s slip confirms the pilot existed and had a compliance gap \u2014 Maya has her story.",
+        ))
+        thread.closes_at_node_id = resolution.id
+        thread.status = "resolved"
 
         db.commit()

@@ -4,20 +4,23 @@ import { FileInput } from "lucide-react";
 import { Modal } from "../common";
 import UploadStep from "./UploadStep";
 import StructureReviewStep from "./StructureReviewStep";
+import EntityExtractionStep from "./EntityExtractionStep";
 import ConfirmStep from "./ConfirmStep";
-import type { ImportPreviewTree, ImportUploadResponse } from "../../types";
+import type { ExtractionCandidate, ImportPreviewTree, ImportUploadResponse } from "../../types";
 import styles from "./ImportWizard.module.css";
 
 interface Props {
   onClose: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export default function ImportWizard({ onClose }: Props) {
   const [step, setStep] = useState<Step>(1);
   const [uploadResponse, setUploadResponse] = useState<ImportUploadResponse | null>(null);
   const [preview, setPreview] = useState<ImportPreviewTree | null>(null);
+  const [extractionCandidates, setExtractionCandidates] = useState<ExtractionCandidate[]>([]);
+  const [extractionSelected, setExtractionSelected] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   function handleUploaded(resp: ImportUploadResponse) {
@@ -30,6 +33,18 @@ export default function ImportWizard({ onClose }: Props) {
     setPreview(updated);
   }
 
+  function handleExtractionComplete(candidates: ExtractionCandidate[], selectedIds: Set<string>) {
+    setExtractionCandidates(candidates);
+    setExtractionSelected(selectedIds);
+    setStep(4);
+  }
+
+  function handleExtractionSkip() {
+    setExtractionCandidates([]);
+    setExtractionSelected(new Set());
+    setStep(4);
+  }
+
   function handleFinalized(storyId: string) {
     onClose();
     navigate(`/stories/${storyId}`);
@@ -38,7 +53,8 @@ export default function ImportWizard({ onClose }: Props) {
   const stepLabels: Record<Step, string> = {
     1: "Upload",
     2: "Review Structure",
-    3: "Confirm & Create",
+    3: "Extract Entities",
+    4: "Confirm & Create",
   };
 
   const title = `Import Document — ${stepLabels[step]}`;
@@ -53,7 +69,7 @@ export default function ImportWizard({ onClose }: Props) {
     >
       <div className={styles.wizard}>
         <div className={styles.stepBar}>
-          {([1, 2, 3] as Step[]).map((s) => (
+          {([1, 2, 3, 4] as Step[]).map((s) => (
             <div
               key={s}
               className={`${styles.stepDot} ${step === s ? styles.active : ""} ${step > s ? styles.done : ""}`}
@@ -78,10 +94,21 @@ export default function ImportWizard({ onClose }: Props) {
             />
           )}
           {step === 3 && uploadResponse && preview && (
+            <EntityExtractionStep
+              uploadResponse={uploadResponse}
+              preview={preview}
+              onComplete={handleExtractionComplete}
+              onSkip={handleExtractionSkip}
+              onBack={() => setStep(2)}
+            />
+          )}
+          {step === 4 && uploadResponse && preview && (
             <ConfirmStep
               uploadResponse={uploadResponse}
               preview={preview}
-              onBack={() => setStep(2)}
+              extractionCandidates={extractionCandidates}
+              extractionSelected={extractionSelected}
+              onBack={() => setStep(3)}
               onFinalized={handleFinalized}
             />
           )}

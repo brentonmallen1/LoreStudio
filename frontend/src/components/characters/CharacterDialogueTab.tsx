@@ -1,10 +1,16 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MessageSquare, ChevronRight, AlertCircle, Compass, ChevronUp, ChevronDown, MessageCircle, StickyNote } from "lucide-react";
+import { MessageSquare, ChevronRight, AlertCircle, ChevronUp, ChevronDown, MessageCircle, StickyNote } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import type { DialogueBlockWithScene, VoiceDistinctnessResult, CharacterDialogueProseResult } from "../../types";
+import type {
+  DialogueBlockWithScene,
+  VoiceDistinctnessResult,
+  CharacterDialogueProseResult,
+  VoiceFidelityResult,
+} from "../../types";
 import AutoTagPanel from "../cleanup/AutoTagPanel";
+import CharacterDialogueActionToolbar from "./CharacterDialogueActionToolbar";
 import styles from "./CharacterDialogueTab.module.css";
 
 interface Props {
@@ -19,16 +25,19 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
   const characterNames = characters.map((c) => c.name);
   const [blocks, setBlocks] = useState<DialogueBlockWithScene[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Analysis results
   const [voiceResult, setVoiceResult] = useState<VoiceDistinctnessResult | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [showVoice, setShowVoice] = useState(false);
   const [proseResult, setProseResult] = useState<CharacterDialogueProseResult | null>(null);
-  const [analyzingProse, setAnalyzingProse] = useState(false);
-  const [proseError, setProseError] = useState<string | null>(null);
   const [showProse, setShowProse] = useState(false);
+  const [fidelityResult, setFidelityResult] = useState<VoiceFidelityResult | null>(null);
+  const [showFidelity, setShowFidelity] = useState(false);
+  const [analysisErrors, setAnalysisErrors] = useState<Record<string, string>>({});
+
   const voicePanelRef = useRef<HTMLDivElement>(null);
   const prosePanelRef = useRef<HTMLDivElement>(null);
+  const fidelityPanelRef = useRef<HTMLDivElement>(null);
   const [showSubtextNotes, setShowSubtextNotes] = useState(false);
   const [subtextDraft, setSubtextDraft] = useState<Record<string, string>>({});
   const [subtextOpen, setSubtextOpen] = useState<Set<string>>(new Set());
@@ -56,42 +65,11 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
     });
   }
 
-  async function analyzeVoice() {
-    setAnalyzing(true);
-    setVoiceError(null);
-    try {
-      const result = await api.analyzeCharacterVoice(characterId);
-      setVoiceResult(result);
-      setShowVoice(true);
-      setTimeout(() => voicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
-    } catch {
-      setVoiceError("Voice analysis failed — ensure the story has attributed dialogue.");
-    } finally {
-      setAnalyzing(false);
-    }
-  }
-
-  async function analyzeDialogueProse() {
-    setAnalyzingProse(true);
-    setProseError(null);
-    try {
-      const result = await api.analyzeCharacterDialogueProse(characterId);
-      setProseResult(result);
-      setShowProse(true);
-      setTimeout(() => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
-    } catch {
-      setProseError("Prose analysis failed — ensure the story has attributed dialogue.");
-    } finally {
-      setAnalyzingProse(false);
-    }
-  }
-
   async function navigateToScene(sceneId: string) {
     try {
       const fullNode = await api.getNode(sceneId);
       setActiveNode(fullNode);
     } catch {
-      // Fall back to the lightweight structure tree node
       const queue = [...structure];
       while (queue.length) {
         const n = queue.shift()!;
@@ -102,7 +80,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
     navigate(`/stories/${storyId}/write`);
   }
 
-useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     api.getCharacterDialogue(characterId)
       .then(setBlocks)
@@ -114,42 +92,7 @@ useEffect(() => {
     return <div className={styles.empty}>Loading dialogue…</div>;
   }
 
-  if (blocks.length === 0) {
-    return (
-      <div className={styles.root}>
-        <div className={styles.analysisBar}>
-          <button disabled className={styles.nlpBtn} title="No attributed dialogue yet — add dialogue first">
-            <Compass size={12} />
-            Analyze voice
-          </button>
-          <button disabled className={styles.nlpBtn} title="No attributed dialogue yet — add dialogue first">
-            <Compass size={12} />
-            Analyze prose
-          </button>
-        </div>
-        {storyId && (
-          <div className={styles.tagPanel}>
-            <AutoTagPanel
-              mode="character"
-              storyId={storyId}
-              characterId={characterId}
-              characterName={characterName}
-              characterNames={characterNames}
-              onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
-            />
-          </div>
-        )}
-        <div className={styles.empty}>
-          <MessageSquare size={24} className={styles.emptyIcon} />
-          <p>No attributed dialogue found for {characterName}.</p>
-          <p className={styles.emptyHint}>
-            Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the
-            panel above to find and tag unattributed quotes.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const hasDialogue = blocks.length > 0;
 
   // Group by scene
   const sceneMap = new Map<string, { title: string; blocks: DialogueBlockWithScene[] }>();
@@ -170,43 +113,71 @@ useEffect(() => {
     (p) => p.char_a_id === characterId || p.char_b_id === characterId
   ) ?? [];
 
+  const fidelityColorClass = (fidelity: string) => {
+    if (fidelity === "excellent") return styles.fidelityExcellent;
+    if (fidelity === "good") return styles.fidelityGood;
+    if (fidelity === "fair") return styles.fidelityFair;
+    return styles.fidelityNeedsWork;
+  };
+
+  const severityClass = (severity: string) => {
+    if (severity === "issue") return styles.severityIssue;
+    if (severity === "warning") return styles.severityWarning;
+    return styles.severityInfo;
+  };
+
   return (
     <div className={styles.root}>
-      {/* ── Analysis bar ── */}
-      <div className={styles.analysisBar}>
-        <button
-          onClick={analyzeVoice}
-          disabled={analyzing}
-          className={styles.nlpBtn}
-          title="Analyse how distinctive this character's voice is compared to others (local NLP — no AI required)"
-        >
-          <Compass size={12} />
-          {analyzing ? "Analyzing…" : "Analyze voice"}
-        </button>
-        <button
-          onClick={analyzeDialogueProse}
-          disabled={analyzingProse}
-          className={styles.nlpBtn}
-          title="Analyse prose quality markers (adverbs, said-bookisms) in this character's dialogue (local NLP — no AI required)"
-        >
-          <Compass size={12} />
-          {analyzingProse ? "Analyzing…" : "Analyze prose"}
-        </button>
-        {voiceError && <span className={styles.analysisError}>{voiceError}</span>}
-        {proseError && <span className={styles.analysisError}>{proseError}</span>}
-      </div>
+      {/* ── Dialogue Analysis toolbar ── */}
+      {storyId && (
+        <CharacterDialogueActionToolbar
+          characterId={characterId}
+          storyId={storyId}
+          hasDialogue={hasDialogue}
+          onVoiceResult={(r) => {
+            setVoiceResult(r);
+            setShowVoice(true);
+            setTimeout(() => voicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+          }}
+          onProseResult={(r) => {
+            setProseResult(r);
+            setShowProse(true);
+            setTimeout(() => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+          }}
+          onFidelityResult={(r) => {
+            setFidelityResult(r);
+            setShowFidelity(true);
+            setTimeout(() => fidelityPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+          }}
+          onError={(id, msg) => setAnalysisErrors((prev) => ({ ...prev, [id]: msg }))}
+        />
+      )}
+
+      {/* Analysis errors */}
+      {Object.values(analysisErrors).map((msg, i) => (
+        <span key={i} className={styles.analysisError}>{msg}</span>
+      ))}
 
       {/* ── Tag Dialogue panel ── */}
       {storyId && (
-        <div className={styles.tagPanel}>
-          <AutoTagPanel
-            mode="character"
-            storyId={storyId}
-            characterId={characterId}
-            characterName={characterName}
-            characterNames={characterNames}
-            onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
-          />
+        <AutoTagPanel
+          mode="character"
+          storyId={storyId}
+          characterId={characterId}
+          characterName={characterName}
+          characterNames={characterNames}
+          onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
+        />
+      )}
+
+      {!hasDialogue && (
+        <div className={styles.empty}>
+          <MessageSquare size={24} className={styles.emptyIcon} />
+          <p>No attributed dialogue found for {characterName}.</p>
+          <p className={styles.emptyHint}>
+            Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the
+            panel above to find and tag unattributed quotes.
+          </p>
         </div>
       )}
 
@@ -343,114 +314,190 @@ useEffect(() => {
         </div>
       )}
 
-      <div className={styles.summary}>
-        <span>{blocks.length} lines</span>
-        <span>{totalWords.toLocaleString()} words</span>
-        {inferredCount > 0 && (
-          <span className={styles.inferredNote}>
-            <AlertCircle size={11} />
-            {inferredCount} inferred
-          </span>
-        )}
-      </div>
-
-      {Array.from(sceneMap.entries()).map(([sceneId, { title, blocks: sceneBlocks }]) => (
-        <div key={sceneId} className={styles.sceneGroup}>
-          <button
-            className={styles.sceneHeader}
-            onClick={() => storyId && navigateToScene(sceneId)}
-            title="Go to scene"
-          >
-            <span className={styles.sceneTitle}>{title}</span>
-            <span className={styles.sceneCount}>{sceneBlocks.length}×</span>
-            <ChevronRight size={12} className={styles.sceneArrow} />
-          </button>
-          <div className={styles.lines}>
-            {sceneBlocks.map((block) => {
-              const isInferred = block.attribution_method === "inferred" || block.attribution_method === "alternating";
-              const isThought = block.dialogue_type === "thought";
-              const hasSubtext = !!(getSubtext(block));
-              const isSubtextOpen = subtextOpen.has(block.id);
-              return (
-                <div
-                  key={block.id}
-                  className={`${styles.line} ${isInferred ? styles.lineInferred : ""} ${isThought ? styles.lineThought : ""}`}
-                >
-                  <div className={styles.lineRow}>
-                    {isThought ? (
-                      <span className={styles.lineContent}><em>{block.content}</em></span>
-                    ) : (
-                      <span className={styles.lineContent}>"{block.content}"</span>
-                    )}
-                    <div className={styles.lineBadges}>
-                      {isThought && <span className={styles.thoughtBadge} title="Inner monologue">thought</span>}
-                      {!isThought && isInferred && (
-                        <span className={styles.inferredBadge} title="Inferred attribution">?</span>
-                      )}
-                      <button
-                        className={`${styles.subtextBtn} ${hasSubtext ? styles.subtextBtnActive : ""}`}
-                        onClick={() => toggleSubtextOpen(block.id)}
-                        title={hasSubtext ? "View/edit subtext note" : "Add subtext note"}
-                      >
-                        <MessageCircle size={11} />
-                      </button>
-                    </div>
-                  </div>
-                  {isSubtextOpen && (
-                    <textarea
-                      className={styles.subtextField}
-                      value={getSubtext(block)}
-                      onChange={(e) => handleSubtextChange(block.id, e.target.value)}
-                      placeholder="What does this character really mean? (subtext note)"
-                      rows={2}
-                    />
-                  )}
-                  {!isSubtextOpen && hasSubtext && (
-                    <p className={styles.subtextPreview}>{getSubtext(block)}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
-      {/* ── Subtext Notes section ── */}
-      {blocks.some((b) => getSubtext(b)) && (
-        <div className={styles.subtextSection}>
-          <button
-            className={styles.subtextSectionHeader}
-            onClick={() => setShowSubtextNotes((v) => !v)}
-          >
-            <StickyNote size={13} className={styles.subtextSectionIcon} />
-            <span>Subtext Notes</span>
-            <span className={styles.subtextSectionCount}>
-              {blocks.filter((b) => getSubtext(b)).length}
+      {/* ── Voice Fidelity results ── */}
+      {fidelityResult && showFidelity && (
+        <div ref={fidelityPanelRef} className={styles.voicePanel}>
+          <div className={styles.voicePanelHeader}>
+            <span className={styles.voiceTitle}>
+              Voice Fidelity
+              <span className={`${styles.distinctnessBadge} ${fidelityColorClass(fidelityResult.overall_fidelity)}`}>
+                {fidelityResult.overall_fidelity.replace("_", " ")}
+              </span>
             </span>
-            {showSubtextNotes ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          {showSubtextNotes && (
-            <div className={styles.subtextNotesList}>
-              {Array.from(sceneMap.entries()).map(([sceneId, { title, blocks: sceneBlocks }]) => {
-                const withSubtext = sceneBlocks.filter((b) => getSubtext(b));
-                if (!withSubtext.length) return null;
-                return (
-                  <div key={sceneId} className={styles.subtextSceneGroup}>
-                    <p className={styles.subtextSceneTitle}>{title}</p>
-                    {withSubtext.map((block) => (
-                      <div key={block.id} className={styles.subtextNoteRow}>
-                        <p className={styles.subtextNoteQuote}>"{block.content.slice(0, 80)}{block.content.length > 80 ? "…" : ""}"</p>
-                        <p className={styles.subtextNoteText}>{getSubtext(block)}</p>
-                      </div>
-                    ))}
+            <button onClick={() => setShowFidelity(false)} className={styles.voiceClose}>
+              <ChevronUp size={12} />
+            </button>
+          </div>
+
+          {fidelityResult.attribute_summary && (
+            <p className={styles.fidelityAttributeSummary}>{fidelityResult.attribute_summary}</p>
+          )}
+
+          {fidelityResult.summary && (
+            <p className={styles.fidelitySummary}>{fidelityResult.summary}</p>
+          )}
+
+          {/* Findings — issues and warnings only */}
+          {fidelityResult.findings.filter((f) => f.severity !== "info").length > 0 && (
+            <div className={styles.fidelityFindings}>
+              {fidelityResult.findings
+                .filter((f) => f.severity !== "info")
+                .map((finding, i) => (
+                  <div key={i} className={`${styles.findingRow} ${severityClass(finding.severity)}`}>
+                    {finding.dialogue_excerpt && (
+                      <p className={styles.findingExcerpt}>
+                        "{finding.dialogue_excerpt.slice(0, 100)}{finding.dialogue_excerpt.length > 100 ? "…" : ""}"
+                      </p>
+                    )}
+                    <p className={styles.findingExplanation}>{finding.explanation}</p>
+                    {finding.attribute_context && (
+                      <p className={styles.findingContext}>{finding.attribute_context}</p>
+                    )}
+                    {finding.suggestion && (
+                      <p className={styles.findingSuggestion}>{finding.suggestion}</p>
+                    )}
                   </div>
-                );
-              })}
+                ))}
+            </div>
+          )}
+
+          {/* Authentic examples */}
+          {fidelityResult.authentic_examples.length > 0 && (
+            <div className={styles.authenticSection}>
+              <p className={styles.similarityTitle}>Lines that ring true</p>
+              {fidelityResult.authentic_examples.slice(0, 4).map((ex, i) => (
+                <p key={i} className={styles.authenticExample}>
+                  "{ex.slice(0, 100)}{ex.length > 100 ? "…" : ""}"
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Recommendations */}
+          {fidelityResult.recommendations.length > 0 && (
+            <div className={styles.fidelityRecommendations}>
+              <p className={styles.similarityTitle}>Recommendations</p>
+              <ul className={styles.recommendationList}>
+                {fidelityResult.recommendations.map((rec, i) => (
+                  <li key={i}>{rec}</li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
       )}
 
+      {hasDialogue && (
+        <>
+          <div className={styles.summary}>
+            <span>{blocks.length} lines</span>
+            <span>{totalWords.toLocaleString()} words</span>
+            {inferredCount > 0 && (
+              <span className={styles.inferredNote}>
+                <AlertCircle size={11} />
+                {inferredCount} inferred
+              </span>
+            )}
+          </div>
+
+          {Array.from(sceneMap.entries()).map(([sceneId, { title, blocks: sceneBlocks }]) => (
+            <div key={sceneId} className={styles.sceneGroup}>
+              <button
+                className={styles.sceneHeader}
+                onClick={() => storyId && navigateToScene(sceneId)}
+                title="Go to scene"
+              >
+                <span className={styles.sceneTitle}>{title}</span>
+                <span className={styles.sceneCount}>{sceneBlocks.length}×</span>
+                <ChevronRight size={12} className={styles.sceneArrow} />
+              </button>
+              <div className={styles.lines}>
+                {sceneBlocks.map((block) => {
+                  const isInferred = block.attribution_method === "inferred" || block.attribution_method === "alternating";
+                  const isThought = block.dialogue_type === "thought";
+                  const hasSubtext = !!(getSubtext(block));
+                  const isSubtextOpen = subtextOpen.has(block.id);
+                  return (
+                    <div
+                      key={block.id}
+                      className={`${styles.line} ${isInferred ? styles.lineInferred : ""} ${isThought ? styles.lineThought : ""}`}
+                    >
+                      <div className={styles.lineRow}>
+                        {isThought ? (
+                          <span className={styles.lineContent}><em>{block.content}</em></span>
+                        ) : (
+                          <span className={styles.lineContent}>"{block.content}"</span>
+                        )}
+                        <div className={styles.lineBadges}>
+                          {isThought && <span className={styles.thoughtBadge} title="Inner monologue">thought</span>}
+                          {!isThought && isInferred && (
+                            <span className={styles.inferredBadge} title="Inferred attribution">?</span>
+                          )}
+                          <button
+                            className={`${styles.subtextBtn} ${hasSubtext ? styles.subtextBtnActive : ""}`}
+                            onClick={() => toggleSubtextOpen(block.id)}
+                            title={hasSubtext ? "View/edit subtext note" : "Add subtext note"}
+                          >
+                            <MessageCircle size={11} />
+                          </button>
+                        </div>
+                      </div>
+                      {isSubtextOpen && (
+                        <textarea
+                          className={styles.subtextField}
+                          value={getSubtext(block)}
+                          onChange={(e) => handleSubtextChange(block.id, e.target.value)}
+                          placeholder="What does this character really mean? (subtext note)"
+                          rows={2}
+                        />
+                      )}
+                      {!isSubtextOpen && hasSubtext && (
+                        <p className={styles.subtextPreview}>{getSubtext(block)}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* ── Subtext Notes section ── */}
+          {blocks.some((b) => getSubtext(b)) && (
+            <div className={styles.subtextSection}>
+              <button
+                className={styles.subtextSectionHeader}
+                onClick={() => setShowSubtextNotes((v) => !v)}
+              >
+                <StickyNote size={13} className={styles.subtextSectionIcon} />
+                <span>Subtext Notes</span>
+                <span className={styles.subtextSectionCount}>
+                  {blocks.filter((b) => getSubtext(b)).length}
+                </span>
+                {showSubtextNotes ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+              </button>
+              {showSubtextNotes && (
+                <div className={styles.subtextNotesList}>
+                  {Array.from(sceneMap.entries()).map(([sceneId, { title, blocks: sceneBlocks }]) => {
+                    const withSubtext = sceneBlocks.filter((b) => getSubtext(b));
+                    if (!withSubtext.length) return null;
+                    return (
+                      <div key={sceneId} className={styles.subtextSceneGroup}>
+                        <p className={styles.subtextSceneTitle}>{title}</p>
+                        {withSubtext.map((block) => (
+                          <div key={block.id} className={styles.subtextNoteRow}>
+                            <p className={styles.subtextNoteQuote}>"{block.content.slice(0, 80)}{block.content.length > 80 ? "…" : ""}"</p>
+                            <p className={styles.subtextNoteText}>{getSubtext(block)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

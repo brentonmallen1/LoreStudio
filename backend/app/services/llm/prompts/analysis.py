@@ -5,6 +5,7 @@ Analysis prompts — character arc analysis, MICE economy, session recap, show-d
 from ....models.character import Character
 from ....models.plot_thread import PlotThread
 from ....models.story import Story
+from .interviews import _ATTR_GUIDANCE, _ATTR_LABELS, _normalise
 
 
 TARGET_AUDIENCES: dict[str, dict[str, str]] = {
@@ -1296,3 +1297,82 @@ Rules:
 - overall_rating reflects the entire cast: needs_work = flat protagonists or key characters, excellent = all characters appropriately developed
 - recommendations must be specific to THIS character's data, not generic writing advice
 - Never suggest prose, story choices, or what should happen — only what to develop or explore"""
+
+
+# ── Voice Fidelity ─────────────────────────────────────────────────────────────
+
+def build_voice_fidelity_prompt(
+    character_name: str,
+    attributes: dict,
+    dialogue_lines: list[str],
+) -> str:
+    """
+    Build a prompt that asks the AI to evaluate whether a character's dialogue
+    is authentic to their defined attributes (intelligence, education, social_manner, etc.).
+
+    Key signal: word etymology — Germanic-root words (help, bold, end, buy) indicate
+    lower intelligence/education; Latinate/Greek words (assist, audacious, conclusion,
+    purchase) indicate higher. The mix should match the character's profile.
+    """
+    # Gather relevant attribute labels and their expected speech patterns
+    attr_sections: list[str] = []
+    for key, guidance_map in _ATTR_GUIDANCE.items():
+        value = _normalise(attributes.get(key) or "")
+        match = next((v for k, v in guidance_map.items() if _normalise(k) == value), None)
+        if match:
+            label = _ATTR_LABELS.get(key, key.replace("_", " ").title())
+            raw_val = attributes.get(key, "")
+            attr_sections.append(f"**{label} ({raw_val}):** {match}")
+
+    if not attr_sections:
+        attribute_block = "No specific attributes have been defined for this character."
+    else:
+        attribute_block = "\n\n".join(attr_sections)
+
+    dialogue_block = "\n".join(f'- "{line}"' for line in dialogue_lines) if dialogue_lines else "(no dialogue found)"
+
+    return f"""You are evaluating whether the dialogue written for a character is authentic to their defined profile.
+
+CHARACTER: {character_name}
+
+DEFINED ATTRIBUTES AND EXPECTED SPEECH PATTERNS:
+{attribute_block}
+
+KEY LINGUISTIC SIGNAL — WORD ETYMOLOGY:
+Word origins are one of the strongest markers of intelligence and education level:
+- Germanic-root words (help, bold, end, start, buy, think, begin, house, strong) → expected for simple/average intelligence or common/unlettered education
+- Latinate or Greek-root words (assist, audacious, conclusion, commence, purchase, contemplate, initiate, domicile, robust) → expected for brilliant/sharp intelligence or scholarly/educated characters
+- The MIX of word origins should align with the character's intelligence and education level. An "unlettered" character using "facilitate" or "expedite" is a red flag. A "brilliant" character never escaping Anglo-Saxon vocabulary is also a signal.
+
+DIALOGUE TO EVALUATE:
+{dialogue_block}
+
+Evaluate each line of dialogue against the character's attributes. Flag lines that feel inconsistent with their intelligence, education, or social manner. Also identify lines that feel authentically right.
+
+Respond with ONLY valid JSON matching this exact schema:
+
+{{
+  "character_name": "{character_name}",
+  "attribute_summary": "One sentence summarizing the key speech expectations based on their attributes",
+  "findings": [
+    {{
+      "dialogue_excerpt": "the specific dialogue line (truncated if long)",
+      "issue_type": "etymology_mismatch | vocabulary_mismatch | formality_drift | education_inconsistency | manner_conflict | authentic",
+      "severity": "issue | warning | info",
+      "explanation": "why this line does or does not match the character's profile",
+      "attribute_context": "which attribute(s) are relevant (e.g. intelligence: simple, education: unlettered)",
+      "suggestion": "how to revise the line to match the character (leave empty if authentic)"
+    }}
+  ],
+  "authentic_examples": ["dialogue lines that ring true to the character's voice — at most 5"],
+  "overall_fidelity": "excellent | good | fair | needs_work",
+  "summary": "2-3 sentence overall assessment of how well the dialogue matches the character's attributes",
+  "recommendations": ["1-3 specific, actionable suggestions for bringing the dialogue into alignment"]
+}}
+
+Rules:
+- Output ONLY valid JSON. No markdown, no extra text.
+- Only include findings for lines that are notable — either because they are inconsistent (issue/warning) or because they are excellent examples of authentic voice (info/authentic). Do not flag every single line.
+- overall_fidelity: excellent = nearly all lines match well; good = mostly authentic with minor slips; fair = noticeable inconsistencies; needs_work = dialogue regularly contradicts the character's defined attributes
+- Be specific — quote the actual words or phrases that signal the mismatch
+- recommendations should be concrete writing guidance, not generic advice"""
