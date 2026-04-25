@@ -1,0 +1,373 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  gap: 0.15rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: 0.15rem;
+}
+
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: calc(var(--radius) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+.toggleBtn:hover {
+  background: var(--color-surface-3, var(--color-surface-2));
+  color: var(--color-text);
+}
+
+.toggleActive {
+  background: var(--color-surface);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ── Filters ── */
+.hiddenToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.77rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.hiddenToggle input {
+  cursor: pointer;
+  accent-color: var(--color-accent);
+}
+
+.count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* ── Search ── */
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.45rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding: 0.28rem 0.5rem 0.28rem 1.6rem;
+  font-size: 0.77rem;
+  font-family: inherit;
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  width: 160px;
+  transition: border-color var(--transition);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ── Suggest button ── */
+.suggestBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition);
+  white-space: nowrap;
+}
+
+.suggestBtn:hover {
+  background: var(--color-ai-hover);
+}
+
+/* ── Empty / Loading ── */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 3rem 2rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ── List ── */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+/* ── Character group ── */
+.group {
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: box-shadow var(--transition-md);
+}
+
+.group:has(.groupHeader:hover) {
+  box-shadow: var(--shadow-sm);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.7rem 0.875rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.groupAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.groupName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.groupRole {
+  font-size: 0.67rem;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem;
+  border-radius: 99px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.role_protagonist {
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.role_antagonist {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+}
+
+.groupTypes {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.groupCount {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 99px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* ── View button (navigate to character) ── */
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition), background var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+
+.groupHeader:hover .viewBtn {
+  opacity: 1;
+}
+
+.viewBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ── Chevron ── */
+.chevron {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+/* ── Type pill ── */
+.typePill {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.12rem 0.45rem;
+  border-radius: 99px;
+  border: 1px solid;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+/* ── Expanded sub-rows ── */
+.groupBody {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  padding: 0.25rem 0;
+}
+
+.subRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.875rem 0.45rem 3.1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+}
+
+.subRow:last-child {
+  border-bottom: none;
+}
+
+.subAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.subName {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.subDesc {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-style: italic;
+}
+
+/* ── Matrix wrap ── */
+.matrixWrap {
+  flex: 1;
+  overflow: auto;
+  padding: 0.75rem 1.5rem;
+}

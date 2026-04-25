@@ -92,7 +92,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
       } else if (result.success && !result.data?.suggestions?.length) {
         setDiscoverError("AI returned no suggestions. Try again or add more character detail.");
       } else {
-        setDiscoverError("AI discovery failed. Check that Ollama is running.");
+        setDiscoverError("Relationship discovery failed. Check that Ollama is running.");
       }
     } catch {
       setDiscoverError("Could not reach the AI service.");
@@ -152,7 +152,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
             title="Use AI to suggest relationships based on character profiles"
           >
             <Compass size={13} />
-            {discovering ? "Discovering…" : "AI Discover"}
+            {discovering ? "Discovering…" : "Discover Relationships"}
           </button>
           {discoverError && (
             <span className={styles.discoverError}>{discoverError}</span>

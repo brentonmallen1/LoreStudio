@@ -25,9 +25,9 @@ function typeColor(type: string): string {
 function safeStrength(rel: CharacterRelationship) {
   const s = rel.strength as Partial<import("../../../types").StrengthDimensions> | null | undefined;
   return {
-    trust:     Number(s?.trust)     || 0,
-    power:     Number(s?.power)     || 0,
-    affection: Number(s?.affection) || 0,
+    trust:     s?.trust     != null ? Number(s.trust)     : 5,
+    power:     s?.power     != null ? Number(s.power)     : 5,
+    affection: s?.affection != null ? Number(s.affection) : 5,
   };
 }
 
@@ -36,20 +36,21 @@ function avgStrength(rel: CharacterRelationship): number {
   return (s.trust + s.power + s.affection) / 3;
 }
 
-// Interpolate from gray (0) → blue (5) → orange-red (10)
-function strengthColor(value: number): string {
-  const pct = Math.max(0, Math.min(10, value)) / 10;
-  if (pct <= 0.5) {
-    const t = pct * 2;
+// stored 0–10, where 5 = neutral (display 0). Positive = blue, negative = orange-red.
+function strengthColor(stored: number): string {
+  const display = stored - 5; // −5..+5
+  const t = Math.abs(display) / 5; // 0..1 intensity
+  if (display >= 0) {
+    // neutral → blue
     const r = Math.round(160 + t * (120 - 160));
     const g = Math.round(160 + t * (152 - 160));
     const b = Math.round(160 + t * (201 - 160));
     return `rgb(${r},${g},${b})`;
   }
-  const t = (pct - 0.5) * 2;
-  const r = Math.round(120 + t * (201 - 120));
-  const g = Math.round(152 + t * (96 - 152));
-  const b = Math.round(201 + t * (60 - 201));
+  // neutral → orange-red
+  const r = Math.round(160 + t * (201 - 160));
+  const g = Math.round(160 + t * (96  - 160));
+  const b = Math.round(160 + t * (60  - 160));
   return `rgb(${r},${g},${b})`;
 }
 
@@ -134,12 +135,15 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
       );
     }
 
-    const dimValue = mode === "strength" ? avgStrength(rel) : mode === "trust" ? s.trust : mode === "power" ? s.power : s.affection;
-    const color = strengthColor(dimValue);
+    const stored = mode === "strength" ? avgStrength(rel) : mode === "trust" ? s.trust : mode === "power" ? s.power : s.affection;
+    const display = stored - 5; // −5..+5
+    const color = strengthColor(stored);
+    const opacity = 0.15 + (Math.abs(display) / 5) * 0.85;
+    const label = (display >= 0 ? "+" : "") + display.toFixed(mode === "strength" ? 1 : 0);
     return (
       <div className={styles.cellInner}>
-        <div className={styles.strengthMeter} style={{ background: color, opacity: 0.3 + (dimValue / 10) * 0.7 }}>
-          <span className={styles.strengthNum}>{dimValue.toFixed(mode === "strength" ? 1 : 0)}</span>
+        <div className={styles.strengthMeter} style={{ background: color, opacity }}>
+          <span className={styles.strengthNum}>{label}</span>
         </div>
       </div>
     );
@@ -183,7 +187,7 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
               <th className={styles.cornerCell} />
               {characters.map((c) => (
                 <th key={c.id} className={styles.colHeader}>
-                  <span className={styles.colName}>{c.name.split(" ")[0]}</span>
+                  <span className={styles.colName}>{c.name}</span>
                 </th>
               ))}
             </tr>
@@ -242,8 +246,9 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
         <div className={styles.legend}>
           <span className={styles.legendItem}>
             <span className={styles.legendGradient} />
-            <span className={styles.legendEdge}>0 — weak</span>
-            <span className={styles.legendEdge} style={{ marginLeft: "auto" }}>10 — strong</span>
+            <span className={styles.legendEdge}>−5</span>
+            <span className={styles.legendEdge}>0 neutral</span>
+            <span className={styles.legendEdge}>+5</span>
           </span>
         </div>
       )}
