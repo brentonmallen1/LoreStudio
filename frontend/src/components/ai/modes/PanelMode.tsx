@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Users } from "lucide-react";
 import { api } from "../../../api/client";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
+import type { PanelMessage, PanelStreamEvent, LLMParams } from "../../../types";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import ChatInput from "../shared/ChatInput";
 import styles from "./PanelMode.module.css";
 
-// Palette for distinguishing characters by color
 const CHAR_COLORS = [
   "var(--color-accent)",
   "#e8854a",
@@ -19,48 +19,48 @@ const CHAR_COLORS = [
   "#c4b44a",
 ];
 
-function parsePanelResponse(content: string): { name: string; text: string }[] {
-  const blocks: { name: string; text: string }[] = [];
-  const regex = /\[([^\]]+)\]:\s*/g;
-  let lastIndex = 0;
-  let lastMatch: RegExpExecArray | null = null;
-
-  let match;
-  while ((match = regex.exec(content)) !== null) {
-    if (lastMatch) {
-      const text = content.slice(lastIndex, match.index).trim();
-      if (text) blocks.push({ name: lastMatch[1], text });
-    }
-    lastMatch = match;
-    lastIndex = regex.lastIndex;
-  }
-  if (lastMatch) {
-    const text = content.slice(lastIndex).trim();
-    if (text) blocks.push({ name: lastMatch[1], text });
-  }
-  if (blocks.length === 0 && content.trim()) {
-    blocks.push({ name: "", text: content.trim() });
-  }
-  return blocks;
-}
-
 interface Props {
   session: AISession;
 }
 
 export default function PanelMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, cancelStreaming, _setBackendSessionId, updateSessionContext } = useAIStore();
+  const { _setBackendSessionId, updateSessionContext } = useAIStore();
   const { characters } = useStoryStore();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  const [localMessages, setLocalMessages] = useState<PanelMessage[]>([]);
+  const [sending, setSending] = useState(false);
+  const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
+  const [streamingText, setStreamingText] = useState("");
+  const [responseLength, setResponseLength] = useState<"brief" | "normal" | "detailed">("normal");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const panelIdRef = useRef<string | null>(null);
+  panelIdRef.current = session.backendSessionId ?? null;
 
   const storyId = session.context.storyId ?? "";
+  const charIds = session.context.characterIds ?? selectedIds;
+
+  // Load existing messages when panel is opened
+  useEffect(() => {
+    if (!session.backendSessionId) return;
+    api.getPanel(session.backendSessionId)
+      .then((p) => setLocalMessages(p.messages))
+      .catch(() => {});
+  }, [session.backendSessionId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [session.messages, session.streamingText]);
+  }, [localMessages, streamingText]);
+
+  function charColor(charName: string): string {
+    const idx = charIds.findIndex((id) => {
+      const c = characters.find((x) => x.id === id);
+      return c?.name === charName;
+    });
+    return CHAR_COLORS[Math.max(0, idx) % CHAR_COLORS.length];
+  }
 
   async function handleCreate() {
     if (selectedIds.length < 2 || !storyId || creating) return;
@@ -73,7 +73,7 @@ export default function PanelMode({ session }: Props) {
       updateSessionContext(session.id, { characterIds: selectedIds });
       _setBackendSessionId(session.id, panel.id);
     } catch {
-      // Keep setup UI visible on error
+      // Keep setup UI on error
     } finally {
       setCreating(false);
     }
@@ -85,21 +85,110 @@ export default function PanelMode({ session }: Props) {
     );
   }
 
-  function charColor(name: string): string {
-    const charIds = session.context.characterIds ?? selectedIds;
-    const idx = charIds.findIndex((id) => {
-      const c = characters.find((x) => x.id === id);
-      return c?.name === name;
-    });
-    return CHAR_COLORS[Math.max(0, idx) % CHAR_COLORS.length];
+  function cancel() {
+    abortRef.current?.abort();
   }
 
-  function handleSend() {
-    if (!state.input.trim() || session.isStreaming || !session.backendSessionId) return;
-    state.lastUserMsg.current = state.input.trim();
-    sendMessage(session.id, state.input.trim(), undefined, state.sessionParams);
+  const handleSend = useCallback(async () => {
+    const panelId = panelIdRef.current;
+    if (!panelId || !state.input.trim() || sending) return;
+    const content = state.input.trim();
     state.setInput("");
-  }
+    setSending(true);
+    setCurrentSpeaker(null);
+    setStreamingText("");
+
+    const userMsg: PanelMessage = {
+      role: "user",
+      content,
+      timestamp: new Date().toISOString(),
+    };
+    setLocalMessages((prev) => [...prev, userMsg]);
+
+    const abort = new AbortController();
+    abortRef.current = abort;
+
+    try {
+      const res = await api.sendPanelMessage(panelId, content, abort.signal, state.sessionParams as LLMParams | undefined, responseLength);
+      if (!res.ok || !res.body) {
+        setSending(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let activeCharName = "";
+      let activeCharId = "";
+      let accumText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          let event: PanelStreamEvent;
+          try {
+            event = JSON.parse(line.slice(6));
+          } catch {
+            continue;
+          }
+
+          if (event.type === "start") {
+            activeCharName = event.character ?? "";
+            activeCharId = event.character_id ?? "";
+            accumText = "";
+            setCurrentSpeaker(activeCharName);
+            setStreamingText("");
+          } else if (event.type === "token") {
+            accumText += event.token ?? "";
+            setStreamingText((prev) => prev + (event.token ?? ""));
+          } else if (event.type === "end") {
+            const finished = accumText.trim();
+            if (finished && activeCharName) {
+              const charMsg: PanelMessage = {
+                role: "character",
+                character_name: activeCharName,
+                character_id: activeCharId || undefined,
+                content: finished,
+                timestamp: new Date().toISOString(),
+              };
+              setLocalMessages((prev) => [...prev, charMsg]);
+            }
+            activeCharName = "";
+            activeCharId = "";
+            accumText = "";
+            setCurrentSpeaker(null);
+            setStreamingText("");
+          } else if (event.type === "pass") {
+            activeCharName = "";
+            activeCharId = "";
+            accumText = "";
+            setCurrentSpeaker(null);
+            setStreamingText("");
+          } else if (event.type === "done") {
+            try {
+              const updated = await api.getPanel(panelId);
+              setLocalMessages(updated.messages);
+            } catch {}
+          }
+        }
+      }
+    } catch (err: unknown) {
+      if ((err as Error)?.name !== "AbortError") {
+        // Error handled silently
+      }
+    } finally {
+      setSending(false);
+      setCurrentSpeaker(null);
+      setStreamingText("");
+    }
+  }, [state.input, state.sessionParams, state.setInput, sending, responseLength]);
 
   // ── Setup UI: pick 2+ characters ──────────────────────────────────────────
   if (!session.backendSessionId) {
@@ -116,7 +205,7 @@ export default function PanelMode({ session }: Props) {
           <Users size={22} className={styles.setupIcon} />
           <p className={styles.setupTitle}>Set up a panel interview</p>
           <p className={styles.setupHint}>
-            Select two or more characters to interview together.
+            Select 2–3 characters to interview together.
           </p>
           {characters.length === 0 ? (
             <p className={styles.setupEmpty}>No characters found in this story.</p>
@@ -137,10 +226,15 @@ export default function PanelMode({ session }: Props) {
           <button
             className={styles.createBtn}
             onClick={handleCreate}
-            disabled={selectedIds.length < 2 || creating || !storyId}
+            disabled={selectedIds.length < 2 || selectedIds.length > 3 || creating || !storyId}
           >
             {creating ? "Creating…" : `Start panel (${selectedIds.length} selected)`}
           </button>
+          {selectedIds.length > 3 && (
+            <p className={styles.setupHint} style={{ color: "var(--color-danger)" }}>
+              Maximum 3 characters per panel.
+            </p>
+          )}
         </div>
       </AIModeWrapper>
     );
@@ -155,12 +249,12 @@ export default function PanelMode({ session }: Props) {
       title="Panel Interview"
     >
       <div className={styles.messages}>
-        {session.messages.length === 0 && !session.isStreaming && (
+        {localMessages.length === 0 && !sending && (
           <div className={styles.emptyMsg}>
             <p>Ask the panel something to begin.</p>
           </div>
         )}
-        {session.messages.map((msg, i) => {
+        {localMessages.map((msg, i) => {
           if (msg.role === "user") {
             return (
               <div key={i} className={styles.userMsg}>
@@ -169,52 +263,56 @@ export default function PanelMode({ session }: Props) {
               </div>
             );
           }
-          const blocks = parsePanelResponse(msg.content);
           return (
-            <div key={i} className={styles.panelMsg}>
-              {blocks.map((b, j) => (
-                <div key={j} className={styles.charBlock}>
-                  {b.name && (
-                    <span className={styles.charName} style={{ color: charColor(b.name) }}>
-                      {b.name}
-                    </span>
-                  )}
-                  <p className={styles.charText}>{b.text}</p>
-                </div>
-              ))}
+            <div key={i} className={styles.charBlock}>
+              <span className={styles.charName} style={{ color: charColor(msg.character_name ?? "") }}>
+                {msg.character_name}
+              </span>
+              <p className={styles.charText}>{msg.content}</p>
             </div>
           );
         })}
-        {session.streamingText && (
-          <div className={styles.panelMsg}>
-            {parsePanelResponse(session.streamingText).map((b, j) => (
-              <div key={j} className={styles.charBlock}>
-                {b.name && (
-                  <span className={styles.charName} style={{ color: charColor(b.name) }}>
-                    {b.name}
-                  </span>
-                )}
-                <p className={styles.charText}>{b.text}</p>
-              </div>
-            ))}
+
+        {/* Currently streaming character */}
+        {currentSpeaker && (
+          <div className={styles.charBlock}>
+            <span className={styles.charName} style={{ color: charColor(currentSpeaker) }}>
+              {currentSpeaker}
+            </span>
+            <p className={styles.charText}>{streamingText || "…"}</p>
           </div>
         )}
-        {session.isStreaming && !session.streamingText && (
+
+        {/* Orchestrator thinking */}
+        {sending && !currentSpeaker && (
           <div className={styles.thinking}>
             <span className={styles.dot} />
             <span className={styles.dot} />
             <span className={styles.dot} />
           </div>
         )}
+
         <div ref={bottomRef} />
+      </div>
+
+      <div className={styles.lengthRow}>
+        {(["brief", "normal", "detailed"] as const).map((opt) => (
+          <button
+            key={opt}
+            className={`${styles.lengthBtn} ${responseLength === opt ? styles.lengthBtnActive : ""}`}
+            onClick={() => setResponseLength(opt)}
+          >
+            {opt}
+          </button>
+        ))}
       </div>
 
       <ChatInput
         value={state.input}
         onChange={state.setInput}
         onSend={handleSend}
-        onCancel={() => cancelStreaming(session.id)}
-        disabled={session.isStreaming}
+        onCancel={cancel}
+        disabled={sending}
         placeholder="Ask the panel something…"
       />
     </AIModeWrapper>

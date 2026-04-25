@@ -418,36 +418,56 @@ def seed_demo_story():
         db.add(margaret)
         db.flush()
 
-        # Character relationships
+        # Character relationships — showcases strength, visibility, narrative purpose, notes
         db.add(CharacterRelationship(
             character_id=eleanor.id,
             related_character_id=thomas.id,
-            relationship_type="daughter",
+            relationship_type="family",
             description="Eleanor returned to Harrow Island to care for her dying father and never left after he died. Her grief is quiet and complicated — love mixed with questions she never got to ask.",
+            strength={"trust": 6, "power": 3, "affection": 7, "tension": 6, "openness": 4},
+            visibility="public",
+            narrative_purpose=["emotional-anchor", "growth-catalyst"],
+            notes="Thomas's silence about the distress log haunts Eleanor. She's spent two years organizing his papers, unconsciously looking for a confession or an absolution. The lighthouse itself is a monument to his absence — she keeps the light running but has never gone into his private logroom.",
         ))
         db.add(CharacterRelationship(
             character_id=eleanor.id,
             related_character_id=visitor.id,
-            relationship_type="wary host",
+            relationship_type="foil",
             description="Eleanor let the Visitor in from the storm against her better judgment. She watches them carefully and extends just enough trust to keep them talking.",
+            strength={"trust": 3, "power": 5, "affection": 4, "tension": 8, "openness": 6},
+            visibility="public",
+            narrative_purpose=["conflict-driver", "mirror"],
+            notes="Calder is what Eleanor chose not to become — someone who chases answers rather than settling into the questions. Their dynamic is a slow negotiation between Eleanor's desire for peace and Calder's need for truth. Eleanor resents the disturbance but can't deny she's been waiting for someone to ask.",
         ))
         db.add(CharacterRelationship(
             character_id=eleanor.id,
             related_character_id=margaret.id,
-            relationship_type="island neighbor",
+            relationship_type="ally",
             description="The two remaining year-round residents. They share practical support and a mutual respect built on proximity, not closeness.",
+            strength={"trust": 7, "power": 5, "affection": 6, "tension": 3, "openness": 5},
+            visibility="public",
+            narrative_purpose=["emotional-anchor", "exposition-vehicle"],
+            notes="Margaret is the only person on the island who knew Thomas as Eleanor did — through years rather than reputation. They don't talk about him directly, but his ghost is present in every shared meal, every borrowed tool, every careful silence.",
         ))
         db.add(CharacterRelationship(
             character_id=visitor.id,
             related_character_id=thomas.id,
-            relationship_type="prior contact",
-            description="Calder came to Harrow Island two weeks before Thomas Vance died — she had already traced the missing distress log to the lighthouse. Thomas met her, spoke briefly, and said nothing that exonerated him. She has carried the uncertainty of that meeting ever since.",
+            relationship_type="adversary",
+            description="Calder came to Harrow Island two weeks before Thomas Vance died. Thomas met her, spoke briefly, and said nothing that exonerated him.",
+            strength={"trust": 1, "power": 6, "affection": 1, "tension": 9, "openness": 2},
+            visibility="public",
+            narrative_purpose=["twist-setup", "conflict-driver"],
+            notes="The question at the center of the story: did Thomas know the distress signal was real? Calder believes he did and chose not to respond. Eleanor doesn't know what she believes yet. This is the relationship that makes the story matter — it's the engine of the mystery, and it involves someone who can no longer speak for himself.",
         ))
         db.add(CharacterRelationship(
             character_id=margaret.id,
             related_character_id=thomas.id,
-            relationship_type="old friend",
+            relationship_type="confidant",
             description="Margaret and Thomas Vance were neighbors for thirty years. She is one of the few people who knew him well. She has not volunteered what she knows.",
+            strength={"trust": 9, "power": 5, "affection": 8, "tension": 4, "openness": 8},
+            visibility="hidden",
+            narrative_purpose=["twist-setup", "wisdom-source"],
+            notes="Margaret knows something Eleanor doesn't. Thomas told her about the distress signal — not everything, but enough. She's been protecting Eleanor from a version of her father she's not sure Eleanor is ready to hold. This hidden dynamic makes Margaret the most structurally important character in Act 2.",
         ))
         db.flush()
 

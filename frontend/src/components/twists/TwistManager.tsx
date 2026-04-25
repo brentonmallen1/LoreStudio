@@ -90,6 +90,7 @@ export default function TwistManager({ storyId }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [analyzeId, setAnalyzeId] = useState<string | null>(null);
   const [impactId, setImpactId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([api.listTwists(storyId), api.getStructure(storyId)])
@@ -126,8 +127,8 @@ export default function TwistManager({ storyId }: Props) {
     setEditingId(null);
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this twist?")) return;
+  async function doDelete(id: string) {
+    setPendingDeleteId(null);
     await api.deleteTwist(id);
     setTwists((prev) => prev.filter((t) => t.id !== id));
     if (expandedId === id) setExpandedId(null);
@@ -277,14 +278,21 @@ export default function TwistManager({ storyId }: Props) {
                   >
                     <Pencil size={13} />
                   </button>
-                  <button
-                    className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                    onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
-                    title="Delete"
-                    type="button"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  {pendingDeleteId === t.id ? (
+                    <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
+                      <button className={styles.deleteConfirmYes} onClick={() => doDelete(t.id)} type="button">Delete</button>
+                      <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteId(null); }} type="button">Cancel</button>
+                    </div>
+                  ) : (
+                    <button
+                      className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                      onClick={(e) => { e.stopPropagation(); setPendingDeleteId(t.id); }}
+                      title="Delete"
+                      type="button"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                   <span className={styles.chevron}>{isExpanded ? "▲" : "▼"}</span>
                 </div>
               </div>

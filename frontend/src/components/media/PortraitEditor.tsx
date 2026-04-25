@@ -124,7 +124,7 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
       {/* Portrait display */}
       <div className={styles.portrait} style={{ width: size, height: size }}>
         {portraitUrl ? (
-          <img src={portraitUrl} alt="Portrait" className={styles.img} />
+          <img src={portraitUrl} alt="Portrait" className={styles.img} decoding="async" />
         ) : (
           <div className={styles.placeholder}>{placeholder}</div>
         )}
@@ -207,7 +207,7 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
                       onClick={() => setPortrait(asset.id)}
                       title={asset.original_filename}
                     >
-                      <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.gridImg} />
+                      <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.gridImg} loading="lazy" decoding="async" />
                     </button>
                   ))}
                 </div>

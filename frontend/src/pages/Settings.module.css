@@ -610,3 +610,19 @@
   cursor: pointer;
   min-width: 160px;
 }
+
+/* ── Responsive adaptations ── */
+@media (max-width: 640px) {
+  .pageTitle {
+    padding: 1.5rem 1rem 0;
+  }
+
+  .main {
+    padding: 1.5rem 1rem;
+    gap: 2rem;
+  }
+
+  .themePresetGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

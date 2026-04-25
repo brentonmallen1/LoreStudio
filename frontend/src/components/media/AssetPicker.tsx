@@ -116,7 +116,7 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
                       >
                         {isImage && asset ? (
                           <>
-                            <img src={api.assetFileUrl(asset.id)} alt={asset.alt_text || asset.original_filename} className={styles.attachImg} />
+                            <img src={api.assetFileUrl(asset.id)} alt={asset.alt_text || asset.original_filename} className={styles.attachImg} loading="lazy" decoding="async" />
                             <span className={styles.attachZoom}><ZoomIn size={10} /></span>
                           </>
                         ) : (
@@ -176,7 +176,7 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
                         >
                           <div className={styles.browserThumb}>
                             {isImage ? (
-                              <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.browserImg} />
+                              <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.browserImg} loading="lazy" decoding="async" />
                             ) : (
                               <FileText size={18} />
                             )}

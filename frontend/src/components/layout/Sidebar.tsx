@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Users,
@@ -23,6 +23,7 @@ import {
   ListTree,
   History,
   Shuffle,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
@@ -33,6 +34,17 @@ import { useLLMStore } from "../../stores/llmStore";
 import { TabActivityIndicator } from "./TabActivityIndicator";
 import AIActivityIndicator from "./AIActivityIndicator";
 import styles from "./Sidebar.module.css";
+
+type TabDef = { id: string; icon: LucideIcon; label: string; path: string; badge?: number };
+type TabGroup = { id: string; label?: string; tabs: TabDef[] };
+
+// Static map of tab → group for auto-expand logic
+const TAB_GROUP: Record<string, string> = {
+  overview: "core", story: "core", outline: "core", characters: "core",
+  lorebook: "world", compendium: "world", worldbuilding: "world",
+  threads: "tools", twists: "tools", whatif: "tools", panels: "tools", media: "tools",
+  health: "system", discoveries: "system", chronicle: "system", versions: "system", publish: "system",
+};
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -56,12 +68,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
 
   const isCollapsed = collapsedProp ?? sidebarCollapsed;
 
-  // Refresh discovery badge count when story changes
   useEffect(() => {
     if (storyId && activeStory?.discovery_enabled) refreshCount(storyId);
   }, [storyId, activeStory?.discovery_enabled]);
 
-  // Refresh health alert badge when story changes
   useEffect(() => {
     if (storyId) refreshAlerts(storyId);
   }, [storyId]);
@@ -87,27 +97,130 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     return "overview";
   })();
 
-  const tabs: { id: string; icon: LucideIcon; label: string; path: string; badge?: number }[] = [
-    { id: "overview",      icon: Home,              label: "Overview",         path: "" },
-    { id: "story",         icon: PenLine,           label: "Write",            path: "/write" },
-    { id: "outline",       icon: ListTree,          label: "Outline",          path: "/outline" },
-    { id: "characters",    icon: Users,             label: "Characters",       path: "/characters" },
-    { id: "lorebook",      icon: Scroll,            label: "Lorebook",         path: "/lorebook" },
-    { id: "compendium",    icon: BookOpen,          label: "Compendium",       path: "/compendium" },
-    { id: "panels",        icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
-    { id: "threads",       icon: GitBranch,         label: "Plot Threads",     path: "/threads" },
-    { id: "twists",        icon: Eye,               label: "Twists",           path: "/twists" },
-    { id: "whatif",        icon: Shuffle,           label: "What If?",         path: "/whatif" },
-    { id: "worldbuilding", icon: Globe,             label: "World Building",   path: "/worldbuilding" },
-    { id: "media",         icon: Images,            label: "Media & Diagrams", path: "/media" },
-    { id: "health",        icon: Activity,          label: "Story Health",     path: "/health", badge: alertCount || undefined },
-    ...(activeStory?.discovery_enabled
-      ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
-      : []),
-    { id: "chronicle",     icon: Clock,             label: "Chronicle",        path: "/chronicle" },
-    { id: "versions",      icon: History,           label: "Versions",         path: "/versions" },
-    { id: "publish",       icon: Send,              label: "Publish",          path: "/publish" },
+  const tabGroups: TabGroup[] = [
+    {
+      id: "core",
+      tabs: [
+        { id: "overview",   icon: Home,    label: "Overview",   path: "" },
+        { id: "story",      icon: PenLine, label: "Write",      path: "/write" },
+        { id: "outline",    icon: ListTree, label: "Outline",   path: "/outline" },
+        { id: "characters", icon: Users,   label: "Characters", path: "/characters" },
+      ],
+    },
+    {
+      id: "world",
+      label: "World",
+      tabs: [
+        { id: "lorebook",      icon: Scroll,   label: "Lorebook",       path: "/lorebook" },
+        { id: "compendium",    icon: BookOpen, label: "Compendium",     path: "/compendium" },
+        { id: "worldbuilding", icon: Globe,    label: "World Building", path: "/worldbuilding" },
+      ],
+    },
+    {
+      id: "tools",
+      label: "Tools",
+      tabs: [
+        { id: "threads", icon: GitBranch,         label: "Plot Threads",     path: "/threads" },
+        { id: "twists",  icon: Eye,               label: "Twists",           path: "/twists" },
+        { id: "whatif",  icon: Shuffle,           label: "What If?",         path: "/whatif" },
+        { id: "panels",  icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
+        { id: "media",   icon: Images,            label: "Media & Diagrams", path: "/media" },
+      ],
+    },
+    {
+      id: "system",
+      label: "System",
+      tabs: [
+        { id: "health",   icon: Activity, label: "Story Health", path: "/health",     badge: alertCount || undefined },
+        ...(activeStory?.discovery_enabled
+          ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
+          : []),
+        { id: "chronicle", icon: Clock,    label: "Chronicle", path: "/chronicle" },
+        { id: "versions",  icon: History,  label: "Versions",  path: "/versions" },
+        { id: "publish",   icon: Send,     label: "Publish",   path: "/publish" },
+      ],
+    },
   ];
+
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
+    const activeGroup = TAB_GROUP[tab] ?? "core";
+    return new Set(["core", activeGroup]);
+  });
+
+  // Auto-expand the group containing the active tab
+  useEffect(() => {
+    const activeGroup = TAB_GROUP[tab];
+    if (activeGroup) {
+      setOpenGroups(prev => {
+        if (prev.has(activeGroup)) return prev;
+        return new Set([...prev, activeGroup]);
+      });
+    }
+  }, [tab]);
+
+  function toggleGroup(groupId: string) {
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+  }
+
+  function renderTabButton(t: TabDef) {
+    const activityStatus = getTabStatus(t.id);
+    const isActive = tab === t.id;
+    const Icon = t.icon;
+
+    // Write tab gets the tree panel toggle in expanded mode
+    if (t.id === "story" && !isCollapsed) {
+      return (
+        <div key={t.id} className={styles.writeTabRow}>
+          <button
+            onClick={() => { navigate(`/stories/${storyId}${t.path}`); markViewed(t.id); }}
+            className={`${styles.railBtn} ${styles.writeTabBtn} ${isActive ? styles.railBtnActive : ""}`}
+          >
+            <Icon size={16} />
+            <span className={styles.railLabel}>{t.label}</span>
+            {t.badge != null ? (
+              <span className={styles.badge}>{t.badge}</span>
+            ) : (
+              <TabActivityIndicator status={activityStatus} />
+            )}
+          </button>
+          <button
+            className={`${styles.treeToggleBtn} ${treeDetached ? styles.treeToggleBtnActive : ""}`}
+            onClick={() => setTreeDetached(!treeDetached)}
+            title={treeDetached ? "Close structure tree" : "Open structure tree"}
+          >
+            <PanelRightOpen size={13} />
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        key={t.id}
+        onClick={() => { navigate(`/stories/${storyId}${t.path}`); markViewed(t.id); }}
+        className={`${styles.railBtn} ${isActive ? styles.railBtnActive : ""}`}
+        title={isCollapsed ? (t.badge ? `${t.label} (${t.badge})` : t.label) : undefined}
+      >
+        <Icon size={16} />
+        {!isCollapsed && <span className={styles.railLabel}>{t.label}</span>}
+        {t.badge != null ? (
+          <span className={styles.badge}>{t.badge}</span>
+        ) : (
+          <TabActivityIndicator status={activityStatus} />
+        )}
+      </button>
+    );
+  }
+
+  const allTabs = tabGroups.flatMap(g => g.tabs);
 
   return (
     <aside
@@ -142,7 +255,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
 
       {/* Vertical tab rail */}
       <nav className={styles.tabRail}>
-        {/* Expand button when collapsed in normal mode; dashboard icon in overlay mode */}
+        {/* Expand button when collapsed */}
         {isCollapsed && (
           collapsedProp === undefined
             ? (
@@ -165,96 +278,46 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             )
         )}
 
-        {tabs.map(({ id, icon: Icon, label, path, badge }) => {
-          const activityStatus = getTabStatus(id);
-          const isWriteTab = id === "story";
+        {/* Collapsed: flat icon list. Expanded: grouped with collapsible sections. */}
+        {isCollapsed ? (
+          allTabs.map(t => renderTabButton(t))
+        ) : (
+          tabGroups.map(group => {
+            const isOpen = openGroups.has(group.id);
+            const groupBadgeTotal = group.tabs.reduce((sum, t) => sum + (t.badge ?? 0), 0);
 
-          if (isWriteTab) {
             return (
-              <div key={id} className={styles.writeTabRow}>
-                <button
-                  onClick={() => {
-                    navigate(`/stories/${storyId}${path}`);
-                    markViewed(id);
-                  }}
-                  className={`${styles.railBtn} ${styles.writeTabBtn} ${tab === id ? styles.railBtnActive : ""}`}
-                  title={isCollapsed ? label : undefined}
-                >
-                  <Icon size={16} />
-                  {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
-                  {badge ? (
-                    <span style={{
-                      marginLeft: "auto",
-                      background: "var(--color-accent)",
-                      color: "white",
-                      borderRadius: "9px",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      padding: "1px 5px",
-                      minWidth: "16px",
-                      textAlign: "center",
-                      lineHeight: "14px",
-                      flexShrink: 0,
-                    }}>{badge}</span>
-                  ) : (
-                    <TabActivityIndicator status={activityStatus} />
-                  )}
-                </button>
-                {!isCollapsed && (
+              <div key={group.id} className={styles.group}>
+                {group.label && (
                   <button
-                    className={`${styles.treeToggleBtn} ${treeDetached ? styles.treeToggleBtnActive : ""}`}
-                    onClick={() => setTreeDetached(!treeDetached)}
-                    title={treeDetached ? "Close structure tree" : "Open structure tree"}
+                    className={styles.groupHeader}
+                    onClick={() => toggleGroup(group.id)}
+                    aria-expanded={isOpen}
                   >
-                    <PanelRightOpen size={13} />
+                    <span className={styles.groupHeaderLabel}>{group.label}</span>
+                    {!isOpen && groupBadgeTotal > 0 && (
+                      <span className={styles.groupBadge}>{groupBadgeTotal}</span>
+                    )}
+                    <ChevronDown
+                      size={11}
+                      className={`${styles.groupChevron} ${!isOpen ? styles.groupChevronClosed : ""}`}
+                    />
                   </button>
                 )}
+                {(isOpen || !group.label) && group.tabs.map(t => renderTabButton(t))}
               </div>
             );
-          }
-
-          return (
-            <button
-              key={id}
-              onClick={() => {
-                navigate(`/stories/${storyId}${path}`);
-                markViewed(id);
-              }}
-              className={`${styles.railBtn} ${tab === id ? styles.railBtnActive : ""}`}
-              title={isCollapsed ? (badge ? `${label} (${badge})` : label) : undefined}
-            >
-              <Icon size={16} />
-              {!isCollapsed && <span className={styles.railLabel}>{label}</span>}
-              {badge ? (
-                <span style={{
-                  marginLeft: "auto",
-                  background: "var(--color-accent)",
-                  color: "white",
-                  borderRadius: "9px",
-                  fontSize: "9px",
-                  fontWeight: 700,
-                  padding: "1px 5px",
-                  minWidth: "16px",
-                  textAlign: "center",
-                  lineHeight: "14px",
-                  flexShrink: 0,
-                }}>{badge}</span>
-              ) : (
-                <TabActivityIndicator status={activityStatus} />
-              )}
-            </button>
-          );
-        })}
+          })
+        )}
       </nav>
 
       {/* Content panels — expanded only */}
       {!isCollapsed && (
         <>
-          {/* Characters list */}
           {tab === "characters" && (
             <div className={styles.tree}>
               {characters.length === 0 && (
-                <p className={styles.emptyHint}>No characters yet</p>
+                <p className={styles.emptyHint}>Your cast will appear here.</p>
               )}
               {characters.map((char) => (
                 <button

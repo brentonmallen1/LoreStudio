@@ -118,8 +118,12 @@ export const api = {
       body: JSON.stringify({ character_id: characterId ?? null }),
       signal,
     }),
-  suggestRelationships: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/suggest-relationships`, { method: "POST" }),
+  suggestRelationships: (storyId: string, characterId?: string) =>
+    request<import("../types").RelationshipSuggestionsResult>(`/stories/${storyId}/suggest-relationships`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ character_id: characterId ?? null }),
+    }),
   analyzeShowDontTell: (storyId: string, nodeId?: string, text?: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/show-dont-tell`, {
       method: "POST",
@@ -342,13 +346,28 @@ export const api = {
   // Relationships
   listRelationships: (characterId: string) =>
     request<import("../types").CharacterRelationship[]>(`/characters/${characterId}/relationships`),
-  createRelationship: (
-    characterId: string,
-    data: { related_character_id: string; relationship_type: string; description: string }
-  ) =>
+  createRelationship: (characterId: string, data: Partial<import("../types").CharacterRelationship>) =>
     request<import("../types").CharacterRelationship>(`/characters/${characterId}/relationships`, {
       method: "POST",
       body: JSON.stringify(data),
+    }),
+  updateRelationship: (relationshipId: string, data: Partial<import("../types").CharacterRelationship>) =>
+    request<import("../types").CharacterRelationship>(`/characters/relationships/${relationshipId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteRelationship: (relationshipId: string) =>
+    request<void>(`/characters/relationships/${relationshipId}`, { method: "DELETE" }),
+  acceptRelationshipSuggestion: (relationshipId: string) =>
+    request<import("../types").CharacterRelationship>(`/characters/relationships/${relationshipId}/accept-suggestion`, {
+      method: "POST",
+    }),
+  getRelationshipTemplates: () =>
+    request<import("../types").RelationshipTemplate[]>(`/characters/relationships/templates`),
+  createRelationshipFromTemplate: (characterId: string, relatedCharacterId: string, templateId: string) =>
+    request<import("../types").CharacterRelationship>(`/characters/${characterId}/relationships/from-template`, {
+      method: "POST",
+      body: JSON.stringify({ related_character_id: relatedCharacterId, template_id: templateId }),
     }),
 
   // Settings (deprecated — use listLocationsFlat instead)
@@ -589,7 +608,7 @@ export const api = {
   getPanel: (panelId: string) =>
     request<import("../types").PanelInterview>(`/panels/${panelId}`),
   deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
-  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams, responseLength?: "brief" | "normal" | "detailed"): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/panels/${panelId}/messages`, {
       method: "POST",
@@ -597,7 +616,7 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ content, llm_params: llmParams ?? null }),
+      body: JSON.stringify({ content, llm_params: llmParams ?? null, response_length: responseLength ?? null }),
       signal,
     });
   },

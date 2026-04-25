@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, UserCircle2, Trash2, Compass, List, Network } from "lucide-react";
+import { Plus, Trash2, Compass, List, Network } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import CharacterFormDialog from "./CharacterFormDialog";
@@ -18,6 +18,7 @@ export default function CharacterList({ storyId }: Props) {
   const [view, setView] = useState<"list" | "graph">("list");
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [showRelSuggestions, setShowRelSuggestions] = useState(false);
   const [portraitUrls, setPortraitUrls] = useState<Record<string, string>>({});
 
@@ -41,9 +42,9 @@ export default function CharacterList({ storyId }: Props) {
     });
   }, [characters.map((c) => c.id).join(",")]);
 
-  async function handleDelete(id: string, name: string, e: React.MouseEvent) {
+  async function doDelete(id: string, e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm(`Delete character "${name}"? This cannot be undone.`)) return;
+    setPendingDeleteId(null);
     setDeletingId(id);
     await api.deleteCharacter(id);
     removeCharacter(id);
@@ -82,10 +83,23 @@ export default function CharacterList({ storyId }: Props) {
         <div className={styles.graphHeader}>
           <h1 className={styles.title}>Characters</h1>
           <div className={styles.headerActions}>
+            {/* Jump directly to a character's Relationships tab */}
+            <select
+              className={styles.charJumpSelect}
+              value=""
+              onChange={(e) => {
+                if (e.target.value) navigate(`/stories/${storyId}/characters/${e.target.value}?tab=relationships`);
+              }}
+            >
+              <option value="">View character relationships…</option>
+              {characters.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
             {viewToggle}
           </div>
         </div>
-        <RelationshipGraph storyId={storyId} />
+        <RelationshipGraph storyId={storyId} onEditRelationship={(rel) => navigate(`/stories/${storyId}/characters/${rel.character_id}?tab=relationships`)} />
         {creating && <CharacterFormDialog storyId={storyId} onClose={() => setCreating(false)} />}
       </div>
     );
@@ -113,8 +127,11 @@ export default function CharacterList({ storyId }: Props) {
 
         {characters.length === 0 ? (
           <div className={styles.empty}>
-            <UserCircle2 size={40} className={styles.emptyIcon} />
-            <p className={styles.emptyText}>No characters yet</p>
+            <p className={styles.emptyTitle}>No characters yet</p>
+            <p className={styles.emptyDesc}>
+              Each character gets a full profile, a role in the story, and their own interview
+              space — so you can talk to them and understand them before you write them.
+            </p>
             <button onClick={() => setCreating(true)} className={styles.emptyBtn}>
               Add your first character
             </button>
@@ -128,7 +145,7 @@ export default function CharacterList({ storyId }: Props) {
                 className={styles.card}
               >
                 {portraitUrls[c.id] ? (
-                  <img src={portraitUrls[c.id]} alt={c.name} className={styles.avatarImg} />
+                  <img src={portraitUrls[c.id]} alt={c.name} className={styles.avatarImg} loading="lazy" decoding="async" />
                 ) : (
                   <div className={styles.avatar}>{c.name[0].toUpperCase()}</div>
                 )}
@@ -141,13 +158,20 @@ export default function CharacterList({ storyId }: Props) {
                     <p className={styles.personality}>{c.personality}</p>
                   )}
                 </div>
-                <button
-                  onClick={(e) => handleDelete(c.id, c.name, e)}
-                  disabled={deletingId === c.id}
-                  className={styles.deleteBtn}
-                >
-                  <Trash2 size={14} />
-                </button>
+                {pendingDeleteId === c.id ? (
+                  <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
+                    <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(c.id, e)}>Delete</button>
+                    <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteId(null); }}>Cancel</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setPendingDeleteId(c.id); }}
+                    disabled={deletingId === c.id}
+                    className={styles.deleteBtn}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

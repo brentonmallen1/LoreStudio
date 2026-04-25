@@ -437,6 +437,36 @@
   color: var(--color-text-muted);
 }
 
+.tabDeleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.tabDeleteYes {
+  padding: 0.12rem 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.tabDeleteNo {
+  padding: 0.12rem 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
 .tabRenameInput {
   width: 100px;
   font-size: 0.8rem;

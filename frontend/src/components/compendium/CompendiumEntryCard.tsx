@@ -7,6 +7,9 @@ interface Props {
   onClick: () => void;
   onEdit: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
+  isPendingDelete?: boolean;
+  onConfirmDelete?: () => void;
+  onCancelDelete?: () => void;
 }
 
 function urlDomain(url: string): string {
@@ -17,7 +20,7 @@ function urlDomain(url: string): string {
   }
 }
 
-export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete }: Props) {
+export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete, isPendingDelete, onConfirmDelete, onCancelDelete }: Props) {
   const icon =
     entry.entry_type === "note" ? (
       <FileText size={15} className={`${styles.cardIcon} ${styles.cardIconNote}`} />
@@ -63,20 +66,21 @@ export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete }
           <span />
         )}
         <div className={styles.cardActions}>
-          <button
-            className={styles.actionBtn}
-            onClick={onEdit}
-            title="Edit"
-          >
-            <Pencil size={13} />
-          </button>
-          <button
-            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-            onClick={onDelete}
-            title="Delete"
-          >
-            <Trash2 size={13} />
-          </button>
+          {isPendingDelete ? (
+            <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.deleteConfirmYes} onClick={onConfirmDelete}>Delete</button>
+              <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); onCancelDelete?.(); }}>Cancel</button>
+            </div>
+          ) : (
+            <>
+              <button className={styles.actionBtn} onClick={onEdit} title="Edit">
+                <Pencil size={13} />
+              </button>
+              <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={onDelete} title="Delete">
+                <Trash2 size={13} />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

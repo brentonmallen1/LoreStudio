@@ -32,6 +32,7 @@ export default function CompendiumEntryDetail({
 }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   async function handleRefreshUrl() {
     setRefreshing(true);
@@ -43,8 +44,8 @@ export default function CompendiumEntryDetail({
     }
   }
 
-  async function handleDelete() {
-    if (!confirm(`Delete "${entry.title}"? This cannot be undone.`)) return;
+  async function doDelete() {
+    setPendingDelete(false);
     setDeleting(true);
     await onDelete();
   }
@@ -81,14 +82,21 @@ export default function CompendiumEntryDetail({
             <button className={styles.iconBtn} onClick={onEdit} title="Edit">
               <Pencil size={14} />
             </button>
-            <button
-              className={`${styles.iconBtn} ${styles.deleteBtn}`}
-              onClick={handleDelete}
-              disabled={deleting}
-              title="Delete"
-            >
-              <Trash2 size={14} />
-            </button>
+            {pendingDelete ? (
+              <div className={styles.deleteConfirm}>
+                <button className={styles.deleteConfirmYes} onClick={doDelete} disabled={deleting}>Delete</button>
+                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button
+                className={`${styles.iconBtn} ${styles.deleteBtn}`}
+                onClick={() => setPendingDelete(true)}
+                disabled={deleting}
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
           </div>
         </div>
 

@@ -102,3 +102,170 @@ svg {
   flex-shrink: 0;
   border: 2px solid transparent;
 }
+
+.legendLine {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendDivider {
+  width: 1px;
+  height: 14px;
+  background: var(--color-border);
+  margin: 0 0.25rem;
+}
+
+.strengthScaleBar {
+  width: 50px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--color-border), var(--color-accent));
+}
+
+/* ── Filter bar ── */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.filterSelect {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.filterSlider {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.slider {
+  width: 80px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.filterValue {
+  font-size: 0.72rem;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 1.2rem;
+  text-align: right;
+  color: var(--color-text-muted);
+}
+
+.filterLabel {
+  white-space: nowrap;
+}
+
+.filterToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.filterToggle:hover,
+.filterToggleActive {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
+.filterCount {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  margin-left: auto;
+}
+
+/* ── Edge tooltip ── */
+.edgeTooltip {
+  position: absolute;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.85rem;
+  box-shadow: var(--shadow);
+  max-width: 260px;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tooltipType {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tooltipHidden {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.tooltipStrengths {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.tooltipStrengths strong {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--color-text);
+}
+
+.tooltipPurposes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tooltipPurposeTag {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: var(--color-surface-2);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+}
+
+.tooltipNotes {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.tooltipClick {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+  margin: 0;
+}

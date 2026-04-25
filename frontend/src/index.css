@@ -12,9 +12,13 @@
   --shadow:    0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
 
-  --transition: 120ms ease;
-  --transition-md: 180ms ease;
-  --transition-lg: 260ms ease;
+  /* ease-out gives natural deceleration for UI state changes */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --transition: 120ms var(--ease-out);
+  --transition-md: 180ms var(--ease-out);
+  --transition-lg: 260ms var(--ease-out);
 
   /* ── Zen light defaults (fallback before JS applies theme class) ── */
   --color-bg: #f7f6f3;
@@ -88,16 +92,39 @@
   --color-todo: #6db800;
   --color-todo-done: #9ab87a;
 
+  /* ── Scene Planner panel accent (teal) ── */
+  --color-planner: #0d9488;
+  --color-planner-hover: #0b7c72;
+  --color-planner-fg: #ffffff;
+  --color-planner-subtle: rgba(13, 148, 136, 0.1);
+  --color-planner-border: rgba(13, 148, 136, 0.28);
+
+  /* ── Brainstorm panel accent (amber/gold) ── */
+  --color-brainstorm: #d97706;
+  --color-brainstorm-hover: #b45309;
+  --color-brainstorm-fg: #ffffff;
+  --color-brainstorm-subtle: rgba(217, 119, 6, 0.1);
+  --color-brainstorm-border: rgba(217, 119, 6, 0.28);
+
   /* ── Twist accent ── */
   --twist-accent: var(--color-ai-coach);
 
   /* ── Modal overlay ── */
   --color-overlay: rgba(0, 0, 0, 0.4);
 
-  /* ── Editor typography ─────────────────────────── */
+  /* ── UI & Editor typography ────────────────────── */
+  --font-ui: "DM Sans", system-ui, sans-serif;
   --font-editor: "Merriweather", Georgia, serif;
   --font-size-editor: 1rem;
   --editor-max-width: 640px;
+
+  /* ── Type scale (base: 15px) ──────────────────── */
+  --text-xs:   0.73rem;  /* 11px — metadata, captions         */
+  --text-sm:   0.8rem;   /* 12px — secondary labels, badges   */
+  --text-base: 0.875rem; /* 13px — primary UI body            */
+  --text-md:   0.95rem;  /* 14px — emphasized labels, titles  */
+  --text-lg:   1.1rem;   /* 16.5px — section headings         */
+  --text-xl:   1.35rem;  /* 20px — page headings              */
 }
 
 /* ── Zen theme · dark mode ─────────────────────── */
@@ -160,6 +187,18 @@
   --color-danger-bg: #1f1212;
   --color-warning: #d08428;
   --color-success: #5ab87e;
+
+  --color-brainstorm: #f0a030;
+  --color-brainstorm-hover: #e09020;
+  --color-brainstorm-fg: #1a0e00;
+  --color-brainstorm-subtle: rgba(240, 160, 48, 0.1);
+  --color-brainstorm-border: rgba(240, 160, 48, 0.25);
+
+  --color-planner: #25b5a6;
+  --color-planner-hover: #1da498;
+  --color-planner-fg: #051a18;
+  --color-planner-subtle: rgba(37, 181, 166, 0.1);
+  --color-planner-border: rgba(37, 181, 166, 0.25);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -290,6 +329,12 @@
   --color-warning: #c89840;
   --color-success: #58906a;
 
+  --color-brainstorm: #d4a020;
+  --color-brainstorm-hover: #c49010;
+  --color-brainstorm-fg: #120c00;
+  --color-brainstorm-subtle: rgba(212, 160, 32, 0.1);
+  --color-brainstorm-border: rgba(212, 160, 32, 0.25);
+
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow:    0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
@@ -406,6 +451,12 @@
   --color-danger-bg: #3A2A2B;
   --color-warning: #D08770;
   --color-success: #A3BE8C;
+
+  --color-brainstorm: #EBCB8B;
+  --color-brainstorm-hover: #D8B86A;
+  --color-brainstorm-fg: #2E3440;
+  --color-brainstorm-subtle: rgba(235, 203, 139, 0.1);
+  --color-brainstorm-border: rgba(235, 203, 139, 0.25);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
@@ -524,6 +575,12 @@
   --color-warning: #d4a800;
   --color-success: #859900;
 
+  --color-brainstorm: #b58900;
+  --color-brainstorm-hover: #a07800;
+  --color-brainstorm-fg: #002b36;
+  --color-brainstorm-subtle: rgba(181, 137, 0, 0.1);
+  --color-brainstorm-border: rgba(181, 137, 0, 0.25);
+
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow:    0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -584,6 +641,12 @@
   --color-danger-bg: #3A2020;
   --color-warning: #FFB86C;
   --color-success: #50FA7B;
+
+  --color-brainstorm: #FFB86C;
+  --color-brainstorm-hover: #F0A050;
+  --color-brainstorm-fg: #282A36;
+  --color-brainstorm-subtle: rgba(255, 184, 108, 0.1);
+  --color-brainstorm-border: rgba(255, 184, 108, 0.25);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -702,6 +765,12 @@
   --color-warning: #fabd2f;
   --color-success: #b8bb26;
 
+  --color-brainstorm: #fabd2f;
+  --color-brainstorm-hover: #e8ab1a;
+  --color-brainstorm-fg: #282828;
+  --color-brainstorm-subtle: rgba(250, 189, 47, 0.1);
+  --color-brainstorm-border: rgba(250, 189, 47, 0.25);
+
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow:    0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
@@ -819,6 +888,12 @@
   --color-warning: #EED49F;
   --color-success: #A6DA95;
 
+  --color-brainstorm: #EED49F;
+  --color-brainstorm-hover: #DEC28A;
+  --color-brainstorm-fg: #24273A;
+  --color-brainstorm-subtle: rgba(238, 212, 159, 0.1);
+  --color-brainstorm-border: rgba(238, 212, 159, 0.25);
+
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow:    0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
@@ -871,10 +946,11 @@ html {
 }
 
 body {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-ui);
   background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
+  font-kerning: normal;
 }
 
 #root {
@@ -885,6 +961,14 @@ body {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Touch target enlargement for touch devices ─── */
+@media (hover: none) and (pointer: coarse) {
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 

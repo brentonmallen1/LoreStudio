@@ -65,6 +65,7 @@ export default function PlotThreadManager({ storyId }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [showMICEGuide, setShowMICEGuide] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
   const [editFields, setEditFields] = useState<EditFields>({
@@ -114,8 +115,8 @@ export default function PlotThreadManager({ storyId }: Props) {
     setEditingId(null);
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this plot thread?")) return;
+  async function doDelete(id: string) {
+    setPendingDeleteId(null);
     await api.deleteThread(id);
     setThreads((prev) => prev.filter((t) => t.id !== id));
   }
@@ -387,9 +388,16 @@ export default function PlotThreadManager({ storyId }: Props) {
                   <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
                     <Edit2 size={12} />
                   </button>
-                  <button onClick={() => handleDelete(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
-                    <Trash2 size={12} />
-                  </button>
+                  {pendingDeleteId === t.id ? (
+                    <div className={styles.deleteConfirm}>
+                      <button className={styles.deleteConfirmYes} onClick={() => doDelete(t.id)}>Delete</button>
+                      <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>Cancel</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setPendingDeleteId(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
               </>
             )}

@@ -537,6 +537,7 @@ export default function OutlineManager({ storyId }: Props) {
   const [activeTab, setActiveTab] = useState<"snowflake" | string>("snowflake");
   const [loadingOutlines, setLoadingOutlines] = useState(true);
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [pendingDeleteOutlineId, setPendingDeleteOutlineId] = useState<string | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showExtractPanel, setShowExtractPanel] = useState(false);
 
@@ -560,8 +561,8 @@ export default function OutlineManager({ storyId }: Props) {
     setActiveTab(outline.id);
   }
 
-  async function handleDeleteOutline(id: string) {
-    if (!confirm("Delete this outline and all its beats?")) return;
+  async function doDeleteOutline(id: string) {
+    setPendingDeleteOutlineId(null);
     await api.deleteOutline(id);
     setOutlines((prev) => prev.filter((o) => o.id !== id));
     if (activeTab === id) setActiveTab("snowflake");
@@ -617,13 +618,20 @@ export default function OutlineManager({ storyId }: Props) {
                   >
                     <Pencil size={10} />
                   </button>
-                  <button
-                    className={styles.tabCloseBtn}
-                    onClick={(e) => { e.stopPropagation(); handleDeleteOutline(outline.id); }}
-                    title="Delete outline"
-                  >
-                    <X size={11} />
-                  </button>
+                  {pendingDeleteOutlineId === outline.id ? (
+                    <div className={styles.tabDeleteConfirm} onClick={(e) => e.stopPropagation()}>
+                      <button className={styles.tabDeleteYes} onClick={(e) => { e.stopPropagation(); doDeleteOutline(outline.id); }}>Delete</button>
+                      <button className={styles.tabDeleteNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteOutlineId(null); }}>Cancel</button>
+                    </div>
+                  ) : (
+                    <button
+                      className={styles.tabCloseBtn}
+                      onClick={(e) => { e.stopPropagation(); setPendingDeleteOutlineId(outline.id); }}
+                      title="Delete outline"
+                    >
+                      <X size={11} />
+                    </button>
+                  )}
                 </>
               )}
             </div>

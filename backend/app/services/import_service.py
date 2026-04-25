@@ -54,6 +54,7 @@ MIME_TO_PANDOC = {
     "text/markdown": "markdown",
     "text/plain": "markdown",  # pandoc handles plain text as markdown
     "text/x-markdown": "markdown",
+    "application/epub+zip": "epub",
 }
 
 EXT_TO_PANDOC = {
@@ -63,6 +64,7 @@ EXT_TO_PANDOC = {
     ".md": "markdown",
     ".markdown": "markdown",
     ".txt": "markdown",
+    ".epub": "epub",
 }
 
 CONTENT_TYPE_TO_FORMAT = {
@@ -84,7 +86,7 @@ def _detect_pandoc_format(filename: str, mime_type: str) -> tuple[str, str]:
     else:
         pandoc_fmt = "markdown"
 
-    display = {"docx": "docx", "doc": "docx", "rtf": "rtf", "markdown": "markdown"}.get(
+    display = {"docx": "docx", "doc": "docx", "rtf": "rtf", "markdown": "markdown", "epub": "epub"}.get(
         pandoc_fmt, "markdown"
     )
     return pandoc_fmt, display

@@ -1,0 +1,130 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.displayVal {
+  font-size: 0.78rem;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.displayVal.neg  { color: #a06090; }
+.displayVal.pos  { color: #609878; }
+.displayVal.zero { color: var(--color-text-subtle); }
+
+/* ── Track: negLabel  [leftHalf | tick | rightHalf]  posLabel ── */
+.track {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.trackLabel {
+  font-size: 0.62rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  min-width: 4.5rem;
+}
+
+.track .trackLabel:last-child {
+  text-align: right;
+}
+
+.barWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 6px;
+  position: relative;
+}
+
+.leftHalf {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px 0 0 3px;
+  overflow: hidden;
+  display: flex;
+  justify-content: flex-end; /* fill grows from center toward left */
+}
+
+.leftFill {
+  height: 100%;
+  border-radius: 3px 0 0 3px;
+  transition: width 300ms ease;
+}
+
+.centerTick {
+  width: 2px;
+  height: 10px;
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.rightHalf {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 0 3px 3px 0;
+  overflow: hidden;
+}
+
+.rightFill {
+  height: 100%;
+  border-radius: 0 3px 3px 0;
+  transition: width 300ms ease;
+}
+
+/* ── Slider row ── */
+.sliderWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sliderEdge {
+  font-size: 0.62rem;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--color-text-subtle);
+  min-width: 2rem;
+}
+
+.sliderEdge:last-child {
+  text-align: right;
+}
+
+.slider {
+  flex: 1;
+  cursor: pointer;
+  height: 4px;
+  border-radius: 2px;
+  accent-color: var(--color-accent);
+}
+
+.slider:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

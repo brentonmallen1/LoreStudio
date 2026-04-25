@@ -276,3 +276,33 @@
 .deleteBtn:hover {
   color: var(--color-danger, #c0392b);
 }
+
+.deleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.deleteConfirmYes {
+  padding: 0.18rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.deleteConfirmNo {
+  padding: 0.18rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+}

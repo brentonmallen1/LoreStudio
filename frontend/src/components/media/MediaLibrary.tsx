@@ -72,7 +72,7 @@ function AssetCard({
       >
         {isImage ? (
           <>
-            <img src={fileUrl} alt={asset.alt_text || asset.original_filename} className={styles.thumb} />
+            <img src={fileUrl} alt={asset.alt_text || asset.original_filename} className={styles.thumb} loading="lazy" decoding="async" />
             {onLightbox && <span className={styles.thumbZoom}><ZoomIn size={13} /></span>}
           </>
         ) : (

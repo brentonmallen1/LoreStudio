@@ -1,0 +1,176 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+/* ── Character selector ── */
+.selector {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.selectorLabel {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding-top: 0.25rem;
+  white-space: nowrap;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.7rem 0.22rem 0.5rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+
+.chip:hover { border-color: var(--color-text-muted); }
+
+.chipActive { font-weight: 600; }
+
+.chipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.empty {
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+}
+
+/* ── Chart area ── */
+.chartWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  justify-content: center;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legendSwatch {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendName {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.noSelection {
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+  text-align: center;
+  padding: 3rem 0;
+}
+
+/* ── Tooltip ── */
+.tooltip {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.85rem;
+  box-shadow: var(--shadow);
+  min-width: 160px;
+}
+
+.tooltipTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.1rem;
+}
+
+.tooltipSub {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+  margin: 0 0 0.4rem;
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.tooltipDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltipName {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.tooltipVal {
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+}
+
+/* ── Dimension key ── */
+.dimKey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.2rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.dimRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dimLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.dimRange {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+}

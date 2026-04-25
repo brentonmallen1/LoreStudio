@@ -8,6 +8,14 @@ Each schema corresponds to a one-shot AI feature that returns typed, renderable 
 from pydantic import BaseModel
 
 
+# ── Panel Interview ───────────────────────────────────────────────────────────
+
+class PanelOrchestratorResponse(BaseModel):
+    """Decides which characters speak and in what order for a panel round."""
+    speakers: list[str] = []
+    round_complete: bool = True
+
+
 # ── Scene Planner ─────────────────────────────────────────────────────────────
 
 class CharacterFeatureSuggestion(BaseModel):
@@ -58,10 +66,20 @@ class AttributeSuggestionsResponse(BaseModel):
 # ── Relationship Suggestions ──────────────────────────────────────────────────
 
 class RelationshipSuggestion(BaseModel):
-    character_a: str
-    character_b: str
+    character_a: str           # name (resolved to ID server-side before returning)
+    character_b: str           # name
+    character_a_id: str = ""   # filled in by endpoint after name→ID resolution
+    character_b_id: str = ""
     relationship_type: str
     description: str
+    rationale: str = ""        # AI's reasoning
+    narrative_purpose: list[str] = []
+    # Suggested 0-10 strength values (5 = neutral)
+    strength_trust: int = 5
+    strength_power: int = 5
+    strength_affection: int = 5
+    strength_tension: int = 5
+    strength_openness: int = 5
 
 
 class RelationshipSuggestionsResponse(BaseModel):

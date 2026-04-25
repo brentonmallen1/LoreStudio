@@ -250,6 +250,7 @@ function SnapshotCard({
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(snapshot.name ?? "");
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   function commitRename() {
     onRename(snapshot, editName.trim() || "");
@@ -311,9 +312,16 @@ function SnapshotCard({
             <button className={styles.snapBtn} onClick={() => onRestore(snapshot)} title="Restore to this version">
               <RotateCcw size={12} />
             </button>
-            <button className={`${styles.snapBtn} ${styles.snapBtnDanger}`} onClick={() => onDelete(snapshot)} title="Delete snapshot">
-              <Trash2 size={12} />
-            </button>
+            {pendingDelete ? (
+              <div className={styles.deleteConfirm}>
+                <button className={styles.deleteConfirmYes} onClick={() => { setPendingDelete(false); onDelete(snapshot); }}>Delete</button>
+                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+              </div>
+            ) : (
+              <button className={`${styles.snapBtn} ${styles.snapBtnDanger}`} onClick={() => setPendingDelete(true)} title="Delete snapshot">
+                <Trash2 size={12} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -677,6 +685,7 @@ export default function VersionsPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogState>({ type: "none" });
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const snapshotCount = snapshots.filter((s) => s.trigger === "manual").length;
@@ -730,7 +739,7 @@ export default function VersionsPage() {
   }
 
   async function handleDelete(snapshot: StorySnapshot) {
-    if (!storyId || !confirm(`Delete this snapshot? This cannot be undone.`)) return;
+    if (!storyId) return;
     await api.deleteSnapshot(storyId, snapshot.id);
     setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
     showToast("Snapshot deleted");
@@ -786,7 +795,13 @@ export default function VersionsPage() {
     const file = e.target.files?.[0];
     if (!file || !storyId) return;
     e.target.value = "";
-    if (!confirm("Import this snapshot into the current story? The current state will be saved as a backup first.")) return;
+    setPendingImportFile(file);
+  }
+
+  async function doImport() {
+    if (!storyId || !pendingImportFile) return;
+    const file = pendingImportFile;
+    setPendingImportFile(null);
     const res = await api.importIntoStory(storyId, file, true);
     if (!res.ok) { showToast("Import failed"); return; }
     showToast("Import complete");
@@ -857,6 +872,19 @@ export default function VersionsPage() {
           </button>
         </div>
       </div>
+
+      {/* Import confirmation banner */}
+      {pendingImportFile && (
+        <div className={styles.importConfirm}>
+          <span className={styles.importConfirmText}>
+            Import <strong>{pendingImportFile.name}</strong>? The current story state will be saved as a backup first.
+          </span>
+          <div className={styles.importConfirmActions}>
+            <button className={styles.importConfirmYes} onClick={doImport}>Import</button>
+            <button className={styles.importConfirmNo} onClick={() => setPendingImportFile(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {/* Settings panel */}
       {settingsOpen && settings && (

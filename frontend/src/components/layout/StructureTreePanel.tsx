@@ -44,7 +44,10 @@ function getSegmentIcon(levelType: string): LucideIcon {
 function segmentColor(levelType: string): string {
   const key = levelType.toLowerCase();
   const known = ["act", "chapter", "scene", "section", "beat", "part", "stage"];
-  return known.includes(key) ? `var(--segment-${key})` : "var(--color-text-subtle)";
+  // Blend 65% segment color with 35% muted text — keeps types distinct without full-saturation rainbow
+  return known.includes(key)
+    ? `color-mix(in srgb, var(--segment-${key}) 65%, var(--color-text-subtle))`
+    : "var(--color-text-subtle)";
 }
 
 // ── Reorder helpers ────────────────────────────────────────────────────────────

@@ -1,0 +1,171 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  min-height: 0;
+  flex: 1;
+}
+
+.loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.viewBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  background: var(--color-surface-2);
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.viewBtn:not(:last-child) {
+  border-right: 1px solid var(--color-border);
+}
+
+.viewBtnActive {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.viewBtn:hover:not(.viewBtnActive) {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.discoverBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
+  background: var(--color-ai-subtle);
+  color: var(--color-ai);
+  border: 1px solid var(--color-ai-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.discoverBtn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-ai) 18%, transparent);
+}
+
+.discoverBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.discoverError {
+  font-size: 0.72rem;
+  color: var(--color-danger, #c0392b);
+  max-width: 220px;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity var(--transition);
+}
+
+.addBtn:hover {
+  opacity: 0.88;
+}
+
+.suggestionBanner {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.9rem;
+  background: var(--color-ai-subtle);
+  border: 1px solid var(--color-ai-border);
+  border-radius: var(--radius);
+}
+
+.suggestionText {
+  font-size: 0.78rem;
+  color: var(--color-ai);
+}
+
+.focusView {
+  flex: 1;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.matrixView {
+  flex: 1;
+  overflow: auto;
+}
+
+.radarView {
+  flex: 1;
+  overflow: auto;
+  padding: 0.5rem 0;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.empty .addBtn {
+  font-size: 0.82rem;
+}

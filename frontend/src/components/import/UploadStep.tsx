@@ -8,8 +8,8 @@ interface Props {
   onUploaded: (resp: ImportUploadResponse) => void;
 }
 
-const ACCEPTED = ".docx,.doc,.rtf,.md,.markdown,.txt";
-const ACCEPTED_LABEL = "DOCX, DOC, RTF, Markdown, plain text";
+const ACCEPTED = ".docx,.doc,.rtf,.md,.markdown,.txt,.epub";
+const ACCEPTED_LABEL = "DOCX, DOC, RTF, Markdown, plain text, ePub";
 
 export default function UploadStep({ onUploaded }: Props) {
   const [file, setFile] = useState<File | null>(null);

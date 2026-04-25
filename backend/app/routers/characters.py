@@ -13,9 +13,10 @@ from ..models.structure import StructureNode
 from ..models.dialogue import DialogueBlock
 from ..schemas.character import (
     CharacterCreate, CharacterUpdate, CharacterOut,
-    RelationshipCreate, RelationshipOut,
+    RelationshipCreate, RelationshipUpdate, RelationshipOut, RelationshipTemplate,
     ArcMilestone, DiscoveryNoteCreate, DiscoveryNoteUpdate,
 )
+from ..services.relationship_templates import get_all_templates, get_template
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
 from ..services.llm.prompts.generation import build_attribute_generation_prompt
@@ -101,8 +102,99 @@ def create_relationship(
     _verify_character_access(character_id, db, current_user)
     if character_id == body.related_character_id:
         raise HTTPException(status_code=400, detail="Cannot relate character to itself")
-    rel = CharacterRelationship(character_id=character_id, **body.model_dump())
+    existing = db.query(CharacterRelationship).filter(
+        CharacterRelationship.character_id == character_id,
+        CharacterRelationship.related_character_id == body.related_character_id,
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail=f"A relationship from this character to the selected character already exists (id: {existing.id}). Edit the existing relationship instead.",
+        )
+    data = body.model_dump()
+    if isinstance(data.get("strength"), dict):
+        pass
+    elif hasattr(data.get("strength"), "model_dump"):
+        data["strength"] = data["strength"].model_dump()
+    rel = CharacterRelationship(character_id=character_id, **data)
     db.add(rel)
+    db.commit()
+    db.refresh(rel)
+    return rel
+
+
+@router.get("/relationships/templates", response_model=list[RelationshipTemplate])
+def list_relationship_templates(current_user: User = Depends(get_current_user)):
+    return get_all_templates()
+
+
+@router.patch("/relationships/{relationship_id}", response_model=RelationshipOut)
+def update_relationship(
+    relationship_id: str,
+    body: RelationshipUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rel = db.get(CharacterRelationship, relationship_id)
+    if not rel:
+        raise HTTPException(status_code=404, detail="Relationship not found")
+    _verify_character_access(rel.character_id, db, current_user)
+    data = body.model_dump(exclude_none=True)
+    if "strength" in data and hasattr(data["strength"], "model_dump"):
+        data["strength"] = data["strength"].model_dump()
+    elif "strength" in data and isinstance(data["strength"], dict):
+        pass
+    for key, value in data.items():
+        setattr(rel, key, value)
+    db.commit()
+    db.refresh(rel)
+    return rel
+
+
+@router.post("/{character_id}/relationships/from-template", response_model=RelationshipOut, status_code=status.HTTP_201_CREATED)
+def create_relationship_from_template(
+    character_id: str,
+    related_character_id: str = Body(...),
+    template_id: str = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _verify_character_access(character_id, db, current_user)
+    if character_id == related_character_id:
+        raise HTTPException(status_code=400, detail="Cannot relate character to itself")
+    template = get_template(template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail=f"Template '{template_id}' not found")
+    rel = CharacterRelationship(
+        character_id=character_id,
+        related_character_id=related_character_id,
+        relationship_type=template.relationship_type,
+        description="",
+        strength=template.default_strength.model_dump(),
+        visibility=template.default_visibility,
+        narrative_purpose=template.default_narrative_purpose,
+        notes="",
+        is_suggested=False,
+        suggestion_source="",
+    )
+    db.add(rel)
+    db.commit()
+    db.refresh(rel)
+    return rel
+
+
+@router.post("/relationships/{relationship_id}/accept-suggestion", response_model=RelationshipOut)
+def accept_relationship_suggestion(
+    relationship_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rel = db.get(CharacterRelationship, relationship_id)
+    if not rel:
+        raise HTTPException(status_code=404, detail="Relationship not found")
+    _verify_character_access(rel.character_id, db, current_user)
+    rel.is_suggested = False
+    rel.suggestion_source = ""
     db.commit()
     db.refresh(rel)
     return rel

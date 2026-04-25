@@ -106,6 +106,9 @@ export default function StoryWorkspacePage() {
 
   return (
     <div className={styles.workspace}>
+      <div className={styles.mobileNotice} role="status">
+        LoreStudio is optimized for desktop — some features may be limited on small screens.
+      </div>
       {/* Focus mode: hover zone on left edge reveals collapsed sidebar */}
       {isFocused && !sidebarRevealed && (
         <div

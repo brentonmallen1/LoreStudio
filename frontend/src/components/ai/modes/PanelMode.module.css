@@ -154,6 +154,12 @@
   letter-spacing: 0.04em;
 }
 
+.charTarget {
+  font-weight: 400;
+  opacity: 0.85;
+  letter-spacing: 0.02em;
+}
+
 .charText {
   font-size: 0.82rem;
   color: var(--color-text);
@@ -184,4 +190,35 @@
 @keyframes pulse {
   0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
   40% { opacity: 1; transform: scale(1); }
+}
+
+/* ── Response length toggle ── */
+.lengthRow {
+  display: flex;
+  gap: 2px;
+  padding: 4px 0.75rem;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.lengthBtn {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  text-transform: capitalize;
+}
+
+.lengthBtn:hover {
+  color: var(--color-text);
+}
+
+.lengthBtnActive {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-weight: 500;
 }

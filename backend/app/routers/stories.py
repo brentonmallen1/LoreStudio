@@ -1,4 +1,5 @@
 import uuid
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.responses import StreamingResponse
 from sqlalchemy import inspect as sa_inspect
@@ -322,13 +323,17 @@ async def snowflake_guidance(
     return StreamingResponse(stream(), media_type="text/plain")
 
 
+class SuggestRelationshipsRequest(BaseModel):
+    character_id: str | None = None  # focus character (optional)
+
+
 @router.post("/{story_id}/suggest-relationships", response_model=StructuredResult)
 async def suggest_relationships(
     story_id: str,
+    body: SuggestRelationshipsRequest = Body(default_factory=SuggestRelationshipsRequest),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from ..models.character import Character, CharacterRelationship
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -341,13 +346,16 @@ async def suggest_relationships(
         CharacterRelationship.character_id.in_([c.id for c in characters])
     ).all()
 
-    char_names = {c.id: c.name for c in characters}
+    char_by_id   = {c.id: c    for c in characters}
+    char_by_name = {c.name.lower(): c for c in characters}
+    char_names   = {c.id: c.name for c in characters}
     existing = [
         {"from": char_names.get(r.character_id, "?"), "to": char_names.get(r.related_character_id, "?"), "type": r.relationship_type}
         for r in existing_rels
     ]
 
-    feature_prompt = build_relationship_suggestion_prompt(characters, existing)
+    focus_char = char_by_id.get(body.character_id) if body.character_id else None
+    feature_prompt = build_relationship_suggestion_prompt(characters, existing, focus_char)
     llm_messages = [{"role": "user", "content": "Please suggest relationships."}]
 
     ctx = AICallContext(
@@ -357,7 +365,7 @@ async def suggest_relationships(
         tags=["character", "generation", "lorebook", "user-initiated"],
     )
 
-    return await ai_gateway.generate_structured(
+    result = await ai_gateway.generate_structured(
         response_model=RelationshipSuggestionsResponse,
         messages=llm_messages,
         feature_prompt=feature_prompt,
@@ -365,6 +373,24 @@ async def suggest_relationships(
         db=db,
         user=current_user,
     )
+
+    def resolve_name(name: str) -> str:
+        key = name.strip().lower()
+        if key in char_by_name:
+            return char_by_name[key].id
+        # Prefix fallback for slightly mismatched names
+        for c in characters:
+            if c.name.lower().startswith(key[:5]) or key.startswith(c.name.lower()[:5]):
+                return c.id
+        return ""
+
+    # Resolve character names → IDs in-place so the frontend can use them directly
+    if result.success and isinstance(result.data, dict):
+        for s in result.data.get("suggestions", []):
+            s["character_a_id"] = resolve_name(s.get("character_a") or "")
+            s["character_b_id"] = resolve_name(s.get("character_b") or "")
+
+    return result
 
 
 @router.get("/{story_id}/structure", response_model=list[StructureNodeMeta])

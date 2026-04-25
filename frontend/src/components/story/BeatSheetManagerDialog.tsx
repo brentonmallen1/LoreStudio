@@ -146,13 +146,14 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
   const [sheets, setSheets] = useState<BeatSheet[]>([]);
   const [editing, setEditing] = useState<BeatSheet | null | "new">(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     api.listBeatSheets().then((all) => setSheets(all.filter((s) => !s.is_system))).catch(() => {});
   }, []);
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this beat sheet?")) return;
+  async function doDelete(id: string) {
+    setPendingDeleteId(null);
     setDeletingId(id);
     await api.deleteBeatSheet(id).catch(() => {});
     setSheets((prev) => prev.filter((s) => s.id !== id));
@@ -205,13 +206,20 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
                       <button className={styles.editBtn} onClick={() => setEditing(sheet)}>
                         Edit
                       </button>
-                      <button
-                        className={styles.deleteBtn}
-                        onClick={() => handleDelete(sheet.id)}
-                        disabled={deletingId === sheet.id}
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                      {pendingDeleteId === sheet.id ? (
+                        <div className={styles.deleteConfirm}>
+                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(sheet.id)}>Delete</button>
+                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button
+                          className={styles.deleteBtn}
+                          onClick={() => setPendingDeleteId(sheet.id)}
+                          disabled={deletingId === sheet.id}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,19 +8,70 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
-from ..models.character import Character
+from ..models.character import Character, CharacterRelationship
 from ..models.panel_interview import PanelInterview
+from ..models.chat_session import ChatSession
+from ..models.chat_message import ChatMessage
 from ..schemas.panel_interview import (
     PanelInterviewCreate,
     PanelMessageRequest,
     PanelInterviewOut,
     PanelInterviewSummaryOut,
 )
+from ..schemas.ai_responses import PanelOrchestratorResponse
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
-from ..services.llm.prompts.interviews import build_panel_interview_system_prompt
+from ..services.llm.prompts.panel import (
+    build_panel_orchestrator_prompt,
+    build_panel_character_prompt,
+    format_history_with_labels,
+)
 
 router = APIRouter()
+
+
+def _get_or_create_chronicle_session(
+    panel: PanelInterview, user: User, db: Session
+) -> ChatSession:
+    """Get or create a Chronicle session for this panel interview."""
+    existing = (
+        db.query(ChatSession)
+        .filter(
+            ChatSession.user_id == user.id,
+            ChatSession.context_type == "panel",
+            ChatSession.context_id == panel.id,
+        )
+        .first()
+    )
+    if existing:
+        return existing
+
+    session = ChatSession(
+        story_id=panel.story_id,
+        user_id=user.id,
+        context_type="panel",
+        context_id=panel.id,
+        context_label=panel.title,
+        title=panel.title,
+    )
+    db.add(session)
+    db.flush()
+    return session
+
+
+def _add_chronicle_message(
+    chronicle_session: ChatSession, role: str, content: str, db: Session, model: str = ""
+) -> None:
+    """Add a message to the Chronicle session."""
+    msg = ChatMessage(
+        session_id=chronicle_session.id,
+        role=role,
+        content=content,
+        model=model,
+    )
+    chronicle_session.updated_at = datetime.now(timezone.utc)
+    db.add(msg)
+    db.flush()
 
 
 def _verify_story_access(story_id: str, db: Session, user: User) -> Story:
@@ -85,11 +137,15 @@ def create_panel(
             names.append(c.name)
     title = body.title or f"Panel: {', '.join(names)}"
 
+    if len(body.character_ids) > 3:
+        raise HTTPException(status_code=400, detail="Panel interview supports at most 3 characters")
+
     panel = PanelInterview(
         story_id=story_id,
         title=title,
         character_ids=body.character_ids,
         messages=[],
+        settings=(body.settings.model_dump() if body.settings else {}),
     )
     db.add(panel)
     db.commit()
@@ -113,57 +169,155 @@ async def send_panel_message(
 ):
     panel = _verify_panel_access(panel_id, db, current_user)
 
-    # Load characters in order
     characters = []
     for cid in panel.character_ids:
         c = db.get(Character, cid)
         if c:
             characters.append(c)
 
-    # Append user message
+    char_by_name = {c.name: c for c in characters}
+    all_char_ids = [c.id for c in characters]
+
+    relationships = (
+        db.query(CharacterRelationship)
+        .filter(
+            CharacterRelationship.character_id.in_(all_char_ids)
+            | CharacterRelationship.related_character_id.in_(all_char_ids)
+        )
+        .all()
+    )
+
+    settings = panel.settings or {}
+    max_rounds = min(int(settings.get("max_rounds", 2)), 4)
+
+    chronicle_session = _get_or_create_chronicle_session(panel, current_user, db)
+
     user_msg = {
         "role": "user",
         "content": body.content,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    messages = list(panel.messages)
-    messages.append(user_msg)
+    messages = list(panel.messages) + [user_msg]
     panel.messages = messages
+    _add_chronicle_message(chronicle_session, "user", body.content, db)
     db.commit()
 
-    feature_prompt = build_panel_interview_system_prompt(characters)
-    llm_messages = [{"role": m["role"] if m["role"] == "user" else "assistant", "content": m["content"]} for m in messages]
-
-    ctx = AICallContext(
-        feature="panel-interview",
+    orch_ctx = AICallContext(
+        feature="panel-orchestrator",
         user_id=current_user.id,
         story_id=panel.story_id,
-        tags=["character", "interview", "conversation", "user-initiated", "persisted"],
+        tags=["panel", "orchestrator"],
     )
 
-    async def on_complete(result: AICallResult) -> None:
-        panel_msg = {
-            "role": "panel",
-            "content": result.content,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        panel.messages = list(panel.messages) + [panel_msg]
-        db.commit()
+    def _sse(event: dict) -> str:
+        return f"data: {json.dumps(event)}\n\n"
 
-    async def stream_and_persist():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            llm_params=body.llm_params,
-            include_core_prompt=False,
-            on_complete=on_complete,
-        ):
-            yield token
+    async def stream_panel():
+        current_messages = list(panel.messages)
+        round_num = 1
 
-    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+        while round_num <= max_rounds:
+            # Orchestrator: decide who speaks and in what order
+            orch_result = await ai_gateway.generate_structured(
+                response_model=PanelOrchestratorResponse,
+                messages=[
+                    {"role": "user", "content": format_history_with_labels(current_messages)}
+                ],
+                feature_prompt=build_panel_orchestrator_prompt(
+                    characters, current_messages, round_num, max_rounds
+                ),
+                context=orch_ctx,
+                db=db,
+                user=current_user,
+                llm_params=body.llm_params,
+                include_core_prompt=False,
+            )
+
+            if not orch_result.success or not orch_result.data:
+                yield _sse({"type": "done"})
+                return
+
+            speakers: list[str] = orch_result.data.get("speakers", [])
+            round_complete: bool = orch_result.data.get("round_complete", True)
+
+            if not speakers:
+                yield _sse({"type": "done"})
+                return
+
+            # Stream each character in order
+            for char_name in speakers:
+                character = char_by_name.get(char_name)
+                if not character:
+                    continue
+
+                other_characters = [c for c in characters if c.id != character.id]
+
+                char_prompt = build_panel_character_prompt(
+                    character=character,
+                    other_characters=other_characters,
+                    relationships=relationships,
+                    response_length=body.response_length,
+                )
+
+                llm_messages = [
+                    {
+                        "role": "user" if m["role"] == "user" else "assistant",
+                        "content": m["content"],
+                    }
+                    for m in current_messages
+                ]
+
+                yield _sse({"type": "start", "character": char_name, "character_id": character.id})
+
+                char_tokens: list[str] = []
+
+                char_ctx = AICallContext(
+                    feature="panel-character",
+                    user_id=current_user.id,
+                    story_id=panel.story_id,
+                    tags=["panel", "character", "interview", "persisted"],
+                )
+
+                async for token in ai_gateway.stream(
+                    messages=llm_messages,
+                    feature_prompt=char_prompt,
+                    context=char_ctx,
+                    db=db,
+                    user=current_user,
+                    llm_params=body.llm_params,
+                    include_core_prompt=False,
+                ):
+                    char_tokens.append(token)
+                    yield _sse({"type": "token", "character": char_name, "token": token})
+
+                full_content = "".join(char_tokens).strip()
+
+                # Strip [pass] responses — character chose not to speak
+                if full_content == "[pass]":
+                    yield _sse({"type": "pass", "character": char_name})
+                else:
+                    char_msg = {
+                        "role": "character",
+                        "character_id": character.id,
+                        "character_name": char_name,
+                        "content": full_content,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                    current_messages = current_messages + [char_msg]
+                    panel.messages = current_messages
+                    _add_chronicle_message(chronicle_session, "assistant", f"[{char_name}]: {full_content}", db)
+                    db.commit()
+
+                yield _sse({"type": "end", "character": char_name})
+
+            if round_complete or round_num >= max_rounds:
+                break
+
+            round_num += 1
+
+        yield _sse({"type": "done"})
+
+    return StreamingResponse(stream_panel(), media_type="text/event-stream")
 
 
 @router.delete("/panels/{panel_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -171,5 +325,17 @@ def delete_panel(
     panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     panel = _verify_panel_access(panel_id, db, current_user)
+    # Also delete associated Chronicle session
+    chronicle_session = (
+        db.query(ChatSession)
+        .filter(
+            ChatSession.user_id == current_user.id,
+            ChatSession.context_type == "panel",
+            ChatSession.context_id == panel.id,
+        )
+        .first()
+    )
+    if chronicle_session:
+        db.delete(chronicle_session)
     db.delete(panel)
     db.commit()

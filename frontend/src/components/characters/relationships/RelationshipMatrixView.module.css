@@ -1,0 +1,264 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Mode selector ── */
+.modeBar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.modeLabel {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.modeBtns {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.modeBtn {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.modeBtn:hover:not(.modeBtnActive) {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.modeBtnActive {
+  background: var(--color-surface-3);
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* ── Table ── */
+.tableWrapper {
+  overflow: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  min-width: 100%;
+  font-size: 0.78rem;
+}
+
+.cornerCell {
+  width: 130px;
+  min-width: 130px;
+}
+
+.colHeader {
+  padding: 0.4rem 0.2rem;
+  text-align: center;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  min-width: 70px;
+}
+
+.colName {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: block;
+  font-size: 0.72rem;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowHeader {
+  padding: 0.25rem 0.5rem;
+  text-align: right;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+  max-width: 130px;
+}
+
+.rowName {
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.selfCell {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  opacity: 0.4;
+}
+
+.emptyCell {
+  border: 1px solid var(--color-border);
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--transition);
+  height: 52px;
+}
+
+.emptyCell:hover {
+  background: var(--color-surface-2);
+}
+
+.emptyCell:hover .addHint {
+  opacity: 1;
+}
+
+.addHint {
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.filledCell {
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background var(--transition);
+  padding: 0.25rem;
+  vertical-align: middle;
+  height: 52px;
+}
+
+.filledCell:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── Cell inner layouts ── */
+.cellInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 100%;
+}
+
+.cellDot {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cellLabel {
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 62px;
+}
+
+.cellMuted {
+  font-size: 0.6rem;
+  color: var(--color-text-subtle);
+}
+
+/* Purpose mode */
+.purposePips {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.purposePip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Strength mode */
+.strengthMeter {
+  width: 36px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.strengthNum {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Hidden cell */
+.hiddenCell {
+  border: 1px dashed var(--color-border);
+  cursor: pointer;
+  opacity: 0.35;
+  height: 52px;
+}
+
+.hiddenCell:hover {
+  opacity: 0.65;
+  background: var(--color-surface-2);
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  min-width: 0;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendGradient {
+  width: 80px;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #a0a0a0, #7898c9, #c96060);
+  flex-shrink: 0;
+}
+
+.legendEdge {
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  padding: 2rem;
+  text-align: center;
+}

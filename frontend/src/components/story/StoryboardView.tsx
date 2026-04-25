@@ -84,7 +84,7 @@ function StructureStoryboardNode({ data, selected }: NodeProps) {
   return (
     <div
       className={`${styles.structureNode} ${selected ? styles.structureNodeSelected : ""}`}
-      style={{ borderColor: `var(--segment-${levelType}, var(--color-border))` }}
+      style={{ borderColor: `color-mix(in srgb, var(--segment-${levelType}, var(--color-border)) 55%, var(--color-border))` }}
       onClick={() => onCenter?.(structureId)}
       onDoubleClick={() => onOpen?.(structureId)}
       title="Click to center · Double-click to open in editor"

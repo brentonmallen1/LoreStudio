@@ -244,12 +244,15 @@ export default function GlobalHeader() {
               onClick={() => setSettingsOpen((o) => !o)}
               className={`${styles.iconBtn} ${settingsOpen ? styles.iconBtnActive : ""}`}
               title="Appearance settings"
+              aria-label="Appearance settings"
+              aria-expanded={settingsOpen}
+              aria-haspopup="menu"
             >
               <Settings size={15} />
             </button>
 
             {settingsOpen && (
-              <div className={styles.dropdown}>
+              <div className={styles.dropdown} role="menu">
                 <div className={styles.dropdownSection}>
                   <span className={styles.dropdownLabel}>Theme</span>
                   <div className={styles.themeGrid}>
@@ -385,6 +388,9 @@ export default function GlobalHeader() {
             <button
               onClick={() => setUserMenuOpen((o) => !o)}
               className={`${styles.userBtn} ${userMenuOpen ? styles.userBtnActive : ""}`}
+              aria-label="User menu"
+              aria-expanded={userMenuOpen}
+              aria-haspopup="menu"
             >
               <span className={styles.userAvatar}>
                 {user?.display_name?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || "?"}
@@ -393,7 +399,7 @@ export default function GlobalHeader() {
             </button>
 
             {userMenuOpen && (
-              <div className={styles.dropdown}>
+              <div className={styles.dropdown} role="menu">
                 <div className={styles.userInfo}>
                   <span className={styles.userName}>{user?.display_name || user?.username}</span>
                   <span className={styles.userEmail}>{user?.username}</span>
@@ -402,6 +408,7 @@ export default function GlobalHeader() {
                 <button
                   onClick={() => { logout(); setUserMenuOpen(false); }}
                   className={styles.menuItem}
+                  role="menuitem"
                 >
                   <LogOut size={14} />
                   Sign out

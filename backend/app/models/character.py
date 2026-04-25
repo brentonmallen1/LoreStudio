@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
@@ -66,12 +66,34 @@ class Character(Base):
 
 class CharacterRelationship(Base):
     __tablename__ = "character_relationships"
+    __table_args__ = (
+        UniqueConstraint("character_id", "related_character_id", name="uq_relationship_directed_pair"),
+    )
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
     related_character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
     relationship_type: Mapped[str] = mapped_column(String, default="acquaintance")
     description: Mapped[str] = mapped_column(Text, default="")
+
+    # Multi-dimensional strength: {"trust": 0-10, "power": 0-10, "affection": 0-10}
+    strength: Mapped[dict] = mapped_column(JSON, default=dict)
+    # visibility: "public" or "hidden" (hidden = exists but not known to other characters in-world)
+    visibility: Mapped[str] = mapped_column(String, default="public")
+    # Narrative purposes: ["conflict-driver", "ally", "foil", "growth-catalyst", ...]
+    narrative_purpose: Mapped[list] = mapped_column(JSON, default=list)
+    # Freeform author notes — first-class, not optional
+    notes: Mapped[str] = mapped_column(Text, default="")
+    # AI-suggested relationship (pending author acceptance)
+    is_suggested: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Source of suggestion: "profile" (AI) or "prose" (NLP manuscript scan)
+    suggestion_source: Mapped[str] = mapped_column(String, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     character: Mapped["Character"] = relationship(
         "Character", foreign_keys=[character_id], back_populates="relationships_out"

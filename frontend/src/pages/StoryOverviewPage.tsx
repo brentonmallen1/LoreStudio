@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen } from "lucide-react";
+import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen, Users, ListTree } from "lucide-react";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -376,16 +376,39 @@ export default function StoryOverviewPage() {
         {/* ── Empty state ── */}
         {!hasContent && !loading && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyText}>
-              Your story awaits. Start by writing your first scene, or fill in the{" "}
+            <p className={styles.emptyStateLabel}>Where would you like to start?</p>
+            <div className={styles.startPaths}>
               <button
-                className={styles.inlineLink}
-                onClick={() => navigate(`/stories/${storyId}/lorebook`)}
+                className={styles.startPath}
+                onClick={() => navigate(`/stories/${storyId}/write`)}
               >
-                Lorebook
-              </button>{" "}
-              to ground your vision.
-            </p>
+                <span className={styles.startPathIcon}><PenLine size={15} /></span>
+                <span className={styles.startPathName}>Write a scene</span>
+                <span className={styles.startPathHint}>
+                  Jump straight in. Add structure, characters, and details as you go.
+                </span>
+              </button>
+              <button
+                className={styles.startPath}
+                onClick={() => navigate(`/stories/${storyId}/characters`)}
+              >
+                <span className={styles.startPathIcon}><Users size={15} /></span>
+                <span className={styles.startPathName}>Build your cast</span>
+                <span className={styles.startPathHint}>
+                  Create characters first. Give them roles, interview them, then write.
+                </span>
+              </button>
+              <button
+                className={styles.startPath}
+                onClick={() => navigate(`/stories/${storyId}/outline`)}
+              >
+                <span className={styles.startPathIcon}><ListTree size={15} /></span>
+                <span className={styles.startPathName}>Plan the structure</span>
+                <span className={styles.startPathHint}>
+                  Map acts, chapters, and beats before the prose begins.
+                </span>
+              </button>
+            </div>
           </div>
         )}
 

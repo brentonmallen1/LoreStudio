@@ -277,10 +277,14 @@ def build_panel_interview_system_prompt(characters: list[Character]) -> str:
     """
     System prompt for a multi-character panel interview.
     The LLM plays ALL characters, responding as each in turn using [Name]: prefix blocks.
+    With 3 or fewer characters, full behavioral guidance (attributes, archetypes) is included.
+    With 4+ characters, only the essentials are included to keep the prompt token-efficient.
     """
+    detailed_mode = len(characters) <= 3
     char_descriptions = []
+
     for c in characters:
-        meta_parts = [c.role]
+        meta_parts = [c.role] if c.role else []
         char_type = getattr(c, "character_type", "")
         jungian = getattr(c, "jungian_archetype", "")
         narrative = getattr(c, "narrative_archetype", "")
@@ -290,7 +294,12 @@ def build_panel_interview_system_prompt(characters: list[Character]) -> str:
             meta_parts.append(f"{jungian} archetype")
         if narrative:
             meta_parts.append(f"{narrative} (narrative)")
-        desc = [f"**{c.name}** ({', '.join(meta_parts)})"]
+
+        meta_str = f" ({', '.join(meta_parts)})" if meta_parts else ""
+        desc = [f"**{c.name}**{meta_str}"]
+
+        if c.mission_statement:
+            desc.append(f"  Core drive: {c.mission_statement}")
         if c.personality:
             desc.append(f"  Personality: {c.personality}")
         if c.motivation:
@@ -300,23 +309,62 @@ def build_panel_interview_system_prompt(characters: list[Character]) -> str:
         if c.traits:
             trait_str = ", ".join(f"{k}: {v}" for k, v in c.traits.items())
             desc.append(f"  Traits: {trait_str}")
+
+        if c.attributes:
+            attr_guidance = _build_attribute_guidance(c.attributes)
+            if attr_guidance:
+                if detailed_mode:
+                    desc.append(f"  How {c.name} speaks and carries themselves:\n    " + attr_guidance.replace("\n", "\n    "))
+                else:
+                    attr_vals = ", ".join(
+                        f"{k}: {v}" for k, v in c.attributes.items()
+                        if v and _normalise(str(v)) != "unknown"
+                    )
+                    if attr_vals:
+                        desc.append(f"  Attributes: {attr_vals}")
+
+        if detailed_mode:
+            classification_lines: list[str] = []
+            role_key = _normalise(c.role or "")
+            role_match = next((v for k, v in _ROLE_GUIDANCE.items() if _normalise(k) == role_key), None)
+            if role_match:
+                classification_lines.append(role_match)
+            char_type_key = _normalise(char_type)
+            char_type_match = next((v for k, v in _CHARACTER_TYPE_GUIDANCE.items() if _normalise(k) == char_type_key), None)
+            if char_type_match:
+                classification_lines.append(char_type_match)
+            jungian_key = _normalise(jungian)
+            jungian_match = next((v for k, v in _JUNGIAN_GUIDANCE.items() if _normalise(k) == jungian_key), None)
+            if jungian_match:
+                classification_lines.append(jungian_match)
+            narrative_key = _normalise(narrative)
+            narrative_match = next((v for k, v in _NARRATIVE_GUIDANCE.items() if _normalise(k) == narrative_key), None)
+            if narrative_match:
+                classification_lines.append(narrative_match)
+            if classification_lines:
+                desc.append("  Story role:\n    " + "\n    ".join(classification_lines))
+
         char_descriptions.append("\n".join(desc))
 
     names = [c.name for c in characters]
 
     return (
-        "You are running a group interview with multiple characters. "
-        "You will play ALL of the following characters simultaneously.\n\n"
+        "You are facilitating a group conversation where the author speaks with multiple characters at once. "
+        "You will play ALL of the following characters.\n\n"
         + "\n\n".join(char_descriptions)
         + "\n\n"
-        "RULES:\n"
-        f"- Respond as each character in the order: {', '.join(names)}\n"
-        "- Prefix each character's response with their name in brackets, like: [CharacterName]: ...\n"
-        "- Each character should respond naturally, as if having a real conversation — not a formal interview\n"
-        "- Characters may agree, disagree, or react to each other's responses\n"
-        "- Characters may use brief physical cues in square brackets within their dialogue, like [crosses arms] or [laughs], but sparingly\n"
-        "- Stay in character for all responses\n"
-        "- Do not break character or acknowledge that you are an AI\n\n"
-        "The author is having a conversation with all of these characters together. "
-        "Every response must include a reply from each character."
+        "RESPONSE RULES:\n"
+        "- Prefix each character's response with their name in brackets followed by a colon: [CharacterName]: ...\n"
+        "- When a character addresses another character directly, use: [CharacterName to TargetName]: ...\n"
+        "- When a character addresses the author, use the plain form: [CharacterName]: ...\n"
+        "- Not every character needs to speak every turn — respond as the characters who have something meaningful to say\n"
+        "- Characters with direct knowledge, strong opinions, or emotional stakes in the topic should speak\n"
+        "- Characters can use a brief non-verbal cue when they have nothing to add: [Name nods] or [Name listens quietly]\n"
+        "- If the author uses @CharacterName in their message, that character should respond first and most directly\n"
+        "- Each character should respond naturally and in character — not as if answering formal interview questions\n"
+        "- Characters may agree, disagree, or directly react to what another character has said\n"
+        "- Characters may use brief physical cues in square brackets within their dialogue, like [crosses arms], but sparingly\n"
+        "- Stay in character. Do not break character or acknowledge that you are an AI.\n\n"
+        "The author is having a real conversation with these characters together. "
+        f"The characters in this panel are: {', '.join(names)}."
     )

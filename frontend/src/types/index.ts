@@ -410,12 +410,38 @@ export interface PlotHoleDetectionResult {
   overall_rating: string;
 }
 
+export interface StrengthDimensions {
+  trust: number;
+  power: number;
+  affection: number;
+  tension: number;
+  openness: number;
+}
+
 export interface CharacterRelationship {
   id: string;
   character_id: string;
   related_character_id: string;
   relationship_type: string;
   description: string;
+  strength: StrengthDimensions;
+  visibility: "public" | "hidden";
+  narrative_purpose: string[];
+  notes: string;
+  is_suggested: boolean;
+  suggestion_source: string;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface RelationshipTemplate {
+  id: string;
+  name: string;
+  relationship_type: string;
+  default_strength: StrengthDimensions;
+  default_narrative_purpose: string[];
+  default_visibility: "public" | "hidden";
+  description_hint: string;
 }
 
 export interface Setting {
@@ -466,9 +492,22 @@ export interface InterviewSummary {
 }
 
 export interface PanelMessage {
-  role: "user" | "panel";
+  role: "user" | "character";
   content: string;
   timestamp: string;
+  character_id?: string;
+  character_name?: string;
+}
+
+export interface PanelSettings {
+  max_rounds: number;
+}
+
+export interface PanelStreamEvent {
+  type: "start" | "token" | "end" | "pass" | "done";
+  character?: string;
+  character_id?: string;
+  token?: string;
 }
 
 export interface PanelInterview {
@@ -477,6 +516,7 @@ export interface PanelInterview {
   title: string;
   character_ids: string[];
   messages: PanelMessage[];
+  settings: Partial<PanelSettings>;
   created_at: string;
   updated_at: string;
 }
@@ -1051,6 +1091,26 @@ export interface StructuredResult {
   tokens_in?: number | null;
   tokens_out?: number | null;
   model?: string;
+}
+
+export interface RelationshipSuggestion {
+  character_a: string;
+  character_b: string;
+  character_a_id: string;
+  character_b_id: string;
+  relationship_type: string;
+  description: string;
+  rationale: string;
+  narrative_purpose: string[];
+  strength_trust: number;
+  strength_power: number;
+  strength_affection: number;
+  strength_tension: number;
+  strength_openness: number;
+}
+
+export interface RelationshipSuggestionsResult extends StructuredResult {
+  data?: { suggestions: RelationshipSuggestion[] };
 }
 
 export interface ScenePlanResponse {

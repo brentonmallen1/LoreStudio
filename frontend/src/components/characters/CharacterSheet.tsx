@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Wand2, Compass, Users, User, MapPin, ExternalLink } from "lucide-react";
+import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Wand2, Compass, Users, User, MapPin, ExternalLink, ArrowLeft } from "lucide-react";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { SectionCard } from "../common";
 import CharacterDialogueTab from "./CharacterDialogueTab";
@@ -20,6 +20,7 @@ const ATTRIBUTE_DEFS: { key: keyof CharacterAttributes; label: string; options: 
   { key: "temperament",     label: "Temperament",     options: ["Serene", "Calm", "Balanced", "Volatile", "Explosive"] },
   { key: "social_manner",   label: "Social Manner",   options: ["Refined", "Polished", "Casual", "Rough", "Crude"] },
 ];
+import RelationshipsTab from "./relationships/RelationshipsTab";
 import CharacterFormDialog from "./CharacterFormDialog";
 import AttributeGeneratorDialog from "./AttributeGeneratorDialog";
 import StartInterviewDialog from "./StartInterviewDialog";
@@ -55,8 +56,8 @@ export default function CharacterSheet() {
   const [newTraitKey, setNewTraitKey] = useState("");
   const [newTraitValue, setNewTraitValue] = useState("");
 
-  const initialTab = searchParams.get("tab") === "arc" ? "arc" : "overview";
-  const [activeTab, setActiveTab] = useState<"overview" | "dialogue" | "arc">(initialTab);
+  const initialTab = searchParams.get("tab") === "arc" ? "arc" : searchParams.get("tab") === "relationships" ? "relationships" : "overview";
+  const [activeTab, setActiveTab] = useState<"overview" | "dialogue" | "arc" | "relationships">(initialTab);
   const [sceneNodes, setSceneNodes] = useState<StructureNode[]>([]);
   const character = characters.find((c) => c.id === characterId);
 
@@ -276,6 +277,27 @@ export default function CharacterSheet() {
   return (
     <div className={styles.page}>
       <div className={styles.inner}>
+        {/* Back + character switcher */}
+        <div className={styles.switcher}>
+          <button
+            className={styles.backBtn}
+            onClick={() => navigate(`/stories/${storyId}/characters`)}
+            title="Back to characters"
+          >
+            <ArrowLeft size={14} />
+          </button>
+          {characters.length > 1 && (
+            <select
+              className={styles.switcherSelect}
+              value={character.id}
+              onChange={(e) => navigate(`/stories/${storyId}/characters/${e.target.value}?tab=${activeTab}`)}
+            >
+              {characters.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
         <div className={styles.header}>
           <div className={styles.idCard}>
             {storyId && (
@@ -384,8 +406,19 @@ export default function CharacterSheet() {
               <MapPin size={12} />
               Arc Journey
             </button>
+            <button
+              className={`${styles.tab} ${activeTab === "relationships" ? styles.tabActive : ""}`}
+              onClick={() => setActiveTab("relationships")}
+            >
+              <Users size={12} />
+              Relationships
+            </button>
           </div>
         </div>
+
+        {activeTab === "relationships" && character && storyId && (
+          <RelationshipsTab characterId={character.id} storyId={storyId} />
+        )}
 
         {activeTab === "dialogue" && (
           <CharacterDialogueTab characterId={character.id} characterName={character.name} />

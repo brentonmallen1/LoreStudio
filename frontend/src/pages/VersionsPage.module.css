@@ -396,6 +396,85 @@
   color: var(--color-danger, #ef4444);
 }
 
+.deleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.deleteConfirmYes {
+  padding: 0.16rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.deleteConfirmNo {
+  padding: 0.16rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.importConfirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 1.25rem;
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  flex-wrap: wrap;
+}
+
+.importConfirmText {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.importConfirmText strong {
+  color: var(--color-text);
+}
+
+.importConfirmActions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.importConfirmYes {
+  padding: 0.28rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.importConfirmNo {
+  padding: 0.28rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+
 /* Rename input */
 .renameInput {
   font-size: 0.83rem;

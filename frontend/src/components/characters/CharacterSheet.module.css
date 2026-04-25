@@ -10,6 +10,51 @@
   padding: 1.5rem 1.75rem 4rem;
 }
 
+/* ── Character switcher ── */
+.switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.backBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.switcherSelect {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  max-width: 220px;
+}
+
+.switcherSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
 /* ── Header ── */
 .header {
   display: flex;

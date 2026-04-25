@@ -106,10 +106,35 @@ class CharacterOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class StrengthDimensions(BaseModel):
+    trust: int = 5
+    power: int = 5
+    affection: int = 5
+    tension: int = 5
+    openness: int = 5
+
+
 class RelationshipCreate(BaseModel):
     related_character_id: str
     relationship_type: str = "acquaintance"
     description: str = ""
+    strength: StrengthDimensions = StrengthDimensions()
+    visibility: str = "public"
+    narrative_purpose: list[str] = []
+    notes: str = ""
+    is_suggested: bool = False
+    suggestion_source: str = ""
+
+
+class RelationshipUpdate(BaseModel):
+    relationship_type: str | None = None
+    description: str | None = None
+    strength: StrengthDimensions | None = None
+    visibility: str | None = None
+    narrative_purpose: list[str] | None = None
+    notes: str | None = None
+    is_suggested: bool | None = None
+    suggestion_source: str | None = None
 
 
 class RelationshipOut(BaseModel):
@@ -118,5 +143,23 @@ class RelationshipOut(BaseModel):
     related_character_id: str
     relationship_type: str
     description: str
+    strength: dict
+    visibility: str
+    narrative_purpose: list[str]
+    notes: str
+    is_suggested: bool
+    suggestion_source: str
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class RelationshipTemplate(BaseModel):
+    id: str
+    name: str
+    relationship_type: str
+    default_strength: StrengthDimensions
+    default_narrative_purpose: list[str]
+    default_visibility: str
+    description_hint: str

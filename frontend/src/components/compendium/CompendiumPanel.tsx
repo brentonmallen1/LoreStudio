@@ -27,6 +27,7 @@ export default function CompendiumPanel({ storyId }: Props) {
   const [creating, setCreating] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<CompendiumEntry | null>(null);
   const [editingEntry, setEditingEntry] = useState<CompendiumEntry | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   async function load() {
     const params = filter !== "all" ? { entry_type: filter } : {};
@@ -49,11 +50,8 @@ export default function CompendiumPanel({ storyId }: Props) {
       })
     : entries;
 
-  async function handleDelete(id: string, e: React.MouseEvent) {
-    e.stopPropagation();
-    const entry = entries.find((en) => en.id === id);
-    if (!entry) return;
-    if (!confirm(`Delete "${entry.title}"? This cannot be undone.`)) return;
+  async function doDelete(id: string) {
+    setPendingDeleteId(null);
     await api.deleteCompendiumEntry(id);
     setEntries((prev) => prev.filter((en) => en.id !== id));
     if (selectedEntry?.id === id) setSelectedEntry(null);
@@ -176,7 +174,10 @@ export default function CompendiumPanel({ storyId }: Props) {
                 entry={entry}
                 onClick={() => handleCardClick(entry.id)}
                 onEdit={(e) => handleEdit(entry.id, e)}
-                onDelete={(e) => handleDelete(entry.id, e)}
+                onDelete={(e) => { e.stopPropagation(); setPendingDeleteId(entry.id); }}
+              isPendingDelete={pendingDeleteId === entry.id}
+              onConfirmDelete={() => doDelete(entry.id)}
+              onCancelDelete={() => setPendingDeleteId(null)}
               />
             ))}
           </div>

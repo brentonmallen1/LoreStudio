@@ -24,6 +24,7 @@ export default function LocationSheet() {
   const [activeTab, setActiveTab] = useState<"overview" | "scenes">("overview");
   const [scenes, setScenes] = useState<{ scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -56,9 +57,9 @@ export default function LocationSheet() {
     }, 700);
   }
 
-  async function handleDelete() {
+  async function doDelete() {
     if (!location) return;
-    if (!confirm(`Delete "${location.name}"? This cannot be undone.`)) return;
+    setPendingDelete(false);
     await api.deleteLocation(location.id).catch(() => {});
     navigate(`/stories/${storyId}/worldbuilding`);
   }
@@ -119,9 +120,16 @@ export default function LocationSheet() {
           )}
         </div>
         <div className={styles.actions}>
-          <button className={styles.deleteBtn} onClick={handleDelete} title="Delete location">
-            <Trash2 size={14} />
-          </button>
+          {pendingDelete ? (
+            <div className={styles.deleteConfirm}>
+              <button className={styles.deleteConfirmYes} onClick={doDelete}>Delete</button>
+              <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+            </div>
+          ) : (
+            <button className={styles.deleteBtn} onClick={() => setPendingDelete(true)} title="Delete location">
+              <Trash2 size={14} />
+            </button>
+          )}
         </div>
       </div>
 

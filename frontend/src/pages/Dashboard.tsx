@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, BookOpen, Clock, FileInput } from "lucide-react";
+import { Plus, Clock, FileInput, Trash2 } from "lucide-react";
 import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     // Only fetch if the store is empty — avoids refetch on every navigation back to dashboard
@@ -25,9 +26,14 @@ export default function DashboardPage() {
     }
   }, []);
 
-  async function handleDelete(story: Story, e: React.MouseEvent) {
+  async function confirmDelete(story: Story, e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm(`Delete "${story.title}"? This cannot be undone.`)) return;
+    setPendingDeleteId(story.id);
+  }
+
+  async function doDelete(story: Story, e: React.MouseEvent) {
+    e.stopPropagation();
+    setPendingDeleteId(null);
     setDeletingId(story.id);
     await api.deleteStory(story.id);
     removeStory(story.id);
@@ -60,36 +66,61 @@ export default function DashboardPage() {
 
         {stories.length === 0 ? (
           <div className={styles.empty}>
-            <BookOpen size={40} className={styles.emptyIcon} />
-            <p className={styles.emptyText}>Begin your first story</p>
-            <button onClick={() => setCreating(true)} className={styles.emptyBtn}>
-              Create a story
-            </button>
+            <div className={styles.emptyBody}>
+              <p className={styles.emptyHeadline}>A thinking space for writers.</p>
+              <p className={styles.emptySubhead}>
+                LoreStudio helps you plan, organize, and understand your story — characters, structure, plot, and the ideas connecting them. You do the writing; LoreStudio keeps the threads straight.
+              </p>
+              <ul className={styles.emptyFeatures} aria-label="Key features">
+                <li>Build a lorebook of characters, settings, and relationships</li>
+                <li>Map plot threads, arcs, and structure across any narrative form</li>
+                <li>Interview characters and analyze story health with AI assistance</li>
+              </ul>
+              <div className={styles.emptyCtas}>
+                <button onClick={() => setCreating(true)} className={styles.emptyBtn}>
+                  <Plus size={14} />
+                  Start a new story
+                </button>
+                <button onClick={() => setImporting(true)} className={styles.emptyImportBtn}>
+                  <FileInput size={14} />
+                  Import existing work
+                </button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className={styles.grid}>
             {stories.map((story) => (
-              <div
-                key={story.id}
-                onClick={() => navigate(`/stories/${story.id}`)}
-                className={styles.storyCard}
-              >
-                <h3 className={styles.storyTitle}>{story.title}</h3>
-                {story.description && (
-                  <p className={styles.storyDesc}>{story.description}</p>
-                )}
-                <div className={styles.storymeta}>
-                  <Clock size={11} />
-                  {formatRelative(story.updated_at)}
-                </div>
+              <div key={story.id} className={styles.storyCardWrap}>
                 <button
-                  onClick={(e) => handleDelete(story, e)}
-                  disabled={deletingId === story.id}
-                  className={styles.deleteBtn}
-                  title="Delete story"
+                  onClick={() => navigate(`/stories/${story.id}`)}
+                  className={styles.storyCard}
+                  aria-label={`Open ${story.title}`}
                 >
-                  ×
+                  <h3 className={styles.storyTitle}>{story.title}</h3>
+                  {story.description && (
+                    <p className={styles.storyDesc}>{story.description}</p>
+                  )}
+                  <div className={styles.storymeta}>
+                    <Clock size={11} />
+                    {formatRelative(story.updated_at)}
+                  </div>
                 </button>
+                {pendingDeleteId === story.id ? (
+                  <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
+                    <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>Delete</button>
+                    <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteId(null); }}>Cancel</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => confirmDelete(story, e)}
+                    disabled={deletingId === story.id}
+                    className={styles.deleteBtn}
+                    aria-label={`Delete ${story.title}`}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

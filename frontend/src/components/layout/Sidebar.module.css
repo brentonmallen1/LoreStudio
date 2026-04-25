@@ -116,6 +116,77 @@
   text-overflow: ellipsis;
 }
 
+/* ── Badge chip (replaces inline styles) ── */
+.badge {
+  margin-left: auto;
+  background: var(--color-accent);
+  color: white;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 14px;
+  flex-shrink: 0;
+}
+
+/* ── Nav group ── */
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.5rem 0.5rem 0.2rem 0.4rem;
+  margin-top: 0.25rem;
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text-subtle);
+  transition: color var(--transition);
+}
+
+.groupHeader:hover {
+  color: var(--color-text-muted);
+}
+
+.groupHeaderLabel {
+  font-size: 0.67rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  flex: 1;
+}
+
+.groupBadge {
+  background: var(--color-accent);
+  color: white;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 14px;
+  flex-shrink: 0;
+}
+
+.groupChevron {
+  flex-shrink: 0;
+  transition: transform var(--transition-md);
+}
+
+.groupChevronClosed {
+  transform: rotate(-90deg);
+}
+
 /* ── Tab rail resize handle ── */
 .railResizeHandle {
   height: 8px;

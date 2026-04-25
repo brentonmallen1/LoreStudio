@@ -20,6 +20,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   // Draft state for create/edit
   const [draftName, setDraftName] = useState("");
@@ -101,8 +102,8 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
     onTemplatesChanged?.();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this template?")) return;
+  async function doDelete(id: string) {
+    setPendingDeleteId(null);
     await api.deleteStructureTemplate(id);
     setTemplates((prev) => prev.filter((t) => t.id !== id));
     onTemplatesChanged?.();
@@ -241,9 +242,16 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
                       <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
                         <Edit2 size={12} />
                       </button>
-                      <button onClick={() => handleDelete(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
-                        <Trash2 size={12} />
-                      </button>
+                      {pendingDeleteId === t.id ? (
+                        <div className={styles.deleteConfirm}>
+                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(t.id)}>Delete</button>
+                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setPendingDeleteId(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </>
                 )}

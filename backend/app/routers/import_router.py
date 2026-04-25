@@ -111,12 +111,13 @@ ALLOWED_MIME_TYPES = {
     "text/markdown",
     "text/plain",
     "text/x-markdown",
+    "application/epub+zip",
     # browsers often send these for .docx
     "application/zip",
     "application/octet-stream",
 }
 
-ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt"}
+ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epub"}
 MAX_FILE_SIZE = 30 * 1024 * 1024  # 30 MB
 
 
