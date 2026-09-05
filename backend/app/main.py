@@ -37,6 +37,7 @@ from .routers.ollama import router as ollama_router
 from .routers.outlines import router as outlines_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
+from .routers.prose_tools import router as prose_tools_router
 from .routers.publication import router as publication_router
 from .routers.reader_knowledge import router as reader_knowledge_router
 from .routers.scene_links import router as scene_links_router
@@ -165,6 +166,7 @@ app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(publication_router, prefix="/api", tags=["publication"])
 app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
 app.include_router(system_router, prefix="/api", tags=["system"])
+app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

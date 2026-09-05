@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.user import User
+from ..schemas.user import UserOut, UserSelfUpdate
 from .dependencies import get_current_user
 from .utils import create_access_token, verify_password
 
@@ -20,13 +21,6 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
-class UserOut(BaseModel):
-    id: str
-    username: str
-    display_name: str
-    is_admin: bool
-
-
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == body.username).first()
@@ -37,9 +31,23 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
-    return UserOut(
-        id=str(current_user.id),
-        username=current_user.username,
-        display_name=current_user.display_name,
-        is_admin=current_user.is_admin,
-    )
+    return UserOut.model_validate(current_user)
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(body: UserSelfUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Display name and per-user settings (UI mode, preferences). Settings merge one level deep."""
+    if body.display_name is not None:
+        current_user.display_name = body.display_name.strip() or current_user.display_name
+    if body.settings is not None:
+        merged = dict(current_user.settings or {})
+        for key, value in body.settings.items():
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key] = {**merged[key], **value}
+            else:
+                merged[key] = value
+        current_user.settings = merged
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return UserOut.model_validate(current_user)

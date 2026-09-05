@@ -104,3 +104,71 @@ def extract_em_blocks(html: str) -> list[tuple[int, int, str]]:
     extractor = _EmExtractor()
     extractor.feed(html)
     return extractor.get_results()
+
+
+# ── Quote normalisation ──────────────────────────────────────────────────────
+#
+# Straight and curly quotes mixed in one manuscript is the most common copy-edit
+# note. Conversion works on text nodes only (never on markup) and decides
+# opening vs closing from the character before the quote.
+
+_OPENERS_BEFORE = set(" \t\n\r(—–-[{“‘/")
+
+
+def _curly_double(text: str) -> str:
+    out = []
+    for i, ch in enumerate(text):
+        if ch != '"':
+            out.append(ch)
+            continue
+        prev = text[i - 1] if i > 0 else " "
+        out.append("“" if prev in _OPENERS_BEFORE else "”")
+    return "".join(out)
+
+
+def _curly_single(text: str) -> str:
+    out = []
+    for i, ch in enumerate(text):
+        if ch != "'":
+            out.append(ch)
+            continue
+        prev = text[i - 1] if i > 0 else " "
+        nxt = text[i + 1] if i + 1 < len(text) else " "
+        if prev.isalnum() or (prev in _OPENERS_BEFORE and not nxt.isalnum() and nxt not in _OPENERS_BEFORE):
+            out.append("’")  # apostrophe / closing
+        elif prev in _OPENERS_BEFORE:
+            out.append("‘")
+        else:
+            out.append("’")
+    return "".join(out)
+
+
+def normalize_quotes_text(text: str, style: str) -> str:
+    if style == "straight":
+        return text.translate(str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"}))
+    return _curly_single(_curly_double(text))
+
+
+def count_quote_styles(html: str) -> dict[str, int]:
+    text = html_to_text(html)
+    return {
+        "straight": text.count('"') + text.count("'"),
+        "curly": sum(text.count(c) for c in "“”‘’"),
+    }
+
+
+def normalize_quotes_html(html: str, style: str) -> tuple[str, int]:
+    """Convert quotes in the prose of an HTML fragment. Returns (html, changed_chars)."""
+    from bs4 import BeautifulSoup, NavigableString
+
+    soup = BeautifulSoup(html, "html.parser")
+    changed = 0
+    for node in list(soup.find_all(string=True)):
+        if not isinstance(node, NavigableString) or node.parent is None or node.parent.name in ("script", "style"):
+            continue
+        before = str(node)
+        after = normalize_quotes_text(before, style)
+        if after != before:
+            changed += sum(1 for a, b in zip(before, after) if a != b)
+            node.replace_with(after)
+    return (str(soup) if changed else html), changed

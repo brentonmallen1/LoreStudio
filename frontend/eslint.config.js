@@ -29,7 +29,8 @@ const LEGACY_WARNINGS = {
 const NO_SPARKLES = {
   name: "lucide-react",
   importNames: ["Sparkles"],
-  message: "Sparkles is banned for AI UI (CLAUDE.md). Use Feather (open chat), Compass (AI action), Wand2 (attribute suggestion).",
+  message:
+    "Sparkles is banned for AI UI (CLAUDE.md). Use Feather (open chat), Compass (AI action), Wand2 (attribute suggestion).",
 };
 
 /**
@@ -38,7 +39,8 @@ const NO_SPARKLES = {
  * (refactor doc 04 §2); the count should go down, never up.
  */
 const NO_LOCATION_ASSIGN = {
-  selector: "AssignmentExpression[left.object.object.name='window'][left.object.property.name='location'][left.property.name='href']",
+  selector:
+    "AssignmentExpression[left.object.object.name='window'][left.object.property.name='location'][left.property.name='href']",
   message: "Navigate with react-router (useNavigate / the command context) instead of window.location.href.",
 };
 
@@ -68,7 +70,7 @@ export default defineConfig([
   },
   {
     // The API client owns the one legitimate hard redirect (401 -> /login).
-    files: ["src/api/client.ts", "src/**/*.test.ts", "src/**/*.test.tsx"],
+    files: ["src/api/client.ts", "src/api/request.ts", "src/**/*.test.ts", "src/**/*.test.tsx"],
     rules: { "no-restricted-syntax": "off" },
   },
 ]);
