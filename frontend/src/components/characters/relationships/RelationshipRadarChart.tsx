@@ -19,22 +19,27 @@ interface Props {
 }
 
 const PALETTE = [
-  "#7898c9", "#c97878", "#c9a060", "#a06090", "#609878",
-  "#c9c060", "#6090a0", "#c090a0", "#90a060", "#a08060",
+  "#7898c9",
+  "#c97878",
+  "#c9a060",
+  "#a06090",
+  "#609878",
+  "#c9c060",
+  "#6090a0",
+  "#c090a0",
+  "#90a060",
+  "#a08060",
 ];
 
 // Recharts radar data: one object per axis dimension
 type ChartRow = { subject: string; negLabel: string; posLabel: string; [charId: string]: number | string };
 
-function buildChartData(
-  selectedIds: string[],
-  relationships: CharacterRelationship[],
-): ChartRow[] {
+function buildChartData(selectedIds: string[], relationships: CharacterRelationship[]): ChartRow[] {
   return STRENGTH_DIMS.map((dim) => {
     const row: ChartRow = { subject: dim.label, negLabel: dim.negLabel, posLabel: dim.posLabel };
     for (const charId of selectedIds) {
       const rel = relationships.find((r) => r.related_character_id === charId);
-      const s   = (rel?.strength as unknown as Record<string, number> | null) ?? {};
+      const s = (rel?.strength as unknown as Record<string, number> | null) ?? {};
       row[charId] = Number(s[dim.key]) || 5;
     }
     return row;
@@ -52,7 +57,12 @@ interface TooltipPayloadEntry {
   color: string;
 }
 
-function CustomTooltip({ active, payload, label, characters }: {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  characters,
+}: {
   active?: boolean;
   payload?: TooltipPayloadEntry[];
   label?: string;
@@ -63,7 +73,11 @@ function CustomTooltip({ active, payload, label, characters }: {
   return (
     <div className={styles.tooltip}>
       <p className={styles.tooltipTitle}>{label}</p>
-      {dim && <p className={styles.tooltipSub}>{dim.negLabel} ← 0 → {dim.posLabel}</p>}
+      {dim && (
+        <p className={styles.tooltipSub}>
+          {dim.negLabel} ← 0 → {dim.posLabel}
+        </p>
+      )}
       {payload.map((entry) => {
         const name = characters.find((c) => c.id === entry.dataKey)?.name ?? entry.dataKey;
         const display = entry.value - 5;
@@ -71,8 +85,14 @@ function CustomTooltip({ active, payload, label, characters }: {
           <div key={entry.dataKey} className={styles.tooltipRow}>
             <span className={styles.tooltipDot} style={{ background: entry.color }} />
             <span className={styles.tooltipName}>{name}</span>
-            <span className={styles.tooltipVal} style={{ color: display < 0 ? "#a06090" : display > 0 ? "#609878" : "var(--color-text-subtle)" }}>
-              {display > 0 ? "+" : ""}{display}
+            <span
+              className={styles.tooltipVal}
+              style={{
+                color: display < 0 ? "#a06090" : display > 0 ? "#609878" : "var(--color-text-subtle)",
+              }}
+            >
+              {display > 0 ? "+" : ""}
+              {display}
             </span>
           </div>
         );
@@ -81,7 +101,11 @@ function CustomTooltip({ active, payload, label, characters }: {
   );
 }
 
-function CustomLegend({ selectedIds, characters, palette }: {
+function CustomLegend({
+  selectedIds,
+  characters,
+  palette,
+}: {
   selectedIds: string[];
   characters: Character[];
   palette: string[];
@@ -102,26 +126,21 @@ function CustomLegend({ selectedIds, characters, palette }: {
 }
 
 export default function RelationshipRadarChart({ focusCharacterId, characters, relationships }: Props) {
-  const related = useMemo(() =>
-    characters.filter((c) =>
-      c.id !== focusCharacterId &&
-      relationships.some((r) => r.related_character_id === c.id)
-    ),
-    [characters, relationships, focusCharacterId]
+  const related = useMemo(
+    () =>
+      characters.filter(
+        (c) => c.id !== focusCharacterId && relationships.some((r) => r.related_character_id === c.id),
+      ),
+    [characters, relationships, focusCharacterId],
   );
 
   const [selected, setSelected] = useState<string[]>(() => related.slice(0, 5).map((c) => c.id));
 
   function toggleCharacter(id: string) {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  const chartData = useMemo(
-    () => buildChartData(selected, relationships),
-    [selected, relationships]
-  );
+  const chartData = useMemo(() => buildChartData(selected, relationships), [selected, relationships]);
 
   return (
     <div className={styles.root}>
@@ -129,11 +148,9 @@ export default function RelationshipRadarChart({ focusCharacterId, characters, r
       <div className={styles.selector}>
         <span className={styles.selectorLabel}>Compare:</span>
         <div className={styles.chips}>
-          {related.length === 0 && (
-            <span className={styles.empty}>No relationships to compare yet</span>
-          )}
+          {related.length === 0 && <span className={styles.empty}>No relationships to compare yet</span>}
           {related.map((c, idx) => {
-            const color  = PALETTE[idx % PALETTE.length];
+            const color = PALETTE[idx % PALETTE.length];
             const active = selected.includes(c.id);
             return (
               <button
@@ -142,7 +159,10 @@ export default function RelationshipRadarChart({ focusCharacterId, characters, r
                 style={active ? { borderColor: color, background: color + "22", color } : undefined}
                 onClick={() => toggleCharacter(c.id)}
               >
-                <span className={styles.chipDot} style={{ background: active ? color : "var(--color-border)" }} />
+                <span
+                  className={styles.chipDot}
+                  style={{ background: active ? color : "var(--color-border)" }}
+                />
                 {c.name}
               </button>
             );
@@ -180,9 +200,7 @@ export default function RelationshipRadarChart({ focusCharacterId, characters, r
                   dot={{ r: 4, fill: PALETTE[idx % PALETTE.length], strokeWidth: 0 }}
                 />
               ))}
-              <Tooltip
-                content={<CustomTooltip characters={characters} />}
-              />
+              <Tooltip content={<CustomTooltip characters={characters} />} />
             </RadarChart>
           </ResponsiveContainer>
 
@@ -197,7 +215,9 @@ export default function RelationshipRadarChart({ focusCharacterId, characters, r
         {STRENGTH_DIMS.map((d) => (
           <div key={d.key} className={styles.dimRow}>
             <span className={styles.dimLabel}>{d.label}:</span>
-            <span className={styles.dimRange}>{d.negLabel} → {d.posLabel}</span>
+            <span className={styles.dimRange}>
+              {d.negLabel} → {d.posLabel}
+            </span>
           </div>
         ))}
       </div>

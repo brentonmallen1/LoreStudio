@@ -48,7 +48,10 @@
   font-family: inherit;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    opacity var(--transition);
 }
 
 .legendItem:hover {

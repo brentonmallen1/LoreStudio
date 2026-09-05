@@ -16,7 +16,8 @@ export default function ImageInsertModal({ storyId, onInsert, onClose }: Props) 
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    api.listAssets(storyId)
+    api
+      .listAssets(storyId)
       .then((all) => setAssets(all.filter((a) => a.mime_type.startsWith("image/"))))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -55,7 +56,9 @@ export default function ImageInsertModal({ storyId, onInsert, onClose }: Props) 
                 disabled={uploading}
               />
             </label>
-            <button className={styles.closeBtn} onClick={onClose}><X size={14} /></button>
+            <button className={styles.closeBtn} onClick={onClose}>
+              <X size={14} />
+            </button>
           </div>
         </div>
 

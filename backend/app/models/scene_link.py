@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .structure import StructureNode
-
 
 
 class SceneLink(Base):
@@ -21,7 +23,7 @@ class SceneLink(Base):
     target_node_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False)
     link_type: Mapped[str] = mapped_column(String, nullable=False)  # callback, foreshadowing, parallel, reference
     note: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     story: Mapped["Story"] = relationship("Story", back_populates="scene_links")
     source_node: Mapped["StructureNode"] = relationship(

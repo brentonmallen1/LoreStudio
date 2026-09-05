@@ -23,13 +23,7 @@ interface Props {
   onUpdated: (updated: CompendiumEntry) => void;
 }
 
-export default function CompendiumEntryDetail({
-  entry,
-  onBack,
-  onEdit,
-  onDelete,
-  onUpdated,
-}: Props) {
+export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete, onUpdated }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(false);
@@ -84,8 +78,12 @@ export default function CompendiumEntryDetail({
             </button>
             {pendingDelete ? (
               <div className={styles.deleteConfirm}>
-                <button className={styles.deleteConfirmYes} onClick={doDelete} disabled={deleting}>Delete</button>
-                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+                <button className={styles.deleteConfirmYes} onClick={doDelete} disabled={deleting}>
+                  Delete
+                </button>
+                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>
+                  Cancel
+                </button>
               </div>
             ) : (
               <button
@@ -113,25 +111,20 @@ export default function CompendiumEntryDetail({
             <span className={styles.metaBadge}>{entry.category}</span>
           )}
           {entry.tags.map((t) => (
-            <span key={t} className={styles.tag}>{t}</span>
+            <span key={t} className={styles.tag}>
+              {t}
+            </span>
           ))}
         </div>
 
         {/* URL block */}
         {entry.entry_type === "url" && entry.url && (
           <div className={styles.urlBlock}>
-            <a
-              href={entry.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.urlLink}
-            >
+            <a href={entry.url} target="_blank" rel="noopener noreferrer" className={styles.urlLink}>
               {entry.url}
               <ExternalLink size={12} />
             </a>
-            {entry.url_description && (
-              <p className={styles.urlDesc}>{entry.url_description}</p>
-            )}
+            {entry.url_description && <p className={styles.urlDesc}>{entry.url_description}</p>}
             {entry.url_fetched_at && (
               <span className={styles.urlFetched}>
                 Fetched {new Date(entry.url_fetched_at).toLocaleDateString()}

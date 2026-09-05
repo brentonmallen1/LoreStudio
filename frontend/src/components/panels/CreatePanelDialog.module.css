@@ -51,7 +51,9 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .characterOption.selected {
@@ -106,7 +108,9 @@
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .cancelBtn:hover {
@@ -124,7 +128,9 @@
   background: var(--color-accent);
   color: var(--color-accent-fg);
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .createBtn:hover:not(:disabled) {

@@ -8,13 +8,13 @@ world elements rather than scene elements.
 
 from sqlalchemy.orm import Session
 
-from ..models.story import Story
-from ..models.location import Location
-from ..models.world_system import WorldSystem
+from ..models.calendar import Calendar
 from ..models.culture import Culture
 from ..models.historical_event import Era, HistoricalEvent
-from ..models.calendar import Calendar
+from ..models.location import Location
 from ..models.location_travel import LocationTravel
+from ..models.story import Story
+from ..models.world_system import WorldSystem
 
 
 def _location_to_dict(loc: Location) -> dict:
@@ -186,9 +186,7 @@ def build_culture_context(culture: Culture, story: Story, db: Session) -> dict:
     Context focused on a specific culture and related world elements.
     """
     systems = db.query(WorldSystem).filter(WorldSystem.story_id == story.id).all()
-    locations = db.query(Location).filter(
-        Location.story_id == story.id, Location.parent_id.is_(None)
-    ).all()
+    locations = db.query(Location).filter(Location.story_id == story.id, Location.parent_id.is_(None)).all()
 
     return {
         "story": {
@@ -221,17 +219,14 @@ def build_culture_context(culture: Culture, story: Story, db: Session) -> dict:
             for s in systems
         ],
         "locations": [
-            {"name": loc.name, "type": loc.location_type or None, "climate": loc.climate or None}
-            for loc in locations
+            {"name": loc.name, "type": loc.location_type or None, "climate": loc.climate or None} for loc in locations
         ],
     }
 
 
 def build_system_context(system: WorldSystem, story: Story, db: Session) -> dict:
     """Context focused on a world system for AI analysis."""
-    other_systems = db.query(WorldSystem).filter(
-        WorldSystem.story_id == story.id, WorldSystem.id != system.id
-    ).all()
+    other_systems = db.query(WorldSystem).filter(WorldSystem.story_id == story.id, WorldSystem.id != system.id).all()
     cultures = db.query(Culture).filter(Culture.story_id == story.id).all()
 
     return {
@@ -253,12 +248,10 @@ def build_system_context(system: WorldSystem, story: Story, db: Session) -> dict
             "notes": system.notes or None,
         },
         "other_systems": [
-            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None}
-            for s in other_systems
+            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None} for s in other_systems
         ],
         "cultures": [
-            {"name": c.name, "government_type": c.government_type or None, "values": c.values or None}
-            for c in cultures
+            {"name": c.name, "government_type": c.government_type or None, "values": c.values or None} for c in cultures
         ],
     }
 
@@ -335,10 +328,7 @@ def build_travel_context(travel: LocationTravel, story: Story, db: Session) -> d
             "condition": travel.condition or None,
             "notes": travel.notes or None,
         },
-        "world_systems": [
-            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None}
-            for s in systems
-        ],
+        "world_systems": [{"name": s.name, "type": s.system_type or None, "rules": s.rules or None} for s in systems],
     }
 
 
@@ -377,11 +367,10 @@ def build_event_context(event: HistoricalEvent, story: Story, db: Session) -> di
             "start_date": era.start_date or None,
             "end_date": era.end_date or None,
             "characteristics": era.characteristics or None,
-        } if era else None,
-        "era_events": [
-            {"name": e.name, "description": e.description or None}
-            for e in era_events
-        ],
+        }
+        if era
+        else None,
+        "era_events": [{"name": e.name, "description": e.description or None} for e in era_events],
         "cultures": [
             {
                 "name": c.name,
@@ -390,8 +379,5 @@ def build_event_context(event: HistoricalEvent, story: Story, db: Session) -> di
             }
             for c in cultures
         ],
-        "world_systems": [
-            {"name": s.name, "type": s.system_type or None, "rules": s.rules or None}
-            for s in systems
-        ],
+        "world_systems": [{"name": s.name, "type": s.system_type or None, "rules": s.rules or None} for s in systems],
     }

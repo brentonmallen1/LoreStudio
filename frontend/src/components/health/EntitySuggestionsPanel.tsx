@@ -38,7 +38,7 @@ function SuggestionGroup({ title, icon, suggestions }: GroupProps) {
         <span className={styles.groupCount}>{suggestions.length}</span>
       </div>
       <div className={styles.groupList}>
-        {suggestions.map(s => (
+        {suggestions.map((s) => (
           <SuggestionRow key={s.text} suggestion={s} />
         ))}
       </div>
@@ -67,7 +67,8 @@ export default function EntitySuggestionsPanel({ storyId }: Props) {
     }
   }
 
-  const totalSuggestions = (result?.character_suggestions.length ?? 0) + (result?.location_suggestions.length ?? 0);
+  const totalSuggestions =
+    (result?.character_suggestions.length ?? 0) + (result?.location_suggestions.length ?? 0);
 
   return (
     <div className={styles.panel}>
@@ -76,9 +77,7 @@ export default function EntitySuggestionsPanel({ storyId }: Props) {
           <Search size={13} className={styles.icon} />
           <div>
             <h3 className={styles.title}>Lorebook Suggestions</h3>
-            <p className={styles.subtitle}>
-              Named entities found in prose but not yet in your Lorebook
-            </p>
+            <p className={styles.subtitle}>Named entities found in prose but not yet in your Lorebook</p>
           </div>
         </div>
         <button onClick={scan} disabled={running} className={styles.scanBtn}>
@@ -96,7 +95,8 @@ export default function EntitySuggestionsPanel({ storyId }: Props) {
           ) : (
             <>
               <p className={styles.summary}>
-                {totalSuggestions} potential Lorebook entr{totalSuggestions !== 1 ? "ies" : "y"} found in prose
+                {totalSuggestions} potential Lorebook entr{totalSuggestions !== 1 ? "ies" : "y"} found in
+                prose
               </p>
               <SuggestionGroup
                 title="Characters"

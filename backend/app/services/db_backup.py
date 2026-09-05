@@ -36,11 +36,13 @@ def list_backups(backups_dir: Path | None = None) -> list[dict]:
         m = _NAME.match(f.name)
         if not m:
             continue
-        out.append({
-            "filename": f.name,
-            "created_at": datetime.strptime(m.group(1), "%Y%m%d-%H%M%S-%f").replace(tzinfo=UTC).isoformat(),
-            "size_bytes": f.stat().st_size,
-        })
+        out.append(
+            {
+                "filename": f.name,
+                "created_at": datetime.strptime(m.group(1), "%Y%m%d-%H%M%S-%f").replace(tzinfo=UTC).isoformat(),
+                "size_bytes": f.stat().st_size,
+            }
+        )
     return out
 
 

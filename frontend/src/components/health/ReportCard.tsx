@@ -1,17 +1,50 @@
 import { useState } from "react";
 import {
-  AlignLeft, HelpCircle, Search, FileCheck,
-  ChevronDown, ChevronRight,
-  AlertCircle, AlertTriangle, Info,
-  User, MapPin, BarChart3, Activity, RefreshCw, Lightbulb,
-  GitMerge, Palette, Skull, BookOpen, CheckCircle, XCircle, MinusCircle,
-  ClipboardCheck, Star, TrendingUp, Volume2, Repeat2, Users, UserCheck,
+  AlignLeft,
+  HelpCircle,
+  Search,
+  FileCheck,
+  ChevronDown,
+  ChevronRight,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  User,
+  MapPin,
+  BarChart3,
+  Activity,
+  RefreshCw,
+  Lightbulb,
+  GitMerge,
+  Palette,
+  Skull,
+  BookOpen,
+  CheckCircle,
+  XCircle,
+  MinusCircle,
+  ClipboardCheck,
+  Star,
+  TrendingUp,
+  Volume2,
+  Repeat2,
+  Users,
+  UserCheck,
 } from "lucide-react";
 import type {
-  ActivityLog, ProseNLPResponse, EntitySuggestionsResponse, StructuredResult,
-  EditorialConsistencyResponse, ContinuityCheckResult, ThemeTrackerResult, PlotHoleDetectionResult,
-  ClicheAnalysisResponse, ClicheInstance, CharacterDimensionEntry, CharacterDimensionalityResult,
-  VoiceFidelityResult, VoiceFidelityFinding,
+  ActivityLog,
+  ProseNLPResponse,
+  EntitySuggestionsResponse,
+  StructuredResult,
+  EditorialConsistencyResponse,
+  ContinuityCheckResult,
+  ThemeTrackerResult,
+  PlotHoleDetectionResult,
+  ClicheAnalysisResponse,
+  ClicheInstance,
+  CharacterDimensionEntry,
+  CharacterDimensionalityResult,
+  VoiceFidelityResult,
+  VoiceFidelityFinding,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./ReportCard.module.css";
@@ -38,17 +71,59 @@ const FEATURE_META: Record<string, { label: string; Icon: React.ElementType; col
 
 const ECONOMY_SCHEMA: SectionConfig[] = [
   { key: "thread_balance", label: "Thread Balance", icon: BarChart3, color: "var(--color-ai)", type: "text" },
-  { key: "scene_economy", label: "Scene Economy", icon: Activity, color: "var(--color-warning)", type: "text" },
-  { key: "try_fail_cycles", label: "Try/Fail Cycles", icon: RefreshCw, color: "var(--segment-part)", type: "text" },
-  { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
+  {
+    key: "scene_economy",
+    label: "Scene Economy",
+    icon: Activity,
+    color: "var(--color-warning)",
+    type: "text",
+  },
+  {
+    key: "try_fail_cycles",
+    label: "Try/Fail Cycles",
+    icon: RefreshCw,
+    color: "var(--segment-part)",
+    type: "text",
+  },
+  {
+    key: "recommendations",
+    label: "Recommendations",
+    icon: Lightbulb,
+    color: "var(--segment-beat)",
+    type: "list",
+  },
 ];
 
 const PACING_SCHEMA: SectionConfig[] = [
   { key: "act_balance", label: "Act Balance", icon: BarChart3, color: "var(--color-ai)", type: "text" },
-  { key: "tension_curve", label: "Tension Curve", icon: Activity, color: "var(--color-warning)", type: "text" },
-  { key: "slow_spots", label: "Slow Spots", icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
-  { key: "pacing_strengths", label: "Strengths", icon: CheckCircle, color: "var(--color-success)", type: "list" },
-  { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
+  {
+    key: "tension_curve",
+    label: "Tension Curve",
+    icon: Activity,
+    color: "var(--color-warning)",
+    type: "text",
+  },
+  {
+    key: "slow_spots",
+    label: "Slow Spots",
+    icon: AlertTriangle,
+    color: "var(--color-warning)",
+    type: "list",
+  },
+  {
+    key: "pacing_strengths",
+    label: "Strengths",
+    icon: CheckCircle,
+    color: "var(--color-success)",
+    type: "list",
+  },
+  {
+    key: "recommendations",
+    label: "Recommendations",
+    icon: Lightbulb,
+    color: "var(--segment-beat)",
+    type: "list",
+  },
 ];
 
 // ── Prose result renderer ─────────────────────────────────────────────────────
@@ -61,11 +136,13 @@ function SeverityIcon({ severity }: { severity: string }) {
 
 function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
   const scenes = result.scenes ?? [];
-  const scenesWithFindings = scenes.filter((s) =>
-    (s.passive_voice?.findings?.length ?? 0) +
-    (s.adverb_overuse?.findings?.length ?? 0) +
-    (s.said_bookisms?.findings?.length ?? 0) +
-    (s.repeated_words?.findings?.length ?? 0) > 0
+  const scenesWithFindings = scenes.filter(
+    (s) =>
+      (s.passive_voice?.findings?.length ?? 0) +
+        (s.adverb_overuse?.findings?.length ?? 0) +
+        (s.said_bookisms?.findings?.length ?? 0) +
+        (s.repeated_words?.findings?.length ?? 0) >
+      0,
   );
 
   if (scenes.length === 0) {
@@ -90,7 +167,9 @@ function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
             <div className={styles.sceneHeader}>
               <span className={styles.sceneTitle}>{scene.scene_title || "Untitled"}</span>
               {findings.length > 0 && (
-                <span className={styles.sceneBadge}>{findings.length} finding{findings.length !== 1 ? "s" : ""}</span>
+                <span className={styles.sceneBadge}>
+                  {findings.length} finding{findings.length !== 1 ? "s" : ""}
+                </span>
               )}
             </div>
             {scene.passive_voice && scene.passive_voice.passive_count > 0 && (
@@ -128,7 +207,9 @@ function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
             )}
             {scene.repeated_words && scene.repeated_words.findings.length > 0 && (
               <div className={styles.checkGroup}>
-                <span className={styles.checkLabel}>Repeated Words ({scene.repeated_words.findings.length})</span>
+                <span className={styles.checkLabel}>
+                  Repeated Words ({scene.repeated_words.findings.length})
+                </span>
                 {scene.repeated_words.findings.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
                     <SeverityIcon severity={f.severity} />
@@ -181,9 +262,7 @@ function EssentialQuestionsDisplay({ result }: { result: StructuredResult }) {
               {QUESTION_LABELS[key]}
             </div>
             <p className={styles.eqEvidence}>{q.evidence}</p>
-            {q.recommendation && q.status !== "clear" && (
-              <p className={styles.eqRec}>{q.recommendation}</p>
-            )}
+            {q.recommendation && q.status !== "clear" && <p className={styles.eqRec}>{q.recommendation}</p>}
           </div>
         );
       })}
@@ -211,7 +290,8 @@ function EntityResultDisplay({ result }: { result: EntitySuggestionsResponse }) 
             <div key={s.text} className={styles.entityRow}>
               <span className={styles.entityName}>{s.text}</span>
               <span className={styles.entityMeta}>
-                {s.occurrences} occurrence{s.occurrences !== 1 ? "s" : ""} · {s.scene_count} scene{s.scene_count !== 1 ? "s" : ""}
+                {s.occurrences} occurrence{s.occurrences !== 1 ? "s" : ""} · {s.scene_count} scene
+                {s.scene_count !== 1 ? "s" : ""}
               </span>
             </div>
           ))}
@@ -228,7 +308,8 @@ function EntityResultDisplay({ result }: { result: EntitySuggestionsResponse }) 
             <div key={s.text} className={styles.entityRow}>
               <span className={styles.entityName}>{s.text}</span>
               <span className={styles.entityMeta}>
-                {s.occurrences} occurrence{s.occurrences !== 1 ? "s" : ""} · {s.scene_count} scene{s.scene_count !== 1 ? "s" : ""}
+                {s.occurrences} occurrence{s.occurrences !== 1 ? "s" : ""} · {s.scene_count} scene
+                {s.scene_count !== 1 ? "s" : ""}
               </span>
             </div>
           ))}
@@ -249,9 +330,15 @@ function EditorialResultDisplay({ result }: { result: EditorialConsistencyRespon
   return (
     <div className={styles.proseResults}>
       <p className={styles.proseSummary}>
-        {result.total_tense_shifts} tense shift{result.total_tense_shifts !== 1 ? "s" : ""} · {result.total_pov_flags} POV flag{result.total_pov_flags !== 1 ? "s" : ""} across {scenes.length} scene{scenes.length !== 1 ? "s" : ""}
+        {result.total_tense_shifts} tense shift{result.total_tense_shifts !== 1 ? "s" : ""} ·{" "}
+        {result.total_pov_flags} POV flag{result.total_pov_flags !== 1 ? "s" : ""} across {scenes.length}{" "}
+        scene{scenes.length !== 1 ? "s" : ""}
       </p>
-      {!hasIssues && <p className={styles.empty} style={{ fontStyle: "normal", color: "var(--color-success)" }}>No editorial issues found.</p>}
+      {!hasIssues && (
+        <p className={styles.empty} style={{ fontStyle: "normal", color: "var(--color-success)" }}>
+          No editorial issues found.
+        </p>
+      )}
       {scenes.map((scene) => {
         const tenseIssues = scene.tense_consistency?.findings ?? [];
         const povIssues = scene.pov_drift?.findings ?? [];
@@ -260,15 +347,23 @@ function EditorialResultDisplay({ result }: { result: EditorialConsistencyRespon
           <div key={scene.scene_id} className={styles.sceneBlock}>
             <div className={styles.sceneHeader}>
               <span className={styles.sceneTitle}>{scene.scene_title || "Untitled"}</span>
-              <span className={styles.sceneBadge}>{tenseIssues.length + povIssues.length} flag{tenseIssues.length + povIssues.length !== 1 ? "s" : ""}</span>
+              <span className={styles.sceneBadge}>
+                {tenseIssues.length + povIssues.length} flag
+                {tenseIssues.length + povIssues.length !== 1 ? "s" : ""}
+              </span>
             </div>
             {tenseIssues.length > 0 && (
               <div className={styles.checkGroup}>
-                <span className={styles.checkLabel}>Tense Shifts ({tenseIssues.length}) — dominant: {scene.tense_consistency?.dominant_tense}</span>
+                <span className={styles.checkLabel}>
+                  Tense Shifts ({tenseIssues.length}) — dominant: {scene.tense_consistency?.dominant_tense}
+                </span>
                 {tenseIssues.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
                     <AlertTriangle size={11} className={styles.iconWarning} />
-                    <span className={styles.findingText} title={f.sentence}>{f.sentence.slice(0, 120)}{f.sentence.length > 120 ? "…" : ""}</span>
+                    <span className={styles.findingText} title={f.sentence}>
+                      {f.sentence.slice(0, 120)}
+                      {f.sentence.length > 120 ? "…" : ""}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -306,20 +401,26 @@ const SEVERITY_COLOR: Record<string, string> = {
 };
 
 function ContinuityResultDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as ContinuityCheckResult;
   const issues = data.issues ?? [];
   return (
     <div className={styles.aiResults}>
       {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
       {issues.length === 0 ? (
-        <p className={styles.empty} style={{ color: "var(--color-success)" }}>No continuity issues found.</p>
+        <p className={styles.empty} style={{ color: "var(--color-success)" }}>
+          No continuity issues found.
+        </p>
       ) : (
         issues.map((issue, i) => {
           const SevIcon = SEVERITY_ICON[issue.severity] ?? MinusCircle;
           return (
             <div key={i} className={styles.issueRow}>
-              <SevIcon size={12} style={{ color: SEVERITY_COLOR[issue.severity], flexShrink: 0, marginTop: 2 }} />
+              <SevIcon
+                size={12}
+                style={{ color: SEVERITY_COLOR[issue.severity], flexShrink: 0, marginTop: 2 }}
+              />
               <div className={styles.issueBody}>
                 <span className={styles.issueLabel}>{issue.description}</span>
                 {issue.scene_references.length > 0 && (
@@ -334,8 +435,16 @@ function ContinuityResultDisplay({ result }: { result: StructuredResult }) {
       )}
       {(data.timeline_notes?.length > 0 || data.character_notes?.length > 0) && (
         <div className={styles.notesSection}>
-          {data.timeline_notes?.map((n, i) => <p key={i} className={styles.note}><BookOpen size={10} /> {n}</p>)}
-          {data.character_notes?.map((n, i) => <p key={i} className={styles.note}><User size={10} /> {n}</p>)}
+          {data.timeline_notes?.map((n, i) => (
+            <p key={i} className={styles.note}>
+              <BookOpen size={10} /> {n}
+            </p>
+          ))}
+          {data.character_notes?.map((n, i) => (
+            <p key={i} className={styles.note}>
+              <User size={10} /> {n}
+            </p>
+          ))}
         </div>
       )}
     </div>
@@ -351,7 +460,8 @@ const STRENGTH_COLOR: Record<string, string> = {
 };
 
 function ThemeResultDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as ThemeTrackerResult;
   return (
     <div className={styles.aiResults}>
@@ -359,26 +469,35 @@ function ThemeResultDisplay({ result }: { result: StructuredResult }) {
       {(data.themes ?? []).map((theme, i) => (
         <div key={i} className={styles.themeRow}>
           <div className={styles.themeHeader}>
-            <span className={styles.themeDot} style={{ background: STRENGTH_COLOR[theme.strength] ?? "var(--color-text-muted)" }} />
+            <span
+              className={styles.themeDot}
+              style={{ background: STRENGTH_COLOR[theme.strength] ?? "var(--color-text-muted)" }}
+            />
             <span className={styles.themeName}>{theme.name}</span>
             <span className={styles.themeMeta}>{theme.strength.replace("_", " ")}</span>
           </div>
           <p className={styles.themeDesc}>{theme.description}</p>
-          {theme.scenes.length > 0 && (
-            <p className={styles.issueMeta}>{theme.scenes.join(" · ")}</p>
-          )}
+          {theme.scenes.length > 0 && <p className={styles.issueMeta}>{theme.scenes.join(" · ")}</p>}
         </div>
       ))}
       {data.motifs?.length > 0 && (
         <div className={styles.checkGroup}>
           <span className={styles.checkLabel}>Motifs</span>
-          {data.motifs.map((m, i) => <p key={i} className={styles.note}>{m}</p>)}
+          {data.motifs.map((m, i) => (
+            <p key={i} className={styles.note}>
+              {m}
+            </p>
+          ))}
         </div>
       )}
       {data.gaps?.length > 0 && (
         <div className={styles.checkGroup}>
           <span className={styles.checkLabel}>Thematic Gaps</span>
-          {data.gaps.map((g, i) => <p key={i} className={styles.note}>{g}</p>)}
+          {data.gaps.map((g, i) => (
+            <p key={i} className={styles.note}>
+              {g}
+            </p>
+          ))}
         </div>
       )}
     </div>
@@ -388,20 +507,26 @@ function ThemeResultDisplay({ result }: { result: StructuredResult }) {
 // ── Plot holes renderer ───────────────────────────────────────────────────────
 
 function PlotHolesResultDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as PlotHoleDetectionResult;
   const holes = data.holes ?? [];
   return (
     <div className={styles.aiResults}>
       {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
       {holes.length === 0 ? (
-        <p className={styles.empty} style={{ color: "var(--color-success)" }}>No plot holes detected.</p>
+        <p className={styles.empty} style={{ color: "var(--color-success)" }}>
+          No plot holes detected.
+        </p>
       ) : (
         holes.map((hole, i) => {
           const SevIcon = SEVERITY_ICON[hole.severity] ?? MinusCircle;
           return (
             <div key={i} className={styles.issueRow}>
-              <SevIcon size={12} style={{ color: SEVERITY_COLOR[hole.severity], flexShrink: 0, marginTop: 2 }} />
+              <SevIcon
+                size={12}
+                style={{ color: SEVERITY_COLOR[hole.severity], flexShrink: 0, marginTop: 2 }}
+              />
               <div className={styles.issueBody}>
                 <span className={styles.issueLabel}>{hole.description}</span>
                 {hole.scene_references.length > 0 && (
@@ -417,13 +542,21 @@ function PlotHolesResultDisplay({ result }: { result: StructuredResult }) {
       {data.logic_gaps?.length > 0 && (
         <div className={styles.checkGroup}>
           <span className={styles.checkLabel}>Logic Gaps</span>
-          {data.logic_gaps.map((g, i) => <p key={i} className={styles.note}>{g}</p>)}
+          {data.logic_gaps.map((g, i) => (
+            <p key={i} className={styles.note}>
+              {g}
+            </p>
+          ))}
         </div>
       )}
       {data.unanswered_questions?.length > 0 && (
         <div className={styles.checkGroup}>
           <span className={styles.checkLabel}>Unanswered Questions</span>
-          {data.unanswered_questions.map((q, i) => <p key={i} className={styles.note}>{q}</p>)}
+          {data.unanswered_questions.map((q, i) => (
+            <p key={i} className={styles.note}>
+              {q}
+            </p>
+          ))}
         </div>
       )}
     </div>
@@ -433,15 +566,49 @@ function PlotHolesResultDisplay({ result }: { result: StructuredResult }) {
 // ── First-pass renderer ───────────────────────────────────────────────────────
 
 const FIRST_PASS_SCHEMA: SectionConfig[] = [
-  { key: "goal_alignment",    label: "Goal Alignment",    icon: CheckCircle,   color: "var(--color-success)",  type: "text" },
-  { key: "arc_progress",      label: "Arc Progress",      icon: TrendingUp,    color: "var(--color-ai)",       type: "text" },
-  { key: "tone_consistency",  label: "Tone Consistency",  icon: Volume2,       color: "var(--color-accent)",   type: "text" },
-  { key: "missed_setups",     label: "Missed Setups",     icon: AlertTriangle, color: "var(--color-warning)",  type: "list" },
-  { key: "strengths",         label: "Strengths",         icon: Star,          color: "var(--color-success)",  type: "list" },
-  { key: "recommendations",   label: "Recommendations",   icon: Lightbulb,     color: "var(--segment-beat)",   type: "list" },
+  {
+    key: "goal_alignment",
+    label: "Goal Alignment",
+    icon: CheckCircle,
+    color: "var(--color-success)",
+    type: "text",
+  },
+  { key: "arc_progress", label: "Arc Progress", icon: TrendingUp, color: "var(--color-ai)", type: "text" },
+  {
+    key: "tone_consistency",
+    label: "Tone Consistency",
+    icon: Volume2,
+    color: "var(--color-accent)",
+    type: "text",
+  },
+  {
+    key: "missed_setups",
+    label: "Missed Setups",
+    icon: AlertTriangle,
+    color: "var(--color-warning)",
+    type: "list",
+  },
+  { key: "strengths", label: "Strengths", icon: Star, color: "var(--color-success)", type: "list" },
+  {
+    key: "recommendations",
+    label: "Recommendations",
+    icon: Lightbulb,
+    color: "var(--segment-beat)",
+    type: "list",
+  },
 ];
 
-function FirstPassGapsDisplay({ gaps }: { gaps: Array<{ area: string; finding: string; severity: string; scene_references: string[]; suggestion: string }> }) {
+function FirstPassGapsDisplay({
+  gaps,
+}: {
+  gaps: Array<{
+    area: string;
+    finding: string;
+    severity: string;
+    scene_references: string[];
+    suggestion: string;
+  }>;
+}) {
   if (!gaps || gaps.length === 0) return null;
   return (
     <div className={styles.checkGroup}>
@@ -452,7 +619,9 @@ function FirstPassGapsDisplay({ gaps }: { gaps: Array<{ area: string; finding: s
           <div key={i} className={styles.issueRow}>
             <SevIcon size={12} style={{ color: SEVERITY_COLOR[gap.severity], flexShrink: 0, marginTop: 2 }} />
             <div className={styles.issueBody}>
-              <span className={styles.issueLabel}>[{gap.area}] {gap.finding}</span>
+              <span className={styles.issueLabel}>
+                [{gap.area}] {gap.finding}
+              </span>
               {gap.scene_references.length > 0 && (
                 <span className={styles.issueMeta}>{gap.scene_references.join(" · ")}</span>
               )}
@@ -466,8 +635,16 @@ function FirstPassGapsDisplay({ gaps }: { gaps: Array<{ area: string; finding: s
 }
 
 function FirstPassResultDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
-  const gaps = (result.data as Record<string, unknown>).gaps as Array<{ area: string; finding: string; severity: string; scene_references: string[]; suggestion: string }> ?? [];
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  const gaps =
+    ((result.data as Record<string, unknown>).gaps as Array<{
+      area: string;
+      finding: string;
+      severity: string;
+      scene_references: string[];
+      suggestion: string;
+    }>) ?? [];
   return (
     <div>
       <StructuredResponseRenderer result={result} schema={FIRST_PASS_SCHEMA} />
@@ -493,11 +670,25 @@ function ClicheInstanceRow({ instance }: { instance: ClicheInstance }) {
       <div className={styles.issueBody}>
         <button
           className={styles.issueLabel}
-          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", font: "inherit" }}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            textAlign: "left",
+            font: "inherit",
+          }}
           onClick={() => setOpen((o) => !o)}
         >
           "{instance.passage}"
-          <span style={{ marginLeft: 6, fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "normal" }}>
+          <span
+            style={{
+              marginLeft: 6,
+              fontSize: "0.68rem",
+              color: "var(--color-text-muted)",
+              fontStyle: "normal",
+            }}
+          >
             [{instance.cliche_type}] · {instance.severity} · {instance.scene_title}
           </span>
         </button>
@@ -515,7 +706,8 @@ function ClicheInstanceRow({ instance }: { instance: ClicheInstance }) {
 }
 
 function ClicheResultDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as ClicheAnalysisResponse;
   return (
     <div>
@@ -524,22 +716,35 @@ function ClicheResultDisplay({ result }: { result: StructuredResult }) {
           {data.overall_rating?.replace("_", " ") ?? "—"}
         </span>
         <span className={styles.instanceCount}>
-          {data.total_count === 0 ? "No clichés found" : `${data.total_count} cliché${data.total_count !== 1 ? "s" : ""} found`}
+          {data.total_count === 0
+            ? "No clichés found"
+            : `${data.total_count} cliché${data.total_count !== 1 ? "s" : ""} found`}
         </span>
       </div>
       {data.summary && <p className={styles.summaryText}>{data.summary}</p>}
-      {data.density_note && <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>{data.density_note}</p>}
-      {data.categories.map((cat, i) => cat.instances.length > 0 && (
-        <div key={i} className={styles.checkGroup}>
-          <span className={styles.checkLabel}>{cat.name} ({cat.count})</span>
-          {cat.instances.map((inst, j) => (
-            <ClicheInstanceRow key={j} instance={inst} />
-          ))}
-        </div>
-      ))}
+      {data.density_note && (
+        <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>
+          {data.density_note}
+        </p>
+      )}
+      {data.categories.map(
+        (cat, i) =>
+          cat.instances.length > 0 && (
+            <div key={i} className={styles.checkGroup}>
+              <span className={styles.checkLabel}>
+                {cat.name} ({cat.count})
+              </span>
+              {cat.instances.map((inst, j) => (
+                <ClicheInstanceRow key={j} instance={inst} />
+              ))}
+            </div>
+          ),
+      )}
       {data.strengths.length > 0 && (
         <div className={styles.checkGroup}>
-          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>Strengths</span>
+          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>
+            Strengths
+          </span>
           {data.strengths.map((s, i) => (
             <div key={i} className={styles.issueRow}>
               <CheckCircle size={12} style={{ color: "var(--color-success)", flexShrink: 0, marginTop: 2 }} />
@@ -555,10 +760,10 @@ function ClicheResultDisplay({ result }: { result: StructuredResult }) {
 // ── Character Dimensionality ─────────────────────────────────────────────────
 
 const DIMENSION_COLOR: Record<string, string> = {
-  flat:        "var(--color-text-muted)",
-  developing:  "var(--color-warning, #d97706)",
+  flat: "var(--color-text-muted)",
+  developing: "var(--color-warning, #d97706)",
   dimensional: "var(--color-accent-secondary, #0d9488)",
-  complex:     "var(--color-ai)",
+  complex: "var(--color-ai)",
 };
 
 function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
@@ -568,22 +773,51 @@ function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
     <div className={styles.checkGroup}>
       <button
         className={styles.checkLabel}
-        style={{ background: "none", border: "none", padding: "0.15rem 0", cursor: "pointer", textAlign: "left", font: "inherit", display: "flex", alignItems: "center", gap: "0.4rem", width: "100%" }}
+        style={{
+          background: "none",
+          border: "none",
+          padding: "0.15rem 0",
+          cursor: "pointer",
+          textAlign: "left",
+          font: "inherit",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.4rem",
+          width: "100%",
+        }}
         onClick={() => setOpen((o) => !o)}
       >
-        <span style={{ width: 8, height: 8, borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: color,
+            flexShrink: 0,
+            display: "inline-block",
+          }}
+        />
         <span style={{ flex: 1 }}>{char.character_name}</span>
-        <span style={{ fontSize: "0.68rem", color, fontWeight: 600, textTransform: "capitalize" }}>{char.dimension_score}</span>
-        <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>{char.role}</span>
+        <span style={{ fontSize: "0.68rem", color, fontWeight: 600, textTransform: "capitalize" }}>
+          {char.dimension_score}
+        </span>
+        <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>
+          {char.role}
+        </span>
       </button>
       {open && (
         <div style={{ paddingLeft: "1rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
           {char.strengths.length > 0 && (
             <div>
-              <span className={styles.issueMeta} style={{ color: "var(--color-accent-secondary, #0d9488)" }}>Strengths</span>
+              <span className={styles.issueMeta} style={{ color: "var(--color-accent-secondary, #0d9488)" }}>
+                Strengths
+              </span>
               {char.strengths.map((s, i) => (
                 <div key={i} className={styles.issueRow}>
-                  <CheckCircle size={11} style={{ color: "var(--color-accent-secondary, #0d9488)", flexShrink: 0, marginTop: 2 }} />
+                  <CheckCircle
+                    size={11}
+                    style={{ color: "var(--color-accent-secondary, #0d9488)", flexShrink: 0, marginTop: 2 }}
+                  />
                   <span className={styles.issueBody}>{s}</span>
                 </div>
               ))}
@@ -591,20 +825,29 @@ function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
           )}
           {char.gaps.length > 0 && (
             <div>
-              <span className={styles.issueMeta} style={{ color: "var(--color-warning, #d97706)" }}>Gaps</span>
+              <span className={styles.issueMeta} style={{ color: "var(--color-warning, #d97706)" }}>
+                Gaps
+              </span>
               {char.gaps.map((g, i) => (
                 <div key={i} className={styles.issueRow}>
-                  <AlertTriangle size={11} style={{ color: "var(--color-warning, #d97706)", flexShrink: 0, marginTop: 2 }} />
+                  <AlertTriangle
+                    size={11}
+                    style={{ color: "var(--color-warning, #d97706)", flexShrink: 0, marginTop: 2 }}
+                  />
                   <span className={styles.issueBody}>{g}</span>
                 </div>
               ))}
             </div>
           )}
           {char.contradictions && (
-            <p className={styles.issueSuggestion}><strong>Contradictions:</strong> {char.contradictions}</p>
+            <p className={styles.issueSuggestion}>
+              <strong>Contradictions:</strong> {char.contradictions}
+            </p>
           )}
           {char.relationship_depth && (
-            <p className={styles.issueMeta}><strong>Relationships:</strong> {char.relationship_depth}</p>
+            <p className={styles.issueMeta}>
+              <strong>Relationships:</strong> {char.relationship_depth}
+            </p>
           )}
           {char.recommendations.length > 0 && (
             <div>
@@ -624,7 +867,8 @@ function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
 }
 
 function CharacterDimensionalityDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as CharacterDimensionalityResult;
   return (
     <div>
@@ -632,16 +876,24 @@ function CharacterDimensionalityDisplay({ result }: { result: StructuredResult }
         <span className={`${styles.ratingBadge} ${styles[`rating_${data.overall_rating}`]}`}>
           {data.overall_rating?.replace("_", " ") ?? "—"}
         </span>
-        <span className={styles.instanceCount}>{data.characters.length} character{data.characters.length !== 1 ? "s" : ""}</span>
+        <span className={styles.instanceCount}>
+          {data.characters.length} character{data.characters.length !== 1 ? "s" : ""}
+        </span>
       </div>
       {data.summary && <p className={styles.summaryText}>{data.summary}</p>}
-      {data.cast_balance && <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>{data.cast_balance}</p>}
+      {data.cast_balance && (
+        <p className={styles.issueMeta} style={{ marginBottom: "0.5rem" }}>
+          {data.cast_balance}
+        </p>
+      )}
       {(data.characters ?? []).map((char, i) => (
         <CharacterDimensionRow key={i} char={char} />
       ))}
       {data.ensemble_dynamics && (
         <div className={styles.checkGroup} style={{ marginTop: "0.35rem" }}>
-          <span className={styles.checkLabel} style={{ color: "var(--color-ai)" }}>Ensemble Dynamics</span>
+          <span className={styles.checkLabel} style={{ color: "var(--color-ai)" }}>
+            Ensemble Dynamics
+          </span>
           <p className={styles.issueSuggestion}>{data.ensemble_dynamics}</p>
         </div>
       )}
@@ -671,21 +923,30 @@ const SEVERITY_ICON_FIDELITY: Record<string, React.ElementType> = {
 };
 
 function VoiceFidelityDisplay({ result }: { result: StructuredResult }) {
-  if (!result.success || !result.data) return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
+  if (!result.success || !result.data)
+    return <p className={styles.empty}>{result.raw_text || "No result."}</p>;
   const data = result.data as unknown as VoiceFidelityResult;
   const findings = (data.findings ?? []).filter((f: VoiceFidelityFinding) => f.severity !== "info");
 
   return (
     <div className={styles.aiResults}>
       <div className={styles.summaryRow} style={{ marginBottom: "0.5rem" }}>
-        <span className={styles.ratingBadge} style={{ background: `color-mix(in srgb, ${FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)"} 15%, transparent)`, color: FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)" }}>
+        <span
+          className={styles.ratingBadge}
+          style={{
+            background: `color-mix(in srgb, ${FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)"} 15%, transparent)`,
+            color: FIDELITY_COLOR[data.overall_fidelity] ?? "var(--color-text-muted)",
+          }}
+        >
           {data.overall_fidelity?.replace("_", " ") ?? "—"}
         </span>
-        {data.character_name && (
-          <span className={styles.instanceCount}>{data.character_name}</span>
-        )}
+        {data.character_name && <span className={styles.instanceCount}>{data.character_name}</span>}
       </div>
-      {data.attribute_summary && <p className={styles.issueMeta} style={{ marginBottom: "0.4rem" }}>{data.attribute_summary}</p>}
+      {data.attribute_summary && (
+        <p className={styles.issueMeta} style={{ marginBottom: "0.4rem" }}>
+          {data.attribute_summary}
+        </p>
+      )}
       {data.summary && <p className={styles.aiSummary}>{data.summary}</p>}
 
       {findings.length > 0 && (
@@ -700,7 +961,8 @@ function VoiceFidelityDisplay({ result }: { result: StructuredResult }) {
                 <div className={styles.issueBody}>
                   {f.dialogue_excerpt && (
                     <span className={styles.issueMeta} style={{ fontStyle: "italic" }}>
-                      "{f.dialogue_excerpt.slice(0, 100)}{f.dialogue_excerpt.length > 100 ? "…" : ""}"
+                      "{f.dialogue_excerpt.slice(0, 100)}
+                      {f.dialogue_excerpt.length > 100 ? "…" : ""}"
                     </span>
                   )}
                   <span className={styles.issueLabel}>{f.explanation}</span>
@@ -715,12 +977,15 @@ function VoiceFidelityDisplay({ result }: { result: StructuredResult }) {
 
       {data.authentic_examples?.length > 0 && (
         <div className={styles.checkGroup}>
-          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>Lines that ring true</span>
+          <span className={styles.checkLabel} style={{ color: "var(--color-success)" }}>
+            Lines that ring true
+          </span>
           {data.authentic_examples.slice(0, 4).map((ex: string, i: number) => (
             <div key={i} className={styles.issueRow}>
               <CheckCircle size={12} style={{ color: "var(--color-success)", flexShrink: 0, marginTop: 2 }} />
               <span className={styles.issueBody} style={{ fontStyle: "italic" }}>
-                "{ex.slice(0, 100)}{ex.length > 100 ? "…" : ""}"
+                "{ex.slice(0, 100)}
+                {ex.length > 100 ? "…" : ""}"
               </span>
             </div>
           ))}
@@ -768,9 +1033,13 @@ function renderBody(log: ActivityLog) {
     case "editorial-consistency":
       return <EditorialResultDisplay result={result as unknown as EditorialConsistencyResponse} />;
     case "economy-analysis":
-      return <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={ECONOMY_SCHEMA} />;
+      return (
+        <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={ECONOMY_SCHEMA} />
+      );
     case "pacing-analysis":
-      return <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={PACING_SCHEMA} />;
+      return (
+        <StructuredResponseRenderer result={result as unknown as StructuredResult} schema={PACING_SCHEMA} />
+      );
     case "essential-questions":
       return <EssentialQuestionsDisplay result={result as unknown as StructuredResult} />;
     case "entity-suggestions":
@@ -800,14 +1069,18 @@ interface Props {
 
 export default function ReportCard({ log }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const feature = log.metadata_?.feature as string ?? "";
+  const feature = (log.metadata_?.feature as string) ?? "";
   const meta = FEATURE_META[feature] ?? { label: feature, Icon: AlignLeft, color: "var(--color-text-muted)" };
 
   return (
     <div className={styles.card}>
       <button className={styles.header} onClick={() => setExpanded((e) => !e)}>
         <div className={styles.headerLeft}>
-          {expanded ? <ChevronDown size={13} className={styles.chevron} /> : <ChevronRight size={13} className={styles.chevron} />}
+          {expanded ? (
+            <ChevronDown size={13} className={styles.chevron} />
+          ) : (
+            <ChevronRight size={13} className={styles.chevron} />
+          )}
           <meta.Icon size={13} className={styles.featureIcon} style={{ color: meta.color }} />
           <div className={styles.headerText}>
             <span className={styles.featureLabel}>{meta.label}</span>

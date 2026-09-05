@@ -26,7 +26,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
   }, [editor, term]);
 
   useEffect(() => {
-    (editor.commands as unknown as Record<string, (arg: unknown) => boolean>).setSearchCaseSensitive?.(caseSensitive);
+    (editor.commands as unknown as Record<string, (arg: unknown) => boolean>).setSearchCaseSensitive?.(
+      caseSensitive,
+    );
   }, [editor, caseSensitive]);
 
   // Clear highlights when unmounted
@@ -36,7 +38,8 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
     };
   }, [editor]);
 
-  const storage = editor.storage.lorestudioSearch as { resultCount: number; currentIndex: number } | undefined;
+  const storage = editor.storage.lorestudioSearch as
+    { resultCount: number; currentIndex: number } | undefined;
   const resultCount = storage?.resultCount ?? 0;
   const currentIndex = storage?.currentIndex ?? 0;
 
@@ -87,7 +90,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
 
         <button
           className={styles.iconBtn}
-          onClick={() => (editor.commands as unknown as Record<string, () => boolean>).goToPrevSearchResult?.()}
+          onClick={() =>
+            (editor.commands as unknown as Record<string, () => boolean>).goToPrevSearchResult?.()
+          }
           disabled={resultCount === 0}
           title="Previous match (Shift+Enter)"
           aria-label="Previous match"
@@ -97,7 +102,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
 
         <button
           className={styles.iconBtn}
-          onClick={() => (editor.commands as unknown as Record<string, () => boolean>).goToNextSearchResult?.()}
+          onClick={() =>
+            (editor.commands as unknown as Record<string, () => boolean>).goToNextSearchResult?.()
+          }
           disabled={resultCount === 0}
           title="Next match (Enter)"
           aria-label="Next match"
@@ -132,7 +139,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
               className={styles.input}
               value={replacement}
               onChange={(e) => setReplacement(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") onClose();
+              }}
               placeholder="Replace with…"
               aria-label="Replacement text"
               spellCheck={false}
@@ -142,7 +151,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
           <button
             className={styles.replaceBtn}
             onClick={() =>
-              (editor.commands as unknown as Record<string, (r: string) => boolean>).replaceCurrentSearchResult?.(replacement)
+              (
+                editor.commands as unknown as Record<string, (r: string) => boolean>
+              ).replaceCurrentSearchResult?.(replacement)
             }
             disabled={resultCount === 0}
           >
@@ -151,7 +162,9 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
           <button
             className={styles.replaceBtn}
             onClick={() =>
-              (editor.commands as unknown as Record<string, (r: string) => boolean>).replaceAllSearchResults?.(replacement)
+              (
+                editor.commands as unknown as Record<string, (r: string) => boolean>
+              ).replaceAllSearchResults?.(replacement)
             }
             disabled={resultCount === 0}
           >

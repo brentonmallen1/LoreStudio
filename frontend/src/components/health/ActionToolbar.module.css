@@ -75,7 +75,9 @@
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
   white-space: nowrap;
 }
 
@@ -170,7 +172,10 @@
   flex: 1;
   min-width: 200px;
   max-width: 300px;
-  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 .actionBtn:hover:not(:disabled) {
@@ -283,7 +288,9 @@
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
   white-space: nowrap;
 }
 
@@ -310,7 +317,9 @@
   font-weight: 600;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
   white-space: nowrap;
 }
 
@@ -336,8 +345,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner {

@@ -1,14 +1,16 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .reader_knowledge import ReaderKnowledgeEvent
     from .story import Story
     from .structure import StructureNode
-
 
 
 class Twist(Base):
@@ -28,19 +30,17 @@ class Twist(Base):
     status: Mapped[str] = mapped_column(String, default="planned")
     # planned | seeding | revealed
 
-    revealed_at_node_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("structure_nodes.id"), nullable=True
-    )
+    revealed_at_node_id: Mapped[str | None] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=True)
 
     # Clues as JSON array, following try_fail_cycles pattern
     # [{id, node_id, text, points_to: "truth"|"misdirection", subtlety: "obvious"|"moderate"|"subtle"|"hidden"}]
     clues: Mapped[list] = mapped_column(JSON, default=list, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="twists")

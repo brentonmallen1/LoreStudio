@@ -130,6 +130,11 @@
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
-.manageBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.manageBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}

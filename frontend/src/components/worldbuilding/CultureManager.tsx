@@ -21,14 +21,19 @@ export default function CultureManager({ storyId }: Props) {
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const load = useCallback(() => {
-    api.listCultures(storyId).then(setCultures).finally(() => setLoading(false));
+    api
+      .listCultures(storyId)
+      .then(setCultures)
+      .finally(() => setLoading(false));
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;
-    setSelected((prev) => prev ? { ...prev, [field]: value } : null);
+    setSelected((prev) => (prev ? { ...prev, [field]: value } : null));
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selected) return;
@@ -97,7 +102,9 @@ export default function CultureManager({ storyId }: Props) {
                 <button
                   className={styles.aiBtn}
                   title="Generates creative directions for: Naming Patterns, Rituals & Customs, Aesthetics & Materials, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "culture-suggest", entityId: selected.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "culture-suggest", entityId: selected.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Suggest Cultural Elements
@@ -117,40 +124,51 @@ export default function CultureManager({ storyId }: Props) {
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Name</label>
-                    <input className={styles.fieldInput} value={selected.name}
-                      onChange={(e) => scheduleUpdate("name", e.target.value)} />
+                    <input
+                      className={styles.fieldInput}
+                      value={selected.name}
+                      onChange={(e) => scheduleUpdate("name", e.target.value)}
+                    />
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Government Type</label>
-                    <input className={styles.fieldInput}
+                    <input
+                      className={styles.fieldInput}
                       placeholder="e.g. Monarchy, Republic, Theocracy…"
                       value={selected.government_type}
-                      onChange={(e) => scheduleUpdate("government_type", e.target.value)} />
+                      onChange={(e) => scheduleUpdate("government_type", e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Description</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="What is this culture? Where do they live?"
                     value={selected.description}
-                    onChange={(e) => scheduleUpdate("description", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("description", e.target.value)}
+                  />
                 </div>
               </SectionCard>
 
               <SectionCard title="Values & Beliefs">
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Core Values</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="What do these people believe in? What do they hold sacred?"
                     value={selected.values}
-                    onChange={(e) => scheduleUpdate("values", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("values", e.target.value)}
+                  />
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Religion & Belief</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Gods, myths, spiritual practices, clergy…"
                     value={selected.religion}
-                    onChange={(e) => scheduleUpdate("religion", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("religion", e.target.value)}
+                  />
                 </div>
               </SectionCard>
 
@@ -158,43 +176,52 @@ export default function CultureManager({ storyId }: Props) {
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Customs & Traditions</label>
-                    <textarea className={styles.fieldTextarea}
+                    <textarea
+                      className={styles.fieldTextarea}
                       placeholder="Common practices, ceremonies, daily life…"
                       value={selected.customs}
-                      onChange={(e) => scheduleUpdate("customs", e.target.value)} />
+                      onChange={(e) => scheduleUpdate("customs", e.target.value)}
+                    />
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Taboos</label>
-                    <textarea className={styles.fieldTextarea}
+                    <textarea
+                      className={styles.fieldTextarea}
                       placeholder="What is forbidden? What is shameful?"
                       value={selected.taboos}
-                      onChange={(e) => scheduleUpdate("taboos", e.target.value)} />
+                      onChange={(e) => scheduleUpdate("taboos", e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Social Hierarchy</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Class structure, status markers, mobility…"
                     value={selected.social_hierarchy}
-                    onChange={(e) => scheduleUpdate("social_hierarchy", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("social_hierarchy", e.target.value)}
+                  />
                 </div>
               </SectionCard>
 
               <SectionCard title="Economy & Naming">
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Economy</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Trade, resources, wealth distribution…"
                     value={selected.economy}
-                    onChange={(e) => scheduleUpdate("economy", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("economy", e.target.value)}
+                  />
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Naming Conventions</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Given names, family names, titles, naming patterns…"
                     value={
                       typeof selected.naming_conventions === "object"
-                        ? (selected.naming_conventions as Record<string, string>).notes ?? ""
+                        ? ((selected.naming_conventions as Record<string, string>).notes ?? "")
                         : ""
                     }
                     onChange={(e) =>
@@ -207,10 +234,12 @@ export default function CultureManager({ storyId }: Props) {
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Notes</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Anything else…"
                     value={selected.notes}
-                    onChange={(e) => scheduleUpdate("notes", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("notes", e.target.value)}
+                  />
                 </div>
               </SectionCard>
             </div>
@@ -224,13 +253,22 @@ export default function CultureManager({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Add culture</h3>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Name</label>
-              <input className={styles.fieldInput} autoFocus placeholder="Culture name"
-                value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createCulture()} />
+              <input
+                className={styles.fieldInput}
+                autoFocus
+                placeholder="Culture name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createCulture()}
+              />
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createCulture} disabled={!newName.trim()}>Add culture</button>
+              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.addBtn} onClick={createCulture} disabled={!newName.trim()}>
+                Add culture
+              </button>
             </div>
           </div>
         </div>
@@ -242,8 +280,16 @@ export default function CultureManager({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Delete "{selected.name}"?</h3>
             <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>This cannot be undone.</p>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className={styles.addBtn} style={{ background: "var(--color-danger)" }} onClick={deleteCulture}>Delete</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                style={{ background: "var(--color-danger)" }}
+                onClick={deleteCulture}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

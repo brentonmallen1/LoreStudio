@@ -1,8 +1,6 @@
 """Tests for MICE thread LIFO nesting validation."""
 
-import pytest
 from app.services.mice_validation import validate_thread_nesting
-
 
 # Leaf order used across most tests: nodes s1 through s6 in narrative order.
 LEAF_ORDER = ["s1", "s2", "s3", "s4", "s5", "s6"]

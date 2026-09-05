@@ -14,12 +14,13 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import inspect
 from sqlalchemy.engine import Engine
+
+from alembic import command
 
 from ..database import Base
 

@@ -63,7 +63,9 @@
   border: 1px solid var(--color-ai, #7c3aed);
   color: var(--color-ai, #7c3aed);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -133,7 +135,9 @@
   cursor: pointer;
   padding: 0;
   border-radius: var(--radius-sm);
-  transition: color var(--transition), background var(--transition);
+  transition:
+    color var(--transition),
+    background var(--transition);
 }
 
 .expandBtn:hover {
@@ -164,9 +168,21 @@
   border: 1px solid var(--color-border);
 }
 
-.level0 { background: var(--segment-act, rgba(99, 102, 241, 0.12)); color: #6366f1; border-color: rgba(99,102,241,0.3); }
-.level1 { background: var(--segment-chapter, rgba(234, 179, 8, 0.12)); color: #b45309; border-color: rgba(234,179,8,0.3); }
-.level2 { background: var(--segment-scene, rgba(34, 197, 94, 0.12)); color: #15803d; border-color: rgba(34,197,94,0.3); }
+.level0 {
+  background: var(--segment-act, rgba(99, 102, 241, 0.12));
+  color: #6366f1;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+.level1 {
+  background: var(--segment-chapter, rgba(234, 179, 8, 0.12));
+  color: #b45309;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+.level2 {
+  background: var(--segment-scene, rgba(34, 197, 94, 0.12));
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
 
 /* ── Node title ── */
 .nodeTitle {
@@ -216,9 +232,15 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.high  { background: var(--color-success); }
-.medium { background: var(--color-warning); }
-.low   { background: var(--color-danger); }
+.high {
+  background: var(--color-success);
+}
+.medium {
+  background: var(--color-warning);
+}
+.low {
+  background: var(--color-danger);
+}
 
 .wordCount {
   font-size: 0.68rem;
@@ -253,7 +275,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   font-size: 0.7rem;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .actionBtn:hover {
@@ -312,7 +336,9 @@
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .backBtn:hover {

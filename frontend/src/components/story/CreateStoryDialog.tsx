@@ -31,7 +31,11 @@ export default function CreateStoryDialog({ onClose }: Props) {
     if (!title.trim()) return;
     setLoading(true);
     try {
-      const story = await api.createStory({ title: title.trim(), description, structure_template_id: templateId });
+      const story = await api.createStory({
+        title: title.trim(),
+        description,
+        structure_template_id: templateId,
+      });
       upsertStory(story);
       navigate(`/stories/${story.id}`);
     } finally {
@@ -62,7 +66,12 @@ export default function CreateStoryDialog({ onClose }: Props) {
       {showTemplateManager && (
         <TemplateManagerDialog
           onClose={() => setShowTemplateManager(false)}
-          onTemplatesChanged={() => api.listStructureTemplates().then(setTemplates).catch(() => {})}
+          onTemplatesChanged={() =>
+            api
+              .listStructureTemplates()
+              .then(setTemplates)
+              .catch(() => {})
+          }
         />
       )}
       <Modal
@@ -115,7 +124,8 @@ export default function CreateStoryDialog({ onClose }: Props) {
             >
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.name}{!t.is_system ? " (custom)" : ""}
+                  {t.name}
+                  {!t.is_system ? " (custom)" : ""}
                 </option>
               ))}
             </select>

@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .structure import StructureNode
-
 
 
 class StoryTodo(Base):
@@ -17,9 +19,7 @@ class StoryTodo(Base):
     story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
 
     # Optional scene linkage — null means story-level todo
-    node_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("structure_nodes.id"), nullable=True, index=True
-    )
+    node_id: Mapped[str | None] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=True, index=True)
 
     content: Mapped[str] = mapped_column(Text, nullable=False)
     done: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -31,14 +31,12 @@ class StoryTodo(Base):
     doc_from: Mapped[int | None] = mapped_column(Integer, nullable=True)
     doc_to: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="todos")
-    node: Mapped["StructureNode | None"] = relationship(
-        "StructureNode", foreign_keys=[node_id], back_populates="todos"
-    )
+    node: Mapped["StructureNode | None"] = relationship("StructureNode", foreign_keys=[node_id], back_populates="todos")

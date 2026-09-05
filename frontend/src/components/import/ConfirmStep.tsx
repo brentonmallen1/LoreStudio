@@ -23,7 +23,7 @@ export default function ConfirmStep({
   onFinalized,
 }: Props) {
   const [title, setTitle] = useState(
-    preview.detected_title || uploadResponse.source_format.toUpperCase() + " Import"
+    preview.detected_title || uploadResponse.source_format.toUpperCase() + " Import",
   );
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function ConfirmStep({
 
   const topLevelCount = preview.nodes.filter((n) => n.parent_id === null).length;
   const leafCount = preview.nodes.filter(
-    (n) => !preview.nodes.some((other) => other.parent_id === n.id)
+    (n) => !preview.nodes.some((other) => other.parent_id === n.id),
   ).length;
 
   const selectedCandidates = extractionCandidates.filter((c) => extractionSelected.has(c.id));
@@ -71,7 +71,8 @@ export default function ConfirmStep({
         <div>
           <p className={styles.summaryTitle}>Ready to import</p>
           <p className={styles.summaryDetail}>
-            {preview.nodes.length} sections · {leafCount} leaf sections · {preview.total_word_count.toLocaleString()} words
+            {preview.nodes.length} sections · {leafCount} leaf sections ·{" "}
+            {preview.total_word_count.toLocaleString()} words
             {topLevelCount > 0 && ` · ${topLevelCount} top-level groups`}
           </p>
         </div>
@@ -128,9 +129,7 @@ export default function ConfirmStep({
 
         <div className={styles.infoRow}>
           <span className={styles.infoLabel}>Structure template</span>
-          <span className={styles.infoValue}>
-            {preview.template_levels.map((l) => l.name).join(" → ")}
-          </span>
+          <span className={styles.infoValue}>{preview.template_levels.map((l) => l.name).join(" → ")}</span>
         </div>
       </div>
 
@@ -141,11 +140,7 @@ export default function ConfirmStep({
           <ArrowLeft size={13} />
           Back
         </button>
-        <button
-          onClick={handleCreate}
-          disabled={!title.trim() || loading}
-          className={styles.createBtn}
-        >
+        <button onClick={handleCreate} disabled={!title.trim() || loading} className={styles.createBtn}>
           {loading ? "Creating story…" : "Create story"}
         </button>
       </div>

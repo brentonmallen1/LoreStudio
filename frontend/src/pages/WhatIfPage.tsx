@@ -42,7 +42,12 @@ export default function WhatIfPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { stream, cancel, text: streamText, isStreaming } = useLLMStream({
+  const {
+    stream,
+    cancel,
+    text: streamText,
+    isStreaming,
+  } = useLLMStream({
     requestId: `whatif:${storyId}`,
     label: "What If?",
     tabId: "story",
@@ -97,7 +102,9 @@ export default function WhatIfPage() {
           <Shuffle size={15} className={styles.headerIcon} />
           <div>
             <h1 className={styles.title}>What If?</h1>
-            <p className={styles.subtitle}>Explore hypothetical changes — see the ripple effects across your story</p>
+            <p className={styles.subtitle}>
+              Explore hypothetical changes — see the ripple effects across your story
+            </p>
           </div>
         </div>
         {messages.length > 0 && (
@@ -127,22 +134,26 @@ export default function WhatIfPage() {
           </div>
         ) : (
           <>
-            {messages.map((m, i) => <MessageBubble key={i} msg={m} />)}
-            {isStreaming && streamText && (() => {
-              const { mainContent, isThinking } = stripThinking(streamText);
-              return (
-                <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
-                  <div className={styles.bubbleLabel}>Analyst</div>
-                  {isThinking && (
-                    <div className={styles.thinkingIndicator}>
-                      <Brain size={11} />
-                      Thinking…
-                    </div>
-                  )}
-                  {mainContent && <div className={styles.bubbleText}>{mainContent}</div>}
-                </div>
-              );
-            })()}
+            {messages.map((m, i) => (
+              <MessageBubble key={i} msg={m} />
+            ))}
+            {isStreaming &&
+              streamText &&
+              (() => {
+                const { mainContent, isThinking } = stripThinking(streamText);
+                return (
+                  <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
+                    <div className={styles.bubbleLabel}>Analyst</div>
+                    {isThinking && (
+                      <div className={styles.thinkingIndicator}>
+                        <Brain size={11} />
+                        Thinking…
+                      </div>
+                    )}
+                    {mainContent && <div className={styles.bubbleText}>{mainContent}</div>}
+                  </div>
+                );
+              })()}
             {isStreaming && !streamText && (
               <div className={styles.thinking}>
                 <span className={styles.dot} />

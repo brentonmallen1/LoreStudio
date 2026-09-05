@@ -60,9 +60,7 @@ export default function TimelineView() {
   const unset = allLeaves.filter((n) => n.timeline_position == null);
   const sortedScenes = [...positioned, ...unset];
 
-  const maxPosition = positioned.length > 0
-    ? Math.max(...positioned.map((n) => n.timeline_position!))
-    : 0;
+  const maxPosition = positioned.length > 0 ? Math.max(...positioned.map((n) => n.timeline_position!)) : 0;
 
   async function assignPosition(node: StructureNode) {
     await api.updateNode(node.id, { timeline_position: maxPosition + 1 });
@@ -109,8 +107,7 @@ export default function TimelineView() {
         {sortedScenes.map((node, idx) => {
           const isUnset = node.timeline_position == null;
           const narrativeRank = narrativeRankMap.get(node.id) ?? null;
-          const isReordered =
-            !isUnset && narrativeRank !== null && node.timeline_position !== narrativeRank;
+          const isReordered = !isUnset && narrativeRank !== null && node.timeline_position !== narrativeRank;
           const parentLabel = getParentLabel(node, nodeMap);
 
           return (
@@ -118,15 +115,18 @@ export default function TimelineView() {
               key={node.id}
               className={`${styles.row} ${isUnset ? styles.rowUnset : ""}`}
               draggable={!isUnset}
-              onDragStart={() => { dragIdx.current = idx; }}
+              onDragStart={() => {
+                dragIdx.current = idx;
+              }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDrop(idx)}
             >
               <div className={styles.positionCol}>
-                {isUnset
-                  ? <span className={styles.unsetLabel}>Unset</span>
-                  : <span className={styles.posNum}>{node.timeline_position}</span>
-                }
+                {isUnset ? (
+                  <span className={styles.unsetLabel}>Unset</span>
+                ) : (
+                  <span className={styles.posNum}>{node.timeline_position}</span>
+                )}
               </div>
               <div
                 className={styles.card}
@@ -150,7 +150,10 @@ export default function TimelineView() {
               {isUnset && (
                 <button
                   className={styles.setPositionBtn}
-                  onClick={(e) => { e.stopPropagation(); assignPosition(node); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    assignPosition(node);
+                  }}
                 >
                   + Set position
                 </button>

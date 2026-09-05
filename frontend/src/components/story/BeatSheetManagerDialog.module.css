@@ -49,7 +49,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
 }
-.closeBtn:hover { background: var(--color-surface-2); }
+.closeBtn:hover {
+  background: var(--color-surface-2);
+}
 
 /* ── List view ── */
 .listView {
@@ -137,7 +139,10 @@
   cursor: pointer;
   transition: background var(--transition);
 }
-.editBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.editBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
 
 .deleteBtn {
   display: flex;
@@ -151,8 +156,13 @@
   color: var(--color-text-subtle);
   cursor: pointer;
 }
-.deleteBtn:hover { color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 10%, transparent); }
-.deleteBtn:disabled { opacity: 0.4; }
+.deleteBtn:hover {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+.deleteBtn:disabled {
+  opacity: 0.4;
+}
 
 .deleteConfirm {
   display: flex;
@@ -196,11 +206,16 @@
   font-size: 0.82rem;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color var(--transition), color var(--transition);
+  transition:
+    border-color var(--transition),
+    color var(--transition);
   width: 100%;
   justify-content: center;
 }
-.newBtn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.newBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
 
 /* ── Edit view ── */
 .editView {
@@ -237,7 +252,10 @@
   width: 100%;
   box-sizing: border-box;
 }
-.input:focus { outline: none; border-color: var(--color-accent); }
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
 
 /* ── Beats editor ── */
 .beatsSection {
@@ -265,7 +283,10 @@
   font-family: inherit;
   cursor: pointer;
 }
-.addBeatBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.addBeatBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
 
 .beatTable {
   display: flex;
@@ -315,7 +336,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
 }
-.removeBeatBtn:hover { color: var(--color-danger); }
+.removeBeatBtn:hover {
+  color: var(--color-danger);
+}
 
 /* ── Edit actions ── */
 .editActions {
@@ -336,7 +359,9 @@
   font-family: inherit;
   cursor: pointer;
 }
-.cancelBtn:hover { background: var(--color-surface-2); }
+.cancelBtn:hover {
+  background: var(--color-surface-2);
+}
 
 .saveBtn {
   display: flex;
@@ -352,8 +377,13 @@
   font-weight: 500;
   cursor: pointer;
 }
-.saveBtn:hover { opacity: 0.88; }
-.saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.saveBtn:hover {
+  opacity: 0.88;
+}
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .error {
   font-size: 0.8rem;

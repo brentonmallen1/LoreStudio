@@ -13,11 +13,11 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
+from ..auth.dependencies import get_current_user
+from ..config import settings
 from ..database import get_db
 from ..models.user import User
-from ..auth.dependencies import get_current_user
-from ..schemas.llm_params import LLMSettingsRead, LLMSettingsUpdate, LLMParams
-from ..config import settings
+from ..schemas.llm_params import LLMSettingsRead, LLMSettingsUpdate
 from ..services.llm.ollama import ollama_provider
 
 router = APIRouter()
@@ -69,7 +69,15 @@ def update_llm_settings(
     user_settings = dict(current_user.settings or {})
     llm = dict(user_settings.get("llm", {}))
 
-    for field_name in ("temperature", "top_p", "top_k", "thinking_enabled", "image_token_budget", "ollama_url", "ollama_model"):
+    for field_name in (
+        "temperature",
+        "top_p",
+        "top_k",
+        "thinking_enabled",
+        "image_token_budget",
+        "ollama_url",
+        "ollama_model",
+    ):
         value = getattr(body, field_name)
         if value is not None or field_name in body.model_fields_set:
             if value is None and field_name in body.model_fields_set:

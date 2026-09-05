@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 
-
 _BLOCK_TAGS = {"p", "div", "li", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote"}
 
 

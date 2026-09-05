@@ -1,15 +1,15 @@
 import json
 import logging
 import re
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import AsyncIterator
 
 import aiohttp
 
 logger = logging.getLogger(__name__)
 
-from .base import LLMProvider
 from ...config import settings
+from .base import LLMProvider
 
 
 @dataclass
@@ -237,7 +237,6 @@ class OllamaProvider(LLMProvider):
                     except json.JSONDecodeError:
                         continue
 
-
     async def generate_structured(
         self,
         messages: list[dict],
@@ -321,11 +320,15 @@ class OllamaProvider(LLMProvider):
                     resp.raise_for_status()
                     data = await resp.json()
                 content = data.get("message", {}).get("content", "")
-                metrics = StreamMetrics(
-                    tokens_in=data.get("prompt_eval_count"),
-                    tokens_out=data.get("eval_count"),
-                    model=effective_model,
-                ) if data.get("done") else None
+                metrics = (
+                    StreamMetrics(
+                        tokens_in=data.get("prompt_eval_count"),
+                        tokens_out=data.get("eval_count"),
+                        model=effective_model,
+                    )
+                    if data.get("done")
+                    else None
+                )
                 return content, metrics
 
 

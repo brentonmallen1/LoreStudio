@@ -5,13 +5,15 @@ Two-stage extraction:
   Stage 1 (NLP): spaCy NER → character and location name candidates
   Stage 2 (AI):  Ollama structured output → attributes for each candidate
 """
-from typing import Literal, Optional
-from pydantic import BaseModel
 
+from typing import Literal
+
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Request
 # ---------------------------------------------------------------------------
+
 
 class ExtractionOptions(BaseModel):
     characters_nlp: bool = True
@@ -24,6 +26,7 @@ class ExtractionOptions(BaseModel):
 # ---------------------------------------------------------------------------
 # AI structured output schemas (used with generate_structured)
 # ---------------------------------------------------------------------------
+
 
 class ExtractedCharacter(BaseModel):
     role: str = ""
@@ -53,6 +56,7 @@ class ExtractedRelationship(BaseModel):
 # Candidate — a single entity found during extraction
 # ---------------------------------------------------------------------------
 
+
 class ExtractionCandidate(BaseModel):
     id: str
     name: str
@@ -64,28 +68,30 @@ class ExtractionCandidate(BaseModel):
     # Scene/node ids where this entity was found (used internally for AI excerpts)
     scene_ids: list[str] = []
     # For relationship candidates, the two character names
-    char_a_name: Optional[str] = None
-    char_b_name: Optional[str] = None
+    char_a_name: str | None = None
+    char_b_name: str | None = None
     # Populated by AI stage (optional)
-    extracted_character: Optional[ExtractedCharacter] = None
-    extracted_location: Optional[ExtractedLocation] = None
-    extracted_relationship: Optional[ExtractedRelationship] = None
+    extracted_character: ExtractedCharacter | None = None
+    extracted_location: ExtractedLocation | None = None
+    extracted_relationship: ExtractedRelationship | None = None
 
 
 # ---------------------------------------------------------------------------
 # Preview — returned from /extract-preview
 # ---------------------------------------------------------------------------
 
+
 class ExtractionPreview(BaseModel):
     candidates: list[ExtractionCandidate]
     ai_available: bool
     nlp_elapsed_ms: int
-    ai_elapsed_ms: Optional[int] = None
+    ai_elapsed_ms: int | None = None
 
 
 # ---------------------------------------------------------------------------
 # AI enrichment request — sent after user reviews NLP candidates
 # ---------------------------------------------------------------------------
+
 
 class AIEnrichOptions(BaseModel):
     characters_ai: bool = False
@@ -102,8 +108,10 @@ class EnrichCandidatesRequest(BaseModel):
 # Finalize — selections to create after user review
 # ---------------------------------------------------------------------------
 
+
 class ExtractionSelection(BaseModel):
     """Which candidates the user approved for creation."""
+
     candidate_ids: list[str] = []
 
 

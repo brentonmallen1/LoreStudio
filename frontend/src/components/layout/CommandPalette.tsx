@@ -37,7 +37,6 @@ import {
 import { useStoryStore as _useStoryStoreForNav } from "../../stores/storyStore";
 import styles from "./CommandPalette.module.css";
 
-
 const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
   story: BookOpen,
   character: Users,
@@ -126,7 +125,15 @@ export default function CommandPalette() {
           id,
           label: node.title || `Untitled ${node.level_type}`,
           description: node.synopsis ? node.synopsis.slice(0, 80) : undefined,
-          keywords: ["write", node.level_type, "scene", "chapter", "go to", "navigate", node.title.toLowerCase()].filter(Boolean),
+          keywords: [
+            "write",
+            node.level_type,
+            "scene",
+            "chapter",
+            "go to",
+            "navigate",
+            node.title.toLowerCase(),
+          ].filter(Boolean),
           icon: Clapperboard,
           group: "Write",
           when: () => _useStoryStoreForNav.getState().activeStory?.id === node.story_id,
@@ -149,23 +156,125 @@ export default function CommandPalette() {
     type NavIcon = import("../../lib/commands/registry").CommandAction["icon"];
 
     const sections: Array<{ id: string; label: string; keywords: string[]; icon: NavIcon; path: string }> = [
-      { id: "nav-overview",      label: "Go to Overview",      keywords: ["overview", "summary", "dashboard"], icon: Home,             path: "" },
-      { id: "nav-write",         label: "Go to Write",         keywords: ["write", "editor", "scene", "prose"], icon: PenLine,          path: "/write" },
-      { id: "nav-characters",    label: "Go to Characters",    keywords: ["characters", "cast", "people"],      icon: Users,            path: "/characters" },
-      { id: "nav-lorebook",      label: "Go to Story Identity", keywords: ["story identity", "lorebook", "canon", "lore", "identity"], icon: SquareLibrary, path: "/lorebook" },
-      { id: "nav-compendium",    label: "Go to Compendium",    keywords: ["compendium", "research", "notes"],   icon: Scroll,           path: "/compendium" },
-      { id: "nav-worldbuilding", label: "Go to Worldbuilding", keywords: ["worldbuilding", "world", "setting"], icon: Globe,            path: "/worldbuilding" },
-      { id: "nav-panels",        label: "Go to Panels",        keywords: ["panels", "group", "interview"],      icon: MessageSquareMore,path: "/panels" },
-      { id: "nav-outline",       label: "Go to Outline",       keywords: ["outline", "structure", "beats"],     icon: ListTree,         path: "/outline" },
-      { id: "nav-threads",       label: "Go to Threads",       keywords: ["threads", "plot", "subplot"],        icon: GitBranch,        path: "/threads" },
-      { id: "nav-twists",        label: "Go to Twists",        keywords: ["twists", "reveal", "surprise"],      icon: Shuffle,          path: "/twists" },
-      { id: "nav-media",         label: "Go to Media",         keywords: ["media", "images", "attachments"],    icon: Images,           path: "/media" },
-      { id: "nav-health",        label: "Go to Story Health",  keywords: ["health", "analysis", "check"],       icon: Activity,         path: "/health" },
-      { id: "nav-discoveries",   label: "Go to Discoveries",   keywords: ["discoveries", "nlp", "entities"],    icon: Telescope,        path: "/discoveries" },
-      { id: "nav-chronicle",     label: "Go to Chronicle",     keywords: ["chronicle", "history", "log", "ai log"], icon: History,      path: "/chronicle" },
-      { id: "nav-publish",       label: "Go to Publish",       keywords: ["publish", "export", "share"],        icon: Send,             path: "/publish" },
-      { id: "nav-versions",      label: "Go to Versions",      keywords: ["versions", "backup", "snapshots"],   icon: Eye,              path: "/versions" },
-      { id: "nav-whatif",        label: "Go to What-If",       keywords: ["whatif", "what-if", "simulate"],     icon: Shuffle,          path: "/whatif" },
+      {
+        id: "nav-overview",
+        label: "Go to Overview",
+        keywords: ["overview", "summary", "dashboard"],
+        icon: Home,
+        path: "",
+      },
+      {
+        id: "nav-write",
+        label: "Go to Write",
+        keywords: ["write", "editor", "scene", "prose"],
+        icon: PenLine,
+        path: "/write",
+      },
+      {
+        id: "nav-characters",
+        label: "Go to Characters",
+        keywords: ["characters", "cast", "people"],
+        icon: Users,
+        path: "/characters",
+      },
+      {
+        id: "nav-lorebook",
+        label: "Go to Story Identity",
+        keywords: ["story identity", "lorebook", "canon", "lore", "identity"],
+        icon: SquareLibrary,
+        path: "/lorebook",
+      },
+      {
+        id: "nav-compendium",
+        label: "Go to Compendium",
+        keywords: ["compendium", "research", "notes"],
+        icon: Scroll,
+        path: "/compendium",
+      },
+      {
+        id: "nav-worldbuilding",
+        label: "Go to Worldbuilding",
+        keywords: ["worldbuilding", "world", "setting"],
+        icon: Globe,
+        path: "/worldbuilding",
+      },
+      {
+        id: "nav-panels",
+        label: "Go to Panels",
+        keywords: ["panels", "group", "interview"],
+        icon: MessageSquareMore,
+        path: "/panels",
+      },
+      {
+        id: "nav-outline",
+        label: "Go to Outline",
+        keywords: ["outline", "structure", "beats"],
+        icon: ListTree,
+        path: "/outline",
+      },
+      {
+        id: "nav-threads",
+        label: "Go to Threads",
+        keywords: ["threads", "plot", "subplot"],
+        icon: GitBranch,
+        path: "/threads",
+      },
+      {
+        id: "nav-twists",
+        label: "Go to Twists",
+        keywords: ["twists", "reveal", "surprise"],
+        icon: Shuffle,
+        path: "/twists",
+      },
+      {
+        id: "nav-media",
+        label: "Go to Media",
+        keywords: ["media", "images", "attachments"],
+        icon: Images,
+        path: "/media",
+      },
+      {
+        id: "nav-health",
+        label: "Go to Story Health",
+        keywords: ["health", "analysis", "check"],
+        icon: Activity,
+        path: "/health",
+      },
+      {
+        id: "nav-discoveries",
+        label: "Go to Discoveries",
+        keywords: ["discoveries", "nlp", "entities"],
+        icon: Telescope,
+        path: "/discoveries",
+      },
+      {
+        id: "nav-chronicle",
+        label: "Go to Chronicle",
+        keywords: ["chronicle", "history", "log", "ai log"],
+        icon: History,
+        path: "/chronicle",
+      },
+      {
+        id: "nav-publish",
+        label: "Go to Publish",
+        keywords: ["publish", "export", "share"],
+        icon: Send,
+        path: "/publish",
+      },
+      {
+        id: "nav-versions",
+        label: "Go to Versions",
+        keywords: ["versions", "backup", "snapshots"],
+        icon: Eye,
+        path: "/versions",
+      },
+      {
+        id: "nav-whatif",
+        label: "Go to What-If",
+        keywords: ["whatif", "what-if", "simulate"],
+        icon: Shuffle,
+        path: "/whatif",
+      },
     ];
 
     sections.forEach(({ id, label, keywords, icon, path }) => {
@@ -354,31 +463,28 @@ export default function CommandPalette() {
   const lastRun: CommandAction | null = !subMenu && !hasQuery ? commandRegistry.getLastRun() : null;
 
   // Recent items — shown only when no query (and exclude the last-run item to avoid duplication)
-  const recentItems: CommandAction[] = !query.trim() && !subMenu
-    ? commandRegistry.getRecent().filter((a) => a.id !== lastRun?.id)
-    : [];
+  const recentItems: CommandAction[] =
+    !query.trim() && !subMenu ? commandRegistry.getRecent().filter((a) => a.id !== lastRun?.id) : [];
 
   // Sub-menu filtering
   const filteredSubItems = subMenu
-    ? (subQuery.trim()
+    ? subQuery.trim()
       ? subMenu.items.filter((item) => {
           const q = subQuery.toLowerCase();
-          return item.label.toLowerCase().includes(q) ||
-            (item.keywords ?? []).some((k) => k.toLowerCase().includes(q));
+          return (
+            item.label.toLowerCase().includes(q) ||
+            (item.keywords ?? []).some((k) => k.toLowerCase().includes(q))
+          );
         })
-      : subMenu.items)
+      : subMenu.items
     : [];
 
   // Flat list for keyboard nav — last-run first (always), then recent (no query), then commands, then content results
   const flatItems: Array<{ action: () => void }> = [
     ...(lastRun ? [{ action: () => executeAction(lastRun) }] : []),
     ...recentItems.map((a) => ({ action: () => executeAction(a) })),
-    ...Object.values(actionGroups).flatMap((items) =>
-      items.map((a) => ({ action: () => executeAction(a) }))
-    ),
-    ...(hasQuery && hasSearchResults
-      ? searchResults.map((r) => ({ action: () => navigateTo(r) }))
-      : []),
+    ...Object.values(actionGroups).flatMap((items) => items.map((a) => ({ action: () => executeAction(a) }))),
+    ...(hasQuery && hasSearchResults ? searchResults.map((r) => ({ action: () => navigateTo(r) })) : []),
   ];
 
   const flatSubItems = filteredSubItems.map((a) => ({ action: () => executeSubItem(a) }));
@@ -388,10 +494,18 @@ export default function CommandPalette() {
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((i) => { const n = Math.min(i + 1, flatItems.length - 1); scrollToIndex(n); return n; });
+      setSelectedIndex((i) => {
+        const n = Math.min(i + 1, flatItems.length - 1);
+        scrollToIndex(n);
+        return n;
+      });
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((i) => { const n = Math.max(i - 1, 0); scrollToIndex(n); return n; });
+      setSelectedIndex((i) => {
+        const n = Math.max(i - 1, 0);
+        scrollToIndex(n);
+        return n;
+      });
     } else if (e.key === "Enter") {
       e.preventDefault();
       flatItems[selectedIndex]?.action();
@@ -432,7 +546,7 @@ export default function CommandPalette() {
       acc[result.type].push(result);
       return acc;
     },
-    {} as Record<string, SearchResult[]>
+    {} as Record<string, SearchResult[]>,
   );
   const resultTypeOrder: SearchResult["type"][] = ["story", "character", "scene", "setting", "thread"];
 
@@ -451,28 +565,34 @@ export default function CommandPalette() {
             <div className={styles.searchRow}>
               <button
                 className={styles.backBtn}
-                onClick={() => { setSubMenu(null); setTimeout(() => inputRef.current?.focus(), 30); }}
+                onClick={() => {
+                  setSubMenu(null);
+                  setTimeout(() => inputRef.current?.focus(), 30);
+                }}
                 aria-label="Back to main menu"
               >
                 <ChevronRight size={14} className={styles.backIcon} />
               </button>
-              <span className={styles.subMenuContext} aria-hidden="true">{subMenu.parent.label}</span>
+              <span className={styles.subMenuContext} aria-hidden="true">
+                {subMenu.parent.label}
+              </span>
               <input
                 ref={subInputRef}
                 className={styles.searchInput}
                 placeholder={`Filter ${subMenu.parent.label.toLowerCase()}…`}
                 aria-label={`Filter ${subMenu.parent.label}`}
                 value={subQuery}
-                onChange={(e) => { setSubQuery(e.target.value); setSubSelectedIndex(0); }}
+                onChange={(e) => {
+                  setSubQuery(e.target.value);
+                  setSubSelectedIndex(0);
+                }}
                 onKeyDown={handleSubKeyDown}
                 autoComplete="off"
                 spellCheck={false}
               />
             </div>
             <div className={styles.list} role="listbox" aria-label={subMenu.parent.label} ref={listRef}>
-              {filteredSubItems.length === 0 && (
-                <p className={styles.empty}>No matches</p>
-              )}
+              {filteredSubItems.length === 0 && <p className={styles.empty}>No matches</p>}
               {filteredSubItems.map((item, idx) => {
                 const Icon = item.icon;
                 return (
@@ -494,9 +614,15 @@ export default function CommandPalette() {
               })}
             </div>
             <div className={styles.footer} aria-hidden="true">
-              <span className={styles.footerHint}><kbd>↑↓</kbd> navigate</span>
-              <span className={styles.footerHint}><kbd>↵</kbd> select</span>
-              <span className={styles.footerHint}><kbd>Esc</kbd> back</span>
+              <span className={styles.footerHint}>
+                <kbd>↑↓</kbd> navigate
+              </span>
+              <span className={styles.footerHint}>
+                <kbd>↵</kbd> select
+              </span>
+              <span className={styles.footerHint}>
+                <kbd>Esc</kbd> back
+              </span>
             </div>
           </>
         ) : (
@@ -510,52 +636,66 @@ export default function CommandPalette() {
                 placeholder="Search or jump to…"
                 aria-label="Search or jump to a command"
                 value={query}
-                onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
                 spellCheck={false}
               />
               {searching && <Loader2 size={14} className={styles.spinner} aria-hidden="true" />}
-              <span className={styles.kbdHint} aria-hidden="true">⌘K</span>
+              <span className={styles.kbdHint} aria-hidden="true">
+                ⌘K
+              </span>
             </div>
 
             <div className={styles.list} role="listbox" aria-label="Commands" ref={listRef}>
               {/* ── Last Run (always pinned at top) ── */}
-              {lastRun && (() => {
-                const idx = 0;
-                const Icon = lastRun.icon;
-                return (
-                  <div className={styles.lastRunGroup} role="group" aria-label="Last run">
-                    <p className={styles.lastRunLabel} aria-hidden="true">
-                      <RotateCcw size={10} aria-hidden="true" />
-                      Last run
-                    </p>
-                    <button
-                      data-item
-                      role="option"
-                      aria-selected={idx === selectedIndex}
-                      onClick={() => executeAction(lastRun)}
-                      className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
-                      title={lastRun.shortcut ? `${lastRun.label} (${lastRun.shortcut})` : lastRun.label}
-                    >
-                      <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
-                      <span className={styles.itemContent}>
-                        <span className={styles.itemTitle}>{lastRun.label}</span>
-                        {lastRun.description && <span className={styles.itemSubtitle}>{lastRun.description}</span>}
-                      </span>
-                      {lastRun.shortcut && (
-                        <span className={styles.shortcutHint} aria-hidden="true">{lastRun.shortcut}</span>
-                      )}
-                      {lastRun.getSubItems && <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />}
-                    </button>
-                  </div>
-                );
-              })()}
+              {lastRun &&
+                (() => {
+                  const idx = 0;
+                  const Icon = lastRun.icon;
+                  return (
+                    <div className={styles.lastRunGroup} role="group" aria-label="Last run">
+                      <p className={styles.lastRunLabel} aria-hidden="true">
+                        <RotateCcw size={10} aria-hidden="true" />
+                        Last run
+                      </p>
+                      <button
+                        data-item
+                        role="option"
+                        aria-selected={idx === selectedIndex}
+                        onClick={() => executeAction(lastRun)}
+                        className={`${styles.item}${idx === selectedIndex ? ` ${styles.activeItem}` : ""}`}
+                        title={lastRun.shortcut ? `${lastRun.label} (${lastRun.shortcut})` : lastRun.label}
+                      >
+                        <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
+                        <span className={styles.itemContent}>
+                          <span className={styles.itemTitle}>{lastRun.label}</span>
+                          {lastRun.description && (
+                            <span className={styles.itemSubtitle}>{lastRun.description}</span>
+                          )}
+                        </span>
+                        {lastRun.shortcut && (
+                          <span className={styles.shortcutHint} aria-hidden="true">
+                            {lastRun.shortcut}
+                          </span>
+                        )}
+                        {lastRun.getSubItems && (
+                          <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
+                        )}
+                      </button>
+                    </div>
+                  );
+                })()}
 
               {/* ── Recent items (only when no query) ── */}
               {recentItems.length > 0 && (
                 <div className={styles.group} role="group" aria-label="Recent">
-                  <p className={styles.groupLabel} aria-hidden="true">Recent</p>
+                  <p className={styles.groupLabel} aria-hidden="true">
+                    Recent
+                  </p>
                   {recentItems.map((action, i) => {
                     const idx = (lastRun ? 1 : 0) + i;
                     const Icon = action.icon;
@@ -571,9 +711,13 @@ export default function CommandPalette() {
                         <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
                         <span className={styles.itemContent}>
                           <span className={styles.itemTitle}>{action.label}</span>
-                          {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
+                          {action.description && (
+                            <span className={styles.itemSubtitle}>{action.description}</span>
+                          )}
                         </span>
-                        {action.getSubItems && <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />}
+                        {action.getSubItems && (
+                          <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
+                        )}
                       </button>
                     );
                   })}
@@ -586,7 +730,9 @@ export default function CommandPalette() {
                 let flatIdx = (lastRun ? 1 : 0) + recentItems.length;
                 return Object.entries(actionGroups).map(([group, items]) => (
                   <div key={group} className={styles.group} role="group" aria-label={group}>
-                    <p className={styles.groupLabel} aria-hidden="true">{group}</p>
+                    <p className={styles.groupLabel} aria-hidden="true">
+                      {group}
+                    </p>
                     {items.map((action) => {
                       const idx = flatIdx++;
                       const Icon = action.icon;
@@ -603,10 +749,14 @@ export default function CommandPalette() {
                           <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
                           <span className={styles.itemContent}>
                             <span className={styles.itemTitle}>{action.label}</span>
-                            {action.description && <span className={styles.itemSubtitle}>{action.description}</span>}
+                            {action.description && (
+                              <span className={styles.itemSubtitle}>{action.description}</span>
+                            )}
                           </span>
                           {action.shortcut && (
-                            <span className={styles.shortcutHint} aria-hidden="true">{action.shortcut}</span>
+                            <span className={styles.shortcutHint} aria-hidden="true">
+                              {action.shortcut}
+                            </span>
                           )}
                           {action.getSubItems && (
                             <ChevronRight size={12} className={styles.chevron} aria-hidden="true" />
@@ -619,17 +769,22 @@ export default function CommandPalette() {
               })()}
 
               {/* ── Content search results (only when query typed) ── */}
-              {hasQuery && (
-                hasSearchResults ? (
+              {hasQuery &&
+                (hasSearchResults ? (
                   (() => {
-                    let flatIdx = (lastRun ? 1 : 0) + recentItems.length + Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
+                    let flatIdx =
+                      (lastRun ? 1 : 0) +
+                      recentItems.length +
+                      Object.values(actionGroups).reduce((n, g) => n + g.length, 0);
                     return resultTypeOrder.map((type) => {
                       const items = groupedResults[type];
                       if (!items?.length) return null;
                       const Icon = TYPE_ICONS[type];
                       return (
                         <div key={type} className={styles.group} role="group" aria-label={TYPE_LABELS[type]}>
-                          <p className={styles.groupLabel} aria-hidden="true">{TYPE_LABELS[type]}</p>
+                          <p className={styles.groupLabel} aria-hidden="true">
+                            {TYPE_LABELS[type]}
+                          </p>
                           {items.map((result) => {
                             const idx = flatIdx++;
                             return (
@@ -644,8 +799,12 @@ export default function CommandPalette() {
                                 <Icon size={14} className={styles.itemIcon} aria-hidden="true" />
                                 <span className={styles.itemContent}>
                                   <span className={styles.itemTitle}>{result.title}</span>
-                                  {result.subtitle && <span className={styles.itemSubtitle}>{result.subtitle}</span>}
-                                  {result.excerpt && <span className={styles.itemExcerpt}>{result.excerpt}</span>}
+                                  {result.subtitle && (
+                                    <span className={styles.itemSubtitle}>{result.subtitle}</span>
+                                  )}
+                                  {result.excerpt && (
+                                    <span className={styles.itemExcerpt}>{result.excerpt}</span>
+                                  )}
                                 </span>
                               </button>
                             );
@@ -656,14 +815,19 @@ export default function CommandPalette() {
                   })()
                 ) : !searching && !hasActionResults ? (
                   <p className={styles.empty}>No results for &ldquo;{query}&rdquo;</p>
-                ) : null
-              )}
+                ) : null)}
             </div>
 
             <div className={styles.footer} aria-hidden="true">
-              <span className={styles.footerHint}><kbd>↑↓</kbd> navigate</span>
-              <span className={styles.footerHint}><kbd>↵</kbd> select</span>
-              <span className={styles.footerHint}><kbd>Esc</kbd> close</span>
+              <span className={styles.footerHint}>
+                <kbd>↑↓</kbd> navigate
+              </span>
+              <span className={styles.footerHint}>
+                <kbd>↵</kbd> select
+              </span>
+              <span className={styles.footerHint}>
+                <kbd>Esc</kbd> close
+              </span>
             </div>
           </>
         )}

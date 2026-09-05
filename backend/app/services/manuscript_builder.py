@@ -8,12 +8,11 @@ Content is stored as TipTap HTML so we use --from html for pandoc input.
 import re
 from dataclasses import dataclass
 from html import escape
-from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from ..models.structure import StructureNode
 from ..models.story import Story
+from ..models.structure import StructureNode
 
 
 def _clean_mentions(html: str) -> str:
@@ -23,12 +22,12 @@ def _clean_mentions(html: str) -> str:
     "dialogue"<Name> → "dialogue"  (strip speaker suffix)
     @CharacterName   → CharacterName
     """
-    html = re.sub(r'\[\[([^\]]+)\]\]', r'\1', html)
+    html = re.sub(r"\[\[([^\]]+)\]\]", r"\1", html)
     # Remove explicit dialogue speaker suffix stored as entity-encoded angle brackets:
     # "..."&lt;Name&gt; → "..."  (TipTap stores < and > as &lt; and &gt; in HTML)
-    html = re.sub(r'([\u201d"])&lt;([^&]+)&gt;', r'\1', html)
+    html = re.sub(r'([\u201d"])&lt;([^&]+)&gt;', r"\1", html)
     # Negative lookbehind avoids matching email addresses (foo@bar.com)
-    html = re.sub(r'(?<!\w)@([A-Za-z]\S*)', r'\1', html)
+    html = re.sub(r"(?<!\w)@([A-Za-z]\S*)", r"\1", html)
     return html
 
 
@@ -36,9 +35,9 @@ def _clean_mentions(html: str) -> str:
 class ManuscriptSection:
     id: str
     heading: str
-    level: int          # heading depth: 1=root act, 2=chapter, 3=scene…
+    level: int  # heading depth: 1=root act, 2=chapter, 3=scene…
     is_leaf: bool
-    content: Optional[str]   # TipTap HTML, or None for container nodes
+    content: str | None  # TipTap HTML, or None for container nodes
     word_count: int
     status: str
 
@@ -48,7 +47,7 @@ def _walk_tree(
     children_map: dict[str, list[StructureNode]],
     heading_level: int,
     sections: list[ManuscriptSection],
-    status_filter: Optional[list[str]],
+    status_filter: list[str] | None,
 ) -> None:
     for node in sorted(nodes, key=lambda n: n.position):
         kids = children_map.get(node.id, [])
@@ -57,32 +56,36 @@ def _walk_tree(
         if is_leaf:
             if status_filter and node.status not in status_filter:
                 continue
-            sections.append(ManuscriptSection(
-                id=node.id,
-                heading=node.title or "Untitled",
-                level=heading_level,
-                is_leaf=True,
-                content=_clean_mentions(node.content or ""),
-                word_count=node.word_count or 0,
-                status=node.status or "draft",
-            ))
+            sections.append(
+                ManuscriptSection(
+                    id=node.id,
+                    heading=node.title or "Untitled",
+                    level=heading_level,
+                    is_leaf=True,
+                    content=_clean_mentions(node.content or ""),
+                    word_count=node.word_count or 0,
+                    status=node.status or "draft",
+                )
+            )
         else:
-            sections.append(ManuscriptSection(
-                id=node.id,
-                heading=node.title or "Untitled",
-                level=heading_level,
-                is_leaf=False,
-                content=None,
-                word_count=0,
-                status="",
-            ))
+            sections.append(
+                ManuscriptSection(
+                    id=node.id,
+                    heading=node.title or "Untitled",
+                    level=heading_level,
+                    is_leaf=False,
+                    content=None,
+                    word_count=0,
+                    status="",
+                )
+            )
             _walk_tree(kids, children_map, heading_level + 1, sections, status_filter)
 
 
 def get_manuscript_sections(
     story: Story,
     db: Session,
-    status_filter: Optional[list[str]] = None,
+    status_filter: list[str] | None = None,
 ) -> list[ManuscriptSection]:
     """Return ordered sections (headings + leaf scenes) for the full manuscript."""
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story.id).all()
@@ -127,9 +130,7 @@ def build_manuscript_html(
     title_text = escape(story.title or "Untitled")
 
     parts.append(
-        f'<!DOCTYPE html>\n<html lang="en">\n'
-        f"<head><meta charset=\"utf-8\"><title>{title_text}</title></head>\n"
-        f"<body>\n"
+        f'<!DOCTYPE html>\n<html lang="en">\n<head><meta charset="utf-8"><title>{title_text}</title></head>\n<body>\n'
     )
 
     if title_page:
@@ -142,9 +143,7 @@ def build_manuscript_html(
             # Scene break between consecutive scenes
             if prev_was_leaf:
                 break_text = escape(scene_break)
-                parts.append(
-                    f'<p style="text-align:center" class="scene-break">{break_text}</p>\n'
-                )
+                parts.append(f'<p style="text-align:center" class="scene-break">{break_text}</p>\n')
 
             if include_scene_titles:
                 h = min(section.level + 1, 6)

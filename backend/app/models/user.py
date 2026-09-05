@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .snapshot import UserBackupDefaults
     from .story import Story
-
 
 
 class User(Base):
@@ -19,7 +21,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     settings: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     stories: Mapped[list["Story"]] = relationship("Story", back_populates="user", cascade="all, delete-orphan")
     backup_defaults: Mapped["UserBackupDefaults | None"] = relationship(

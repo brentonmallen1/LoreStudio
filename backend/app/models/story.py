@@ -1,9 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Boolean, Float, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .calendar import Calendar
     from .character import Character
@@ -28,7 +31,6 @@ if TYPE_CHECKING:
     from .twist import Twist
     from .user import User
     from .world_system import WorldSystem
-
 
 
 class Story(Base):
@@ -77,31 +79,32 @@ class Story(Base):
     )
     discovery_min_confidence: Mapped[float] = mapped_column(Float, default=0.6, server_default="0.6")
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     user: Mapped["User"] = relationship("User", back_populates="stories")
     pov_character: Mapped["Character | None"] = relationship(
-        "Character", foreign_keys=[pov_character_id], uselist=False,
-        back_populates="pov_stories", post_update=True,
+        "Character",
+        foreign_keys=[pov_character_id],
+        uselist=False,
+        back_populates="pov_stories",
+        post_update=True,
     )
     structure_nodes: Mapped[list["StructureNode"]] = relationship(
         "StructureNode", back_populates="story", cascade="all, delete-orphan"
     )
     characters: Mapped[list["Character"]] = relationship(
-        "Character", back_populates="story", cascade="all, delete-orphan",
+        "Character",
+        back_populates="story",
+        cascade="all, delete-orphan",
         foreign_keys="Character.story_id",
     )
-    settings: Mapped[list["Setting"]] = relationship(
-        "Setting", back_populates="story", cascade="all, delete-orphan"
-    )
-    notes: Mapped[list["StoryNote"]] = relationship(
-        "StoryNote", back_populates="story", cascade="all, delete-orphan"
-    )
+    settings: Mapped[list["Setting"]] = relationship("Setting", back_populates="story", cascade="all, delete-orphan")
+    notes: Mapped[list["StoryNote"]] = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
     panel_interviews: Mapped[list["PanelInterview"]] = relationship(
         "PanelInterview", back_populates="story", cascade="all, delete-orphan"
     )
@@ -114,32 +117,22 @@ class Story(Base):
     compendium_entries: Mapped[list["CompendiumEntry"]] = relationship(
         "CompendiumEntry", back_populates="story", cascade="all, delete-orphan"
     )
-    locations: Mapped[list["Location"]] = relationship(
-        "Location", back_populates="story", cascade="all, delete-orphan"
-    )
+    locations: Mapped[list["Location"]] = relationship("Location", back_populates="story", cascade="all, delete-orphan")
     world_systems: Mapped[list["WorldSystem"]] = relationship(
         "WorldSystem", back_populates="story", cascade="all, delete-orphan"
     )
-    cultures: Mapped[list["Culture"]] = relationship(
-        "Culture", back_populates="story", cascade="all, delete-orphan"
-    )
-    eras: Mapped[list["Era"]] = relationship(
-        "Era", back_populates="story", cascade="all, delete-orphan"
-    )
+    cultures: Mapped[list["Culture"]] = relationship("Culture", back_populates="story", cascade="all, delete-orphan")
+    eras: Mapped[list["Era"]] = relationship("Era", back_populates="story", cascade="all, delete-orphan")
     historical_events: Mapped[list["HistoricalEvent"]] = relationship(
         "HistoricalEvent", back_populates="story", cascade="all, delete-orphan"
     )
-    calendars: Mapped[list["Calendar"]] = relationship(
-        "Calendar", back_populates="story", cascade="all, delete-orphan"
-    )
-    twists: Mapped[list["Twist"]] = relationship(
-        "Twist", back_populates="story", cascade="all, delete-orphan"
-    )
-    todos: Mapped[list["StoryTodo"]] = relationship(
-        "StoryTodo", back_populates="story", cascade="all, delete-orphan"
-    )
+    calendars: Mapped[list["Calendar"]] = relationship("Calendar", back_populates="story", cascade="all, delete-orphan")
+    twists: Mapped[list["Twist"]] = relationship("Twist", back_populates="story", cascade="all, delete-orphan")
+    todos: Mapped[list["StoryTodo"]] = relationship("StoryTodo", back_populates="story", cascade="all, delete-orphan")
     outlines: Mapped[list["Outline"]] = relationship(
-        "Outline", back_populates="story", cascade="all, delete-orphan",
+        "Outline",
+        back_populates="story",
+        cascade="all, delete-orphan",
         order_by="Outline.position",
     )
     snapshots: Mapped[list["StorySnapshot"]] = relationship(
@@ -151,9 +144,7 @@ class Story(Base):
     chat_sessions: Mapped[list["ChatSession"]] = relationship(
         "ChatSession", back_populates="story", cascade="all, delete-orphan"
     )
-    diagrams: Mapped[list["Diagram"]] = relationship(
-        "Diagram", back_populates="story", cascade="all, delete-orphan"
-    )
+    diagrams: Mapped[list["Diagram"]] = relationship("Diagram", back_populates="story", cascade="all, delete-orphan")
     scene_links: Mapped[list["SceneLink"]] = relationship(
         "SceneLink", back_populates="story", cascade="all, delete-orphan"
     )

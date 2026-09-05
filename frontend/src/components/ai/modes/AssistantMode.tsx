@@ -53,17 +53,20 @@ export default function AssistantMode({ session }: Props) {
       icon={Feather}
       title="Assistant"
       showContextOptions
-      onTransparencyClick={() => state.transparency.open(
-        { context_type: "scene-chat", story_id: storyId, node_id: nodeId, user_message: state.lastUserMsg.current },
-        state.lastResponse.current,
-      )}
+      onTransparencyClick={() =>
+        state.transparency.open(
+          {
+            context_type: "scene-chat",
+            story_id: storyId,
+            node_id: nodeId,
+            user_message: state.lastUserMsg.current,
+          },
+          state.lastResponse.current,
+        )
+      }
     >
       {/* Context chips — always editable */}
-      <ContextChips
-        sessionId={session.id}
-        context={session.context}
-        resolvedNames={session.resolvedNames}
-      />
+      <ContextChips sessionId={session.id} context={session.context} resolvedNames={session.resolvedNames} />
 
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
@@ -77,7 +80,12 @@ export default function AssistantMode({ session }: Props) {
           {storyId && (
             <div className={styles.starters}>
               {STARTER_PROMPTS.map((p) => (
-                <button key={p} className={styles.starterBtn} onClick={() => handleSend(p)} disabled={session.isStreaming}>
+                <button
+                  key={p}
+                  className={styles.starterBtn}
+                  onClick={() => handleSend(p)}
+                  disabled={session.isStreaming}
+                >
                   {p}
                 </button>
               ))}

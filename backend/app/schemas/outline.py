@@ -1,8 +1,9 @@
 from datetime import datetime
+
 from pydantic import BaseModel
 
-
 # ── Outline ────────────────────────────────────────────────────────────────────
+
 
 class OutlineCreate(BaseModel):
     name: str = "Outline"
@@ -34,6 +35,7 @@ class InjectBeatSheetPayload(BaseModel):
 
 
 # ── OutlineItem ────────────────────────────────────────────────────────────────
+
 
 class OutlineItemCreate(BaseModel):
     text: str

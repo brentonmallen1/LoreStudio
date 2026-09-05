@@ -19,17 +19,15 @@ def build_twist_analysis_prompt(
         excerpt = ""
         if c.get("scene_content"):
             # Include a truncated excerpt of the scene for context
-            excerpt = f"\n    Scene excerpt: {c['scene_content'][:600]}{'...' if len(c.get('scene_content','')) > 600 else ''}"
-        clue_lines.append(
-            f"  - Clue ({c['subtlety']}, {direction}) {scene_ref}: \"{c['clue_text']}\"{excerpt}"
-        )
+            excerpt = f"\n    Scene excerpt: {c['scene_content'][:600]}{'...' if len(c.get('scene_content', '')) > 600 else ''}"
+        clue_lines.append(f'  - Clue ({c["subtlety"]}, {direction}) {scene_ref}: "{c["clue_text"]}"{excerpt}')
 
     clues_block = "\n".join(clue_lines) if clue_lines else "  (no clues defined)"
 
     reveal_block = ""
     if reveal_scene:
         excerpt = reveal_scene.get("content", "")[:800]
-        reveal_block = f"\nREVEAL SCENE: {reveal_scene['title']}\n{excerpt}{'...' if len(reveal_scene.get('content','')) > 800 else ''}"
+        reveal_block = f"\nREVEAL SCENE: {reveal_scene['title']}\n{excerpt}{'...' if len(reveal_scene.get('content', '')) > 800 else ''}"
     else:
         reveal_block = "\nREVEAL SCENE: not yet assigned"
 

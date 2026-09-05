@@ -1,13 +1,13 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import require_admin
+from ..auth.utils import hash_password
 from ..database import get_db
 from ..models.user import User
 from ..schemas.user import UserCreate, UserOut
-from ..auth.dependencies import require_admin
-from ..auth.utils import hash_password
-
-import uuid
 
 router = APIRouter()
 

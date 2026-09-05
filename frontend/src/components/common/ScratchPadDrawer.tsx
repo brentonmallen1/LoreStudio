@@ -19,7 +19,7 @@ function hasContent(html: string) {
 export function hasScratchPadContent(storyId: string | null): boolean {
   const storyKey = storyId ? `ls_scratchpad_${storyId}` : null;
   const globalKey = "ls_scratchpad_global";
-  const storyVal = storyKey ? localStorage.getItem(storyKey) ?? "" : "";
+  const storyVal = storyKey ? (localStorage.getItem(storyKey) ?? "") : "";
   const globalVal = localStorage.getItem(globalKey) ?? "";
   return hasContent(storyVal) || hasContent(globalVal);
 }
@@ -36,10 +36,7 @@ export default function ScratchPadDrawer() {
   const currentKey = storageKey(storyId, storyId ? tab : "global");
 
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({ placeholder: "Capture a thought, idea, or note…" }),
-    ],
+    extensions: [StarterKit, Placeholder.configure({ placeholder: "Capture a thought, idea, or note…" })],
     content: localStorage.getItem(currentKey) ?? "",
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
@@ -100,18 +97,10 @@ export default function ScratchPadDrawer() {
             <span className={styles.title}>Scratch Pad</span>
           </div>
           <div className={styles.headerActions}>
-            <button
-              className={styles.iconBtn}
-              onClick={copyToClipboard}
-              title="Copy to clipboard"
-            >
+            <button className={styles.iconBtn} onClick={copyToClipboard} title="Copy to clipboard">
               <ClipboardCopy size={13} />
             </button>
-            <button
-              className={styles.iconBtn}
-              onClick={closeScratchPad}
-              title="Close (Esc)"
-            >
+            <button className={styles.iconBtn} onClick={closeScratchPad} title="Close (Esc)">
               <X size={13} />
             </button>
           </div>

@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  User2, BookOpen, RefreshCw, Feather, ChevronDown, ChevronUp, Brain, Scissors, Archive
+  User2,
+  BookOpen,
+  RefreshCw,
+  Feather,
+  ChevronDown,
+  ChevronUp,
+  Brain,
+  Scissors,
+  Archive,
 } from "lucide-react";
 import { api } from "../../../api/client";
 import { useAIStore } from "../../../stores/aiStore";
@@ -16,7 +24,10 @@ import MessageList from "../shared/MessageList";
 import ChatInput from "../shared/ChatInput";
 import styles from "./InterviewMode.module.css";
 
-function flattenNodes(nodes: import("../../../types").StructureNode[], depth = 0): Array<{ id: string; label: string; depth: number }> {
+function flattenNodes(
+  nodes: import("../../../types").StructureNode[],
+  depth = 0,
+): Array<{ id: string; label: string; depth: number }> {
   return nodes.flatMap((n) => [
     { id: n.id, label: n.title || "(untitled)", depth },
     ...flattenNodes(n.children ?? [], depth + 1),
@@ -30,7 +41,7 @@ interface Props {
 export default function InterviewMode({ session }: Props) {
   const { sendMessage, setInterviewNotes, updateSessionContext, cancelStreaming } = useAIStore();
   const { structure, characters, upsertCharacter } = useStoryStore();
-  const [showNotes, setShowNotes] = useState(!!(session.interviewNotes));
+  const [showNotes, setShowNotes] = useState(!!session.interviewNotes);
   const [showApply, setShowApply] = useState(false);
   const [journey, setJourney] = useState<CharacterJourney | null>(null);
   const [isCompacting, setIsCompacting] = useState(false);
@@ -39,7 +50,8 @@ export default function InterviewMode({ session }: Props) {
   // Sync compaction_count from interview data
   useEffect(() => {
     if (session.backendSessionId) {
-      api.getInterview(session.backendSessionId)
+      api
+        .getInterview(session.backendSessionId)
         .then((iv) => setCompactionCount(iv.compaction_count ?? 0))
         .catch(() => {});
     }
@@ -51,12 +63,20 @@ export default function InterviewMode({ session }: Props) {
   const contextNodeId = session.context.nodeId ?? null;
   const flatNodes = flattenNodes(structure);
 
-  const { sources: contextSources, loading: sourcesLoading, tokenBreakdown } = useLLMContextSources(
-    session.backendSessionId ? { context_type: "interview", interview_id: session.backendSessionId } : null
+  const {
+    sources: contextSources,
+    loading: sourcesLoading,
+    tokenBreakdown,
+  } = useLLMContextSources(
+    session.backendSessionId ? { context_type: "interview", interview_id: session.backendSessionId } : null,
   );
   const state = useAIModeState(session, tokenBreakdown);
 
-  const { stream: streamSummary, text: summaryStreamText, isStreaming: isSummarizing } = useLLMStream({
+  const {
+    stream: streamSummary,
+    text: summaryStreamText,
+    isStreaming: isSummarizing,
+  } = useLLMStream({
     requestId: `interview-summary:${session.backendSessionId ?? session.id}`,
     label: "Summarizing interview",
     tabId: "characters",
@@ -73,7 +93,10 @@ export default function InterviewMode({ session }: Props) {
     tabId: "characters",
     onComplete: () => {
       if (session.context.characterId && contextNodeId) {
-        api.getCharacterJourney(session.context.characterId, contextNodeId).then(setJourney).catch(() => {});
+        api
+          .getCharacterJourney(session.context.characterId, contextNodeId)
+          .then(setJourney)
+          .catch(() => {});
       }
     },
   });
@@ -81,7 +104,8 @@ export default function InterviewMode({ session }: Props) {
   useEffect(() => {
     setJourney(null);
     if (session.context.characterId && contextNodeId) {
-      api.getCharacterJourney(session.context.characterId, contextNodeId)
+      api
+        .getCharacterJourney(session.context.characterId, contextNodeId)
         .then(setJourney)
         .catch(() => {});
     }
@@ -137,8 +161,8 @@ export default function InterviewMode({ session }: Props) {
   const staleIndicatorClass = !journey?.summary
     ? styles.journeyDotNone
     : journey.is_stale
-    ? styles.journeyDotStale
-    : styles.journeyDotFresh;
+      ? styles.journeyDotStale
+      : styles.journeyDotFresh;
 
   return (
     <AIModeWrapper
@@ -147,15 +171,26 @@ export default function InterviewMode({ session }: Props) {
       icon={User2}
       title="Interview"
       hideTitle
-      onTransparencyClick={() => session.backendSessionId && state.transparency.open(
-        { context_type: lastContextType.current, interview_id: session.backendSessionId, user_message: state.lastUserMsg.current },
-        state.lastResponse.current,
-      )}
+      onTransparencyClick={() =>
+        session.backendSessionId &&
+        state.transparency.open(
+          {
+            context_type: lastContextType.current,
+            interview_id: session.backendSessionId,
+            user_message: state.lastUserMsg.current,
+          },
+          state.lastResponse.current,
+        )
+      }
       headerExtra={
         <>
-          <div className={styles.avatar}><User2 size={12} /></div>
+          <div className={styles.avatar}>
+            <User2 size={12} />
+          </div>
           <div className={styles.meta}>
-            <p className={styles.name}>{character?.name ?? session.resolvedNames.characterName ?? "Character"}</p>
+            <p className={styles.name}>
+              {character?.name ?? session.resolvedNames.characterName ?? "Character"}
+            </p>
             <p className={styles.modeLabel}>Interview session</p>
           </div>
         </>
@@ -173,7 +208,8 @@ export default function InterviewMode({ session }: Props) {
                 <option value="">Timeless — no story context</option>
                 {flatNodes.map((n) => (
                   <option key={n.id} value={n.id}>
-                    {"  ".repeat(n.depth)}{n.label}
+                    {"  ".repeat(n.depth)}
+                    {n.label}
                   </option>
                 ))}
               </select>
@@ -187,16 +223,19 @@ export default function InterviewMode({ session }: Props) {
 
             {contextNodeId && (
               <>
-                <span className={staleIndicatorClass} title={
-                  !journey?.summary ? "No journey context" : journey.is_stale ? "May be outdated" : "Fresh"
-                } />
+                <span
+                  className={staleIndicatorClass}
+                  title={
+                    !journey?.summary ? "No journey context" : journey.is_stale ? "May be outdated" : "Fresh"
+                  }
+                />
                 {journey?.is_stale && <span className={styles.staleTag}>Outdated</span>}
                 <button
                   className={styles.refreshBtn}
                   onClick={() => {
                     if (session.context.characterId && contextNodeId) {
                       streamJourneyRefresh((signal) =>
-                        api.refreshCharacterJourney(session.context.characterId!, contextNodeId, signal)
+                        api.refreshCharacterJourney(session.context.characterId!, contextNodeId, signal),
                       );
                     }
                   }}
@@ -214,18 +253,20 @@ export default function InterviewMode({ session }: Props) {
       }
     >
       {/* ── Suggested prompts (empty state) ── */}
-      {session.messages.length === 0 && character?.interview_prompts && character.interview_prompts.length > 0 && (
-        <div className={styles.prompts}>
-          <p className={styles.promptsLabel}>Suggested questions</p>
-          <div className={styles.promptList}>
-            {character.interview_prompts.slice(0, 3).map((prompt, i) => (
-              <button key={i} className={styles.promptBtn} onClick={() => state.setInput(prompt)}>
-                {prompt}
-              </button>
-            ))}
+      {session.messages.length === 0 &&
+        character?.interview_prompts &&
+        character.interview_prompts.length > 0 && (
+          <div className={styles.prompts}>
+            <p className={styles.promptsLabel}>Suggested questions</p>
+            <div className={styles.promptList}>
+              {character.interview_prompts.slice(0, 3).map((prompt, i) => (
+                <button key={i} className={styles.promptBtn} onClick={() => state.setInput(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <MessageList
         messages={session.messages}
@@ -281,9 +322,11 @@ export default function InterviewMode({ session }: Props) {
             </div>
           </div>
           <div className={styles.notesText}>
-            {isSummarizing && !summaryText
-              ? <span className={styles.summarizing}>Analyzing interview…</span>
-              : summaryText}
+            {isSummarizing && !summaryText ? (
+              <span className={styles.summarizing}>Analyzing interview…</span>
+            ) : (
+              summaryText
+            )}
           </div>
           {showApply && (
             <div className={styles.applyPanel}>

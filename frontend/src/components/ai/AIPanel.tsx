@@ -81,7 +81,9 @@ export default function AIPanel() {
   useEffect(() => {
     const offset = !panelOpen ? 0 : panelCollapsed ? 32 : panelWidth;
     document.documentElement.style.setProperty("--ai-panel-offset", `${offset}px`);
-    return () => { document.documentElement.style.setProperty("--ai-panel-offset", "0px"); };
+    return () => {
+      document.documentElement.style.setProperty("--ai-panel-offset", "0px");
+    };
   }, [panelOpen, panelCollapsed, panelWidth]);
 
   function launchSession(typeId: string, fromDropdown = false) {
@@ -138,11 +140,17 @@ export default function AIPanel() {
       <button
         className={styles.collapsed}
         onClick={expandPanel}
-        aria-label={sessions.length > 0 ? `Expand AI panel (${sessions.length} session${sessions.length !== 1 ? "s" : ""})` : "Expand AI panel"}
+        aria-label={
+          sessions.length > 0
+            ? `Expand AI panel (${sessions.length} session${sessions.length !== 1 ? "s" : ""})`
+            : "Expand AI panel"
+        }
       >
         <Feather size={16} className={styles.collapsedIcon} />
         {sessions.length > 0 && (
-          <span className={styles.collapsedCount} aria-hidden="true">{sessions.length}</span>
+          <span className={styles.collapsedCount} aria-hidden="true">
+            {sessions.length}
+          </span>
         )}
       </button>
     );
@@ -186,9 +194,7 @@ export default function AIPanel() {
               </div>
             );
           })}
-          {sessions.length === 0 && (
-            <span className={styles.tabEmpty}>Assistant</span>
-          )}
+          {sessions.length === 0 && <span className={styles.tabEmpty}>Assistant</span>}
         </div>
 
         {/* New session button — between tabs and controls */}
@@ -221,10 +227,7 @@ export default function AIPanel() {
                 })
               ) : menuStep.kind === "pick-character" ? (
                 <>
-                  <button
-                    className={styles.newMenuBack}
-                    onClick={() => setMenuStep({ kind: "types" })}
-                  >
+                  <button className={styles.newMenuBack} onClick={() => setMenuStep({ kind: "types" })}>
                     <ChevronLeft size={12} />
                     Back
                   </button>
@@ -251,18 +254,10 @@ export default function AIPanel() {
 
         <div className={styles.tabControls}>
           <AIFeatureInfoTrigger pageId="ai-panel" size="sm" />
-          <button
-            className={styles.controlBtn}
-            onClick={collapsePanel}
-            title="Minimize"
-          >
+          <button className={styles.controlBtn} onClick={collapsePanel} title="Minimize">
             <Minus size={13} />
           </button>
-          <button
-            className={styles.controlBtn}
-            onClick={closePanel}
-            title="Close AI panel"
-          >
+          <button className={styles.controlBtn} onClick={closePanel} title="Close AI panel">
             <X size={13} />
           </button>
         </div>
@@ -275,10 +270,7 @@ export default function AIPanel() {
         /* Character picker overlay — shown when Interview is launched from the empty state */
         <div className={styles.charPicker}>
           <div className={styles.charPickerHeader}>
-            <button
-              className={styles.charPickerBack}
-              onClick={() => setPickingCharacterFor(null)}
-            >
+            <button className={styles.charPickerBack} onClick={() => setPickingCharacterFor(null)}>
               <ChevronLeft size={13} />
             </button>
             <span className={styles.charPickerTitle}>Select a character</span>
@@ -309,11 +301,7 @@ export default function AIPanel() {
             {allTypes.map((type) => {
               const Icon = type.icon;
               return (
-                <button
-                  key={type.id}
-                  className={styles.emptyModeBtn}
-                  onClick={() => launchSession(type.id)}
-                >
+                <button key={type.id} className={styles.emptyModeBtn} onClick={() => launchSession(type.id)}>
                   <Icon size={13} className={styles.emptyModeIcon} />
                   <span>{type.label}</span>
                 </button>

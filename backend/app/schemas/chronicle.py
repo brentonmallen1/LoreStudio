@@ -1,8 +1,9 @@
 from datetime import datetime
+
 from pydantic import BaseModel
 
-
 # ── Chat Messages ──────────────────────────────────────────────────────
+
 
 class ChatMessageOut(BaseModel):
     id: str
@@ -27,6 +28,7 @@ class ChatMessageCreate(BaseModel):
 
 # ── Chat Sessions ──────────────────────────────────────────────────────
 
+
 class ChatSessionOut(BaseModel):
     id: str
     story_id: str
@@ -50,7 +52,7 @@ class ChatSessionDetail(ChatSessionOut):
 
 class ChatSessionCreate(BaseModel):
     story_id: str
-    context_type: str          # "scene" | "character" | "story" | "panel"
+    context_type: str  # "scene" | "character" | "story" | "panel"
     context_id: str | None = None
     context_label: str = ""
     title: str = ""
@@ -62,6 +64,7 @@ class ChatSessionUpdate(BaseModel):
 
 
 # ── Activity Logs ──────────────────────────────────────────────────────
+
 
 class ActivityLogOut(BaseModel):
     id: str
@@ -83,6 +86,7 @@ class ActivityLogUpdate(BaseModel):
 
 # ── Search / List responses ────────────────────────────────────────────
 
+
 class SessionListResponse(BaseModel):
     sessions: list[ChatSessionOut]
     total: int
@@ -98,10 +102,10 @@ class ActivityListResponse(BaseModel):
 
 
 class SearchResult(BaseModel):
-    type: str                  # "session" | "activity"
+    type: str  # "session" | "activity"
     session: ChatSessionOut | None = None
     log: ActivityLogOut | None = None
-    excerpt: str = ""          # matched text snippet
+    excerpt: str = ""  # matched text snippet
 
 
 class SearchResponse(BaseModel):

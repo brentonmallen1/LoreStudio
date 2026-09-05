@@ -6,18 +6,18 @@ authors think through what happens next — without generating prose.
 Reuses the scene context assembly from the chat router.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.brainstorm import build_brainstorm_system_prompt
+from ..models.user import User
 from ..schemas.llm_params import LLMParams
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.brainstorm import build_brainstorm_system_prompt
 from .chat import _build_context_packet
 
 router = APIRouter()

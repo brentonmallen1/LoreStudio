@@ -67,7 +67,9 @@
   border: none;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .viewBtn:hover {
@@ -383,7 +385,9 @@
   border-radius: var(--radius-sm);
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .snapBtn:hover {
@@ -1029,7 +1033,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .toast {

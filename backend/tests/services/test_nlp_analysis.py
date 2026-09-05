@@ -5,22 +5,23 @@ They test each analysis function with known prose examples.
 """
 
 import pytest
+
 from app.services.nlp_analysis_service import (
+    _analyze_sentence_variety,
+    _detect_adverbs,
+    _detect_passive_voice,
+    _detect_repeated_words,
+    _detect_said_bookisms,
     analyze_scene,
     extract_unknown_entities,
-    _detect_passive_voice,
-    _detect_adverbs,
-    _detect_said_bookisms,
-    _detect_repeated_words,
-    _analyze_sentence_variety,
     get_nlp,
 )
-from app.services.text_utils import html_to_text, html_to_paragraphs
-
+from app.services.text_utils import html_to_paragraphs, html_to_text
 
 # ---------------------------------------------------------------------------
 # text_utils
 # ---------------------------------------------------------------------------
+
 
 def test_html_to_text_basic():
     html = "<p>Hello world.</p><p>Second paragraph.</p>"
@@ -52,6 +53,7 @@ def test_html_to_paragraphs_empty():
 # ---------------------------------------------------------------------------
 # Passive voice
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="module")
 def nlp():
@@ -85,6 +87,7 @@ def test_passive_voice_percentage(nlp):
 # Adverb overuse
 # ---------------------------------------------------------------------------
 
+
 def test_adverb_detection(nlp):
     doc = nlp("She ran quickly to the door. He spoke softly into the phone.")
     result = _detect_adverbs(doc)
@@ -102,8 +105,7 @@ def test_adverb_zero_when_none(nlp):
 def test_adverb_threshold_severity(nlp):
     # Craft a text with clearly many adverbs
     doc = nlp(
-        "She quickly ran. He softly spoke. She loudly cried. He slowly walked. "
-        "She boldly acted. He swiftly moved."
+        "She quickly ran. He softly spoke. She loudly cried. He slowly walked. She boldly acted. He swiftly moved."
     )
     result = _detect_adverbs(doc, threshold=5.0)
     # percentage should exceed threshold
@@ -114,6 +116,7 @@ def test_adverb_threshold_severity(nlp):
 # ---------------------------------------------------------------------------
 # Said-bookism detection
 # ---------------------------------------------------------------------------
+
 
 def test_bookism_detected(nlp):
     doc = nlp('"I cannot bear it," she exclaimed.')
@@ -132,6 +135,7 @@ def test_said_not_flagged(nlp):
 # ---------------------------------------------------------------------------
 # Repeated words
 # ---------------------------------------------------------------------------
+
 
 def test_repeated_word_detected(nlp):
     doc = nlp("The door opened. She walked through the door and sighed.")
@@ -162,6 +166,7 @@ def test_repeated_word_window(nlp):
 # ---------------------------------------------------------------------------
 # Sentence variety
 # ---------------------------------------------------------------------------
+
 
 def test_sentence_variety_short_text(nlp):
     doc = nlp("Hello.")
@@ -200,6 +205,7 @@ def test_sentence_variety_histogram_buckets(nlp):
 # analyze_scene integration
 # ---------------------------------------------------------------------------
 
+
 def test_analyze_scene_empty():
     result = analyze_scene("<p></p>")
     assert result["word_count"] == 0
@@ -227,6 +233,7 @@ def test_analyze_scene_subset_checks():
 # extract_unknown_entities
 # ---------------------------------------------------------------------------
 
+
 def test_extract_entities_finds_unknown_person():
     scenes = [("s1", "Scene 1", "<p>Dr. Hargreaves arrived at the station.</p>")]
     result = extract_unknown_entities(scenes, known_characters=set(), known_locations=set())
@@ -251,8 +258,6 @@ def test_extract_entities_aggregates_across_scenes():
         ("s2", "Scene 2", "<p>Dr. Hargreaves spoke.</p>"),
     ]
     result = extract_unknown_entities(scenes, known_characters=set(), known_locations=set())
-    hargreaves = next(
-        (s for s in result.character_suggestions if "Hargreaves" in s.text), None
-    )
+    hargreaves = next((s for s in result.character_suggestions if "Hargreaves" in s.text), None)
     assert hargreaves is not None
     assert hargreaves.scene_count == 2

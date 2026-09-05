@@ -11,7 +11,9 @@ from app.services.db_migrate import run_migrations
 
 
 def _engine(tmp_path, name):
-    return create_engine(f"sqlite:///{tmp_path / name}", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+    return create_engine(
+        f"sqlite:///{tmp_path / name}", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
 
 
 def _head(engine) -> str:

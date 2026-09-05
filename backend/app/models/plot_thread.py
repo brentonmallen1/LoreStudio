@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .structure import StructureNode
-
 
 
 class PlotThread(Base):
@@ -23,11 +25,11 @@ class PlotThread(Base):
     opens_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)
     closes_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)
     try_fail_cycles: Mapped[list] = mapped_column(JSON, default=list, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="plot_threads")
@@ -43,7 +45,7 @@ class PlotThreadAppearance(Base):
     thread_id: Mapped[str] = mapped_column(String, ForeignKey("plot_threads.id"), nullable=False, index=True)
     node_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False, index=True)
     note: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     thread: Mapped["PlotThread"] = relationship("PlotThread", back_populates="appearances")
     node: Mapped["StructureNode"] = relationship("StructureNode", back_populates="thread_appearances")

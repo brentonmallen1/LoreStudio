@@ -11,11 +11,11 @@ interface Props {
 }
 
 const KNOWLEDGE_TYPE_META: Record<KnowledgeType, { label: string; color: string }> = {
-  truth_revealed:       { label: "Truth revealed",      color: "truth" },
-  misdirection_planted: { label: "Misdirection",        color: "misdirect" },
-  clue_planted:         { label: "Clue planted",        color: "clue" },
-  character_learns:     { label: "Character learns",    color: "char" },
-  reader_only:          { label: "Reader only",         color: "reader" },
+  truth_revealed: { label: "Truth revealed", color: "truth" },
+  misdirection_planted: { label: "Misdirection", color: "misdirect" },
+  clue_planted: { label: "Clue planted", color: "clue" },
+  character_learns: { label: "Character learns", color: "char" },
+  reader_only: { label: "Reader only", color: "reader" },
 };
 
 const KNOWLEDGE_TYPES: KnowledgeType[] = [
@@ -45,7 +45,10 @@ interface EventCardProps {
 
 function EventCard({ event, onDelete }: EventCardProps) {
   const [open, setOpen] = useState(false);
-  const meta = KNOWLEDGE_TYPE_META[event.knowledge_type as KnowledgeType] ?? { label: event.knowledge_type, color: "clue" };
+  const meta = KNOWLEDGE_TYPE_META[event.knowledge_type as KnowledgeType] ?? {
+    label: event.knowledge_type,
+    color: "clue",
+  };
 
   return (
     <div className={`${styles.eventCard} ${styles[`type_${meta.color}`]}`}>
@@ -63,7 +66,10 @@ function EventCard({ event, onDelete }: EventCardProps) {
         </span>
         <button
           className={styles.deleteBtn}
-          onClick={(e) => { e.stopPropagation(); onDelete(event.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(event.id);
+          }}
           title="Delete"
         >
           <Trash2 size={11} />
@@ -73,17 +79,15 @@ function EventCard({ event, onDelete }: EventCardProps) {
         <div className={styles.eventCardBody}>
           {event.detail && <p className={styles.eventDetail}>{event.detail}</p>}
           <div className={styles.eventMeta}>
-            <span className={`${styles.metaChip} ${event.reader_knows ? styles.chipReaderYes : styles.chipReaderNo}`}>
+            <span
+              className={`${styles.metaChip} ${event.reader_knows ? styles.chipReaderYes : styles.chipReaderNo}`}
+            >
               {event.reader_knows ? "Reader knows" : "Reader doesn't know"}
             </span>
             {event.characters_who_know.length > 0 && (
-              <span className={styles.metaChip}>
-                Characters: {event.characters_who_know.join(", ")}
-              </span>
+              <span className={styles.metaChip}>Characters: {event.characters_who_know.join(", ")}</span>
             )}
-            {event.twist_name && (
-              <span className={styles.metaChip}>Twist: {event.twist_name}</span>
-            )}
+            {event.twist_name && <span className={styles.metaChip}>Twist: {event.twist_name}</span>}
           </div>
         </div>
       )}
@@ -108,10 +112,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
   });
 
   useEffect(() => {
-    Promise.all([
-      api.listReaderKnowledgeEvents(storyId),
-      api.getStructure(storyId),
-    ])
+    Promise.all([api.listReaderKnowledgeEvents(storyId), api.getStructure(storyId)])
       .then(([evs, structure]) => {
         setEvents(evs);
         setNodes(flattenNodes(structure));
@@ -166,7 +167,15 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
   function openAddForm(nodeId: string | null) {
     setAddingToNode(nodeId ?? "__unlinked__");
-    setAddForm({ subject: "", detail: "", knowledge_type: "truth_revealed", reader_knows: true, is_truth: true, characters_who_know: "", node_id: nodeId });
+    setAddForm({
+      subject: "",
+      detail: "",
+      knowledge_type: "truth_revealed",
+      reader_knows: true,
+      is_truth: true,
+      characters_who_know: "",
+      node_id: nodeId,
+    });
   }
 
   async function handleAdd() {
@@ -191,9 +200,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <Brain size={15} className={styles.headerIcon} />
-          <h3 className={styles.headerTitle}>
-            {ironyOnly ? "Dramatic Irony" : "Reader Knowledge Timeline"}
-          </h3>
+          <h3 className={styles.headerTitle}>{ironyOnly ? "Dramatic Irony" : "Reader Knowledge Timeline"}</h3>
           <span className={styles.eventCount}>{displayedEvents.length}</span>
         </div>
         <div className={styles.headerRight}>
@@ -219,7 +226,8 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
       {ironyOnly && (
         <p className={styles.ironyHint}>
-          Showing moments where readers know something that the characters don't. This gap creates dramatic irony.
+          Showing moments where readers know something that the characters don't. This gap creates dramatic
+          irony.
         </p>
       )}
 
@@ -320,7 +328,9 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
           onChange={(e) => set({ subject: e.target.value })}
           placeholder='Subject (e.g. "Marcus killed Irene")'
         />
-        <button className={styles.formCloseBtn} onClick={onCancel}><X size={13} /></button>
+        <button className={styles.formCloseBtn} onClick={onCancel}>
+          <X size={13} />
+        </button>
       </div>
       <textarea
         className={styles.addTextarea}
@@ -336,7 +346,9 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
           onChange={(e) => set({ knowledge_type: e.target.value as KnowledgeType })}
         >
           {KNOWLEDGE_TYPES.map((kt) => (
-            <option key={kt} value={kt}>{KNOWLEDGE_TYPE_META[kt].label}</option>
+            <option key={kt} value={kt}>
+              {KNOWLEDGE_TYPE_META[kt].label}
+            </option>
           ))}
         </select>
         <select
@@ -347,7 +359,8 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
           <option value="">— No scene —</option>
           {nodes.map((n) => (
             <option key={n.id} value={n.id}>
-              {"  ".repeat(n.level)}{n.title || `Untitled ${n.level_type}`}
+              {"  ".repeat(n.level)}
+              {n.title || `Untitled ${n.level_type}`}
             </option>
           ))}
         </select>
@@ -377,7 +390,9 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
         placeholder="Characters who know (comma-separated)"
       />
       <div className={styles.addFormActions}>
-        <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+        <button className={styles.cancelBtn} onClick={onCancel}>
+          Cancel
+        </button>
         <button className={styles.saveBtn} onClick={onSave} disabled={!form.subject.trim()}>
           <Check size={12} /> Add event
         </button>

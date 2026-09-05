@@ -167,7 +167,10 @@
   color: var(--color-text-muted);
   padding: 0;
   opacity: 0;
-  transition: opacity var(--transition), color var(--transition), background var(--transition);
+  transition:
+    opacity var(--transition),
+    color var(--transition),
+    background var(--transition);
   margin-left: auto;
 }
 
@@ -415,7 +418,9 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .iconBtn:hover {
@@ -440,7 +445,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .ghostBtn:hover {
@@ -474,7 +481,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -547,7 +554,9 @@
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
   font-size: 0.8rem;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .usageItem[style*="pointer"]:hover {

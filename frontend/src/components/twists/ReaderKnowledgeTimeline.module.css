@@ -81,7 +81,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .addBtn {
@@ -224,11 +226,21 @@
   background: var(--color-surface);
 }
 
-.type_truth    { border-left: 3px solid var(--color-success); }
-.type_misdirect { border-left: 3px solid #c83c3c; }
-.type_clue     { border-left: 3px solid var(--color-warning); }
-.type_char     { border-left: 3px solid var(--color-accent); }
-.type_reader   { border-left: 3px solid var(--color-ai); }
+.type_truth {
+  border-left: 3px solid var(--color-success);
+}
+.type_misdirect {
+  border-left: 3px solid #c83c3c;
+}
+.type_clue {
+  border-left: 3px solid var(--color-warning);
+}
+.type_char {
+  border-left: 3px solid var(--color-accent);
+}
+.type_reader {
+  border-left: 3px solid var(--color-ai);
+}
 
 .eventCardHeader {
   width: 100%;
@@ -254,11 +266,26 @@
   border-radius: 100px;
 }
 
-.badge_truth     { background: rgba(74, 156, 110, 0.12); color: var(--color-success); }
-.badge_misdirect { background: rgba(200, 60, 60, 0.12); color: #c83c3c; }
-.badge_clue      { background: rgba(196, 122, 30, 0.12); color: var(--color-warning); }
-.badge_char      { background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
-.badge_reader    { background: color-mix(in srgb, var(--color-ai) 12%, transparent); color: var(--color-ai); }
+.badge_truth {
+  background: rgba(74, 156, 110, 0.12);
+  color: var(--color-success);
+}
+.badge_misdirect {
+  background: rgba(200, 60, 60, 0.12);
+  color: #c83c3c;
+}
+.badge_clue {
+  background: rgba(196, 122, 30, 0.12);
+  color: var(--color-warning);
+}
+.badge_char {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+.badge_reader {
+  background: color-mix(in srgb, var(--color-ai) 12%, transparent);
+  color: var(--color-ai);
+}
 
 .falseBadge {
   flex-shrink: 0;

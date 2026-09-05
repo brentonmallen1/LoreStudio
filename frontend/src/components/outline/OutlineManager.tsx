@@ -19,13 +19,16 @@ function reorderInTree(
   nodes: OutlineItem[],
   draggedId: string,
   targetId: string,
-  zone: "above" | "below" | "into"
+  zone: "above" | "below" | "into",
 ): OutlineItem[] {
   let dragged: OutlineItem | null = null;
 
   function extract(list: OutlineItem[]): OutlineItem[] {
     return list.flatMap((n) => {
-      if (n.id === draggedId) { dragged = n; return []; }
+      if (n.id === draggedId) {
+        dragged = n;
+        return [];
+      }
       return [{ ...n, children: extract(n.children ?? []) }];
     });
   }
@@ -53,7 +56,7 @@ function reorderInTree(
 
 function flattenPositions(
   nodes: OutlineItem[],
-  parentId: string | null = null
+  parentId: string | null = null,
 ): { item_id: string; parent_id: string | null; position: number }[] {
   const ops: { item_id: string; parent_id: string | null; position: number }[] = [];
   nodes.forEach((n, i) => {
@@ -63,11 +66,7 @@ function flattenPositions(
   return ops;
 }
 
-function updateItemInTree(
-  nodes: OutlineItem[],
-  id: string,
-  patch: Partial<OutlineItem>
-): OutlineItem[] {
+function updateItemInTree(nodes: OutlineItem[], id: string, patch: Partial<OutlineItem>): OutlineItem[] {
   return nodes.map((n) => {
     if (n.id === id) return { ...n, ...patch };
     return { ...n, children: updateItemInTree(n.children ?? [], id, patch) };
@@ -83,7 +82,7 @@ function removeItemFromTree(nodes: OutlineItem[], id: string): OutlineItem[] {
 function findContext(
   nodes: OutlineItem[],
   id: string,
-  parentId: string | null = null
+  parentId: string | null = null,
 ): { parentId: string | null; prevSiblingId: string | null } | null {
   for (let i = 0; i < nodes.length; i++) {
     if (nodes[i].id === id) {
@@ -95,11 +94,7 @@ function findContext(
   return null;
 }
 
-function insertChildInTree(
-  nodes: OutlineItem[],
-  parentId: string,
-  child: OutlineItem
-): OutlineItem[] {
+function insertChildInTree(nodes: OutlineItem[], parentId: string, child: OutlineItem): OutlineItem[] {
   return nodes.map((n) => {
     if (n.id === parentId) return { ...n, children: [...(n.children ?? []), child] };
     return { ...n, children: insertChildInTree(n.children ?? [], parentId, child) };
@@ -139,23 +134,27 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
 
   useEffect(() => {
     setLoading(true);
-    api.getOutlineWithItems(outline.id)
+    api
+      .getOutlineWithItems(outline.id)
       .then((data) => setItems(data.items))
       .finally(() => setLoading(false));
   }, [outline.id]);
 
   useEffect(() => {
-    api.getStructure(storyId).then((tree) => {
-      const leaves: StructureNode[] = [];
-      function walk(nodes: StructureNode[]) {
-        for (const n of nodes) {
-          if (!n.children?.length) leaves.push(n);
-          else walk(n.children);
+    api
+      .getStructure(storyId)
+      .then((tree) => {
+        const leaves: StructureNode[] = [];
+        function walk(nodes: StructureNode[]) {
+          for (const n of nodes) {
+            if (!n.children?.length) leaves.push(n);
+            else walk(n.children);
+          }
         }
-      }
-      walk(tree);
-      setSceneNodes(leaves);
-    }).catch(() => {});
+        walk(tree);
+        setSceneNodes(leaves);
+      })
+      .catch(() => {});
   }, [storyId]);
 
   // ── DnD ─────────────────────────────────────────────────────────────────────
@@ -166,8 +165,14 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     if (next === prev) return;
     pushHistory({
       description: "Reorder outline",
-      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
+      undo: () => {
+        setItems(prev);
+        api.bulkReorderOutline(outline.id, flattenPositions(prev));
+      },
+      redo: () => {
+        setItems(next);
+        api.bulkReorderOutline(outline.id, flattenPositions(next));
+      },
     });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
@@ -177,7 +182,9 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
 
   function handleUpdate(
     id: string,
-    patch: Partial<Pick<OutlineItem, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">>
+    patch: Partial<
+      Pick<OutlineItem, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">
+    >,
   ) {
     setItems((prev) => updateItemInTree(prev, id, patch));
     if ("text" in patch || "notes" in patch) {
@@ -194,7 +201,11 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
   function handleDelete(id: string) {
     const prev = itemsRef.current;
     setItems(removeItemFromTree(prev, id));
-    setSelected((s) => { const n = new Set(s); n.delete(id); return n; });
+    setSelected((s) => {
+      const n = new Set(s);
+      n.delete(id);
+      return n;
+    });
     api.deleteOutlineItem(id).catch(() => setItems(prev));
   }
 
@@ -214,7 +225,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     function findSiblingContext(
       nodes: OutlineItem[],
       id: string,
-      parentId: string | null
+      parentId: string | null,
     ): { parentId: string | null; idx: number } | null {
       for (let i = 0; i < nodes.length; i++) {
         if (nodes[i].id === id) return { parentId, idx: i };
@@ -275,8 +286,14 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     if (next === prev) return;
     pushHistory({
       description: "Indent outline item",
-      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
+      undo: () => {
+        setItems(prev);
+        api.bulkReorderOutline(outline.id, flattenPositions(prev));
+      },
+      redo: () => {
+        setItems(next);
+        api.bulkReorderOutline(outline.id, flattenPositions(next));
+      },
     });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
@@ -290,18 +307,27 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     if (next === prev) return;
     pushHistory({
       description: "Dedent outline item",
-      undo: () => { setItems(prev); api.bulkReorderOutline(outline.id, flattenPositions(prev)); },
-      redo: () => { setItems(next); api.bulkReorderOutline(outline.id, flattenPositions(next)); },
+      undo: () => {
+        setItems(prev);
+        api.bulkReorderOutline(outline.id, flattenPositions(prev));
+      },
+      redo: () => {
+        setItems(next);
+        api.bulkReorderOutline(outline.id, flattenPositions(next));
+      },
     });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
 
   function navigateToScene(sceneId: string) {
-    function findNode(nodes: typeof structure): typeof structure[0] | null {
+    function findNode(nodes: typeof structure): (typeof structure)[0] | null {
       for (const n of nodes) {
         if (n.id === sceneId) return n;
-        if (n.children) { const found = findNode(n.children); if (found) return found; }
+        if (n.children) {
+          const found = findNode(n.children);
+          if (found) return found;
+        }
       }
       return null;
     }
@@ -313,14 +339,15 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
   function toggleSelect(id: string) {
     setSelected((s) => {
       const n = new Set(s);
-      if (n.has(id)) n.delete(id); else n.add(id);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
       return n;
     });
   }
 
   function toggleSelectAll() {
     const allIds = flattenIds(itemsRef.current);
-    setSelected((s) => s.size === allIds.length ? new Set() : new Set(allIds));
+    setSelected((s) => (s.size === allIds.length ? new Set() : new Set(allIds)));
   }
 
   function exitSelectionMode() {
@@ -336,7 +363,9 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     const ids = Array.from(selected);
     const prev = itemsRef.current;
     let next = prev;
-    ids.forEach((id) => { next = removeItemFromTree(next, id); });
+    ids.forEach((id) => {
+      next = removeItemFromTree(next, id);
+    });
     setItems(next);
     exitSelectionMode();
     Promise.all(ids.map((id) => api.deleteOutlineItem(id))).catch(() => {
@@ -375,10 +404,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                 title="Clear type"
               />
               <span className={styles.bulkSep} />
-              <button
-                className={`${styles.bulkActionBtn} ${styles.bulkDanger}`}
-                onClick={bulkDelete}
-              >
+              <button className={`${styles.bulkActionBtn} ${styles.bulkDanger}`} onClick={bulkDelete}>
                 <Trash2 size={12} />
                 Delete
               </button>
@@ -396,7 +422,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
           <div className={styles.headerRight}>
             <button
               className={`${styles.selectBtn} ${selectionActive ? styles.selectBtnActive : ""}`}
-              onClick={() => selectionActive ? exitSelectionMode() : setSelectionActive(true)}
+              onClick={() => (selectionActive ? exitSelectionMode() : setSelectionActive(true))}
               title={selectionActive ? "Exit selection mode" : "Select items"}
             >
               <CheckSquare size={13} />
@@ -412,7 +438,10 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
             </button>
             <button
               className={styles.addBeatBtnPrimary}
-              onClick={() => { setAddingRoot(true); setNewRootText(""); }}
+              onClick={() => {
+                setAddingRoot(true);
+                setNewRootText("");
+              }}
             >
               <Plus size={14} />
               Add beat
@@ -421,10 +450,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
         </div>
 
         {showAlignment && (
-          <OutlineAlignmentPanel
-            outlineId={outline.id}
-            onClose={() => setShowAlignment(false)}
-          />
+          <OutlineAlignmentPanel outlineId={outline.id} onClose={() => setShowAlignment(false)} />
         )}
 
         {addingRoot && (
@@ -440,9 +466,14 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                   setNewRootText("");
                   setAddingRoot(false);
                 }
-                if (e.key === "Escape") { setAddingRoot(false); setNewRootText(""); }
+                if (e.key === "Escape") {
+                  setAddingRoot(false);
+                  setNewRootText("");
+                }
               }}
-              onBlur={() => { if (!newRootText.trim()) setAddingRoot(false); }}
+              onBlur={() => {
+                if (!newRootText.trim()) setAddingRoot(false);
+              }}
               placeholder="Beat text…"
             />
           </div>
@@ -450,14 +481,19 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
 
         {items.length === 0 && !addingRoot && (
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}><BookOpen size={36} /></div>
+            <div className={styles.emptyIcon}>
+              <BookOpen size={36} />
+            </div>
             <p className={styles.emptyTitle}>No beats yet</p>
             <p className={styles.emptyDesc}>
               Add beats to build your outline. Drag to reorder, drag to center to nest.
             </p>
             <button
               className={styles.addBeatBtnPrimary}
-              onClick={() => { setAddingRoot(true); setNewRootText(""); }}
+              onClick={() => {
+                setAddingRoot(true);
+                setNewRootText("");
+              }}
             >
               <Plus size={14} />
               Add first beat
@@ -487,7 +523,13 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                 onNavigateToScene={navigateToScene}
               />
             ))}
-            <button className={styles.addRootRow} onClick={() => { setAddingRoot(true); setNewRootText(""); }}>
+            <button
+              className={styles.addRootRow}
+              onClick={() => {
+                setAddingRoot(true);
+                setNewRootText("");
+              }}
+            >
               <Plus size={13} />
               Add beat
             </button>
@@ -516,8 +558,14 @@ function TabRenameInput({ initialValue, onCommit, onCancel }: TabRenameProps) {
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={(e) => {
-        if (e.key === "Enter") { e.stopPropagation(); onCommit(value.trim() || initialValue); }
-        if (e.key === "Escape") { e.stopPropagation(); onCancel(); }
+        if (e.key === "Enter") {
+          e.stopPropagation();
+          onCommit(value.trim() || initialValue);
+        }
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          onCancel();
+        }
       }}
       onBlur={() => onCommit(value.trim() || initialValue)}
       onClick={(e) => e.stopPropagation()}
@@ -542,7 +590,8 @@ export default function OutlineManager({ storyId }: Props) {
   const [showExtractPanel, setShowExtractPanel] = useState(false);
 
   useEffect(() => {
-    api.listOutlines(storyId)
+    api
+      .listOutlines(storyId)
       .then((data) => {
         setOutlines(data);
         // If navigated here with ?tab=<id>, switch to that tab
@@ -570,7 +619,7 @@ export default function OutlineManager({ storyId }: Props) {
 
   async function handleRenameCommit(id: string, name: string) {
     setRenamingId(null);
-    setOutlines((prev) => prev.map((o) => o.id === id ? { ...o, name } : o));
+    setOutlines((prev) => prev.map((o) => (o.id === id ? { ...o, name } : o)));
     api.updateOutline(id, { name });
   }
 
@@ -595,7 +644,9 @@ export default function OutlineManager({ storyId }: Props) {
             <div
               key={outline.id}
               className={`${styles.tab} ${activeTab === outline.id ? styles.tabActive : ""}`}
-              onClick={() => { if (renamingId !== outline.id) setActiveTab(outline.id); }}
+              onClick={() => {
+                if (renamingId !== outline.id) setActiveTab(outline.id);
+              }}
             >
               {renamingId === outline.id ? (
                 <TabRenameInput
@@ -607,26 +658,51 @@ export default function OutlineManager({ storyId }: Props) {
                 <>
                   <span
                     className={styles.tabName}
-                    onDoubleClick={(e) => { e.stopPropagation(); setRenamingId(outline.id); }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setRenamingId(outline.id);
+                    }}
                   >
                     {outline.name}
                   </span>
                   <button
                     className={styles.tabRenameBtn}
-                    onClick={(e) => { e.stopPropagation(); setRenamingId(outline.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRenamingId(outline.id);
+                    }}
                     title="Rename"
                   >
                     <Pencil size={10} />
                   </button>
                   {pendingDeleteOutlineId === outline.id ? (
                     <div className={styles.tabDeleteConfirm} onClick={(e) => e.stopPropagation()}>
-                      <button className={styles.tabDeleteYes} onClick={(e) => { e.stopPropagation(); doDeleteOutline(outline.id); }}>Delete</button>
-                      <button className={styles.tabDeleteNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteOutlineId(null); }}>Cancel</button>
+                      <button
+                        className={styles.tabDeleteYes}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          doDeleteOutline(outline.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                      <button
+                        className={styles.tabDeleteNo}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingDeleteOutlineId(null);
+                        }}
+                      >
+                        Cancel
+                      </button>
                     </div>
                   ) : (
                     <button
                       className={styles.tabCloseBtn}
-                      onClick={(e) => { e.stopPropagation(); setPendingDeleteOutlineId(outline.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteOutlineId(outline.id);
+                      }}
                       title="Delete outline"
                     >
                       <X size={11} />
@@ -638,11 +714,7 @@ export default function OutlineManager({ storyId }: Props) {
           ))}
 
           {/* Add outline button */}
-          <button
-            className={styles.addTabBtn}
-            onClick={handleCreateOutline}
-            title="New blank outline"
-          >
+          <button className={styles.addTabBtn} onClick={handleCreateOutline} title="New blank outline">
             <Plus size={14} />
           </button>
         </div>
@@ -689,15 +761,13 @@ export default function OutlineManager({ storyId }: Props) {
           </div>
         </div>
       ) : activeOutline ? (
-        <OutlinePanel
-          key={activeOutline.id}
-          outline={activeOutline}
-          storyId={storyId}
-        />
+        <OutlinePanel key={activeOutline.id} outline={activeOutline} storyId={storyId} />
       ) : (
         <div className={styles.managerInner}>
           <div className={styles.empty}>
-            <div className={styles.emptyIcon}><BookOpen size={36} /></div>
+            <div className={styles.emptyIcon}>
+              <BookOpen size={36} />
+            </div>
             <p className={styles.emptyTitle}>No outlines yet</p>
             <p className={styles.emptyDesc}>
               Create a blank outline or inject a beat sheet template from the Lorebook.

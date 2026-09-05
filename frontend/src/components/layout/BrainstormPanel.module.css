@@ -309,8 +309,12 @@
   list-style: none;
 }
 
-.thinkingSummary::-webkit-details-marker { display: none; }
-.thinkingSummary:hover { color: var(--color-text-muted); }
+.thinkingSummary::-webkit-details-marker {
+  display: none;
+}
+.thinkingSummary:hover {
+  color: var(--color-text-muted);
+}
 
 .thinkingContent {
   margin-top: 0.35rem;
@@ -340,12 +344,19 @@
 }
 
 @keyframes blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Follow-up prompts */

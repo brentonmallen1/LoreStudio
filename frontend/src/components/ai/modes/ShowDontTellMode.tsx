@@ -104,11 +104,13 @@ export default function ShowDontTellMode({ session }: Props) {
       title="Show Don't Tell"
       hideTokenBadge
       hideSettings
-      headerExtra={selectedText && (
-        <span className={styles.passageChip} title={selectedText}>
-          "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
-        </span>
-      )}
+      headerExtra={
+        selectedText && (
+          <span className={styles.passageChip} title={selectedText}>
+            "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
+          </span>
+        )
+      }
     >
       {/* Empty state */}
       {!hasContent && !loading && (
@@ -116,8 +118,8 @@ export default function ShowDontTellMode({ session }: Props) {
           <Eye size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Show Don't Tell</p>
           <p className={styles.emptyHint}>
-            Select a passage in your scene and click Show/Tell to find opportunities to
-            describe rather than state.
+            Select a passage in your scene and click Show/Tell to find opportunities to describe rather than
+            state.
           </p>
         </div>
       )}
@@ -134,7 +136,9 @@ export default function ShowDontTellMode({ session }: Props) {
       {error && !loading && (
         <div className={styles.errorBox}>
           <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} onClick={runAnalysis}>Try again</button>
+          <button className={styles.retryBtn} onClick={runAnalysis}>
+            Try again
+          </button>
         </div>
       )}
 
@@ -160,7 +164,9 @@ export default function ShowDontTellMode({ session }: Props) {
             {result.strengths.length > 0 && (
               <ul className={styles.strengths}>
                 {result.strengths.map((s, i) => (
-                  <li key={i} className={styles.strengthItem}>{s}</li>
+                  <li key={i} className={styles.strengthItem}>
+                    {s}
+                  </li>
                 ))}
               </ul>
             )}
@@ -178,19 +184,25 @@ export default function ShowDontTellMode({ session }: Props) {
           {strong.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Strong Telling</p>
-              {strong.map((inst, i) => <InstanceCard key={i} instance={inst} />)}
+              {strong.map((inst, i) => (
+                <InstanceCard key={i} instance={inst} />
+              ))}
             </section>
           )}
           {moderate.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Moderate</p>
-              {moderate.map((inst, i) => <InstanceCard key={i} instance={inst} />)}
+              {moderate.map((inst, i) => (
+                <InstanceCard key={i} instance={inst} />
+              ))}
             </section>
           )}
           {subtle.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Subtle</p>
-              {subtle.map((inst, i) => <InstanceCard key={i} instance={inst} />)}
+              {subtle.map((inst, i) => (
+                <InstanceCard key={i} instance={inst} />
+              ))}
             </section>
           )}
         </div>

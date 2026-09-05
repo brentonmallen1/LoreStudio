@@ -95,7 +95,9 @@
   cursor: pointer;
   font-family: inherit;
   text-align: left;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .tagSceneRow:hover {
@@ -158,9 +160,18 @@
   border-radius: 99px;
 }
 
-.distinctness_distinct { background: color-mix(in srgb, var(--color-nlp) 12%, transparent); color: var(--color-nlp); }
-.distinctness_some_overlap { background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent); color: var(--color-warning, #f59e0b); }
-.distinctness_homogeneous { background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent); color: var(--color-danger, #ef4444); }
+.distinctness_distinct {
+  background: color-mix(in srgb, var(--color-nlp) 12%, transparent);
+  color: var(--color-nlp);
+}
+.distinctness_some_overlap {
+  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
+  color: var(--color-warning, #f59e0b);
+}
+.distinctness_homogeneous {
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent);
+  color: var(--color-danger, #ef4444);
+}
 
 .voiceClose {
   background: none;
@@ -325,7 +336,9 @@
 
 .sceneArrow {
   opacity: 0.4;
-  transition: opacity 0.15s, transform 0.15s;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
 }
 
 .sceneHeader:hover .sceneArrow {
@@ -405,7 +418,9 @@
   cursor: pointer;
   padding: 0;
   opacity: 0;
-  transition: opacity var(--transition), color var(--transition);
+  transition:
+    opacity var(--transition),
+    color var(--transition);
 }
 
 .line:hover .subtextBtn {

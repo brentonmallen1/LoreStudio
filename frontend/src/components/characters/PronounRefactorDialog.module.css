@@ -21,7 +21,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty {
@@ -97,7 +99,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-bg);
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .cardSelected {
@@ -163,7 +167,9 @@
   font-size: 0.84rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .skipBtn:hover:not(:disabled) {

@@ -1,20 +1,23 @@
 import uuid
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.location import Location, SceneSetting, PREDEFINED_LOCATION_TYPES
-from ..models.setting import Setting
-from ..models.structure import StructureNode
-from ..schemas.location import (
-    LocationCreate, LocationUpdate, LocationOut, LocationTree,
-    SceneSettingCreate, SceneSettingOut,
-)
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.location import PREDEFINED_LOCATION_TYPES, Location, SceneSetting
+from ..models.setting import Setting
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
+from ..schemas.location import (
+    LocationCreate,
+    LocationOut,
+    LocationTree,
+    LocationUpdate,
+    SceneSettingCreate,
+    SceneSettingOut,
+)
 
 router = APIRouter()
 
@@ -143,6 +146,7 @@ def delete_location(
 
 # --- Settings Migration ---
 
+
 @router.post("/stories/{story_id}/locations/migrate-settings")
 def migrate_settings_to_locations(
     story_id: str,
@@ -157,11 +161,7 @@ def migrate_settings_to_locations(
     created = 0
     merged = 0
     for s in old_settings:
-        existing = (
-            db.query(Location)
-            .filter(Location.story_id == story_id, Location.name == s.name)
-            .first()
-        )
+        existing = db.query(Location).filter(Location.story_id == story_id, Location.name == s.name).first()
         if existing:
             # Merge any non-empty fields that Location is missing
             if not existing.description and s.description:
@@ -193,6 +193,7 @@ def migrate_settings_to_locations(
 
 # --- Scene Settings ---
 
+
 @router.get("/locations/{location_id}/scene-settings", response_model=list[SceneSettingOut])
 def get_scene_settings_for_location(
     location_id: str,
@@ -215,13 +216,15 @@ def get_scenes_for_location(
     result = []
     for s in settings:
         node = db.get(StructureNode, s.node_id)
-        result.append({
-            "scene_setting_id": s.id,
-            "scene_id": s.node_id,
-            "scene_title": node.title if node else "Untitled",
-            "role": s.role,
-            "notes": s.notes,
-        })
+        result.append(
+            {
+                "scene_setting_id": s.id,
+                "scene_id": s.node_id,
+                "scene_title": node.title if node else "Untitled",
+                "role": s.role,
+                "notes": s.notes,
+            }
+        )
     return result
 
 

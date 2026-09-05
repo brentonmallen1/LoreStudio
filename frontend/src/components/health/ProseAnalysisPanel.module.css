@@ -52,7 +52,9 @@
   font-family: inherit;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .runBtn:hover:not(:disabled) {
@@ -254,9 +256,15 @@
   margin-bottom: 0.25rem;
 }
 
-.iconInfo { color: var(--color-nlp); }
-.iconWarning { color: var(--color-warning); }
-.iconIssue { color: var(--color-danger); }
+.iconInfo {
+  color: var(--color-nlp);
+}
+.iconWarning {
+  color: var(--color-warning);
+}
+.iconIssue {
+  color: var(--color-danger);
+}
 
 .findingExplanation {
   font-size: 0.75rem;
@@ -334,6 +342,12 @@
   margin: 0;
 }
 
-.assessGood { color: var(--color-success); }
-.assessWarn { color: var(--color-warning); }
-.assessInfo { color: var(--color-text-muted); }
+.assessGood {
+  color: var(--color-success);
+}
+.assessWarn {
+  color: var(--color-warning);
+}
+.assessInfo {
+  color: var(--color-text-muted);
+}

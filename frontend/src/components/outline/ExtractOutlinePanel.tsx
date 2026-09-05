@@ -48,7 +48,8 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
   useEffect(() => {
     setLoading(true);
     setError(null);
-    api.extractOutlineFromProse(storyId)
+    api
+      .extractOutlineFromProse(storyId)
       .then((result: StructuredResult) => {
         if (!result.success || !result.data) {
           setError(result.raw_text ?? "Extraction failed — no structured output returned.");
@@ -161,7 +162,9 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
                     {selected.size === items.length ? <CheckSquare size={13} /> : <Square size={13} />}
                     {selected.size === items.length ? "Deselect all" : "Select all"}
                   </button>
-                  <span className={styles.count}>{items.length} beat{items.length !== 1 ? "s" : ""} found</span>
+                  <span className={styles.count}>
+                    {items.length} beat{items.length !== 1 ? "s" : ""} found
+                  </span>
                 </div>
               </div>
 
@@ -185,10 +188,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
                         </button>
                         <div className={styles.cardBody}>
                           <div className={styles.cardMeta}>
-                            <span
-                              className={styles.beatType}
-                              style={{ color: typeColor }}
-                            >
+                            <span className={styles.beatType} style={{ color: typeColor }}>
                               {item.beat_type}
                             </span>
                             {item.suggested_scene_title && (
@@ -202,9 +202,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
                             onChange={(e) => handleTextChange(idx, e.target.value)}
                             rows={2}
                           />
-                          {item.reasoning && (
-                            <p className={styles.reasoning}>{item.reasoning}</p>
-                          )}
+                          {item.reasoning && <p className={styles.reasoning}>{item.reasoning}</p>}
                         </div>
                       </div>
                     </div>
@@ -223,18 +221,24 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
               disabled={creating || selected.size === 0}
             >
               {creating ? (
-                <><Loader2 size={13} className={styles.spinnerSm} /> Creating…</>
+                <>
+                  <Loader2 size={13} className={styles.spinnerSm} /> Creating…
+                </>
               ) : (
                 `Create Outline (${selected.size})`
               )}
             </button>
-            <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button className={styles.cancelBtn} onClick={onClose}>
+              Cancel
+            </button>
           </div>
         )}
 
         {!loading && (error || items.length === 0) && (
           <div className={styles.footer}>
-            <button className={styles.cancelBtn} onClick={onClose}>Close</button>
+            <button className={styles.cancelBtn} onClick={onClose}>
+              Close
+            </button>
           </div>
         )}
       </div>

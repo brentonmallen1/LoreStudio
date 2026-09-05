@@ -13,8 +13,9 @@
   right: 0;
   z-index: 50;
   transform: translateY(0);
-  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1);
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 /* Hidden state (focus/fullscreen, not hovered) */
@@ -73,7 +74,10 @@
   font-family: inherit;
   cursor: pointer;
   margin-right: 0.35rem;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .assistantBtn:hover {
@@ -106,7 +110,10 @@
   font-family: inherit;
   cursor: pointer;
   margin-right: 0.5rem;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .searchBtn:hover {
@@ -133,7 +140,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .iconBtn:hover {
@@ -167,7 +176,9 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .userBtn:hover {
@@ -251,7 +262,9 @@
   border-radius: var(--radius);
   background: transparent;
   cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .themeBtn:hover {
@@ -315,7 +328,10 @@
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -350,7 +366,9 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .allSettingsBtn:hover {
@@ -392,7 +410,9 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .menuItem:hover {
@@ -413,7 +433,9 @@
   font-size: 0.72rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   margin-right: 0.5rem;
 }
 
@@ -422,9 +444,15 @@
   color: var(--color-text);
 }
 
-.backupFresh { color: var(--color-text-subtle); }
-.backupStale { color: var(--color-warning); }
-.backupOverdue { color: var(--color-danger); }
+.backupFresh {
+  color: var(--color-text-subtle);
+}
+.backupStale {
+  color: var(--color-warning);
+}
+.backupOverdue {
+  color: var(--color-danger);
+}
 
 .backupDot {
   width: 6px;
@@ -433,9 +461,15 @@
   flex-shrink: 0;
 }
 
-.dotFresh { background: var(--color-success); }
-.dotStale { background: var(--color-warning); }
-.dotOverdue { background: var(--color-danger); }
+.dotFresh {
+  background: var(--color-success);
+}
+.dotStale {
+  background: var(--color-warning);
+}
+.dotOverdue {
+  background: var(--color-danger);
+}
 
 /* ── Responsive adaptations ── */
 @media (max-width: 640px) {

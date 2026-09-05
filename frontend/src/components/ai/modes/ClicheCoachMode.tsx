@@ -23,7 +23,10 @@ export default function ClicheCoachMode({ session }: Props) {
   // Auto-send initial request once when session has selected text and no messages
   useEffect(() => {
     if (autoSentRef.current) return;
-    if (session.messages.length > 0) { autoSentRef.current = true; return; }
+    if (session.messages.length > 0) {
+      autoSentRef.current = true;
+      return;
+    }
     if (!session.context.selectedText) return;
 
     autoSentRef.current = true;
@@ -57,11 +60,13 @@ export default function ClicheCoachMode({ session }: Props) {
       title="Cliche Coach"
       hideTokenBadge
       hideSettings
-      headerExtra={selectedText && (
-        <span className={styles.passageChip} title={selectedText}>
-          "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
-        </span>
-      )}
+      headerExtra={
+        selectedText && (
+          <span className={styles.passageChip} title={selectedText}>
+            "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
+          </span>
+        )
+      }
     >
       {/* Direction chips — shown before first send when there's selected text */}
       {!hasMessages && selectedText && (
@@ -72,7 +77,7 @@ export default function ClicheCoachMode({ session }: Props) {
               <button
                 key={d}
                 className={`${styles.chip} ${direction === d ? styles.chipActive : ""}`}
-                onClick={() => setDirection((prev) => prev === d ? null : d)}
+                onClick={() => setDirection((prev) => (prev === d ? null : d))}
               >
                 {d}
               </button>

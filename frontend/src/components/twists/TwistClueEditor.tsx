@@ -10,10 +10,10 @@ interface Props {
 }
 
 const SUBTLETY_OPTIONS: { value: SubtletyLevel; label: string }[] = [
-  { value: "hidden",   label: "Hidden" },
-  { value: "subtle",   label: "Subtle" },
+  { value: "hidden", label: "Hidden" },
+  { value: "subtle", label: "Subtle" },
   { value: "moderate", label: "Moderate" },
-  { value: "obvious",  label: "Obvious" },
+  { value: "obvious", label: "Obvious" },
 ];
 
 function newClue(): TwistClue {
@@ -44,16 +44,10 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
 
   return (
     <div className={styles.wrap}>
-      <button
-        className={styles.toggle}
-        onClick={() => setExpanded((v) => !v)}
-        type="button"
-      >
+      <button className={styles.toggle} onClick={() => setExpanded((v) => !v)} type="button">
         <span className={styles.toggleLabel}>
           Clues
-          {clues.length > 0 && (
-            <span className={styles.count}>{clues.length}</span>
-          )}
+          {clues.length > 0 && <span className={styles.count}>{clues.length}</span>}
         </span>
         <span className={styles.chevron}>{expanded ? "▲" : "▼"}</span>
       </button>
@@ -101,7 +95,9 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                     onChange={(e) => updateClue(clue.id, { subtlety: e.target.value as SubtletyLevel })}
                   >
                     {SUBTLETY_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
 

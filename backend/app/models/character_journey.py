@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .character import Character
     from .structure import StructureNode
-
 
 
 class CharacterJourneySummary(Base):
@@ -26,11 +28,11 @@ class CharacterJourneySummary(Base):
     source_node_ids: Mapped[str] = mapped_column(Text, default="", server_default="")
     # True when any source scene summary has been regenerated since this was built
     is_stale: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     character: Mapped["Character"] = relationship("Character", back_populates="journey_summaries")

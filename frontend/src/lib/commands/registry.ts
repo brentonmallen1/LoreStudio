@@ -19,7 +19,10 @@ export interface CommandAction {
 }
 
 function tokenize(str: string): string[] {
-  return str.toLowerCase().split(/[\s\-_:./]+/).filter(Boolean);
+  return str
+    .toLowerCase()
+    .split(/[\s\-_:./]+/)
+    .filter(Boolean);
 }
 
 /**

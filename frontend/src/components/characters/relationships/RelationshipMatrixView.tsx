@@ -5,17 +5,17 @@ import styles from "./RelationshipMatrixView.module.css";
 type CellMode = "type" | "purpose" | "trust" | "power" | "affection" | "strength";
 
 const TYPE_COLORS: Record<string, string> = {
-  family:       "#6b8e6b",
-  romantic:     "#c97878",
-  ally:         "#7898c9",
-  rival:        "#c9a060",
-  enemy:        "#c96060",
-  mentor:       "#9878c9",
-  confidant:    "#78a878",
-  authority:    "#a8a060",
-  foil:         "#c9c060",
-  protector:    "#609878",
-  "former ally":"#9890a0",
+  family: "#6b8e6b",
+  romantic: "#c97878",
+  ally: "#7898c9",
+  rival: "#c9a060",
+  enemy: "#c96060",
+  mentor: "#9878c9",
+  confidant: "#78a878",
+  authority: "#a8a060",
+  foil: "#c9c060",
+  protector: "#609878",
+  "former ally": "#9890a0",
 };
 
 function typeColor(type: string): string {
@@ -25,8 +25,8 @@ function typeColor(type: string): string {
 function safeStrength(rel: CharacterRelationship) {
   const s = rel.strength as Partial<import("../../../types").StrengthDimensions> | null | undefined;
   return {
-    trust:     s?.trust     != null ? Number(s.trust)     : 5,
-    power:     s?.power     != null ? Number(s.power)     : 5,
+    trust: s?.trust != null ? Number(s.trust) : 5,
+    power: s?.power != null ? Number(s.power) : 5,
     affection: s?.affection != null ? Number(s.affection) : 5,
   };
 }
@@ -49,24 +49,24 @@ function strengthColor(stored: number): string {
   }
   // neutral → orange-red
   const r = Math.round(160 + t * (201 - 160));
-  const g = Math.round(160 + t * (96  - 160));
-  const b = Math.round(160 + t * (60  - 160));
+  const g = Math.round(160 + t * (96 - 160));
+  const b = Math.round(160 + t * (60 - 160));
   return `rgb(${r},${g},${b})`;
 }
 
 const PURPOSE_COLORS: Record<string, string> = {
-  "conflict-driver":    "#c96060",
-  "ally":               "#7898c9",
-  "foil":               "#c9c060",
-  "growth-catalyst":    "#78a878",
-  "emotional-anchor":   "#c97878",
-  "twist-setup":        "#9878c9",
-  "comic-relief":       "#c9a060",
+  "conflict-driver": "#c96060",
+  ally: "#7898c9",
+  foil: "#c9c060",
+  "growth-catalyst": "#78a878",
+  "emotional-anchor": "#c97878",
+  "twist-setup": "#9878c9",
+  "comic-relief": "#c9a060",
   "exposition-vehicle": "#a0a060",
-  "obstacle":           "#c06060",
-  "mirror":             "#8890c9",
-  "wisdom-source":      "#78a8a8",
-  "past-connection":    "#9890a0",
+  obstacle: "#c06060",
+  mirror: "#8890c9",
+  "wisdom-source": "#78a8a8",
+  "past-connection": "#9890a0",
   "structure-provider": "#a09060",
 };
 
@@ -75,12 +75,12 @@ function purposeColor(p: string): string {
 }
 
 const MODES: { value: CellMode; label: string }[] = [
-  { value: "type",     label: "Relationship type" },
-  { value: "purpose",  label: "Narrative purpose" },
+  { value: "type", label: "Relationship type" },
+  { value: "purpose", label: "Narrative purpose" },
   { value: "strength", label: "Avg strength" },
-  { value: "trust",    label: "Trust" },
-  { value: "power",    label: "Power balance" },
-  { value: "affection",label: "Affection" },
+  { value: "trust", label: "Trust" },
+  { value: "power", label: "Power balance" },
+  { value: "affection", label: "Affection" },
 ];
 
 interface Props {
@@ -91,7 +91,13 @@ interface Props {
   showHidden: boolean;
 }
 
-export default function RelationshipMatrixView({ characters, relationships, onEditRelationship, onCreateRelationship, showHidden }: Props) {
+export default function RelationshipMatrixView({
+  characters,
+  relationships,
+  onEditRelationship,
+  onCreateRelationship,
+  showHidden,
+}: Props) {
   const [mode, setMode] = useState<CellMode>("type");
 
   if (characters.length < 2) {
@@ -100,8 +106,9 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
 
   function findRel(fromId: string, toId: string) {
     return relationships.find(
-      (r) => (r.character_id === fromId && r.related_character_id === toId) ||
-             (r.character_id === toId && r.related_character_id === fromId)
+      (r) =>
+        (r.character_id === fromId && r.related_character_id === toId) ||
+        (r.character_id === toId && r.related_character_id === fromId),
     );
   }
 
@@ -113,15 +120,30 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
       const avg = avgStrength(rel);
       return (
         <div className={styles.cellInner}>
-          <div className={styles.cellDot} style={{ background: color, opacity: 0.35 + (avg / 10) * 0.65, width: 8 + avg * 1.4, height: 8 + avg * 1.4 }} />
-          <span className={styles.cellLabel} style={{ color }}>{rel.relationship_type}</span>
+          <div
+            className={styles.cellDot}
+            style={{
+              background: color,
+              opacity: 0.35 + (avg / 10) * 0.65,
+              width: 8 + avg * 1.4,
+              height: 8 + avg * 1.4,
+            }}
+          />
+          <span className={styles.cellLabel} style={{ color }}>
+            {rel.relationship_type}
+          </span>
         </div>
       );
     }
 
     if (mode === "purpose") {
       const purposes = rel.narrative_purpose ?? [];
-      if (purposes.length === 0) return <div className={styles.cellInner}><span className={styles.cellMuted}>—</span></div>;
+      if (purposes.length === 0)
+        return (
+          <div className={styles.cellInner}>
+            <span className={styles.cellMuted}>—</span>
+          </div>
+        );
       return (
         <div className={styles.cellInner}>
           <div className={styles.purposePips}>
@@ -135,7 +157,14 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
       );
     }
 
-    const stored = mode === "strength" ? avgStrength(rel) : mode === "trust" ? s.trust : mode === "power" ? s.power : s.affection;
+    const stored =
+      mode === "strength"
+        ? avgStrength(rel)
+        : mode === "trust"
+          ? s.trust
+          : mode === "power"
+            ? s.power
+            : s.affection;
     const display = stored - 5; // −5..+5
     const color = strengthColor(stored);
     const opacity = 0.15 + (Math.abs(display) / 5) * 0.85;
@@ -205,7 +234,12 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
                   const rel = findRel(rowChar.id, colChar.id);
                   if (rel && rel.visibility === "hidden" && !showHidden) {
                     return (
-                      <td key={colChar.id} className={styles.hiddenCell} title="Hidden relationship" onClick={() => onEditRelationship(rel)} />
+                      <td
+                        key={colChar.id}
+                        className={styles.hiddenCell}
+                        title="Hidden relationship"
+                        onClick={() => onEditRelationship(rel)}
+                      />
                     );
                   }
                   if (rel) {
@@ -221,7 +255,12 @@ export default function RelationshipMatrixView({ characters, relationships, onEd
                     );
                   }
                   return (
-                    <td key={colChar.id} className={styles.emptyCell} title="Click to add relationship" onClick={() => onCreateRelationship(rowChar.id, colChar.id)}>
+                    <td
+                      key={colChar.id}
+                      className={styles.emptyCell}
+                      title="Click to add relationship"
+                      onClick={() => onCreateRelationship(rowChar.id, colChar.id)}
+                    >
                       <span className={styles.addHint}>+</span>
                     </td>
                   );

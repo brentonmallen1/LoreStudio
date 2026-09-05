@@ -10,10 +10,10 @@ interface Props {
 }
 
 const OUTCOMES: { value: TryFailOutcome; label: string; hint: string }[] = [
-  { value: "fail_disaster",  label: "Fail — Disaster",       hint: "Fails and makes things worse" },
-  { value: "fail_setback",   label: "Fail — Setback",        hint: "Fails but doesn't worsen things" },
-  { value: "success_cost",   label: "Success — With Cost",   hint: "Succeeds but at a price" },
-  { value: "success_clean",  label: "Success — Clean",       hint: "Succeeds without cost" },
+  { value: "fail_disaster", label: "Fail — Disaster", hint: "Fails and makes things worse" },
+  { value: "fail_setback", label: "Fail — Setback", hint: "Fails but doesn't worsen things" },
+  { value: "success_cost", label: "Success — With Cost", hint: "Succeeds but at a price" },
+  { value: "success_clean", label: "Success — Clean", hint: "Succeeds without cost" },
 ];
 
 function newCycle(): TryFailCycle {
@@ -45,16 +45,10 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
 
   return (
     <div className={styles.wrap}>
-      <button
-        className={styles.toggle}
-        onClick={() => setExpanded((v) => !v)}
-        type="button"
-      >
+      <button className={styles.toggle} onClick={() => setExpanded((v) => !v)} type="button">
         <span className={styles.toggleLabel}>
           Try/Fail Cycles
-          {cycleCount > 0 && (
-            <span className={styles.count}>{cycleCount}</span>
-          )}
+          {cycleCount > 0 && <span className={styles.count}>{cycleCount}</span>}
         </span>
         <span className={styles.chevron}>{expanded ? "▲" : "▼"}</span>
       </button>
@@ -62,9 +56,7 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
       {expanded && (
         <div className={styles.body}>
           {cycleCount === 0 && (
-            <p className={styles.empty}>
-              No cycles yet. Track protagonist attempts before the climax.
-            </p>
+            <p className={styles.empty}>No cycles yet. Track protagonist attempts before the climax.</p>
           )}
           {cycles.map((cycle, i) => (
             <div key={cycle.id} className={styles.cycleRow}>
@@ -84,7 +76,9 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
                     title={OUTCOMES.find((o) => o.value === cycle.outcome)?.hint}
                   >
                     {OUTCOMES.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                   {nodes.length > 0 && (

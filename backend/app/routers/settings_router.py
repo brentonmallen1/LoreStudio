@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.setting import Setting
-from ..schemas.setting import SettingCreate, SettingUpdate, SettingOut
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.setting import Setting
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.setting import SettingCreate, SettingOut, SettingUpdate
 
 router = APIRouter()
 
@@ -59,9 +59,7 @@ def update_setting(
 
 
 @router.delete("/{setting_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_setting(
-    setting_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def delete_setting(setting_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     setting = _verify_setting_access(setting_id, db, current_user)
     db.delete(setting)
     db.commit()

@@ -1,22 +1,22 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Float, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .structure import StructureNode
-
 
 
 class DiscoveredElement(Base):
     __tablename__ = "discovered_elements"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    story_id: Mapped[str] = mapped_column(
-        String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False
-    )
+    story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False)
     # "character" | "setting" | "relationship" | "theme" | "object"
     element_type: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
@@ -36,7 +36,7 @@ class DiscoveredElement(Base):
     merged_to_type: Mapped[str | None] = mapped_column(String, nullable=True)
     merged_to_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     story: Mapped["Story"] = relationship("Story", back_populates="discovered_elements")

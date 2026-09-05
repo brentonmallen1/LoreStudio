@@ -10,22 +10,28 @@ interface Props {
 
 type AnyRecord = Record<string, unknown>;
 
-function str(v: unknown): string { return String(v ?? ""); }
-function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
-function asStringList(v: unknown): string[] { return asList(v).map(str); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
+function asList(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function asStringList(v: unknown): string[] {
+  return asList(v).map(str);
+}
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
   needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
-  fair:       { label: "Fair",       className: styles.ratingFair },
-  good:       { label: "Good",       className: styles.ratingGood },
-  excellent:  { label: "Excellent",  className: styles.ratingExcellent },
+  fair: { label: "Fair", className: styles.ratingFair },
+  good: { label: "Good", className: styles.ratingGood },
+  excellent: { label: "Excellent", className: styles.ratingExcellent },
 };
 
 const DIMENSION_META: Record<string, { label: string; className: string }> = {
-  flat:        { label: "Flat",        className: styles.scoreFlat },
-  developing:  { label: "Developing",  className: styles.scoreDeveloping },
+  flat: { label: "Flat", className: styles.scoreFlat },
+  developing: { label: "Developing", className: styles.scoreDeveloping },
   dimensional: { label: "Dimensional", className: styles.scoreDimensional },
-  complex:     { label: "Complex",     className: styles.scoreComplex },
+  complex: { label: "Complex", className: styles.scoreComplex },
 };
 
 export default function CharacterDimensionalityPanel({ characterId }: Props) {
@@ -80,14 +86,18 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
           <div className={styles.scoreRow}>
             <div className={styles.scorePair}>
               <span className={styles.scoreLabel}>Dimensionality</span>
-              <span className={`${styles.scoreBadge} ${DIMENSION_META[entry.dimension_score]?.className ?? ""}`}>
+              <span
+                className={`${styles.scoreBadge} ${DIMENSION_META[entry.dimension_score]?.className ?? ""}`}
+              >
                 {DIMENSION_META[entry.dimension_score]?.label ?? entry.dimension_score}
               </span>
             </div>
             {!!data.overall_rating && (
               <div className={styles.scorePair}>
                 <span className={styles.scoreLabel}>Rating</span>
-                <span className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}>
+                <span
+                  className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}
+                >
                   {RATING_LABELS[str(data.overall_rating)]?.label ?? str(data.overall_rating)}
                 </span>
               </div>
@@ -96,9 +106,15 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Strengths */}
           {asStringList(entry.strengths).length > 0 && (
-            <Section icon={<CheckCircle size={12} />} title="Strengths" color="var(--color-accent-secondary, #0d9488)">
+            <Section
+              icon={<CheckCircle size={12} />}
+              title="Strengths"
+              color="var(--color-accent-secondary, #0d9488)"
+            >
               <ul className={styles.bulletList}>
-                {asStringList(entry.strengths).map((s, i) => <li key={i}>{s}</li>)}
+                {asStringList(entry.strengths).map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
               </ul>
             </Section>
           )}
@@ -107,7 +123,9 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
           {asStringList(entry.gaps).length > 0 && (
             <Section icon={<AlertCircle size={12} />} title="Gaps" color="var(--color-warning, #f59e0b)">
               <ul className={styles.bulletList}>
-                {asStringList(entry.gaps).map((g, i) => <li key={i}>{g}</li>)}
+                {asStringList(entry.gaps).map((g, i) => (
+                  <li key={i}>{g}</li>
+                ))}
               </ul>
             </Section>
           )}
@@ -121,7 +139,11 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Relationship depth */}
           {!!entry.relationship_depth && (
-            <Section icon={<Users size={12} />} title="Relationship Depth" color="var(--segment-chapter, #7c3aed)">
+            <Section
+              icon={<Users size={12} />}
+              title="Relationship Depth"
+              color="var(--segment-chapter, #7c3aed)"
+            >
               <p className={styles.prose}>{entry.relationship_depth}</p>
             </Section>
           )}
@@ -130,7 +152,9 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
           {asStringList(entry.recommendations).length > 0 && (
             <Section icon={<Lightbulb size={12} />} title="Recommendations" color="var(--color-ai)">
               <ul className={styles.recommendList}>
-                {asStringList(entry.recommendations).map((r, i) => <li key={i}>{r}</li>)}
+                {asStringList(entry.recommendations).map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
               </ul>
             </Section>
           )}
@@ -139,14 +163,20 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
       {!generating && !result && (
         <p className={styles.hint}>
-          Assess to get a read on this character's dimensionality, internal tensions, and how they might be deepened.
+          Assess to get a read on this character's dimensionality, internal tensions, and how they might be
+          deepened.
         </p>
       )}
     </div>
   );
 }
 
-function Section({ icon, title, color, children }: {
+function Section({
+  icon,
+  title,
+  color,
+  children,
+}: {
   icon: React.ReactNode;
   title: string;
   color: string;
@@ -155,7 +185,9 @@ function Section({ icon, title, color, children }: {
   return (
     <div className={styles.section} style={{ borderLeftColor: color }}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} style={{ color }}>{icon}</span>
+        <span className={styles.sectionIcon} style={{ color }}>
+          {icon}
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
       </div>
       <div className={styles.sectionBody}>{children}</div>

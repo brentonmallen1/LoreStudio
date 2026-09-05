@@ -79,7 +79,7 @@ def build_snowflake_guidance_prompt(layer: str, content: str, story_context: str
         f"The author is working on: **{spec['name']}**\n\n"
         f"What this layer should accomplish:\n{spec['goal']}\n"
         f"{context_section}\n"
-        f"Here is what the author has written so far:\n\"\"\"\n{content}\n\"\"\"\n\n"
+        f'Here is what the author has written so far:\n"""\n{content}\n"""\n\n'
         f"Evaluate their work against these criteria:\n{checklist_text}\n\n"
         f"Respond with:\n"
         f"1. What's working well (1-2 specific observations)\n"

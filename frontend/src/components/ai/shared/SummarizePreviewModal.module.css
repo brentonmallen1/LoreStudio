@@ -94,7 +94,9 @@
   font-size: 0.83rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .cancelBtn:hover {

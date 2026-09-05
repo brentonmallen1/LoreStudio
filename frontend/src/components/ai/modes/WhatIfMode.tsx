@@ -33,12 +33,7 @@ export default function WhatIfMode({ session }: Props) {
   }
 
   return (
-    <AIModeWrapper
-      session={session}
-      state={state}
-      icon={Shuffle}
-      title="What If?"
-    >
+    <AIModeWrapper session={session} state={state} icon={Shuffle} title="What If?">
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Shuffle size={22} className={styles.emptyIcon} />

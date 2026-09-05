@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
 from ..models.location import Location
 from ..models.location_travel import LocationTravel
-from ..schemas.location_travel import LocationTravelCreate, LocationTravelUpdate, LocationTravelOut
-from ..auth.dependencies import get_current_user
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.location_travel import LocationTravelCreate, LocationTravelOut, LocationTravelUpdate
 
 router = APIRouter()
 
@@ -45,15 +45,8 @@ def list_travel(
 ):
     _verify_story_access(story_id, db, current_user)
     # Get all location IDs for this story, then filter travel entries
-    location_ids = [
-        row[0]
-        for row in db.query(Location.id).filter(Location.story_id == story_id).all()
-    ]
-    return (
-        db.query(LocationTravel)
-        .filter(LocationTravel.from_location_id.in_(location_ids))
-        .all()
-    )
+    location_ids = [row[0] for row in db.query(Location.id).filter(Location.story_id == story_id).all()]
+    return db.query(LocationTravel).filter(LocationTravel.from_location_id.in_(location_ids)).all()
 
 
 @router.post("/location-travel", response_model=LocationTravelOut, status_code=status.HTTP_201_CREATED)

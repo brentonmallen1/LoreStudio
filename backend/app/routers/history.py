@@ -1,15 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.historical_event import Era, HistoricalEvent
-from ..schemas.historical_event import (
-    EraCreate, EraUpdate, EraOut,
-    HistoricalEventCreate, HistoricalEventUpdate, HistoricalEventOut,
-)
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.historical_event import Era, HistoricalEvent
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.historical_event import (
+    EraCreate,
+    EraOut,
+    EraUpdate,
+    HistoricalEventCreate,
+    HistoricalEventOut,
+    HistoricalEventUpdate,
+)
 
 router = APIRouter()
 
@@ -42,6 +46,7 @@ def _verify_event_access(event_id: str, db: Session, user: User) -> HistoricalEv
 
 
 # --- Eras ---
+
 
 @router.get("/stories/{story_id}/eras", response_model=list[EraOut])
 def list_eras(
@@ -97,6 +102,7 @@ def delete_era(era_id: str, db: Session = Depends(get_db), current_user: User = 
 
 # --- Historical Events ---
 
+
 @router.get("/stories/{story_id}/historical-events", response_model=list[HistoricalEventOut])
 def list_events(
     story_id: str,
@@ -105,14 +111,13 @@ def list_events(
 ):
     _verify_story_access(story_id, db, current_user)
     return (
-        db.query(HistoricalEvent)
-        .filter(HistoricalEvent.story_id == story_id)
-        .order_by(HistoricalEvent.position)
-        .all()
+        db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story_id).order_by(HistoricalEvent.position).all()
     )
 
 
-@router.post("/stories/{story_id}/historical-events", response_model=HistoricalEventOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/stories/{story_id}/historical-events", response_model=HistoricalEventOut, status_code=status.HTTP_201_CREATED
+)
 def create_event(
     story_id: str,
     body: HistoricalEventCreate,

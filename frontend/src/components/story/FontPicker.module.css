@@ -14,7 +14,10 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .btn:hover {
@@ -96,7 +99,10 @@
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .sizeBtn:hover {

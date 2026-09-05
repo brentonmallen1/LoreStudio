@@ -12,15 +12,23 @@ type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
   needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
-  fair:       { label: "Fair",       className: styles.ratingFair },
-  good:       { label: "Good",       className: styles.ratingGood },
-  excellent:  { label: "Excellent",  className: styles.ratingExcellent },
+  fair: { label: "Fair", className: styles.ratingFair },
+  good: { label: "Good", className: styles.ratingGood },
+  excellent: { label: "Excellent", className: styles.ratingExcellent },
 };
 
-function str(v: unknown): string { return String(v ?? ""); }
-function asRecord(v: unknown): AnyRecord { return (v as AnyRecord) ?? {}; }
-function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
-function asStringList(v: unknown): string[] { return asList(v).map(str); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
+function asRecord(v: unknown): AnyRecord {
+  return (v as AnyRecord) ?? {};
+}
+function asList(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function asStringList(v: unknown): string[] {
+  return asList(v).map(str);
+}
 
 export default function ArcAnalysisPanel({ characterId }: Props) {
   const [result, setResult] = useState<StructuredResult | null>(null);
@@ -71,7 +79,9 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
           {!!data.overall_rating && (
             <div className={styles.ratingRow}>
               <span className={styles.ratingLabel}>Overall:</span>
-              <span className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}>
+              <span
+                className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}
+              >
                 {RATING_LABELS[str(data.overall_rating)]?.label ?? str(data.overall_rating)}
               </span>
             </div>
@@ -84,28 +94,35 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
                 <p className={styles.sectionSummary}>{str(asRecord(data.trajectory).summary)}</p>
               )}
               {asStringList(asRecord(data.trajectory).details).map((d, i) => (
-                <p key={i} className={styles.detailItem}>• {d}</p>
+                <p key={i} className={styles.detailItem}>
+                  • {d}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Moment Discoveries */}
           {asList(data.moment_discoveries).length > 0 && (
-            <Section icon={<Map size={12} />} title="Key Moments Found" color="var(--segment-chapter, #7c3aed)">
+            <Section
+              icon={<Map size={12} />}
+              title="Key Moments Found"
+              color="var(--segment-chapter, #7c3aed)"
+            >
               <p className={styles.sectionSubtitle}>Significant character moments discovered in your prose</p>
               {(asList(data.moment_discoveries) as AnyRecord[]).map((m, i) => (
                 <div key={i} className={styles.momentRow}>
                   <div className={styles.momentHeader}>
                     <span className={styles.momentScene}>{str(m.scene_title)}</span>
                     {!!m.suggested_milestone_link && (
-                      <span className={styles.milestoneSuggest} title={`Might fulfill: "${str(m.suggested_milestone_link)}"`}>
+                      <span
+                        className={styles.milestoneSuggest}
+                        title={`Might fulfill: "${str(m.suggested_milestone_link)}"`}
+                      >
                         → milestone?
                       </span>
                     )}
                   </div>
-                  {!!m.arc_significance && (
-                    <p className={styles.momentDesc}>{str(m.arc_significance)}</p>
-                  )}
+                  {!!m.arc_significance && <p className={styles.momentDesc}>{str(m.arc_significance)}</p>}
                 </div>
               ))}
             </Section>
@@ -113,34 +130,52 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Drift Analysis */}
           {!!data.drift_analysis && (
-            <Section icon={<AlertTriangle size={12} />} title="Drift Analysis" color="var(--color-warning, #f59e0b)">
+            <Section
+              icon={<AlertTriangle size={12} />}
+              title="Drift Analysis"
+              color="var(--color-warning, #f59e0b)"
+            >
               {!!asRecord(data.drift_analysis).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.drift_analysis).summary)}</p>
               )}
               {asStringList(asRecord(data.drift_analysis).details).map((d, i) => (
-                <p key={i} className={styles.detailItem}>• {d}</p>
+                <p key={i} className={styles.detailItem}>
+                  • {d}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Health */}
           {!!data.health && (
-            <Section icon={<Heart size={12} />} title="Arc Health" color="var(--color-accent-secondary, #0d9488)">
+            <Section
+              icon={<Heart size={12} />}
+              title="Arc Health"
+              color="var(--color-accent-secondary, #0d9488)"
+            >
               {!!asRecord(data.health).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.health).summary)}</p>
               )}
               {asStringList(asRecord(data.health).details).map((d, i) => (
-                <p key={i} className={styles.detailItem}>• {d}</p>
+                <p key={i} className={styles.detailItem}>
+                  • {d}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Unlinked milestones */}
           {asStringList(data.unlinked_milestones).length > 0 && (
-            <Section icon={<XCircle size={12} />} title="Unlinked Milestones" color="var(--color-danger, #ef4444)">
+            <Section
+              icon={<XCircle size={12} />}
+              title="Unlinked Milestones"
+              color="var(--color-danger, #ef4444)"
+            >
               <p className={styles.sectionSubtitle}>Milestones with no clear scene fulfilling them yet</p>
               {asStringList(data.unlinked_milestones).map((m, i) => (
-                <p key={i} className={styles.warningItem}><XCircle size={10} /> {m}</p>
+                <p key={i} className={styles.warningItem}>
+                  <XCircle size={10} /> {m}
+                </p>
               ))}
             </Section>
           )}
@@ -150,7 +185,9 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
             <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
-                  <li key={i} className={styles.suggestionListItem}>{s}</li>
+                  <li key={i} className={styles.suggestionListItem}>
+                    {s}
+                  </li>
                 ))}
               </ul>
             </Section>
@@ -167,7 +204,12 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
   );
 }
 
-function Section({ icon, title, color, children }: {
+function Section({
+  icon,
+  title,
+  color,
+  children,
+}: {
   icon: React.ReactNode;
   title: string;
   color: string;
@@ -176,7 +218,9 @@ function Section({ icon, title, color, children }: {
   return (
     <div className={styles.section} style={{ borderLeftColor: color }}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} style={{ color }}>{icon}</span>
+        <span className={styles.sectionIcon} style={{ color }}>
+          {icon}
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
       </div>
       <div className={styles.sectionBody}>{children}</div>

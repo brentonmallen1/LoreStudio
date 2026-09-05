@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { Microscope, ChevronDown, ChevronRight, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import { api } from "../../api/client";
-import type {
-  ProseNLPResponse,
-  SceneNLPAnalysis,
-  PassageFinding,
-  SentenceVarietyResult,
-} from "../../types";
+import type { ProseNLPResponse, SceneNLPAnalysis, PassageFinding, SentenceVarietyResult } from "../../types";
 import styles from "./ProseAnalysisPanel.module.css";
 
 const CHECK_LABELS: Record<string, string> = {
@@ -33,9 +28,7 @@ function FindingRow({ finding }: { finding: PassageFinding }) {
         <span className={styles.findingExplanation}>{finding.explanation}</span>
       </div>
       <blockquote className={styles.findingPassage}>{finding.passage}</blockquote>
-      {finding.suggestion && (
-        <p className={styles.findingSuggestion}>{finding.suggestion}</p>
-      )}
+      {finding.suggestion && <p className={styles.findingSuggestion}>{finding.suggestion}</p>}
     </div>
   );
 }
@@ -54,7 +47,7 @@ function SentenceVarietyDisplay({ variety }: { variety: SentenceVarietyResult })
     too_short: styles.assessInfo,
   };
 
-  const maxCount = Math.max(...variety.histogram.map(b => b.count), 1);
+  const maxCount = Math.max(...variety.histogram.map((b) => b.count), 1);
 
   return (
     <div className={styles.varietyBlock}>
@@ -64,11 +57,11 @@ function SentenceVarietyDisplay({ variety }: { variety: SentenceVarietyResult })
         <span>σ {variety.std_dev}</span>
       </div>
       <div className={styles.histogram}>
-        {variety.histogram.map(bucket => (
+        {variety.histogram.map((bucket) => (
           <div key={bucket.label} className={styles.histBar}>
             <div
               className={styles.histFill}
-              style={{ height: `${Math.round(bucket.count / maxCount * 100)}%` }}
+              style={{ height: `${Math.round((bucket.count / maxCount) * 100)}%` }}
             />
             <span className={styles.histLabel}>{bucket.label}</span>
           </div>
@@ -96,15 +89,15 @@ function SceneResult({ scene }: { scene: SceneNLPAnalysis }) {
 
   return (
     <div className={styles.sceneBlock}>
-      <button className={styles.sceneHeader} onClick={() => setExpanded(e => !e)}>
+      <button className={styles.sceneHeader} onClick={() => setExpanded((e) => !e)}>
         {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
         <span className={styles.sceneTitle}>{scene.scene_title || "Untitled scene"}</span>
         <span className={styles.sceneWordCount}>{scene.word_count.toLocaleString()} words</span>
-        {!hasIssues && !scene.sentence_variety && (
-          <span className={styles.sceneBadgeClean}>No issues</span>
-        )}
+        {!hasIssues && !scene.sentence_variety && <span className={styles.sceneBadgeClean}>No issues</span>}
         {hasIssues && (
-          <span className={styles.sceneBadgeCount}>{totalFindings} finding{totalFindings !== 1 ? "s" : ""}</span>
+          <span className={styles.sceneBadgeCount}>
+            {totalFindings} finding{totalFindings !== 1 ? "s" : ""}
+          </span>
         )}
       </button>
 
@@ -116,10 +109,13 @@ function SceneResult({ scene }: { scene: SceneNLPAnalysis }) {
               <div className={styles.checkHeader}>
                 <span className={styles.checkLabel}>Passive Voice</span>
                 <span className={styles.checkStat}>
-                  {scene.passive_voice.passive_count}/{scene.passive_voice.sentence_count} sentences ({scene.passive_voice.percentage}%)
+                  {scene.passive_voice.passive_count}/{scene.passive_voice.sentence_count} sentences (
+                  {scene.passive_voice.percentage}%)
                 </span>
               </div>
-              {scene.passive_voice.findings.map((f, i) => <FindingRow key={i} finding={f} />)}
+              {scene.passive_voice.findings.map((f, i) => (
+                <FindingRow key={i} finding={f} />
+              ))}
             </div>
           )}
 
@@ -133,7 +129,9 @@ function SceneResult({ scene }: { scene: SceneNLPAnalysis }) {
                   threshold {scene.adverb_overuse.threshold}%)
                 </span>
               </div>
-              {scene.adverb_overuse.findings.map((f, i) => <FindingRow key={i} finding={f} />)}
+              {scene.adverb_overuse.findings.map((f, i) => (
+                <FindingRow key={i} finding={f} />
+              ))}
             </div>
           )}
 
@@ -143,10 +141,13 @@ function SceneResult({ scene }: { scene: SceneNLPAnalysis }) {
               <div className={styles.checkHeader}>
                 <span className={styles.checkLabel}>Said-Bookisms</span>
                 <span className={styles.checkStat}>
-                  {scene.said_bookisms.bookism_count} of {scene.said_bookisms.total_attributions} attribution verbs
+                  {scene.said_bookisms.bookism_count} of {scene.said_bookisms.total_attributions} attribution
+                  verbs
                 </span>
               </div>
-              {scene.said_bookisms.findings.map((f, i) => <FindingRow key={i} finding={f} />)}
+              {scene.said_bookisms.findings.map((f, i) => (
+                <FindingRow key={i} finding={f} />
+              ))}
             </div>
           )}
 
@@ -156,10 +157,14 @@ function SceneResult({ scene }: { scene: SceneNLPAnalysis }) {
               <div className={styles.checkHeader}>
                 <span className={styles.checkLabel}>Repeated Words</span>
                 <span className={styles.checkStat}>
-                  {scene.repeated_words.findings.length} repetition{scene.repeated_words.findings.length !== 1 ? "s" : ""} within {scene.repeated_words.window_chars} chars
+                  {scene.repeated_words.findings.length} repetition
+                  {scene.repeated_words.findings.length !== 1 ? "s" : ""} within{" "}
+                  {scene.repeated_words.window_chars} chars
                 </span>
               </div>
-              {scene.repeated_words.findings.map((f, i) => <FindingRow key={i} finding={f} />)}
+              {scene.repeated_words.findings.map((f, i) => (
+                <FindingRow key={i} finding={f} />
+              ))}
             </div>
           )}
 
@@ -192,7 +197,7 @@ export default function ProseAnalysisPanel({ storyId }: Props) {
   const [selectedChecks, setSelectedChecks] = useState<Set<string>>(new Set(ALL_CHECKS));
 
   function toggleCheck(key: string) {
-    setSelectedChecks(prev => {
+    setSelectedChecks((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
@@ -214,13 +219,15 @@ export default function ProseAnalysisPanel({ storyId }: Props) {
     }
   }
 
-  const scenesWithFindings = result?.scenes.filter(s =>
-    (s.passive_voice?.findings.length ?? 0) +
-    (s.adverb_overuse?.findings.length ?? 0) +
-    (s.said_bookisms?.findings.length ?? 0) +
-    (s.repeated_words?.findings.length ?? 0) > 0 ||
-    (s.sentence_variety?.sentence_count ?? 0) > 0
-  ) ?? [];
+  const scenesWithFindings =
+    result?.scenes.filter(
+      (s) =>
+        (s.passive_voice?.findings.length ?? 0) +
+          (s.adverb_overuse?.findings.length ?? 0) +
+          (s.said_bookisms?.findings.length ?? 0) +
+          (s.repeated_words?.findings.length ?? 0) >
+          0 || (s.sentence_variety?.sentence_count ?? 0) > 0,
+    ) ?? [];
 
   return (
     <div className={styles.panel}>
@@ -234,7 +241,11 @@ export default function ProseAnalysisPanel({ storyId }: Props) {
             </p>
           </div>
         </div>
-        <button onClick={runAnalysis} disabled={running || selectedChecks.size === 0} className={styles.runBtn}>
+        <button
+          onClick={runAnalysis}
+          disabled={running || selectedChecks.size === 0}
+          className={styles.runBtn}
+        >
           <Microscope size={12} />
           {running ? "Analyzing…" : result ? "Re-run" : "Analyze"}
         </button>
@@ -242,7 +253,7 @@ export default function ProseAnalysisPanel({ storyId }: Props) {
 
       {/* Check toggles */}
       <div className={styles.checkToggles}>
-        {ALL_CHECKS.map(key => (
+        {ALL_CHECKS.map((key) => (
           <button
             key={key}
             className={`${styles.toggle} ${selectedChecks.has(key) ? styles.toggleOn : ""}`}
@@ -258,13 +269,16 @@ export default function ProseAnalysisPanel({ storyId }: Props) {
       {!running && result && (
         <div className={styles.results}>
           {scenesWithFindings.length === 0 ? (
-            <p className={styles.hint}>No findings across {result.scenes.length} scene{result.scenes.length !== 1 ? "s" : ""}.</p>
+            <p className={styles.hint}>
+              No findings across {result.scenes.length} scene{result.scenes.length !== 1 ? "s" : ""}.
+            </p>
           ) : (
             <>
               <p className={styles.summary}>
-                {scenesWithFindings.length} of {result.scenes.length} scene{result.scenes.length !== 1 ? "s" : ""} have findings
+                {scenesWithFindings.length} of {result.scenes.length} scene
+                {result.scenes.length !== 1 ? "s" : ""} have findings
               </p>
-              {result.scenes.map(scene => (
+              {result.scenes.map((scene) => (
                 <SceneResult key={scene.scene_id} scene={scene} />
               ))}
             </>

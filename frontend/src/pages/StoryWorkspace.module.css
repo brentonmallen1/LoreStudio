@@ -12,7 +12,6 @@
   overflow: hidden;
 }
 
-
 /* Thin hover zone on left edge that reveals sidebar in focus mode */
 .sidebarHoverZone {
   position: fixed;

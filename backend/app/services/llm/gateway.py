@@ -39,13 +39,13 @@ from typing import TypeVar
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
-from .ollama import ollama_provider, StreamMetrics, _strip_json_fencing
-from .prompts.core import CORE_SYSTEM_PROMPT
 from ...config import settings
-from ...models.user import User
 from ...models.activity_log import ActivityLog
-from ...schemas.llm_params import LLMParams
+from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
+from ...schemas.llm_params import LLMParams
+from .ollama import StreamMetrics, _strip_json_fencing, ollama_provider
+from .prompts.core import CORE_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,8 @@ T = TypeVar("T", bound=BaseModel)
 @dataclass
 class AICallContext:
     """Metadata about an AI call — used for logging and prompt composition."""
-    feature: str              # e.g. "interview", "scene-chat", "story-summary"
+
+    feature: str  # e.g. "interview", "scene-chat", "story-summary"
     user_id: str
     story_id: str | None = None
     character_id: str | None = None
@@ -68,6 +69,7 @@ class AICallContext:
 @dataclass
 class AICallResult:
     """Collected result after a streaming call completes."""
+
     content: str
     tokens_in: int | None = None
     tokens_out: int | None = None
@@ -121,7 +123,9 @@ class AIGateway:
             temperature=request_params.temperature if request_params.temperature != 1.0 else merged.temperature,
             top_p=request_params.top_p if request_params.top_p != 0.95 else merged.top_p,
             top_k=request_params.top_k if request_params.top_k != 64 else merged.top_k,
-            thinking_enabled=request_params.thinking_enabled if request_params.thinking_enabled else merged.thinking_enabled,
+            thinking_enabled=request_params.thinking_enabled
+            if request_params.thinking_enabled
+            else merged.thinking_enabled,
             image_token_budget=request_params.image_token_budget or merged.image_token_budget,
         )
 
@@ -279,10 +283,7 @@ class AIGateway:
                 model=result_obj.model,
             )
         except ValidationError as e:
-            logger.warning(
-                "generate_structured: schema validation failed for feature=%s: %s",
-                context.feature, e
-            )
+            logger.warning("generate_structured: schema validation failed for feature=%s: %s", context.feature, e)
             return StructuredResult(
                 success=False,
                 raw_data=data,
@@ -292,7 +293,9 @@ class AIGateway:
                 model=result_obj.model,
             )
 
-    def _log_call(self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]) -> None:
+    def _log_call(
+        self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]
+    ) -> None:
         """Write an ActivityLog entry for this AI call."""
         try:
             # Extract the last user message as the prompt

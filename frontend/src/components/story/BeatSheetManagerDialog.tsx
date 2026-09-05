@@ -24,9 +24,7 @@ function EditView({
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [beats, setBeats] = useState<Beat[]>(
-    initial?.beats?.length ? [...initial.beats] : [newBeat()]
-  );
+  const [beats, setBeats] = useState<Beat[]>(initial?.beats?.length ? [...initial.beats] : [newBeat()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,7 +41,10 @@ function EditView({
   }
 
   async function handleSave() {
-    if (!name.trim()) { setError("Name is required"); return; }
+    if (!name.trim()) {
+      setError("Name is required");
+      return;
+    }
     const validBeats = beats.filter((b) => b.name.trim());
     setSaving(true);
     try {
@@ -100,7 +101,9 @@ function EditView({
           </div>
           {beats.map((beat) => (
             <div key={beat.id} className={styles.beatRow}>
-              <span className={styles.dragHandle}><GripVertical size={12} /></span>
+              <span className={styles.dragHandle}>
+                <GripVertical size={12} />
+              </span>
               <input
                 className={`${styles.input} ${styles.pctInput}`}
                 type="number"
@@ -132,7 +135,9 @@ function EditView({
       {error && <p className={styles.error}>{error}</p>}
 
       <div className={styles.editActions}>
-        <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+        <button className={styles.cancelBtn} onClick={onCancel}>
+          Cancel
+        </button>
         <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
           <Check size={13} />
           {saving ? "Saving…" : "Save Beat Sheet"}
@@ -149,7 +154,10 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.listBeatSheets().then((all) => setSheets(all.filter((s) => !s.is_system))).catch(() => {});
+    api
+      .listBeatSheets()
+      .then((all) => setSheets(all.filter((s) => !s.is_system)))
+      .catch(() => {});
   }, []);
 
   async function doDelete(id: string) {
@@ -175,7 +183,9 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
       <div className={styles.dialog}>
         <div className={styles.dialogHeader}>
           <h2 className={styles.dialogTitle}>Custom Beat Sheets</h2>
-          <button className={styles.closeBtn} onClick={onClose}><X size={15} /></button>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={15} />
+          </button>
         </div>
 
         {editing ? (
@@ -198,9 +208,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
                     <div className={styles.sheetInfo}>
                       <span className={styles.sheetName}>{sheet.name}</span>
                       <span className={styles.sheetBeats}>{sheet.beats.length} beats</span>
-                      {sheet.description && (
-                        <span className={styles.sheetDesc}>{sheet.description}</span>
-                      )}
+                      {sheet.description && <span className={styles.sheetDesc}>{sheet.description}</span>}
                     </div>
                     <div className={styles.sheetActions}>
                       <button className={styles.editBtn} onClick={() => setEditing(sheet)}>
@@ -208,8 +216,12 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
                       </button>
                       {pendingDeleteId === sheet.id ? (
                         <div className={styles.deleteConfirm}>
-                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(sheet.id)}>Delete</button>
-                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>Cancel</button>
+                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(sheet.id)}>
+                            Delete
+                          </button>
+                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>
+                            Cancel
+                          </button>
                         </div>
                       ) : (
                         <button

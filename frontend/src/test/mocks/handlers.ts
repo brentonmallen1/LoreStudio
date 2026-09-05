@@ -61,17 +61,15 @@ export const interviewHandlers = [
   }),
 
   http.post("/api/interviews/:interviewId/messages", () => {
-    return new HttpResponse(
-      textStream("I understand your question. Let me think about that carefully."),
-      { headers: { "Content-Type": "text/plain" } }
-    );
+    return new HttpResponse(textStream("I understand your question. Let me think about that carefully."), {
+      headers: { "Content-Type": "text/plain" },
+    });
   }),
 
   http.post("/api/interviews/:interviewId/summarize", () => {
-    return new HttpResponse(
-      textStream("Character summary: thoughtful and reserved."),
-      { headers: { "Content-Type": "text/plain" } }
-    );
+    return new HttpResponse(textStream("Character summary: thoughtful and reserved."), {
+      headers: { "Content-Type": "text/plain" },
+    });
   }),
 ];
 
@@ -114,10 +112,9 @@ export const analysisHandlers = [
   }),
 
   http.post("/api/stories/:storyId/summarize", () => {
-    return new HttpResponse(
-      textStream("Story summary: a tale of resilience."),
-      { headers: { "Content-Type": "text/plain" } }
-    );
+    return new HttpResponse(textStream("Story summary: a tale of resilience."), {
+      headers: { "Content-Type": "text/plain" },
+    });
   }),
 ];
 

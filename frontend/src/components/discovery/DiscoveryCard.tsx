@@ -27,7 +27,7 @@ function ConfidenceDots({ value }: { value: number }) {
   return (
     <div className={styles.confidence}>
       <div className={styles.confidenceDots}>
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <span key={i} className={`${styles.dot} ${i <= level ? styles.dotFilled : ""}`} />
         ))}
       </div>
@@ -67,18 +67,16 @@ export default function DiscoveryCard({ element, onApprove, onReject }: Props) {
         <span className={styles.typeIcon}>{TYPE_ICONS[element.element_type] ?? "❓"}</span>
         <div className={styles.headerText}>
           <p className={styles.name}>{element.name}</p>
-          <span className={styles.typeBadge}>{TYPE_LABELS[element.element_type] ?? element.element_type}</span>
+          <span className={styles.typeBadge}>
+            {TYPE_LABELS[element.element_type] ?? element.element_type}
+          </span>
         </div>
         <ConfidenceDots value={element.confidence} />
       </div>
 
-      {element.description && (
-        <p className={styles.description}>{element.description}</p>
-      )}
+      {element.description && <p className={styles.description}>{element.description}</p>}
 
-      {element.source_excerpt && (
-        <p className={styles.excerpt}>"{element.source_excerpt}"</p>
-      )}
+      {element.source_excerpt && <p className={styles.excerpt}>"{element.source_excerpt}"</p>}
 
       {editing ? (
         <div className={styles.editArea}>
@@ -86,13 +84,13 @@ export default function DiscoveryCard({ element, onApprove, onReject }: Props) {
           <input
             className={styles.editInput}
             value={editName}
-            onChange={e => setEditName(e.target.value)}
+            onChange={(e) => setEditName(e.target.value)}
             placeholder="Name"
           />
           <textarea
             className={styles.editTextarea}
             value={editDesc}
-            onChange={e => setEditDesc(e.target.value)}
+            onChange={(e) => setEditDesc(e.target.value)}
             placeholder="Description"
             rows={2}
           />
@@ -100,7 +98,9 @@ export default function DiscoveryCard({ element, onApprove, onReject }: Props) {
             <button className={styles.confirmBtn} onClick={handleEditApprove} disabled={!editName.trim()}>
               Add to Lorebook
             </button>
-            <button className={styles.cancelBtn} onClick={() => setEditing(false)}>Cancel</button>
+            <button className={styles.cancelBtn} onClick={() => setEditing(false)}>
+              Cancel
+            </button>
           </div>
         </div>
       ) : (
@@ -108,8 +108,12 @@ export default function DiscoveryCard({ element, onApprove, onReject }: Props) {
           <button className={styles.approveBtn} onClick={handleApprove}>
             {autoCreates ? "Add to Lorebook" : "Accept"}
           </button>
-          <button className={styles.rejectBtn} onClick={() => setEditing(true)}>Edit & Add</button>
-          <button className={styles.rejectBtn} onClick={handleReject}>Dismiss</button>
+          <button className={styles.rejectBtn} onClick={() => setEditing(true)}>
+            Edit & Add
+          </button>
+          <button className={styles.rejectBtn} onClick={handleReject}>
+            Dismiss
+          </button>
         </div>
       )}
     </div>

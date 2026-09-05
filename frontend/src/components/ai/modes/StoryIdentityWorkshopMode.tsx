@@ -33,12 +33,7 @@ export default function StoryIdentityWorkshopMode({ session }: Props) {
   }
 
   return (
-    <AIModeWrapper
-      session={session}
-      state={state}
-      icon={Map}
-      title="Story Identity Workshop"
-    >
+    <AIModeWrapper session={session} state={state} icon={Map} title="Story Identity Workshop">
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Map size={22} className={styles.emptyIcon} />
@@ -78,7 +73,9 @@ export default function StoryIdentityWorkshopMode({ session }: Props) {
         onSend={() => handleSend()}
         onCancel={() => cancelStreaming(session.id)}
         disabled={session.isStreaming || !storyId}
-        placeholder={session.messages.length > 0 ? "Continue the conversation…" : "What are you trying to work out?"}
+        placeholder={
+          session.messages.length > 0 ? "Continue the conversation…" : "What are you trying to work out?"
+        }
       />
     </AIModeWrapper>
   );

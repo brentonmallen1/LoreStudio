@@ -57,7 +57,10 @@
   cursor: pointer;
   transition: all 0.1s;
 }
-.uploadBtn:hover { background: var(--color-surface-raised); color: var(--color-text); }
+.uploadBtn:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
 
 .closeBtn {
   display: flex;
@@ -71,7 +74,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
 }
-.closeBtn:hover { background: var(--color-surface-raised); }
+.closeBtn:hover {
+  background: var(--color-surface-raised);
+}
 
 .body {
   padding: 12px;
@@ -102,7 +107,9 @@
   border-radius: 6px;
   background: var(--color-bg);
   cursor: pointer;
-  transition: border-color 0.1s, box-shadow 0.1s;
+  transition:
+    border-color 0.1s,
+    box-shadow 0.1s;
   text-align: center;
 }
 .item:hover {

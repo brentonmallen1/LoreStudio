@@ -9,24 +9,24 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.structure import StructureNode
 from ..models.character import Character, CharacterRelationship
 from ..models.interview import CharacterInterview
 from ..models.panel_interview import PanelInterview
-from ..auth.dependencies import get_current_user
-from ..services.llm.ollama import ollama_provider
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 from ..services.llm.gateway import ai_gateway
+from ..services.llm.ollama import ollama_provider
+from ..services.llm.prompts.generation import (
+    build_attribute_generation_prompt,
+    build_relationship_suggestion_prompt,
+)
 from ..services.llm.prompts.interviews import (
     build_character_interview_system_prompt,
     build_interview_summary_prompt,
     build_panel_interview_system_prompt,
-)
-from ..services.llm.prompts.generation import (
-    build_attribute_generation_prompt,
-    build_relationship_suggestion_prompt,
 )
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 
@@ -47,21 +47,23 @@ class PromptPreviewRequest(BaseModel):
 
 class ContextSource(BaseModel):
     """Describes one piece of data that will be included in the LLM prompt."""
+
     source: str  # e.g., "character_personality", "scene_content"
-    label: str   # Human-readable: "Marcus Chen's personality"
+    label: str  # Human-readable: "Marcus Chen's personality"
     included: bool  # Whether this data exists and will be included
 
 
 class TokenBreakdown(BaseModel):
     """Estimated token counts for the composed prompt (using len // 4 heuristic)."""
-    system_prompt: int   # Tokens for the system/feature prompt only
-    context: int         # Additional tokens from core prompt wrapping
+
+    system_prompt: int  # Tokens for the system/feature prompt only
+    context: int  # Additional tokens from core prompt wrapping
 
 
 class PromptPreviewResponse(BaseModel):
     context_type: str
-    system_prompt: str          # Feature-specific prompt only
-    composed_prompt: str        # Core + feature prompt (what actually gets sent)
+    system_prompt: str  # Feature-specific prompt only
+    composed_prompt: str  # Core + feature prompt (what actually gets sent)
     user_message: str
     model: str
     sources: list[ContextSource] = []
@@ -104,8 +106,9 @@ def get_prompt_preview(
     if body.context_type == "scene-chat":
         if not body.story_id or not body.node_id:
             raise HTTPException(status_code=400, detail="story_id and node_id required")
-        from .chat import _build_context_packet, ContextOptions
         from ..services.llm.prompts.chat import build_scene_chat_system_prompt
+        from .chat import ContextOptions, _build_context_packet
+
         story = _get_story(body.story_id)
         node = db.get(StructureNode, body.node_id)
         if not node or node.story_id != body.story_id:
@@ -120,15 +123,33 @@ def get_prompt_preview(
         settings_in_scene = ctx.get("settings_in_scene", [])
         sources = [
             ContextSource(source="story_title", label=f"Story: {story.title}", included=True),
-            ContextSource(source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)),
+            ContextSource(
+                source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)
+            ),
             ContextSource(source="story_goals", label="Story goals", included=bool(story.goals)),
             ContextSource(source="scene_metadata", label=f"Scene: {node.title}", included=True),
             ContextSource(source="scene_synopsis", label="Scene synopsis", included=bool(node.synopsis)),
-            ContextSource(source="scene_purpose", label="Scene purpose", included=bool((node.metadata_ or {}).get("purpose"))),
-            ContextSource(source="scene_entry_exit", label="Entry/exit state", included=bool(node.entry_state or node.exit_state)),
-            ContextSource(source="characters_in_scene", label=f"Characters in scene ({len(chars_in_scene)})", included=bool(chars_in_scene)),
-            ContextSource(source="threads_in_scene", label=f"Plot threads ({len(threads_in_scene)})", included=bool(threads_in_scene)),
-            ContextSource(source="settings_in_scene", label=f"Settings ({len(settings_in_scene)})", included=bool(settings_in_scene)),
+            ContextSource(
+                source="scene_purpose", label="Scene purpose", included=bool((node.metadata_ or {}).get("purpose"))
+            ),
+            ContextSource(
+                source="scene_entry_exit", label="Entry/exit state", included=bool(node.entry_state or node.exit_state)
+            ),
+            ContextSource(
+                source="characters_in_scene",
+                label=f"Characters in scene ({len(chars_in_scene)})",
+                included=bool(chars_in_scene),
+            ),
+            ContextSource(
+                source="threads_in_scene",
+                label=f"Plot threads ({len(threads_in_scene)})",
+                included=bool(threads_in_scene),
+            ),
+            ContextSource(
+                source="settings_in_scene",
+                label=f"Settings ({len(settings_in_scene)})",
+                included=bool(settings_in_scene),
+            ),
         ]
 
     elif body.context_type == "interview":
@@ -164,7 +185,11 @@ def get_prompt_preview(
         msg_count = len(interview.messages) if interview.messages else 0
         sources = [
             ContextSource(source="character_name", label=character.name, included=True),
-            ContextSource(source="interview_transcript", label=f"Interview transcript ({msg_count} messages)", included=msg_count > 0),
+            ContextSource(
+                source="interview_transcript",
+                label=f"Interview transcript ({msg_count} messages)",
+                included=msg_count > 0,
+            ),
         ]
 
     elif body.context_type == "panel":
@@ -202,11 +227,7 @@ def get_prompt_preview(
             .order_by(StructureNode.position)
             .all()
         )
-        nodes_content = [
-            {"title": n.title, "content": n.content}
-            for n in all_nodes
-            if n.content and n.content.strip()
-        ]
+        nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes if n.content and n.content.strip()]
         system_prompt = build_story_summary_prompt(
             title=story.title,
             intent=story.narrative_intent or story.intent,
@@ -217,8 +238,12 @@ def get_prompt_preview(
         user_message = "Please provide the summary."
         sources = [
             ContextSource(source="story_title", label=f"Story: {story.title}", included=True),
-            ContextSource(source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)),
-            ContextSource(source="scene_content", label=f"Written scenes ({len(nodes_content)})", included=bool(nodes_content)),
+            ContextSource(
+                source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)
+            ),
+            ContextSource(
+                source="scene_content", label=f"Written scenes ({len(nodes_content)})", included=bool(nodes_content)
+            ),
         ]
 
     elif body.context_type == "relationships":
@@ -226,9 +251,11 @@ def get_prompt_preview(
             raise HTTPException(status_code=400, detail="story_id required")
         story = _get_story(body.story_id)
         characters = db.query(Character).filter(Character.story_id == body.story_id).all()
-        existing_rels = db.query(CharacterRelationship).filter(
-            CharacterRelationship.character_id.in_([c.id for c in characters])
-        ).all()
+        existing_rels = (
+            db.query(CharacterRelationship)
+            .filter(CharacterRelationship.character_id.in_([c.id for c in characters]))
+            .all()
+        )
         char_names = {c.id: c.name for c in characters}
         existing = [
             {
@@ -242,7 +269,11 @@ def get_prompt_preview(
         user_message = "Please suggest relationships."
         sources = [
             ContextSource(source="characters", label=f"Characters ({len(characters)})", included=bool(characters)),
-            ContextSource(source="existing_relationships", label=f"Existing relationships ({len(existing_rels)})", included=bool(existing_rels)),
+            ContextSource(
+                source="existing_relationships",
+                label=f"Existing relationships ({len(existing_rels)})",
+                included=bool(existing_rels),
+            ),
         ]
         for char in characters:
             sources.append(ContextSource(source="character_profile", label=f"{char.name}", included=True))
@@ -265,7 +296,11 @@ def get_prompt_preview(
 
         content_pieces = gather_content(node)
         content_text = "\n\n".join(content_pieces)
-        intent_line = f"\nStory intent: {story.narrative_intent or story.intent}\n" if (story.narrative_intent or story.intent) else ""
+        intent_line = (
+            f"\nStory intent: {story.narrative_intent or story.intent}\n"
+            if (story.narrative_intent or story.intent)
+            else ""
+        )
         system_prompt = (
             f"You are summarizing the section '{node.title}' from the story '{story.title}'.{intent_line}\n\n"
             f"Content:\n{content_text}\n\n"
@@ -275,8 +310,14 @@ def get_prompt_preview(
         user_message = "Summarize this section."
         sources = [
             ContextSource(source="story_title", label=f"Story: {story.title}", included=True),
-            ContextSource(source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)),
-            ContextSource(source="section_content", label=f"Section: {node.title} ({len(content_pieces)} sub-sections)", included=bool(content_pieces)),
+            ContextSource(
+                source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)
+            ),
+            ContextSource(
+                source="section_content",
+                label=f"Section: {node.title} ({len(content_pieces)} sub-sections)",
+                included=bool(content_pieces),
+            ),
         ]
 
     elif body.context_type == "character-arc":
@@ -289,9 +330,7 @@ def get_prompt_preview(
 
         all_nodes = db.query(StructureNode).filter(StructureNode.story_id == body.story_id).all()
         relevant_scenes = [
-            f"[{n.title}]\n{n.content}"
-            for n in all_nodes
-            if n.content and character.name.lower() in n.content.lower()
+            f"[{n.title}]\n{n.content}" for n in all_nodes if n.content and character.name.lower() in n.content.lower()
         ]
         profile_parts = []
         if character.personality:
@@ -327,9 +366,17 @@ def get_prompt_preview(
             ContextSource(source="character_personality", label="Personality", included=bool(character.personality)),
             ContextSource(source="character_motivation", label="Motivation", included=bool(character.motivation)),
             ContextSource(source="character_arc_notes", label="Arc notes", included=bool(character.arc_notes)),
-            ContextSource(source="character_narrative_intent", label="Planned arc", included=bool(character.narrative_intent)),
-            ContextSource(source="character_milestones", label="Arc milestones", included=bool(character.arc_milestones)),
-            ContextSource(source="scenes_mentioning_character", label=f"Scenes mentioning {character.name} ({len(relevant_scenes)})", included=bool(relevant_scenes)),
+            ContextSource(
+                source="character_narrative_intent", label="Planned arc", included=bool(character.narrative_intent)
+            ),
+            ContextSource(
+                source="character_milestones", label="Arc milestones", included=bool(character.arc_milestones)
+            ),
+            ContextSource(
+                source="scenes_mentioning_character",
+                label=f"Scenes mentioning {character.name} ({len(relevant_scenes)})",
+                included=bool(relevant_scenes),
+            ),
         ]
 
     else:

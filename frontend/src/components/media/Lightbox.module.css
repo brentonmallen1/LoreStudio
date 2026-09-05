@@ -53,7 +53,9 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.toolBtn:hover { background: rgba(255, 255, 255, 0.22); }
+.toolBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
 
 .imageWrap {
   overflow: hidden;
@@ -81,7 +83,9 @@
   transition: opacity 0.2s;
 }
 
-.imageLoaded { opacity: 1; }
+.imageLoaded {
+  opacity: 1;
+}
 
 .imageZoomed {
   max-width: none;
@@ -102,7 +106,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Navigation buttons */
@@ -123,7 +129,13 @@
   transition: background 0.15s;
   z-index: 9001;
 }
-.navBtn:hover { background: rgba(255, 255, 255, 0.22); }
+.navBtn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
 
-.navPrev { left: clamp(10px, 2vw, 32px); }
-.navNext { right: clamp(10px, 2vw, 32px); }
+.navPrev {
+  left: clamp(10px, 2vw, 32px);
+}
+.navNext {
+  right: clamp(10px, 2vw, 32px);
+}

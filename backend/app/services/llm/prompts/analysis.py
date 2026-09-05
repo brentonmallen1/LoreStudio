@@ -7,7 +7,6 @@ from ....models.plot_thread import PlotThread
 from ....models.story import Story
 from .interviews import _ATTR_GUIDANCE, _ATTR_LABELS, _normalise
 
-
 TARGET_AUDIENCES: dict[str, dict[str, str]] = {
     "kids": {
         "label": "Kids (6-8)",
@@ -127,13 +126,19 @@ def build_audience_adherence_prompt(
     audience_data = TARGET_AUDIENCES.get(target_audience, {})
     audience_label = audience_data.get("label", target_audience)
 
-    expectations = "\n".join([
-        f"- Vocabulary: {audience_data.get('vocabulary', 'N/A')}",
-        f"- Sentence structure: {audience_data.get('sentence_structure', 'N/A')}",
-        f"- Themes: {audience_data.get('themes', 'N/A')}",
-        f"- Content: {audience_data.get('content', 'N/A')}",
-        f"- Pacing: {audience_data.get('pacing', 'N/A')}",
-    ]) if audience_data else f"Target audience: {target_audience}"
+    expectations = (
+        "\n".join(
+            [
+                f"- Vocabulary: {audience_data.get('vocabulary', 'N/A')}",
+                f"- Sentence structure: {audience_data.get('sentence_structure', 'N/A')}",
+                f"- Themes: {audience_data.get('themes', 'N/A')}",
+                f"- Content: {audience_data.get('content', 'N/A')}",
+                f"- Pacing: {audience_data.get('pacing', 'N/A')}",
+            ]
+        )
+        if audience_data
+        else f"Target audience: {target_audience}"
+    )
 
     return f"""You are a developmental editor analyzing prose from "{story_title}" for target audience fit.
 
@@ -214,7 +219,9 @@ def build_thread_analysis_prompt(
     if thread.try_fail_cycles:
         lines = []
         for i, c in enumerate(thread.try_fail_cycles, 1):
-            scene_ref = f"[{c.get('scene_title', 'unlinked')}]" if c.get("scene_title") or c.get("scene_id") else "[unlinked]"
+            scene_ref = (
+                f"[{c.get('scene_title', 'unlinked')}]" if c.get("scene_title") or c.get("scene_id") else "[unlinked]"
+            )
             lines.append(f"  {i}. {c.get('action', '?')} → {c.get('outcome_type', '?')} {scene_ref}")
         cycles_text = "\n".join(lines)
     else:
@@ -225,7 +232,7 @@ def build_thread_analysis_prompt(
         parts = []
         for s in scenes:
             excerpt = s.get("content_excerpt", "")[:500]
-            parts.append(f"[{s['title']}]\n{excerpt}{'...' if len(s.get('content_excerpt','')) > 500 else ''}")
+            parts.append(f"[{s['title']}]\n{excerpt}{'...' if len(s.get('content_excerpt', '')) > 500 else ''}")
         scenes_block = "\n\n".join(parts)
     else:
         scenes_block = "(no scenes tagged to this thread yet)"
@@ -285,7 +292,7 @@ def build_arc_analysis_prompt(
     character: Character,
     story_title: str,
     story_context: str,
-    scenes: list[dict],   # [{"id", "title", "content_excerpt"}]
+    scenes: list[dict],  # [{"id", "title", "content_excerpt"}]
 ) -> str:
     """Structured JSON prompt to analyze a character arc's trajectory and health."""
     milestones_block = ""
@@ -315,7 +322,7 @@ def build_arc_analysis_prompt(
         parts = []
         for s in scenes:
             excerpt = s.get("content_excerpt", "")[:500]
-            parts.append(f"[{s['title']}]\n{excerpt}{'...' if len(s.get('content_excerpt','')) > 500 else ''}")
+            parts.append(f"[{s['title']}]\n{excerpt}{'...' if len(s.get('content_excerpt', '')) > 500 else ''}")
         scenes_block = "\n\n".join(parts)
     else:
         scenes_block = "(no scenes featuring this character yet)"
@@ -793,15 +800,14 @@ Rules:
 - confidence is a float 0.0–1.0"""
 
 
-
 def build_first_pass_prompt(
     story_title: str,
     story_intent: str | None,
     story_goals: list[str],
     genre: str | None,
     tone: str | None,
-    characters_summary: list[str],   # ["Name (role): arc description, pending milestones"]
-    scenes_info: list[str],          # ["[Scene Title] (N words, status): synopsis"]
+    characters_summary: list[str],  # ["Name (role): arc description, pending milestones"]
+    scenes_info: list[str],  # ["[Scene Title] (N words, status): synopsis"]
     total_words: int,
 ) -> str:
     """Prompt for the first-pass editor: compare prose against stated intent."""
@@ -880,10 +886,7 @@ def build_cliche_analysis_prompt(
 
     genre_line = f"Genre: {genre}." if genre else ""
     tone_line = f"Tone: {tone}." if tone else ""
-    scenes_block = "\n\n".join(
-        f"[SCENE: {s['title']} | id: {s['id']}]\n{s['content'][:2000]}"
-        for s in scenes
-    )
+    scenes_block = "\n\n".join(f"[SCENE: {s['title']} | id: {s['id']}]\n{s['content'][:2000]}" for s in scenes)
 
     return f"""You are a developmental editor analyzing prose from "{story_title}" for clichéd language and patterns.
 
@@ -1059,15 +1062,15 @@ def build_discovery_questions_prompt(
     if focus_area == "character":
         name = entity_data.get("name", "this character")
         entity_block = f"""CHARACTER: {name}
-Role: {entity_data.get('role', '')}
-Mission/goal: {entity_data.get('mission_statement', '')}
-Personality: {entity_data.get('personality', '')}
-Motivation: {entity_data.get('motivation', '')}
-Background: {entity_data.get('background', '')}
-Appearance: {entity_data.get('appearance', '')}
-Arc notes: {entity_data.get('arc_notes', '')}
-Narrative intent: {entity_data.get('narrative_intent', '')}
-Traits: {', '.join(f'{k}: {v}' for k, v in (entity_data.get('traits') or {}).items() if v)}"""
+Role: {entity_data.get("role", "")}
+Mission/goal: {entity_data.get("mission_statement", "")}
+Personality: {entity_data.get("personality", "")}
+Motivation: {entity_data.get("motivation", "")}
+Background: {entity_data.get("background", "")}
+Appearance: {entity_data.get("appearance", "")}
+Arc notes: {entity_data.get("arc_notes", "")}
+Narrative intent: {entity_data.get("narrative_intent", "")}
+Traits: {", ".join(f"{k}: {v}" for k, v in (entity_data.get("traits") or {}).items() if v)}"""
         area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
 - backstory: Origins, formative experiences, family dynamics, what shaped their worldview
 - motivation: Goals, fears, contradictions, what they would sacrifice and why
@@ -1079,14 +1082,14 @@ Traits: {', '.join(f'{k}: {v}' for k, v in (entity_data.get('traits') or {}).ite
     elif focus_area == "location":
         name = entity_data.get("name", "this location")
         entity_block = f"""LOCATION: {name}
-Type: {entity_data.get('location_type', '')}
-Climate: {entity_data.get('climate', '')}
-Terrain: {entity_data.get('terrain', '')}
-Description: {entity_data.get('description', '')}
-Atmosphere: {entity_data.get('atmosphere', '')}
-History: {entity_data.get('history', '')}
-Significance: {entity_data.get('significance', '')}
-Political affiliation: {entity_data.get('political_affiliation', '')}"""
+Type: {entity_data.get("location_type", "")}
+Climate: {entity_data.get("climate", "")}
+Terrain: {entity_data.get("terrain", "")}
+Description: {entity_data.get("description", "")}
+Atmosphere: {entity_data.get("atmosphere", "")}
+History: {entity_data.get("history", "")}
+Significance: {entity_data.get("significance", "")}
+Political affiliation: {entity_data.get("political_affiliation", "")}"""
         area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
 - sensory: What does it look, smell, sound, feel like at different times of day or season?
 - economy: What sustains this place? What do people do here for work and trade?
@@ -1098,12 +1101,12 @@ Political affiliation: {entity_data.get('political_affiliation', '')}"""
     elif focus_area == "scene":
         name = entity_data.get("title", "this scene")
         entity_block = f"""SCENE: {name}
-Synopsis: {entity_data.get('synopsis', '')}
-Entry state: {entity_data.get('entry_state', '')}
-Exit state: {entity_data.get('exit_state', '')}
-Key events: {', '.join(entity_data.get('key_events') or [])}
-POV character: {entity_data.get('pov_character', '')}
-Status: {entity_data.get('status', '')}"""
+Synopsis: {entity_data.get("synopsis", "")}
+Entry state: {entity_data.get("entry_state", "")}
+Exit state: {entity_data.get("exit_state", "")}
+Key events: {", ".join(entity_data.get("key_events") or [])}
+POV character: {entity_data.get("pov_character", "")}
+Status: {entity_data.get("status", "")}"""
         area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
 - purpose: What must this scene accomplish? What changes by the end? What cannot be cut?
 - stakes: What is genuinely at risk? What happens if the protagonist fails here?
@@ -1115,13 +1118,13 @@ Status: {entity_data.get('status', '')}"""
     else:  # story
         name = entity_data.get("title", "this story")
         entity_block = f"""STORY: {name}
-Genre: {entity_data.get('genre', '')}
-Tone: {entity_data.get('tone', '')}
-Themes: {', '.join(entity_data.get('themes') or [])}
-Central conflict: {entity_data.get('central_conflict', '')}
-Logline: {entity_data.get('logline', '')}
-Premise: {entity_data.get('premise', '')}
-Narrative intent: {entity_data.get('narrative_intent', '')}"""
+Genre: {entity_data.get("genre", "")}
+Tone: {entity_data.get("tone", "")}
+Themes: {", ".join(entity_data.get("themes") or [])}
+Central conflict: {entity_data.get("central_conflict", "")}
+Logline: {entity_data.get("logline", "")}
+Premise: {entity_data.get("premise", "")}
+Narrative intent: {entity_data.get("narrative_intent", "")}"""
         area_guidance = """AREAS TO PROBE (choose the most underdeveloped):
 - thematic clarity: What is this story fundamentally about at its deepest level?
 - promise: What does the opening promise the reader? Is that promise being kept?
@@ -1137,9 +1140,9 @@ Story: "{story_title}"
 
 {entity_block}
 
-DEVELOPMENT STAGE: {richness_meta['label']}
-{richness_meta['instruction']}
-Question depth: {richness_meta['depth']}
+DEVELOPMENT STAGE: {richness_meta["label"]}
+{richness_meta["instruction"]}
+Question depth: {richness_meta["depth"]}
 
 {area_guidance}
 
@@ -1163,7 +1166,7 @@ Generate 3-5 discovery questions. Respond with this exact JSON schema:
     }}
   ],
   "focus_area": "{focus_area}",
-  "entity_name": "{entity_data.get('name', entity_data.get('title', 'Unknown'))}",
+  "entity_name": "{entity_data.get("name", entity_data.get("title", "Unknown"))}",
   "observation": "One sentence noting what seems most underdeveloped or unexplored about this {focus_area}"
 }}
 
@@ -1176,6 +1179,7 @@ Rules:
 
 
 # ── Character Dimensionality ──────────────────────────────────────────────────
+
 
 def build_character_dimensionality_prompt(
     story_title: str,
@@ -1216,24 +1220,23 @@ ROLE EXPECTATIONS — score dimensionality relative to story importance:
         milestones_block = ""
         if char.get("arc_milestones"):
             m_lines = "\n".join(
-                f"  - {'[x]' if m.get('completed') else '[ ]'} {m.get('text', '')}"
-                for m in char["arc_milestones"][:10]
+                f"  - {'[x]' if m.get('completed') else '[ ]'} {m.get('text', '')}" for m in char["arc_milestones"][:10]
             )
             milestones_block = f"Arc milestones:\n{m_lines}"
 
-        char_block = f"""CHARACTER: {char.get('name', 'Unknown')}
-Role: {char.get('role', '')}
-Personality: {char.get('personality', '')}
-Motivation: {char.get('motivation', '')}
-Background: {char.get('background', '')}
-Appearance: {char.get('appearance', '')}
-Arc notes: {char.get('arc_notes', '')}
-Narrative intent: {char.get('narrative_intent', '')}
-Mission statement: {char.get('mission_statement', '')}
-Snowflake summary: {char.get('snowflake_summary', '')}
-Snowflake synopsis: {char.get('snowflake_synopsis', '')}
-Traits: {', '.join(f"{k}: {v}" for k, v in (char.get('traits') or {}).items() if v)}
-Scenes featuring this character: {char.get('scene_count', 0)}
+        char_block = f"""CHARACTER: {char.get("name", "Unknown")}
+Role: {char.get("role", "")}
+Personality: {char.get("personality", "")}
+Motivation: {char.get("motivation", "")}
+Background: {char.get("background", "")}
+Appearance: {char.get("appearance", "")}
+Arc notes: {char.get("arc_notes", "")}
+Narrative intent: {char.get("narrative_intent", "")}
+Mission statement: {char.get("mission_statement", "")}
+Snowflake summary: {char.get("snowflake_summary", "")}
+Snowflake synopsis: {char.get("snowflake_synopsis", "")}
+Traits: {", ".join(f"{k}: {v}" for k, v in (char.get("traits") or {}).items() if v)}
+Scenes featuring this character: {char.get("scene_count", 0)}
 {relationships_block}
 {milestones_block}"""
 
@@ -1255,9 +1258,10 @@ Scenes featuring this character: {char.get('scene_count', 0)}
         char_block = "CHARACTERS:\n" + "\n".join(char_lines)
 
     ensemble_instruction = (
-        "" if single_character
+        ""
+        if single_character
         else '\n  "cast_balance": "Assessment of whether character development matches their role importance",'
-             '\n  "ensemble_dynamics": "How well characters contrast, complement, and complicate each other",'
+        '\n  "ensemble_dynamics": "How well characters contrast, complement, and complicate each other",'
     )
 
     return f"""You are a character analyst working on the story "{story_title}".
@@ -1300,6 +1304,7 @@ Rules:
 
 
 # ── Voice Fidelity ─────────────────────────────────────────────────────────────
+
 
 def build_voice_fidelity_prompt(
     character_name: str,

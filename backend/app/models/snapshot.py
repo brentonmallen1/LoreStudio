@@ -1,13 +1,15 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Boolean, Integer, DateTime, ForeignKey, JSON, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .user import User
-
 
 
 class StorySnapshot(Base):
@@ -24,7 +26,7 @@ class StorySnapshot(Base):
     data: Mapped[dict] = mapped_column(JSON, nullable=False)
     summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     delta_summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     story: Mapped["Story"] = relationship("Story", back_populates="snapshots")
     base_snapshot: Mapped["StorySnapshot | None"] = relationship(

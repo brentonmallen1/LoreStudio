@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { RefreshCw, CheckCircle2, Circle, AlertTriangle, TrendingUp, Users, GitBranch, Target, BookMarked, Activity, MessageSquare, Snowflake, ScrollText } from "lucide-react";
+import {
+  RefreshCw,
+  CheckCircle2,
+  Circle,
+  AlertTriangle,
+  TrendingUp,
+  Users,
+  GitBranch,
+  Target,
+  BookMarked,
+  Activity,
+  MessageSquare,
+  Snowflake,
+  ScrollText,
+} from "lucide-react";
 import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import { api } from "../api/client";
 import type { StoryHealth, PlotThread, DialogueStats, DialogueInteraction } from "../types";
@@ -30,14 +44,20 @@ function WordBar({ label, value, max, color }: { label: string; value: number; m
 function _formatAge(iso: string): string {
   const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
   const diffH = diffMs / (1000 * 60 * 60);
-  if (diffH < 1) { const mins = Math.round(diffMs / 60000); return mins <= 0 ? "just now" : `${mins}m ago`; }
+  if (diffH < 1) {
+    const mins = Math.round(diffMs / 60000);
+    return mins <= 0 ? "just now" : `${mins}m ago`;
+  }
   if (diffH < 24) return `${Math.round(diffH)}h ago`;
   return `${Math.round(diffH / 24)}d ago`;
 }
 
 function flattenNodes(nodes: import("../types").StructureNode[]): import("../types").StructureNode[] {
   const out: import("../types").StructureNode[] = [];
-  function walk(n: import("../types").StructureNode) { out.push(n); n.children.forEach(walk); }
+  function walk(n: import("../types").StructureNode) {
+    out.push(n);
+    n.children.forEach(walk);
+  }
   nodes.forEach(walk);
   return out;
 }
@@ -50,7 +70,7 @@ export default function StoryHealthPage() {
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const beatSheet = activeStory?.beat_sheet_id
-    ? (beatSheets.find(s => s.id === activeStory.beat_sheet_id) ?? null)
+    ? (beatSheets.find((s) => s.id === activeStory.beat_sheet_id) ?? null)
     : null;
   const [threads, setThreads] = useState<PlotThread[]>([]);
   const [dialogueStats, setDialogueStats] = useState<DialogueStats | null>(null);
@@ -62,28 +82,34 @@ export default function StoryHealthPage() {
     if (!storyId) return;
     setLoading(true);
     try {
-      const [h, t] = await Promise.all([
-        api.getStoryHealth(storyId),
-        api.listThreads(storyId),
-      ]);
+      const [h, t] = await Promise.all([api.getStoryHealth(storyId), api.listThreads(storyId)]);
       setHealth(h);
       setThreads(t);
     } finally {
       setLoading(false);
     }
-    api.getDialogueStats(storyId).then(setDialogueStats).catch(() => {});
-    api.getDialogueInteractions(storyId).then(setDialogueInteractions).catch(() => {});
+    api
+      .getDialogueStats(storyId)
+      .then(setDialogueStats)
+      .catch(() => {});
+    api
+      .getDialogueInteractions(storyId)
+      .then(setDialogueInteractions)
+      .catch(() => {});
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
-
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleAnalysisComplete = useCallback(() => {
     setAnalysisVersion((v) => v + 1);
   }, []);
 
   const assignedBeatIds = new Set(
-    flattenNodes(structure).map(n => n.beat_id).filter(Boolean) as string[]
+    flattenNodes(structure)
+      .map((n) => n.beat_id)
+      .filter(Boolean) as string[],
   );
 
   if (loading) return <div className={styles.loading}>Computing health…</div>;
@@ -140,18 +166,27 @@ export default function StoryHealthPage() {
 
       {/* Analysis action toolbar — dashboard and reports only */}
       {storyId && view !== "maintenance" && view !== "editor" && (
-        <ActionToolbar storyId={storyId} onAnalysisComplete={handleAnalysisComplete} onViewReports={() => setView("reports")} />
+        <ActionToolbar
+          storyId={storyId}
+          onAnalysisComplete={handleAnalysisComplete}
+          onViewReports={() => setView("reports")}
+        />
       )}
 
       {view === "maintenance" ? (
-        storyId ? <MaintenanceView storyId={storyId} /> : null
+        storyId ? (
+          <MaintenanceView storyId={storyId} />
+        ) : null
       ) : view === "reports" ? (
-        storyId ? <ReportsView storyId={storyId} key={analysisVersion} /> : null
+        storyId ? (
+          <ReportsView storyId={storyId} key={analysisVersion} />
+        ) : null
       ) : view === "editor" ? (
-        storyId ? <EditorView storyId={storyId} /> : null
+        storyId ? (
+          <EditorView storyId={storyId} />
+        ) : null
       ) : (
         <div className={styles.grid}>
-
           {/* Word Count */}
           <section className={styles.card}>
             <div className={styles.cardHeader}>
@@ -161,15 +196,27 @@ export default function StoryHealthPage() {
             <p className={styles.bigStat}>{totalWords.toLocaleString()}</p>
             <p className={styles.bigStatSub}>total · {avgWords.toLocaleString()} avg / scene</p>
             <div className={styles.barList}>
-              <WordBar label="Draft" value={byStatus.draft ?? 0} max={totalWords} color="var(--color-text-muted)" />
-              <WordBar label="Revised" value={byStatus.revised ?? 0} max={totalWords} color="var(--color-accent)" />
-              <WordBar label="Final" value={byStatus.final ?? 0} max={totalWords} color="var(--color-success)" />
+              <WordBar
+                label="Draft"
+                value={byStatus.draft ?? 0}
+                max={totalWords}
+                color="var(--color-text-muted)"
+              />
+              <WordBar
+                label="Revised"
+                value={byStatus.revised ?? 0}
+                max={totalWords}
+                color="var(--color-accent)"
+              />
+              <WordBar
+                label="Final"
+                value={byStatus.final ?? 0}
+                max={totalWords}
+                color="var(--color-success)"
+              />
             </div>
             {health.word_count.target && (
-              <WordCountProgress
-                target={health.word_count.target}
-                intendedLength={health.intended_length}
-              />
+              <WordCountProgress target={health.word_count.target} intendedLength={health.intended_length} />
             )}
           </section>
 
@@ -186,11 +233,17 @@ export default function StoryHealthPage() {
                 <span className={styles.pillNum}>{sceneByStatus.draft ?? 0}</span>
                 <span className={styles.pillLabel}>Draft</span>
               </div>
-              <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-accent) 15%, transparent)" }}>
+              <div
+                className={styles.statusPill}
+                style={{ background: "color-mix(in srgb, var(--color-accent) 15%, transparent)" }}
+              >
                 <span className={styles.pillNum}>{sceneByStatus.revised ?? 0}</span>
                 <span className={styles.pillLabel}>Revised</span>
               </div>
-              <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}>
+              <div
+                className={styles.statusPill}
+                style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}
+              >
                 <span className={styles.pillNum}>{sceneByStatus.final ?? 0}</span>
                 <span className={styles.pillLabel}>Final</span>
               </div>
@@ -204,14 +257,22 @@ export default function StoryHealthPage() {
                 <ScrollText size={14} className={styles.cardIcon} />
                 <h3 className={styles.cardTitle}>Scene Summaries</h3>
               </div>
-              <p className={styles.bigStat}>{health.scene_summaries.fresh}/{health.scene_summaries.total}</p>
+              <p className={styles.bigStat}>
+                {health.scene_summaries.fresh}/{health.scene_summaries.total}
+              </p>
               <p className={styles.bigStatSub}>scenes summarized</p>
               <div className={styles.statusPills}>
-                <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}>
+                <div
+                  className={styles.statusPill}
+                  style={{ background: "color-mix(in srgb, var(--color-success) 15%, transparent)" }}
+                >
                   <span className={styles.pillNum}>{health.scene_summaries.fresh}</span>
                   <span className={styles.pillLabel}>Fresh</span>
                 </div>
-                <div className={styles.statusPill} style={{ background: "color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent)" }}>
+                <div
+                  className={styles.statusPill}
+                  style={{ background: "color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent)" }}
+                >
                   <span className={styles.pillNum}>{health.scene_summaries.stale}</span>
                   <span className={styles.pillLabel}>Stale</span>
                 </div>
@@ -238,15 +299,18 @@ export default function StoryHealthPage() {
               <p className={styles.emptyNote}>No goals set — add them in the Lorebook.</p>
             ) : (
               <>
-                <p className={styles.bigStat}>{health.goals.done}/{health.goals.total}</p>
+                <p className={styles.bigStat}>
+                  {health.goals.done}/{health.goals.total}
+                </p>
                 <p className={styles.bigStatSub}>goals completed</p>
                 <div className={styles.goalList}>
                   {health.goals.items.map((g) => (
                     <div key={g.id} className={`${styles.goalItem} ${g.completed ? styles.goalDone : ""}`}>
-                      {g.completed
-                        ? <CheckCircle2 size={12} style={{ color: "var(--color-success)", flexShrink: 0 }} />
-                        : <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-                      }
+                      {g.completed ? (
+                        <CheckCircle2 size={12} style={{ color: "var(--color-success)", flexShrink: 0 }} />
+                      ) : (
+                        <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                      )}
                       <span>{g.text}</span>
                     </div>
                   ))}
@@ -262,7 +326,9 @@ export default function StoryHealthPage() {
               <h3 className={styles.cardTitle}>Plot Threads</h3>
             </div>
             <p className={styles.bigStat}>{totalThreads}</p>
-            <p className={styles.bigStatSub}>{openThreads} open · {developingThreads} developing · {resolvedThreads} resolved</p>
+            <p className={styles.bigStatSub}>
+              {openThreads} open · {developingThreads} developing · {resolvedThreads} resolved
+            </p>
             <div className={styles.threadList}>
               {health.threads.open.map((t) => (
                 <div key={t.id} className={styles.threadItem}>
@@ -291,7 +357,7 @@ export default function StoryHealthPage() {
             )}
             {(() => {
               const thinResolved = health.threads.resolved.filter(
-                (t) => t.mice_type && t.try_fail_cycle_count < 2
+                (t) => t.mice_type && t.try_fail_cycle_count < 2,
               );
               return thinResolved.length > 0 ? (
                 <div className={styles.alertBanner}>
@@ -330,7 +396,7 @@ export default function StoryHealthPage() {
                     title={`Current: ${totalWords.toLocaleString()} words`}
                   />
                 )}
-                {beatSheet.beats.map(beat => (
+                {beatSheet.beats.map((beat) => (
                   <div
                     key={beat.id}
                     className={`${styles.beatMarker} ${assignedBeatIds.has(beat.id) ? styles.beatDone : ""}`}
@@ -340,14 +406,15 @@ export default function StoryHealthPage() {
                 ))}
               </div>
               <div className={styles.beatList}>
-                {beatSheet.beats.map(beat => {
+                {beatSheet.beats.map((beat) => {
                   const done = assignedBeatIds.has(beat.id);
                   return (
                     <div key={beat.id} className={`${styles.beatRow} ${done ? styles.beatRowDone : ""}`}>
-                      {done
-                        ? <CheckCircle2 size={12} style={{ color: "var(--color-accent)", flexShrink: 0 }} />
-                        : <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
-                      }
+                      {done ? (
+                        <CheckCircle2 size={12} style={{ color: "var(--color-accent)", flexShrink: 0 }} />
+                      ) : (
+                        <Circle size={12} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                      )}
                       <span className={styles.beatPct}>{beat.position_pct}%</span>
                       <span className={styles.beatName}>{beat.name}</span>
                     </div>
@@ -367,7 +434,8 @@ export default function StoryHealthPage() {
               <div className={styles.alertBanner}>
                 <AlertTriangle size={13} />
                 <span>
-                  {health.absent_characters.join(", ")} {health.absent_characters.length === 1 ? "hasn't" : "haven't"} appeared in recent scenes
+                  {health.absent_characters.join(", ")}{" "}
+                  {health.absent_characters.length === 1 ? "hasn't" : "haven't"} appeared in recent scenes
                 </span>
               </div>
             )}
@@ -398,11 +466,15 @@ export default function StoryHealthPage() {
                     </div>
                     {/* Row 3: scenes · [absent] · arc bar */}
                     <div className={styles.charRow3}>
-                      <span className={styles.charStat}>{c.scene_appearances} scene{c.scene_appearances !== 1 ? "s" : ""}</span>
+                      <span className={styles.charStat}>
+                        {c.scene_appearances} scene{c.scene_appearances !== 1 ? "s" : ""}
+                      </span>
                       {c.recent_appearances === 0 && c.scene_appearances > 0 && (
                         <>
                           <span className={styles.charSep}>·</span>
-                          <span className={styles.charAbsent}><AlertTriangle size={9} /> absent</span>
+                          <span className={styles.charAbsent}>
+                            <AlertTriangle size={9} /> absent
+                          </span>
                         </>
                       )}
                       {c.arc_milestones_total > 0 && (
@@ -441,42 +513,54 @@ export default function StoryHealthPage() {
           )}
 
           {/* Snowflake Progress */}
-          {activeStory && (activeStory.snowflake_sentence || activeStory.snowflake_paragraph || activeStory.snowflake_synopsis) && (() => {
-            const storyLayers = [
-              { label: "One-Sentence", done: activeStory.snowflake_sentence.trim().length > 0 },
-              { label: "One-Paragraph", done: activeStory.snowflake_paragraph.trim().length > 0 },
-              { label: "One-Page Synopsis", done: activeStory.snowflake_synopsis.trim().length > 0 },
-            ];
-            const charSummaryDone = characters.length > 0 && characters.every((c) => c.snowflake_summary.trim().length > 0);
-            const charSynopsisDone = characters.length > 0 && characters.every((c) => c.snowflake_synopsis.trim().length > 0);
-            const allLayers = [
-              ...storyLayers,
-              { label: `Character Summaries (${characters.filter((c) => c.snowflake_summary.trim().length > 0).length}/${characters.length})`, done: charSummaryDone },
-              { label: `Character Synopses (${characters.filter((c) => c.snowflake_synopsis.trim().length > 0).length}/${characters.length})`, done: charSynopsisDone },
-            ];
-            const completedCount = allLayers.filter((l) => l.done).length;
-            return (
-              <section className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <Snowflake size={14} className={styles.cardIcon} />
-                  <h3 className={styles.cardTitle}>Snowflake Progress</h3>
-                </div>
-                <p className={styles.bigStatSub} style={{ marginBottom: "0.75rem" }}>
-                  {completedCount}/{allLayers.length} layers complete
-                </p>
-                <div className={styles.beatList}>
-                  {allLayers.map((layer) => (
-                    <div key={layer.label} className={styles.beatItem}>
-                      <span className={layer.done ? styles.beatAssigned : styles.beatUnassigned}>
-                        {layer.done ? <CheckCircle2 size={12} /> : <Circle size={12} />}
-                      </span>
-                      <span className={styles.beatName}>{layer.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            );
-          })()}
+          {activeStory &&
+            (activeStory.snowflake_sentence ||
+              activeStory.snowflake_paragraph ||
+              activeStory.snowflake_synopsis) &&
+            (() => {
+              const storyLayers = [
+                { label: "One-Sentence", done: activeStory.snowflake_sentence.trim().length > 0 },
+                { label: "One-Paragraph", done: activeStory.snowflake_paragraph.trim().length > 0 },
+                { label: "One-Page Synopsis", done: activeStory.snowflake_synopsis.trim().length > 0 },
+              ];
+              const charSummaryDone =
+                characters.length > 0 && characters.every((c) => c.snowflake_summary.trim().length > 0);
+              const charSynopsisDone =
+                characters.length > 0 && characters.every((c) => c.snowflake_synopsis.trim().length > 0);
+              const allLayers = [
+                ...storyLayers,
+                {
+                  label: `Character Summaries (${characters.filter((c) => c.snowflake_summary.trim().length > 0).length}/${characters.length})`,
+                  done: charSummaryDone,
+                },
+                {
+                  label: `Character Synopses (${characters.filter((c) => c.snowflake_synopsis.trim().length > 0).length}/${characters.length})`,
+                  done: charSynopsisDone,
+                },
+              ];
+              const completedCount = allLayers.filter((l) => l.done).length;
+              return (
+                <section className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <Snowflake size={14} className={styles.cardIcon} />
+                    <h3 className={styles.cardTitle}>Snowflake Progress</h3>
+                  </div>
+                  <p className={styles.bigStatSub} style={{ marginBottom: "0.75rem" }}>
+                    {completedCount}/{allLayers.length} layers complete
+                  </p>
+                  <div className={styles.beatList}>
+                    {allLayers.map((layer) => (
+                      <div key={layer.label} className={styles.beatItem}>
+                        <span className={layer.done ? styles.beatAssigned : styles.beatUnassigned}>
+                          {layer.done ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+                        </span>
+                        <span className={styles.beatName}>{layer.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
 
           {/* Dialogue Stats */}
           {dialogueStats && dialogueStats.total_blocks > 0 && (
@@ -489,22 +573,37 @@ export default function StoryHealthPage() {
               {dialogueStats.unattributed > 0 && (
                 <div className={styles.alertBanner}>
                   <AlertTriangle size={13} />
-                  <span>{dialogueStats.unattributed} unattributed dialogue line{dialogueStats.unattributed !== 1 ? "s" : ""} — consider adding <code>@Name: "..."</code> attribution</span>
+                  <span>
+                    {dialogueStats.unattributed} unattributed dialogue line
+                    {dialogueStats.unattributed !== 1 ? "s" : ""} — consider adding <code>@Name: "..."</code>{" "}
+                    attribution
+                  </span>
                 </div>
               )}
               {dialogueStats.balance_score !== null && dialogueStats.by_character.length >= 2 && (
                 <div className={styles.barRow} style={{ marginBottom: "2px" }}>
-                  <span className={styles.barLabel} style={{ color: "var(--color-text-subtle)", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.04em" }}>Balance</span>
+                  <span
+                    className={styles.barLabel}
+                    style={{
+                      color: "var(--color-text-subtle)",
+                      fontSize: "9px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    Balance
+                  </span>
                   <div className={styles.barTrack}>
                     <div
                       className={styles.barFill}
                       style={{
                         width: `${dialogueStats.balance_score}%`,
-                        background: dialogueStats.balance_score >= 70
-                          ? "var(--color-success)"
-                          : dialogueStats.balance_score >= 45
-                            ? "var(--color-warning)"
-                            : "var(--color-error, #ef4444)",
+                        background:
+                          dialogueStats.balance_score >= 70
+                            ? "var(--color-success)"
+                            : dialogueStats.balance_score >= 45
+                              ? "var(--color-warning)"
+                              : "var(--color-error, #ef4444)",
                       }}
                     />
                   </div>
@@ -519,7 +618,10 @@ export default function StoryHealthPage() {
                     <div key={c.speaker_name} className={styles.barRow}>
                       <span className={styles.barLabel}>{c.speaker_name}</span>
                       <div className={styles.barTrack}>
-                        <div className={styles.barFill} style={{ width: `${pct}%`, background: "var(--color-accent)" }} />
+                        <div
+                          className={styles.barFill}
+                          style={{ width: `${pct}%`, background: "var(--color-accent)" }}
+                        />
                       </div>
                       <span className={styles.barValue}>{c.word_count.toLocaleString()} w</span>
                     </div>
@@ -531,9 +633,16 @@ export default function StoryHealthPage() {
                   <p className={styles.interactionsLabel}>Top interactions</p>
                   <div className={styles.interactionsList}>
                     {dialogueInteractions.slice(0, 6).map((pair) => (
-                      <div key={`${pair.character_a_id}-${pair.character_b_id}`} className={styles.interactionPair}>
-                        <span className={styles.interactionNames}>{pair.character_a_name} ↔ {pair.character_b_name}</span>
-                        <span className={styles.interactionCount}>{pair.scene_count} scene{pair.scene_count !== 1 ? "s" : ""}</span>
+                      <div
+                        key={`${pair.character_a_id}-${pair.character_b_id}`}
+                        className={styles.interactionPair}
+                      >
+                        <span className={styles.interactionNames}>
+                          {pair.character_a_name} ↔ {pair.character_b_name}
+                        </span>
+                        <span className={styles.interactionCount}>
+                          {pair.scene_count} scene{pair.scene_count !== 1 ? "s" : ""}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -541,7 +650,6 @@ export default function StoryHealthPage() {
               )}
             </section>
           )}
-
         </div>
       )}
     </div>

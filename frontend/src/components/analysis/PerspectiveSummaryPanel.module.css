@@ -50,7 +50,9 @@
   border: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .modeBtn.modeActive {
@@ -85,7 +87,9 @@
   color: var(--color-ai-fg);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .generateBtn:hover:not(:disabled) {

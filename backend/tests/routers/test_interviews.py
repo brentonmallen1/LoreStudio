@@ -10,14 +10,13 @@ DELETE /api/interviews/{id}                     — delete
 """
 
 import uuid
-import pytest
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models.story import Story
 from app.models.character import Character
 from app.models.interview import CharacterInterview
-from tests.fixtures.ai_fixtures import SAMPLE_STREAM_TEXT
+from app.models.story import Story
 
 
 def _story(user_id: str) -> Story:
@@ -66,8 +65,8 @@ class TestStartInterview:
         assert response.status_code == 404
 
     def test_requires_auth(self, db_session: Session, test_user):
-        from app.main import app
         from app.database import get_db
+        from app.main import app
 
         story = _story(test_user.id)
         char = _character(story.id)
@@ -191,10 +190,13 @@ class TestSummarizeInterview:
         mock_ai_gateway(stream_text="Summary: Maya is thoughtful and guarded.")
         story = _story(test_user.id)
         char = _character(story.id)
-        interview = _interview(char.id, messages=[
-            {"role": "user", "content": "Hello"},
-            {"role": "assistant", "content": "Hi there"},
-        ])
+        interview = _interview(
+            char.id,
+            messages=[
+                {"role": "user", "content": "Hello"},
+                {"role": "assistant", "content": "Hi there"},
+            ],
+        )
         db_session.add_all([story, char, interview])
         db_session.commit()
 
@@ -206,10 +208,13 @@ class TestSummarizeInterview:
         mock_ai_gateway(stream_text="Character notes: brave.")
         story = _story(test_user.id)
         char = _character(story.id)
-        interview = _interview(char.id, messages=[
-            {"role": "user", "content": "Q"},
-            {"role": "assistant", "content": "A"},
-        ])
+        interview = _interview(
+            char.id,
+            messages=[
+                {"role": "user", "content": "Q"},
+                {"role": "assistant", "content": "A"},
+            ],
+        )
         db_session.add_all([story, char, interview])
         db_session.commit()
 
@@ -231,15 +236,14 @@ class TestSummarizeInterview:
 
 
 class TestCompactInterview:
-    def test_compaction_requires_enough_messages(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
+    def test_compaction_requires_enough_messages(
+        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
+    ):
         mock_ai_gateway()
         story = _story(test_user.id)
         char = _character(story.id)
         # Only 3 messages — below the 10 threshold
-        interview = _interview(char.id, messages=[
-            {"role": "user", "content": f"msg {i}"}
-            for i in range(3)
-        ])
+        interview = _interview(char.id, messages=[{"role": "user", "content": f"msg {i}"} for i in range(3)])
         db_session.add_all([story, char, interview])
         db_session.commit()
 
@@ -247,15 +251,14 @@ class TestCompactInterview:
         assert response.status_code == 400
         assert "messages to compact" in response.json()["detail"]
 
-    def test_compaction_reduces_message_count(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
+    def test_compaction_reduces_message_count(
+        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
+    ):
         mock_ai_gateway(stream_text="Compacted: early conversation about names and backstory.")
         story = _story(test_user.id)
         char = _character(story.id)
         # 12 messages — above threshold
-        messages = [
-            {"role": "user" if i % 2 == 0 else "assistant", "content": f"Message {i}"}
-            for i in range(12)
-        ]
+        messages = [{"role": "user" if i % 2 == 0 else "assistant", "content": f"Message {i}"} for i in range(12)]
         interview = _interview(char.id, messages=messages)
         db_session.add_all([story, char, interview])
         db_session.commit()

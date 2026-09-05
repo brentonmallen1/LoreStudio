@@ -12,27 +12,30 @@ import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import type { StoryGoal } from "../../types";
 import styles from "./StoryIdentityPanel.module.css";
 
-const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
+const LENGTH_OPTIONS = [
+  "",
+  "flash_fiction",
+  "short_story",
+  "novelette",
+  "novella",
+  "novel",
+  "epic_saga",
+  "series",
+] as const;
 
 const LENGTH_LABELS: Record<string, string> = {
   "": "Not specified",
-  "flash_fiction": "Flash Fiction (<1K words)",
-  "short_story": "Short Story (1K–7.5K words)",
-  "novelette": "Novelette (7.5K–17.5K words)",
-  "novella": "Novella (17.5K–40K words)",
-  "novel": "Novel (40K–100K words)",
-  "epic_saga": "Epic / Saga (100K+ words)",
-  "series": "Series (multi-book)",
+  flash_fiction: "Flash Fiction (<1K words)",
+  short_story: "Short Story (1K–7.5K words)",
+  novelette: "Novelette (7.5K–17.5K words)",
+  novella: "Novella (17.5K–40K words)",
+  novel: "Novel (40K–100K words)",
+  epic_saga: "Epic / Saga (100K+ words)",
+  series: "Series (multi-book)",
 };
 
 // ── Theme tag input ────────────────────────────────────────────────────────
-function ThemeInput({
-  themes,
-  onChange,
-}: {
-  themes: string[];
-  onChange: (t: string[]) => void;
-}) {
+function ThemeInput({ themes, onChange }: { themes: string[]; onChange: (t: string[]) => void }) {
   const [input, setInput] = useState("");
 
   function addTheme() {
@@ -160,9 +163,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
   return (
     <>
       <div className={styles.goalList}>
-        {goals.length === 0 && (
-          <p className={styles.emptyGoals}>No goals yet. Add one below.</p>
-        )}
+        {goals.length === 0 && <p className={styles.emptyGoals}>No goals yet. Add one below.</p>}
         {goals.map((g) => (
           <div
             key={g.id}
@@ -171,7 +172,10 @@ function GoalsPanel({ storyId }: { storyId: string }) {
             onDragStart={() => onDragStart(g.id)}
             onDragOver={(e) => onDragOver(e, g.id)}
             onDrop={(e) => onDrop(e, g.id)}
-            onDragEnd={() => { setDraggedId(null); setDragOverId(null); }}
+            onDragEnd={() => {
+              setDraggedId(null);
+              setDragOverId(null);
+            }}
           >
             <span className={styles.goalDragHandle} title="Drag to reorder">
               <GripVertical size={12} />
@@ -202,19 +206,11 @@ function GoalsPanel({ storyId }: { storyId: string }) {
             )}
             <div className={styles.goalActions}>
               {editingId !== g.id && (
-                <button
-                  className={styles.goalEditBtn}
-                  onClick={() => startEdit(g)}
-                  aria-label="Edit goal"
-                >
+                <button className={styles.goalEditBtn} onClick={() => startEdit(g)} aria-label="Edit goal">
                   <Pencil size={11} />
                 </button>
               )}
-              <button
-                className={styles.goalDelete}
-                onClick={() => removeGoal(g.id)}
-                aria-label="Delete goal"
-              >
+              <button className={styles.goalDelete} onClick={() => removeGoal(g.id)} aria-label="Delete goal">
                 <Trash2 size={11} />
               </button>
             </div>
@@ -304,7 +300,9 @@ function HeroStats(_props: { storyId: string }) {
           <div className={styles.heroStatDivider} />
           <div className={styles.heroStat}>
             <Check size={13} className={styles.heroStatIcon} />
-            <span className={styles.heroStatValue}>{completedGoals}/{goals.length}</span>
+            <span className={styles.heroStatValue}>
+              {completedGoals}/{goals.length}
+            </span>
             <span className={styles.heroStatLabel}>goals</span>
           </div>
         </>
@@ -422,7 +420,6 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
       </div>
 
       <div className={styles.scrollArea}>
-
         {/* ── Foundation ── */}
         <GroupLabel label="Foundation" description="What is this story?" />
 
@@ -436,9 +433,15 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           <div>
             <div className={styles.fieldLabelRow}>
               <p className={styles.subFieldLabel}>Logline</p>
-              <WorkshopBtn label="Workshop logline" message="I want to work on my logline." storyId={storyId} />
+              <WorkshopBtn
+                label="Workshop logline"
+                message="I want to work on my logline."
+                storyId={storyId}
+              />
             </div>
-            <p className={styles.fieldHint}>One sentence: who wants what, against what obstacle, with what at stake.</p>
+            <p className={styles.fieldHint}>
+              One sentence: who wants what, against what obstacle, with what at stake.
+            </p>
             <p className={styles.fieldPattern}>[Protagonist] must [goal] despite [obstacle], or [stakes]</p>
             <input
               value={fields.logline}
@@ -452,8 +455,12 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           </div>
           <div>
             <p className={styles.subFieldLabel}>Premise</p>
-            <p className={styles.fieldHint}>Expanded setup: the situation, the characters, and what's at stake.</p>
-            <p className={styles.fieldPattern}>In [setting], [protagonist with flaw] faces [problem] when [inciting incident]…</p>
+            <p className={styles.fieldHint}>
+              Expanded setup: the situation, the characters, and what's at stake.
+            </p>
+            <p className={styles.fieldPattern}>
+              In [setting], [protagonist with flaw] faces [problem] when [inciting incident]…
+            </p>
             <textarea
               value={fields.premise}
               onChange={(e) => update("premise", e.target.value)}
@@ -464,12 +471,24 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Narrative Intent" variant="intent" collapsed={!!collapsed.intent} onToggle={() => toggle("intent")}>
+        <SectionCard
+          title="Narrative Intent"
+          variant="intent"
+          collapsed={!!collapsed.intent}
+          onToggle={() => toggle("intent")}
+        >
           <div className={styles.fieldLabelRow}>
             <p className={styles.subFieldLabel}>Narrative Intent</p>
-            <WorkshopBtn label="Workshop intent" message="I'm trying to figure out what my story is really about — help me think through my narrative intent." storyId={storyId} />
+            <WorkshopBtn
+              label="Workshop intent"
+              message="I'm trying to figure out what my story is really about — help me think through my narrative intent."
+              storyId={storyId}
+            />
           </div>
-          <p className={styles.fieldHint}>What is this story about (meaning, not plot)? What question does it ask? What should the reader feel at the end?</p>
+          <p className={styles.fieldHint}>
+            What is this story about (meaning, not plot)? What question does it ask? What should the reader
+            feel at the end?
+          </p>
           <textarea
             value={fields.narrative_intent}
             onChange={(e) => update("narrative_intent", e.target.value)}
@@ -505,7 +524,9 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           </div>
           <div>
             <p className={styles.subFieldLabel}>Narrative Perspective</p>
-            <p className={styles.fieldHint}>Point of view for the story. Guides AI tools on voice and perspective.</p>
+            <p className={styles.fieldHint}>
+              Point of view for the story. Guides AI tools on voice and perspective.
+            </p>
             <select
               value={fields.narrative_perspective}
               onChange={(e) => update("narrative_perspective", e.target.value)}
@@ -518,7 +539,8 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               <option value="second_person">Second Person</option>
               <option value="multiple_pov">Multiple POV</option>
             </select>
-            {(fields.narrative_perspective === "first_person" || fields.narrative_perspective === "third_limited") && (
+            {(fields.narrative_perspective === "first_person" ||
+              fields.narrative_perspective === "third_limited") && (
               <div className={styles.subField}>
                 <p className={styles.subFieldLabel}>POV Character</p>
                 <select
@@ -528,7 +550,9 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
                 >
                   <option value="">Not specified</option>
                   {characters.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -542,20 +566,27 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
           <div>
             <p className={styles.subFieldLabel}>Intended Length</p>
-            <p className={styles.fieldHint}>Target form and word count range. Used by Story Health and AI tools.</p>
+            <p className={styles.fieldHint}>
+              Target form and word count range. Used by Story Health and AI tools.
+            </p>
             <select
               value={fields.intended_length}
               onChange={(e) => update("intended_length", e.target.value)}
               className={styles.input}
             >
               {LENGTH_OPTIONS.map((val) => (
-                <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
+                <option key={val} value={val}>
+                  {LENGTH_LABELS[val]}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <p className={styles.subFieldLabel}>Beat Sheet</p>
-            <p className={styles.fieldHint}>Optional story structure framework. Helps track where key beats fall relative to your word count.</p>
+            <p className={styles.fieldHint}>
+              Optional story structure framework. Helps track where key beats fall relative to your word
+              count.
+            </p>
             <BeatSheetSelector
               value={activeStory.beat_sheet_id}
               onChange={updateBeatSheet}
@@ -567,24 +598,35 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         {/* ── Substance ── */}
         <GroupLabel label="Substance" description="What's it really about?" />
 
-        <SectionCard title="Themes & Conflict" collapsed={!!collapsed.themes} onToggle={() => toggle("themes")}>
+        <SectionCard
+          title="Themes & Conflict"
+          collapsed={!!collapsed.themes}
+          onToggle={() => toggle("themes")}
+        >
           <div>
             <div className={styles.fieldLabelRow}>
               <p className={styles.subFieldLabel}>Themes</p>
-              <WorkshopBtn label="Explore themes" message="I want to explore the themes in my story." storyId={storyId} />
+              <WorkshopBtn
+                label="Explore themes"
+                message="I want to explore the themes in my story."
+                storyId={storyId}
+              />
             </div>
             <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
-            <ThemeInput
-              themes={fields.themes}
-              onChange={(t) => update("themes", t)}
-            />
+            <ThemeInput themes={fields.themes} onChange={(t) => update("themes", t)} />
           </div>
           <div>
             <div className={styles.fieldLabelRow}>
               <p className={styles.subFieldLabel}>Central Conflict</p>
-              <WorkshopBtn label="Workshop conflict" message="Help me think through my central conflict." storyId={storyId} />
+              <WorkshopBtn
+                label="Workshop conflict"
+                message="Help me think through my central conflict."
+                storyId={storyId}
+              />
             </div>
-            <p className={styles.fieldPattern}>[Character]'s need for [want] vs. [opposing force or internal flaw]</p>
+            <p className={styles.fieldPattern}>
+              [Character]'s need for [want] vs. [opposing force or internal flaw]
+            </p>
             <textarea
               value={fields.central_conflict}
               onChange={(e) => update("central_conflict", e.target.value)}
@@ -619,11 +661,15 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           onToggle={() => toggle("goals")}
           badge={
             goalsTotal > 0 ? (
-              <span className={styles.goalsBadge}>{goalsComplete}/{goalsTotal}</span>
+              <span className={styles.goalsBadge}>
+                {goalsComplete}/{goalsTotal}
+              </span>
             ) : undefined
           }
         >
-          <p className={styles.fieldHint}>Explicit goals to hit as you write. Drag to reorder, double-click to edit.</p>
+          <p className={styles.fieldHint}>
+            Explicit goals to hit as you write. Drag to reorder, double-click to edit.
+          </p>
           <GoalsPanel storyId={storyId} />
         </SectionCard>
 

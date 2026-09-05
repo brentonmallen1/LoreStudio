@@ -70,18 +70,33 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(chapter)
     db.flush()
     scene1 = StructureNode(
-        id=_uid(), story_id=sid, parent_id=chapter.id, title="Lamp", level=1, level_type="scene", position=0,
-        content='<p>"We should go," said Mara.</p>', pov_character_id=hero.id,
+        id=_uid(),
+        story_id=sid,
+        parent_id=chapter.id,
+        title="Lamp",
+        level=1,
+        level_type="scene",
+        position=0,
+        content='<p>"We should go," said Mara.</p>',
+        pov_character_id=hero.id,
         metadata_={"purpose": "setup", "inline_notes": [{"id": "n1", "note": "keep"}]},
     )
     scene2 = StructureNode(
-        id=_uid(), story_id=sid, parent_id=chapter.id, title="Storm", level=1, level_type="scene", position=1,
+        id=_uid(),
+        story_id=sid,
+        parent_id=chapter.id,
+        title="Storm",
+        level=1,
+        level_type="scene",
+        position=1,
         content="<p>Rain.</p>",
     )
     db.add_all([scene1, scene2])
     db.flush()
 
-    db.add(CharacterRelationship(id=_uid(), character_id=hero.id, related_character_id=foil.id, relationship_type="rival"))
+    db.add(
+        CharacterRelationship(id=_uid(), character_id=hero.id, related_character_id=foil.id, relationship_type="rival")
+    )
     db.add(CharacterInterview(id=_uid(), character_id=hero.id))
     db.add(CharacterJourneySummary(id=_uid(), character_id=hero.id, up_to_node_id=scene1.id, summary="So far"))
     db.add(DialogueBlock(id=_uid(), scene_id=scene1.id, character_id=hero.id, content="We should go"))
@@ -119,7 +134,12 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(PanelInterview(id=_uid(), story_id=sid))
 
     asset = StoryAsset(
-        id=_uid(), story_id=sid, user_id=user.id, original_filename="a.png", stored_path="x/a.png", mime_type="image/png"
+        id=_uid(),
+        story_id=sid,
+        user_id=user.id,
+        original_filename="a.png",
+        stored_path="x/a.png",
+        mime_type="image/png",
     )
     db.add(asset)
     db.flush()
@@ -153,6 +173,5 @@ def story_owned_tables(metadata) -> list[str]:
     from app.services.snapshot_service import SNAPSHOT_EXCLUDED_TABLES
 
     return sorted(
-        t.name for t in metadata.sorted_tables
-        if "story_id" in t.c and t.name not in SNAPSHOT_EXCLUDED_TABLES
+        t.name for t in metadata.sorted_tables if "story_id" in t.c and t.name not in SNAPSHOT_EXCLUDED_TABLES
     )

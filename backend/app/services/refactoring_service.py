@@ -6,7 +6,6 @@ Handles rename propagation: when a character or location is renamed, finds all
 """
 
 import re
-import uuid
 from typing import Literal
 
 from sqlalchemy.orm import Session
@@ -21,13 +20,13 @@ def _mention_pattern(entity_type: Literal["character", "location"], name: str) -
     if entity_type == "character":
         return rf'@{escaped}(?=[\s.,;:!?)"\'\\]]|$)'
     else:
-        return rf'\[\[{escaped}\]\]'
+        return rf"\[\[{escaped}\]\]"
 
 
 def _attribution_pattern(name: str) -> str:
     """Dialogue attribution pattern: "..."<Name>"""
     escaped = re.escape(name)
-    return rf'(<){escaped}(>)'
+    return rf"(<){escaped}(>)"
 
 
 def _count_occurrences(entity_type: Literal["character", "location"], name: str, content: str) -> int:
@@ -67,23 +66,21 @@ def preview_entity_rename(
     db: Session,
 ) -> list[RenamePreviewItem]:
     """Scan all scenes for occurrences of old_name mentions, return preview."""
-    nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id, StructureNode.content != "")
-        .all()
-    )
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id, StructureNode.content != "").all()
     results: list[RenamePreviewItem] = []
     for node in nodes:
         if not node.content:
             continue
         count = _count_occurrences(entity_type, old_name, node.content)
         if count > 0:
-            results.append(RenamePreviewItem(
-                node_id=node.id,
-                node_title=node.title or "(Untitled)",
-                occurrences=count,
-                excerpt=_extract_excerpt(entity_type, old_name, node.content),
-            ))
+            results.append(
+                RenamePreviewItem(
+                    node_id=node.id,
+                    node_title=node.title or "(Untitled)",
+                    occurrences=count,
+                    excerpt=_extract_excerpt(entity_type, old_name, node.content),
+                )
+            )
     return results
 
 
@@ -109,7 +106,7 @@ def apply_entity_rename(
             new_content = re.sub(pattern, f"@{new_name}", new_content)
             # Replace dialogue attribution <OldName> → <NewName>
             attr_pattern = _attribution_pattern(old_name)
-            new_content = re.sub(attr_pattern, rf'\g<1>{re.escape(new_name)}\g<2>', new_content)
+            new_content = re.sub(attr_pattern, rf"\g<1>{re.escape(new_name)}\g<2>", new_content)
         else:
             # Replace [[OldName]] → [[NewName]]
             new_content = re.sub(pattern, f"[[{new_name}]]", new_content)

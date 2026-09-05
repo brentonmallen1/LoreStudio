@@ -32,12 +32,22 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
   const typeLabel = ATTRIBUTE_TYPES.find((t) => t.value === type)?.label ?? type;
 
   const ATTR_SCHEMA: SectionConfig[] = [
-    { key: "suggestions", label: typeLabel, icon: Wand2, color: "var(--color-accent)", type: "sublist", labelField: "text", descField: "rationale" },
+    {
+      key: "suggestions",
+      label: typeLabel,
+      icon: Wand2,
+      color: "var(--color-accent)",
+      type: "sublist",
+      labelField: "text",
+      descField: "rationale",
+    },
   ];
 
-  const { sources: contextSources } = useLLMContextSources(
-    { context_type: "attributes", character_id: character.id, attribute_type: type }
-  );
+  const { sources: contextSources } = useLLMContextSources({
+    context_type: "attributes",
+    character_id: character.id,
+    attribute_type: type,
+  });
 
   async function generate() {
     setResult(null);
@@ -67,7 +77,14 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
     if (!text) text = result.raw_text ?? "";
     if (!text) return;
 
-    const field = type === "traits" ? "arc_notes" : type === "backstory" ? "background" : type === "appearance" ? "appearance" : "personality";
+    const field =
+      type === "traits"
+        ? "arc_notes"
+        : type === "backstory"
+          ? "background"
+          : type === "appearance"
+            ? "appearance"
+            : "personality";
     const existing = (character as unknown as Record<string, string>)[field] ?? "";
     const updated = await api.updateCharacter(character.id, {
       [field]: existing ? `${existing}\n\n[AI suggestions]:\n${text}` : text,
@@ -78,17 +95,23 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
 
   return (
     <>
-      <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
+      <LLMTransparencyModal
+        isOpen={transparency.isOpen}
+        onClose={transparency.close}
+        data={transparency.data}
+      />
       <div className={styles.panel}>
         <div className={styles.header}>
           <Compass size={14} className={styles.icon} />
           <span className={styles.title}>AI Attribute Suggestions</span>
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}
-            onClick={() => transparency.open(
-              { context_type: "attributes", character_id: character.id, attribute_type: type },
-              lastResultText.current,
-            )}
+            onClick={() =>
+              transparency.open(
+                { context_type: "attributes", character_id: character.id, attribute_type: type },
+                lastResultText.current,
+              )
+            }
           />
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={14} />
@@ -98,7 +121,9 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
         <div className={styles.controls}>
           <select value={type} onChange={(e) => setType(e.target.value)} className={styles.select}>
             {ATTRIBUTE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
           <button onClick={generate} disabled={generating} className={styles.generateBtn}>
@@ -115,7 +140,14 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
             <StructuredResponseRenderer result={result} schema={ATTR_SCHEMA} />
             <div className={styles.resultActions}>
               <button onClick={applyToField} className={styles.applyBtn}>
-                Apply to {type === "traits" ? "arc notes" : type === "backstory" ? "background" : type === "appearance" ? "appearance" : "personality"}
+                Apply to{" "}
+                {type === "traits"
+                  ? "arc notes"
+                  : type === "backstory"
+                    ? "background"
+                    : type === "appearance"
+                      ? "appearance"
+                      : "personality"}
               </button>
               <button onClick={generate} className={styles.regenerateBtn}>
                 Regenerate

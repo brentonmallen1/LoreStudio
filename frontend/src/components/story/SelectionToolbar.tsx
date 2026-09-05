@@ -14,7 +14,15 @@ interface Props {
   onClicheCoach?: () => void;
 }
 
-export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote, onAttributeDialogue, onAnalyzeShowTell, onAnalyzeAudience, onClicheCoach }: Props) {
+export default function SelectionToolbar({
+  selectionRect,
+  onOpenCoach,
+  onAddNote,
+  onAttributeDialogue,
+  onAnalyzeShowTell,
+  onAnalyzeAudience,
+  onClicheCoach,
+}: Props) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Keep toolbar position in sync with selectionRect
@@ -53,22 +61,14 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
         Writing Coach
       </button>
       <div className={styles.divider} />
-      <button
-        className={styles.btn}
-        onClick={onAddNote}
-        title="Add inline note (⌘⇧N)"
-      >
+      <button className={styles.btn} onClick={onAddNote} title="Add inline note (⌘⇧N)">
         <MessageSquare size={12} />
         Note
       </button>
       {onAnalyzeShowTell && (
         <>
           <div className={styles.divider} />
-          <button
-            className={styles.btn}
-            onClick={onAnalyzeShowTell}
-            title="Show Don't Tell analysis (⌘⇧T)"
-          >
+          <button className={styles.btn} onClick={onAnalyzeShowTell} title="Show Don't Tell analysis (⌘⇧T)">
             <Eye size={12} />
             Show/Tell
           </button>
@@ -77,11 +77,7 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
       {onAnalyzeAudience && (
         <>
           <div className={styles.divider} />
-          <button
-            className={styles.btn}
-            onClick={onAnalyzeAudience}
-            title="Check target audience fit (⌘⇧A)"
-          >
+          <button className={styles.btn} onClick={onAnalyzeAudience} title="Check target audience fit (⌘⇧A)">
             <Users size={12} />
             Audience
           </button>

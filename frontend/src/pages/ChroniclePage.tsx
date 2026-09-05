@@ -1,12 +1,34 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Search, MessageSquare, Activity, ChevronLeft, Trash2, Archive,
-  BookOpen, Users, GitBranch, Layers, Clock, RotateCcw, CheckSquare, Square, X, Star, Library, Feather,
+  Search,
+  MessageSquare,
+  Activity,
+  ChevronLeft,
+  Trash2,
+  Archive,
+  BookOpen,
+  Users,
+  GitBranch,
+  Layers,
+  Clock,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  X,
+  Star,
+  Library,
+  Feather,
 } from "lucide-react";
 import { api } from "../api/client";
 import { useAIStore } from "../stores/aiStore";
-import type { ChronicleSession, ChronicleSessionDetail, ActivityLog, ChronicleSearchResult, ChronicleMessage } from "../types";
+import type {
+  ChronicleSession,
+  ChronicleSessionDetail,
+  ActivityLog,
+  ChronicleSearchResult,
+  ChronicleMessage,
+} from "../types";
 import styles from "./ChroniclePage.module.css";
 
 // ── Helpers ────────────────────────────────────────────────────────────
@@ -15,9 +37,15 @@ type ViewTab = "chats" | "activity" | "summaries" | "search";
 
 // Features that surface in the Summaries tab
 const SUMMARY_FEATURES = [
-  "story-summary", "scene-summary", "structure-summary", "interview-summary",
-  "character-journey", "perspective-summary", "economy-analysis",
-  "story-recap", "brainstorm",
+  "story-summary",
+  "scene-summary",
+  "structure-summary",
+  "interview-summary",
+  "character-journey",
+  "perspective-summary",
+  "economy-analysis",
+  "story-recap",
+  "brainstorm",
 ].join(",");
 
 const CONTEXT_ICONS: Record<string, React.ReactNode> = {
@@ -80,16 +108,23 @@ function SessionCard({
     >
       <div
         className={`${styles.checkboxWrap} ${selectionActive ? styles.checkboxVisible : ""}`}
-        onClick={(e) => { e.stopPropagation(); onToggle(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
       >
-        {selected ? <CheckSquare size={15} className={styles.checkboxOn} /> : <Square size={15} className={styles.checkboxOff} />}
+        {selected ? (
+          <CheckSquare size={15} className={styles.checkboxOn} />
+        ) : (
+          <Square size={15} className={styles.checkboxOff} />
+        )}
       </div>
-      <div className={styles.cardIcon}>{CONTEXT_ICONS[session.context_type] ?? <MessageSquare size={12} />}</div>
+      <div className={styles.cardIcon}>
+        {CONTEXT_ICONS[session.context_type] ?? <MessageSquare size={12} />}
+      </div>
       <div className={styles.cardBody}>
         <p className={styles.cardTitle}>{sessionTitle(session)}</p>
-        {session.last_message_preview && (
-          <p className={styles.cardPreview}>{session.last_message_preview}</p>
-        )}
+        {session.last_message_preview && <p className={styles.cardPreview}>{session.last_message_preview}</p>}
         <p className={styles.cardMeta}>
           {session.message_count} {session.message_count === 1 ? "message" : "messages"}
           {" · "}
@@ -97,9 +132,15 @@ function SessionCard({
         </p>
       </div>
       <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
-        <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}><Feather size={13} /></button>
-        <button className={styles.iconBtn} title="Archive" onClick={onArchive}><Archive size={13} /></button>
-        <button className={`${styles.iconBtn} ${styles.danger}`} title="Delete" onClick={onDelete}><Trash2 size={13} /></button>
+        <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}>
+          <Feather size={13} />
+        </button>
+        <button className={styles.iconBtn} title="Archive" onClick={onArchive}>
+          <Archive size={13} />
+        </button>
+        <button className={`${styles.iconBtn} ${styles.danger}`} title="Delete" onClick={onDelete}>
+          <Trash2 size={13} />
+        </button>
       </div>
     </div>
   );
@@ -109,7 +150,7 @@ function SessionCard({
 
 const FEATURE_LABELS: Record<string, string> = {
   "scene-chat": "Scene Assistant",
-  "interview": "Character Interview",
+  interview: "Character Interview",
   "interview-summary": "Interview Summary",
   "panel-interview": "Group Interview",
   "story-summary": "Story Summary",
@@ -121,16 +162,19 @@ const FEATURE_LABELS: Record<string, string> = {
   "economy-analysis": "Economy Analysis",
   "story-recap": "Story Recap",
   "character-journey": "Character Journey",
-  "discovery": "Element Discovery",
+  discovery: "Element Discovery",
   "media-analysis": "Media Analysis",
-  "brainstorm": "What's Next? (Brainstorm)",
+  brainstorm: "What's Next? (Brainstorm)",
 };
 
 function featureLabel(log: ActivityLog): string {
   const feature = log.metadata_?.feature as string | undefined;
   if (feature && FEATURE_LABELS[feature]) return FEATURE_LABELS[feature];
   // Fall back to humanising the event_type
-  return log.event_type.replace(/^ai_/, "").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return log.event_type
+    .replace(/^ai_/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function LogCard({
@@ -183,7 +227,11 @@ function LogCard({
         {responsePreview && <p className={styles.cardPreview}>{responsePreview}</p>}
         <p className={styles.cardMeta}>
           {model && <span className={styles.badge}>{model}</span>}
-          {tokensIn != null && <span>{tokensIn}↑ {tokensOut}↓ tokens</span>}
+          {tokensIn != null && (
+            <span>
+              {tokensIn}↑ {tokensOut}↓ tokens
+            </span>
+          )}
           {" · "}
           {relativeTime(log.created_at)}
         </p>
@@ -226,7 +274,8 @@ function SessionDetail({ sessionId, onBack }: { sessionId: string; onBack: () =>
 
   useEffect(() => {
     setLoading(true);
-    api.getChronicleSession(sessionId)
+    api
+      .getChronicleSession(sessionId)
       .then(setDetail)
       .finally(() => setLoading(false));
   }, [sessionId]);
@@ -242,23 +291,28 @@ function SessionDetail({ sessionId, onBack }: { sessionId: string; onBack: () =>
         </button>
         <div className={styles.detailMeta}>
           <span className={styles.detailTitle}>{sessionTitle(detail)}</span>
-          <span className={styles.cardMeta}>{detail.message_count} messages · {relativeTime(detail.updated_at)}</span>
+          <span className={styles.cardMeta}>
+            {detail.message_count} messages · {relativeTime(detail.updated_at)}
+          </span>
         </div>
       </div>
 
       <div className={styles.messages}>
-        {detail.messages.length === 0 && (
-          <p className={styles.empty}>No messages in this session.</p>
-        )}
+        {detail.messages.length === 0 && <p className={styles.empty}>No messages in this session.</p>}
         {detail.messages.map((msg) => (
-          <div key={msg.id} className={`${styles.message} ${msg.role === "user" ? styles.userMsg : styles.assistantMsg}`}>
+          <div
+            key={msg.id}
+            className={`${styles.message} ${msg.role === "user" ? styles.userMsg : styles.assistantMsg}`}
+          >
             <p className={styles.msgRole}>{msg.role === "user" ? "You" : "Assistant"}</p>
             <p className={styles.msgContent}>{msg.content}</p>
             <div className={styles.msgFooter}>
               <span className={styles.msgTime}>{relativeTime(msg.created_at)}</span>
               {msg.model && <span className={styles.msgModel}>{msg.model}</span>}
               {msg.tokens_in != null && (
-                <span className={styles.msgTokens}>{msg.tokens_in}↑ {msg.tokens_out}↓ tokens</span>
+                <span className={styles.msgTokens}>
+                  {msg.tokens_in}↑ {msg.tokens_out}↓ tokens
+                </span>
               )}
             </div>
           </div>
@@ -296,61 +350,76 @@ export default function ChroniclePage() {
 
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadSessions = useCallback(async (p = 1) => {
-    setLoading(true);
-    try {
-      const res = await api.listChronicleSessions({
-        story_id: storyId,
-        context_type: filterType || undefined,
-        archived: showArchived,
-        page: p,
-        page_size: 20,
-      });
-      setSessions(p === 1 ? res.sessions : (prev) => [...prev, ...res.sessions]);
-      setTotalSessions(res.total);
-    } finally {
-      setLoading(false);
-    }
-  }, [storyId, filterType, showArchived]);
+  const loadSessions = useCallback(
+    async (p = 1) => {
+      setLoading(true);
+      try {
+        const res = await api.listChronicleSessions({
+          story_id: storyId,
+          context_type: filterType || undefined,
+          archived: showArchived,
+          page: p,
+          page_size: 20,
+        });
+        setSessions(p === 1 ? res.sessions : (prev) => [...prev, ...res.sessions]);
+        setTotalSessions(res.total);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [storyId, filterType, showArchived],
+  );
 
-  const loadLogs = useCallback(async (p = 1) => {
-    setLoading(true);
-    try {
-      const res = await api.listActivityLogs({ story_id: storyId, page: p, page_size: 50 });
-      setLogs(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
-      setTotalLogs(res.total);
-    } finally {
-      setLoading(false);
-    }
-  }, [storyId]);
+  const loadLogs = useCallback(
+    async (p = 1) => {
+      setLoading(true);
+      try {
+        const res = await api.listActivityLogs({ story_id: storyId, page: p, page_size: 50 });
+        setLogs(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
+        setTotalLogs(res.total);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [storyId],
+  );
 
-  const loadSummaries = useCallback(async (p = 1) => {
-    setLoading(true);
-    try {
-      const res = await api.listActivityLogs({
-        story_id: storyId,
-        features: SUMMARY_FEATURES,
-        starred: starredOnly ? true : undefined,
-        page: p,
-        page_size: 50,
-      });
-      setSummaries(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
-      setTotalSummaries(res.total);
-    } finally {
-      setLoading(false);
-    }
-  }, [storyId, starredOnly]);
+  const loadSummaries = useCallback(
+    async (p = 1) => {
+      setLoading(true);
+      try {
+        const res = await api.listActivityLogs({
+          story_id: storyId,
+          features: SUMMARY_FEATURES,
+          starred: starredOnly ? true : undefined,
+          page: p,
+          page_size: 50,
+        });
+        setSummaries(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
+        setTotalSummaries(res.total);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [storyId, starredOnly],
+  );
 
-  const runSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setSearchResults([]); return; }
-    setLoading(true);
-    try {
-      const res = await api.searchChronicle({ q, story_id: storyId });
-      setSearchResults(res.results);
-    } finally {
-      setLoading(false);
-    }
-  }, [storyId]);
+  const runSearch = useCallback(
+    async (q: string) => {
+      if (!q.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await api.searchChronicle({ q, story_id: storyId });
+        setSearchResults(res.results);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [storyId],
+  );
 
   // Initial + filter-change loads; clear selection on context change
   useEffect(() => {
@@ -366,7 +435,9 @@ export default function ChroniclePage() {
     if (tab !== "search") return;
     if (searchRef.current) clearTimeout(searchRef.current);
     searchRef.current = setTimeout(() => runSearch(searchQuery), 350);
-    return () => { if (searchRef.current) clearTimeout(searchRef.current); };
+    return () => {
+      if (searchRef.current) clearTimeout(searchRef.current);
+    };
   }, [searchQuery, tab, runSearch]);
 
   async function archiveSession(id: string) {
@@ -431,7 +502,7 @@ export default function ChroniclePage() {
   }
 
   function handleStarToggle(id: string, starred: boolean) {
-    const update = (item: ActivityLog) => item.id === id ? { ...item, starred } : item;
+    const update = (item: ActivityLog) => (item.id === id ? { ...item, starred } : item);
     setLogs((prev) => prev.map(update));
     setSummaries((prev) => {
       const updated = prev.map(update);
@@ -448,19 +519,17 @@ export default function ChroniclePage() {
     else if (tab === "summaries") loadSummaries(next);
   }
 
-  const hasMore = tab === "chats"
-    ? sessions.length < totalSessions
-    : tab === "summaries"
-    ? summaries.length < totalSummaries
-    : logs.length < totalLogs;
+  const hasMore =
+    tab === "chats"
+      ? sessions.length < totalSessions
+      : tab === "summaries"
+        ? summaries.length < totalSummaries
+        : logs.length < totalLogs;
 
   if (selectedSessionId) {
     return (
       <div className={styles.page}>
-        <SessionDetail
-          sessionId={selectedSessionId}
-          onBack={() => setSelectedSessionId(null)}
-        />
+        <SessionDetail sessionId={selectedSessionId} onBack={() => setSelectedSessionId(null)} />
       </div>
     );
   }
@@ -496,9 +565,18 @@ export default function ChroniclePage() {
             <button
               key={t}
               className={`${styles.filterBtn} ${tab === t ? styles.activeFilter : ""}`}
-              onClick={() => { setTab(t); setSearchQuery(""); }}
+              onClick={() => {
+                setTab(t);
+                setSearchQuery("");
+              }}
             >
-              {t === "chats" ? <MessageSquare size={12} /> : t === "summaries" ? <Library size={12} /> : <Activity size={12} />}
+              {t === "chats" ? (
+                <MessageSquare size={12} />
+              ) : t === "summaries" ? (
+                <Library size={12} />
+              ) : (
+                <Activity size={12} />
+              )}
               <span style={{ flex: 1 }}>
                 {t === "chats" ? "Conversations" : t === "summaries" ? "Summaries" : "Activity"}
               </span>
@@ -510,7 +588,9 @@ export default function ChroniclePage() {
 
           {tab === "summaries" && (
             <>
-              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>Filter</p>
+              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
+                Filter
+              </p>
               <label className={styles.archiveToggle}>
                 <input
                   type="checkbox"
@@ -524,7 +604,9 @@ export default function ChroniclePage() {
 
           {tab === "chats" && (
             <>
-              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>Type</p>
+              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
+                Type
+              </p>
               {["", "scene", "character", "story", "panel"].map((type) => (
                 <button
                   key={type}
@@ -552,12 +634,15 @@ export default function ChroniclePage() {
           {/* Tab blurbs */}
           {tab === "chats" && (
             <p className={styles.tabBlurb}>
-              Conversations are direct back-and-forth chats with the AI — scene assistants, character interviews, and group panels. Each session is tied to a specific context and can be resumed.
+              Conversations are direct back-and-forth chats with the AI — scene assistants, character
+              interviews, and group panels. Each session is tied to a specific context and can be resumed.
             </p>
           )}
           {tab === "activity" && (
             <p className={styles.tabBlurb}>
-              Activity logs every task the AI executes on your behalf — generating suggestions, summarizing scenes, analyzing perspectives, and other background operations. Click any entry to see the full prompt and response.
+              Activity logs every task the AI executes on your behalf — generating suggestions, summarizing
+              scenes, analyzing perspectives, and other background operations. Click any entry to see the full
+              prompt and response.
             </p>
           )}
 
@@ -573,16 +658,27 @@ export default function ChroniclePage() {
                   <button className={styles.bulkBtn} onClick={bulkArchive} disabled={bulkWorking}>
                     <Archive size={13} /> Archive
                   </button>
-                  <button className={`${styles.bulkBtn} ${styles.bulkDanger}`} onClick={bulkDelete} disabled={bulkWorking}>
+                  <button
+                    className={`${styles.bulkBtn} ${styles.bulkDanger}`}
+                    onClick={bulkDelete}
+                    disabled={bulkWorking}
+                  >
                     <Trash2 size={13} /> Delete
                   </button>
-                  <button className={styles.bulkClear} onClick={clearSelection} disabled={bulkWorking} title="Clear selection">
+                  <button
+                    className={styles.bulkClear}
+                    onClick={clearSelection}
+                    disabled={bulkWorking}
+                    title="Clear selection"
+                  >
                     <X size={13} />
                   </button>
                 </div>
               )}
               {sessions.length === 0 && !loading && (
-                <p className={styles.empty}>No conversations yet. Start a scene or character chat to see history here.</p>
+                <p className={styles.empty}>
+                  No conversations yet. Start a scene or character chat to see history here.
+                </p>
               )}
               {sessions.map((s) => (
                 <SessionCard
@@ -603,9 +699,7 @@ export default function ChroniclePage() {
           {/* Activity tab */}
           {tab === "activity" && (
             <>
-              {logs.length === 0 && !loading && (
-                <p className={styles.empty}>No activity logged yet.</p>
-              )}
+              {logs.length === 0 && !loading && <p className={styles.empty}>No activity logged yet.</p>}
               {logs.map((log) => (
                 <LogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
               ))}
@@ -616,7 +710,9 @@ export default function ChroniclePage() {
           {tab === "summaries" && (
             <>
               <p className={styles.tabBlurb}>
-                All AI-generated summaries, analyses, and brainstorms — scene summaries, story recaps, character journeys, perspective summaries, and more. Star important ones to pin them for quick access.
+                All AI-generated summaries, analyses, and brainstorms — scene summaries, story recaps,
+                character journeys, perspective summaries, and more. Star important ones to pin them for quick
+                access.
               </p>
               {summaries.length === 0 && !loading && (
                 <p className={styles.empty}>
@@ -634,7 +730,9 @@ export default function ChroniclePage() {
           {/* Search tab */}
           {tab === "search" && (
             <>
-              {!searchQuery && <p className={styles.empty}>Type to search across conversations and activity.</p>}
+              {!searchQuery && (
+                <p className={styles.empty}>Type to search across conversations and activity.</p>
+              )}
               {searchQuery && !loading && searchResults.length === 0 && (
                 <p className={styles.empty}>No results for "{searchQuery}".</p>
               )}
@@ -655,7 +753,7 @@ export default function ChroniclePage() {
                   </div>
                 ) : r.log ? (
                   <LogCard key={i} log={r.log} />
-                ) : null
+                ) : null,
               )}
             </>
           )}
@@ -668,9 +766,7 @@ export default function ChroniclePage() {
             </button>
           )}
 
-          {loading && sessions.length === 0 && logs.length === 0 && (
-            <p className={styles.empty}>Loading…</p>
-          )}
+          {loading && sessions.length === 0 && logs.length === 0 && <p className={styles.empty}>Loading…</p>}
         </div>
       </div>
     </div>

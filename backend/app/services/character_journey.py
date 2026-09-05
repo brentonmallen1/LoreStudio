@@ -10,20 +10,18 @@ Caching strategy:
 - is_stale = True when any source scene has been re-summarized
 - Force-refresh always regenerates and updates the cache
 """
+
 from sqlalchemy.orm import Session
 
 from ..models.character import Character
-from ..models.structure import StructureNode
 from ..models.character_journey import CharacterJourneySummary
+from ..models.structure import StructureNode
 
 
 def get_nodes_up_to(story_id: str, up_to_node_id: str, db: Session) -> list[StructureNode]:
     """Return all leaf nodes in the story up to and including the given node, in position order."""
     all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .order_by(StructureNode.position)
-        .all()
+        db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
     )
 
     # Build children map once — O(N) instead of O(N²) lookup inside flatten
@@ -49,20 +47,13 @@ def get_nodes_up_to(story_id: str, up_to_node_id: str, db: Session) -> list[Stru
     return result
 
 
-def get_scenes_with_character(
-    nodes: list[StructureNode], character: Character
-) -> list[StructureNode]:
+def get_scenes_with_character(nodes: list[StructureNode], character: Character) -> list[StructureNode]:
     """Filter to nodes that mention the character by name and have a content summary."""
     name = character.name.lower()
-    return [
-        n for n in nodes
-        if n.content_summary and name in (n.content or "").lower()
-    ]
+    return [n for n in nodes if n.content_summary and name in (n.content or "").lower()]
 
 
-def get_cached_journey(
-    character_id: str, up_to_node_id: str, db: Session
-) -> CharacterJourneySummary | None:
+def get_cached_journey(character_id: str, up_to_node_id: str, db: Session) -> CharacterJourneySummary | None:
     return (
         db.query(CharacterJourneySummary)
         .filter(
@@ -78,9 +69,7 @@ def build_journey_prompt(character: Character, scene_summaries: list[tuple[str, 
     scene_summaries: list of (scene_title, summary_text)
     Returns a prompt that produces a first-person character journey summary.
     """
-    scenes_text = "\n\n".join(
-        f"[{title}]: {summary}" for title, summary in scene_summaries
-    )
+    scenes_text = "\n\n".join(f"[{title}]: {summary}" for title, summary in scene_summaries)
     return (
         f"You are summarizing what {character.name} has experienced in the story so far.\n\n"
         f"Scene summaries where they appear:\n{scenes_text}\n\n"

@@ -100,7 +100,7 @@ export const InlineImageExtension = Node.create({
 export function insertInlineImage(
   editor: ReturnType<typeof import("@tiptap/react").useEditor>,
   assetId: string,
-  alt: string
+  alt: string,
 ) {
   editor
     ?.chain()

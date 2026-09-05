@@ -16,7 +16,6 @@ function flattenNodes(nodes: StructureNode[]): StructureNode[] {
   return result;
 }
 
-
 export default function CorkboardView() {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
@@ -47,8 +46,12 @@ export default function CorkboardView() {
                   setActiveNode(node);
                   navigate(`/stories/${storyId}`);
                 }}
-                onDragStart={() => { dragNodeId.current = node.id; }}
-                onDragOver={() => { dragOverNodeId.current = node.id; }}
+                onDragStart={() => {
+                  dragNodeId.current = node.id;
+                }}
+                onDragOver={() => {
+                  dragOverNodeId.current = node.id;
+                }}
                 onDrop={async () => {
                   if (!dragNodeId.current || dragNodeId.current === dragOverNodeId.current) return;
                   const siblings = [...directChildren];
@@ -88,8 +91,12 @@ export default function CorkboardView() {
                 setActiveNode(group);
                 navigate(`/stories/${storyId}`);
               }}
-              onDragStart={() => { dragNodeId.current = group.id; }}
-              onDragOver={() => { dragOverNodeId.current = group.id; }}
+              onDragStart={() => {
+                dragNodeId.current = group.id;
+              }}
+              onDragOver={() => {
+                dragOverNodeId.current = group.id;
+              }}
               onDrop={() => {}}
               isDraggingOver={false}
             />
@@ -110,24 +117,31 @@ export default function CorkboardView() {
   return (
     <div className={styles.board}>
       <div className={styles.boardInner}>
-        {topLevelNodes.map((node) => (
-          node.children?.length ? renderGroup(node) :
-          <div key={node.id} className={styles.group}>
-            <div className={styles.cardsRow}>
-              <SceneCard
-                node={node}
-                onClick={() => {
-                  setActiveNode(node);
-                  navigate(`/stories/${storyId}`);
-                }}
-                onDragStart={() => { dragNodeId.current = node.id; }}
-                onDragOver={() => { dragOverNodeId.current = node.id; }}
-                onDrop={() => {}}
-                isDraggingOver={false}
-              />
+        {topLevelNodes.map((node) =>
+          node.children?.length ? (
+            renderGroup(node)
+          ) : (
+            <div key={node.id} className={styles.group}>
+              <div className={styles.cardsRow}>
+                <SceneCard
+                  node={node}
+                  onClick={() => {
+                    setActiveNode(node);
+                    navigate(`/stories/${storyId}`);
+                  }}
+                  onDragStart={() => {
+                    dragNodeId.current = node.id;
+                  }}
+                  onDragOver={() => {
+                    dragOverNodeId.current = node.id;
+                  }}
+                  onDrop={() => {}}
+                  isDraggingOver={false}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   );

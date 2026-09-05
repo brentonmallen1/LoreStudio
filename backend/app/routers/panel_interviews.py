@@ -1,38 +1,36 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
 from ..models.character import Character, CharacterRelationship
-from ..models.panel_interview import PanelInterview
-from ..models.chat_session import ChatSession
 from ..models.chat_message import ChatMessage
+from ..models.chat_session import ChatSession
+from ..models.panel_interview import PanelInterview
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.ai_responses import PanelOrchestratorResponse
 from ..schemas.panel_interview import (
     PanelInterviewCreate,
-    PanelMessageRequest,
     PanelInterviewOut,
     PanelInterviewSummaryOut,
+    PanelMessageRequest,
 )
-from ..schemas.ai_responses import PanelOrchestratorResponse
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.panel import (
-    build_panel_orchestrator_prompt,
     build_panel_character_prompt,
+    build_panel_orchestrator_prompt,
     format_history_with_labels,
 )
 
 router = APIRouter()
 
 
-def _get_or_create_chronicle_session(
-    panel: PanelInterview, user: User, db: Session
-) -> ChatSession:
+def _get_or_create_chronicle_session(panel: PanelInterview, user: User, db: Session) -> ChatSession:
     """Get or create a Chronicle session for this panel interview."""
     existing = (
         db.query(ChatSession)
@@ -69,7 +67,7 @@ def _add_chronicle_message(
         content=content,
         model=model,
     )
-    chronicle_session.updated_at = datetime.now(timezone.utc)
+    chronicle_session.updated_at = datetime.now(UTC)
     db.add(msg)
     db.flush()
 
@@ -90,9 +88,7 @@ def _verify_panel_access(panel_id: str, db: Session, user: User) -> PanelIntervi
 
 
 @router.get("/stories/{story_id}/panels", response_model=list[PanelInterviewSummaryOut])
-def list_panels(
-    story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_panels(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     _verify_story_access(story_id, db, current_user)
     panels = (
         db.query(PanelInterview)
@@ -154,9 +150,7 @@ def create_panel(
 
 
 @router.get("/panels/{panel_id}", response_model=PanelInterviewOut)
-def get_panel(
-    panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def get_panel(panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return _verify_panel_access(panel_id, db, current_user)
 
 
@@ -195,7 +189,7 @@ async def send_panel_message(
     user_msg = {
         "role": "user",
         "content": body.content,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
     messages = list(panel.messages) + [user_msg]
     panel.messages = messages
@@ -220,12 +214,8 @@ async def send_panel_message(
             # Orchestrator: decide who speaks and in what order
             orch_result = await ai_gateway.generate_structured(
                 response_model=PanelOrchestratorResponse,
-                messages=[
-                    {"role": "user", "content": format_history_with_labels(current_messages)}
-                ],
-                feature_prompt=build_panel_orchestrator_prompt(
-                    characters, current_messages, round_num, max_rounds
-                ),
+                messages=[{"role": "user", "content": format_history_with_labels(current_messages)}],
+                feature_prompt=build_panel_orchestrator_prompt(characters, current_messages, round_num, max_rounds),
                 context=orch_ctx,
                 db=db,
                 user=current_user,
@@ -301,7 +291,7 @@ async def send_panel_message(
                         "character_id": character.id,
                         "character_name": char_name,
                         "content": full_content,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     }
                     current_messages = current_messages + [char_msg]
                     panel.messages = current_messages
@@ -321,9 +311,7 @@ async def send_panel_message(
 
 
 @router.delete("/panels/{panel_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_panel(
-    panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def delete_panel(panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     panel = _verify_panel_access(panel_id, db, current_user)
     # Also delete associated Chronicle session
     chronicle_session = (

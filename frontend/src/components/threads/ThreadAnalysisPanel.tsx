@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Compass, TrendingUp, Map, BarChart2, Lightbulb, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import {
+  Compass,
+  TrendingUp,
+  Map,
+  BarChart2,
+  Lightbulb,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./ThreadAnalysisPanel.module.css";
@@ -12,23 +21,31 @@ type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
   needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
-  fair:       { label: "Fair",       className: styles.ratingFair },
-  good:       { label: "Good",       className: styles.ratingGood },
-  excellent:  { label: "Excellent",  className: styles.ratingExcellent },
+  fair: { label: "Fair", className: styles.ratingFair },
+  good: { label: "Good", className: styles.ratingGood },
+  excellent: { label: "Excellent", className: styles.ratingExcellent },
 };
 
 const MOMENT_TYPE_LABELS: Record<string, string> = {
-  inciting:      "Inciting",
-  complication:  "Complication",
+  inciting: "Inciting",
+  complication: "Complication",
   turning_point: "Turning Point",
-  climax:        "Climax",
-  resolution:    "Resolution",
+  climax: "Climax",
+  resolution: "Resolution",
 };
 
-function str(v: unknown): string { return String(v ?? ""); }
-function asRecord(v: unknown): AnyRecord { return (v as AnyRecord) ?? {}; }
-function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
-function asStringList(v: unknown): string[] { return asList(v).map(str); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
+function asRecord(v: unknown): AnyRecord {
+  return (v as AnyRecord) ?? {};
+}
+function asList(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function asStringList(v: unknown): string[] {
+  return asList(v).map(str);
+}
 
 export default function ThreadAnalysisPanel({ threadId }: Props) {
   const [result, setResult] = useState<StructuredResult | null>(null);
@@ -56,9 +73,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           <Compass size={13} className={styles.icon} />
           <div>
             <h4 className={styles.title}>Thread Analysis</h4>
-            <p className={styles.subtitle}>
-              AI review of progression, key moments, and narrative quality
-            </p>
+            <p className={styles.subtitle}>AI review of progression, key moments, and narrative quality</p>
           </div>
         </div>
         <button
@@ -84,7 +99,9 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           {!!data.overall_rating && (
             <div className={styles.ratingRow}>
               <span className={styles.ratingLabel}>Overall:</span>
-              <span className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}>
+              <span
+                className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}
+              >
                 {RATING_LABELS[str(data.overall_rating)]?.label ?? str(data.overall_rating)}
               </span>
             </div>
@@ -97,14 +114,20 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
                 <p className={styles.sectionSummary}>{str(asRecord(data.progression).summary)}</p>
               )}
               {asStringList(asRecord(data.progression).details).map((d, i) => (
-                <p key={i} className={styles.detailItem}>• {d}</p>
+                <p key={i} className={styles.detailItem}>
+                  • {d}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Moment Discoveries */}
           {asList(data.moment_discoveries).length > 0 && (
-            <Section icon={<Map size={12} />} title="Key Moments Found" color="var(--segment-chapter, #7c3aed)">
+            <Section
+              icon={<Map size={12} />}
+              title="Key Moments Found"
+              color="var(--segment-chapter, #7c3aed)"
+            >
               <p className={styles.sectionSubtitle}>Significant scenes discovered in your prose</p>
               {(asList(data.moment_discoveries) as AnyRecord[]).map((m, i) => (
                 <div key={i} className={styles.momentRow}>
@@ -127,22 +150,34 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
 
           {/* Quality */}
           {!!data.quality && (
-            <Section icon={<BarChart2 size={12} />} title="Quality Assessment" color="var(--color-accent-secondary, #0d9488)">
+            <Section
+              icon={<BarChart2 size={12} />}
+              title="Quality Assessment"
+              color="var(--color-accent-secondary, #0d9488)"
+            >
               {!!asRecord(data.quality).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.quality).summary)}</p>
               )}
               {asStringList(asRecord(data.quality).details).map((d, i) => (
-                <p key={i} className={styles.detailItem}>• {d}</p>
+                <p key={i} className={styles.detailItem}>
+                  • {d}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Unlinked cycles */}
           {asStringList(data.unlinked_cycles).length > 0 && (
-            <Section icon={<AlertCircle size={12} />} title="Unlinked Cycles" color="var(--color-warning, #f59e0b)">
+            <Section
+              icon={<AlertCircle size={12} />}
+              title="Unlinked Cycles"
+              color="var(--color-warning, #f59e0b)"
+            >
               <p className={styles.sectionSubtitle}>Try/fail cycles with no scene assigned</p>
               {asStringList(data.unlinked_cycles).map((c, i) => (
-                <p key={i} className={styles.warningItem}><XCircle size={10} /> {c}</p>
+                <p key={i} className={styles.warningItem}>
+                  <XCircle size={10} /> {c}
+                </p>
               ))}
             </Section>
           )}
@@ -152,7 +187,9 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
             <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
-                  <li key={i} className={styles.suggestionListItem}>{s}</li>
+                  <li key={i} className={styles.suggestionListItem}>
+                    {s}
+                  </li>
                 ))}
               </ul>
             </Section>
@@ -169,7 +206,12 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
   );
 }
 
-function Section({ icon, title, color, children }: {
+function Section({
+  icon,
+  title,
+  color,
+  children,
+}: {
   icon: React.ReactNode;
   title: string;
   color: string;
@@ -178,7 +220,9 @@ function Section({ icon, title, color, children }: {
   return (
     <div className={styles.section} style={{ borderLeftColor: color }}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} style={{ color }}>{icon}</span>
+        <span className={styles.sectionIcon} style={{ color }}>
+          {icon}
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
       </div>
       <div className={styles.sectionBody}>{children}</div>

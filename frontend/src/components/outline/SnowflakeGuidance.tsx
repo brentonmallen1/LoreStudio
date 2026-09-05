@@ -23,8 +23,10 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
       return;
     }
     fetchGuidance();
-    return () => { abortRef.current?.abort(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      abortRef.current?.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchGuidance() {
@@ -36,11 +38,22 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
 
     try {
       const res = await api.getSnowflakeGuidance(
-        storyId, layer, content, characterId, abortRef.current.signal
+        storyId,
+        layer,
+        content,
+        characterId,
+        abortRef.current.signal,
       );
-      if (!res.ok) { setError("Guidance request failed."); setLoading(false); return; }
+      if (!res.ok) {
+        setError("Guidance request failed.");
+        setLoading(false);
+        return;
+      }
       const reader = res.body?.getReader();
-      if (!reader) { setLoading(false); return; }
+      if (!reader) {
+        setLoading(false);
+        return;
+      }
       const decoder = new TextDecoder();
       while (true) {
         const { done, value } = await reader.read();
@@ -67,9 +80,7 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
       </div>
 
       <div className={styles.body}>
-        {!content.trim() && (
-          <p className={styles.hint}>Write something first, then request guidance.</p>
-        )}
+        {!content.trim() && <p className={styles.hint}>Write something first, then request guidance.</p>}
         {content.trim() && loading && !text && (
           <div className={styles.loading}>
             <Loader size={14} className={styles.spinner} />
@@ -77,9 +88,7 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
           </div>
         )}
         {error && <p className={styles.error}>{error}</p>}
-        {text && (
-          <div className={styles.response}>{text}</div>
-        )}
+        {text && <div className={styles.response}>{text}</div>}
       </div>
 
       {content.trim() && !loading && (

@@ -1,38 +1,56 @@
 import { useState } from "react";
-import { Compass, Pin, BarChart2, Eye, Shuffle, Lightbulb, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import {
+  Compass,
+  Pin,
+  BarChart2,
+  Eye,
+  Shuffle,
+  Lightbulb,
+  CheckCircle,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./TwistAnalysisPanel.module.css";
 
 interface Props {
   twistId: string;
-  onClueLinked?: () => void;  // Callback to refresh twist data after linking
+  onClueLinked?: () => void; // Callback to refresh twist data after linking
 }
 
 type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
   needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
-  fair:       { label: "Fair",       className: styles.ratingFair },
-  good:       { label: "Good",       className: styles.ratingGood },
-  excellent:  { label: "Excellent",  className: styles.ratingExcellent },
+  fair: { label: "Fair", className: styles.ratingFair },
+  good: { label: "Good", className: styles.ratingGood },
+  excellent: { label: "Excellent", className: styles.ratingExcellent },
 };
 
 const ASSESSMENT_ICONS: Record<string, React.ReactNode> = {
-  found:        <CheckCircle size={11} className={styles.iconFound} />,
-  missing:      <XCircle size={11} className={styles.iconMissing} />,
+  found: <CheckCircle size={11} className={styles.iconFound} />,
+  missing: <XCircle size={11} className={styles.iconMissing} />,
   "needs-work": <AlertCircle size={11} className={styles.iconWarning} />,
 };
 
-function str(v: unknown): string { return String(v ?? ""); }
-function asRecord(v: unknown): AnyRecord { return (v as AnyRecord) ?? {}; }
-function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
-function asStringList(v: unknown): string[] { return asList(v).map(str); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
+function asRecord(v: unknown): AnyRecord {
+  return (v as AnyRecord) ?? {};
+}
+function asList(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function asStringList(v: unknown): string[] {
+  return asList(v).map(str);
+}
 
 export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
   const [result, setResult] = useState<StructuredResult | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [linking, setLinking] = useState<string | null>(null);  // clue_id being linked
+  const [linking, setLinking] = useState<string | null>(null); // clue_id being linked
 
   async function applyClueLink(clueId: string, sceneId: string) {
     if (!clueId || !sceneId) return;
@@ -97,7 +115,9 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
           {!!data.overall_rating && (
             <div className={styles.ratingRow}>
               <span className={styles.ratingLabel}>Overall:</span>
-              <span className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}>
+              <span
+                className={`${styles.ratingBadge} ${RATING_LABELS[str(data.overall_rating)]?.className ?? ""}`}
+              >
                 {RATING_LABELS[str(data.overall_rating)]?.label ?? str(data.overall_rating)}
               </span>
             </div>
@@ -138,23 +158,37 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Distribution */}
           {!!data.distribution && (
-            <Section icon={<BarChart2 size={12} />} title="Clue Distribution" color="var(--twist-accent, #7c3aed)">
+            <Section
+              icon={<BarChart2 size={12} />}
+              title="Clue Distribution"
+              color="var(--twist-accent, #7c3aed)"
+            >
               {!!asRecord(data.distribution).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.distribution).summary)}</p>
               )}
               <div className={styles.countRow}>
-                <span className={styles.countTruth}>{str(asRecord(data.distribution).truth_count ?? 0)} truth</span>
-                <span className={styles.countMisdirect}>{str(asRecord(data.distribution).misdirection_count ?? 0)} misdirection</span>
+                <span className={styles.countTruth}>
+                  {str(asRecord(data.distribution).truth_count ?? 0)} truth
+                </span>
+                <span className={styles.countMisdirect}>
+                  {str(asRecord(data.distribution).misdirection_count ?? 0)} misdirection
+                </span>
               </div>
               {asStringList(asRecord(data.distribution).gaps).map((g, i) => (
-                <p key={i} className={styles.gapItem}>⚠ {g}</p>
+                <p key={i} className={styles.gapItem}>
+                  ⚠ {g}
+                </p>
               ))}
             </Section>
           )}
 
           {/* Reveal */}
           {!!data.reveal && (
-            <Section icon={<Eye size={12} />} title="Reveal Assessment" color="var(--color-accent-secondary, #0d9488)">
+            <Section
+              icon={<Eye size={12} />}
+              title="Reveal Assessment"
+              color="var(--color-accent-secondary, #0d9488)"
+            >
               {!!asRecord(data.reveal).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.reveal).summary)}</p>
               )}
@@ -162,7 +196,9 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
                 <div className={styles.subList}>
                   <span className={styles.subListLabel}>Unforeshadowed:</span>
                   {asStringList(asRecord(data.reveal).unforeshadowed_elements).map((e, i) => (
-                    <span key={i} className={styles.warningTag}>{e}</span>
+                    <span key={i} className={styles.warningTag}>
+                      {e}
+                    </span>
                   ))}
                 </div>
               )}
@@ -170,7 +206,9 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
                 <div className={styles.subList}>
                   <span className={styles.subListLabel}>Strengths:</span>
                   {asStringList(asRecord(data.reveal).strengths).map((s, i) => (
-                    <span key={i} className={styles.strengthTag}>{s}</span>
+                    <span key={i} className={styles.strengthTag}>
+                      {s}
+                    </span>
                   ))}
                 </div>
               )}
@@ -179,12 +217,18 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Misdirection Strength */}
           {!!data.misdirection_strength && (
-            <Section icon={<Shuffle size={12} />} title="Misdirection Strength" color="var(--color-warning, #f59e0b)">
+            <Section
+              icon={<Shuffle size={12} />}
+              title="Misdirection Strength"
+              color="var(--color-warning, #f59e0b)"
+            >
               {!!asRecord(data.misdirection_strength).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.misdirection_strength).summary)}</p>
               )}
               {asStringList(asRecord(data.misdirection_strength).suggestions).map((s, i) => (
-                <p key={i} className={styles.suggestionItem}>→ {s}</p>
+                <p key={i} className={styles.suggestionItem}>
+                  → {s}
+                </p>
               ))}
             </Section>
           )}
@@ -194,7 +238,9 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
             <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
-                  <li key={i} className={styles.suggestionListItem}>{s}</li>
+                  <li key={i} className={styles.suggestionListItem}>
+                    {s}
+                  </li>
                 ))}
               </ul>
             </Section>
@@ -211,7 +257,12 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
   );
 }
 
-function Section({ icon, title, color, children }: {
+function Section({
+  icon,
+  title,
+  color,
+  children,
+}: {
   icon: React.ReactNode;
   title: string;
   color: string;
@@ -220,7 +271,9 @@ function Section({ icon, title, color, children }: {
   return (
     <div className={styles.section} style={{ borderLeftColor: color }}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} style={{ color }}>{icon}</span>
+        <span className={styles.sectionIcon} style={{ color }}>
+          {icon}
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
       </div>
       <div className={styles.sectionBody}>{children}</div>

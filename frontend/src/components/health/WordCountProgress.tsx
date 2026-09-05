@@ -9,11 +9,12 @@ interface Props {
 
 export default function WordCountProgress({ target, intendedLength }: Props) {
   const barPct = Math.min(target.pct, 100);
-  const barClass = target.warning_level === "exceeded"
-    ? styles.barExceeded
-    : target.warning_level === "approaching"
-    ? styles.barApproaching
-    : styles.barNormal;
+  const barClass =
+    target.warning_level === "exceeded"
+      ? styles.barExceeded
+      : target.warning_level === "approaching"
+        ? styles.barApproaching
+        : styles.barNormal;
 
   const next = nextFormLabel(intendedLength);
 
@@ -26,10 +27,7 @@ export default function WordCountProgress({ target, intendedLength }: Props) {
         </span>
       </div>
       <div className={styles.track}>
-        <div
-          className={`${styles.bar} ${barClass}`}
-          style={{ width: `${barPct}%` }}
-        />
+        <div className={`${styles.bar} ${barClass}`} style={{ width: `${barPct}%` }} />
         {target.soft_warning_at && (
           <div
             className={styles.softMarker}
@@ -40,14 +38,16 @@ export default function WordCountProgress({ target, intendedLength }: Props) {
       </div>
       {target.warning_level === "approaching" && (
         <p className={styles.warningMsg}>
-          Approaching the upper end of this form ({target.current.toLocaleString()} / {target.max.toLocaleString()} words).
+          Approaching the upper end of this form ({target.current.toLocaleString()} /{" "}
+          {target.max.toLocaleString()} words).
           {next && ` Consider whether this is trending toward a ${next}.`}
         </p>
       )}
       {target.warning_level === "exceeded" && (
         <p className={`${styles.warningMsg} ${styles.exceeded}`}>
           Exceeded the {intendedLength.replace("_", " ")} ceiling ({target.current.toLocaleString()} words).
-          {next && ` This story is now ${next} length — consider updating the intended length in the Lorebook.`}
+          {next &&
+            ` This story is now ${next} length — consider updating the intended length in the Lorebook.`}
         </p>
       )}
     </div>

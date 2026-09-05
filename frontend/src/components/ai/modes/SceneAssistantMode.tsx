@@ -28,7 +28,10 @@ const STARTER_PROMPTS = [
   "What should the reader feel leaving this scene?",
 ];
 
-function flattenNodes(nodes: import("../../../types").StructureNode[], depth = 0): Array<{ id: string; label: string; depth: number }> {
+function flattenNodes(
+  nodes: import("../../../types").StructureNode[],
+  depth = 0,
+): Array<{ id: string; label: string; depth: number }> {
   return nodes.flatMap((n) => [
     { id: n.id, label: n.title || "(untitled)", depth },
     ...flattenNodes(n.children ?? [], depth + 1),
@@ -40,7 +43,8 @@ interface Props {
 }
 
 export default function SceneAssistantMode({ session }: Props) {
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } =
+    useAIStore();
   const { structure } = useStoryStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
   const [showCtx, setShowCtx] = useState(false);
@@ -56,7 +60,7 @@ export default function SceneAssistantMode({ session }: Props) {
   const { sources: contextSources, tokenBreakdown } = useLLMContextSources(
     storyId && nodeId
       ? { context_type: "scene-chat", story_id: storyId, node_id: nodeId, context_options: contextOptions }
-      : null
+      : null,
   );
   const state = useAIModeState(session, tokenBreakdown);
 
@@ -73,7 +77,10 @@ export default function SceneAssistantMode({ session }: Props) {
 
   function handleContextToggle() {
     if (!showCtx && !ctx && storyId && nodeId) {
-      api.getChatContext(storyId, nodeId).then(setCtx).catch(() => {});
+      api
+        .getChatContext(storyId, nodeId)
+        .then(setCtx)
+        .catch(() => {});
     }
     setShowCtx((v) => !v);
   }
@@ -85,10 +92,18 @@ export default function SceneAssistantMode({ session }: Props) {
       icon={Feather}
       title="Scene Assistant"
       showContextOptions
-      onTransparencyClick={() => state.transparency.open(
-        { context_type: "scene-chat", story_id: storyId, node_id: nodeId, user_message: state.lastUserMsg.current, context_options: contextOptions },
-        state.lastResponse.current,
-      )}
+      onTransparencyClick={() =>
+        state.transparency.open(
+          {
+            context_type: "scene-chat",
+            story_id: storyId,
+            node_id: nodeId,
+            user_message: state.lastUserMsg.current,
+            context_options: contextOptions,
+          },
+          state.lastResponse.current,
+        )
+      }
       headerExtra={
         <>
           {!session.contextLocked ? (
@@ -100,7 +115,8 @@ export default function SceneAssistantMode({ session }: Props) {
               <option value="">— pick a scene —</option>
               {flatNodes.map((n) => (
                 <option key={n.id} value={n.id}>
-                  {"  ".repeat(n.depth)}{n.label}
+                  {"  ".repeat(n.depth)}
+                  {n.label}
                 </option>
               ))}
             </select>
@@ -123,10 +139,14 @@ export default function SceneAssistantMode({ session }: Props) {
           <LLMContextSources sources={contextSources} />
           {showCtx && ctx && (
             <div className={styles.ctxPreview}>
-              <p className={styles.ctxTitle}><strong>{ctx.story.title}</strong></p>
+              <p className={styles.ctxTitle}>
+                <strong>{ctx.story.title}</strong>
+              </p>
               {ctx.scene?.synopsis && <p className={styles.ctxNote}>{ctx.scene.synopsis}</p>}
               {ctx.characters_in_scene?.length > 0 && (
-                <p className={styles.ctxNote}>Characters: {ctx.characters_in_scene.map(c => c.name).join(", ")}</p>
+                <p className={styles.ctxNote}>
+                  Characters: {ctx.characters_in_scene.map((c) => c.name).join(", ")}
+                </p>
               )}
             </div>
           )}
@@ -152,10 +172,17 @@ export default function SceneAssistantMode({ session }: Props) {
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Scene Assistant</p>
-          <p className={styles.emptyHint}>Ask anything about this scene — consistency, character motivation, narrative purpose.</p>
+          <p className={styles.emptyHint}>
+            Ask anything about this scene — consistency, character motivation, narrative purpose.
+          </p>
           <div className={styles.starters}>
             {STARTER_PROMPTS.map((p) => (
-              <button key={p} className={styles.starterBtn} onClick={() => handleSend(p)} disabled={session.isStreaming}>
+              <button
+                key={p}
+                className={styles.starterBtn}
+                onClick={() => handleSend(p)}
+                disabled={session.isStreaming}
+              >
                 {p}
               </button>
             ))}

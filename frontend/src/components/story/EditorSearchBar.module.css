@@ -62,7 +62,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
   flex-shrink: 0;
 }
 

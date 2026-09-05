@@ -6,10 +6,34 @@ import StructuredResponseRenderer, { type SectionConfig } from "../ai/Structured
 import styles from "./EconomyAnalysisPanel.module.css";
 
 const ECONOMY_SCHEMA: SectionConfig[] = [
-  { key: "thread_balance", label: "Thread Balance", icon: BarChart3, color: "var(--color-accent)", type: "text" },
-  { key: "scene_economy", label: "Scene Economy", icon: Activity, color: "var(--color-warning)", type: "text" },
-  { key: "try_fail_cycles", label: "Try/Fail Cycles", icon: RefreshCw, color: "var(--segment-part)", type: "text" },
-  { key: "recommendations", label: "Recommendations", icon: Lightbulb, color: "var(--segment-beat)", type: "list" },
+  {
+    key: "thread_balance",
+    label: "Thread Balance",
+    icon: BarChart3,
+    color: "var(--color-accent)",
+    type: "text",
+  },
+  {
+    key: "scene_economy",
+    label: "Scene Economy",
+    icon: Activity,
+    color: "var(--color-warning)",
+    type: "text",
+  },
+  {
+    key: "try_fail_cycles",
+    label: "Try/Fail Cycles",
+    icon: RefreshCw,
+    color: "var(--segment-part)",
+    type: "text",
+  },
+  {
+    key: "recommendations",
+    label: "Recommendations",
+    icon: Lightbulb,
+    color: "var(--segment-beat)",
+    type: "list",
+  },
 ];
 
 interface Props {
@@ -51,9 +75,7 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
         </button>
       </div>
 
-      {generating && (
-        <p className={styles.hint}>Analyzing…</p>
-      )}
+      {generating && <p className={styles.hint}>Analyzing…</p>}
 
       {!generating && result && (
         <div className={styles.result}>
@@ -63,8 +85,8 @@ export default function EconomyAnalysisPanel({ storyId }: Props) {
 
       {!generating && !result && (
         <p className={styles.hint}>
-          Run analysis to identify orphaned scenes, thread imbalance, and pacing issues relative
-          to your intended story length.
+          Run analysis to identify orphaned scenes, thread imbalance, and pacing issues relative to your
+          intended story length.
         </p>
       )}
     </div>

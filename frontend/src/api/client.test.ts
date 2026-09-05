@@ -18,8 +18,14 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.get("/api/auth/me", ({ request }) => {
           capturedAuth = request.headers.get("Authorization");
-          return HttpResponse.json({ id: "u1", username: "testuser", display_name: "Test", is_admin: false, settings: {} });
-        })
+          return HttpResponse.json({
+            id: "u1",
+            username: "testuser",
+            display_name: "Test",
+            is_admin: false,
+            settings: {},
+          });
+        }),
       );
 
       await api.me();
@@ -31,8 +37,14 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.get("/api/auth/me", ({ request }) => {
           capturedAuth = request.headers.get("Authorization");
-          return HttpResponse.json({ id: "u1", username: "testuser", display_name: "Test", is_admin: false, settings: {} });
-        })
+          return HttpResponse.json({
+            id: "u1",
+            username: "testuser",
+            display_name: "Test",
+            is_admin: false,
+            settings: {},
+          });
+        }),
       );
 
       await api.me();
@@ -45,7 +57,7 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.get("/api/auth/me", () => {
           return HttpResponse.json({ detail: "Not found" }, { status: 404 });
-        })
+        }),
       );
 
       await expect(api.me()).rejects.toThrow("Not found");
@@ -55,7 +67,7 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.get("/api/auth/me", () => {
           return new HttpResponse(null, { status: 500 });
-        })
+        }),
       );
 
       await expect(api.me()).rejects.toThrow();
@@ -66,7 +78,7 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.get("/api/auth/me", () => {
           return new HttpResponse(null, { status: 401 });
-        })
+        }),
       );
 
       await expect(api.me()).rejects.toThrow("Unauthorized");
@@ -85,7 +97,7 @@ describe("api.request (via api methods)", () => {
       server.use(
         http.delete("/api/stories/:id", () => {
           return new HttpResponse(null, { status: 204 });
-        })
+        }),
       );
 
       const result = await api.deleteStory("story-1");

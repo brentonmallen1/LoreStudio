@@ -20,7 +20,6 @@ import re
 
 from .text_utils import html_to_text as _html_to_text  # noqa: F401 (re-exported for router compat)
 
-
 # ---------------------------------------------------------------------------
 # Substitution tables
 # ---------------------------------------------------------------------------
@@ -28,30 +27,120 @@ from .text_utils import html_to_text as _html_to_text  # noqa: F401 (re-exported
 # For each source pronoun (lowercase), map word_type → replacement (lowercase)
 _FROM_TABLE: dict[str, dict[str, str]] = {
     # she/her → <target>
-    "she":      {"subject": "she", "object": "her", "possessive_det": "her",  "possessive_pron": "hers",   "reflexive": "herself"},
-    "her":      {"subject": "she", "object": "her", "possessive_det": "her",  "possessive_pron": "hers",   "reflexive": "herself"},
-    "hers":     {"subject": "she", "object": "her", "possessive_det": "her",  "possessive_pron": "hers",   "reflexive": "herself"},
-    "herself":  {"subject": "she", "object": "her", "possessive_det": "her",  "possessive_pron": "hers",   "reflexive": "herself"},
+    "she": {
+        "subject": "she",
+        "object": "her",
+        "possessive_det": "her",
+        "possessive_pron": "hers",
+        "reflexive": "herself",
+    },
+    "her": {
+        "subject": "she",
+        "object": "her",
+        "possessive_det": "her",
+        "possessive_pron": "hers",
+        "reflexive": "herself",
+    },
+    "hers": {
+        "subject": "she",
+        "object": "her",
+        "possessive_det": "her",
+        "possessive_pron": "hers",
+        "reflexive": "herself",
+    },
+    "herself": {
+        "subject": "she",
+        "object": "her",
+        "possessive_det": "her",
+        "possessive_pron": "hers",
+        "reflexive": "herself",
+    },
     # he/him → <target>
-    "he":       {"subject": "he",  "object": "him", "possessive_det": "his",  "possessive_pron": "his",    "reflexive": "himself"},
-    "him":      {"subject": "he",  "object": "him", "possessive_det": "his",  "possessive_pron": "his",    "reflexive": "himself"},
-    "his":      {"subject": "he",  "object": "him", "possessive_det": "his",  "possessive_pron": "his",    "reflexive": "himself"},
-    "himself":  {"subject": "he",  "object": "him", "possessive_det": "his",  "possessive_pron": "his",    "reflexive": "himself"},
+    "he": {"subject": "he", "object": "him", "possessive_det": "his", "possessive_pron": "his", "reflexive": "himself"},
+    "him": {
+        "subject": "he",
+        "object": "him",
+        "possessive_det": "his",
+        "possessive_pron": "his",
+        "reflexive": "himself",
+    },
+    "his": {
+        "subject": "he",
+        "object": "him",
+        "possessive_det": "his",
+        "possessive_pron": "his",
+        "reflexive": "himself",
+    },
+    "himself": {
+        "subject": "he",
+        "object": "him",
+        "possessive_det": "his",
+        "possessive_pron": "his",
+        "reflexive": "himself",
+    },
     # they/them → <target>
-    "they":     {"subject": "they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
-    "them":     {"subject": "they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
-    "their":    {"subject": "they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
-    "theirs":   {"subject": "they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
-    "themselves":{"subject":"they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
-    "themself": {"subject": "they","object": "them","possessive_det": "their","possessive_pron": "theirs", "reflexive": "themselves"},
+    "they": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "them": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "their": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "theirs": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "themselves": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "themself": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
 }
 
 # Target pronoun sets keyed by subject form
 _TARGET_SETS: dict[str, dict[str, str]] = {
-    "she":  {"subject": "she",  "object": "her",  "possessive_det": "her",   "possessive_pron": "hers",   "reflexive": "herself"},
-    "he":   {"subject": "he",   "object": "him",  "possessive_det": "his",   "possessive_pron": "his",    "reflexive": "himself"},
-    "they": {"subject": "they", "object": "them", "possessive_det": "their", "possessive_pron": "theirs", "reflexive": "themselves"},
-    "it":   {"subject": "it",   "object": "it",   "possessive_det": "its",   "possessive_pron": "its",    "reflexive": "itself"},
+    "she": {
+        "subject": "she",
+        "object": "her",
+        "possessive_det": "her",
+        "possessive_pron": "hers",
+        "reflexive": "herself",
+    },
+    "he": {"subject": "he", "object": "him", "possessive_det": "his", "possessive_pron": "his", "reflexive": "himself"},
+    "they": {
+        "subject": "they",
+        "object": "them",
+        "possessive_det": "their",
+        "possessive_pron": "theirs",
+        "reflexive": "themselves",
+    },
+    "it": {"subject": "it", "object": "it", "possessive_det": "its", "possessive_pron": "its", "reflexive": "itself"},
 }
 
 
@@ -79,23 +168,23 @@ def _preserve_case(original: str, replacement: str) -> str:
 _CONJUGATION_FIXES: dict[str, list[tuple[str, str]]] = {
     # switching TO they/them (plural): singular verb forms → plural
     "they": [
-        ("was",   "were"),
-        ("is",    "are"),
-        ("has",   "have"),
-        ("does",  "do"),
+        ("was", "were"),
+        ("is", "are"),
+        ("has", "have"),
+        ("does", "do"),
     ],
     # switching TO she/her or he/him (singular): plural verb forms → singular
     "she": [
-        ("were",  "was"),
-        ("are",   "is"),
-        ("have",  "has"),
-        ("do",    "does"),
+        ("were", "was"),
+        ("are", "is"),
+        ("have", "has"),
+        ("do", "does"),
     ],
     "he": [
-        ("were",  "was"),
-        ("are",   "is"),
-        ("have",  "has"),
-        ("do",    "does"),
+        ("were", "was"),
+        ("are", "is"),
+        ("have", "has"),
+        ("do", "does"),
     ],
 }
 
@@ -110,7 +199,7 @@ def _fix_conjugation(text: str, target_subject: str) -> str:
     for bad, good in fixes:
         # Match: the new subject pronoun immediately before the bad verb form
         # (with optional whitespace/punctuation between)
-        pattern = rf'\b({re.escape(target_subject)})\s+({re.escape(bad)})\b'
+        pattern = rf"\b({re.escape(target_subject)})\s+({re.escape(bad)})\b"
 
         def replacer(m: re.Match, good=good) -> str:
             subj = m.group(1)
@@ -124,6 +213,7 @@ def _fix_conjugation(text: str, target_subject: str) -> str:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def build_pronoun_proposals(
     instances: list[dict],
@@ -172,19 +262,21 @@ def build_pronoun_proposals(
         replacement = _preserve_case(target_word, replacement_lower)
 
         # Replace target_word within the exact_text phrase (word-boundary aware)
-        pattern = r'\b' + re.escape(target_word) + r'\b'
+        pattern = r"\b" + re.escape(target_word) + r"\b"
         rewritten_phrase = re.sub(pattern, replacement, exact_text, count=1)
 
         if rewritten_phrase == exact_text:
             continue
 
-        proposals.append({
-            "original": exact_text,
-            "rewritten": rewritten_phrase,
-            "explanation": f"{target_word} → {replacement}",
-            "char_offset": plain_text.index(exact_text),
-            "word_type": word_type,
-        })
+        proposals.append(
+            {
+                "original": exact_text,
+                "rewritten": rewritten_phrase,
+                "explanation": f"{target_word} → {replacement}",
+                "char_offset": plain_text.index(exact_text),
+                "word_type": word_type,
+            }
+        )
 
     return proposals
 
@@ -233,5 +325,6 @@ def get_nlp():
     global _nlp
     if _nlp is None:
         import spacy
+
         _nlp = spacy.load("en_core_web_sm")
     return _nlp

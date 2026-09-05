@@ -116,10 +116,7 @@ export const SlashCommandExtension = Extension.create({
           return {
             update(view, prevState) {
               const { state } = view;
-              if (
-                state.selection === prevState.selection &&
-                state.doc === prevState.doc
-              ) {
+              if (state.selection === prevState.selection && state.doc === prevState.doc) {
                 return;
               }
 
@@ -131,12 +128,7 @@ export const SlashCommandExtension = Extension.create({
 
               const $from = state.doc.resolve(from);
               const blockStart = $from.start();
-              const textBefore = state.doc.textBetween(
-                blockStart,
-                from,
-                "\n",
-                "\0"
-              );
+              const textBefore = state.doc.textBetween(blockStart, from, "\n", "\0");
 
               // Match /word at start of a word (preceded by whitespace or start of line)
               const match = textBefore.match(/\/(\w*)$/);
@@ -148,9 +140,7 @@ export const SlashCommandExtension = Extension.create({
                   const slashFrom = blockStart + slashIdx;
                   const slashTo = from;
 
-                  const matching = SLASH_COMMANDS.filter((cmd) =>
-                    cmd.name.startsWith(query)
-                  );
+                  const matching = SLASH_COMMANDS.filter((cmd) => cmd.name.startsWith(query));
 
                   if (matching.length > 0) {
                     const coords = view.coordsAtPos(from);

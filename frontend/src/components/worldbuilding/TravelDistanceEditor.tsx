@@ -15,19 +15,28 @@ export default function TravelDistanceEditor({ storyId }: Props) {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ from_location_id: "", to_location_id: "", travel_time: "", travel_method: "", condition: "", notes: "", bidirectional: true });
+  const [form, setForm] = useState({
+    from_location_id: "",
+    to_location_id: "",
+    travel_time: "",
+    travel_method: "",
+    condition: "",
+    notes: "",
+    bidirectional: true,
+  });
 
   const load = useCallback(() => {
-    Promise.all([
-      api.listLocationsFlat(storyId),
-      api.listLocationTravel(storyId),
-    ]).then(([locs, t]) => {
-      setLocations(locs);
-      setTravels(t);
-    }).finally(() => setLoading(false));
+    Promise.all([api.listLocationsFlat(storyId), api.listLocationTravel(storyId)])
+      .then(([locs, t]) => {
+        setLocations(locs);
+        setTravels(t);
+      })
+      .finally(() => setLoading(false));
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function locationName(id: string) {
     return locations.find((l) => l.id === id)?.name ?? id.slice(0, 8) + "…";
@@ -45,7 +54,15 @@ export default function TravelDistanceEditor({ storyId }: Props) {
       bidirectional: form.bidirectional,
     });
     setShowAddModal(false);
-    setForm({ from_location_id: "", to_location_id: "", travel_time: "", travel_method: "", condition: "", notes: "", bidirectional: true });
+    setForm({
+      from_location_id: "",
+      to_location_id: "",
+      travel_time: "",
+      travel_method: "",
+      condition: "",
+      notes: "",
+      bidirectional: true,
+    });
     load();
   }
 
@@ -64,7 +81,14 @@ export default function TravelDistanceEditor({ storyId }: Props) {
 
   return (
     <div style={{ padding: "2rem", flex: 1, overflow: "auto" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "1.5rem",
+        }}
+      >
         <div>
           <h2 style={{ margin: 0, fontSize: "1rem", fontWeight: 400 }}>Travel Distances</h2>
           <p style={{ margin: "0.25rem 0 0", fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
@@ -77,7 +101,14 @@ export default function TravelDistanceEditor({ storyId }: Props) {
       </div>
 
       {travels.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "3rem",
+            color: "var(--color-text-muted)",
+            fontSize: "0.875rem",
+          }}
+        >
           No travel entries yet. Add one to define distances between locations.
         </div>
       ) : (
@@ -106,54 +137,100 @@ export default function TravelDistanceEditor({ storyId }: Props) {
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>From</label>
-                <select className={styles.fieldSelect} value={form.from_location_id}
-                  onChange={(e) => setForm((f) => ({ ...f, from_location_id: e.target.value }))}>
+                <select
+                  className={styles.fieldSelect}
+                  value={form.from_location_id}
+                  onChange={(e) => setForm((f) => ({ ...f, from_location_id: e.target.value }))}
+                >
                   <option value="">— select —</option>
-                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>To</label>
-                <select className={styles.fieldSelect} value={form.to_location_id}
-                  onChange={(e) => setForm((f) => ({ ...f, to_location_id: e.target.value }))}>
+                <select
+                  className={styles.fieldSelect}
+                  value={form.to_location_id}
+                  onChange={(e) => setForm((f) => ({ ...f, to_location_id: e.target.value }))}
+                >
                   <option value="">— select —</option>
-                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                  {locations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Travel Time</label>
-                <input className={styles.fieldInput} placeholder="e.g. 3 days, 2 hours"
-                  value={form.travel_time} onChange={(e) => setForm((f) => ({ ...f, travel_time: e.target.value }))} />
+                <input
+                  className={styles.fieldInput}
+                  placeholder="e.g. 3 days, 2 hours"
+                  value={form.travel_time}
+                  onChange={(e) => setForm((f) => ({ ...f, travel_time: e.target.value }))}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Method</label>
-                <input className={styles.fieldInput} placeholder="e.g. on foot, by ship"
-                  value={form.travel_method} onChange={(e) => setForm((f) => ({ ...f, travel_method: e.target.value }))} />
+                <input
+                  className={styles.fieldInput}
+                  placeholder="e.g. on foot, by ship"
+                  value={form.travel_method}
+                  onChange={(e) => setForm((f) => ({ ...f, travel_method: e.target.value }))}
+                />
               </div>
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Condition (optional)</label>
-              <input className={styles.fieldInput} placeholder="e.g. at opposition, via jump gate, with current tech"
-                value={form.condition} onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))} />
+              <input
+                className={styles.fieldInput}
+                placeholder="e.g. at opposition, via jump gate, with current tech"
+                value={form.condition}
+                onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))}
+              />
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Notes</label>
-              <textarea className={styles.fieldTextarea} placeholder="Hazards, terrain, seasonal variations…"
-                value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+              <textarea
+                className={styles.fieldTextarea}
+                placeholder="Hazards, terrain, seasonal variations…"
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              />
             </div>
             <div className={styles.fieldGroup}>
-              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.85rem" }}>
-                <input type="checkbox" checked={form.bidirectional}
-                  onChange={(e) => setForm((f) => ({ ...f, bidirectional: e.target.checked }))} />
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={form.bidirectional}
+                  onChange={(e) => setForm((f) => ({ ...f, bidirectional: e.target.checked }))}
+                />
                 Bidirectional (same travel time in both directions)
               </label>
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createTravel}
-                disabled={!form.from_location_id || !form.to_location_id}>
+              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                onClick={createTravel}
+                disabled={!form.from_location_id || !form.to_location_id}
+              >
                 Add entry
               </button>
             </div>
@@ -165,7 +242,15 @@ export default function TravelDistanceEditor({ storyId }: Props) {
 }
 
 function TravelEntry({
-  travel, storyId, fromName, toName, isEditing, onStartEdit, onSave, onCancel, onDelete,
+  travel,
+  storyId,
+  fromName,
+  toName,
+  isEditing,
+  onStartEdit,
+  onSave,
+  onCancel,
+  onDelete,
 }: {
   travel: LocationTravel;
   storyId: string;
@@ -192,16 +277,23 @@ function TravelEntry({
         <div className={styles.travelLocations}>
           <div className={styles.travelRoute}>
             <span>{fromName}</span>
-            {travel.bidirectional
-              ? <ArrowLeftRight size={14} color="var(--color-text-muted)" />
-              : <ArrowRight size={14} color="var(--color-text-muted)" />}
+            {travel.bidirectional ? (
+              <ArrowLeftRight size={14} color="var(--color-text-muted)" />
+            ) : (
+              <ArrowRight size={14} color="var(--color-text-muted)" />
+            )}
             <span>{toName}</span>
           </div>
           <div className={styles.travelMeta}>
             {travel.travel_time && <span>{travel.travel_time}</span>}
             {travel.travel_time && travel.travel_method && <span> · </span>}
             {travel.travel_method && <span>{travel.travel_method}</span>}
-            {travel.condition && <span style={{ fontStyle: "italic", color: "var(--color-text-subtle)" }}> ({travel.condition})</span>}
+            {travel.condition && (
+              <span style={{ fontStyle: "italic", color: "var(--color-text-subtle)" }}>
+                {" "}
+                ({travel.condition})
+              </span>
+            )}
             {travel.notes && <span> · {travel.notes}</span>}
           </div>
         </div>
@@ -213,8 +305,12 @@ function TravelEntry({
           <Compass size={11} />
           Analyze Route
         </button>
-        <button className={styles.ghostBtn} onClick={onStartEdit}>Edit</button>
-        <button className={`${styles.iconBtn} ${styles.danger}`} onClick={onDelete}><Trash2 size={13} /></button>
+        <button className={styles.ghostBtn} onClick={onStartEdit}>
+          Edit
+        </button>
+        <button className={`${styles.iconBtn} ${styles.danger}`} onClick={onDelete}>
+          <Trash2 size={13} />
+        </button>
       </div>
     );
   }
@@ -229,32 +325,60 @@ function TravelEntry({
       <div className={styles.fieldRow}>
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Travel Time</label>
-          <input className={styles.fieldInput} value={form.travel_time}
-            onChange={(e) => setForm((f) => ({ ...f, travel_time: e.target.value }))} />
+          <input
+            className={styles.fieldInput}
+            value={form.travel_time}
+            onChange={(e) => setForm((f) => ({ ...f, travel_time: e.target.value }))}
+          />
         </div>
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Method</label>
-          <input className={styles.fieldInput} value={form.travel_method}
-            onChange={(e) => setForm((f) => ({ ...f, travel_method: e.target.value }))} />
+          <input
+            className={styles.fieldInput}
+            value={form.travel_method}
+            onChange={(e) => setForm((f) => ({ ...f, travel_method: e.target.value }))}
+          />
         </div>
       </div>
       <div className={styles.fieldGroup}>
-        <input className={styles.fieldInput} placeholder="Condition (optional, e.g. at opposition)"
+        <input
+          className={styles.fieldInput}
+          placeholder="Condition (optional, e.g. at opposition)"
           value={form.condition}
-          onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))} />
+          onChange={(e) => setForm((f) => ({ ...f, condition: e.target.value }))}
+        />
       </div>
       <div className={styles.fieldGroup}>
-        <input className={styles.fieldInput} placeholder="Notes" value={form.notes}
-          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+        <input
+          className={styles.fieldInput}
+          placeholder="Notes"
+          value={form.notes}
+          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+        />
       </div>
-      <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.82rem" }}>
-        <input type="checkbox" checked={form.bidirectional}
-          onChange={(e) => setForm((f) => ({ ...f, bidirectional: e.target.checked }))} />
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          cursor: "pointer",
+          fontSize: "0.82rem",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={form.bidirectional}
+          onChange={(e) => setForm((f) => ({ ...f, bidirectional: e.target.checked }))}
+        />
         Bidirectional
       </label>
       <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-        <button className={styles.ghostBtn} onClick={onCancel}>Cancel</button>
-        <button className={styles.addBtn} onClick={() => onSave(form)}>Save</button>
+        <button className={styles.ghostBtn} onClick={onCancel}>
+          Cancel
+        </button>
+        <button className={styles.addBtn} onClick={() => onSave(form)}>
+          Save
+        </button>
       </div>
     </div>
   );

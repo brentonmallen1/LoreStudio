@@ -115,7 +115,10 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
             </button>
             <span className={styles.sceneTitle}>
               {currentScene.scene_title}
-              <span className={styles.sceneCounter}> ({sceneIndex + 1}/{data.scenes.length})</span>
+              <span className={styles.sceneCounter}>
+                {" "}
+                ({sceneIndex + 1}/{data.scenes.length})
+              </span>
             </span>
             <button
               className={styles.navBtn}
@@ -130,17 +133,17 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
           <div className={styles.proposals}>
             <div className={styles.proposalHeader}>
               <span className={styles.proposalHint}>Select mentions to tag as @{characterName}</span>
-              <button
-                className={styles.selectAllBtn}
-                onClick={() => selectAll(currentScene)}
-              >
+              <button className={styles.selectAllBtn} onClick={() => selectAll(currentScene)}>
                 Select all
               </button>
             </div>
             {currentScene.proposals.map((p) => {
               const isSelected = selected[currentScene.scene_id]?.has(p.id) ?? false;
               return (
-                <label key={p.id} className={`${styles.proposalRow} ${isSelected ? styles.proposalSelected : ""}`}>
+                <label
+                  key={p.id}
+                  className={`${styles.proposalRow} ${isSelected ? styles.proposalSelected : ""}`}
+                >
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -152,7 +155,10 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
                   <span className={styles.tagPreview}>@{characterName}</span>
                   <span className={styles.excerpt}>"{p.source_excerpt}"</span>
                   {p.confidence < 1.0 && (
-                    <span className={styles.confidenceLow} title={`Confidence: ${Math.round(p.confidence * 100)}%`}>
+                    <span
+                      className={styles.confidenceLow}
+                      title={`Confidence: ${Math.round(p.confidence * 100)}%`}
+                    >
                       partial match
                     </span>
                   )}
@@ -162,11 +168,7 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
           </div>
 
           {totalSelected > 0 && (
-            <button
-              onClick={applySelected}
-              disabled={applying}
-              className={styles.applyBtn}
-            >
+            <button onClick={applySelected} disabled={applying} className={styles.applyBtn}>
               <Tag size={12} />
               {applying ? "Tagging…" : `Tag ${totalSelected} mention${totalSelected !== 1 ? "s" : ""}`}
             </button>

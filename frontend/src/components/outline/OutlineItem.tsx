@@ -15,7 +15,12 @@ export interface OutlineItemProps {
   selectionActive: boolean;
   onToggleSelect: (id: string) => void;
   onDrop: (draggedId: string, targetId: string, zone: "above" | "below" | "into") => void;
-  onUpdate: (id: string, patch: Partial<Pick<OutlineItemType, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">>) => void;
+  onUpdate: (
+    id: string,
+    patch: Partial<
+      Pick<OutlineItemType, "text" | "notes" | "beat_type" | "collapsed" | "scene_id" | "scene_title">
+    >,
+  ) => void;
   onDelete: (id: string) => void;
   onAddSibling: (afterId: string) => void;
   onAddChild: (parentId: string) => void;
@@ -126,7 +131,7 @@ export default function OutlineItem({
 
   // ── Class assembly ─────────────────────────────────────────────────────────
 
-  const beatClass = item.beat_type ? (styles as Record<string, string>)[item.beat_type] ?? "" : styles.none;
+  const beatClass = item.beat_type ? ((styles as Record<string, string>)[item.beat_type] ?? "") : styles.none;
 
   const rowClass = [
     styles.row,
@@ -136,7 +141,9 @@ export default function OutlineItem({
     dropZone === "above" ? styles.dropAbove : "",
     dropZone === "below" ? styles.dropBelow : "",
     dropZone === "into" ? styles.dropInto : "",
-  ].filter(Boolean).join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={styles.item}>
@@ -199,12 +206,18 @@ export default function OutlineItem({
                 e.preventDefault();
                 const all = Array.from(document.querySelectorAll<HTMLInputElement>("[data-outline-input]"));
                 const idx = all.indexOf(input);
-                if (idx > 0) { all[idx - 1].focus(); all[idx - 1].setSelectionRange(0, 0); }
+                if (idx > 0) {
+                  all[idx - 1].focus();
+                  all[idx - 1].setSelectionRange(0, 0);
+                }
               } else if (e.key === "ArrowDown" && input.selectionStart === input.value.length) {
                 e.preventDefault();
                 const all = Array.from(document.querySelectorAll<HTMLInputElement>("[data-outline-input]"));
                 const idx = all.indexOf(input);
-                if (idx < all.length - 1) { all[idx + 1].focus(); all[idx + 1].setSelectionRange(0, 0); }
+                if (idx < all.length - 1) {
+                  all[idx + 1].focus();
+                  all[idx + 1].setSelectionRange(0, 0);
+                }
               }
             }}
             placeholder="Outline beat…"
@@ -219,7 +232,10 @@ export default function OutlineItem({
               <span>{item.scene_title || "Linked scene"}</span>
               <button
                 className={styles.sceneLinkRemove}
-                onClick={(e) => { e.stopPropagation(); onUpdate(item.id, { scene_id: null, scene_title: null }); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdate(item.id, { scene_id: null, scene_title: null });
+                }}
                 tabIndex={-1}
               >
                 <X size={10} />
@@ -243,7 +259,9 @@ export default function OutlineItem({
             >
               <option value="">— unlink —</option>
               {sceneNodes.map((n) => (
-                <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>
+                <option key={n.id} value={n.id}>
+                  {n.title || "Untitled"}
+                </option>
               ))}
             </select>
           )}
@@ -302,10 +320,7 @@ export default function OutlineItem({
         </div>
 
         {/* Select checkbox — right */}
-        <label
-          className={styles.selectWrap}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <label className={styles.selectWrap} onClick={(e) => e.stopPropagation()}>
           <input
             type="checkbox"
             className={styles.selectBox}

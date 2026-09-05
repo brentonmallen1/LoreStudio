@@ -13,12 +13,16 @@ export default function DiagramTemplateSelector({ onSelect, onClose }: Props) {
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <span className={styles.title}>Start from a template</span>
-          <button className={styles.closeBtn} onClick={onClose}><X size={14} /></button>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={14} />
+          </button>
         </div>
         <div className={styles.grid}>
           {DIAGRAM_TEMPLATES.map((t) => (
             <button key={t.id} className={styles.card} onClick={() => onSelect(t)}>
-              <span className={`${styles.typeBadge} ${t.type === "mindmap" ? styles.typeMindmap : styles.typeFlowchart}`}>
+              <span
+                className={`${styles.typeBadge} ${t.type === "mindmap" ? styles.typeMindmap : styles.typeFlowchart}`}
+              >
                 {t.type}
               </span>
               <span className={styles.cardName}>{t.name}</span>

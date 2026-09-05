@@ -9,48 +9,45 @@ Session lifecycle (in-memory, 30-minute TTL):
 
 All endpoints require authentication.
 """
+
 import logging
 import time
 import uuid
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
 logger = logging.getLogger(__name__)
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
-from ..auth.dependencies import get_current_user
+from ..schemas.import_extraction import (
+    EnrichCandidatesRequest,
+    ExtractionOptions,
+    ExtractionPreview,
+)
 from ..schemas.import_schemas import (
     AIAnalyzeResponse,
     FinalizeImportRequest,
     ImportPreviewTree,
-    NodeAdjustment,
     ParsedParagraph,
     UpdatePreviewRequest,
     UploadResponse,
 )
-from ..schemas.import_extraction import (
-    AIEnrichOptions,
-    EnrichCandidatesRequest,
-    ExtractionCandidate,
-    ExtractionOptions,
-    ExtractionPreview,
-)
 from ..services.import_service import (
+    _merge_breaks,
     apply_adjustment,
     apply_breaks,
     build_preview_tree,
-    create_story_from_import,
     create_entities_from_extraction,
+    create_story_from_import,
     detect_structure_ai,
     detect_structure_heuristic,
     extract_entities_ai,
     extract_entities_nlp,
     parse_document,
-    _merge_breaks,
 )
 
 router = APIRouter()
@@ -60,6 +57,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 SESSION_TTL = 30 * 60  # 30 minutes in seconds
+
 
 class _ImportSession:
     def __init__(
@@ -121,11 +119,11 @@ ALLOWED_EXTENSIONS = {".docx", ".doc", ".rtf", ".md", ".markdown", ".txt", ".epu
 MAX_FILE_SIZE = 30 * 1024 * 1024  # 30 MB
 
 
-def _get_template(template_id: str, db: Session) -> Optional[StoryStructureTemplate]:
+def _get_template(template_id: str, db: Session) -> StoryStructureTemplate | None:
     return db.query(StoryStructureTemplate).filter(StoryStructureTemplate.id == template_id).first()
 
 
-def _template_levels(template: Optional[StoryStructureTemplate]) -> list[dict]:
+def _template_levels(template: StoryStructureTemplate | None) -> list[dict]:
     if template:
         return template.levels
     # Default freeform: section → scene
@@ -135,6 +133,7 @@ def _template_levels(template: Optional[StoryStructureTemplate]) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.post("/import/upload", response_model=UploadResponse)
 async def upload_for_import(
@@ -154,6 +153,7 @@ async def upload_for_import(
     # Validate file extension
     filename = file.filename or "upload"
     import os
+
     ext = os.path.splitext(filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
@@ -201,13 +201,15 @@ async def upload_for_import(
     ai_available = False
     try:
         from ..services.llm.ollama import ollama_provider
+
         ai_available = await ollama_provider.is_available()
     except Exception:
         pass
 
     # Determine if AI suggestions would be useful
-    has_unstructured = any(n.word_count > 2000 and n.source == "heuristic" and n.confidence < 0.8
-                           for n in preview.nodes)
+    has_unstructured = any(
+        n.word_count > 2000 and n.source == "heuristic" and n.confidence < 0.8 for n in preview.nodes
+    )
     if len(preview.nodes) == 1:
         has_unstructured = True
 
@@ -279,9 +281,13 @@ async def ai_analyze_structure(
     session.preview = updated_preview
 
     ai_suggestions_applied = sum(1 for b in ai_breaks if b.source == "ai")
-    reasoning = "AI found no additional structural breaks." if not ai_breaks else (
-        f"AI identified {ai_suggestions_applied} additional break(s). "
-        "Review the highlighted sections and adjust as needed."
+    reasoning = (
+        "AI found no additional structural breaks."
+        if not ai_breaks
+        else (
+            f"AI identified {ai_suggestions_applied} additional break(s). "
+            "Review the highlighted sections and adjust as needed."
+        )
     )
 
     return AIAnalyzeResponse(
@@ -328,6 +334,7 @@ async def extract_preview(
     Returns an ExtractionPreview for user review. Does NOT create entities yet.
     """
     import time
+
     from ..services.llm.gateway import AICallContext
 
     session = _get_session(session_id, current_user.id)
@@ -341,14 +348,15 @@ async def extract_preview(
     ai_available = False
     try:
         from ..services.llm.ollama import ollama_provider
+
         ai_available = await ollama_provider.is_available()
     except Exception:
         pass
 
-    ai_elapsed: Optional[int] = None
+    ai_elapsed: int | None = None
 
     # Stage 2: AI enrichment (only if AI is enabled in options and Ollama is up)
-    needs_ai = (options.characters_ai or options.locations_ai or options.relationships_ai)
+    needs_ai = options.characters_ai or options.locations_ai or options.relationships_ai
     if needs_ai and ai_available and candidates:
         ai_start = time.monotonic()
         ctx = AICallContext(
@@ -388,6 +396,7 @@ async def enrich_candidates(
     Takes the approved candidates (with scene_ids) and extracts attributes via Ollama.
     """
     import time
+
     from ..services.llm.gateway import AICallContext
 
     session = _get_session(session_id, current_user.id)
@@ -396,6 +405,7 @@ async def enrich_candidates(
     ai_available = False
     try:
         from ..services.llm.ollama import ollama_provider
+
         ai_available = await ollama_provider.is_available()
     except Exception:
         pass
@@ -460,7 +470,8 @@ def finalize_import(
     # If template changed, rebuild preview with new level names
     preview = session.preview
     if body.template_id != preview.template_id:
-        from ..services.import_service import detect_structure_heuristic, apply_breaks, build_preview_tree
+        from ..services.import_service import apply_breaks, build_preview_tree, detect_structure_heuristic
+
         template_levels = _template_levels(template)
         heuristic_breaks = detect_structure_heuristic(session.paragraphs)
         sections = apply_breaks(session.paragraphs, heuristic_breaks, template_levels)
@@ -490,6 +501,7 @@ def finalize_import(
     if body.extraction_candidate_ids and body.extraction_candidates:
         try:
             from ..schemas.import_extraction import ExtractionCandidate
+
             candidates = [ExtractionCandidate.model_validate(c) for c in body.extraction_candidates]
             selected_ids = set(body.extraction_candidate_ids)
             entity_counts = create_entities_from_extraction(candidates, selected_ids, story.id, db)

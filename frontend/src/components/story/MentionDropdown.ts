@@ -89,10 +89,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
 
     // Known character mentions — exact name match
     for (const char of chars) {
-      const re = new RegExp(
-        `@${escapeRe(char.name)}(?=[\\s.,;:!?)"'\\]]|$)`,
-        "g"
-      );
+      const re = new RegExp(`@${escapeRe(char.name)}(?=[\\s.,;:!?)"'\\]]|$)`, "g");
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
         const from = pos + m.index;
@@ -103,7 +100,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             class: "mention-char",
             "data-mention-name": char.name,
             "data-mention-type": "character",
-          })
+          }),
         );
       }
     }
@@ -121,7 +118,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             class: "mention-setting",
             "data-mention-name": setting.name,
             "data-mention-type": "setting",
-          })
+          }),
         );
       }
     }
@@ -142,7 +139,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             class: "mention-missing",
             "data-mention-name": mu[1],
             "data-mention-type": "character",
-          })
+          }),
         );
       }
     }
@@ -159,7 +156,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             class: "mention-missing",
             "data-mention-name": ms[1],
             "data-mention-type": "setting",
-          })
+          }),
         );
       }
     }
@@ -226,10 +223,7 @@ export const MentionDropdownExtension = Extension.create({
             update(view, prevState) {
               const { state } = view;
               // Only react to actual selection or document changes
-              if (
-                state.selection === prevState.selection &&
-                state.doc === prevState.doc
-              ) {
+              if (state.selection === prevState.selection && state.doc === prevState.doc) {
                 return;
               }
 
@@ -241,12 +235,7 @@ export const MentionDropdownExtension = Extension.create({
 
               const $from = state.doc.resolve(from);
               const blockStart = $from.start();
-              const textBefore = state.doc.textBetween(
-                blockStart,
-                from,
-                "\n",
-                "\0"
-              );
+              const textBefore = state.doc.textBetween(blockStart, from, "\n", "\0");
 
               // Check for ^ (dialogue mode trigger) — completely separate from @
               const dialogueMatch = textBefore.match(/\^(\S*)$/);

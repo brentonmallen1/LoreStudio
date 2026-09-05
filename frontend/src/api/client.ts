@@ -40,8 +40,12 @@ export const api = {
 
   // Stories
   listStories: () => request<import("../types").Story[]>("/stories"),
-  createStory: (data: { title: string; description?: string; intent?: string; structure_template_id?: string }) =>
-    request<import("../types").Story>("/stories", { method: "POST", body: JSON.stringify(data) }),
+  createStory: (data: {
+    title: string;
+    description?: string;
+    intent?: string;
+    structure_template_id?: string;
+  }) => request<import("../types").Story>("/stories", { method: "POST", body: JSON.stringify(data) }),
   getStory: (id: string) => request<import("../types").Story>(`/stories/${id}`),
   updateStory: (id: string, data: Partial<import("../types").Story>) =>
     request<import("../types").Story>(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
@@ -65,7 +69,12 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(goalIds),
     }),
-  sendIdentityWorkshopMessage: (storyId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+  sendIdentityWorkshopMessage: (
+    storyId: string,
+    messages: import("../types").ChatMessage[],
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/identity-workshop`, {
       method: "POST",
@@ -76,7 +85,12 @@ export const api = {
   },
 
   // Story AI
-  summarizeStory: (storyId: string, upToNodeId?: string, style?: string, signal?: AbortSignal): Promise<Response> => {
+  summarizeStory: (
+    storyId: string,
+    upToNodeId?: string,
+    style?: string,
+    signal?: AbortSignal,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/summarize`, {
       method: "POST",
@@ -124,7 +138,10 @@ export const api = {
     });
   },
   analyzeEconomy: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, {
+      method: "POST",
+      signal,
+    }),
   analyzeEssentialQuestions: (storyId: string, characterId?: string, signal?: AbortSignal) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/essential-questions`, {
       method: "POST",
@@ -166,31 +183,55 @@ export const api = {
     }),
 
   analyzeEditorialConsistency: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").EditorialConsistencyResponse>(`/stories/${storyId}/analyze/editorial-consistency`, {
+    request<import("../types").EditorialConsistencyResponse>(
+      `/stories/${storyId}/analyze/editorial-consistency`,
+      {
+        method: "POST",
+        signal,
+      },
+    ),
+
+  analyzePacing: (storyId: string, signal?: AbortSignal) =>
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, {
       method: "POST",
       signal,
     }),
 
-  analyzePacing: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, { method: "POST", signal }),
-
   analyzeContinuity: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, {
+      method: "POST",
+      signal,
+    }),
 
   analyzeThemes: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, {
+      method: "POST",
+      signal,
+    }),
 
   analyzePlotHoles: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, {
+      method: "POST",
+      signal,
+    }),
 
   analyzeFirstPass: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, {
+      method: "POST",
+      signal,
+    }),
 
   analyzeCliches: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, {
+      method: "POST",
+      signal,
+    }),
 
   analyzeCharacterDimensionality: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/character-dimensionality`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/character-dimensionality`, {
+      method: "POST",
+      signal,
+    }),
 
   generateDiscoveryQuestions: (storyId: string, focusArea: string, entityId?: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/discovery-questions`, {
@@ -200,7 +241,9 @@ export const api = {
 
   // Analysis history
   getLatestAnalysis: (storyId: string, feature: string) =>
-    request<import("../types").ActivityLog | null>(`/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`),
+    request<import("../types").ActivityLog | null>(
+      `/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`,
+    ),
   getAnalysisHistory: (storyId: string, features?: string[], limit?: number) => {
     const params = new URLSearchParams();
     if (features?.length) params.set("features", features.join(","));
@@ -241,15 +284,17 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getNode: (nodeId: string) =>
-    request<import("../types").StructureNode>(`/structure/${nodeId}`),
+  getNode: (nodeId: string) => request<import("../types").StructureNode>(`/structure/${nodeId}`),
   updateNode: (nodeId: string, data: Partial<import("../types").StructureNode>) =>
     request<import("../types").StructureNode>(`/structure/${nodeId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
   deleteNode: (nodeId: string) => request<void>(`/structure/${nodeId}`, { method: "DELETE" }),
-  reorderStructure: (storyId: string, operations: { node_id: string; parent_id: string | null; position: number }[]) =>
+  reorderStructure: (
+    storyId: string,
+    operations: { node_id: string; parent_id: string | null; position: number }[],
+  ) =>
     request<void>(`/stories/${storyId}/structure/reorder`, {
       method: "POST",
       body: JSON.stringify({ operations }),
@@ -304,16 +349,31 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ id: "", text, completed: false }),
     }),
-  updateMilestone: (characterId: string, milestoneId: string, data: { text?: string; completed?: boolean; scene_id?: string | null; scene_title?: string | null }) =>
+  updateMilestone: (
+    characterId: string,
+    milestoneId: string,
+    data: { text?: string; completed?: boolean; scene_id?: string | null; scene_title?: string | null },
+  ) =>
     request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, {
       method: "PATCH",
-      body: JSON.stringify({ id: milestoneId, text: data.text ?? "", completed: data.completed ?? false, scene_id: data.scene_id, scene_title: data.scene_title }),
+      body: JSON.stringify({
+        id: milestoneId,
+        text: data.text ?? "",
+        completed: data.completed ?? false,
+        scene_id: data.scene_id,
+        scene_title: data.scene_title,
+      }),
     }),
   deleteMilestone: (characterId: string, milestoneId: string) =>
-    request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, { method: "DELETE" }),
+    request<import("../types").Character>(`/characters/${characterId}/milestones/${milestoneId}`, {
+      method: "DELETE",
+    }),
 
   // Discovery notes
-  addDiscoveryNote: (characterId: string, data: { text: string; scene_id?: string | null; scene_title?: string | null }) =>
+  addDiscoveryNote: (
+    characterId: string,
+    data: { text: string; scene_id?: string | null; scene_title?: string | null },
+  ) =>
     request<import("../types").Character>(`/characters/${characterId}/discovery-notes`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -324,30 +384,48 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteDiscoveryNote: (characterId: string, noteId: string) =>
-    request<import("../types").Character>(`/characters/${characterId}/discovery-notes/${noteId}`, { method: "DELETE" }),
+    request<import("../types").Character>(`/characters/${characterId}/discovery-notes/${noteId}`, {
+      method: "DELETE",
+    }),
 
   getArcTimeline: (characterId: string) =>
     request<import("../types").ArcTimelineData>(`/characters/${characterId}/arc-timeline`),
   getCharacterUnlinkedMentions: (characterId: string) =>
-    request<import("../types").CharacterUnlinkedMentionsResponse>(`/characters/${characterId}/unlinked-mentions`),
+    request<import("../types").CharacterUnlinkedMentionsResponse>(
+      `/characters/${characterId}/unlinked-mentions`,
+    ),
   applyCharacterMentions: (characterId: string, scenes: import("../types").ApplyMentionsForScene[]) =>
     request<{ updated_scenes: number }>(`/characters/${characterId}/apply-mentions`, {
       method: "POST",
       body: JSON.stringify({ scenes }),
     }),
   analyzeCharacterVoice: (characterId: string) =>
-    request<import("../types").VoiceDistinctnessResult>(`/characters/${characterId}/analyze-voice`, { method: "POST" }),
+    request<import("../types").VoiceDistinctnessResult>(`/characters/${characterId}/analyze-voice`, {
+      method: "POST",
+    }),
   analyzeCharacterDialogueProse: (characterId: string) =>
-    request<import("../types").CharacterDialogueProseResult>(`/characters/${characterId}/analyze-dialogue`, { method: "POST" }),
+    request<import("../types").CharacterDialogueProseResult>(`/characters/${characterId}/analyze-dialogue`, {
+      method: "POST",
+    }),
   analyzeCharacterVoiceFidelity: (characterId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-voice-fidelity`, { method: "POST", signal }),
+    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-voice-fidelity`, {
+      method: "POST",
+      signal,
+    }),
   analyzeCharacterArc: (characterId: string) =>
-    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, { method: "POST" }),
+    request<import("../types").StructuredResult>(`/characters/${characterId}/analyze-arc`, {
+      method: "POST",
+    }),
   assessCharacterDimensionality: (characterId: string) =>
-    request<import("../types").StructuredResult>(`/characters/${characterId}/assess-dimensionality`, { method: "POST" }),
+    request<import("../types").StructuredResult>(`/characters/${characterId}/assess-dimensionality`, {
+      method: "POST",
+    }),
 
   // Character AI generation
-  generateAttributes: (characterId: string, attributeType: string): Promise<import("../types").StructuredResult> =>
+  generateAttributes: (
+    characterId: string,
+    attributeType: string,
+  ): Promise<import("../types").StructuredResult> =>
     request<import("../types").StructuredResult>(`/characters/${characterId}/generate-attributes`, {
       method: "POST",
       body: JSON.stringify({ attribute_type: attributeType }),
@@ -373,20 +451,25 @@ export const api = {
   deleteRelationship: (relationshipId: string) =>
     request<void>(`/characters/relationships/${relationshipId}`, { method: "DELETE" }),
   acceptRelationshipSuggestion: (relationshipId: string) =>
-    request<import("../types").CharacterRelationship>(`/characters/relationships/${relationshipId}/accept-suggestion`, {
-      method: "POST",
-    }),
+    request<import("../types").CharacterRelationship>(
+      `/characters/relationships/${relationshipId}/accept-suggestion`,
+      {
+        method: "POST",
+      },
+    ),
   getRelationshipTemplates: () =>
     request<import("../types").RelationshipTemplate[]>(`/characters/relationships/templates`),
   createRelationshipFromTemplate: (characterId: string, relatedCharacterId: string, templateId: string) =>
-    request<import("../types").CharacterRelationship>(`/characters/${characterId}/relationships/from-template`, {
-      method: "POST",
-      body: JSON.stringify({ related_character_id: relatedCharacterId, template_id: templateId }),
-    }),
+    request<import("../types").CharacterRelationship>(
+      `/characters/${characterId}/relationships/from-template`,
+      {
+        method: "POST",
+        body: JSON.stringify({ related_character_id: relatedCharacterId, template_id: templateId }),
+      },
+    ),
 
   // Settings (deprecated — use listLocationsFlat instead)
-  listSettings: (storyId: string) =>
-    request<import("../types").Setting[]>(`/stories/${storyId}/settings`),
+  listSettings: (storyId: string) => request<import("../types").Setting[]>(`/stories/${storyId}/settings`),
 
   migrateSettingsToLocations: (storyId: string) =>
     request<{ created: number; merged: number }>(`/stories/${storyId}/locations/migrate-settings`, {
@@ -403,7 +486,8 @@ export const api = {
     }),
   getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
   deleteInterview: (id: string) => request<void>(`/interviews/${id}`, { method: "DELETE" }),
-  compactInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
+  compactInterview: (id: string) =>
+    request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
 
   // Interview notes
   updateInterview: (id: string, data: { interview_notes?: string; title?: string }) =>
@@ -418,7 +502,12 @@ export const api = {
     }),
 
   // Interview streaming (returns Response, not parsed JSON)
-  sendInterviewMessage: (interviewId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+  sendInterviewMessage: (
+    interviewId: string,
+    content: string,
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/interviews/${interviewId}/messages`, {
       method: "POST",
@@ -445,8 +534,14 @@ export const api = {
 
   // Character Journey
   getCharacterJourney: (characterId: string, upToNodeId: string) =>
-    request<import("../types").CharacterJourney>(`/characters/${characterId}/journey?up_to_node=${upToNodeId}`),
-  refreshCharacterJourney: (characterId: string, upToNodeId: string, signal?: AbortSignal): Promise<Response> => {
+    request<import("../types").CharacterJourney>(
+      `/characters/${characterId}/journey?up_to_node=${upToNodeId}`,
+    ),
+  refreshCharacterJourney: (
+    characterId: string,
+    upToNodeId: string,
+    signal?: AbortSignal,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/characters/${characterId}/journey/refresh?up_to_node=${upToNodeId}`, {
       method: "POST",
@@ -456,14 +551,19 @@ export const api = {
   },
 
   // Plot Threads
-  listThreads: (storyId: string) =>
-    request<import("../types").PlotThread[]>(`/stories/${storyId}/threads`),
-  createThread: (storyId: string, data: { name: string; description?: string; status?: string; color?: string }) =>
+  listThreads: (storyId: string) => request<import("../types").PlotThread[]>(`/stories/${storyId}/threads`),
+  createThread: (
+    storyId: string,
+    data: { name: string; description?: string; status?: string; color?: string },
+  ) =>
     request<import("../types").PlotThread>(`/stories/${storyId}/threads`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  updateThread: (threadId: string, data: { name?: string; description?: string; status?: string; color?: string }) =>
+  updateThread: (
+    threadId: string,
+    data: { name?: string; description?: string; status?: string; color?: string },
+  ) =>
     request<import("../types").PlotThread>(`/threads/${threadId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -480,8 +580,7 @@ export const api = {
     request<import("../types").StructuredResult>(`/threads/${threadId}/analyze`, { method: "POST" }),
 
   // Twists
-  listTwists: (storyId: string) =>
-    request<import("../types").Twist[]>(`/stories/${storyId}/twists`),
+  listTwists: (storyId: string) => request<import("../types").Twist[]>(`/stories/${storyId}/twists`),
   createTwist: (storyId: string, data: { name: string; twist_type?: string }) =>
     request<import("../types").Twist>(`/stories/${storyId}/twists`, {
       method: "POST",
@@ -493,8 +592,7 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteTwist: (twistId: string) => request<void>(`/twists/${twistId}`, { method: "DELETE" }),
-  getTwistsForScene: (nodeId: string) =>
-    request<import("../types").Twist[]>(`/structure/${nodeId}/twists`),
+  getTwistsForScene: (nodeId: string) => request<import("../types").Twist[]>(`/structure/${nodeId}/twists`),
   analyzeTwist: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze`, { method: "POST" }),
   linkClueToScene: (twistId: string, clueId: string, sceneId: string) =>
@@ -519,51 +617,54 @@ export const api = {
   deleteReaderKnowledgeEvent: (eventId: string) =>
     request<void>(`/reader-knowledge/${eventId}`, { method: "DELETE" }),
   scanReaderKnowledgeEvents: (storyId: string) =>
-    request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge/scan`, { method: "POST" }),
+    request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge/scan`, {
+      method: "POST",
+    }),
   analyzeTwistImpact: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
 
   // Todos
-  listTodos: (storyId: string) =>
-    request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos`),
-  getTodosForScene: (nodeId: string) =>
-    request<import("../types").StoryTodo[]>(`/structure/${nodeId}/todos`),
-  createTodo: (storyId: string, data: {
-    content: string;
-    node_id?: string | null;
-    done?: boolean;
-    doc_from?: number | null;
-    doc_to?: number | null;
-  }) =>
+  listTodos: (storyId: string) => request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos`),
+  getTodosForScene: (nodeId: string) => request<import("../types").StoryTodo[]>(`/structure/${nodeId}/todos`),
+  createTodo: (
+    storyId: string,
+    data: {
+      content: string;
+      node_id?: string | null;
+      done?: boolean;
+      doc_from?: number | null;
+      doc_to?: number | null;
+    },
+  ) =>
     request<import("../types").StoryTodo>(`/stories/${storyId}/todos`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  updateTodo: (todoId: string, data: {
-    content?: string;
-    node_id?: string | null;
-    done?: boolean;
-    position?: number;
-    doc_from?: number | null;
-    doc_to?: number | null;
-  }) =>
+  updateTodo: (
+    todoId: string,
+    data: {
+      content?: string;
+      node_id?: string | null;
+      done?: boolean;
+      position?: number;
+      doc_from?: number | null;
+      doc_to?: number | null;
+    },
+  ) =>
     request<import("../types").StoryTodo>(`/todos/${todoId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteTodo: (todoId: string) =>
-    request<void>(`/todos/${todoId}`, { method: "DELETE" }),
+  deleteTodo: (todoId: string) => request<void>(`/todos/${todoId}`, { method: "DELETE" }),
   reorderTodos: (storyId: string, todoIds: string[]) =>
     request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos/reorder`, {
       method: "POST",
       body: JSON.stringify({ todo_ids: todoIds }),
     }),
-  deleteDoneTodos: (storyId: string) =>
-    request<void>(`/stories/${storyId}/todos/done`, { method: "DELETE" }),
+  deleteDoneTodos: (storyId: string) => request<void>(`/stories/${storyId}/todos/done`, { method: "DELETE" }),
 
   // Outlines
-  listOutlines: (storyId: string) =>
-    request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
+  listOutlines: (storyId: string) => request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
   createOutline: (storyId: string, name: string) =>
     request<import("../types").Outline>(`/stories/${storyId}/outlines`, {
       method: "POST",
@@ -584,7 +685,13 @@ export const api = {
   deleteOutline: (outlineId: string) => request<void>(`/outlines/${outlineId}`, { method: "DELETE" }),
   createOutlineItem: (
     outlineId: string,
-    data: { text: string; parent_id?: string | null; position?: number; beat_type?: string | null; notes?: string },
+    data: {
+      text: string;
+      parent_id?: string | null;
+      position?: number;
+      beat_type?: string | null;
+      notes?: string;
+    },
   ) =>
     request<import("../types").OutlineItem>(`/outlines/${outlineId}/items`, {
       method: "POST",
@@ -601,15 +708,22 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ parent_id: parentId, item_ids: itemIds }),
     }),
-  bulkReorderOutline: (outlineId: string, operations: { item_id: string; parent_id: string | null; position: number }[]) =>
+  bulkReorderOutline: (
+    outlineId: string,
+    operations: { item_id: string; parent_id: string | null; position: number }[],
+  ) =>
     request<void>(`/outlines/${outlineId}/bulk-reorder`, {
       method: "POST",
       body: JSON.stringify({ operations }),
     }),
   extractOutlineFromProse: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/outlines/extract-from-prose`, { method: "POST" }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/outlines/extract-from-prose`, {
+      method: "POST",
+    }),
   analyzeOutlineAlignment: (outlineId: string) =>
-    request<import("../types").StructuredResult>(`/outlines/${outlineId}/analyze-alignment`, { method: "POST" }),
+    request<import("../types").StructuredResult>(`/outlines/${outlineId}/analyze-alignment`, {
+      method: "POST",
+    }),
 
   // Panel Interviews
   listPanels: (storyId: string) =>
@@ -619,10 +733,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getPanel: (panelId: string) =>
-    request<import("../types").PanelInterview>(`/panels/${panelId}`),
+  getPanel: (panelId: string) => request<import("../types").PanelInterview>(`/panels/${panelId}`),
   deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
-  sendPanelMessage: (panelId: string, content: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams, responseLength?: "brief" | "normal" | "detailed"): Promise<Response> => {
+  sendPanelMessage: (
+    panelId: string,
+    content: string,
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+    responseLength?: "brief" | "normal" | "detailed",
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/panels/${panelId}/messages`, {
       method: "POST",
@@ -630,26 +749,46 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ content, llm_params: llmParams ?? null, response_length: responseLength ?? null }),
+      body: JSON.stringify({
+        content,
+        llm_params: llmParams ?? null,
+        response_length: responseLength ?? null,
+      }),
       signal,
     });
   },
 
   // Scene Links
   getSceneLinks: (params: { story_id?: string; node_id?: string }) =>
-    request<import("../types").SceneLink[]>(`/scene-links?${new URLSearchParams(params as Record<string, string>)}`),
-  createSceneLink: (data: { story_id: string; source_node_id: string; target_node_id: string; link_type: string; note?: string }) =>
-    request<import("../types").SceneLink>("/scene-links", { method: "POST", body: JSON.stringify(data) }),
+    request<import("../types").SceneLink[]>(
+      `/scene-links?${new URLSearchParams(params as Record<string, string>)}`,
+    ),
+  createSceneLink: (data: {
+    story_id: string;
+    source_node_id: string;
+    target_node_id: string;
+    link_type: string;
+    note?: string;
+  }) => request<import("../types").SceneLink>("/scene-links", { method: "POST", body: JSON.stringify(data) }),
   updateSceneLink: (id: string, data: { link_type?: string; note?: string }) =>
-    request<import("../types").SceneLink>(`/scene-links/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    request<import("../types").SceneLink>(`/scene-links/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
   deleteSceneLink: (id: string) => request<void>(`/scene-links/${id}`, { method: "DELETE" }),
 
   // Beat Sheets
   listBeatSheets: () => request<import("../types").BeatSheet[]>("/beat-sheets"),
   createBeatSheet: (body: { name: string; description?: string; beats?: import("../types").Beat[] }) =>
     request<import("../types").BeatSheet>("/beat-sheets", { method: "POST", body: JSON.stringify(body) }),
-  updateBeatSheet: (id: string, body: { name?: string; description?: string; beats?: import("../types").Beat[] }) =>
-    request<import("../types").BeatSheet>(`/beat-sheets/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  updateBeatSheet: (
+    id: string,
+    body: { name?: string; description?: string; beats?: import("../types").Beat[] },
+  ) =>
+    request<import("../types").BeatSheet>(`/beat-sheets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   deleteBeatSheet: (id: string) => request<void>(`/beat-sheets/${id}`, { method: "DELETE" }),
 
   // Snowflake Method
@@ -678,21 +817,43 @@ export const api = {
 
   // Story-wide search & replace
   storySearch: (storyId: string, query: string, caseSensitive = false) =>
-    request<{ matches: Array<{ node_id: string; node_title: string; excerpt: string; match_count: number; level_type: string }> }>(
-      `/stories/${storyId}/search`,
-      { method: "POST", body: JSON.stringify({ query, case_sensitive: caseSensitive }) }
-    ),
+    request<{
+      matches: Array<{
+        node_id: string;
+        node_title: string;
+        excerpt: string;
+        match_count: number;
+        level_type: string;
+      }>;
+    }>(`/stories/${storyId}/search`, {
+      method: "POST",
+      body: JSON.stringify({ query, case_sensitive: caseSensitive }),
+    }),
 
-  storyReplace: (storyId: string, query: string, replacement: string, caseSensitive = false, nodeIds?: string[]) =>
-    request<{ replaced_count: number; scenes_affected: number }>(
-      `/stories/${storyId}/replace`,
-      { method: "POST", body: JSON.stringify({ query, replacement, case_sensitive: caseSensitive, node_ids: nodeIds ?? null }) }
-    ),
+  storyReplace: (
+    storyId: string,
+    query: string,
+    replacement: string,
+    caseSensitive = false,
+    nodeIds?: string[],
+  ) =>
+    request<{ replaced_count: number; scenes_affected: number }>(`/stories/${storyId}/replace`, {
+      method: "POST",
+      body: JSON.stringify({ query, replacement, case_sensitive: caseSensitive, node_ids: nodeIds ?? null }),
+    }),
 
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
-  sendChatMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams, mode?: string, contextOptions?: import("../types").ContextOptions): Promise<Response> => {
+  sendChatMessage: (
+    storyId: string,
+    nodeId: string,
+    messages: import("../types").ChatMessage[],
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+    mode?: string,
+    contextOptions?: import("../types").ContextOptions,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/chat`, {
       method: "POST",
@@ -700,13 +861,23 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ node_id: nodeId, messages, llm_params: llmParams ?? null, mode: mode ?? null, context_options: contextOptions ?? null }),
+      body: JSON.stringify({
+        node_id: nodeId,
+        messages,
+        llm_params: llmParams ?? null,
+        mode: mode ?? null,
+        context_options: contextOptions ?? null,
+      }),
       signal,
     });
   },
 
   // Conversation Summarize
-  summarizeConversation: (messages: import("../types").ChatMessage[], storyId?: string, signal?: AbortSignal): Promise<Response> => {
+  summarizeConversation: (
+    messages: import("../types").ChatMessage[],
+    storyId?: string,
+    signal?: AbortSignal,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/chat/summarize`, {
       method: "POST",
@@ -720,7 +891,14 @@ export const api = {
   },
 
   // Cliche Coach
-  sendClicheCoachMessage: (storyId: string, nodeId: string, messages: import("../types").ChatMessage[], selectedText?: string, signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+  sendClicheCoachMessage: (
+    storyId: string,
+    nodeId: string,
+    messages: import("../types").ChatMessage[],
+    selectedText?: string,
+    signal?: AbortSignal,
+    llmParams?: import("../types").LLMParams,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/chat/cliche-coach`, {
       method: "POST",
@@ -728,7 +906,12 @@ export const api = {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ node_id: nodeId, messages, selected_text: selectedText ?? null, llm_params: llmParams ?? null }),
+      body: JSON.stringify({
+        node_id: nodeId,
+        messages,
+        selected_text: selectedText ?? null,
+        llm_params: llmParams ?? null,
+      }),
       signal,
     });
   },
@@ -809,10 +992,13 @@ export const api = {
     }),
 
   analyzeHistoricalImplications: (storyId: string, eventId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/historical-implications`, {
-      method: "POST",
-      body: JSON.stringify({ event_id: eventId }),
-    }),
+    request<import("../types").StructuredResult>(
+      `/stories/${storyId}/worldbuilding/historical-implications`,
+      {
+        method: "POST",
+        body: JSON.stringify({ event_id: eventId }),
+      },
+    ),
 
   analyzeWorldSystem: (storyId: string, systemId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/worldbuilding/system-analysis`, {
@@ -832,13 +1018,13 @@ export const api = {
       body: JSON.stringify({ travel_id: travelId }),
     }),
 
-
   // Story Health
-  getStoryHealth: (storyId: string) =>
-    request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
+  getStoryHealth: (storyId: string) => request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
 
   getHealthAlerts: (storyId: string) =>
-    request<{ count: number; absent_characters: string[]; mice_violation_count: number }>(`/stories/${storyId}/health/alerts`),
+    request<{ count: number; absent_characters: string[]; mice_violation_count: number }>(
+      `/stories/${storyId}/health/alerts`,
+    ),
 
   // Story Overview
   getStoryOverview: (storyId: string) =>
@@ -847,7 +1033,7 @@ export const api = {
   // Manuscript & Export
   getManuscript: (storyId: string, statusFilter?: string) =>
     request<import("../types").Manuscript>(
-      `/stories/${storyId}/manuscript${statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ""}`
+      `/stories/${storyId}/manuscript${statusFilter ? `?status_filter=${encodeURIComponent(statusFilter)}` : ""}`,
     ),
   exportStory: (storyId: string, options: import("../types").ExportOptions): Promise<Response> => {
     const token = getToken();
@@ -877,17 +1063,18 @@ export const api = {
       return res.json();
     });
   },
-  listAssets: (storyId: string) =>
-    request<import("../types").StoryAsset[]>(`/stories/${storyId}/media`),
-  getAsset: (assetId: string) =>
-    request<import("../types").StoryAsset>(`/media/${assetId}`),
+  listAssets: (storyId: string) => request<import("../types").StoryAsset[]>(`/stories/${storyId}/media`),
+  getAsset: (assetId: string) => request<import("../types").StoryAsset>(`/media/${assetId}`),
   assetFileUrl: (assetId: string) => {
     const token = getToken();
     // Returns URL for use in <img src> — must include token as query param since we can't set headers on img src
     return `${BASE}/media/${assetId}/file?token=${token ?? ""}`;
   },
   updateAsset: (assetId: string, data: { alt_text?: string; description?: string }) =>
-    request<import("../types").StoryAsset>(`/media/${assetId}`, { method: "PATCH", body: JSON.stringify(data) }),
+    request<import("../types").StoryAsset>(`/media/${assetId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
   deleteAsset: (assetId: string) => request<void>(`/media/${assetId}`, { method: "DELETE" }),
   listAttachments: (objectType: string, objectId: string) =>
     request<import("../types").AssetAttachment[]>(`/media/attachments/${objectType}/${objectId}`),
@@ -912,7 +1099,12 @@ export const api = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
   },
-  analyzeSceneAtmosphere: (storyId: string, assetIds: string[], nodeId?: string, userQuery?: string): Promise<Response> => {
+  analyzeSceneAtmosphere: (
+    storyId: string,
+    assetIds: string[],
+    nodeId?: string,
+    userQuery?: string,
+  ): Promise<Response> => {
     const token = getToken();
     return fetch(`${BASE}/stories/${storyId}/analyze/scene-atmosphere`, {
       method: "POST",
@@ -927,13 +1119,15 @@ export const api = {
   // Diagrams
   listDiagrams: (storyId: string) =>
     request<import("../types").DiagramSummary[]>(`/stories/${storyId}/diagrams`),
-  createDiagram: (storyId: string, data: { title: string; description?: string; diagram_type?: string; attached_node_id?: string }) =>
+  createDiagram: (
+    storyId: string,
+    data: { title: string; description?: string; diagram_type?: string; attached_node_id?: string },
+  ) =>
     request<import("../types").Diagram>(`/stories/${storyId}/diagrams`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getDiagram: (diagramId: string) =>
-    request<import("../types").Diagram>(`/diagrams/${diagramId}`),
+  getDiagram: (diagramId: string) => request<import("../types").Diagram>(`/diagrams/${diagramId}`),
   updateDiagram: (diagramId: string, data: Partial<import("../types").Diagram>) =>
     request<import("../types").Diagram>(`/diagrams/${diagramId}`, {
       method: "PATCH",
@@ -942,55 +1136,90 @@ export const api = {
   deleteDiagram: (diagramId: string) => request<void>(`/diagrams/${diagramId}`, { method: "DELETE" }),
 
   // Templates
-  listStructureTemplates: () =>
-    request<import("../types").StoryStructureTemplate[]>("/templates/structures"),
-  createStructureTemplate: (data: { name: string; description?: string; levels: { name: string; plural: string }[] }) =>
+  listStructureTemplates: () => request<import("../types").StoryStructureTemplate[]>("/templates/structures"),
+  createStructureTemplate: (data: {
+    name: string;
+    description?: string;
+    levels: { name: string; plural: string }[];
+  }) =>
     request<import("../types").StoryStructureTemplate>("/templates/structures", {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  updateStructureTemplate: (id: string, data: { name?: string; description?: string; levels?: { name: string; plural: string }[] }) =>
+  updateStructureTemplate: (
+    id: string,
+    data: { name?: string; description?: string; levels?: { name: string; plural: string }[] },
+  ) =>
     request<import("../types").StoryStructureTemplate>(`/templates/structures/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteStructureTemplate: (id: string) =>
-    request<void>(`/templates/structures/${id}`, { method: "DELETE" }),
+  deleteStructureTemplate: (id: string) => request<void>(`/templates/structures/${id}`, { method: "DELETE" }),
 
   // Compendium
-  listCompendiumEntries: (storyId: string, params?: { entry_type?: string; category?: string; tag?: string; q?: string }) => {
+  listCompendiumEntries: (
+    storyId: string,
+    params?: { entry_type?: string; category?: string; tag?: string; q?: string },
+  ) => {
     const qs = new URLSearchParams();
     if (params?.entry_type) qs.set("entry_type", params.entry_type);
     if (params?.category) qs.set("category", params.category);
     if (params?.tag) qs.set("tag", params.tag);
     if (params?.q) qs.set("q", params.q);
     const query = qs.toString();
-    return request<import("../types").CompendiumEntrySummary[]>(`/stories/${storyId}/compendium${query ? `?${query}` : ""}`);
+    return request<import("../types").CompendiumEntrySummary[]>(
+      `/stories/${storyId}/compendium${query ? `?${query}` : ""}`,
+    );
   },
-  createCompendiumNote: (storyId: string, data: { title: string; content?: string; tags?: string[]; category?: string; notes?: string }) =>
+  createCompendiumNote: (
+    storyId: string,
+    data: { title: string; content?: string; tags?: string[]; category?: string; notes?: string },
+  ) =>
     request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/notes`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  createCompendiumUrl: (storyId: string, data: { title?: string; url: string; tags?: string[]; category?: string; notes?: string; fetch_metadata?: boolean }) =>
+  createCompendiumUrl: (
+    storyId: string,
+    data: {
+      title?: string;
+      url: string;
+      tags?: string[];
+      category?: string;
+      notes?: string;
+      fetch_metadata?: boolean;
+    },
+  ) =>
     request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/urls`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  createCompendiumDocument: (storyId: string, data: { title?: string; asset_id: string; tags?: string[]; category?: string; notes?: string }) =>
+  createCompendiumDocument: (
+    storyId: string,
+    data: { title?: string; asset_id: string; tags?: string[]; category?: string; notes?: string },
+  ) =>
     request<import("../types").CompendiumEntry>(`/stories/${storyId}/compendium/documents`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
   getCompendiumEntry: (entryId: string) =>
     request<import("../types").CompendiumEntry>(`/compendium/${entryId}`),
-  updateCompendiumEntry: (entryId: string, data: { title?: string; content?: string; url?: string; tags?: string[]; category?: string; notes?: string }) =>
+  updateCompendiumEntry: (
+    entryId: string,
+    data: {
+      title?: string;
+      content?: string;
+      url?: string;
+      tags?: string[];
+      category?: string;
+      notes?: string;
+    },
+  ) =>
     request<import("../types").CompendiumEntry>(`/compendium/${entryId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteCompendiumEntry: (entryId: string) =>
-    request<void>(`/compendium/${entryId}`, { method: "DELETE" }),
+  deleteCompendiumEntry: (entryId: string) => request<void>(`/compendium/${entryId}`, { method: "DELETE" }),
   refreshCompendiumUrl: (entryId: string) =>
     request<import("../types").CompendiumEntry>(`/compendium/${entryId}/refresh-url`, { method: "POST" }),
   attachCompendiumEntry: (entryId: string, objectType: string, objectId: string, note = "") =>
@@ -1012,7 +1241,12 @@ export const api = {
 
   // Chronicle — sessions
   listChronicleSessions: (params: {
-    story_id?: string; context_type?: string; context_id?: string; archived?: boolean; page?: number; page_size?: number;
+    story_id?: string;
+    context_type?: string;
+    context_id?: string;
+    archived?: boolean;
+    page?: number;
+    page_size?: number;
   }) => {
     const q = new URLSearchParams();
     if (params.story_id) q.set("story_id", params.story_id);
@@ -1021,12 +1255,19 @@ export const api = {
     if (params.archived !== undefined) q.set("archived", String(params.archived));
     if (params.page) q.set("page", String(params.page));
     if (params.page_size) q.set("page_size", String(params.page_size));
-    return request<{ sessions: import("../types").ChronicleSession[]; total: number; page: number; page_size: number }>(
-      `/chronicle/sessions?${q}`
-    );
+    return request<{
+      sessions: import("../types").ChronicleSession[];
+      total: number;
+      page: number;
+      page_size: number;
+    }>(`/chronicle/sessions?${q}`);
   },
   createChronicleSession: (data: {
-    story_id: string; context_type: string; context_id?: string; context_label?: string; title?: string;
+    story_id: string;
+    context_type: string;
+    context_id?: string;
+    context_label?: string;
+    title?: string;
   }) =>
     request<import("../types").ChronicleSession>("/chronicle/sessions", {
       method: "POST",
@@ -1051,9 +1292,16 @@ export const api = {
       signal,
     });
   },
-  addChronicleMessage: (sessionId: string, data: {
-    role: string; content: string; model?: string; tokens_in?: number; tokens_out?: number;
-  }) =>
+  addChronicleMessage: (
+    sessionId: string,
+    data: {
+      role: string;
+      content: string;
+      model?: string;
+      tokens_in?: number;
+      tokens_out?: number;
+    },
+  ) =>
     request<import("../types").ChronicleMessage>(`/chronicle/sessions/${sessionId}/messages`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -1061,9 +1309,13 @@ export const api = {
 
   // Chronicle — activity logs
   listActivityLogs: (params: {
-    story_id?: string; category?: string; event_type?: string;
-    starred?: boolean; features?: string;
-    page?: number; page_size?: number;
+    story_id?: string;
+    category?: string;
+    event_type?: string;
+    starred?: boolean;
+    features?: string;
+    page?: number;
+    page_size?: number;
   }) => {
     const q = new URLSearchParams();
     if (params.story_id) q.set("story_id", params.story_id);
@@ -1073,9 +1325,12 @@ export const api = {
     if (params.features) q.set("features", params.features);
     if (params.page) q.set("page", String(params.page));
     if (params.page_size) q.set("page_size", String(params.page_size));
-    return request<{ logs: import("../types").ActivityLog[]; total: number; page: number; page_size: number }>(
-      `/chronicle/activity?${q}`
-    );
+    return request<{
+      logs: import("../types").ActivityLog[];
+      total: number;
+      page: number;
+      page_size: number;
+    }>(`/chronicle/activity?${q}`);
   },
   updateActivityLog: (logId: string, data: { starred?: boolean }) =>
     request<import("../types").ActivityLog>(`/chronicle/activity/${logId}`, {
@@ -1090,7 +1345,7 @@ export const api = {
     if (params.page) qs.set("page", String(params.page));
     if (params.page_size) qs.set("page_size", String(params.page_size));
     return request<{ results: import("../types").ChronicleSearchResult[]; total: number; query: string }>(
-      `/chronicle/search?${qs}`
+      `/chronicle/search?${qs}`,
     );
   },
   getChronicleStats: (storyId?: string) => {
@@ -1099,10 +1354,8 @@ export const api = {
   },
 
   // AI Settings
-  getAISettings: () =>
-    request<import("../types").AISettings>("/ai-settings"),
-  getAISettingsDefaults: () =>
-    request<import("../types").AISettingsDefaults>("/ai-settings/defaults"),
+  getAISettings: () => request<import("../types").AISettings>("/ai-settings"),
+  getAISettingsDefaults: () => request<import("../types").AISettingsDefaults>("/ai-settings/defaults"),
   updateAISettings: (data: import("../types").AISettingsUpdate) =>
     request<import("../types").AISettings>("/ai-settings", {
       method: "PATCH",
@@ -1114,38 +1367,41 @@ export const api = {
     request<import("../types").AISettings>(`/ai-settings/feature-prompts/${featureId}`, { method: "DELETE" }),
 
   // LLM Settings (sampling parameters)
-  getLLMSettings: () =>
-    request<import("../types").LLMSettings>("/llm-settings"),
+  getLLMSettings: () => request<import("../types").LLMSettings>("/llm-settings"),
   updateLLMSettings: (data: import("../types").LLMParams) =>
     request<import("../types").LLMSettings>("/llm-settings", {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  resetLLMSettings: () =>
-    request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
+  resetLLMSettings: () => request<import("../types").LLMSettings>("/llm-settings", { method: "DELETE" }),
 
   // Ollama connectivity
   ollamaStatus: () =>
-    request<{ connected: boolean; model: string; model_available: boolean; model_in_list: boolean; error: string | null; base_url: string }>("/ollama/status"),
+    request<{
+      connected: boolean;
+      model: string;
+      model_available: boolean;
+      model_in_list: boolean;
+      error: string | null;
+      base_url: string;
+    }>("/ollama/status"),
   ollamaModels: () =>
-    request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>("/ollama/models"),
-  ollamaModelInfo: () =>
-    request<{ model: string; context_length: number | null }>("/ollama/model-info"),
+    request<{ models: Array<{ name: string; size: number; details?: { parameter_size?: string } }> }>(
+      "/ollama/models",
+    ),
+  ollamaModelInfo: () => request<{ model: string; context_length: number | null }>("/ollama/model-info"),
 
   // World Building — Locations
-  listLocations: (storyId: string) =>
-    request<import("../types").Location[]>(`/stories/${storyId}/locations`),
+  listLocations: (storyId: string) => request<import("../types").Location[]>(`/stories/${storyId}/locations`),
   listLocationsFlat: (storyId: string) =>
     request<import("../types").Location[]>(`/stories/${storyId}/locations/flat`),
-  getLocationTypes: (storyId: string) =>
-    request<string[]>(`/stories/${storyId}/location-types`),
+  getLocationTypes: (storyId: string) => request<string[]>(`/stories/${storyId}/location-types`),
   createLocation: (storyId: string, data: Partial<import("../types").Location>) =>
     request<import("../types").Location>(`/stories/${storyId}/locations`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getLocation: (id: string) =>
-    request<import("../types").Location>(`/locations/${id}`),
+  getLocation: (id: string) => request<import("../types").Location>(`/locations/${id}`),
   updateLocation: (id: string, data: Partial<import("../types").Location>) =>
     request<import("../types").Location>(`/locations/${id}`, {
       method: "PATCH",
@@ -1159,7 +1415,9 @@ export const api = {
   getSceneSettingsForLocation: (locationId: string) =>
     request<import("../types").SceneSetting[]>(`/locations/${locationId}/scene-settings`),
   getScenesForLocation: (locationId: string) =>
-    request<{ scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]>(`/locations/${locationId}/scenes`),
+    request<
+      { scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]
+    >(`/locations/${locationId}/scenes`),
   addSceneSetting: (data: { location_id: string; node_id: string; role?: string; notes?: string }) =>
     request<import("../types").SceneSetting>("/scene-settings", {
       method: "POST",
@@ -1170,15 +1428,13 @@ export const api = {
   // World Building — World Systems
   listWorldSystems: (storyId: string) =>
     request<import("../types").WorldSystem[]>(`/stories/${storyId}/world-systems`),
-  getSystemTypes: (storyId: string) =>
-    request<string[]>(`/stories/${storyId}/world-system-types`),
+  getSystemTypes: (storyId: string) => request<string[]>(`/stories/${storyId}/world-system-types`),
   createWorldSystem: (storyId: string, data: Partial<import("../types").WorldSystem>) =>
     request<import("../types").WorldSystem>(`/stories/${storyId}/world-systems`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getWorldSystem: (id: string) =>
-    request<import("../types").WorldSystem>(`/world-systems/${id}`),
+  getWorldSystem: (id: string) => request<import("../types").WorldSystem>(`/world-systems/${id}`),
   updateWorldSystem: (id: string, data: Partial<import("../types").WorldSystem>) =>
     request<import("../types").WorldSystem>(`/world-systems/${id}`, {
       method: "PATCH",
@@ -1187,15 +1443,13 @@ export const api = {
   deleteWorldSystem: (id: string) => request<void>(`/world-systems/${id}`, { method: "DELETE" }),
 
   // World Building — Cultures
-  listCultures: (storyId: string) =>
-    request<import("../types").Culture[]>(`/stories/${storyId}/cultures`),
+  listCultures: (storyId: string) => request<import("../types").Culture[]>(`/stories/${storyId}/cultures`),
   createCulture: (storyId: string, data: Partial<import("../types").Culture>) =>
     request<import("../types").Culture>(`/stories/${storyId}/cultures`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getCulture: (id: string) =>
-    request<import("../types").Culture>(`/cultures/${id}`),
+  getCulture: (id: string) => request<import("../types").Culture>(`/cultures/${id}`),
   updateCulture: (id: string, data: Partial<import("../types").Culture>) =>
     request<import("../types").Culture>(`/cultures/${id}`, {
       method: "PATCH",
@@ -1204,8 +1458,7 @@ export const api = {
   deleteCulture: (id: string) => request<void>(`/cultures/${id}`, { method: "DELETE" }),
 
   // World Building — Eras
-  listEras: (storyId: string) =>
-    request<import("../types").Era[]>(`/stories/${storyId}/eras`),
+  listEras: (storyId: string) => request<import("../types").Era[]>(`/stories/${storyId}/eras`),
   createEra: (storyId: string, data: Partial<import("../types").Era>) =>
     request<import("../types").Era>(`/stories/${storyId}/eras`, {
       method: "POST",
@@ -1227,15 +1480,13 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getHistoricalEvent: (id: string) =>
-    request<import("../types").HistoricalEvent>(`/historical-events/${id}`),
+  getHistoricalEvent: (id: string) => request<import("../types").HistoricalEvent>(`/historical-events/${id}`),
   updateHistoricalEvent: (id: string, data: Partial<import("../types").HistoricalEvent>) =>
     request<import("../types").HistoricalEvent>(`/historical-events/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteHistoricalEvent: (id: string) =>
-    request<void>(`/historical-events/${id}`, { method: "DELETE" }),
+  deleteHistoricalEvent: (id: string) => request<void>(`/historical-events/${id}`, { method: "DELETE" }),
 
   // World Building — Location Travel
   listLocationTravel: (storyId: string) =>
@@ -1250,19 +1501,16 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  deleteLocationTravel: (id: string) =>
-    request<void>(`/location-travel/${id}`, { method: "DELETE" }),
+  deleteLocationTravel: (id: string) => request<void>(`/location-travel/${id}`, { method: "DELETE" }),
 
   // World Building — Calendars
-  listCalendars: (storyId: string) =>
-    request<import("../types").Calendar[]>(`/stories/${storyId}/calendars`),
+  listCalendars: (storyId: string) => request<import("../types").Calendar[]>(`/stories/${storyId}/calendars`),
   createCalendar: (storyId: string, data: Partial<import("../types").Calendar>) =>
     request<import("../types").Calendar>(`/stories/${storyId}/calendars`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getCalendar: (id: string) =>
-    request<import("../types").Calendar>(`/calendars/${id}`),
+  getCalendar: (id: string) => request<import("../types").Calendar>(`/calendars/${id}`),
   updateCalendar: (id: string, data: Partial<import("../types").Calendar>) =>
     request<import("../types").Calendar>(`/calendars/${id}`, {
       method: "PATCH",
@@ -1277,9 +1525,7 @@ export const api = {
       body: JSON.stringify({ node_id: nodeId ?? null }),
     }),
   listDiscoveries: (storyId: string, status = "pending") =>
-    request<import("../types").DiscoveredElement[]>(
-      `/stories/${storyId}/discoveries?status=${status}`
-    ),
+    request<import("../types").DiscoveredElement[]>(`/stories/${storyId}/discoveries?status=${status}`),
   countPendingDiscoveries: (storyId: string) =>
     request<{ count: number }>(`/stories/${storyId}/discoveries/count`),
   approveDiscovery: (elementId: string, overrides?: { name?: string; description?: string }) =>
@@ -1291,8 +1537,7 @@ export const api = {
     request<import("../types").DiscoveredElement>(`/discoveries/${elementId}/reject`, {
       method: "POST",
     }),
-  deleteDiscovery: (elementId: string) =>
-    request<void>(`/discoveries/${elementId}`, { method: "DELETE" }),
+  deleteDiscovery: (elementId: string) => request<void>(`/discoveries/${elementId}`, { method: "DELETE" }),
 
   // Dialogue
   listDialogue: (sceneId: string) =>
@@ -1300,9 +1545,17 @@ export const api = {
   refreshDialogue: (sceneId: string) =>
     request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue/refresh`, { method: "POST" }),
   getSubtextNotes: (characterId: string) =>
-    request<{ scene_id: string; scene_title: string; blocks: { id: string; content: string; subtext: string }[] }[]>(`/characters/${characterId}/subtext-notes`),
-  patchDialogueBlock: (blockId: string, data: { speaker_name?: string; character_id?: string | null; subtext?: string }) =>
-    request<import("../types").DialogueBlock>(`/dialogue/${blockId}`, { method: "PATCH", body: JSON.stringify(data) }),
+    request<
+      { scene_id: string; scene_title: string; blocks: { id: string; content: string; subtext: string }[] }[]
+    >(`/characters/${characterId}/subtext-notes`),
+  patchDialogueBlock: (
+    blockId: string,
+    data: { speaker_name?: string; character_id?: string | null; subtext?: string },
+  ) =>
+    request<import("../types").DialogueBlock>(`/dialogue/${blockId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
   getDialogueStats: (storyId: string) =>
     request<import("../types").DialogueStats>(`/stories/${storyId}/dialogue/stats`),
   getDialogueInteractions: (storyId: string) =>
@@ -1310,23 +1563,49 @@ export const api = {
   getCharacterDialogue: (characterId: string) =>
     request<import("../types").DialogueBlockWithScene[]>(`/characters/${characterId}/dialogue`),
   getScenesWithUnattributedDialogue: (characterId: string) =>
-    request<{ scene_id: string; scene_title: string; unattributed_count: number }[]>(`/characters/${characterId}/scenes-with-unattributed`),
+    request<{ scene_id: string; scene_title: string; unattributed_count: number }[]>(
+      `/characters/${characterId}/scenes-with-unattributed`,
+    ),
   suggestDialogueTags: (sceneId: string) =>
-    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, { method: "POST" }),
+    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, {
+      method: "POST",
+    }),
   aiSuggestDialogueSpeakers: (sceneId: string, signal?: AbortSignal) =>
-    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/ai-suggest`, { method: "POST", signal }),
+    request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/ai-suggest`, {
+      method: "POST",
+      signal,
+    }),
   applyDialogueTags: (sceneId: string, tags: import("../types").ApplyTagRequest[]) =>
-    request<import("../types").StructureNode>(`/scenes/${sceneId}/dialogue/apply-tags`, { method: "POST", body: JSON.stringify({ tags }) }),
+    request<import("../types").StructureNode>(`/scenes/${sceneId}/dialogue/apply-tags`, {
+      method: "POST",
+      body: JSON.stringify({ tags }),
+    }),
   suggestDialogueTagsStoryWide: (storyId: string) =>
-    request<import("../types").BatchSuggestResponse>(`/stories/${storyId}/dialogue/suggest-tags-batch`, { method: "POST" }),
+    request<import("../types").BatchSuggestResponse>(`/stories/${storyId}/dialogue/suggest-tags-batch`, {
+      method: "POST",
+    }),
   suggestDialogueTagsForCharacter: (characterId: string) =>
-    request<import("../types").BatchSuggestResponse>(`/characters/${characterId}/dialogue/suggest-tags-batch`, { method: "POST" }),
-  applyDialogueTagsBatch: (storyId: string, scenes: { scene_id: string; tags: import("../types").ApplyTagRequest[] }[]) =>
-    request<{ updated_count: number }>(`/stories/${storyId}/dialogue/apply-tags-batch`, { method: "POST", body: JSON.stringify({ scenes }) }),
+    request<import("../types").BatchSuggestResponse>(
+      `/characters/${characterId}/dialogue/suggest-tags-batch`,
+      { method: "POST" },
+    ),
+  applyDialogueTagsBatch: (
+    storyId: string,
+    scenes: { scene_id: string; tags: import("../types").ApplyTagRequest[] }[],
+  ) =>
+    request<{ updated_count: number }>(`/stories/${storyId}/dialogue/apply-tags-batch`, {
+      method: "POST",
+      body: JSON.stringify({ scenes }),
+    }),
   suggestEntityLinks: (nodeId: string) =>
-    request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, { method: "POST" }),
+    request<import("../types").ProposedEntityLink[]>(`/structure/${nodeId}/suggest-links`, {
+      method: "POST",
+    }),
   applyEntityLinks: (nodeId: string, links: import("../types").ApplyLinkRequest[]) =>
-    request<import("../types").StructureNode>(`/structure/${nodeId}/apply-links`, { method: "POST", body: JSON.stringify({ links }) }),
+    request<import("../types").StructureNode>(`/structure/${nodeId}/apply-links`, {
+      method: "POST",
+      body: JSON.stringify({ links }),
+    }),
 
   // Entity rename
   previewCharacterRename: (characterId: string, newName: string) =>
@@ -1342,10 +1621,13 @@ export const api = {
 
   // Pronoun refactoring
   previewPronounRefactor: (characterId: string, newPronouns: string, nodeIds: string[] = []) =>
-    request<import("../types").PronounRefactorPreviewResponse>(`/characters/${characterId}/preview-pronoun-refactor`, {
-      method: "POST",
-      body: JSON.stringify({ new_pronouns: newPronouns, node_ids: nodeIds }),
-    }),
+    request<import("../types").PronounRefactorPreviewResponse>(
+      `/characters/${characterId}/preview-pronoun-refactor`,
+      {
+        method: "POST",
+        body: JSON.stringify({ new_pronouns: newPronouns, node_ids: nodeIds }),
+      },
+    ),
   applyPronounRefactor: (
     characterId: string,
     newPronouns: string,
@@ -1379,9 +1661,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ create_safety_backup: createSafetyBackup }) },
     ),
   diffSnapshots: (storyId: string, aId: string, bId: string) =>
-    request<import("../types").SnapshotDiff>(
-      `/stories/${storyId}/snapshots/diff?a_id=${aId}&b_id=${bId}`,
-    ),
+    request<import("../types").SnapshotDiff>(`/stories/${storyId}/snapshots/diff?a_id=${aId}&b_id=${bId}`),
   checkAutoBackup: (storyId: string) =>
     request<{ created: boolean; snapshot?: import("../types").StorySnapshot }>(
       `/stories/${storyId}/snapshots/check-auto`,
@@ -1399,14 +1679,11 @@ export const api = {
     const token = getToken();
     const form = new FormData();
     form.append("file", file);
-    return fetch(
-      `${BASE}/stories/${storyId}/snapshots/import?create_safety_backup=${createSafetyBackup}`,
-      {
-        method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: form,
-      },
-    );
+    return fetch(`${BASE}/stories/${storyId}/snapshots/import?create_safety_backup=${createSafetyBackup}`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    });
   },
   importAsNewStory: (file: File): Promise<Response> => {
     const token = getToken();
@@ -1429,8 +1706,7 @@ export const api = {
     }),
 
   // User backup defaults
-  getUserBackupDefaults: () =>
-    request<import("../types").UserBackupDefaults>(`/user/backup-defaults`),
+  getUserBackupDefaults: () => request<import("../types").UserBackupDefaults>(`/user/backup-defaults`),
   updateUserBackupDefaults: (data: Partial<import("../types").UserBackupDefaults>) =>
     request<import("../types").UserBackupDefaults>(`/user/backup-defaults`, {
       method: "PUT",
@@ -1455,7 +1731,9 @@ export const api = {
     });
   },
   importAiAnalyze: (sessionId: string) =>
-    request<import("../types").ImportAIAnalyzeResponse>(`/import/${sessionId}/ai-analyze`, { method: "POST" }),
+    request<import("../types").ImportAIAnalyzeResponse>(`/import/${sessionId}/ai-analyze`, {
+      method: "POST",
+    }),
   importAdjust: (sessionId: string, adjustments: import("../types").ImportNodeAdjustment[]) =>
     request<import("../types").ImportPreviewTree>(`/import/${sessionId}/adjust`, {
       method: "POST",
@@ -1519,5 +1797,7 @@ export const api = {
   },
 
   suggestCompTitles: (storyId: string) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/publication/comp-titles`, { method: "POST" }),
+    request<import("../types").StructuredResult>(`/stories/${storyId}/publication/comp-titles`, {
+      method: "POST",
+    }),
 };

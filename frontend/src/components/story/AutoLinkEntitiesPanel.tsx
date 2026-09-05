@@ -14,7 +14,7 @@ function ConfidenceDots({ value }: { value: number }) {
   const level = value >= 0.9 ? 3 : value >= 0.7 ? 2 : 1;
   return (
     <span className={styles.confidence} title={`Confidence: ${Math.round(value * 100)}%`}>
-      {[1, 2, 3].map(i => (
+      {[1, 2, 3].map((i) => (
         <span key={i} className={`${styles.dot} ${i <= level ? styles.dotFilled : ""}`} />
       ))}
     </span>
@@ -39,10 +39,11 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
 
   useEffect(() => {
     setLoading(true);
-    api.suggestEntityLinks(nodeId)
+    api
+      .suggestEntityLinks(nodeId)
       .then((data) => {
         setProposals(data);
-        setSelected(new Set(data.map(p => p.id)));
+        setSelected(new Set(data.map((p) => p.id)));
       })
       .catch(() => setProposals([]))
       .finally(() => setLoading(false));
@@ -52,12 +53,12 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
     if (selected.size === proposals.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(proposals.map(p => p.id)));
+      setSelected(new Set(proposals.map((p) => p.id)));
     }
   }
 
   function toggleOne(id: string) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -67,8 +68,8 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
 
   async function handleApply() {
     const links = proposals
-      .filter(p => selected.has(p.id))
-      .map(p => ({
+      .filter((p) => selected.has(p.id))
+      .map((p) => ({
         matched_text: p.matched_text,
         entity_name: p.entity_name,
         entity_type: p.entity_type,
@@ -87,8 +88,8 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
   }
 
   // Group proposals by entity type
-  const characters = proposals.filter(p => p.entity_type === "character");
-  const locations = proposals.filter(p => p.entity_type === "location");
+  const characters = proposals.filter((p) => p.entity_type === "character");
+  const locations = proposals.filter((p) => p.entity_type === "location");
   const selectedCount = selected.size;
 
   return (
@@ -105,9 +106,7 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
         </div>
 
         <div className={styles.body}>
-          {loading && (
-            <div className={styles.empty}>Scanning for entity mentions…</div>
-          )}
+          {loading && <div className={styles.empty}>Scanning for entity mentions…</div>}
 
           {!loading && proposals.length === 0 && (
             <div className={styles.empty}>
@@ -126,57 +125,60 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
                   {selected.size === proposals.length ? <CheckSquare size={13} /> : <Square size={13} />}
                   {selected.size === proposals.length ? "Deselect all" : "Select all"}
                 </button>
-                <span className={styles.count}>{proposals.length} suggestion{proposals.length !== 1 ? "s" : ""}</span>
+                <span className={styles.count}>
+                  {proposals.length} suggestion{proposals.length !== 1 ? "s" : ""}
+                </span>
               </div>
 
               <div className={styles.list}>
                 {[
                   { label: "Characters", items: characters, type: "character" as const },
                   { label: "Locations", items: locations, type: "location" as const },
-                ].map(({ label, items, type }) => items.length > 0 && (
-                  <div key={type} className={styles.group}>
-                    <p className={styles.groupLabel}>{label}</p>
-                    {items.map(p => {
-                      const isSelected = selected.has(p.id);
-                      const Icon = TYPE_ICON[p.entity_type];
-                      const preview = LINK_PREVIEW[p.entity_type](p.entity_name);
-                      return (
-                        <div
-                          key={p.id}
-                          className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
-                        >
-                          <div className={styles.cardTop}>
-                            <button
-                              className={styles.checkbox}
-                              onClick={() => toggleOne(p.id)}
-                              aria-label={isSelected ? "Deselect" : "Select"}
+                ].map(
+                  ({ label, items, type }) =>
+                    items.length > 0 && (
+                      <div key={type} className={styles.group}>
+                        <p className={styles.groupLabel}>{label}</p>
+                        {items.map((p) => {
+                          const isSelected = selected.has(p.id);
+                          const Icon = TYPE_ICON[p.entity_type];
+                          const preview = LINK_PREVIEW[p.entity_type](p.entity_name);
+                          return (
+                            <div
+                              key={p.id}
+                              className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
                             >
-                              {isSelected ? <CheckSquare size={14} /> : <Square size={14} />}
-                            </button>
-                            <div className={styles.cardContent}>
-                              <div className={styles.cardMeta}>
-                                <Icon size={12} className={styles.typeIcon} />
-                                <span className={styles.entityName}>{p.entity_name}</span>
-                                {p.matched_text !== p.entity_name && (
-                                  <span className={styles.matchedText}>matched "{p.matched_text}"</span>
-                                )}
-                                <ConfidenceDots value={p.confidence} />
+                              <div className={styles.cardTop}>
+                                <button
+                                  className={styles.checkbox}
+                                  onClick={() => toggleOne(p.id)}
+                                  aria-label={isSelected ? "Deselect" : "Select"}
+                                >
+                                  {isSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                                </button>
+                                <div className={styles.cardContent}>
+                                  <div className={styles.cardMeta}>
+                                    <Icon size={12} className={styles.typeIcon} />
+                                    <span className={styles.entityName}>{p.entity_name}</span>
+                                    {p.matched_text !== p.entity_name && (
+                                      <span className={styles.matchedText}>matched "{p.matched_text}"</span>
+                                    )}
+                                    <ConfidenceDots value={p.confidence} />
+                                  </div>
+                                  <div className={styles.linkPreview}>
+                                    <span className={styles.matchedRaw}>{p.matched_text}</span>
+                                    <span className={styles.arrow}>→</span>
+                                    <code className={styles.linkCode}>{preview}</code>
+                                  </div>
+                                  {p.source_excerpt && <p className={styles.excerpt}>{p.source_excerpt}</p>}
+                                </div>
                               </div>
-                              <div className={styles.linkPreview}>
-                                <span className={styles.matchedRaw}>{p.matched_text}</span>
-                                <span className={styles.arrow}>→</span>
-                                <code className={styles.linkCode}>{preview}</code>
-                              </div>
-                              {p.source_excerpt && (
-                                <p className={styles.excerpt}>{p.source_excerpt}</p>
-                              )}
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
+                          );
+                        })}
+                      </div>
+                    ),
+                )}
               </div>
             </>
           )}
@@ -191,7 +193,9 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
             >
               {applying ? "Applying…" : `Apply ${selectedCount > 0 ? `(${selectedCount})` : ""}`}
             </button>
-            <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button className={styles.cancelBtn} onClick={onClose}>
+              Cancel
+            </button>
           </div>
         )}
       </div>

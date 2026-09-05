@@ -53,7 +53,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .resetBtn:hover {

@@ -21,7 +21,10 @@ export default function UploadStep({ onUploaded }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.listStructureTemplates().then(setTemplates).catch(() => {});
+    api
+      .listStructureTemplates()
+      .then(setTemplates)
+      .catch(() => {});
   }, []);
 
   function handleFile(f: File) {
@@ -55,14 +58,17 @@ export default function UploadStep({ onUploaded }: Props) {
   return (
     <div className={styles.root}>
       <p className={styles.hint}>
-        Import a document and map it to your story's structure. Your writing is never altered —
-        the import wizard only decides where the breaks go.
+        Import a document and map it to your story's structure. Your writing is never altered — the import
+        wizard only decides where the breaks go.
       </p>
 
       {/* Drop zone */}
       <div
         className={`${styles.dropZone} ${dragging ? styles.dragging : ""} ${file ? styles.hasFile : ""}`}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
@@ -94,14 +100,11 @@ export default function UploadStep({ onUploaded }: Props) {
       {/* Template select */}
       <div className={styles.field}>
         <label className={styles.label}>Target structure template</label>
-        <select
-          value={templateId}
-          onChange={(e) => setTemplateId(e.target.value)}
-          className={styles.select}
-        >
+        <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className={styles.select}>
           {templates.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.name}{!t.is_system ? " (custom)" : ""}
+              {t.name}
+              {!t.is_system ? " (custom)" : ""}
             </option>
           ))}
         </select>
@@ -115,11 +118,7 @@ export default function UploadStep({ onUploaded }: Props) {
       {error && <p className={styles.error}>{error}</p>}
 
       <div className={styles.footer}>
-        <button
-          onClick={handleUpload}
-          disabled={!file || loading}
-          className={styles.importBtn}
-        >
+        <button onClick={handleUpload} disabled={!file || loading} className={styles.importBtn}>
           {loading ? "Parsing document…" : "Import & detect structure"}
         </button>
       </div>

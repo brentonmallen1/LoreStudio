@@ -43,7 +43,9 @@
   background: var(--color-editorial);
   color: var(--color-editorial-fg);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
   white-space: nowrap;
 }
 
@@ -138,7 +140,10 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .clearNotesBtn:hover {
@@ -236,6 +241,10 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

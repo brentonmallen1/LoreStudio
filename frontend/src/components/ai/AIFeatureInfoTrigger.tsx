@@ -26,11 +26,7 @@ export default function AIFeatureInfoTrigger({ pageId, size = "sm" }: Props) {
         size={size}
         variant="ghost"
       />
-      <AIFeatureInfoModal
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        pageId={pageId}
-      />
+      <AIFeatureInfoModal isOpen={open} onClose={() => setOpen(false)} pageId={pageId} />
     </>
   );
 }

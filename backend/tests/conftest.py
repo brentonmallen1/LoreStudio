@@ -1,5 +1,4 @@
 import sys
-import types
 import uuid
 from types import SimpleNamespace
 from unittest.mock import MagicMock
@@ -14,22 +13,23 @@ _weasyprint_mock = MagicMock()
 sys.modules.setdefault("weasyprint", _weasyprint_mock)
 sys.modules.setdefault("weasyprint.HTML", _weasyprint_mock)
 
-from app.main import app
-from app.database import get_db
 from app.auth.dependencies import get_current_user
 from app.auth.utils import create_access_token
+from app.database import get_db
+from app.main import app
 from app.models.user import User
+from tests.fixtures.ai_fixtures import MockAIGateway, make_mock_gateway
 from tests.fixtures.db_fixtures import make_test_engine, make_test_session
-from tests.fixtures.ai_fixtures import make_mock_gateway, MockAIGateway
-
 
 # ---------------------------------------------------------------------------
 # Simple factory fixture (existing)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def mock_thread():
     """Factory for PlotThread-like objects for testing validation logic."""
+
     def _make(
         id: str,
         name: str,
@@ -52,6 +52,7 @@ def mock_thread():
 # Database fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def db_session():
     """Isolated in-memory SQLite session for a single test."""
@@ -68,6 +69,7 @@ def db_session():
 def test_user(db_session: Session) -> User:
     """A persisted test user, ready for use in router tests."""
     from app.auth.utils import hash_password
+
     user = User(
         id=str(uuid.uuid4()),
         username="testuser",
@@ -98,6 +100,7 @@ def auth_headers(auth_token: str) -> dict:
 # TestClient fixture with dependency overrides
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def client(db_session: Session, test_user: User):
     """
@@ -105,6 +108,7 @@ def client(db_session: Session, test_user: User):
     - get_db overridden to use isolated in-memory SQLite session
     - get_current_user overridden to return the test user directly
     """
+
     def override_get_db():
         yield db_session
 
@@ -124,6 +128,7 @@ def client(db_session: Session, test_user: User):
 # ---------------------------------------------------------------------------
 # AI gateway mock fixture
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def mock_ai_gateway(monkeypatch):
@@ -150,6 +155,7 @@ def mock_ai_gateway(monkeypatch):
         error_message: str = "Mock AI error",
     ) -> MockAIGateway:
         from tests.fixtures.ai_fixtures import SAMPLE_STREAM_TEXT
+
         gw = make_mock_gateway(
             stream_text=stream_text if stream_text is not None else SAMPLE_STREAM_TEXT,
             structured_data=structured_data,

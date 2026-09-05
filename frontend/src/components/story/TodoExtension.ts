@@ -102,7 +102,7 @@ function buildTodoDecos(doc: PMNode): DecorationSet {
         Decoration.widget(blockStart + 1, el, {
           side: -1,
           key: `todo-gutter:${todoId}`,
-        })
+        }),
       );
     } catch {
       // pos may be out of range after edits — skip silently

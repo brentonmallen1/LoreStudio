@@ -26,18 +26,11 @@ export default function CodeBlock({
   return (
     <div className={styles.wrapper}>
       {copyable && content && (
-        <button
-          className={styles.copyBtn}
-          onClick={handleCopy}
-          title="Copy to clipboard"
-        >
+        <button className={styles.copyBtn} onClick={handleCopy} title="Copy to clipboard">
           {copied ? <Check size={12} /> : <Copy size={12} />}
         </button>
       )}
-      <pre
-        className={styles.pre}
-        style={{ maxHeight }}
-      >
+      <pre className={styles.pre} style={{ maxHeight }}>
         {content || <span className={styles.empty}>{placeholder}</span>}
       </pre>
     </div>

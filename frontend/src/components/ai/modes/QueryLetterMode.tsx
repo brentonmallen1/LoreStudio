@@ -33,12 +33,7 @@ export default function QueryLetterMode({ session }: Props) {
   }
 
   return (
-    <AIModeWrapper
-      session={session}
-      state={state}
-      icon={Feather}
-      title="Query Letter"
-    >
+    <AIModeWrapper session={session} state={state} icon={Feather} title="Query Letter">
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />

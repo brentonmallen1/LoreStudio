@@ -36,24 +36,24 @@ export default function SessionSwitcher({ session, onClose }: Props) {
   const { resumeFromChronicle } = useAIStore();
 
   const storyId = session.context.storyId;
-  const contextType = session.context.nodeId
-    ? "scene"
-    : session.context.characterId
-    ? "character"
-    : "story";
+  const contextType = session.context.nodeId ? "scene" : session.context.characterId ? "character" : "story";
   const contextId = session.context.nodeId ?? session.context.characterId ?? null;
 
   useEffect(() => {
     if (!storyId) return;
-    api.listChronicleSessions({
-      story_id: storyId,
-      context_type: contextType,
-      context_id: contextId ?? undefined,
-      archived: false,
-      page_size: 8,
-    }).then((res) => {
-      setSessions(res.sessions);
-    }).catch(() => {}).finally(() => setLoading(false));
+    api
+      .listChronicleSessions({
+        story_id: storyId,
+        context_type: contextType,
+        context_id: contextId ?? undefined,
+        archived: false,
+        page_size: 8,
+      })
+      .then((res) => {
+        setSessions(res.sessions);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [storyId, contextType, contextId]);
 
   // Close on outside click
@@ -77,7 +77,14 @@ export default function SessionSwitcher({ session, onClose }: Props) {
         role: m.role,
         content: m.content,
       }));
-      await resumeFromChronicle(cs.id, cs.context_type, cs.context_id, cs.story_id, cs.context_label, messages);
+      await resumeFromChronicle(
+        cs.id,
+        cs.context_type,
+        cs.context_id,
+        cs.story_id,
+        cs.context_label,
+        messages,
+      );
     } catch {
       // ignore errors
     }
@@ -103,7 +110,14 @@ export default function SessionSwitcher({ session, onClose }: Props) {
         role: m.role,
         content: m.content,
       }));
-      await resumeFromChronicle(forked.id, forked.context_type, forked.context_id, forked.story_id, forked.context_label, messages);
+      await resumeFromChronicle(
+        forked.id,
+        forked.context_type,
+        forked.context_id,
+        forked.story_id,
+        forked.context_label,
+        messages,
+      );
     } catch {
       // ignore errors
     }
@@ -125,9 +139,7 @@ export default function SessionSwitcher({ session, onClose }: Props) {
         title += decoder.decode(value, { stream: true });
       }
       if (title.trim()) {
-        setSessions((prev) =>
-          prev.map((s) => s.id === cs.id ? { ...s, title: title.trim() } : s)
-        );
+        setSessions((prev) => prev.map((s) => (s.id === cs.id ? { ...s, title: title.trim() } : s)));
       }
     } catch {
       // ignore errors
@@ -142,9 +154,7 @@ export default function SessionSwitcher({ session, onClose }: Props) {
     <div className={styles.wrapper} ref={wrapperRef}>
       <div className={styles.header}>Recent sessions</div>
       {loading && <div className={styles.empty}>Loading…</div>}
-      {!loading && sessions.length === 0 && (
-        <div className={styles.empty}>No saved sessions yet</div>
-      )}
+      {!loading && sessions.length === 0 && <div className={styles.empty}>No saved sessions yet</div>}
       {sessions.map((cs) => (
         <div
           key={cs.id}
@@ -166,23 +176,17 @@ export default function SessionSwitcher({ session, onClose }: Props) {
                 onClick={(e) => handleGenerateTitle(e, cs)}
                 disabled={generatingTitleFor === cs.id}
               >
-                {generatingTitleFor === cs.id
-                  ? <Loader size={10} className={styles.spin} />
-                  : <Compass size={10} />}
+                {generatingTitleFor === cs.id ? (
+                  <Loader size={10} className={styles.spin} />
+                ) : (
+                  <Compass size={10} />
+                )}
               </button>
             )}
-            <button
-              className={styles.rowBtn}
-              title="Fork conversation"
-              onClick={(e) => handleFork(e, cs)}
-            >
+            <button className={styles.rowBtn} title="Fork conversation" onClick={(e) => handleFork(e, cs)}>
               <GitFork size={10} />
             </button>
-            <button
-              className={styles.rowBtn}
-              title="Archive"
-              onClick={(e) => handleArchive(e, cs)}
-            >
+            <button className={styles.rowBtn} title="Archive" onClick={(e) => handleArchive(e, cs)}>
               <Archive size={10} />
             </button>
           </div>
@@ -196,24 +200,15 @@ export default function SessionSwitcher({ session, onClose }: Props) {
 export function SessionIndicator({ session }: { session: AISession }) {
   const [open, setOpen] = useState(false);
 
-  const contextName =
-    session.resolvedNames.nodeName ||
-    session.resolvedNames.storyTitle ||
-    "Session";
+  const contextName = session.resolvedNames.nodeName || session.resolvedNames.storyTitle || "Session";
 
   const hasSession = Boolean(session.chronicleSessionId);
 
   return (
     <div className={styles.indicatorWrap}>
-      <button
-        className={styles.indicatorBtn}
-        onClick={() => setOpen((v) => !v)}
-        title="Switch session"
-      >
+      <button className={styles.indicatorBtn} onClick={() => setOpen((v) => !v)} title="Switch session">
         <span className={styles.indicatorName}>{contextName}</span>
-        <span className={styles.indicatorStatus}>
-          {hasSession ? "saved" : "new"}
-        </span>
+        <span className={styles.indicatorStatus}>{hasSession ? "saved" : "new"}</span>
         <ChevronDown size={10} className={styles.chevron} />
       </button>
       {open && <SessionSwitcher session={session} onClose={() => setOpen(false)} />}

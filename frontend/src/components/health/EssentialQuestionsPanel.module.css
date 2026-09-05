@@ -58,7 +58,9 @@
   font-size: 0.72rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .guideBtn:hover {
@@ -79,7 +81,9 @@
   font-family: inherit;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .analyzeBtn:hover:not(:disabled) {
@@ -171,10 +175,22 @@
   margin-top: 1px;
 }
 
-.rating_needs_work { background: color-mix(in srgb, var(--color-danger) 15%, transparent); color: var(--color-danger); }
-.rating_fair       { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
-.rating_good       { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
-.rating_excellent  { background: color-mix(in srgb, var(--color-ai) 15%, transparent); color: var(--color-ai); }
+.rating_needs_work {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
+.rating_fair {
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+}
+.rating_good {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+.rating_excellent {
+  background: color-mix(in srgb, var(--color-ai) 15%, transparent);
+  color: var(--color-ai);
+}
 
 /* ── Questions grid ── */
 .questionsGrid {
@@ -190,9 +206,15 @@
   background: var(--color-surface);
 }
 
-.status_clear   { border-left: 3px solid var(--color-success); }
-.status_partial { border-left: 3px solid var(--color-warning); }
-.status_unclear { border-left: 3px solid var(--color-danger); }
+.status_clear {
+  border-left: 3px solid var(--color-success);
+}
+.status_partial {
+  border-left: 3px solid var(--color-warning);
+}
+.status_unclear {
+  border-left: 3px solid var(--color-danger);
+}
 
 .questionHeader {
   display: flex;
@@ -222,9 +244,18 @@
   flex-shrink: 0;
 }
 
-.badge_clear   { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); }
-.badge_partial { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
-.badge_unclear { background: color-mix(in srgb, var(--color-danger) 15%, transparent); color: var(--color-danger); }
+.badge_clear {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+.badge_partial {
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
+}
+.badge_unclear {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
 
 .evidence {
   font-size: 0.73rem;

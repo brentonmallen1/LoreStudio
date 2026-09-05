@@ -9,9 +9,9 @@ import type { ArcTimelineData, ArcMilestone, StructureNode } from "../../types";
 import styles from "./ArcTimelineView.module.css";
 
 const STATUS_LABELS: Record<string, string> = {
-  draft:   "Draft",
+  draft: "Draft",
   revised: "Revised",
-  final:   "Final",
+  final: "Final",
 };
 
 interface Props {
@@ -20,9 +20,9 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  draft:    "var(--status-draft, #9ca3af)",
-  revised:  "var(--status-revised, #60a5fa)",
-  final:    "var(--status-final, #34d399)",
+  draft: "var(--status-draft, #9ca3af)",
+  revised: "var(--status-revised, #60a5fa)",
+  final: "var(--status-final, #34d399)",
 };
 
 export default function ArcTimelineView({ characterId, characterName }: Props) {
@@ -37,7 +37,8 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
 
   useEffect(() => {
     setLoading(true);
-    api.getArcTimeline(characterId)
+    api
+      .getArcTimeline(characterId)
       .then(setData)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -65,7 +66,10 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
       scene_title: sceneId ? sceneTitle : null,
     });
     upsertCharacter(updated);
-    api.getArcTimeline(characterId).then(setData).catch(() => {});
+    api
+      .getArcTimeline(characterId)
+      .then(setData)
+      .catch(() => {});
   }
 
   function findNode(id: string, nodes: StructureNode[]): StructureNode | null {
@@ -99,9 +103,7 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
     return (
       <div className={styles.empty}>
         <p>No scenes found featuring this character yet.</p>
-        <p className={styles.emptyHint}>
-          Scenes are detected by character name appearing in prose.
-        </p>
+        <p className={styles.emptyHint}>Scenes are detected by character name appearing in prose.</p>
       </div>
     );
   }
@@ -135,7 +137,10 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
           <>
             <span className={styles.statDivider}>·</span>
             <span className={styles.stat}>
-              <strong>{completedCount}/{totalMilestones}</strong> milestones completed
+              <strong>
+                {completedCount}/{totalMilestones}
+              </strong>{" "}
+              milestones completed
             </span>
           </>
         )}
@@ -143,7 +148,9 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
 
       {/* Legend */}
       <div className={styles.legendRow}>
-        <span className={styles.legendHint}>Each dot is a scene where {characterName} appears — click to open it</span>
+        <span className={styles.legendHint}>
+          Each dot is a scene where {characterName} appears — click to open it
+        </span>
         <div className={styles.legendItems}>
           {Object.entries(STATUS_COLORS).map(([status, color]) => (
             <span key={status} className={styles.legendItem}>
@@ -212,7 +219,6 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
 
                 {/* Scene index */}
                 <span className={styles.sceneIndex}>{idx + 1}</span>
-
               </div>
             );
           })}
@@ -220,30 +226,31 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
       </div>
 
       {/* Tooltip portal — renders into document.body to escape overflow clipping */}
-      {hoveredScene && tooltipAnchor && (() => {
-        const scene = data.scenes.find((s) => s.id === hoveredScene);
-        const sceneMilestones = scene ? (milestonesByScene[scene.id] ?? []) : [];
-        if (!scene) return null;
-        return createPortal(
-          <div
-            className={styles.tooltipPortal}
-            style={{ left: tooltipAnchor.x, top: tooltipAnchor.y }}
-          >
-            <span className={styles.tooltipTitle}>{scene.title}</span>
-            <span className={styles.tooltipMeta}>{scene.word_count} words · {scene.status}</span>
-            {sceneMilestones.length > 0 && (
-              <div className={styles.tooltipMilestones}>
-                {sceneMilestones.map((m) => (
-                  <span key={m.id} className={styles.tooltipMilestone}>
-                    {m.completed ? "✓" : "○"} {m.text}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>,
-          document.body
-        );
-      })()}
+      {hoveredScene &&
+        tooltipAnchor &&
+        (() => {
+          const scene = data.scenes.find((s) => s.id === hoveredScene);
+          const sceneMilestones = scene ? (milestonesByScene[scene.id] ?? []) : [];
+          if (!scene) return null;
+          return createPortal(
+            <div className={styles.tooltipPortal} style={{ left: tooltipAnchor.x, top: tooltipAnchor.y }}>
+              <span className={styles.tooltipTitle}>{scene.title}</span>
+              <span className={styles.tooltipMeta}>
+                {scene.word_count} words · {scene.status}
+              </span>
+              {sceneMilestones.length > 0 && (
+                <div className={styles.tooltipMilestones}>
+                  {sceneMilestones.map((m) => (
+                    <span key={m.id} className={styles.tooltipMilestone}>
+                      {m.completed ? "✓" : "○"} {m.text}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>,
+            document.body,
+          );
+        })()}
 
       {/* Mention Discovery */}
       <div className={styles.mentionSection}>
@@ -255,7 +262,10 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
           characterId={characterId}
           characterName={characterName}
           onApplied={() => {
-            api.getArcTimeline(characterId).then(setData).catch(() => {});
+            api
+              .getArcTimeline(characterId)
+              .then(setData)
+              .catch(() => {});
           }}
         />
       </div>
@@ -265,28 +275,35 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
         <div className={styles.unlinked}>
           <span className={styles.unlinkedLabel}>Milestones not yet linked to a scene:</span>
           <div className={styles.unlinkedList}>
-            {data.milestones.filter((m) => !m.scene_id).map((m) => (
-              <div key={m.id} className={`${styles.unlinkedMilestoneItem} ${m.completed ? styles.unlinkedDone : ""}`}>
-                <span className={styles.unlinkedCheck}>{m.completed ? "✓" : "○"}</span>
-                <span className={styles.unlinkedMilestoneText}>{m.text}</span>
-                {sceneNodes.length > 0 && (
-                  <select
-                    className={styles.unlinkedScenePicker}
-                    value=""
-                    onChange={(e) => {
-                      const node = sceneNodes.find((n) => n.id === e.target.value);
-                      linkMilestoneToScene(m.id, e.target.value, node?.title ?? "");
-                    }}
-                    title="Link to scene"
-                  >
-                    <option value="">— link to scene —</option>
-                    {sceneNodes.map((n) => (
-                      <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ))}
+            {data.milestones
+              .filter((m) => !m.scene_id)
+              .map((m) => (
+                <div
+                  key={m.id}
+                  className={`${styles.unlinkedMilestoneItem} ${m.completed ? styles.unlinkedDone : ""}`}
+                >
+                  <span className={styles.unlinkedCheck}>{m.completed ? "✓" : "○"}</span>
+                  <span className={styles.unlinkedMilestoneText}>{m.text}</span>
+                  {sceneNodes.length > 0 && (
+                    <select
+                      className={styles.unlinkedScenePicker}
+                      value=""
+                      onChange={(e) => {
+                        const node = sceneNodes.find((n) => n.id === e.target.value);
+                        linkMilestoneToScene(m.id, e.target.value, node?.title ?? "");
+                      }}
+                      title="Link to scene"
+                    >
+                      <option value="">— link to scene —</option>
+                      {sceneNodes.map((n) => (
+                        <option key={n.id} value={n.id}>
+                          {n.title || "Untitled"}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              ))}
           </div>
         </div>
       )}

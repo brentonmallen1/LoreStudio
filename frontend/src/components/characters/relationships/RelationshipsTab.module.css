@@ -38,7 +38,9 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-muted);
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .viewBtn:not(:last-child) {

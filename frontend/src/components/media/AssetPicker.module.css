@@ -280,7 +280,9 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0);
   color: transparent;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 .attachThumb:hover .attachZoom {
   background: rgba(0, 0, 0, 0.5);
@@ -325,7 +327,9 @@
   cursor: pointer;
   transition: background 0.15s;
 }
-.lightboxClose:hover { background: rgba(255, 255, 255, 0.25); }
+.lightboxClose:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
 
 .lightboxImg {
   max-width: 100%;
@@ -333,7 +337,7 @@
   border-radius: 6px;
   object-fit: contain;
   display: block;
-  box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.5);
 }
 
 .lightboxName {

@@ -72,7 +72,12 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Are the 6 essential story questions answerable?",
     fullDescription:
       "Checks whether the six essential story questions (goal, motivation, conflict, stakes, change, resolution) are clearly answerable for the protagonist.",
-    contextSources: ["Story intent & premise", "Character goals & motivation", "Plot threads", "Story structure"],
+    contextSources: [
+      "Story intent & premise",
+      "Character goals & motivation",
+      "Plot threads",
+      "Story structure",
+    ],
     backendFeatureId: "essential-questions",
   },
   "pacing-analysis": {
@@ -122,7 +127,12 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Compare prose against stated intent and arc milestones",
     fullDescription:
       "Compares the written scenes against your stated narrative intent, scene purposes, and character arc milestones to surface gaps between plan and execution.",
-    contextSources: ["Scene prose text", "Scene purpose & intent", "Character arc milestones", "Narrative goals"],
+    contextSources: [
+      "Scene prose text",
+      "Scene purpose & intent",
+      "Character arc milestones",
+      "Narrative goals",
+    ],
     backendFeatureId: "first-pass",
   },
   "cliche-analysis": {
@@ -142,7 +152,12 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Dimensionality, contradictions, relationship complexity",
     fullDescription:
       "Assesses each character's dimensionality, internal contradictions, relationship complexity, and whether their role in the story is being used appropriately.",
-    contextSources: ["Character profiles", "Scene prose text", "Relationship graph", "Plot thread involvement"],
+    contextSources: [
+      "Character profiles",
+      "Scene prose text",
+      "Relationship graph",
+      "Plot thread involvement",
+    ],
     backendFeatureId: "character-dimensionality",
   },
 
@@ -155,7 +170,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Talk directly to your character as themselves",
     fullDescription:
       "The character's full profile becomes the AI's persona — you're talking to the character, not asking about them. Great for uncovering backstory and voice.",
-    contextSources: ["Full character profile (name, personality, motivation, background, appearance, traits)", "Arc notes", "Prior interview messages"],
+    contextSources: [
+      "Full character profile (name, personality, motivation, background, appearance, traits)",
+      "Arc notes",
+      "Prior interview messages",
+    ],
     backendFeatureId: "interview",
   },
   "session-panel": {
@@ -175,7 +194,15 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Brainstorm and think through a specific scene",
     fullDescription:
       "A collaborator focused on the current scene. Answers questions, surfaces connections, and helps you think through the scene without writing it for you.",
-    contextSources: ["Story metadata", "Scene title, synopsis & purpose", "Entry/exit state", "Characters in scene", "Plot threads in scene", "Settings mentioned", "Adjacent scenes"],
+    contextSources: [
+      "Story metadata",
+      "Scene title, synopsis & purpose",
+      "Entry/exit state",
+      "Characters in scene",
+      "Plot threads in scene",
+      "Settings mentioned",
+      "Adjacent scenes",
+    ],
     backendFeatureId: "scene-chat",
   },
   "session-story-assistant": {
@@ -185,7 +212,13 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Broad story-level discussion with full context",
     fullDescription:
       "A collaborator with access to the whole story — for high-level questions about plot, structure, and themes.",
-    contextSources: ["Full story structure", "All scene synopses", "Character profiles", "Plot threads", "Lorebook entries"],
+    contextSources: [
+      "Full story structure",
+      "All scene synopses",
+      "Character profiles",
+      "Plot threads",
+      "Lorebook entries",
+    ],
     backendFeatureId: "scene-chat",
   },
   "session-writing-coach": {
@@ -262,7 +295,12 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Draft an agent query letter",
     fullDescription:
       "Guides you through drafting a query letter for literary agents, using your story's key elements to build the hook, synopsis, and bio sections.",
-    contextSources: ["Story title, genre, word count", "Logline & premise", "Main characters & conflict", "Comp titles"],
+    contextSources: [
+      "Story title, genre, word count",
+      "Logline & premise",
+      "Main characters & conflict",
+      "Comp titles",
+    ],
   },
   "session-scene-atmosphere": {
     id: "session-scene-atmosphere",
@@ -346,7 +384,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Where is this character in their arc right now?",
     fullDescription:
       "Reviews the character's profile, arc milestones, and scenes where they appear to assess where they currently stand in their arc and what still needs to happen.",
-    contextSources: ["Character profile & arc notes", "Arc milestones (done/pending)", "Scenes mentioning the character"],
+    contextSources: [
+      "Character profile & arc notes",
+      "Arc milestones (done/pending)",
+      "Scenes mentioning the character",
+    ],
     backendFeatureId: "character-arc",
   },
   "dialogue-voice": {
@@ -386,7 +428,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "What would logically exist at this location?",
     fullDescription:
       "Brainstorms what built structures, natural environment, and cultural presence would logically exist at a location given its established properties and world rules.",
-    contextSources: ["Location details (climate, terrain, culture links)", "World systems", "Connected cultures"],
+    contextSources: [
+      "Location details (climate, terrain, culture links)",
+      "World systems",
+      "Connected cultures",
+    ],
     backendFeatureId: "what-exists",
   },
   "wb-location-suggest": {
@@ -406,7 +452,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Naming, ritual, and aesthetic directions for this culture",
     fullDescription:
       "Brainstorms naming directions, ritual and custom ideas, and aesthetic/material culture directions grounded in this culture's existing profile.",
-    contextSources: ["Culture details (values, traditions, language family)", "Associated world systems", "Locations"],
+    contextSources: [
+      "Culture details (values, traditions, language family)",
+      "Associated world systems",
+      "Locations",
+    ],
     backendFeatureId: "element-suggest",
   },
   "wb-implications": {
@@ -446,7 +496,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Hazards, cultural tensions, and story potential of a route",
     fullDescription:
       "Analyzes a travel route between two locations for hazards, cultural tensions, terrain challenges, and narrative opportunities.",
-    contextSources: ["Origin and destination locations", "World systems affecting the route", "Cultures along the way"],
+    contextSources: [
+      "Origin and destination locations",
+      "World systems affecting the route",
+      "Cultures along the way",
+    ],
   },
 
   // ── Scene Editor ─────────────────────────────────────────────────────────────
@@ -458,17 +512,29 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "AI-guided scene planning before you write",
     fullDescription:
       "Helps you plan a scene before writing it — proposing purpose, character goals, entry/exit states, and key beats based on your story context.",
-    contextSources: ["Scene title & synopsis", "Adjacent scenes", "Characters in scene", "Active plot threads", "Story structure"],
+    contextSources: [
+      "Scene title & synopsis",
+      "Adjacent scenes",
+      "Characters in scene",
+      "Active plot threads",
+      "Story structure",
+    ],
     backendFeatureId: "scene-plan",
   },
-  "brainstorm": {
+  brainstorm: {
     id: "brainstorm",
     label: "What's Next?",
     type: "ai",
     shortDescription: "Brainstorm directions for this scene or next scene",
     fullDescription:
       "A brainstorming partner that suggests narrative directions, complications, and next moves based on where the scene currently stands — without writing the prose for you.",
-    contextSources: ["Scene synopsis & purpose", "Current scene prose", "Plot threads", "Character arcs", "Adjacent scenes"],
+    contextSources: [
+      "Scene synopsis & purpose",
+      "Current scene prose",
+      "Plot threads",
+      "Character arcs",
+      "Adjacent scenes",
+    ],
     backendFeatureId: "brainstorm",
   },
   "auto-tag-dialogue": {
@@ -533,7 +599,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Review clue quality, distribution, and reveal effectiveness",
     fullDescription:
       "Reviews foreshadowing clue quality, clue distribution across the story, and how effectively the twist's reveal is set up — rating each dimension from needs-work to excellent.",
-    contextSources: ["Twist name, description, and type", "Linked clues (scene, placement, subtlety)", "Scene synopses mentioning the twist"],
+    contextSources: [
+      "Twist name, description, and type",
+      "Linked clues (scene, placement, subtlety)",
+      "Scene synopses mentioning the twist",
+    ],
     backendFeatureId: "twist-analysis",
   },
   "twist-impact": {
@@ -566,7 +636,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Review thread progression, key moments, and narrative quality",
     fullDescription:
       "Reviews a plot thread's progression through the story — assessing try/fail cycles, key turning points, opening/closing balance, and overall narrative quality.",
-    contextSources: ["Thread name, type, and description", "Scenes tagged to this thread", "Thread status and arc milestones"],
+    contextSources: [
+      "Thread name, type, and description",
+      "Scenes tagged to this thread",
+      "Thread status and arc milestones",
+    ],
     backendFeatureId: "thread-analysis",
   },
 
@@ -579,7 +653,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Conversational guide to help you articulate your story's identity",
     fullDescription:
       "A Socratic dialogue tool that asks questions to help you discover and articulate your story's logline, premise, themes, narrative intent, and central conflict. The AI never writes content for you — it asks questions, surfaces observations, and prompts deeper thinking so the words remain entirely yours.",
-    contextSources: ["Story title, genre, tone, and existing identity fields", "Character names, roles, and motivations", "Scene synopses and structure"],
+    contextSources: [
+      "Story title, genre, tone, and existing identity fields",
+      "Character names, roles, and motivations",
+      "Scene synopses and structure",
+    ],
     backendFeatureId: "identity-workshop",
   },
 
@@ -602,7 +680,11 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Summarize the story from a character or section's perspective",
     fullDescription:
       "Summarizes the story from the perspective of a specific character (what they've experienced) or a structural section (what has happened in that act/chapter).",
-    contextSources: ["Scene prose text for the selected scope", "Character profile (for character perspective)", "Story intent"],
+    contextSources: [
+      "Scene prose text for the selected scope",
+      "Character profile (for character perspective)",
+      "Story intent",
+    ],
     backendFeatureId: "structure-summary",
   },
 
@@ -710,7 +792,7 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "dialogue-prose",
     "character-tag-dialogue",
   ],
-  "worldbuilding": [
+  worldbuilding: [
     "wb-what-exists",
     "wb-location-suggest",
     "wb-culture-suggest",
@@ -719,34 +801,13 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "wb-calendar",
     "wb-travel",
   ],
-  "scene-editor": [
-    "story-summary",
-    "scene-plan",
-    "brainstorm",
-    "auto-tag-dialogue",
-    "auto-link-entities",
-  ],
-  "outline": [
-    "extract-outline",
-    "snowflake-guidance",
-  ],
-  "discovery-queue": [
-    "discovery-queue",
-  ],
-  "twists": [
-    "twist-analysis",
-    "twist-impact",
-    "reader-knowledge-scan",
-  ],
-  "plot-threads": [
-    "thread-analysis",
-  ],
-  "story-identity": [
-    "identity-workshop",
-    "story-summary",
-    "perspective-summary",
-  ],
-  "import": [
+  "scene-editor": ["story-summary", "scene-plan", "brainstorm", "auto-tag-dialogue", "auto-link-entities"],
+  outline: ["extract-outline", "snowflake-guidance"],
+  "discovery-queue": ["discovery-queue"],
+  twists: ["twist-analysis", "twist-impact", "reader-knowledge-scan"],
+  "plot-threads": ["thread-analysis"],
+  "story-identity": ["identity-workshop", "story-summary", "perspective-summary"],
+  import: [
     "import-ner-characters",
     "import-ner-locations",
     "import-ai-character-details",
@@ -762,12 +823,12 @@ export const PAGE_LABELS: Record<string, string> = {
   "story-health": "Story Health",
   "ai-panel": "AI Assistant",
   "character-sheet": "Character Sheet",
-  "worldbuilding": "World Building",
+  worldbuilding: "World Building",
   "scene-editor": "Scene Editor",
-  "outline": "Outline",
+  outline: "Outline",
   "discovery-queue": "Discovery Queue",
-  "twists": "Twists & Misdirection",
+  twists: "Twists & Misdirection",
   "plot-threads": "Plot Threads",
   "story-identity": "Story Identity",
-  "import": "Document Import",
+  import: "Document Import",
 };

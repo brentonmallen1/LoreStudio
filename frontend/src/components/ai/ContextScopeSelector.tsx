@@ -19,7 +19,9 @@ export default function ContextScopeSelector({ scope, allowedScopes, onChange }:
         aria-label="Context scope"
       >
         {allowedScopes.map((s) => (
-          <option key={s} value={s}>{SCOPE_LABELS[s]}</option>
+          <option key={s} value={s}>
+            {SCOPE_LABELS[s]}
+          </option>
         ))}
       </select>
     </div>

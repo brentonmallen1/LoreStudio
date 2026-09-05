@@ -23,12 +23,7 @@ export default function IconButton({
 }: IconButtonProps) {
   return (
     <button
-      className={[
-        styles.btn,
-        styles[size],
-        styles[variant],
-        active ? styles.active : "",
-      ]
+      className={[styles.btn, styles[size], styles[variant], active ? styles.active : ""]
         .filter(Boolean)
         .join(" ")}
       onClick={onClick}

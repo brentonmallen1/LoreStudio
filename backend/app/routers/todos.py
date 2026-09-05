@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.todo import StoryTodo
-from ..models.structure import StructureNode
-from ..schemas.todo import TodoCreate, TodoUpdate, TodoOut, ReorderPayload
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.todo import StoryTodo
+from ..models.user import User
+from ..schemas.todo import ReorderPayload, TodoCreate, TodoOut, TodoUpdate
 
 router = APIRouter()
 
@@ -45,6 +45,7 @@ def _serialize(todo: StoryTodo) -> TodoOut:
 
 # ── List / Create ─────────────────────────────────────────────────────────────
 
+
 @router.get("/stories/{story_id}/todos", response_model=list[TodoOut])
 def list_todos(
     story_id: str,
@@ -76,10 +77,7 @@ def create_todo(
 
     # Assign next position within the story
     max_pos = (
-        db.query(StoryTodo.position)
-        .filter(StoryTodo.story_id == story_id)
-        .order_by(StoryTodo.position.desc())
-        .first()
+        db.query(StoryTodo.position).filter(StoryTodo.story_id == story_id).order_by(StoryTodo.position.desc()).first()
     )
     next_pos = (max_pos[0] + 1) if max_pos else 0
 
@@ -95,6 +93,7 @@ def create_todo(
 
 
 # ── Scene-scoped list ─────────────────────────────────────────────────────────
+
 
 @router.get("/structure/{node_id}/todos", response_model=list[TodoOut])
 def todos_for_scene(
@@ -116,6 +115,7 @@ def todos_for_scene(
 
 
 # ── Single CRUD ───────────────────────────────────────────────────────────────
+
 
 @router.get("/todos/{todo_id}", response_model=TodoOut)
 def get_todo(
@@ -155,6 +155,7 @@ def delete_todo(
 
 # ── Bulk operations ───────────────────────────────────────────────────────────
 
+
 @router.post("/stories/{story_id}/todos/reorder", response_model=list[TodoOut])
 def reorder_todos(
     story_id: str,
@@ -188,6 +189,7 @@ def delete_done_todos(
 ):
     _verify_story(story_id, db, current_user)
     db.query(StoryTodo).filter(
-        StoryTodo.story_id == story_id, StoryTodo.done == True  # noqa: E712
+        StoryTodo.story_id == story_id,
+        StoryTodo.done == True,  # noqa: E712
     ).delete()
     db.commit()

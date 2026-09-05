@@ -20,14 +20,19 @@ export default function CalendarEditor({ storyId }: Props) {
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const load = useCallback(() => {
-    api.listCalendars(storyId).then(setCalendars).finally(() => setLoading(false));
+    api
+      .listCalendars(storyId)
+      .then(setCalendars)
+      .finally(() => setLoading(false));
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;
-    setSelected((prev) => prev ? { ...prev, [field]: value } : null);
+    setSelected((prev) => (prev ? { ...prev, [field]: value } : null));
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selected) return;
@@ -38,14 +43,18 @@ export default function CalendarEditor({ storyId }: Props) {
   async function createCalendar() {
     if (!newName.trim()) return;
     const created = await api.createCalendar(storyId, { name: newName.trim() });
-    setShowAddModal(false); setNewName("");
-    load(); setSelected(created);
+    setShowAddModal(false);
+    setNewName("");
+    load();
+    setSelected(created);
   }
 
   async function deleteCalendar() {
     if (!selected) return;
     await api.deleteCalendar(selected.id);
-    setSelected(null); setShowDeleteConfirm(false); load();
+    setSelected(null);
+    setShowDeleteConfirm(false);
+    load();
   }
 
   function addMonth() {
@@ -56,13 +65,16 @@ export default function CalendarEditor({ storyId }: Props) {
 
   function updateMonth(idx: number, field: string, value: string | number) {
     if (!selected) return;
-    const months = selected.months.map((m, i) => i === idx ? { ...m, [field]: value } : m);
+    const months = selected.months.map((m, i) => (i === idx ? { ...m, [field]: value } : m));
     scheduleUpdate("months", months);
   }
 
   function removeMonth(idx: number) {
     if (!selected) return;
-    scheduleUpdate("months", selected.months.filter((_, i) => i !== idx));
+    scheduleUpdate(
+      "months",
+      selected.months.filter((_, i) => i !== idx),
+    );
   }
 
   function addSpecialDay() {
@@ -73,13 +85,16 @@ export default function CalendarEditor({ storyId }: Props) {
 
   function updateSpecialDay(idx: number, field: string, value: string | number) {
     if (!selected) return;
-    const special_days = selected.special_days.map((d, i) => i === idx ? { ...d, [field]: value } : d);
+    const special_days = selected.special_days.map((d, i) => (i === idx ? { ...d, [field]: value } : d));
     scheduleUpdate("special_days", special_days);
   }
 
   function removeSpecialDay(idx: number) {
     if (!selected) return;
-    scheduleUpdate("special_days", selected.special_days.filter((_, i) => i !== idx));
+    scheduleUpdate(
+      "special_days",
+      selected.special_days.filter((_, i) => i !== idx),
+    );
   }
 
   if (loading) return <div className={styles.loading}>Loading calendars…</div>;
@@ -98,9 +113,11 @@ export default function CalendarEditor({ storyId }: Props) {
             <div className={styles.emptyList}>No calendars yet</div>
           ) : (
             calendars.map((c) => (
-              <div key={c.id}
+              <div
+                key={c.id}
                 className={`${styles.listItem} ${selected?.id === c.id ? styles.listItemActive : ""}`}
-                onClick={() => setSelected(c)}>
+                onClick={() => setSelected(c)}
+              >
                 <CalendarIcon size={12} color="var(--color-text-muted)" />
                 <span className={styles.listItemName}>{c.name}</span>
                 {c.epoch_name && <span className={styles.listItemBadge}>{c.epoch_name}</span>}
@@ -124,13 +141,17 @@ export default function CalendarEditor({ storyId }: Props) {
                 <button
                   className={styles.aiBtn}
                   title="Suggests calendar entries: Festivals & Celebrations, Seasonal Events, Historical Observances, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "calendar", entityId: selected.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "calendar", entityId: selected.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Suggest Special Days
                 </button>
-                <button className={`${styles.iconBtn} ${styles.danger}`}
-                  onClick={() => setShowDeleteConfirm(true)}>
+                <button
+                  className={`${styles.iconBtn} ${styles.danger}`}
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -139,47 +160,75 @@ export default function CalendarEditor({ storyId }: Props) {
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Name</label>
-                <input className={styles.fieldInput} value={selected.name}
-                  onChange={(e) => scheduleUpdate("name", e.target.value)} />
+                <input
+                  className={styles.fieldInput}
+                  value={selected.name}
+                  onChange={(e) => scheduleUpdate("name", e.target.value)}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Epoch Name</label>
-                <input className={styles.fieldInput}
+                <input
+                  className={styles.fieldInput}
                   placeholder="e.g. After the Sundering…"
                   value={selected.epoch_name}
-                  onChange={(e) => scheduleUpdate("epoch_name", e.target.value)} />
+                  onChange={(e) => scheduleUpdate("epoch_name", e.target.value)}
+                />
               </div>
             </div>
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Description</label>
-              <textarea className={styles.fieldTextarea}
+              <textarea
+                className={styles.fieldTextarea}
                 placeholder="Overview of this calendar system…"
                 value={selected.description}
-                onChange={(e) => scheduleUpdate("description", e.target.value)} />
+                onChange={(e) => scheduleUpdate("description", e.target.value)}
+              />
             </div>
 
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Days per week</label>
-                <input className={styles.fieldInput} type="number" min={1} max={20}
+                <input
+                  className={styles.fieldInput}
+                  type="number"
+                  min={1}
+                  max={20}
                   value={selected.days_per_week}
-                  onChange={(e) => scheduleUpdate("days_per_week", parseInt(e.target.value) || 7)} />
+                  onChange={(e) => scheduleUpdate("days_per_week", parseInt(e.target.value) || 7)}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Week day names (comma-separated)</label>
-                <input className={styles.fieldInput}
+                <input
+                  className={styles.fieldInput}
                   placeholder="e.g. Moonday, Fireday, Earthday…"
                   value={selected.week_day_names.join(", ")}
-                  onChange={(e) => scheduleUpdate("week_day_names",
-                    e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} />
+                  onChange={(e) =>
+                    scheduleUpdate(
+                      "week_day_names",
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                />
               </div>
             </div>
 
             <hr className={styles.divider} />
 
             <div className={styles.fieldGroup}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "0.75rem",
+                }}
+              >
                 <label className={styles.fieldLabel} style={{ margin: 0 }}>
                   Months ({selected.months.length})
                 </label>
@@ -188,21 +237,37 @@ export default function CalendarEditor({ storyId }: Props) {
                 </button>
               </div>
               {selected.months.length === 0 ? (
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>
-                  No months defined yet.
-                </p>
+                <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)" }}>No months defined yet.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {selected.months.map((m, i) => (
                     <div key={i} style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                      <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", minWidth: "1.5rem" }}>{i + 1}.</span>
-                      <input className={styles.fieldInput} style={{ flex: 2 }}
-                        placeholder="Month name" value={m.name}
-                        onChange={(e) => updateMonth(i, "name", e.target.value)} />
-                      <input className={styles.fieldInput} style={{ flex: 1 }} type="number" min={1}
-                        placeholder="Days" value={m.days}
-                        onChange={(e) => updateMonth(i, "days", parseInt(e.target.value) || 30)} />
-                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", minWidth: "2rem" }}>days</span>
+                      <span
+                        style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", minWidth: "1.5rem" }}
+                      >
+                        {i + 1}.
+                      </span>
+                      <input
+                        className={styles.fieldInput}
+                        style={{ flex: 2 }}
+                        placeholder="Month name"
+                        value={m.name}
+                        onChange={(e) => updateMonth(i, "name", e.target.value)}
+                      />
+                      <input
+                        className={styles.fieldInput}
+                        style={{ flex: 1 }}
+                        type="number"
+                        min={1}
+                        placeholder="Days"
+                        value={m.days}
+                        onChange={(e) => updateMonth(i, "days", parseInt(e.target.value) || 30)}
+                      />
+                      <span
+                        style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", minWidth: "2rem" }}
+                      >
+                        days
+                      </span>
                       <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => removeMonth(i)}>
                         <Trash2 size={13} />
                       </button>
@@ -222,7 +287,14 @@ export default function CalendarEditor({ storyId }: Props) {
             <hr className={styles.divider} />
 
             <div className={styles.fieldGroup}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "0.75rem",
+                }}
+              >
                 <label className={styles.fieldLabel} style={{ margin: 0 }}>
                   Special Days ({selected.special_days.length})
                 </label>
@@ -231,24 +303,47 @@ export default function CalendarEditor({ storyId }: Props) {
                 </button>
               </div>
               {selected.special_days.map((d, i) => (
-                <div key={i} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem", alignItems: "flex-start" }}>
+                <div
+                  key={i}
+                  style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem", alignItems: "flex-start" }}
+                >
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", flex: 1 }}>
                     <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <input className={styles.fieldInput} style={{ flex: 2 }}
-                        placeholder="Day name" value={d.name}
-                        onChange={(e) => updateSpecialDay(i, "name", e.target.value)} />
-                      <input className={styles.fieldInput} style={{ flex: 1 }} type="number"
-                        placeholder="Month" value={d.month}
-                        onChange={(e) => updateSpecialDay(i, "month", parseInt(e.target.value) || 1)} />
-                      <input className={styles.fieldInput} style={{ flex: 1 }} type="number"
-                        placeholder="Day" value={d.day}
-                        onChange={(e) => updateSpecialDay(i, "day", parseInt(e.target.value) || 1)} />
+                      <input
+                        className={styles.fieldInput}
+                        style={{ flex: 2 }}
+                        placeholder="Day name"
+                        value={d.name}
+                        onChange={(e) => updateSpecialDay(i, "name", e.target.value)}
+                      />
+                      <input
+                        className={styles.fieldInput}
+                        style={{ flex: 1 }}
+                        type="number"
+                        placeholder="Month"
+                        value={d.month}
+                        onChange={(e) => updateSpecialDay(i, "month", parseInt(e.target.value) || 1)}
+                      />
+                      <input
+                        className={styles.fieldInput}
+                        style={{ flex: 1 }}
+                        type="number"
+                        placeholder="Day"
+                        value={d.day}
+                        onChange={(e) => updateSpecialDay(i, "day", parseInt(e.target.value) || 1)}
+                      />
                     </div>
-                    <input className={styles.fieldInput}
-                      placeholder="Description (optional)" value={d.description}
-                      onChange={(e) => updateSpecialDay(i, "description", e.target.value)} />
+                    <input
+                      className={styles.fieldInput}
+                      placeholder="Description (optional)"
+                      value={d.description}
+                      onChange={(e) => updateSpecialDay(i, "description", e.target.value)}
+                    />
                   </div>
-                  <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => removeSpecialDay(i)}>
+                  <button
+                    className={`${styles.iconBtn} ${styles.danger}`}
+                    onClick={() => removeSpecialDay(i)}
+                  >
                     <Trash2 size={13} />
                   </button>
                 </div>
@@ -257,12 +352,13 @@ export default function CalendarEditor({ storyId }: Props) {
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Conversion Notes</label>
-              <textarea className={styles.fieldTextarea}
+              <textarea
+                className={styles.fieldTextarea}
                 placeholder="How does this calendar relate to narrative time? How to convert dates?"
                 value={selected.conversion_notes}
-                onChange={(e) => scheduleUpdate("conversion_notes", e.target.value)} />
+                onChange={(e) => scheduleUpdate("conversion_notes", e.target.value)}
+              />
             </div>
-
           </>
         )}
       </div>
@@ -273,13 +369,22 @@ export default function CalendarEditor({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Add calendar</h3>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Name</label>
-              <input className={styles.fieldInput} autoFocus placeholder="Calendar name"
-                value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createCalendar()} />
+              <input
+                className={styles.fieldInput}
+                autoFocus
+                placeholder="Calendar name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createCalendar()}
+              />
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createCalendar} disabled={!newName.trim()}>Add calendar</button>
+              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.addBtn} onClick={createCalendar} disabled={!newName.trim()}>
+                Add calendar
+              </button>
             </div>
           </div>
         </div>
@@ -290,8 +395,16 @@ export default function CalendarEditor({ storyId }: Props) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>Delete "{selected.name}"?</h3>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className={styles.addBtn} style={{ background: "var(--color-danger)" }} onClick={deleteCalendar}>Delete</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                style={{ background: "var(--color-danger)" }}
+                onClick={deleteCalendar}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

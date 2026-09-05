@@ -84,27 +84,23 @@ function IntentForm({ onStart }: IntentFormProps) {
   return (
     <div className={styles.intentForm}>
       <p className={styles.intentLabel}>
-        Before we brainstorm — a few quick questions. These are optional, but the more
-        you share, the more targeted the directions.
+        Before we brainstorm — a few quick questions. These are optional, but the more you share, the more
+        targeted the directions.
       </p>
 
       <div className={styles.intentField}>
         <label className={styles.intentFieldLabel}>What mood are you leaning toward?</label>
-        <select
-          className={styles.intentSelect}
-          value={mood}
-          onChange={(e) => setMood(e.target.value)}
-        >
+        <select className={styles.intentSelect} value={mood} onChange={(e) => setMood(e.target.value)}>
           {MOOD_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>
 
       <div className={styles.intentField}>
-        <label className={styles.intentFieldLabel}>
-          Where should this leave the reader?
-        </label>
+        <label className={styles.intentFieldLabel}>Where should this leave the reader?</label>
         <input
           className={styles.intentInput}
           type="text"
@@ -115,9 +111,7 @@ function IntentForm({ onStart }: IntentFormProps) {
       </div>
 
       <div className={styles.intentField}>
-        <label className={styles.intentFieldLabel}>
-          Anything specific that needs to happen?
-        </label>
+        <label className={styles.intentFieldLabel}>Anything specific that needs to happen?</label>
         <textarea
           className={styles.intentTextarea}
           value={required}
@@ -128,15 +122,18 @@ function IntentForm({ onStart }: IntentFormProps) {
       </div>
 
       <div className={styles.intentActions}>
-        <button
-          className={styles.intentSkipBtn}
-          onClick={() => onStart({})}
-        >
+        <button className={styles.intentSkipBtn} onClick={() => onStart({})}>
           Skip, just brainstorm
         </button>
         <button
           className={styles.intentStartBtn}
-          onClick={() => onStart({ mood: mood || undefined, goal: goal || undefined, required_events: required || undefined })}
+          onClick={() =>
+            onStart({
+              mood: mood || undefined,
+              goal: goal || undefined,
+              required_events: required || undefined,
+            })
+          }
         >
           Start brainstorming
         </button>
@@ -149,7 +146,12 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
   const { closeBrainstormPanel } = useUIStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [selectedImage, setSelectedImage] = useState<{ base64: string; mimeType: string; filename: string; assetId?: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    base64: string;
+    mimeType: string;
+    filename: string;
+    assetId?: string;
+  } | null>(null);
   const [intentCapture, setIntentCapture] = useState<BrainstormIntent | null>(null);
   const [showingForm, setShowingForm] = useState(true);
   const [panelWidth, setPanelWidth] = useState(360);
@@ -174,7 +176,9 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
       const newWidth = Math.max(280, Math.min(680, resizeStartWidth.current + dx));
       setPanelWidth(newWidth);
     }
-    function onMouseUp() { isResizing.current = false; }
+    function onMouseUp() {
+      isResizing.current = false;
+    }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     return () => {
@@ -183,7 +187,12 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
     };
   }, []);
 
-  const { stream, cancel, text: streamText, isStreaming: streaming } = useLLMStream({
+  const {
+    stream,
+    cancel,
+    text: streamText,
+    isStreaming: streaming,
+  } = useLLMStream({
     requestId: `brainstorm:${storyId}:${nodeId}`,
     label: "What's Next?",
     tabId: "story",
@@ -193,10 +202,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
       inputRef.current?.focus();
     },
     onError: () => {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "[Error reaching LLM]" },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "[Error reaching LLM]" }]);
     },
   });
 
@@ -226,9 +232,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
     const nextMessages = [userMsg];
     setMessages(nextMessages);
 
-    stream((signal) =>
-      api.sendBrainstormMessage(storyId, nodeId, nextMessages, intent, signal)
-    );
+    stream((signal) => api.sendBrainstormMessage(storyId, nodeId, nextMessages, intent, signal));
   }
 
   function send(text?: string) {
@@ -247,7 +251,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
     setMessages(nextMessages);
 
     stream((signal) =>
-      api.sendBrainstormMessage(storyId, nodeId, nextMessages, intentCapture ?? undefined, signal)
+      api.sendBrainstormMessage(storyId, nodeId, nextMessages, intentCapture ?? undefined, signal),
     );
   }
 
@@ -278,11 +282,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
         </div>
         <div className={styles.headerRight}>
           {!showingForm && messages.length > 0 && (
-            <button
-              className={styles.headerBtn}
-              onClick={resetForm}
-              title="Start a new brainstorm"
-            >
+            <button className={styles.headerBtn} onClick={resetForm} title="Start a new brainstorm">
               New brainstorm
             </button>
           )}
@@ -293,9 +293,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
       </div>
 
       {/* Intent form */}
-      {showingForm && (
-        <IntentForm onStart={handleStart} />
-      )}
+      {showingForm && <IntentForm onStart={handleStart} />}
 
       {/* Messages */}
       {!showingForm && (
@@ -312,20 +310,25 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
                 {msg.images && msg.images.length > 0 && (
                   <div className={styles.messageImages}>
                     {msg.images.map((b64, idx) => (
-                      <img key={idx} src={`data:image/jpeg;base64,${b64}`} alt="attached" className={styles.messageImage} />
+                      <img
+                        key={idx}
+                        src={`data:image/jpeg;base64,${b64}`}
+                        alt="attached"
+                        className={styles.messageImage}
+                      />
                     ))}
                   </div>
                 )}
-                {msg.role === "assistant"
-                  ? <MessageContent content={msg.content} s={styles} />
-                  : msg.content}
+                {msg.role === "assistant" ? <MessageContent content={msg.content} s={styles} /> : msg.content}
               </div>
             </div>
           ))}
 
           {streaming && streamText && (
             <div className={`${styles.message} ${styles.assistantMessage}`}>
-              <div className={styles.messageAvatar}><Compass size={13} /></div>
+              <div className={styles.messageAvatar}>
+                <Compass size={13} />
+              </div>
               <div className={styles.messageContent}>
                 <MessageContent content={streamText} s={styles} />
               </div>
@@ -333,8 +336,12 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
           )}
           {streaming && !streamText && (
             <div className={`${styles.message} ${styles.assistantMessage}`}>
-              <div className={styles.messageAvatar}><Compass size={13} /></div>
-              <div className={styles.messageContent}><span className={styles.cursor}>▋</span></div>
+              <div className={styles.messageAvatar}>
+                <Compass size={13} />
+              </div>
+              <div className={styles.messageContent}>
+                <span className={styles.cursor}>▋</span>
+              </div>
             </div>
           )}
 
@@ -345,21 +352,13 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
       {/* Follow-up prompts */}
       {!showingForm && showFollowUps && !streaming && (
         <div className={styles.followUps}>
-          <button
-            className={styles.followUpsToggle}
-            onClick={() => setShowFollowUps((v) => !v)}
-          >
+          <button className={styles.followUpsToggle} onClick={() => setShowFollowUps((v) => !v)}>
             <span>Suggestions</span>
             {showFollowUps ? <ChevronDown size={11} /> : <ChevronUp size={11} />}
           </button>
           <div className={styles.followUpsList}>
             {FOLLOW_UP_PROMPTS.map((p) => (
-              <button
-                key={p}
-                className={styles.followUpBtn}
-                onClick={() => send(p)}
-                disabled={streaming}
-              >
+              <button key={p} className={styles.followUpBtn} onClick={() => send(p)} disabled={streaming}>
                 {p}
               </button>
             ))}
@@ -387,11 +386,24 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
             disabled={streaming}
           />
           {streaming ? (
-            <button className={styles.sendBtn} onClick={cancel} title="Cancel" style={{ background: "color-mix(in srgb, var(--color-danger) 15%, transparent)", color: "var(--color-danger)" }}>
+            <button
+              className={styles.sendBtn}
+              onClick={cancel}
+              title="Cancel"
+              style={{
+                background: "color-mix(in srgb, var(--color-danger) 15%, transparent)",
+                color: "var(--color-danger)",
+              }}
+            >
               <Square size={13} />
             </button>
           ) : (
-            <button className={styles.sendBtn} onClick={() => send()} disabled={!input.trim() && !selectedImage} title="Send">
+            <button
+              className={styles.sendBtn}
+              onClick={() => send()}
+              disabled={!input.trim() && !selectedImage}
+              title="Send"
+            >
               <Send size={14} />
             </button>
           )}

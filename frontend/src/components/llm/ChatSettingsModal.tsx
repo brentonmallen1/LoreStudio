@@ -27,7 +27,14 @@ const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
   { value: 1120, label: "1120 — High detail (OCR, fine text)" },
 ];
 
-export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionParams, autoSummarize = false, onAutoSummarizeChange }: Props) {
+export default function ChatSettingsModal({
+  isOpen,
+  onClose,
+  onApply,
+  sessionParams,
+  autoSummarize = false,
+  onAutoSummarizeChange,
+}: Props) {
   const [globalSettings, setGlobalSettings] = useState<LLMSettings | null>(null);
   const [temperature, setTemperature] = useState(1.0);
   const [topP, setTopP] = useState(0.95);
@@ -37,15 +44,18 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
 
   useEffect(() => {
     if (!isOpen) return;
-    api.getLLMSettings().then((s) => {
-      setGlobalSettings(s);
-      // Prefer session-level overrides; fall back to global settings
-      setTemperature(sessionParams?.temperature ?? s.temperature);
-      setTopP(sessionParams?.top_p ?? s.top_p);
-      setTopK(sessionParams?.top_k ?? s.top_k);
-      setThinking(sessionParams?.thinking_enabled ?? s.thinking_enabled);
-      setTokenBudget(sessionParams?.image_token_budget ?? s.image_token_budget ?? 0);
-    }).catch(() => {});
+    api
+      .getLLMSettings()
+      .then((s) => {
+        setGlobalSettings(s);
+        // Prefer session-level overrides; fall back to global settings
+        setTemperature(sessionParams?.temperature ?? s.temperature);
+        setTopP(sessionParams?.top_p ?? s.top_p);
+        setTopK(sessionParams?.top_k ?? s.top_k);
+        setThinking(sessionParams?.thinking_enabled ?? s.thinking_enabled);
+        setTokenBudget(sessionParams?.image_token_budget ?? s.image_token_budget ?? 0);
+      })
+      .catch(() => {});
   }, [isOpen]);
 
   function handleApply() {
@@ -95,7 +105,9 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
           <div className={styles.sliderRow}>
             <input
               type="range"
-              min={0} max={2} step={0.01}
+              min={0}
+              max={2}
+              step={0.01}
               value={temperature}
               onChange={(e) => setTemperature(parseFloat(e.target.value))}
               className={styles.slider}
@@ -111,7 +123,9 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
           <div className={styles.sliderRow}>
             <input
               type="range"
-              min={0} max={1} step={0.01}
+              min={0}
+              max={1}
+              step={0.01}
               value={topP}
               onChange={(e) => setTopP(parseFloat(e.target.value))}
               className={styles.slider}
@@ -126,7 +140,8 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
           <label className={styles.label}>Top-k</label>
           <input
             type="number"
-            min={1} max={200}
+            min={1}
+            max={200}
             value={topK}
             onChange={(e) => setTopK(parseInt(e.target.value, 10) || 64)}
             className={styles.numberInput}
@@ -143,11 +158,14 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
             className={styles.selectInput}
           >
             {TOKEN_BUDGET_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
           <p className={styles.hint}>
-            Higher budgets preserve more image detail for OCR or fine-text analysis. Lower budgets are faster for classification or simple captioning.
+            Higher budgets preserve more image detail for OCR or fine-text analysis. Lower budgets are faster
+            for classification or simple captioning.
           </p>
         </div>
 
@@ -157,14 +175,12 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
         <div className={styles.toggleRow}>
           <div className={styles.toggleLabel}>
             <label className={styles.label}>Thinking Mode</label>
-            <span className={styles.hint}>Gemma 4 reasons before responding — improves accuracy, increases latency.</span>
+            <span className={styles.hint}>
+              Gemma 4 reasons before responding — improves accuracy, increases latency.
+            </span>
           </div>
           <label className={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={thinking}
-              onChange={(e) => setThinking(e.target.checked)}
-            />
+            <input type="checkbox" checked={thinking} onChange={(e) => setThinking(e.target.checked)} />
             <span className={styles.toggleTrack} />
           </label>
         </div>
@@ -173,7 +189,9 @@ export default function ChatSettingsModal({ isOpen, onClose, onApply, sessionPar
           <div className={styles.toggleRow}>
             <div className={styles.toggleLabel}>
               <label className={styles.label}>Auto-summarize</label>
-              <span className={styles.hint}>Automatically compress older messages into a summary after 20 exchanges.</span>
+              <span className={styles.hint}>
+                Automatically compress older messages into a summary after 20 exchanges.
+              </span>
             </div>
             <label className={styles.toggle}>
               <input

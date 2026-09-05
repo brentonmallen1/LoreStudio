@@ -9,8 +9,13 @@ interface Props {
 
 export default function SprintTimer({ currentWordCount }: Props) {
   const {
-    sprintActive, sprintStartTime, sprintDuration, sprintGoalWords, sprintStartWordCount,
-    startSprint, endSprint,
+    sprintActive,
+    sprintStartTime,
+    sprintDuration,
+    sprintGoalWords,
+    sprintStartWordCount,
+    startSprint,
+    endSprint,
   } = useUIStore();
 
   const [showSetup, setShowSetup] = useState(false);
@@ -63,7 +68,9 @@ export default function SprintTimer({ currentWordCount }: Props) {
   }, [showSetup]);
 
   function formatTime(secs: number) {
-    const m = Math.floor(secs / 60).toString().padStart(2, "0");
+    const m = Math.floor(secs / 60)
+      .toString()
+      .padStart(2, "0");
     const s = (secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   }
@@ -83,14 +90,14 @@ export default function SprintTimer({ currentWordCount }: Props) {
 
   if (sprintActive || completed) {
     return (
-      <div className={`${styles.sprintActive} ${goalMet ? styles.goalMet : ""} ${completed ? styles.completed : ""}`}>
+      <div
+        className={`${styles.sprintActive} ${goalMet ? styles.goalMet : ""} ${completed ? styles.completed : ""}`}
+      >
         <Timer size={12} className={styles.icon} />
         <span className={styles.timer}>{completed ? "Done!" : formatTime(remaining)}</span>
         <span className={styles.separator}>·</span>
         <span className={styles.words}>+{wordsWritten.toLocaleString()}</span>
-        {sprintGoalWords > 0 && (
-          <span className={styles.goal}>/{sprintGoalWords.toLocaleString()}</span>
-        )}
+        {sprintGoalWords > 0 && <span className={styles.goal}>/{sprintGoalWords.toLocaleString()}</span>}
         {!completed && (
           <button className={styles.stopBtn} onClick={handleStop} title="End sprint">
             <X size={11} />

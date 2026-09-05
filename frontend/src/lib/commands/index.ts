@@ -35,7 +35,9 @@ commandRegistry.register({
   keywords: ["settings", "preferences", "config"],
   icon: Settings,
   group: "Navigation",
-  action: () => { window.location.href = "/settings"; },
+  action: () => {
+    window.location.href = "/settings";
+  },
 });
 
 // ── AI sessions ───────────────────────────────────────────────────────────────

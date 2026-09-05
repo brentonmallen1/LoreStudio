@@ -1,46 +1,61 @@
 import uuid
-from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Body
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.character import Character, CharacterRelationship
-from ..models.structure import StructureNode
-from ..models.dialogue import DialogueBlock
-from ..schemas.character import (
-    CharacterCreate, CharacterUpdate, CharacterOut,
-    RelationshipCreate, RelationshipUpdate, RelationshipOut, RelationshipTemplate,
-    ArcMilestone, DiscoveryNoteCreate, DiscoveryNoteUpdate,
-)
-from ..services.relationship_templates import get_all_templates, get_template
 from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
-from ..services.llm.prompts.generation import build_attribute_generation_prompt
+from ..database import get_db
+from ..models.activity_log import ActivityLog
+from ..models.character import Character, CharacterRelationship
+from ..models.dialogue import DialogueBlock
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 from ..schemas.ai_responses import (
-    AttributeSuggestionsResponse, StructuredResult, PronounIdentificationResponse,
+    AttributeSuggestionsResponse,
+    PronounIdentificationResponse,
+    StructuredResult,
     VoiceFidelityResponse,
 )
-from ..services.character_journey import (
-    get_cached_journey, get_nodes_up_to, get_scenes_with_character,
-    build_journey_prompt, save_journey,
+from ..schemas.character import (
+    ArcMilestone,
+    CharacterOut,
+    CharacterUpdate,
+    DiscoveryNoteCreate,
+    DiscoveryNoteUpdate,
+    RelationshipCreate,
+    RelationshipOut,
+    RelationshipTemplate,
+    RelationshipUpdate,
 )
-from ..services.refactoring_service import preview_entity_rename, apply_entity_rename
 from ..schemas.refactoring import (
-    RenamePreviewResponse, ApplyRenameRequest,
-    PronounRefactorPreviewResponse, PronounRewriteProposal, ApplyPronounRefactorRequest,
+    ApplyPronounRefactorRequest,
+    ApplyRenameRequest,
+    PronounRefactorPreviewResponse,
+    PronounRewriteProposal,
+    RenamePreviewResponse,
 )
-from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
-from ..services.pronoun_service import build_pronoun_proposals, apply_proposals_to_html
-from ..services.text_utils import html_to_text as _html_to_text
-from ..services.linking_service import suggest_entity_links, suggest_entity_links_preloaded, apply_entity_links
-from ..services.nlp_analysis_service import analyze_voice_distinctness, analyze_character_dialogue_prose
-from ..models.activity_log import ActivityLog
+from ..services.character_journey import (
+    build_journey_prompt,
+    get_cached_journey,
+    get_nodes_up_to,
+    get_scenes_with_character,
+    save_journey,
+)
+from ..services.linking_service import apply_entity_links, suggest_entity_links_preloaded
+from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.analysis import build_voice_fidelity_prompt
-from sqlalchemy.orm.attributes import flag_modified
+from ..services.llm.prompts.generation import build_attribute_generation_prompt
+from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
+from ..services.nlp_analysis_service import analyze_character_dialogue_prose, analyze_voice_distinctness
+from ..services.pronoun_service import apply_proposals_to_html, build_pronoun_proposals
+from ..services.refactoring_service import apply_entity_rename, preview_entity_rename
+from ..services.relationship_templates import get_all_templates, get_template
+from ..services.text_utils import html_to_text as _html_to_text
 
 router = APIRouter()
 
@@ -76,9 +91,7 @@ def update_character(
 
 
 @router.delete("/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_character(
-    character_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def delete_character(character_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     character = _verify_character_access(character_id, db, current_user)
     db.delete(character)
     db.commit()
@@ -102,10 +115,14 @@ def create_relationship(
     _verify_character_access(character_id, db, current_user)
     if character_id == body.related_character_id:
         raise HTTPException(status_code=400, detail="Cannot relate character to itself")
-    existing = db.query(CharacterRelationship).filter(
-        CharacterRelationship.character_id == character_id,
-        CharacterRelationship.related_character_id == body.related_character_id,
-    ).first()
+    existing = (
+        db.query(CharacterRelationship)
+        .filter(
+            CharacterRelationship.character_id == character_id,
+            CharacterRelationship.related_character_id == body.related_character_id,
+        )
+        .first()
+    )
     if existing:
         raise HTTPException(
             status_code=409,
@@ -151,7 +168,9 @@ def update_relationship(
     return rel
 
 
-@router.post("/{character_id}/relationships/from-template", response_model=RelationshipOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{character_id}/relationships/from-template", response_model=RelationshipOut, status_code=status.HTTP_201_CREATED
+)
 def create_relationship_from_template(
     character_id: str,
     related_character_id: str = Body(...),
@@ -329,17 +348,19 @@ def get_character_dialogue(
     )
     result = []
     for block, scene_title, _ in rows:
-        result.append(DialogueBlockWithScene(
-            id=block.id,
-            scene_id=block.scene_id,
-            scene_title=scene_title or "Untitled",
-            character_id=block.character_id,
-            speaker_name=block.speaker_name,
-            content=block.content,
-            attribution_method=block.attribution_method,
-            confidence=block.confidence,
-            paragraph_index=block.paragraph_index,
-        ))
+        result.append(
+            DialogueBlockWithScene(
+                id=block.id,
+                scene_id=block.scene_id,
+                scene_title=scene_title or "Untitled",
+                character_id=block.character_id,
+                speaker_name=block.speaker_name,
+                content=block.content,
+                attribution_method=block.attribution_method,
+                confidence=block.confidence,
+                paragraph_index=block.paragraph_index,
+            )
+        )
     return result
 
 
@@ -368,7 +389,7 @@ def get_character_journey(
             "summary": cached.summary,
             "is_stale": cached.is_stale,
             "scene_count": len(relevant_scenes),
-            "generated_at": cached.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+            "generated_at": cached.updated_at.replace(tzinfo=UTC).isoformat(),
         }
     return {
         "summary": "",
@@ -399,9 +420,10 @@ async def refresh_character_journey(
 
     if not relevant_scenes:
         from fastapi.responses import Response
+
         # Still cache a placeholder so the UI can show "0 scenes found"
         cached = get_cached_journey(character_id, up_to_node, db)
-        placeholder = f"I don't appear to have experienced anything notable in the story up to this point."
+        placeholder = "I don't appear to have experienced anything notable in the story up to this point."
         save_journey(character_id, up_to_node, placeholder, [], db, existing=cached)
         return Response(placeholder, media_type="text/plain")
 
@@ -475,25 +497,23 @@ def get_arc_timeline(
     leaves = flatten_leaves(roots)
 
     # Find milestone-to-scene mappings
-    milestone_scene_ids: set[str] = {
-        m["scene_id"] for m in (character.arc_milestones or []) if m.get("scene_id")
-    }
+    milestone_scene_ids: set[str] = {m["scene_id"] for m in (character.arc_milestones or []) if m.get("scene_id")}
 
     name_lower = character.name.lower()
     scenes = []
     for i, n in enumerate(leaves):
         if n.content and name_lower in n.content.lower():
-            linked_milestones = [
-                m["id"] for m in (character.arc_milestones or []) if m.get("scene_id") == n.id
-            ]
-            scenes.append({
-                "id": n.id,
-                "title": n.title or "Untitled",
-                "position": i,
-                "word_count": n.word_count,
-                "status": n.status,
-                "linked_milestones": linked_milestones,
-            })
+            linked_milestones = [m["id"] for m in (character.arc_milestones or []) if m.get("scene_id") == n.id]
+            scenes.append(
+                {
+                    "id": n.id,
+                    "title": n.title or "Untitled",
+                    "position": i,
+                    "word_count": n.word_count,
+                    "status": n.status,
+                    "linked_milestones": linked_milestones,
+                }
+            )
 
     total_leaves = len(leaves)
     appearance_rate = round(len(scenes) / total_leaves * 100, 1) if total_leaves > 0 else 0.0
@@ -614,14 +634,16 @@ async def preview_pronoun_refactor(
         # Step 2: Deterministic substitution — compute what each identified pronoun becomes
         scene_proposals = build_pronoun_proposals(instances, plain_text, new_pronouns.strip())
         for prop in scene_proposals:
-            proposals.append(PronounRewriteProposal(
-                id=str(uuid.uuid4()),
-                node_id=node.id,
-                node_title=node.title or "(Untitled)",
-                original=prop["original"],
-                rewritten=prop["rewritten"],
-                explanation=prop["explanation"],
-            ))
+            proposals.append(
+                PronounRewriteProposal(
+                    id=str(uuid.uuid4()),
+                    node_id=node.id,
+                    node_title=node.title or "(Untitled)",
+                    original=prop["original"],
+                    rewritten=prop["rewritten"],
+                    explanation=prop["explanation"],
+                )
+            )
 
     return PronounRefactorPreviewResponse(
         character_id=character.id,
@@ -644,6 +666,7 @@ def apply_pronoun_refactor(
     character = _verify_character_access(character_id, db, current_user)
 
     from collections import defaultdict
+
     by_node: dict[str, list] = defaultdict(list)
     for rw in body.rewrites:
         by_node[rw.node_id].append(rw)
@@ -710,6 +733,7 @@ def get_character_unlinked_mentions(
     # Pre-load entities once so suggest_entity_links doesn't query DB per scene
     from ..models.character import Character as _Char
     from ..models.location import Location as _Loc
+
     _all_chars = db.query(_Char).filter(_Char.story_id == character.story_id).all()
     _all_locs = db.query(_Loc).filter(_Loc.story_id == character.story_id).all()
 
@@ -717,23 +741,24 @@ def get_character_unlinked_mentions(
     for scene in scenes:
         all_proposals = suggest_entity_links_preloaded(scene.content, _all_chars, _all_locs)
         char_proposals = [
-            p for p in all_proposals
-            if p["entity_type"] == "character" and p["entity_id"] == character_id
+            p for p in all_proposals if p["entity_type"] == "character" and p["entity_id"] == character_id
         ]
         if char_proposals:
-            results.append(SceneWithUnlinkedMentions(
-                scene_id=scene.id,
-                scene_title=scene.title or "Untitled",
-                proposals=[
-                    UnlinkedMentionProposal(
-                        id=p["id"],
-                        matched_text=p["matched_text"],
-                        confidence=p["confidence"],
-                        source_excerpt=p["source_excerpt"],
-                    )
-                    for p in char_proposals
-                ],
-            ))
+            results.append(
+                SceneWithUnlinkedMentions(
+                    scene_id=scene.id,
+                    scene_title=scene.title or "Untitled",
+                    proposals=[
+                        UnlinkedMentionProposal(
+                            id=p["id"],
+                            matched_text=p["matched_text"],
+                            confidence=p["confidence"],
+                            source_excerpt=p["source_excerpt"],
+                        )
+                        for p in char_proposals
+                    ],
+                )
+            )
 
     total = sum(len(s.proposals) for s in results)
     return CharacterUnlinkedMentionsResponse(
@@ -805,11 +830,7 @@ def analyze_character_voice(
 
     # Fetch all dialogue blocks in one query, then group in Python
     char_ids = [c.id for c in all_characters]
-    all_blocks = (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.character_id.in_(char_ids))
-        .all()
-    )
+    all_blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id.in_(char_ids)).all()
     blocks_by_char: dict[str, list[DialogueBlock]] = {}
     for b in all_blocks:
         if b.character_id:
@@ -821,14 +842,21 @@ def analyze_character_voice(
         char = char_map[char_id]
         combined_text = " ".join(b.content for b in blocks if b.content)
         if combined_text.strip():
-            dialogue_inputs.append({
-                "character_id": char.id,
-                "character_name": char.name,
-                "content": combined_text,
-            })
+            dialogue_inputs.append(
+                {
+                    "character_id": char.id,
+                    "character_name": char.name,
+                    "content": combined_text,
+                }
+            )
 
     if not dialogue_inputs:
-        return {"profiles": [], "similar_pairs": [], "overall_distinctness": "distinct", "focus_character_id": character_id}
+        return {
+            "profiles": [],
+            "similar_pairs": [],
+            "overall_distinctness": "distinct",
+            "focus_character_id": character_id,
+        }
 
     result = analyze_voice_distinctness(dialogue_inputs)
     result["focus_character_id"] = character_id
@@ -845,14 +873,16 @@ def add_discovery_note(
     """Add a discovery note with optional scene link."""
     character = _verify_character_access(character_id, db, current_user)
     notes = list(character.discovery_notes or [])
-    notes.append({
-        "id": str(uuid.uuid4()),
-        "text": body.text,
-        "scene_id": body.scene_id,
-        "scene_title": body.scene_title,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "confirmed": False,
-    })
+    notes.append(
+        {
+            "id": str(uuid.uuid4()),
+            "text": body.text,
+            "scene_id": body.scene_id,
+            "scene_title": body.scene_title,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "confirmed": False,
+        }
+    )
     character.discovery_notes = notes
     flag_modified(character, "discovery_notes")
     db.commit()
@@ -913,11 +943,7 @@ def analyze_character_dialogue_endpoint(
 ):
     """Run NLP prose analysis on this character's dialogue lines only."""
     _verify_character_access(character_id, db, current_user)
-    blocks = (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.character_id == character_id)
-        .all()
-    )
+    blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id == character_id).all()
     if not blocks:
         return {"word_count": 0, "line_count": 0}
 
@@ -934,11 +960,7 @@ async def analyze_voice_fidelity(
     """AI analysis of whether character dialogue is authentic to their defined attributes."""
     character = _verify_character_access(character_id, db, current_user)
 
-    blocks = (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.character_id == character_id)
-        .all()
-    )
+    blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id == character_id).all()
     if not blocks:
         return StructuredResult(
             success=False,

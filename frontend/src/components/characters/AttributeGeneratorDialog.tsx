@@ -53,12 +53,10 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
 
   const footer = (
     <>
-      <button onClick={onClose} className={styles.cancelBtn}>Cancel</button>
-      <button
-        onClick={handleGenerate}
-        disabled={starting}
-        className={styles.generateBtn}
-      >
+      <button onClick={onClose} className={styles.cancelBtn}>
+        Cancel
+      </button>
+      <button onClick={handleGenerate} disabled={starting} className={styles.generateBtn}>
         <Wand2 size={13} />
         {starting ? "Opening…" : "Generate Suggestions"}
       </button>
@@ -79,8 +77,8 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
           <label className={styles.label}>What to generate</label>
           <p className={styles.hint}>
             AI will analyse {character.name}'s existing profile and suggest new{" "}
-            {ATTRIBUTE_TYPES.find((t) => t.value === type)?.label.toLowerCase()}{" "}
-            grounded in what's already established.
+            {ATTRIBUTE_TYPES.find((t) => t.value === type)?.label.toLowerCase()} grounded in what's already
+            established.
           </p>
           <div className={styles.typeGrid}>
             {ATTRIBUTE_TYPES.map((t) => (

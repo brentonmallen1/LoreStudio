@@ -12,7 +12,13 @@ interface Props {
   onNext: () => void;
 }
 
-export default function StructureReviewStep({ uploadResponse, preview, onPreviewUpdated, onBack, onNext }: Props) {
+export default function StructureReviewStep({
+  uploadResponse,
+  preview,
+  onPreviewUpdated,
+  onBack,
+  onNext,
+}: Props) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiReasoning, setAiReasoning] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -40,11 +46,13 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
       return;
     }
     try {
-      const updated = await api.importAdjust(preview.session_id, [{
-        action: "rename",
-        node_id: nodeId,
-        new_title: editTitle.trim(),
-      }]);
+      const updated = await api.importAdjust(preview.session_id, [
+        {
+          action: "rename",
+          node_id: nodeId,
+          new_title: editTitle.trim(),
+        },
+      ]);
       onPreviewUpdated(updated);
     } catch {
       // ignore — keep showing current title
@@ -55,10 +63,12 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
 
   async function handleMergeUp(nodeId: string) {
     try {
-      const updated = await api.importAdjust(preview.session_id, [{
-        action: "merge_up",
-        node_id: nodeId,
-      }]);
+      const updated = await api.importAdjust(preview.session_id, [
+        {
+          action: "merge_up",
+          node_id: nodeId,
+        },
+      ]);
       onPreviewUpdated(updated);
     } catch {
       // ignore
@@ -67,11 +77,13 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
 
   async function handleRelevel(nodeId: string, newLevel: number) {
     try {
-      const updated = await api.importAdjust(preview.session_id, [{
-        action: "relevel",
-        node_id: nodeId,
-        new_level: newLevel,
-      }]);
+      const updated = await api.importAdjust(preview.session_id, [
+        {
+          action: "relevel",
+          node_id: nodeId,
+          new_level: newLevel,
+        },
+      ]);
       onPreviewUpdated(updated);
     } catch {
       // ignore
@@ -96,21 +108,15 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
     const expanded = expandedIds.has(node.id);
     const isEditing = editingId === node.id;
 
-    const confidenceClass = node.confidence >= 0.8
-      ? styles.high
-      : node.confidence >= 0.5
-      ? styles.medium
-      : styles.low;
+    const confidenceClass =
+      node.confidence >= 0.8 ? styles.high : node.confidence >= 0.5 ? styles.medium : styles.low;
 
     return (
       <div key={node.id} className={styles.nodeRow} style={{ paddingLeft: `${depth * 1.25}rem` }}>
         <div className={`${styles.nodeLine} ${node.needs_review ? styles.needsReview : ""}`}>
           {/* Expand toggle */}
-          {(hasChildren || node.content_preview) ? (
-            <button
-              className={styles.expandBtn}
-              onClick={() => toggleExpand(node.id)}
-            >
+          {hasChildren || node.content_preview ? (
+            <button className={styles.expandBtn} onClick={() => toggleExpand(node.id)}>
               {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
             </button>
           ) : (
@@ -118,9 +124,7 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
           )}
 
           {/* Level badge */}
-          <span className={`${styles.levelBadge} ${styles[`level${node.level}`]}`}>
-            {node.level_type}
-          </span>
+          <span className={`${styles.levelBadge} ${styles[`level${node.level}`]}`}>{node.level_type}</span>
 
           {/* Title (editable) */}
           {isEditing ? (
@@ -157,7 +161,10 @@ export default function StructureReviewStep({ uploadResponse, preview, onPreview
               <AlertTriangle size={11} className={styles.reviewIcon} />
             </span>
           )}
-          <span className={`${styles.confidenceDot} ${confidenceClass}`} title={`Confidence: ${Math.round(node.confidence * 100)}%`} />
+          <span
+            className={`${styles.confidenceDot} ${confidenceClass}`}
+            title={`Confidence: ${Math.round(node.confidence * 100)}%`}
+          />
 
           {/* Word count */}
           <span className={styles.wordCount}>{node.word_count.toLocaleString()}w</span>

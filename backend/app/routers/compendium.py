@@ -1,23 +1,24 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
+from ..models.compendium import CompendiumAttachment, CompendiumEntry
 from ..models.media import StoryAsset
-from ..models.compendium import CompendiumEntry, CompendiumAttachment
+from ..models.story import Story
+from ..models.user import User
 from ..schemas.compendium import (
-    CompendiumNoteCreate,
-    CompendiumUrlCreate,
-    CompendiumDocumentCreate,
-    CompendiumEntryUpdate,
     CompendiumAttachBody,
+    CompendiumAttachmentOut,
+    CompendiumDocumentCreate,
     CompendiumEntryOut,
     CompendiumEntrySummary,
-    CompendiumAttachmentOut,
+    CompendiumEntryUpdate,
+    CompendiumNoteCreate,
+    CompendiumUrlCreate,
 )
-from ..auth.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -86,7 +87,10 @@ async def _fetch_url_metadata(url: str) -> dict:
 
 # ─── Create endpoints ────────────────────────────────────────────────────────
 
-@router.post("/stories/{story_id}/compendium/notes", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/stories/{story_id}/compendium/notes", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED
+)
 def create_note(
     story_id: str,
     body: CompendiumNoteCreate,
@@ -109,7 +113,9 @@ def create_note(
     return entry
 
 
-@router.post("/stories/{story_id}/compendium/urls", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/stories/{story_id}/compendium/urls", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED
+)
 async def create_url(
     story_id: str,
     body: CompendiumUrlCreate,
@@ -126,7 +132,7 @@ async def create_url(
         meta = await _fetch_url_metadata(body.url)
         url_title = meta.get("title")
         url_description = meta.get("description")
-        url_fetched_at = datetime.now(timezone.utc)
+        url_fetched_at = datetime.now(UTC)
 
     entry = CompendiumEntry(
         story_id=story_id,
@@ -146,7 +152,9 @@ async def create_url(
     return entry
 
 
-@router.post("/stories/{story_id}/compendium/documents", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/stories/{story_id}/compendium/documents", response_model=CompendiumEntryOut, status_code=status.HTTP_201_CREATED
+)
 def create_document(
     story_id: str,
     body: CompendiumDocumentCreate,
@@ -174,6 +182,7 @@ def create_document(
 
 # ─── List / Get ───────────────────────────────────────────────────────────────
 
+
 @router.get("/stories/{story_id}/compendium", response_model=list[CompendiumEntrySummary])
 def list_entries(
     story_id: str,
@@ -198,7 +207,8 @@ def list_entries(
     if q:
         ql = q.lower()
         entries = [
-            e for e in entries
+            e
+            for e in entries
             if ql in (e.title or "").lower()
             or ql in (e.content or "").lower()
             or ql in (e.url or "").lower()
@@ -219,6 +229,7 @@ def get_entry(
 
 
 # ─── Update / Delete ──────────────────────────────────────────────────────────
+
 
 @router.patch("/compendium/{entry_id}", response_model=CompendiumEntryOut)
 def update_entry(
@@ -248,6 +259,7 @@ def delete_entry(
 
 # ─── URL refresh ─────────────────────────────────────────────────────────────
 
+
 @router.post("/compendium/{entry_id}/refresh-url", response_model=CompendiumEntryOut)
 async def refresh_url(
     entry_id: str,
@@ -260,7 +272,7 @@ async def refresh_url(
     meta = await _fetch_url_metadata(entry.url)
     entry.url_title = meta.get("title") or entry.url_title
     entry.url_description = meta.get("description") or entry.url_description
-    entry.url_fetched_at = datetime.now(timezone.utc)
+    entry.url_fetched_at = datetime.now(UTC)
     db.commit()
     db.refresh(entry)
     return entry
@@ -268,7 +280,10 @@ async def refresh_url(
 
 # ─── Attachments ──────────────────────────────────────────────────────────────
 
-@router.post("/compendium/{entry_id}/attach", response_model=CompendiumAttachmentOut, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/compendium/{entry_id}/attach", response_model=CompendiumAttachmentOut, status_code=status.HTTP_201_CREATED
+)
 def attach_entry(
     entry_id: str,
     body: CompendiumAttachBody,
@@ -277,11 +292,15 @@ def attach_entry(
 ):
     _verify_entry_access(entry_id, db, current_user)
     # Prevent duplicate attachments
-    existing = db.query(CompendiumAttachment).filter(
-        CompendiumAttachment.entry_id == entry_id,
-        CompendiumAttachment.object_type == body.object_type,
-        CompendiumAttachment.object_id == body.object_id,
-    ).first()
+    existing = (
+        db.query(CompendiumAttachment)
+        .filter(
+            CompendiumAttachment.entry_id == entry_id,
+            CompendiumAttachment.object_type == body.object_type,
+            CompendiumAttachment.object_id == body.object_id,
+        )
+        .first()
+    )
     if existing:
         return existing
     attachment = CompendiumAttachment(

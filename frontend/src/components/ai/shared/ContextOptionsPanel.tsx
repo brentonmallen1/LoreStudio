@@ -65,7 +65,12 @@ export default function ContextOptionsPanel({ options, onChange, onClose }: Prop
   );
 }
 
-function ToggleRow({ label, hint, checked, onChange }: {
+function ToggleRow({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
   label: string;
   hint: string;
   checked: boolean;

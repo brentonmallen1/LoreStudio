@@ -47,7 +47,6 @@
   border-radius: var(--radius);
 }
 
-
 /* ── Drag grip (left) ── */
 .dragGrip {
   display: none;
@@ -108,7 +107,9 @@
   background: none;
   padding: 0;
   border-radius: var(--radius-sm);
-  transition: color var(--transition), background var(--transition);
+  transition:
+    color var(--transition),
+    background var(--transition);
   margin-top: 0.125rem;
 }
 
@@ -132,7 +133,9 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: transform var(--transition), opacity var(--transition);
+  transition:
+    transform var(--transition),
+    opacity var(--transition);
 }
 
 .beatDot:hover {
@@ -140,11 +143,21 @@
   opacity: 0.85;
 }
 
-.beatDot.plot      { background: var(--segment-scene); }
-.beatDot.character { background: var(--color-ai); }
-.beatDot.theme     { background: var(--color-warning); }
-.beatDot.setting   { background: var(--color-success); }
-.beatDot.none      { background: var(--color-border); }
+.beatDot.plot {
+  background: var(--segment-scene);
+}
+.beatDot.character {
+  background: var(--color-ai);
+}
+.beatDot.theme {
+  background: var(--color-warning);
+}
+.beatDot.setting {
+  background: var(--color-success);
+}
+.beatDot.none {
+  background: var(--color-border);
+}
 
 /* ── Content area ── */
 .content {
@@ -219,7 +232,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
   padding: 0;
-  transition: color var(--transition), background var(--transition);
+  transition:
+    color var(--transition),
+    background var(--transition);
 }
 
 .actionBtn:hover {
@@ -249,10 +264,22 @@
   letter-spacing: 0.04em;
 }
 
-.beatBadge.plot      { background: color-mix(in srgb, var(--segment-scene) 15%, transparent); color: var(--segment-scene); }
-.beatBadge.character { background: color-mix(in srgb, var(--color-ai) 12%, transparent); color: var(--color-ai); }
-.beatBadge.theme     { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: var(--color-warning); }
-.beatBadge.setting   { background: color-mix(in srgb, var(--color-success) 12%, transparent); color: var(--color-success); }
+.beatBadge.plot {
+  background: color-mix(in srgb, var(--segment-scene) 15%, transparent);
+  color: var(--segment-scene);
+}
+.beatBadge.character {
+  background: color-mix(in srgb, var(--color-ai) 12%, transparent);
+  color: var(--color-ai);
+}
+.beatBadge.theme {
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+}
+.beatBadge.setting {
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
 
 /* ── Children ── */
 .children {
@@ -290,7 +317,9 @@
   opacity: 0.6;
   flex-shrink: 0;
 }
-.sceneLinkRemove:hover { opacity: 1; }
+.sceneLinkRemove:hover {
+  opacity: 1;
+}
 
 .scenePicker {
   margin-top: 0.2rem;
@@ -303,4 +332,6 @@
   cursor: pointer;
   width: 100%;
 }
-.scenePicker:focus { outline: none; }
+.scenePicker:focus {
+  outline: none;
+}

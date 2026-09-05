@@ -165,26 +165,29 @@ export default function ContextChips({ sessionId, context, resolvedNames }: Prop
           </div>
 
           <div className={styles.pickerList}>
-            {pickerType === "story" && stories.map((s) => (
-              <button key={s.id} className={styles.pickerItem} onClick={() => pickStory(s.id)}>
-                {s.title}
-              </button>
-            ))}
-            {pickerType === "scene" && flatNodes.map((n) => (
-              <button
-                key={n.id}
-                className={styles.pickerItem}
-                style={{ paddingLeft: `${0.6 + n.depth * 0.75}rem` }}
-                onClick={() => pickNode(n.id)}
-              >
-                {n.label}
-              </button>
-            ))}
-            {pickerType === "character" && storyCharacters.map((c) => (
-              <button key={c.id} className={styles.pickerItem} onClick={() => pickCharacter(c.id)}>
-                {c.name}
-              </button>
-            ))}
+            {pickerType === "story" &&
+              stories.map((s) => (
+                <button key={s.id} className={styles.pickerItem} onClick={() => pickStory(s.id)}>
+                  {s.title}
+                </button>
+              ))}
+            {pickerType === "scene" &&
+              flatNodes.map((n) => (
+                <button
+                  key={n.id}
+                  className={styles.pickerItem}
+                  style={{ paddingLeft: `${0.6 + n.depth * 0.75}rem` }}
+                  onClick={() => pickNode(n.id)}
+                >
+                  {n.label}
+                </button>
+              ))}
+            {pickerType === "character" &&
+              storyCharacters.map((c) => (
+                <button key={c.id} className={styles.pickerItem} onClick={() => pickCharacter(c.id)}>
+                  {c.name}
+                </button>
+              ))}
             {((pickerType === "story" && stories.length === 0) ||
               (pickerType === "scene" && flatNodes.length === 0) ||
               (pickerType === "character" && storyCharacters.length === 0)) && (

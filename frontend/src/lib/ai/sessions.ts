@@ -2,7 +2,18 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Shuffle, Users, Eye, Images, Compass, Wand2, Map } from "lucide-react";
+import {
+  MessageSquare,
+  Feather,
+  BookOpen,
+  Shuffle,
+  Users,
+  Eye,
+  Images,
+  Compass,
+  Wand2,
+  Map,
+} from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -12,8 +23,7 @@ import { useStoryStore } from "../../stores/storyStore";
 registerSessionType({
   id: "assistant",
   label: "Assistant",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Assistant — ${names.storyTitle}` : "Assistant",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Assistant — ${names.storyTitle}` : "Assistant"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Assistant",
   icon: Feather,
   accentVar: "--color-ai",
@@ -43,7 +53,15 @@ registerSessionType({
     if (contextScope === "entire-story") effectiveNodeId = "__story__";
     else if (contextScope === "lorebook-only") effectiveNodeId = "__global__";
     else effectiveNodeId = nodeId ?? "__global__"; // "current-scene" or unset
-    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams, undefined, contextOptions);
+    return api.sendChatMessage(
+      storyId,
+      effectiveNodeId,
+      session.messages,
+      signal,
+      llmParams,
+      undefined,
+      contextOptions,
+    );
   },
 
   persistsInBackend: false,
@@ -67,7 +85,7 @@ registerSessionType({
   requiresCharacter: true,
   requiresNode: false,
 
-  getDefaultContext: () => ({}),  // No automatic context — must pick a character
+  getDefaultContext: () => ({}), // No automatic context — must pick a character
 
   getContextItems: async ({ storyId }) => {
     if (!storyId) {
@@ -85,11 +103,7 @@ registerSessionType({
 
   initSession: async (ctx) => {
     if (!ctx.characterId) throw new Error("Character required for interview");
-    const interview = await api.startInterview(
-      ctx.characterId,
-      `Interview`,
-      ctx.nodeId ?? undefined,
-    );
+    const interview = await api.startInterview(ctx.characterId, `Interview`, ctx.nodeId ?? undefined);
     return {
       backendSessionId: interview.id,
       messages: (interview.messages ?? []).map((m) => ({
@@ -124,8 +138,7 @@ function flattenNodes(
 registerSessionType({
   id: "scene-assistant",
   label: "Scene Assistant",
-  contextTitle: (_ctx, names) =>
-    names.nodeName ? `Scene: ${names.nodeName}` : "Scene Assistant",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Scene: ${names.nodeName}` : "Scene Assistant"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-accent-secondary",
@@ -157,7 +170,10 @@ registerSessionType({
         if (recent.sessions.length > 0) {
           const detail = await api.getChronicleSession(recent.sessions[0].id);
           if (detail.messages.length > 0) {
-            const messages = detail.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+            const messages = detail.messages.map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            }));
             const firstUser = messages.find((m) => m.role === "user");
             const preview = firstUser
               ? firstUser.content.slice(0, 120) + (firstUser.content.length > 120 ? "…" : "")
@@ -183,7 +199,15 @@ registerSessionType({
     const { storyId, nodeId, contextScope, contextOptions } = session.context;
     if (!storyId || !nodeId) throw new Error("Story and node required for scene assistant");
     const effectiveNodeId = contextScope === "entire-story" ? "__story__" : nodeId;
-    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams, undefined, contextOptions);
+    return api.sendChatMessage(
+      storyId,
+      effectiveNodeId,
+      session.messages,
+      signal,
+      llmParams,
+      undefined,
+      contextOptions,
+    );
   },
 
   persistsInBackend: false,
@@ -197,8 +221,7 @@ registerSessionType({
 registerSessionType({
   id: "story-assistant",
   label: "Story Assistant",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Story: ${names.storyTitle}` : "Story Assistant",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Story: ${names.storyTitle}` : "Story Assistant"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: BookOpen,
   accentVar: "--color-accent-tertiary",
@@ -229,7 +252,10 @@ registerSessionType({
         if (recent.sessions.length > 0) {
           const detail = await api.getChronicleSession(recent.sessions[0].id);
           if (detail.messages.length > 0) {
-            const messages = detail.messages.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+            const messages = detail.messages.map((m) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            }));
             const firstUser = messages.find((m) => m.role === "user");
             const preview = firstUser
               ? firstUser.content.slice(0, 120) + (firstUser.content.length > 120 ? "…" : "")
@@ -269,8 +295,7 @@ registerSessionType({
 registerSessionType({
   id: "writing-coach",
   label: "Writing Coach",
-  contextTitle: (_ctx, names) =>
-    names.nodeName ? `Coach: ${names.nodeName}` : "Writing Coach",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Coach: ${names.nodeName}` : "Writing Coach"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-ai-coach",
@@ -306,8 +331,7 @@ registerSessionType({
 registerSessionType({
   id: "cliche-coach",
   label: "Cliche Coach",
-  contextTitle: (_ctx, names) =>
-    names.nodeName ? `Cliche Coach: ${names.nodeName}` : "Cliche Coach",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Cliche Coach: ${names.nodeName}` : "Cliche Coach"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-ai",
@@ -365,7 +389,9 @@ registerSessionType({
   initSession: async () => ({}),
 
   // Discovery Questions uses direct API call from the mode component, not sendMessage
-  sendMessage: () => { throw new Error("Discovery Questions uses direct API call"); },
+  sendMessage: () => {
+    throw new Error("Discovery Questions uses direct API call");
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,
@@ -376,8 +402,7 @@ registerSessionType({
 registerSessionType({
   id: "whatif",
   label: "What-If Simulator",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `What If — ${names.storyTitle}` : "What-If Simulator",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `What If — ${names.storyTitle}` : "What-If Simulator"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Shuffle,
   accentVar: "--color-accent-secondary",
@@ -412,8 +437,7 @@ registerSessionType({
 registerSessionType({
   id: "panel",
   label: "Panel Interview",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Panel — ${names.storyTitle}` : "Panel Interview",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Panel — ${names.storyTitle}` : "Panel Interview"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Users,
   accentVar: "--color-accent",
@@ -453,8 +477,7 @@ registerSessionType({
 registerSessionType({
   id: "show-dont-tell",
   label: "Show Don't Tell",
-  contextTitle: (_ctx, names) =>
-    names.nodeName ? `Show/Tell: ${names.nodeName}` : "Show Don't Tell",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Show/Tell: ${names.nodeName}` : "Show Don't Tell"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Eye,
   accentVar: "--color-ai",
@@ -473,7 +496,9 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   // Not used — the mode component calls api.analyzeShowDontTell() directly on mount
-  sendMessage: () => { throw new Error("Show Don't Tell uses direct API call, not sendMessage"); },
+  sendMessage: () => {
+    throw new Error("Show Don't Tell uses direct API call, not sendMessage");
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,
@@ -484,8 +509,7 @@ registerSessionType({
 registerSessionType({
   id: "audience-adherence",
   label: "Audience Fit",
-  contextTitle: (_ctx, names) =>
-    names.nodeName ? `Audience: ${names.nodeName}` : "Audience Fit",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Audience: ${names.nodeName}` : "Audience Fit"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Users,
   accentVar: "--color-ai",
@@ -504,7 +528,9 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   // Not used — the mode component calls api.analyzeAudienceAdherence() directly on mount
-  sendMessage: () => { throw new Error("Audience Adherence uses direct API call, not sendMessage"); },
+  sendMessage: () => {
+    throw new Error("Audience Adherence uses direct API call, not sendMessage");
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,
@@ -551,8 +577,7 @@ registerSessionType({
 registerSessionType({
   id: "query-letter",
   label: "Query Letter",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Query Letter — ${names.storyTitle}` : "Query Letter",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Query Letter — ${names.storyTitle}` : "Query Letter"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Feather,
   accentVar: "--color-ai",
@@ -587,8 +612,7 @@ registerSessionType({
 registerSessionType({
   id: "scene-atmosphere",
   label: "Scene Atmosphere",
-  contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Atmosphere — ${names.storyTitle}` : "Scene Atmosphere",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Atmosphere — ${names.storyTitle}` : "Scene Atmosphere"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Images,
   accentVar: "--color-ai",
@@ -610,7 +634,9 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   // Not used — the mode component calls api.analyzeSceneAtmosphere() directly
-  sendMessage: () => { throw new Error("Scene Atmosphere uses direct API call, not sendMessage"); },
+  sendMessage: () => {
+    throw new Error("Scene Atmosphere uses direct API call, not sendMessage");
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,
@@ -677,7 +703,9 @@ registerSessionType({
   initSession: async (_ctx) => ({}),
 
   // Not used — the mode component calls api.generateAttributes() directly
-  sendMessage: () => { throw new Error("Attribute Generator uses direct API call, not sendMessage"); },
+  sendMessage: () => {
+    throw new Error("Attribute Generator uses direct API call, not sendMessage");
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,

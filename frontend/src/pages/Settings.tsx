@@ -1,8 +1,26 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Sun, Moon, Monitor, Feather, BookOpen, ChevronRight, RefreshCw, Loader2, CheckCircle, XCircle, Check } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  Monitor,
+  Feather,
+  BookOpen,
+  ChevronRight,
+  RefreshCw,
+  Loader2,
+  CheckCircle,
+  XCircle,
+  Check,
+} from "lucide-react";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../stores/uiStore";
-import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../stores/uiStore";
+import type {
+  ThemeName,
+  ColorMode,
+  EditorFontFamily,
+  EditorFontSize,
+  EditorLineWidth,
+} from "../stores/uiStore";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
 import type { LLMSettings, ImageTokenBudget, UserBackupDefaults } from "../types";
@@ -59,9 +77,7 @@ function ModelPicker({ value, onChange, placeholder = "e.g. gemma4" }: ModelPick
     }
   }
 
-  const filtered = models
-    ? models.filter((m) => m.name.toLowerCase().includes(query.toLowerCase()))
-    : [];
+  const filtered = models ? models.filter((m) => m.name.toLowerCase().includes(query.toLowerCase())) : [];
 
   return (
     <div className={styles.modelPicker} ref={containerRef}>
@@ -134,7 +150,14 @@ function ModelPicker({ value, onChange, placeholder = "e.g. gemma4" }: ModelPick
 type ConnStatus =
   | null
   | "loading"
-  | { connected: boolean; model: string; model_available: boolean; model_in_list: boolean; error: string | null; base_url: string };
+  | {
+      connected: boolean;
+      model: string;
+      model_available: boolean;
+      model_in_list: boolean;
+      error: string | null;
+      base_url: string;
+    };
 
 function ConnectionStatus({ status }: { status: ConnStatus }) {
   if (!status || status === "loading") return null;
@@ -184,7 +207,18 @@ const THEME_SWATCHES: Record<string, string[]> = {
 };
 
 export default function SettingsPage() {
-  const { themeName, colorMode, setThemeName, setColorMode, editorFontFamily, editorFontSize, editorLineWidth, setEditorFontFamily, setEditorFontSize, setEditorLineWidth } = useUIStore();
+  const {
+    themeName,
+    colorMode,
+    setThemeName,
+    setColorMode,
+    editorFontFamily,
+    editorFontSize,
+    editorLineWidth,
+    setEditorFontFamily,
+    setEditorFontSize,
+    setEditorLineWidth,
+  } = useUIStore();
   const { user } = useAuthStore();
   const [ollamaUrl, setOllamaUrl] = useState("");
   const [ollamaModel, setOllamaModel] = useState("");
@@ -196,7 +230,10 @@ export default function SettingsPage() {
   const [backupDefaults, setBackupDefaults] = useState<UserBackupDefaults | null>(null);
 
   useEffect(() => {
-    api.getUserBackupDefaults().then(setBackupDefaults).catch(() => {});
+    api
+      .getUserBackupDefaults()
+      .then(setBackupDefaults)
+      .catch(() => {});
   }, []);
 
   async function handleBackupDefaultsChange(patch: Partial<UserBackupDefaults>) {
@@ -217,7 +254,8 @@ export default function SettingsPage() {
   const [serverDefaults, setServerDefaults] = useState<{ url: string; model: string } | null>(null);
 
   useEffect(() => {
-    api.getLLMSettings()
+    api
+      .getLLMSettings()
       .then((s) => {
         setLlmSettings(s);
         setLlmTemperature(s.temperature);
@@ -232,7 +270,9 @@ export default function SettingsPage() {
         setServerDefaults({ url: s.effective_ollama_url, model: s.effective_ollama_model });
         ollamaInitialized.current = true;
       })
-      .catch(() => { ollamaInitialized.current = true; });
+      .catch(() => {
+        ollamaInitialized.current = true;
+      });
   }, []);
 
   // Debounced auto-save when URL or model changes
@@ -270,7 +310,9 @@ export default function SettingsPage() {
         });
         setLlmSaved(true);
         setTimeout(() => setLlmSaved(false), 1500);
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     }, 600);
     return () => clearTimeout(timer);
   }, [llmTemperature, llmTopP, llmTopK, llmThinking, llmTokenBudget]);
@@ -295,7 +337,14 @@ export default function SettingsPage() {
       const status = await api.ollamaStatus();
       setConnStatus(status);
     } catch {
-      setConnStatus({ connected: false, model: "", model_available: false, model_in_list: false, error: null, base_url: ollamaUrl });
+      setConnStatus({
+        connected: false,
+        model: "",
+        model_available: false,
+        model_in_list: false,
+        error: null,
+        base_url: ollamaUrl,
+      });
     }
   }
 
@@ -419,7 +468,9 @@ export default function SettingsPage() {
               {FONT_CATEGORIES.map(({ value: cat, label: catLabel }) => (
                 <optgroup key={cat} label={catLabel}>
                   {FONT_OPTIONS.filter((f) => f.category === cat).map(({ value, label, stack }) => (
-                    <option key={value} value={value} style={{ fontFamily: stack }}>{label}</option>
+                    <option key={value} value={value} style={{ fontFamily: stack }}>
+                      {label}
+                    </option>
                   ))}
                 </optgroup>
               ))}
@@ -486,9 +537,7 @@ export default function SettingsPage() {
                 disabled={connStatus === "loading" || ollamaSaveState === "saving"}
                 type="button"
               >
-                {connStatus === "loading"
-                  ? <Loader2 size={13} className={styles.spin} />
-                  : null}
+                {connStatus === "loading" ? <Loader2 size={13} className={styles.spin} /> : null}
                 {connStatus === "loading" ? "Testing…" : "Test Connection"}
               </button>
               {ollamaSaveState === "saving" && (
@@ -533,7 +582,9 @@ export default function SettingsPage() {
               <div className={styles.sliderRow}>
                 <input
                   type="range"
-                  min={0} max={2} step={0.01}
+                  min={0}
+                  max={2}
+                  step={0.01}
                   value={llmTemperature}
                   onChange={(e) => setLlmTemperature(parseFloat(e.target.value))}
                   className={styles.slider}
@@ -549,7 +600,9 @@ export default function SettingsPage() {
               <div className={styles.sliderRow}>
                 <input
                   type="range"
-                  min={0} max={1} step={0.01}
+                  min={0}
+                  max={1}
+                  step={0.01}
                   value={llmTopP}
                   onChange={(e) => setLlmTopP(parseFloat(e.target.value))}
                   className={styles.slider}
@@ -564,12 +617,15 @@ export default function SettingsPage() {
               <label className={styles.label}>Top-k</label>
               <input
                 type="number"
-                min={1} max={200}
+                min={1}
+                max={200}
                 value={llmTopK}
                 onChange={(e) => setLlmTopK(parseInt(e.target.value, 10) || 64)}
                 className={styles.numberInput}
               />
-              <p className={styles.paramHint}>Limits vocabulary to top-k tokens per step. Gemma 4 default: 64</p>
+              <p className={styles.paramHint}>
+                Limits vocabulary to top-k tokens per step. Gemma 4 default: 64
+              </p>
             </div>
 
             {/* Image token budget */}
@@ -587,14 +643,19 @@ export default function SettingsPage() {
                 <option value={560}>560 — Detailed (document analysis)</option>
                 <option value={1120}>1120 — High detail (OCR, fine text)</option>
               </select>
-              <p className={styles.paramHint}>Controls image resolution when using Gemma 4 multimodal features. Higher budgets use more tokens.</p>
+              <p className={styles.paramHint}>
+                Controls image resolution when using Gemma 4 multimodal features. Higher budgets use more
+                tokens.
+              </p>
             </div>
 
             {/* Thinking mode */}
             <div className={styles.toggleRow}>
               <div className={styles.toggleLabel}>
                 <label className={styles.label}>Thinking Mode</label>
-                <span className={styles.toggleHint}>Gemma 4 reasons before responding. Improves accuracy, increases latency.</span>
+                <span className={styles.toggleHint}>
+                  Gemma 4 reasons before responding. Improves accuracy, increases latency.
+                </span>
               </div>
               <label className={styles.toggle}>
                 <input
@@ -610,7 +671,11 @@ export default function SettingsPage() {
               <button onClick={resetLlmSettings} className={styles.resetBtn}>
                 Reset to defaults
               </button>
-              {llmSaved && <span className={styles.autoSaved}><Check size={11} /> Saved</span>}
+              {llmSaved && (
+                <span className={styles.autoSaved}>
+                  <Check size={11} /> Saved
+                </span>
+              )}
             </div>
           </div>
         </section>
@@ -619,7 +684,9 @@ export default function SettingsPage() {
         <section className={styles.section}>
           <h2 className={styles.sectionLabel}>Backups</h2>
           <div className={styles.card}>
-            <p className={styles.sectionHint}>Default settings applied to new stories. Override per-story on the Versions page.</p>
+            <p className={styles.sectionHint}>
+              Default settings applied to new stories. Override per-story on the Versions page.
+            </p>
             {backupDefaults ? (
               <div className={styles.backupForm}>
                 <label className={styles.toggleRow}>
@@ -655,7 +722,11 @@ export default function SettingsPage() {
                   <select
                     className={styles.select}
                     value={backupDefaults.max_count ?? ""}
-                    onChange={(e) => handleBackupDefaultsChange({ max_count: e.target.value ? Number(e.target.value) : null })}
+                    onChange={(e) =>
+                      handleBackupDefaultsChange({
+                        max_count: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
                   >
                     <option value={48}>48 backups</option>
                     <option value={96}>96 backups</option>
@@ -669,7 +740,11 @@ export default function SettingsPage() {
                   <select
                     className={styles.select}
                     value={backupDefaults.max_age_days ?? ""}
-                    onChange={(e) => handleBackupDefaultsChange({ max_age_days: e.target.value ? Number(e.target.value) : null })}
+                    onChange={(e) =>
+                      handleBackupDefaultsChange({
+                        max_age_days: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
                   >
                     <option value={7}>7 days</option>
                     <option value={30}>30 days</option>
@@ -691,9 +766,7 @@ export default function SettingsPage() {
           <div className={styles.card}>
             <p className={styles.accountName}>{user?.display_name}</p>
             <p className={styles.accountUsername}>@{user?.username}</p>
-            {user?.is_admin && (
-              <span className={styles.adminBadge}>Admin</span>
-            )}
+            {user?.is_admin && <span className={styles.adminBadge}>Admin</span>}
           </div>
         </section>
       </main>

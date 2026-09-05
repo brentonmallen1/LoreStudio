@@ -39,12 +39,12 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
         "Be specific and vivid. Avoid generic descriptions. "
         "Suggestions should feel organic given the character's existing profile.\n\n"
         "Respond with a JSON object matching this exact schema:\n"
-        '{\n'
+        "{\n"
         '  "suggestions": [\n'
         '    {"text": "the suggestion text", "rationale": "brief reason why this fits the character"},\n'
-        '    ...\n'
-        '  ]\n'
-        '}\n\n'
+        "    ...\n"
+        "  ]\n"
+        "}\n\n"
         "Rules:\n"
         "- Output ONLY valid JSON. No markdown, no extra text before or after.\n"
         "- Each suggestion: text is the concrete suggestion, rationale is 1 sentence explaining why it fits.\n"
@@ -79,15 +79,22 @@ def build_relationship_suggestion_prompt(
         )
 
     narrative_purposes = [
-        "conflict-driver", "ally", "foil", "mentor", "emotional-anchor",
-        "growth-catalyst", "twist-setup", "comic-relief", "wisdom-source", "antagonist"
+        "conflict-driver",
+        "ally",
+        "foil",
+        "mentor",
+        "emotional-anchor",
+        "growth-catalyst",
+        "twist-setup",
+        "comic-relief",
+        "wisdom-source",
+        "antagonist",
     ]
 
     return (
         "You are helping an author develop character relationships for their story.\n\n"
-        f"Characters:\n" + "\n".join(char_profiles) + "\n\n"
-        f"Existing relationships:\n" + "\n".join(existing_lines) + "\n"
-        + focus_instruction + "\n"
+        "Characters:\n" + "\n".join(char_profiles) + "\n\n"
+        "Existing relationships:\n" + "\n".join(existing_lines) + "\n" + focus_instruction + "\n"
         "Suggest 3-5 interesting relationship dynamics. For each, provide:\n"
         "- The two characters involved (exact names)\n"
         "- A relationship type label\n"
@@ -96,9 +103,9 @@ def build_relationship_suggestion_prompt(
         "- 1-3 narrative purposes from: " + ", ".join(narrative_purposes) + "\n"
         "- Strength dimensions (integers 0-10 where 5=neutral): trust, power_balance, affection, tension, openness\n\n"
         "Respond with ONLY this JSON, no extra text:\n"
-        '{\n'
+        "{\n"
         '  "suggestions": [\n'
-        '    {\n'
+        "    {\n"
         '      "character_a": "exact name",\n'
         '      "character_b": "exact name",\n'
         '      "relationship_type": "short type label",\n'
@@ -110,9 +117,9 @@ def build_relationship_suggestion_prompt(
         '      "strength_affection": 3,\n'
         '      "strength_tension": 8,\n'
         '      "strength_openness": 5\n'
-        '    }\n'
-        '  ]\n'
-        '}\n\n'
+        "    }\n"
+        "  ]\n"
+        "}\n\n"
         "Rules:\n"
         "- Output ONLY valid JSON.\n"
         "- Use exact character names as listed above.\n"
@@ -120,5 +127,3 @@ def build_relationship_suggestion_prompt(
         "- Prefer relationships with narrative tension, complexity, or hidden depth.\n"
         "- 3-5 suggestions total."
     )
-
-

@@ -18,10 +18,15 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
   const transparency = useLLMTransparency();
 
   const { sources: contextSources } = useLLMContextSources(
-    storyId ? { context_type: "story-summary", story_id: storyId } : null
+    storyId ? { context_type: "story-summary", story_id: storyId } : null,
   );
 
-  const { stream, cancel, text: streamingText, isStreaming: generating } = useLLMStream({
+  const {
+    stream,
+    cancel,
+    text: streamingText,
+    isStreaming: generating,
+  } = useLLMStream({
     requestId: `story-summary:${storyId}`,
     label: "Generating story summary",
     tabId: "overview",
@@ -49,73 +54,83 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
 
   return (
     <>
-    <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
-    <div className={styles.panel}>
-      <div className={styles.header}>
-        <BookOpen size={14} className={styles.icon} />
-        <h3 className={styles.title}>The Story So Far</h3>
-        <LLMTransparencyTrigger
-          disabled={!transparency.hasData}
-          onClick={() => transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current)}
-        />
-      </div>
-
-      <div className={styles.controls}>
-        <div className={styles.styleToggle}>
-          {(["brief", "detailed"] as const).map((s) => (
-            <button
-              key={s}
-              className={`${styles.styleBtn} ${style === s ? styles.styleActive : ""}`}
-              onClick={() => setStyle(s)}
-            >
-              {s}
-            </button>
-          ))}
+      <LLMTransparencyModal
+        isOpen={transparency.isOpen}
+        onClose={transparency.close}
+        data={transparency.data}
+      />
+      <div className={styles.panel}>
+        <div className={styles.header}>
+          <BookOpen size={14} className={styles.icon} />
+          <h3 className={styles.title}>The Story So Far</h3>
+          <LLMTransparencyTrigger
+            disabled={!transparency.hasData}
+            onClick={() =>
+              transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current)
+            }
+          />
         </div>
 
-        {activeNode && (
-          <label className={styles.scopeLabel}>
-            <input
-              type="checkbox"
-              checked={upToCurrentScene}
-              onChange={(e) => setUpToCurrentScene(e.target.checked)}
-              className={styles.checkbox}
-            />
-            Up to current scene
-          </label>
-        )}
-
-        {generating ? (
-          <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
-            <Square size={12} />
-            Cancel
-          </button>
-        ) : (
-          <button onClick={generate} className={styles.generateBtn} title="Use AI to generate a narrative summary of your story's content to date">
-            <Compass size={12} />
-            Generate
-          </button>
-        )}
-      </div>
-
-      <LLMContextSources sources={contextSources} />
-
-      {displayText && (
-        <div className={styles.result}>
-          <div className={styles.resultHeader}>
-            <span className={styles.resultLabel}>Summary</span>
-            <button onClick={copy} className={styles.copyBtn} title="Copy to clipboard">
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-            </button>
+        <div className={styles.controls}>
+          <div className={styles.styleToggle}>
+            {(["brief", "detailed"] as const).map((s) => (
+              <button
+                key={s}
+                className={`${styles.styleBtn} ${style === s ? styles.styleActive : ""}`}
+                onClick={() => setStyle(s)}
+              >
+                {s}
+              </button>
+            ))}
           </div>
-          <div className={styles.resultText}>{displayText}</div>
-        </div>
-      )}
 
-      {!displayText && !generating && (
-        <p className={styles.hint}>Generate a summary of your story's content to date.</p>
-      )}
-    </div>
+          {activeNode && (
+            <label className={styles.scopeLabel}>
+              <input
+                type="checkbox"
+                checked={upToCurrentScene}
+                onChange={(e) => setUpToCurrentScene(e.target.checked)}
+                className={styles.checkbox}
+              />
+              Up to current scene
+            </label>
+          )}
+
+          {generating ? (
+            <button onClick={cancel} className={styles.generateBtn} style={{ color: "var(--color-danger)" }}>
+              <Square size={12} />
+              Cancel
+            </button>
+          ) : (
+            <button
+              onClick={generate}
+              className={styles.generateBtn}
+              title="Use AI to generate a narrative summary of your story's content to date"
+            >
+              <Compass size={12} />
+              Generate
+            </button>
+          )}
+        </div>
+
+        <LLMContextSources sources={contextSources} />
+
+        {displayText && (
+          <div className={styles.result}>
+            <div className={styles.resultHeader}>
+              <span className={styles.resultLabel}>Summary</span>
+              <button onClick={copy} className={styles.copyBtn} title="Copy to clipboard">
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+              </button>
+            </div>
+            <div className={styles.resultText}>{displayText}</div>
+          </div>
+        )}
+
+        {!displayText && !generating && (
+          <p className={styles.hint}>Generate a summary of your story's content to date.</p>
+        )}
+      </div>
     </>
   );
 }

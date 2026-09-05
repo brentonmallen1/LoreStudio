@@ -13,7 +13,10 @@ import styles from "./RelationshipsTab.module.css";
 
 type ViewMode = "focus" | "matrix" | "radar";
 
-interface CreateTarget { fromId: string; toId: string }
+interface CreateTarget {
+  fromId: string;
+  toId: string;
+}
 
 interface Props {
   characterId: string;
@@ -34,13 +37,16 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
   const [discoverError, setDiscoverError] = useState("");
 
   const load = useCallback(() => {
-    api.listRelationships(characterId)
+    api
+      .listRelationships(characterId)
       .then(setRelationships)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [characterId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function openCreate(fromId = characterId, toId = "") {
     setEditTarget(null);
@@ -79,7 +85,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
 
   async function handleAccept(rel: CharacterRelationship) {
     const updated = await api.acceptRelationshipSuggestion(rel.id);
-    setRelationships((prev) => prev.map((r) => r.id === updated.id ? updated : r));
+    setRelationships((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
   }
 
   async function handleDiscoverProfile() {
@@ -136,11 +142,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
         </div>
 
         <label className={styles.toggleLabel}>
-          <input
-            type="checkbox"
-            checked={showHidden}
-            onChange={(e) => setShowHidden(e.target.checked)}
-          />
+          <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
           Show hidden
         </label>
 
@@ -154,9 +156,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
             <Compass size={13} />
             {discovering ? "Discovering…" : "Discover Relationships"}
           </button>
-          {discoverError && (
-            <span className={styles.discoverError}>{discoverError}</span>
-          )}
+          {discoverError && <span className={styles.discoverError}>{discoverError}</span>}
           <button className={styles.addBtn} onClick={() => openCreate()}>
             <Plus size={14} />
             Add Relationship
@@ -175,7 +175,8 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
       {suggested.length > 0 && (
         <div className={styles.suggestionBanner}>
           <span className={styles.suggestionText}>
-            {suggested.length} AI-suggested relationship{suggested.length > 1 ? "s" : ""} below — review and accept or delete.
+            {suggested.length} AI-suggested relationship{suggested.length > 1 ? "s" : ""} below — review and
+            accept or delete.
           </span>
         </div>
       )}

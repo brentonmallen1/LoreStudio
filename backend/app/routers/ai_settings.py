@@ -10,12 +10,12 @@ Null/absent = use the shipped default from the PromptLibrary.
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.user import User
-from ..auth.dependencies import get_current_user
-from ..schemas.ai_settings import AISettingsRead, AISettingsUpdate, AISettingsDefaults
+from ..schemas.ai_settings import AISettingsDefaults, AISettingsRead, AISettingsUpdate
+from ..services.llm.prompts import FEATURE_DEFAULT_INSTRUCTIONS, FEATURE_LABELS
 from ..services.llm.prompts.core import CORE_SYSTEM_PROMPT
-from ..services.llm.prompts import FEATURE_LABELS, FEATURE_DEFAULT_INSTRUCTIONS
 
 router = APIRouter()
 

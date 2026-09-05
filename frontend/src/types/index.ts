@@ -92,8 +92,8 @@ export interface InlineNote {
   note: string;
   position: number;
   type?: "author" | "editorial";
-  category?: string;  // e.g. "fresh-eyes", "priority", "voice", "intent-gap"
-  source?: string;    // e.g. "editorial-{report_id}"
+  category?: string; // e.g. "fresh-eyes", "priority", "voice", "intent-gap"
+  source?: string; // e.g. "editorial-{report_id}"
 }
 
 export interface SegmentMeta {
@@ -598,11 +598,7 @@ export interface Twist {
 // ── Reader Knowledge ──
 
 export type KnowledgeType =
-  | "truth_revealed"
-  | "misdirection_planted"
-  | "clue_planted"
-  | "character_learns"
-  | "reader_only";
+  "truth_revealed" | "misdirection_planted" | "clue_planted" | "character_learns" | "reader_only";
 
 export interface ReaderKnowledgeEvent {
   id: string;
@@ -726,7 +722,7 @@ export interface LLMSettings {
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  images?: string[];  // base64-encoded image data for multimodal messages
+  images?: string[]; // base64-encoded image data for multimodal messages
   isSummary?: boolean; // true when this message is a conversation summary replacement
 }
 
@@ -1575,7 +1571,7 @@ export interface DialogueStats {
     line_count: number;
     word_count: number;
   }[];
-  balance_score: number | null;    // 0-100, higher = more balanced
+  balance_score: number | null; // 0-100, higher = more balanced
   monologue_scenes: {
     scene_id: string;
     dominant_speaker: string;

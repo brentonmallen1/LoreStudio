@@ -50,11 +50,7 @@ export default function LLMTransparencyModal({ isOpen, onClose, data }: Props) {
       ) : (
         <div className={styles.content}>
           <CollapsibleSection title="Context sent to AI" defaultOpen>
-            <CodeBlock
-              content={data.preview.system_prompt}
-              maxHeight="220px"
-              copyable
-            />
+            <CodeBlock content={data.preview.system_prompt} maxHeight="220px" copyable />
           </CollapsibleSection>
 
           <CollapsibleSection title="Your message" defaultOpen>

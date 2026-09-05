@@ -72,7 +72,10 @@
   cursor: pointer;
   flex-shrink: 0;
 }
-.backBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.backBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
 
 .name {
   font-size: 1.4rem;
@@ -134,7 +137,10 @@
   color: var(--color-text-subtle);
   cursor: pointer;
 }
-.deleteBtn:hover { color: var(--color-danger); background: color-mix(in srgb, var(--color-danger) 10%, transparent); }
+.deleteBtn:hover {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
 
 .deleteConfirm {
   display: flex;
@@ -185,11 +191,18 @@
   border-bottom: 2px solid transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: color var(--transition), border-color var(--transition);
+  transition:
+    color var(--transition),
+    border-color var(--transition);
   margin-bottom: -1px;
 }
-.tab:hover { color: var(--color-text); }
-.tabActive { color: var(--color-text); border-bottom-color: var(--color-accent); }
+.tab:hover {
+  color: var(--color-text);
+}
+.tabActive {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
 
 /* ── Content ── */
 .content {
@@ -218,7 +231,10 @@
   box-sizing: border-box;
   transition: border-color var(--transition);
 }
-.textarea:focus { outline: none; border-color: var(--color-accent); }
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
 
 .fieldGrid {
   display: flex;
@@ -251,7 +267,10 @@
   transition: border-color var(--transition);
   box-sizing: border-box;
 }
-.input:focus { outline: none; border-color: var(--color-accent); }
+.input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
 
 /* ── Scenes Tab ── */
 .sceneList {
@@ -304,9 +323,18 @@
   color: var(--color-text-muted);
   text-transform: capitalize;
 }
-.primary { background: color-mix(in srgb, var(--color-accent) 12%, transparent); color: var(--color-accent); }
-.mentioned { background: var(--color-surface-2); color: var(--color-text-muted); }
-.flashback { background: color-mix(in srgb, var(--color-ai) 12%, transparent); color: var(--color-ai); }
+.primary {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+}
+.mentioned {
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+.flashback {
+  background: color-mix(in srgb, var(--color-ai) 12%, transparent);
+  color: var(--color-ai);
+}
 
 .sceneNavBtn {
   display: flex;
@@ -321,4 +349,7 @@
   cursor: pointer;
   flex-shrink: 0;
 }
-.sceneNavBtn:hover { color: var(--color-text); background: var(--color-surface-2); }
+.sceneNavBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}

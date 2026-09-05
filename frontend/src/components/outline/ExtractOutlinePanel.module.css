@@ -57,7 +57,9 @@
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .closeBtn:hover {
@@ -93,7 +95,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty {
@@ -225,7 +229,9 @@
   border-radius: var(--radius-lg);
   padding: 0.5rem 0.75rem;
   background: var(--color-bg);
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .cardSelected {
@@ -370,7 +376,9 @@
   font-size: 0.84rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .cancelBtn:hover {

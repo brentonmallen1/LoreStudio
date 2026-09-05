@@ -14,7 +14,7 @@ interface Props {
 
 export default function RenamePreviewDialog({ characterId, preview, onApplied, onSkip }: Props) {
   const [selected, setSelected] = useState<Set<string>>(
-    new Set(preview.affected_scenes.map((s) => s.node_id))
+    new Set(preview.affected_scenes.map((s) => s.node_id)),
   );
   const [applying, setApplying] = useState(false);
 
@@ -55,11 +55,7 @@ export default function RenamePreviewDialog({ characterId, preview, onApplied, o
       <button className={styles.skipBtn} onClick={onSkip} disabled={applying}>
         Skip — rename only
       </button>
-      <button
-        className={styles.applyBtn}
-        onClick={handleApply}
-        disabled={applying || selected.size === 0}
-      >
+      <button className={styles.applyBtn} onClick={handleApply} disabled={applying || selected.size === 0}>
         {applying ? "Applying…" : `Update ${selected.size} scene${selected.size !== 1 ? "s" : ""}`}
       </button>
     </>
@@ -76,14 +72,19 @@ export default function RenamePreviewDialog({ characterId, preview, onApplied, o
     >
       <div className={styles.body}>
         <p className={styles.intro}>
-          Found <strong>{preview.total_occurrences}</strong> mention{preview.total_occurrences !== 1 ? "s" : ""} across{" "}
-          <strong>{preview.affected_scenes.length}</strong> scene{preview.affected_scenes.length !== 1 ? "s" : ""}.
-          Select which scenes to update.
+          Found <strong>{preview.total_occurrences}</strong> mention
+          {preview.total_occurrences !== 1 ? "s" : ""} across{" "}
+          <strong>{preview.affected_scenes.length}</strong> scene
+          {preview.affected_scenes.length !== 1 ? "s" : ""}. Select which scenes to update.
         </p>
 
         <div className={styles.toolbar}>
           <button className={styles.selectAllBtn} onClick={toggleAll}>
-            {selected.size === preview.affected_scenes.length ? <CheckSquare size={13} /> : <Square size={13} />}
+            {selected.size === preview.affected_scenes.length ? (
+              <CheckSquare size={13} />
+            ) : (
+              <Square size={13} />
+            )}
             {selected.size === preview.affected_scenes.length ? "Deselect all" : "Select all"}
           </button>
         </div>
@@ -104,11 +105,11 @@ export default function RenamePreviewDialog({ characterId, preview, onApplied, o
               <div className={styles.rowContent}>
                 <div className={styles.rowTitle}>
                   {scene.node_title}
-                  <span className={styles.count}>{scene.occurrences} mention{scene.occurrences !== 1 ? "s" : ""}</span>
+                  <span className={styles.count}>
+                    {scene.occurrences} mention{scene.occurrences !== 1 ? "s" : ""}
+                  </span>
                 </div>
-                {scene.excerpt && (
-                  <p className={styles.excerpt}>{scene.excerpt}</p>
-                )}
+                {scene.excerpt && <p className={styles.excerpt}>{scene.excerpt}</p>}
               </div>
             </div>
           ))}

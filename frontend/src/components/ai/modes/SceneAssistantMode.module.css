@@ -23,14 +23,28 @@
 }
 
 .headerBtn {
-  display: flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px; border-radius: var(--radius);
-  border: none; background: transparent; color: var(--color-text-muted);
-  cursor: pointer; transition: background var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition);
   flex-shrink: 0;
 }
-.headerBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
-.headerBtnActive { color: var(--color-accent); }
+.headerBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.headerBtnActive {
+  color: var(--color-accent);
+}
 
 .ctxPreview {
   padding: 0.625rem 0.75rem;
@@ -39,8 +53,16 @@
   max-height: 140px;
   overflow-y: auto;
 }
-.ctxTitle { font-size: 0.78rem; color: var(--color-text); margin-bottom: 0.25rem; }
-.ctxNote { font-size: 0.72rem; color: var(--color-text-muted); line-height: 1.5; }
+.ctxTitle {
+  font-size: 0.78rem;
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+.ctxNote {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
 
 .empty {
   flex: 1;
@@ -53,7 +75,10 @@
   gap: 0.5rem;
 }
 
-.emptyIcon { color: var(--color-ai); opacity: 0.5; }
+.emptyIcon {
+  color: var(--color-ai);
+  opacity: 0.5;
+}
 
 .emptyTitle {
   font-size: 0.88rem;
@@ -87,7 +112,9 @@
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   line-height: 1.4;
 }
 
@@ -150,7 +177,9 @@
   transition: opacity var(--transition);
 }
 
-.resumeContinueBtn:hover { opacity: 0.85; }
+.resumeContinueBtn:hover {
+  opacity: 0.85;
+}
 
 .resumeFreshBtn {
   padding: 0.4rem 0.875rem;
@@ -161,7 +190,12 @@
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
-.resumeFreshBtn:hover { background: var(--color-surface-3); color: var(--color-text); }
+.resumeFreshBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}

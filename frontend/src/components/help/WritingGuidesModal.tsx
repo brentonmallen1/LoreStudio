@@ -15,8 +15,8 @@ interface Props {
 }
 
 const TABS: { id: WritingGuideTab; label: string; icon: React.ReactNode }[] = [
-  { id: "dialogue",  label: "Dialogue",             icon: <Quote size={13} /> },
-  { id: "mice",      label: "MICE Quotient",         icon: <BookOpen size={13} /> },
+  { id: "dialogue", label: "Dialogue", icon: <Quote size={13} /> },
+  { id: "mice", label: "MICE Quotient", icon: <BookOpen size={13} /> },
   { id: "essential", label: "6 Essential Questions", icon: <BookMarked size={13} /> },
 ];
 
@@ -34,7 +34,11 @@ export default function WritingGuidesModal({ isOpen, onClose, initialTab = "dial
       title="Writing Reference"
       icon={<BookOpen size={15} />}
       size="lg"
-      footer={<button onClick={onClose} className={styles.closeBtn}>Close</button>}
+      footer={
+        <button onClick={onClose} className={styles.closeBtn}>
+          Close
+        </button>
+      }
     >
       <div className={styles.tabBar}>
         {TABS.map((t) => (
@@ -50,8 +54,8 @@ export default function WritingGuidesModal({ isOpen, onClose, initialTab = "dial
       </div>
 
       <div className={styles.tabBody}>
-        {activeTab === "dialogue"  && <DialogueSyntaxContent />}
-        {activeTab === "mice"      && <MICEContent />}
+        {activeTab === "dialogue" && <DialogueSyntaxContent />}
+        {activeTab === "mice" && <MICEContent />}
         {activeTab === "essential" && <EssentialQuestionsContent />}
       </div>
     </Modal>

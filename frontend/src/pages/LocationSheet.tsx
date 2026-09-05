@@ -10,8 +10,14 @@ import PortraitEditor from "../components/media/PortraitEditor";
 import styles from "./LocationSheet.module.css";
 
 const CELESTIAL_TYPES = new Set([
-  "star_system", "star", "planet", "gas_giant", "moon",
-  "asteroid_belt", "orbital_station", "space_habitat",
+  "star_system",
+  "star",
+  "planet",
+  "gas_giant",
+  "moon",
+  "asteroid_belt",
+  "orbital_station",
+  "space_habitat",
 ]);
 
 export default function LocationSheet() {
@@ -22,7 +28,9 @@ export default function LocationSheet() {
   const [location, setLocation] = useState<Location | null>(null);
   const [parent, setParent] = useState<Location | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "scenes">("overview");
-  const [scenes, setScenes] = useState<{ scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]>([]);
+  const [scenes, setScenes] = useState<
+    { scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [pendingDelete, setPendingDelete] = useState(false);
 
@@ -31,11 +39,15 @@ export default function LocationSheet() {
   useEffect(() => {
     if (!locationId) return;
     setLoading(true);
-    api.getLocation(locationId)
+    api
+      .getLocation(locationId)
       .then((loc) => {
         setLocation(loc);
         if (loc.parent_id) {
-          api.getLocation(loc.parent_id).then(setParent).catch(() => {});
+          api
+            .getLocation(loc.parent_id)
+            .then(setParent)
+            .catch(() => {});
         } else {
           setParent(null);
         }
@@ -45,12 +57,15 @@ export default function LocationSheet() {
 
   useEffect(() => {
     if (!locationId || activeTab !== "scenes") return;
-    api.getScenesForLocation(locationId).then(setScenes).catch(() => {});
+    api
+      .getScenesForLocation(locationId)
+      .then(setScenes)
+      .catch(() => {});
   }, [locationId, activeTab]);
 
   function patch(field: keyof Location, value: string) {
     if (!location) return;
-    setLocation((prev) => prev ? { ...prev, [field]: value } : prev);
+    setLocation((prev) => (prev ? { ...prev, [field]: value } : prev));
     clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       api.updateLocation(location.id, { [field]: value });
@@ -65,10 +80,13 @@ export default function LocationSheet() {
   }
 
   function navigateToScene(sceneId: string) {
-    function findNode(nodes: typeof structure): typeof structure[0] | null {
+    function findNode(nodes: typeof structure): (typeof structure)[0] | null {
       for (const n of nodes) {
         if (n.id === sceneId) return n;
-        if (n.children) { const found = findNode(n.children); if (found) return found; }
+        if (n.children) {
+          const found = findNode(n.children);
+          if (found) return found;
+        }
       }
       return null;
     }
@@ -81,9 +99,8 @@ export default function LocationSheet() {
   if (!location) return <div className={styles.loading}>Location not found.</div>;
 
   const isCelestial = CELESTIAL_TYPES.has(location.location_type);
-  const descriptionTeaser = location.description.length > 90
-    ? location.description.slice(0, 90) + "…"
-    : location.description;
+  const descriptionTeaser =
+    location.description.length > 90 ? location.description.slice(0, 90) + "…" : location.description;
 
   return (
     <div className={styles.page}>
@@ -115,18 +132,24 @@ export default function LocationSheet() {
               {parent.name}
             </p>
           )}
-          {location.description && (
-            <p className={styles.descTeaser}>"{descriptionTeaser}"</p>
-          )}
+          {location.description && <p className={styles.descTeaser}>"{descriptionTeaser}"</p>}
         </div>
         <div className={styles.actions}>
           {pendingDelete ? (
             <div className={styles.deleteConfirm}>
-              <button className={styles.deleteConfirmYes} onClick={doDelete}>Delete</button>
-              <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+              <button className={styles.deleteConfirmYes} onClick={doDelete}>
+                Delete
+              </button>
+              <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>
+                Cancel
+              </button>
             </div>
           ) : (
-            <button className={styles.deleteBtn} onClick={() => setPendingDelete(true)} title="Delete location">
+            <button
+              className={styles.deleteBtn}
+              onClick={() => setPendingDelete(true)}
+              title="Delete location"
+            >
               <Trash2 size={14} />
             </button>
           )}
@@ -138,11 +161,15 @@ export default function LocationSheet() {
         <button
           className={`${styles.tab} ${activeTab === "overview" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("overview")}
-        >Overview</button>
+        >
+          Overview
+        </button>
         <button
           className={`${styles.tab} ${activeTab === "scenes" ? styles.tabActive : ""}`}
           onClick={() => setActiveTab("scenes")}
-        >Scenes</button>
+        >
+          Scenes
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -221,33 +248,54 @@ export default function LocationSheet() {
                 <div className={styles.fieldGrid}>
                   <div className={styles.field}>
                     <label className={styles.label}>Orbital Period</label>
-                    <input className={styles.input} value={location.orbital_period} onChange={(e) => patch("orbital_period", e.target.value)} placeholder="e.g. 365 Earth days" />
+                    <input
+                      className={styles.input}
+                      value={location.orbital_period}
+                      onChange={(e) => patch("orbital_period", e.target.value)}
+                      placeholder="e.g. 365 Earth days"
+                    />
                   </div>
                   <div className={styles.field}>
                     <label className={styles.label}>Distance from Parent</label>
-                    <input className={styles.input} value={location.distance_from_parent} onChange={(e) => patch("distance_from_parent", e.target.value)} placeholder="e.g. 1 AU" />
+                    <input
+                      className={styles.input}
+                      value={location.distance_from_parent}
+                      onChange={(e) => patch("distance_from_parent", e.target.value)}
+                      placeholder="e.g. 1 AU"
+                    />
                   </div>
                   <div className={styles.field}>
                     <label className={styles.label}>Gravity</label>
-                    <input className={styles.input} value={location.gravity} onChange={(e) => patch("gravity", e.target.value)} placeholder="e.g. 0.8g" />
+                    <input
+                      className={styles.input}
+                      value={location.gravity}
+                      onChange={(e) => patch("gravity", e.target.value)}
+                      placeholder="e.g. 0.8g"
+                    />
                   </div>
                   <div className={styles.field}>
                     <label className={styles.label}>Habitability</label>
-                    <input className={styles.input} value={location.habitability} onChange={(e) => patch("habitability", e.target.value)} placeholder="e.g. breathable, hostile" />
+                    <input
+                      className={styles.input}
+                      value={location.habitability}
+                      onChange={(e) => patch("habitability", e.target.value)}
+                      placeholder="e.g. breathable, hostile"
+                    />
                   </div>
                   <div className={styles.field}>
                     <label className={styles.label}>Radiation Level</label>
-                    <input className={styles.input} value={location.radiation_level} onChange={(e) => patch("radiation_level", e.target.value)} placeholder="e.g. low, lethal" />
+                    <input
+                      className={styles.input}
+                      value={location.radiation_level}
+                      onChange={(e) => patch("radiation_level", e.target.value)}
+                      placeholder="e.g. low, lethal"
+                    />
                   </div>
                 </div>
               </SectionCard>
             )}
             <SectionCard title="Reference Images">
-              <AssetPicker
-                storyId={storyId!}
-                objectType="location"
-                objectId={location.id}
-              />
+              <AssetPicker storyId={storyId!} objectType="location" objectId={location.id} />
             </SectionCard>
           </div>
         )}
@@ -255,7 +303,9 @@ export default function LocationSheet() {
         {activeTab === "scenes" && (
           <div className={styles.sceneList}>
             {scenes.length === 0 ? (
-              <p className={styles.empty}>No scenes use this location yet. Add scene settings from the World Building panel.</p>
+              <p className={styles.empty}>
+                No scenes use this location yet. Add scene settings from the World Building panel.
+              </p>
             ) : (
               scenes.map((s) => (
                 <div key={s.scene_setting_id} className={styles.sceneRow}>

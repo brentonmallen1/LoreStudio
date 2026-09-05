@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { X, Search, CaseSensitive, ChevronRight, Clapperboard, Layers, BookMarked, Flag, Zap } from "lucide-react";
+import {
+  X,
+  Search,
+  CaseSensitive,
+  ChevronRight,
+  Clapperboard,
+  Layers,
+  BookMarked,
+  Flag,
+  Zap,
+} from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import styles from "./StorySearchPanel.module.css";
@@ -38,7 +48,10 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
   const [matches, setMatches] = useState<Match[]>([]);
   const [searching, setSearching] = useState(false);
   const [replacing, setReplacing] = useState(false);
-  const [replaceResult, setReplaceResult] = useState<{ replaced_count: number; scenes_affected: number } | null>(null);
+  const [replaceResult, setReplaceResult] = useState<{
+    replaced_count: number;
+    scenes_affected: number;
+  } | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,25 +60,33 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 
-  const runSearch = useCallback(async (q: string, cs: boolean) => {
-    if (!q.trim()) { setMatches([]); return; }
-    setSearching(true);
-    setReplaceResult(null);
-    try {
-      const res = await api.storySearch(storyId, q, cs);
-      setMatches(res.matches);
-      setSelectedNodeIds(new Set(res.matches.map((m) => m.node_id)));
-    } catch {
-      setMatches([]);
-    } finally {
-      setSearching(false);
-    }
-  }, [storyId]);
+  const runSearch = useCallback(
+    async (q: string, cs: boolean) => {
+      if (!q.trim()) {
+        setMatches([]);
+        return;
+      }
+      setSearching(true);
+      setReplaceResult(null);
+      try {
+        const res = await api.storySearch(storyId, q, cs);
+        setMatches(res.matches);
+        setSelectedNodeIds(new Set(res.matches.map((m) => m.node_id)));
+      } catch {
+        setMatches([]);
+      } finally {
+        setSearching(false);
+      }
+    },
+    [storyId],
+  );
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => runSearch(query, caseSensitive), 350);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [query, caseSensitive, runSearch]);
 
   async function handleReplace(nodeIds?: string[]) {
@@ -110,7 +131,9 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
               className={styles.input}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") onClose();
+              }}
               placeholder="Search…"
               aria-label="Search term"
               spellCheck={false}
@@ -133,7 +156,9 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
               className={styles.input}
               value={replacement}
               onChange={(e) => setReplacement(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") onClose();
+              }}
               placeholder="Replace with…"
               aria-label="Replacement text"
               spellCheck={false}
@@ -161,7 +186,8 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
 
         {replaceResult && (
           <p className={styles.replaceResult}>
-            Replaced {replaceResult.replaced_count} occurrence{replaceResult.replaced_count !== 1 ? "s" : ""} across {replaceResult.scenes_affected} scene{replaceResult.scenes_affected !== 1 ? "s" : ""}.
+            Replaced {replaceResult.replaced_count} occurrence{replaceResult.replaced_count !== 1 ? "s" : ""}{" "}
+            across {replaceResult.scenes_affected} scene{replaceResult.scenes_affected !== 1 ? "s" : ""}.
           </p>
         )}
       </div>
@@ -171,9 +197,7 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
         {!searching && query.trim() && matches.length === 0 && (
           <p className={styles.status}>No matches in {storyTitle}.</p>
         )}
-        {!searching && !query.trim() && (
-          <p className={styles.status}>Type to search across all scenes.</p>
-        )}
+        {!searching && !query.trim() && <p className={styles.status}>Type to search across all scenes.</p>}
         {matches.map((match) => (
           <div key={match.node_id} className={styles.matchItem}>
             <label className={styles.matchCheck}>
@@ -187,7 +211,10 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
             <div className={styles.matchBody}>
               <button
                 className={styles.matchTitle}
-                onClick={() => { onNavigateToNode(match.node_id); onClose(); }}
+                onClick={() => {
+                  onNavigateToNode(match.node_id);
+                  onClose();
+                }}
                 title="Navigate to scene"
               >
                 <LevelIcon type={match.level_type} />
@@ -195,9 +222,7 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
                 <span className={styles.matchCount}>{match.match_count}×</span>
                 <ChevronRight size={12} className={styles.matchArrow} />
               </button>
-              {match.excerpt && (
-                <p className={styles.matchExcerpt}>{match.excerpt}</p>
-              )}
+              {match.excerpt && <p className={styles.matchExcerpt}>{match.excerpt}</p>}
             </div>
           </div>
         ))}

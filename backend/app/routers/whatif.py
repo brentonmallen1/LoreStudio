@@ -5,20 +5,20 @@ Lets authors ask counterfactual questions ("What if I kill this character?") and
 ripple-effect analysis covering threads, arcs, pacing, and theme — without any prose generation.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
 from ..models.character import Character
 from ..models.plot_thread import PlotThread
+from ..models.story import Story
 from ..models.structure import StructureNode
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.whatif import build_whatif_system_prompt
+from ..models.user import User
 from ..schemas.llm_params import LLMParams
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.whatif import build_whatif_system_prompt
 
 router = APIRouter()
 

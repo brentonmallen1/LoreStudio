@@ -11,8 +11,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .dialog {
@@ -28,14 +32,26 @@
 }
 
 @keyframes slideUp {
-  from { transform: translateY(12px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Size variants */
-.sm { max-width: 440px; }
-.md { max-width: 560px; }
-.lg { max-width: 720px; }
+.sm {
+  max-width: 440px;
+}
+.md {
+  max-width: 560px;
+}
+.lg {
+  max-width: 720px;
+}
 
 /* Header */
 .header {
@@ -73,7 +89,9 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   flex-shrink: 0;
 }
 

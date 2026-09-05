@@ -8,14 +8,13 @@ These endpoints are pure data — no AI involved — so no mocking needed.
 """
 
 import uuid
-import pytest
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.models.plot_thread import PlotThread
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.models.character import Character
-from app.models.plot_thread import PlotThread
 
 
 def _story(user_id: str, **kwargs) -> Story:
@@ -44,8 +43,8 @@ def _scene(story_id: str, **kwargs) -> StructureNode:
 class TestStoryHealthEndpoint:
     def test_health_requires_auth(self, db_session: Session, test_user):
         """Unauthenticated request returns 401."""
-        from app.main import app
         from app.database import get_db
+        from app.main import app
 
         story = _story(test_user.id)
         db_session.add(story)

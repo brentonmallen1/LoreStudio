@@ -48,31 +48,58 @@
 }
 
 /* Rendered markdown */
-.markdown { line-height: 1.65; }
-.markdown > :first-child { margin-top: 0; }
-.markdown > :last-child  { margin-bottom: 0; }
+.markdown {
+  line-height: 1.65;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
 
-.markdown p { margin: 0.4em 0; }
-.markdown p:first-child { margin-top: 0; }
-.markdown p:last-child  { margin-bottom: 0; }
+.markdown p {
+  margin: 0.4em 0;
+}
+.markdown p:first-child {
+  margin-top: 0;
+}
+.markdown p:last-child {
+  margin-bottom: 0;
+}
 
-.markdown strong { font-weight: 650; }
-.markdown em     { font-style: italic; }
+.markdown strong {
+  font-weight: 650;
+}
+.markdown em {
+  font-style: italic;
+}
 
-.markdown h1, .markdown h2, .markdown h3 {
+.markdown h1,
+.markdown h2,
+.markdown h3 {
   font-weight: 600;
   line-height: 1.3;
   margin: 0.75em 0 0.3em;
 }
-.markdown h1 { font-size: 1em; }
-.markdown h2 { font-size: 0.94em; }
-.markdown h3 { font-size: 0.88em; }
+.markdown h1 {
+  font-size: 1em;
+}
+.markdown h2 {
+  font-size: 0.94em;
+}
+.markdown h3 {
+  font-size: 0.88em;
+}
 
-.markdown ul, .markdown ol {
+.markdown ul,
+.markdown ol {
   margin: 0.4em 0;
   padding-left: 1.4em;
 }
-.markdown li { margin: 0.2em 0; }
+.markdown li {
+  margin: 0.2em 0;
+}
 
 .markdown code {
   font-family: ui-monospace, monospace;
@@ -138,8 +165,12 @@
   list-style: none;
 }
 
-.summarySummary::-webkit-details-marker { display: none; }
-.summarySummary:hover { opacity: 0.8; }
+.summarySummary::-webkit-details-marker {
+  display: none;
+}
+.summarySummary:hover {
+  opacity: 0.8;
+}
 
 .summaryContent {
   padding: 0.6rem 0.75rem;
@@ -169,8 +200,12 @@
   list-style: none;
 }
 
-.thinkingSummary::-webkit-details-marker { display: none; }
-.thinkingSummary:hover { color: var(--color-text-muted); }
+.thinkingSummary::-webkit-details-marker {
+  display: none;
+}
+.thinkingSummary:hover {
+  color: var(--color-text-muted);
+}
 
 .thinkingContent {
   margin-top: 0.35rem;
@@ -207,8 +242,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
-  50%       { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .imageList {

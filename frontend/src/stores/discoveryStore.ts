@@ -33,7 +33,7 @@ export const useDiscoveryStore = create<DiscoveryStore>((set) => ({
     set({ isAnalyzing: true });
     try {
       const created = await api.runDiscovery(storyId, nodeId);
-      set(state => ({
+      set((state) => ({
         discoveries: [...created, ...state.discoveries],
         pendingCount: state.pendingCount + created.length,
       }));
@@ -45,24 +45,24 @@ export const useDiscoveryStore = create<DiscoveryStore>((set) => ({
 
   approveDiscovery: async (elementId, overrides) => {
     await api.approveDiscovery(elementId, overrides);
-    set(state => ({
-      discoveries: state.discoveries.filter(d => d.id !== elementId),
+    set((state) => ({
+      discoveries: state.discoveries.filter((d) => d.id !== elementId),
       pendingCount: Math.max(0, state.pendingCount - 1),
     }));
   },
 
   rejectDiscovery: async (elementId) => {
     await api.rejectDiscovery(elementId);
-    set(state => ({
-      discoveries: state.discoveries.filter(d => d.id !== elementId),
+    set((state) => ({
+      discoveries: state.discoveries.filter((d) => d.id !== elementId),
       pendingCount: Math.max(0, state.pendingCount - 1),
     }));
   },
 
   deleteDiscovery: async (elementId) => {
     await api.deleteDiscovery(elementId);
-    set(state => ({
-      discoveries: state.discoveries.filter(d => d.id !== elementId),
+    set((state) => ({
+      discoveries: state.discoveries.filter((d) => d.id !== elementId),
       pendingCount: Math.max(0, state.pendingCount - 1),
     }));
   },

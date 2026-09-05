@@ -103,7 +103,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinning {
@@ -196,7 +198,9 @@
   background: var(--color-ai);
   color: var(--color-ai-fg);
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .startBtn:hover:not(:disabled) {
@@ -207,7 +211,6 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
-
 
 .generateLink {
   background: none;

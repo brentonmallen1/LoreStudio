@@ -11,9 +11,15 @@ interface Props {
 
 type AnyRecord = Record<string, unknown>;
 
-function str(v: unknown): string { return String(v ?? ""); }
-function asList(v: unknown): unknown[] { return Array.isArray(v) ? v : []; }
-function asStringList(v: unknown): string[] { return asList(v).map(str); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
+function asList(v: unknown): unknown[] {
+  return Array.isArray(v) ? v : [];
+}
+function asStringList(v: unknown): string[] {
+  return asList(v).map(str);
+}
 
 export default function TwistImpactPanel({ twistId, twistName }: Props) {
   const [result, setResult] = useState<StructuredResult | null>(null);
@@ -88,7 +94,11 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Affected threads */}
           {affectedThreads.length > 0 && (
-            <ImpactSection icon={<GitBranch size={12} />} title="Affected Plot Threads" color="var(--color-accent)">
+            <ImpactSection
+              icon={<GitBranch size={12} />}
+              title="Affected Plot Threads"
+              color="var(--color-accent)"
+            >
               {affectedThreads.map((t, i) => (
                 <div key={i} className={styles.impactRow}>
                   <span className={styles.impactName}>{str(t.thread_name)}</span>
@@ -100,7 +110,11 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Affected arcs */}
           {affectedArcs.length > 0 && (
-            <ImpactSection icon={<User size={12} />} title="Character Arc Changes" color="var(--color-accent-secondary, #0d9488)">
+            <ImpactSection
+              icon={<User size={12} />}
+              title="Character Arc Changes"
+              color="var(--color-accent-secondary, #0d9488)"
+            >
               {affectedArcs.map((a, i) => (
                 <div key={i} className={styles.impactRow}>
                   <span className={styles.impactName}>{str(a.character_name)}</span>
@@ -124,7 +138,11 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Ripple effects */}
           {rippleEffects.length > 0 && (
-            <ImpactSection icon={<Zap size={12} />} title="Ripple Effects" color="var(--segment-beat, #a855f7)">
+            <ImpactSection
+              icon={<Zap size={12} />}
+              title="Ripple Effects"
+              color="var(--segment-beat, #a855f7)"
+            >
               {rippleEffects.map((r, i) => (
                 <div key={i} className={styles.impactRow}>
                   <span className={styles.impactName}>{str(r.area)}</span>
@@ -139,7 +157,9 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
             <ImpactSection icon={<AlertTriangle size={12} />} title="Loose Ends" color="#c83c3c">
               <ul className={styles.looseEndList}>
                 {looseEnds.map((end, i) => (
-                  <li key={i} className={styles.looseEndItem}>{end}</li>
+                  <li key={i} className={styles.looseEndItem}>
+                    {end}
+                  </li>
                 ))}
               </ul>
             </ImpactSection>
@@ -151,7 +171,10 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 }
 
 function ImpactSection({
-  icon, title, color, children,
+  icon,
+  title,
+  color,
+  children,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -161,7 +184,9 @@ function ImpactSection({
   return (
     <div className={styles.section} style={{ borderLeftColor: color }}>
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionIcon} style={{ color }}>{icon}</span>
+        <span className={styles.sectionIcon} style={{ color }}>
+          {icon}
+        </span>
         <span className={styles.sectionTitle}>{title}</span>
       </div>
       <div className={styles.sectionBody}>{children}</div>

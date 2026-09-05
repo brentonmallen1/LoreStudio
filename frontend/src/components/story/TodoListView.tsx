@@ -33,10 +33,7 @@ type SortMode = "position" | "newest" | "oldest";
 // ---------------------------------------------------------------------------
 
 /** Flatten a recursive StructureNode tree into a depth-ordered list */
-function flattenNodes(
-  nodes: StructureNode[],
-  depth = 0
-): Array<{ node: StructureNode; depth: number }> {
+function flattenNodes(nodes: StructureNode[], depth = 0): Array<{ node: StructureNode; depth: number }> {
   const result: Array<{ node: StructureNode; depth: number }> = [];
   for (const node of [...nodes].sort((a, b) => a.position - b.position)) {
     result.push({ node, depth });
@@ -110,8 +107,14 @@ function TodoItem({ todo, showScene, onToggle, onEdit, onDelete, onNavigate }: T
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter") { e.preventDefault(); commitEdit(); }
-    if (e.key === "Escape") { setEditValue(todo.content); setEditing(false); }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitEdit();
+    }
+    if (e.key === "Escape") {
+      setEditValue(todo.content);
+      setEditing(false);
+    }
   }
 
   return (
@@ -137,15 +140,13 @@ function TodoItem({ todo, showScene, onToggle, onEdit, onDelete, onNavigate }: T
         <span
           className={styles.todoContent}
           onClick={() => !todo.done && onNavigate(todo)}
-          title={todo.done ? undefined : (todo.doc_from != null ? "Jump to scene" : todo.content)}
+          title={todo.done ? undefined : todo.doc_from != null ? "Jump to scene" : todo.content}
         >
           {todo.content}
         </span>
       )}
 
-      {showScene && todo.node_title && (
-        <span className={styles.todoSceneBadge}>{todo.node_title}</span>
-      )}
+      {showScene && todo.node_title && <span className={styles.todoSceneBadge}>{todo.node_title}</span>}
 
       <div className={styles.todoActions} ref={menuRef}>
         <button
@@ -157,10 +158,21 @@ function TodoItem({ todo, showScene, onToggle, onEdit, onDelete, onNavigate }: T
         </button>
         {menuOpen && (
           <div className={styles.todoMenu}>
-            <button onClick={() => { setEditing(true); setMenuOpen(false); }}>
+            <button
+              onClick={() => {
+                setEditing(true);
+                setMenuOpen(false);
+              }}
+            >
               <Pencil size={12} /> Edit
             </button>
-            <button onClick={() => { onDelete(todo.id); setMenuOpen(false); }} className={styles.todoMenuDanger}>
+            <button
+              onClick={() => {
+                onDelete(todo.id);
+                setMenuOpen(false);
+              }}
+              className={styles.todoMenuDanger}
+            >
               <Trash2 size={12} /> Delete
             </button>
           </div>
@@ -185,15 +197,21 @@ interface GroupSectionProps {
   onNavigate: (todo: StoryTodo) => void;
 }
 
-function GroupSection({ label, depth = 0, todos, defaultExpanded = true, onToggle, onEdit, onDelete, onNavigate }: GroupSectionProps) {
+function GroupSection({
+  label,
+  depth = 0,
+  todos,
+  defaultExpanded = true,
+  onToggle,
+  onEdit,
+  onDelete,
+  onNavigate,
+}: GroupSectionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
     <div className={styles.groupSection} style={{ "--depth": depth } as React.CSSProperties}>
-      <button
-        className={styles.groupHeader}
-        onClick={() => setExpanded((v) => !v)}
-      >
+      <button className={styles.groupHeader} onClick={() => setExpanded((v) => !v)}>
         {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         <span className={styles.groupLabel}>{label}</span>
         <span className={styles.groupCount}>{todos.length}</span>
@@ -233,7 +251,9 @@ function AddTodoForm({ nodeId, onAdd, onCancel, structure }: AddTodoFormProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const flatNodes = flattenNodes(structure);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -251,7 +271,9 @@ function AddTodoForm({ nodeId, onAdd, onCancel, structure }: AddTodoFormProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="What needs doing?"
-        onKeyDown={(e) => { if (e.key === "Escape") onCancel(); }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onCancel();
+        }}
       />
       <select
         className={styles.addSceneSelect}
@@ -261,7 +283,8 @@ function AddTodoForm({ nodeId, onAdd, onCancel, structure }: AddTodoFormProps) {
         <option value="">— No scene (story-level) —</option>
         {flatNodes.map(({ node, depth }) => (
           <option key={node.id} value={node.id}>
-            {"  ".repeat(depth)}{node.title || "Untitled"}
+            {"  ".repeat(depth)}
+            {node.title || "Untitled"}
           </option>
         ))}
       </select>
@@ -291,18 +314,22 @@ export default function TodoListView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [groupMode, setGroupMode] = useState<GroupMode>(
-    () => (localStorage.getItem(GROUP_KEY) as GroupMode | null) ?? "structure"
+    () => (localStorage.getItem(GROUP_KEY) as GroupMode | null) ?? "structure",
   );
   const [sortMode, setSortMode] = useState<SortMode>(
-    () => (localStorage.getItem(SORT_KEY) as SortMode | null) ?? "position"
+    () => (localStorage.getItem(SORT_KEY) as SortMode | null) ?? "position",
   );
   const [doneExpanded, setDoneExpanded] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [deletingDone, setDeletingDone] = useState(false);
 
   // Persist prefs
-  useEffect(() => { localStorage.setItem(GROUP_KEY, groupMode); }, [groupMode]);
-  useEffect(() => { localStorage.setItem(SORT_KEY, sortMode); }, [sortMode]);
+  useEffect(() => {
+    localStorage.setItem(GROUP_KEY, groupMode);
+  }, [groupMode]);
+  useEffect(() => {
+    localStorage.setItem(SORT_KEY, sortMode);
+  }, [sortMode]);
 
   const loadTodos = useCallback(async () => {
     if (!storyId) return;
@@ -318,7 +345,9 @@ export default function TodoListView() {
     }
   }, [storyId]);
 
-  useEffect(() => { loadTodos(); }, [loadTodos]);
+  useEffect(() => {
+    loadTodos();
+  }, [loadTodos]);
 
   const handleToggle = useCallback(async (id: string, done: boolean) => {
     setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done } : t)));
@@ -329,43 +358,55 @@ export default function TodoListView() {
     }
   }, []);
 
-  const handleEdit = useCallback(async (id: string, content: string) => {
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, content } : t)));
-    try {
-      await api.updateTodo(id, { content });
-    } catch {
-      loadTodos();
-    }
-  }, [loadTodos]);
+  const handleEdit = useCallback(
+    async (id: string, content: string) => {
+      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, content } : t)));
+      try {
+        await api.updateTodo(id, { content });
+      } catch {
+        loadTodos();
+      }
+    },
+    [loadTodos],
+  );
 
-  const handleDelete = useCallback(async (id: string) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
-    try {
-      await api.deleteTodo(id);
-    } catch {
-      loadTodos();
-    }
-  }, [loadTodos]);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      setTodos((prev) => prev.filter((t) => t.id !== id));
+      try {
+        await api.deleteTodo(id);
+      } catch {
+        loadTodos();
+      }
+    },
+    [loadTodos],
+  );
 
-  const handleNavigate = useCallback((todo: StoryTodo) => {
-    if (!todo.node_id || !storyId) return;
-    const node = findNode(structure, todo.node_id);
-    if (!node) return;
-    setActiveNode(node);
-    setViewMode("tree");
-    navigate(`/stories/${storyId}/write`);
-  }, [structure, storyId, navigate, setViewMode, setActiveNode]);
+  const handleNavigate = useCallback(
+    (todo: StoryTodo) => {
+      if (!todo.node_id || !storyId) return;
+      const node = findNode(structure, todo.node_id);
+      if (!node) return;
+      setActiveNode(node);
+      setViewMode("tree");
+      navigate(`/stories/${storyId}/write`);
+    },
+    [structure, storyId, navigate, setViewMode, setActiveNode],
+  );
 
-  const handleAdd = useCallback(async (content: string, nodeId?: string | null) => {
-    if (!storyId) return;
-    try {
-      const newTodo = await api.createTodo(storyId, { content, node_id: nodeId ?? null });
-      setTodos((prev) => [...prev, newTodo]);
-      setShowAddForm(false);
-    } catch {
-      // ignore
-    }
-  }, [storyId]);
+  const handleAdd = useCallback(
+    async (content: string, nodeId?: string | null) => {
+      if (!storyId) return;
+      try {
+        const newTodo = await api.createTodo(storyId, { content, node_id: nodeId ?? null });
+        setTodos((prev) => [...prev, newTodo]);
+        setShowAddForm(false);
+      } catch {
+        // ignore
+      }
+    },
+    [storyId],
+  );
 
   const handleDeleteDone = useCallback(async () => {
     if (!storyId) return;
@@ -461,7 +502,7 @@ export default function TodoListView() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onNavigate={handleNavigate}
-        />
+        />,
       );
     }
 
@@ -476,7 +517,7 @@ export default function TodoListView() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onNavigate={handleNavigate}
-        />
+        />,
       );
     }
 
@@ -498,23 +539,14 @@ export default function TodoListView() {
         <div className={styles.headerTitle}>
           <CheckSquare size={18} />
           <span>TODOs</span>
-          {activeTodos.length > 0 && (
-            <span className={styles.headerCount}>{activeTodos.length}</span>
-          )}
+          {activeTodos.length > 0 && <span className={styles.headerCount}>{activeTodos.length}</span>}
         </div>
         <div className={styles.headerActions}>
-          <button
-            className={styles.addBtn}
-            onClick={() => setShowAddForm((v) => !v)}
-          >
+          <button className={styles.addBtn} onClick={() => setShowAddForm((v) => !v)}>
             <Plus size={14} /> Add
           </button>
           {doneTodos.length > 0 && (
-            <button
-              className={styles.deleteDoneBtn}
-              onClick={handleDeleteDone}
-              disabled={deletingDone}
-            >
+            <button className={styles.deleteDoneBtn} onClick={handleDeleteDone} disabled={deletingDone}>
               <Trash2 size={14} /> Delete done ({doneTodos.length})
             </button>
           )}
@@ -551,11 +583,7 @@ export default function TodoListView() {
 
       {/* Add form */}
       {showAddForm && (
-        <AddTodoForm
-          structure={structure}
-          onAdd={handleAdd}
-          onCancel={() => setShowAddForm(false)}
-        />
+        <AddTodoForm structure={structure} onAdd={handleAdd} onCancel={() => setShowAddForm(false)} />
       )}
 
       {error && <div className={styles.error}>{error}</div>}
@@ -577,10 +605,7 @@ export default function TodoListView() {
       {/* Done section */}
       {doneTodos.length > 0 && (
         <div className={styles.doneSection}>
-          <button
-            className={styles.doneHeader}
-            onClick={() => setDoneExpanded((v) => !v)}
-          >
+          <button className={styles.doneHeader} onClick={() => setDoneExpanded((v) => !v)}>
             {doneExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span>Done ({doneTodos.length})</span>
           </button>

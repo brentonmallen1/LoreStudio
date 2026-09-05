@@ -42,25 +42,27 @@ function BeatRow({ item }: { item: AlignmentItem }) {
           <span className={styles.beatScenes}>{item.scene_references.join(", ")}</span>
         )}
       </div>
-      {open && item.evidence && (
-        <p className={styles.beatEvidence}>{item.evidence}</p>
-      )}
+      {open && item.evidence && <p className={styles.beatEvidence}>{item.evidence}</p>}
     </div>
   );
 }
 
 function ScoreBar({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(100, score));
-  const color = pct >= 70 ? "var(--color-success, #22c55e)" : pct >= 40 ? "var(--color-warning, #d97706)" : "var(--color-error, #ef4444)";
+  const color =
+    pct >= 70
+      ? "var(--color-success, #22c55e)"
+      : pct >= 40
+        ? "var(--color-warning, #d97706)"
+        : "var(--color-error, #ef4444)";
   return (
     <div className={styles.scoreBar}>
       <div className={styles.scoreTrack}>
-        <div
-          className={styles.scoreFill}
-          style={{ width: `${pct}%`, background: color }}
-        />
+        <div className={styles.scoreFill} style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className={styles.scoreLabel} style={{ color }}>{pct}%</span>
+      <span className={styles.scoreLabel} style={{ color }}>
+        {pct}%
+      </span>
     </div>
   );
 }
@@ -73,7 +75,8 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    api.analyzeOutlineAlignment(outlineId)
+    api
+      .analyzeOutlineAlignment(outlineId)
       .then((res: StructuredResult) => {
         if (!res.success || !res.data) {
           setError(res.raw_text ?? "Analysis failed.");

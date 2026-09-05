@@ -32,7 +32,10 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
 
   useEffect(() => {
     if (tab === "document") {
-      api.listAssets(storyId).then(setAssets).catch(() => {});
+      api
+        .listAssets(storyId)
+        .then(setAssets)
+        .catch(() => {});
     }
   }, [tab, storyId]);
 
@@ -94,12 +97,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
   }
 
   const canSubmit =
-    !loading &&
-    (tab === "note"
-      ? !!title.trim()
-      : tab === "url"
-      ? !!url.trim()
-      : !!selectedAssetId);
+    !loading && (tab === "note" ? !!title.trim() : tab === "url" ? !!url.trim() : !!selectedAssetId);
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "note", label: "Note", icon: FileText },
@@ -118,12 +116,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
           <button type="button" className={styles.cancelBtn} onClick={onClose}>
             Cancel
           </button>
-          <button
-            type="submit"
-            form="compendium-form"
-            className={styles.submitBtn}
-            disabled={!canSubmit}
-          >
+          <button type="submit" form="compendium-form" className={styles.submitBtn} disabled={!canSubmit}>
             {loading ? <Loader2 size={14} className={styles.spin} /> : null}
             {isEditing ? "Save" : "Add"}
           </button>
@@ -160,11 +153,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
               required
             />
             <label className={styles.checkRow}>
-              <input
-                type="checkbox"
-                checked={fetchMeta}
-                onChange={(e) => setFetchMeta(e.target.checked)}
-              />
+              <input type="checkbox" checked={fetchMeta} onChange={(e) => setFetchMeta(e.target.checked)} />
               <span>Auto-fetch title and description</span>
             </label>
           </div>
@@ -208,8 +197,8 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
               tab === "url"
                 ? "Leave blank to use page title"
                 : tab === "document"
-                ? "Leave blank to use filename"
-                : "Title"
+                  ? "Leave blank to use filename"
+                  : "Title"
             }
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -235,12 +224,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
         {tab === "url" && isEditing && (
           <div className={styles.field}>
             <label className={styles.label}>URL</label>
-            <input
-              className={styles.input}
-              type="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
+            <input className={styles.input} type="url" value={url} onChange={(e) => setUrl(e.target.value)} />
           </div>
         )}
 

@@ -18,29 +18,25 @@ since it needs access to the Lorebook's known characters and locations.
 from __future__ import annotations
 
 import statistics
-from typing import Any
 from collections import defaultdict
+from typing import Any
 
-from .text_utils import html_to_text
 from ..schemas.nlp_analysis import (
-    PassageFinding,
-    PassiveVoiceResult,
     AdverbResult,
-    SaidBookismResult,
-    RepeatedWordResult,
-    SentenceVarietyResult,
-    SentenceLengthBucket,
-    SceneNLPAnalysis,
     EntitySuggestion,
     EntitySuggestionsResponse,
-    TenseShift,
-    TenseConsistencyResult,
+    PassageFinding,
+    PassiveVoiceResult,
     POVDriftFinding,
     POVDriftResult,
-    SceneEditorialAnalysis,
-    EditorialConsistencyResponse,
+    RepeatedWordResult,
+    SaidBookismResult,
+    SentenceLengthBucket,
+    SentenceVarietyResult,
+    TenseConsistencyResult,
+    TenseShift,
 )
-
+from .text_utils import html_to_text
 
 # ---------------------------------------------------------------------------
 # Lazy spaCy loader (shared with pronoun_service)
@@ -54,6 +50,7 @@ def get_nlp():
     global _nlp
     if _nlp is None:
         import spacy
+
         _nlp = spacy.load("en_core_web_sm")
     return _nlp
 
@@ -64,25 +61,82 @@ def get_nlp():
 
 # Dialogue attribution verbs that are perfectly acceptable
 _COMMON_ATTRIBUTION_VERBS = {
-    "said", "say", "ask", "asked", "reply", "replied", "answer", "answered",
-    "tell", "told", "add", "added", "continue", "continued",
+    "said",
+    "say",
+    "ask",
+    "asked",
+    "reply",
+    "replied",
+    "answer",
+    "answered",
+    "tell",
+    "told",
+    "add",
+    "added",
+    "continue",
+    "continued",
 }
 
 # Attribution verbs that are more stylistically notable (flag as "warning")
 _NOTABLE_ATTRIBUTION_VERBS = {
-    "whisper", "whispered", "mutter", "muttered", "snap", "snapped",
-    "shout", "shouted", "yell", "yelled", "cry", "cried", "call", "called",
-    "groan", "groaned", "sigh", "sighed", "laugh", "laughed", "chuckle",
-    "chuckled", "growl", "growled", "hiss", "hissed", "bark", "barked",
+    "whisper",
+    "whispered",
+    "mutter",
+    "muttered",
+    "snap",
+    "snapped",
+    "shout",
+    "shouted",
+    "yell",
+    "yelled",
+    "cry",
+    "cried",
+    "call",
+    "called",
+    "groan",
+    "groaned",
+    "sigh",
+    "sighed",
+    "laugh",
+    "laughed",
+    "chuckle",
+    "chuckled",
+    "growl",
+    "growled",
+    "hiss",
+    "hissed",
+    "bark",
+    "barked",
 }
 
 # Attribution verbs considered extreme bookisms (flag as "issue")
 _EXTREME_BOOKISMS = {
-    "ejaculate", "ejaculated", "exclaim", "exclaimed", "intone", "intoned",
-    "vociferate", "vociferated", "expostulate", "expostulated", "declaim",
-    "declaimed", "articulate", "articulated", "enunciate", "enunciated",
-    "opine", "opined", "quip", "quipped", "chortle", "chortled",
-    "guffaw", "guffawed", "blurt", "blurted",
+    "ejaculate",
+    "ejaculated",
+    "exclaim",
+    "exclaimed",
+    "intone",
+    "intoned",
+    "vociferate",
+    "vociferated",
+    "expostulate",
+    "expostulated",
+    "declaim",
+    "declaimed",
+    "articulate",
+    "articulated",
+    "enunciate",
+    "enunciated",
+    "opine",
+    "opined",
+    "quip",
+    "quipped",
+    "chortle",
+    "chortled",
+    "guffaw",
+    "guffawed",
+    "blurt",
+    "blurted",
 }
 
 _SENTENCE_BUCKETS = [
@@ -98,6 +152,7 @@ _SENTENCE_BUCKETS = [
 # Analysis functions
 # ---------------------------------------------------------------------------
 
+
 def _detect_passive_voice(doc) -> PassiveVoiceResult:
     """
     Find passive constructions using dependency labels.
@@ -108,12 +163,14 @@ def _detect_passive_voice(doc) -> PassiveVoiceResult:
 
     for sent in sentences:
         if any(tok.dep_ in ("nsubjpass", "auxpass") for tok in sent):
-            findings.append(PassageFinding(
-                passage=sent.text.strip(),
-                char_offset=sent.start_char,
-                severity="info",
-                explanation="Passive construction detected",
-            ))
+            findings.append(
+                PassageFinding(
+                    passage=sent.text.strip(),
+                    char_offset=sent.start_char,
+                    severity="info",
+                    explanation="Passive construction detected",
+                )
+            )
 
     count = len(sentences)
     passive = len(findings)
@@ -142,12 +199,14 @@ def _detect_adverbs(doc, threshold: float = 5.0) -> AdverbResult:
 
         adverb_count += 1
         sent = tok.sent
-        findings.append(PassageFinding(
-            passage=sent.text.strip(),
-            char_offset=sent.start_char,
-            severity="warning" if (word_count and adverb_count / word_count * 100 > threshold) else "info",
-            explanation=f'"{tok.text}" modifies "{tok.head.text}" — consider a stronger verb',
-        ))
+        findings.append(
+            PassageFinding(
+                passage=sent.text.strip(),
+                char_offset=sent.start_char,
+                severity="warning" if (word_count and adverb_count / word_count * 100 > threshold) else "info",
+                explanation=f'"{tok.text}" modifies "{tok.head.text}" — consider a stronger verb',
+            )
+        )
 
     percentage = round(adverb_count / word_count * 100, 1) if word_count else 0.0
     # Re-set severity based on final percentage
@@ -186,21 +245,22 @@ def _detect_said_bookisms(doc) -> SaidBookismResult:
         if lemma in _NOTABLE_ATTRIBUTION_VERBS or lemma in _EXTREME_BOOKISMS:
             # Check if this verb has a person-like subject (pronoun or proper noun)
             has_speaker = any(
-                child.dep_ == "nsubj" and child.pos_ in ("NOUN", "PROPN", "PRON")
-                for child in tok.children
+                child.dep_ == "nsubj" and child.pos_ in ("NOUN", "PROPN", "PRON") for child in tok.children
             )
             if has_speaker:
                 total_attributions += 1
                 bookism_count += 1
                 severity = "issue" if lemma in _EXTREME_BOOKISMS else "warning"
                 sent = tok.sent
-                findings.append(PassageFinding(
-                    passage=sent.text.strip(),
-                    char_offset=sent.start_char,
-                    severity=severity,
-                    explanation=f'"{tok.text}" as a dialogue attribution verb',
-                    suggestion='Consider "said" or "asked" for invisible attribution',
-                ))
+                findings.append(
+                    PassageFinding(
+                        passage=sent.text.strip(),
+                        char_offset=sent.start_char,
+                        severity=severity,
+                        explanation=f'"{tok.text}" as a dialogue attribution verb',
+                        suggestion='Consider "said" or "asked" for invisible attribution',
+                    )
+                )
 
     return SaidBookismResult(
         findings=findings,
@@ -228,12 +288,14 @@ def _detect_repeated_words(doc, window: int = 200) -> RepeatedWordResult:
 
         if lemma in seen and (offset - seen[lemma]) <= window:
             sent = tok.sent
-            findings.append(PassageFinding(
-                passage=sent.text.strip(),
-                char_offset=sent.start_char,
-                severity="info",
-                explanation=f'"{tok.text}" repeats within {window} characters',
-            ))
+            findings.append(
+                PassageFinding(
+                    passage=sent.text.strip(),
+                    char_offset=sent.start_char,
+                    severity="info",
+                    explanation=f'"{tok.text}" repeats within {window} characters',
+                )
+            )
 
         seen[lemma] = offset
 
@@ -331,16 +393,47 @@ def analyze_scene(
 # ---------------------------------------------------------------------------
 
 # Finite verb POS tags by tense
-_PAST_TAGS = {"VBD", "VBN"}       # past simple, past participle
-_PRESENT_TAGS = {"VBZ", "VBP"}    # 3rd-person singular present, bare present
+_PAST_TAGS = {"VBD", "VBN"}  # past simple, past participle
+_PRESENT_TAGS = {"VBZ", "VBP"}  # 3rd-person singular present, bare present
 
 # Perception/cognition verbs that signal being inside a character's head
 _PERSPECTIVE_VERBS = {
-    "feel", "felt", "think", "thought", "know", "knew", "realize", "realized",
-    "wonder", "wondered", "believe", "believed", "see", "saw", "hear", "heard",
-    "notice", "noticed", "understand", "understood", "remember", "remembered",
-    "sense", "sensed", "decide", "decided", "want", "wanted", "wish", "wished",
-    "hope", "hoped", "fear", "feared", "imagine", "imagined",
+    "feel",
+    "felt",
+    "think",
+    "thought",
+    "know",
+    "knew",
+    "realize",
+    "realized",
+    "wonder",
+    "wondered",
+    "believe",
+    "believed",
+    "see",
+    "saw",
+    "hear",
+    "heard",
+    "notice",
+    "noticed",
+    "understand",
+    "understood",
+    "remember",
+    "remembered",
+    "sense",
+    "sensed",
+    "decide",
+    "decided",
+    "want",
+    "wanted",
+    "wish",
+    "wished",
+    "hope",
+    "hoped",
+    "fear",
+    "feared",
+    "imagine",
+    "imagined",
 }
 
 
@@ -373,13 +466,15 @@ def check_tense_consistency(doc) -> TenseConsistencyResult:
     findings: list[TenseShift] = []
     for sent, tense, past_c, pres_c in sentence_data:
         if tense != dominant and dominant != "mixed" and (past_c + pres_c) >= 2:
-            findings.append(TenseShift(
-                sentence=sent.text.strip(),
-                char_offset=sent.start_char,
-                dominant_tense=dominant,
-                detected_tense=tense,
-                severity="warning",
-            ))
+            findings.append(
+                TenseShift(
+                    sentence=sent.text.strip(),
+                    char_offset=sent.start_char,
+                    dominant_tense=dominant,
+                    detected_tense=tense,
+                    severity="warning",
+                )
+            )
 
     return TenseConsistencyResult(
         findings=findings,
@@ -406,7 +501,12 @@ def check_pov_drift(doc) -> POVDriftResult:
             if tok.lemma_.lower() not in _PERSPECTIVE_VERBS:
                 continue
             for child in tok.children:
-                if child.dep_ in ("nsubj", "nsubjpass") and child.pos_ in ("PROPN", "NOUN") and len(child.text) > 1 and not child.is_stop:
+                if (
+                    child.dep_ in ("nsubj", "nsubjpass")
+                    and child.pos_ in ("PROPN", "NOUN")
+                    and len(child.text) > 1
+                    and not child.is_stop
+                ):
                     name = child.text.strip()
                     sent_persp_subjects.add(name)
                     perspective_subject_counts[name] = perspective_subject_counts.get(name, 0) + 1
@@ -414,19 +514,23 @@ def check_pov_drift(doc) -> POVDriftResult:
         if sent_persp_subjects:
             # Cross-reference: are these subjects already in the registry?
             all_known = set(perspective_subject_counts.keys())
-            other_subjects = {s for s in all_known if s not in sent_persp_subjects and perspective_subject_counts.get(s, 0) > 0}
+            other_subjects = {
+                s for s in all_known if s not in sent_persp_subjects and perspective_subject_counts.get(s, 0) > 0
+            }
             # Only flag if there are perspective verbs with subjects AND we've seen other perspective subjects before
             if sent_persp_subjects and other_subjects:
-                findings.append(POVDriftFinding(
-                    sentence=sent.text.strip(),
-                    char_offset=sent.start_char,
-                    subjects=sorted(sent_persp_subjects),
-                    severity="warning",
-                    explanation=(
-                        f"{', '.join(sorted(sent_persp_subjects))} uses a perspective verb "
-                        f"after {', '.join(sorted(other_subjects))} earlier in the scene"
-                    ),
-                ))
+                findings.append(
+                    POVDriftFinding(
+                        sentence=sent.text.strip(),
+                        char_offset=sent.start_char,
+                        subjects=sorted(sent_persp_subjects),
+                        severity="warning",
+                        explanation=(
+                            f"{', '.join(sorted(sent_persp_subjects))} uses a perspective verb "
+                            f"after {', '.join(sorted(other_subjects))} earlier in the scene"
+                        ),
+                    )
+                )
 
     dominant = max(perspective_subject_counts.items(), key=lambda kv: kv[1])[0] if perspective_subject_counts else ""
     all_subjects = sorted(perspective_subject_counts.keys())[:10]
@@ -562,14 +666,16 @@ def extract_unknown_entities(
     def _build_suggestions(ent_map: dict, label: str) -> list[EntitySuggestion]:
         suggestions = []
         for text, data in sorted(ent_map.items(), key=lambda x: -x[1]["occurrences"]):
-            suggestions.append(EntitySuggestion(
-                text=text,
-                label=label,
-                scene_count=len(data["scene_ids"]),
-                occurrences=data["occurrences"],
-                scene_ids=data["scene_ids"],
-                scene_titles=data["scene_titles"],
-            ))
+            suggestions.append(
+                EntitySuggestion(
+                    text=text,
+                    label=label,
+                    scene_count=len(data["scene_ids"]),
+                    occurrences=data["occurrences"],
+                    scene_ids=data["scene_ids"],
+                    scene_titles=data["scene_titles"],
+                )
+            )
         return suggestions
 
     return EntitySuggestionsResponse(
@@ -581,6 +687,7 @@ def extract_unknown_entities(
 # ---------------------------------------------------------------------------
 # Character-scoped dialogue prose analysis
 # ---------------------------------------------------------------------------
+
 
 def analyze_character_dialogue_prose(dialogue_texts: list[str]) -> dict:
     """
@@ -611,6 +718,7 @@ def analyze_character_dialogue_prose(dialogue_texts: list[str]) -> dict:
 # Character Voice Distinctness
 # ---------------------------------------------------------------------------
 
+
 def analyze_voice_distinctness(
     character_dialogue: list[dict],  # [{character_id, character_name, content (text)}]
 ) -> dict:
@@ -640,7 +748,9 @@ def analyze_voice_distinctness(
             continue
 
         doc = nlp(text)
-        tokens = [t.lemma_.lower() for t in doc if not t.is_punct and not t.is_space and not t.is_stop and len(t.text) > 1]
+        tokens = [
+            t.lemma_.lower() for t in doc if not t.is_punct and not t.is_space and not t.is_stop and len(t.text) > 1
+        ]
         sents = list(doc.sents)
         sent_lengths = [len([t for t in s if not t.is_punct and not t.is_space]) for s in sents]
         questions = sum(1 for s in sents if s.text.strip().endswith("?"))
@@ -700,17 +810,19 @@ def analyze_voice_distinctness(
         q_ratio = round(data["questions"] / total_s, 3) if total_s > 0 else 0.0
         excl_ratio = round(data["exclamations"] / total_s, 3) if total_s > 0 else 0.0
 
-        profiles.append({
-            "character_id": cid,
-            "character_name": data["name"],
-            "total_lines": total_s,
-            "vocabulary_size": vocab_size,
-            "vocabulary_richness": richness,
-            "signature_words": signature,
-            "avg_sentence_length": avg_sent,
-            "question_ratio": q_ratio,
-            "exclamation_ratio": excl_ratio,
-        })
+        profiles.append(
+            {
+                "character_id": cid,
+                "character_name": data["name"],
+                "total_lines": total_s,
+                "vocabulary_size": vocab_size,
+                "vocabulary_richness": richness,
+                "signature_words": signature,
+                "avg_sentence_length": avg_sent,
+                "question_ratio": q_ratio,
+                "exclamation_ratio": excl_ratio,
+            }
+        )
 
     # Pairwise similarity (Jaccard on top-50 words)
     SIMILARITY_THRESHOLD = 0.35
@@ -726,14 +838,16 @@ def analyze_voice_distinctness(
             score = round(intersection / union, 3) if union > 0 else 0.0
             if score >= SIMILARITY_THRESHOLD:
                 shared = sorted(set_a & set_b)[:5]
-                similar_pairs.append({
-                    "char_a_id": a,
-                    "char_a_name": char_data[a]["name"],
-                    "char_b_id": b,
-                    "char_b_name": char_data[b]["name"],
-                    "similarity_score": score,
-                    "shared_patterns": shared,
-                })
+                similar_pairs.append(
+                    {
+                        "char_a_id": a,
+                        "char_a_name": char_data[a]["name"],
+                        "char_b_id": b,
+                        "char_b_name": char_data[b]["name"],
+                        "similarity_score": score,
+                        "shared_patterns": shared,
+                    }
+                )
 
     similar_pairs.sort(key=lambda p: -p["similarity_score"])
 

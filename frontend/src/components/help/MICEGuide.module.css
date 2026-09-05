@@ -47,10 +47,18 @@
 }
 
 /* Per-type accent border */
-.milieu  { border-left: 3px solid var(--mice-milieu); }
-.idea    { border-left: 3px solid var(--mice-idea); }
-.character { border-left: 3px solid var(--mice-character); }
-.event   { border-left: 3px solid var(--mice-event); }
+.milieu {
+  border-left: 3px solid var(--mice-milieu);
+}
+.idea {
+  border-left: 3px solid var(--mice-idea);
+}
+.character {
+  border-left: 3px solid var(--mice-character);
+}
+.event {
+  border-left: 3px solid var(--mice-event);
+}
 
 .typeHeader {
   display: flex;
@@ -59,10 +67,18 @@
   margin-bottom: 0.3rem;
 }
 
-.milieu    .typeIcon { color: var(--mice-milieu); }
-.idea      .typeIcon { color: var(--mice-idea); }
-.character .typeIcon { color: var(--mice-character); }
-.event     .typeIcon { color: var(--mice-event); }
+.milieu .typeIcon {
+  color: var(--mice-milieu);
+}
+.idea .typeIcon {
+  color: var(--mice-idea);
+}
+.character .typeIcon {
+  color: var(--mice-character);
+}
+.event .typeIcon {
+  color: var(--mice-event);
+}
 
 .typeIcon {
   display: flex;
@@ -76,10 +92,18 @@
   color: var(--color-text);
 }
 
-.milieu    .typeLabel { color: var(--mice-milieu); }
-.idea      .typeLabel { color: var(--mice-idea); }
-.character .typeLabel { color: var(--mice-character); }
-.event     .typeLabel { color: var(--mice-event); }
+.milieu .typeLabel {
+  color: var(--mice-milieu);
+}
+.idea .typeLabel {
+  color: var(--mice-idea);
+}
+.character .typeLabel {
+  color: var(--mice-character);
+}
+.event .typeLabel {
+  color: var(--mice-event);
+}
 
 .typeTagline {
   font-size: 0.8rem;
@@ -187,8 +211,12 @@
   font-weight: 500;
 }
 
-.barA { background: color-mix(in srgb, var(--mice-milieu) 85%, transparent); }
-.barB { background: color-mix(in srgb, var(--mice-character) 85%, transparent); }
+.barA {
+  background: color-mix(in srgb, var(--mice-milieu) 85%, transparent);
+}
+.barB {
+  background: color-mix(in srgb, var(--mice-character) 85%, transparent);
+}
 
 .diagramBarBroken {
   opacity: 0.75;
@@ -269,10 +297,22 @@
   border-radius: 99px;
 }
 
-.outcomeDisaster  { background: color-mix(in srgb, var(--color-danger) 15%, transparent); color: var(--color-danger); }
-.outcomeSetback   { background: color-mix(in srgb, var(--mice-idea) 15%, transparent); color: var(--mice-idea); }
-.outcomeSuccessCost { background: color-mix(in srgb, var(--mice-milieu) 15%, transparent); color: var(--mice-milieu); }
-.outcomeClean     { background: color-mix(in srgb, var(--mice-character) 15%, transparent); color: var(--mice-character); }
+.outcomeDisaster {
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
+}
+.outcomeSetback {
+  background: color-mix(in srgb, var(--mice-idea) 15%, transparent);
+  color: var(--mice-idea);
+}
+.outcomeSuccessCost {
+  background: color-mix(in srgb, var(--mice-milieu) 15%, transparent);
+  color: var(--mice-milieu);
+}
+.outcomeClean {
+  background: color-mix(in srgb, var(--mice-character) 15%, transparent);
+  color: var(--mice-character);
+}
 
 /* ── Footer button ── */
 .closeBtn {
@@ -284,7 +324,9 @@
   color: var(--color-text-muted);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .closeBtn:hover {

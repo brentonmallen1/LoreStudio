@@ -1,16 +1,51 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { StructureNode, SceneLink, InlineNote, SceneSetting, Location, Twist, StoryTodo } from "../../types";
+import type {
+  StructureNode,
+  SceneLink,
+  InlineNote,
+  SceneSetting,
+  Location,
+  Twist,
+  StoryTodo,
+} from "../../types";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
-import { BookOpen, FileText, Flag, BookMarked, Clapperboard, Layers, Zap, Puzzle, Milestone, Plus, X, Trash2, Pencil, Telescope, Compass, Map as MapIcon, Quote, Tag, Link, Eye, ImageIcon, type LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  FileText,
+  Flag,
+  BookMarked,
+  Clapperboard,
+  Layers,
+  Zap,
+  Puzzle,
+  Milestone,
+  Plus,
+  X,
+  Trash2,
+  Pencil,
+  Telescope,
+  Compass,
+  Map as MapIcon,
+  Quote,
+  Tag,
+  Link,
+  Eye,
+  ImageIcon,
+  type LucideIcon,
+} from "lucide-react";
 import type { DiagramSummary } from "../../types";
 import DiagramThumbnail from "../media/DiagramThumbnail";
 import { InlineNoteExtension, setInlineNoteCallbacks } from "./InlineNoteExtension";
-import { InlineImageExtension, setInlineImageInsertCallback, insertInlineImage } from "./InlineImageExtension";
+import {
+  InlineImageExtension,
+  setInlineImageInsertCallback,
+  insertInlineImage,
+} from "./InlineImageExtension";
 import ImageInsertModal from "./ImageInsertModal";
 import {
   MentionDropdownExtension,
@@ -117,8 +152,32 @@ import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SceneEditor.module.css";
 
 export default function SceneEditor() {
-  const { activeNode, setActiveNode, activeStory, activeTemplate, structure, setStructure, characters, setCharacters, beatSheets } = useStoryStore();
-  const { brainstormPanelOpen, openBrainstormPanel, closeBrainstormPanel, plannerPanelOpen, openPlannerPanel, closePlannerPanel, sceneSearchOpen, openSceneSearch, closeSceneSearch, dialogueInsertTrigger, writingGuidesTab, openWritingGuides, closeWritingGuides } = useUIStore();
+  const {
+    activeNode,
+    setActiveNode,
+    activeStory,
+    activeTemplate,
+    structure,
+    setStructure,
+    characters,
+    setCharacters,
+    beatSheets,
+  } = useStoryStore();
+  const {
+    brainstormPanelOpen,
+    openBrainstormPanel,
+    closeBrainstormPanel,
+    plannerPanelOpen,
+    openPlannerPanel,
+    closePlannerPanel,
+    sceneSearchOpen,
+    openSceneSearch,
+    closeSceneSearch,
+    dialogueInsertTrigger,
+    writingGuidesTab,
+    openWritingGuides,
+    closeWritingGuides,
+  } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const [showGuideMenu, setShowGuideMenu] = useState(false);
   const guideMenuRef = useRef<HTMLDivElement>(null);
@@ -170,7 +229,7 @@ export default function SceneEditor() {
 
   // Beat sheet — derived from store, no fetch needed
   const beatSheet = activeStory?.beat_sheet_id
-    ? (beatSheets.find(s => s.id === activeStory.beat_sheet_id) ?? null)
+    ? (beatSheets.find((s) => s.id === activeStory.beat_sheet_id) ?? null)
     : null;
 
   // Attached diagrams state
@@ -349,7 +408,9 @@ export default function SceneEditor() {
       setWordCount(countWordsClean(editor.getText()));
     };
     editor.on("update", update);
-    return () => { editor.off("update", update); };
+    return () => {
+      editor.off("update", update);
+    };
   }, [editor]);
 
   useEffect(() => {
@@ -366,7 +427,11 @@ export default function SceneEditor() {
     setWordCount(activeNode.word_count ?? 0);
   }, [activeNode?.id]);
 
-  const { stream: streamSummary, text: summaryStreamText, isStreaming: generatingSummary } = useLLMStream({
+  const {
+    stream: streamSummary,
+    text: summaryStreamText,
+    isStreaming: generatingSummary,
+  } = useLLMStream({
     requestId: activeNode ? `scene-summary:${activeNode.id}` : "scene-summary:none",
     label: "Summarizing scene",
     tabId: "story",
@@ -380,42 +445,67 @@ export default function SceneEditor() {
 
   // Load scene links when active node changes
   useEffect(() => {
-    if (!activeNode) { setSceneLinks([]); setLinkedTwists([]); return; }
-    api.getSceneLinks({ node_id: activeNode.id }).then(setSceneLinks).catch(() => {});
-    api.getTwistsForScene(activeNode.id).then(setLinkedTwists).catch(() => {});
+    if (!activeNode) {
+      setSceneLinks([]);
+      setLinkedTwists([]);
+      return;
+    }
+    api
+      .getSceneLinks({ node_id: activeNode.id })
+      .then(setSceneLinks)
+      .catch(() => {});
+    api
+      .getTwistsForScene(activeNode.id)
+      .then(setLinkedTwists)
+      .catch(() => {});
   }, [activeNode?.id]);
 
   // Load scene todos for gutter markers
   useEffect(() => {
-    if (!activeNode) { setSceneTodos([]); setTodoGutterItems([]); return; }
-    api.getTodosForScene(activeNode.id).then((todos) => {
-      setSceneTodos(todos);
-      setTodoGutterItems(todos.filter((t) => t.doc_from != null).map((t) => ({
-        id: t.id,
-        content: t.content,
-        done: t.done,
-        doc_from: t.doc_from!,
-      })));
-      // Force decoration rebuild after async load
-      // (editor may already exist at this point)
-    }).catch(() => {});
+    if (!activeNode) {
+      setSceneTodos([]);
+      setTodoGutterItems([]);
+      return;
+    }
+    api
+      .getTodosForScene(activeNode.id)
+      .then((todos) => {
+        setSceneTodos(todos);
+        setTodoGutterItems(
+          todos
+            .filter((t) => t.doc_from != null)
+            .map((t) => ({
+              id: t.id,
+              content: t.content,
+              done: t.done,
+              doc_from: t.doc_from!,
+            })),
+        );
+        // Force decoration rebuild after async load
+        // (editor may already exist at this point)
+      })
+      .catch(() => {});
   }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync todo gutter items whenever sceneTodos changes
   useEffect(() => {
-    setTodoGutterItems(sceneTodos.filter((t) => t.doc_from != null && !t.done).map((t) => ({
-      id: t.id,
-      content: t.content,
-      done: t.done,
-      doc_from: t.doc_from!,
-    })));
+    setTodoGutterItems(
+      sceneTodos
+        .filter((t) => t.doc_from != null && !t.done)
+        .map((t) => ({
+          id: t.id,
+          content: t.content,
+          done: t.done,
+          doc_from: t.doc_from!,
+        })),
+    );
     // Ask the editor to rebuild decorations
     if (editor) {
       const { state, dispatch } = editor.view;
       const tr = state.tr.setMeta(FORCE_TODO_REBUILD, true);
       dispatch(tr);
     }
-  }, [sceneTodos, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sceneTodos, editor]);
 
   // Wire todo gutter callbacks
   useEffect(() => {
@@ -426,12 +516,18 @@ export default function SceneEditor() {
         setViewMode("todos");
       },
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load scene settings (location links) when active node/story changes
   useEffect(() => {
-    if (!activeNode || !activeStory) { setSceneSettings([]); return; }
-    api.getSceneSettingsForNode(activeNode.id).then(setSceneSettings).catch(() => {});
+    if (!activeNode || !activeStory) {
+      setSceneSettings([]);
+      return;
+    }
+    api
+      .getSceneSettingsForNode(activeNode.id)
+      .then(setSceneSettings)
+      .catch(() => {});
   }, [activeNode?.id]);
 
   // Load locations once — used for scene settings picker and @mention autocomplete
@@ -443,20 +539,23 @@ export default function SceneEditor() {
       setSettingsList([]);
       return;
     }
-    api.listLocationsFlat(activeStory.id).then((locations) => {
-      setFlatLocations(locations);
-      setSettingsList(locations);
-      // Characters come from store — no second API call needed
-      const items: MentionItem[] = [
-        ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
-        ...locations.map((s) => ({ type: "setting" as const, name: s.name })),
-      ];
-      setMentionAllItems(items);
-      setMentionItems(items);
-      if (editor?.view) {
-        editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
-      }
-    }).catch(() => {});
+    api
+      .listLocationsFlat(activeStory.id)
+      .then((locations) => {
+        setFlatLocations(locations);
+        setSettingsList(locations);
+        // Characters come from store — no second API call needed
+        const items: MentionItem[] = [
+          ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
+          ...locations.map((s) => ({ type: "setting" as const, name: s.name })),
+        ];
+        setMentionAllItems(items);
+        setMentionItems(items);
+        if (editor?.view) {
+          editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+        }
+      })
+      .catch(() => {});
   }, [activeStory?.id]);
 
   // Force decoration rebuild when editor becomes ready and items exist
@@ -467,7 +566,6 @@ export default function SceneEditor() {
     }
   }, [editor]);
 
-
   // Filtered mention items (characters first, then settings; prefix-matched)
   // In attribution/dialogue mode, only show characters (no settings)
   const filteredMentionItems = useMemo(() => {
@@ -475,7 +573,7 @@ export default function SceneEditor() {
     const base = mentionAllItems.filter(
       (item) =>
         item.name.toLowerCase().startsWith(mentionQuery.toLowerCase()) &&
-        (!characterOnly || item.type === "character")
+        (!characterOnly || item.type === "character"),
     );
     // Append a "create" virtual item when query is typed and no exact character match
     const query = mentionQuery.trim();
@@ -526,7 +624,9 @@ export default function SceneEditor() {
           }
           // Also update the global character store
           setCharacters([...characters, newChar]);
-        } catch { /* fall through with typed name */ }
+        } catch {
+          /* fall through with typed name */
+        }
         // Now insert using the created name, in whatever mode we're in
         const resolvedItem: MentionItem = { type: "character", name: createdName };
         // Re-call with the real item (same editor state is still valid)
@@ -564,7 +664,8 @@ export default function SceneEditor() {
             .chain()
             .focus()
             .command(({ tr, dispatch }) => {
-              if (dispatch) tr.replaceWith(pendingWrap.from, pendingWrap.to, editor.state.schema.text(wrapped));
+              if (dispatch)
+                tr.replaceWith(pendingWrap.from, pendingWrap.to, editor.state.schema.text(wrapped));
               return true;
             })
             .run();
@@ -581,13 +682,15 @@ export default function SceneEditor() {
             })
             .run();
           // Place cursor between the two quote marks (start + 1)
-          editor.chain().setTextSelection(start + 1).run();
+          editor
+            .chain()
+            .setTextSelection(start + 1)
+            .run();
         }
         setDialogueModeActive(false);
       } else {
         const start = from - query.length - 1; // -1 for the @ character
-        const text =
-          item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
+        const text = item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
         editor
           .chain()
           .focus()
@@ -602,7 +705,7 @@ export default function SceneEditor() {
       setAttributionModeDropdown(false);
       setMentionSelIdx(0);
     },
-    [editor, activeStory, characters, setCharacters]
+    [editor, activeStory, characters, setCharacters],
   );
 
   // Keep doInsertMentionRef current (used by Enter keyboard path)
@@ -660,7 +763,10 @@ export default function SceneEditor() {
       setDismissedAiSuggestions(new Set());
       return;
     }
-    api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => setDialogueBlocks([]));
+    api
+      .listDialogue(activeNode.id)
+      .then(setDialogueBlocks)
+      .catch(() => setDialogueBlocks([]));
   }, [dialogueIsolation, activeNode?.id]);
 
   // Wire up ^ dialogue-mode callbacks — reuses the mention dropdown in dialogue mode.
@@ -752,10 +858,13 @@ export default function SceneEditor() {
       setDialogueModeActive(true);
       // Delete the slash text (/dialogue or partial like /d)
       const coords = editor.view.coordsAtPos(slashFrom);
-      editor.chain().command(({ tr, dispatch }) => {
-        if (dispatch) tr.delete(slashFrom, slashTo);
-        return true;
-      }).run();
+      editor
+        .chain()
+        .command(({ tr, dispatch }) => {
+          if (dispatch) tr.delete(slashFrom, slashTo);
+          return true;
+        })
+        .run();
       // Open the dialogue speaker picker
       setMentionQuery("");
       setMentionPos({ bottom: coords.bottom, left: coords.left });
@@ -770,10 +879,13 @@ export default function SceneEditor() {
       const coords = editor.view.coordsAtPos(slashFrom);
       // Delete the slash text, capture cursor position for the todo
       const docFrom = slashFrom;
-      editor.chain().command(({ tr, dispatch }) => {
-        if (dispatch) tr.delete(slashFrom, slashTo);
-        return true;
-      }).run();
+      editor
+        .chain()
+        .command(({ tr, dispatch }) => {
+          if (dispatch) tr.delete(slashFrom, slashTo);
+          return true;
+        })
+        .run();
       // Open the inline todo input
       setTodoInputDocFrom(docFrom);
       setTodoInputText("");
@@ -821,7 +933,7 @@ export default function SceneEditor() {
     setDialogueModeDropdown(true);
     setMentionSelIdx(0);
     mentionSelIdxRef.current = 0;
-  }, [dialogueInsertTrigger, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dialogueInsertTrigger, editor]);
 
   // Command palette → writing guides modal
   useEffect(() => {
@@ -835,7 +947,7 @@ export default function SceneEditor() {
 
     function handleMouseOver(e: MouseEvent) {
       const target = (e.target as Element).closest(
-        ".mention-char, .mention-setting, .mention-missing"
+        ".mention-char, .mention-setting, .mention-missing",
       ) as HTMLElement | null;
       if (!target) return;
 
@@ -844,9 +956,7 @@ export default function SceneEditor() {
 
       hoverShowTimer.current = setTimeout(() => {
         const name = target.getAttribute("data-mention-name") ?? "";
-        const type = (target.getAttribute("data-mention-type") ?? "character") as
-          | "character"
-          | "setting";
+        const type = (target.getAttribute("data-mention-type") ?? "character") as "character" | "setting";
         const rect = target.getBoundingClientRect();
 
         if (type === "character") {
@@ -855,12 +965,27 @@ export default function SceneEditor() {
             const raw = char.personality || char.motivation || "";
             const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
             setHoverCard({
-              open: true, type, name, found: true,
-              entityId: char.id, roleOrLabel: char.role || "Character",
-              pronouns: char.pronouns || undefined, excerpt, rect,
+              open: true,
+              type,
+              name,
+              found: true,
+              entityId: char.id,
+              roleOrLabel: char.role || "Character",
+              pronouns: char.pronouns || undefined,
+              excerpt,
+              rect,
             });
           } else {
-            setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
+            setHoverCard({
+              open: true,
+              type,
+              name,
+              found: false,
+              entityId: "",
+              roleOrLabel: "",
+              excerpt: "",
+              rect,
+            });
           }
         } else {
           const setting = settingsListRef.current.find((s) => s.name === name);
@@ -868,11 +993,26 @@ export default function SceneEditor() {
             const raw = setting.description || "";
             const excerpt = raw.slice(0, 120).trim() + (raw.length > 120 ? "…" : "");
             setHoverCard({
-              open: true, type, name, found: true,
-              entityId: setting.id, roleOrLabel: "Location", excerpt, rect,
+              open: true,
+              type,
+              name,
+              found: true,
+              entityId: setting.id,
+              roleOrLabel: "Location",
+              excerpt,
+              rect,
             });
           } else {
-            setHoverCard({ open: true, type, name, found: false, entityId: "", roleOrLabel: "", excerpt: "", rect });
+            setHoverCard({
+              open: true,
+              type,
+              name,
+              found: false,
+              entityId: "",
+              roleOrLabel: "",
+              excerpt: "",
+              rect,
+            });
           }
         }
       }, 500);
@@ -880,7 +1020,7 @@ export default function SceneEditor() {
 
     function handleMouseOut(e: MouseEvent) {
       const target = (e.target as Element).closest(
-        ".mention-char, .mention-setting, .mention-missing"
+        ".mention-char, .mention-setting, .mention-missing",
       ) as HTMLElement | null;
       if (!target) return;
 
@@ -909,25 +1049,16 @@ export default function SceneEditor() {
   }
 
   // Inline note callbacks — kept current via module-level ref
-  const handleNoteActivate = useCallback(
-    (noteId: string, rect: DOMRect) => {
-      setNotePopover({ open: true, isNew: false, noteId, rect, isEditing: false });
-    },
-    []
-  );
+  const handleNoteActivate = useCallback((noteId: string, rect: DOMRect) => {
+    setNotePopover({ open: true, isNew: false, noteId, rect, isEditing: false });
+  }, []);
 
-  const handleAddNote = useCallback(
-    (from: number, to: number, anchor: string) => {
-      const sel = window.getSelection();
-      const rect =
-        sel && sel.rangeCount > 0
-          ? sel.getRangeAt(0).getBoundingClientRect()
-          : null;
-      setNotePopover({ open: true, isNew: true, from, to, anchor, rect });
-      setNoteInputText("");
-    },
-    []
-  );
+  const handleAddNote = useCallback((from: number, to: number, anchor: string) => {
+    const sel = window.getSelection();
+    const rect = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).getBoundingClientRect() : null;
+    setNotePopover({ open: true, isNew: true, from, to, anchor, rect });
+    setNoteInputText("");
+  }, []);
 
   useEffect(() => {
     setInlineNoteCallbacks({
@@ -974,10 +1105,7 @@ export default function SceneEditor() {
       note: noteInputText.trim(),
       position: from,
     };
-    editor.chain()
-      .setTextSelection({ from, to })
-      .setMark("inlineNote", { noteId: newNote.id })
-      .run();
+    editor.chain().setTextSelection({ from, to }).setMark("inlineNote", { noteId: newNote.id }).run();
     const updated = [...inlineNotes, newNote];
     setInlineNotes(updated);
     setNotePopover({ open: false });
@@ -986,7 +1114,9 @@ export default function SceneEditor() {
         metadata_: { ...activeNode.metadata_, inline_notes: updated },
       });
       setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
-    } catch { /* silently ignore */ }
+    } catch {
+      /* silently ignore */
+    }
   }
 
   async function handleDeleteNote(noteId: string) {
@@ -1002,10 +1132,7 @@ export default function SceneEditor() {
       }
     });
     if (markFrom !== null && markTo !== null) {
-      editor.chain()
-        .setTextSelection({ from: markFrom, to: markTo })
-        .unsetMark("inlineNote")
-        .run();
+      editor.chain().setTextSelection({ from: markFrom, to: markTo }).unsetMark("inlineNote").run();
     }
     const updated = inlineNotes.filter((n) => n.id !== noteId);
     setInlineNotes(updated);
@@ -1015,7 +1142,9 @@ export default function SceneEditor() {
         metadata_: { ...activeNode.metadata_, inline_notes: updated },
       });
       setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
-    } catch { /* silently ignore */ }
+    } catch {
+      /* silently ignore */
+    }
   }
 
   function scrollToNote(noteId: string) {
@@ -1034,7 +1163,13 @@ export default function SceneEditor() {
       setTimeout(() => {
         const el = document.querySelector(`[data-note-id="${noteId}"]`) as HTMLElement | null;
         if (el) {
-          setNotePopover({ open: true, isNew: false, noteId, rect: el.getBoundingClientRect(), isEditing: false });
+          setNotePopover({
+            open: true,
+            isNew: false,
+            noteId,
+            rect: el.getBoundingClientRect(),
+            isEditing: false,
+          });
         }
       }, 60);
     }
@@ -1127,43 +1262,62 @@ export default function SceneEditor() {
 
   async function handleUpdateNote(noteId: string, newText: string) {
     if (!activeNode) return;
-    const updated = inlineNotes.map((n) => n.id === noteId ? { ...n, note: newText } : n);
+    const updated = inlineNotes.map((n) => (n.id === noteId ? { ...n, note: newText } : n));
     setInlineNotes(updated);
-    setNotePopover({ open: true, isNew: false, noteId, rect: notePopover.open ? notePopover.rect : null, isEditing: false });
+    setNotePopover({
+      open: true,
+      isNew: false,
+      noteId,
+      rect: notePopover.open ? notePopover.rect : null,
+      isEditing: false,
+    });
     try {
       const patched = await api.updateNode(activeNode.id, {
         metadata_: { ...activeNode.metadata_, inline_notes: updated },
       });
       setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
-    } catch { /* silently ignore */ }
+    } catch {
+      /* silently ignore */
+    }
   }
 
   async function handleUpdateLink() {
     if (!editingLink) return;
     try {
-      const updated = await api.updateSceneLink(editingLink.id, { link_type: editLinkType, note: editLinkNote });
-      setSceneLinks(prev => prev.map(l => l.id === editingLink.id ? updated : l));
-    } catch { /* silently ignore */ }
+      const updated = await api.updateSceneLink(editingLink.id, {
+        link_type: editLinkType,
+        note: editLinkNote,
+      });
+      setSceneLinks((prev) => prev.map((l) => (l.id === editingLink.id ? updated : l)));
+    } catch {
+      /* silently ignore */
+    }
     setEditingLink(null);
   }
 
   // Load diagrams attached to this scene
   useEffect(() => {
-    if (!activeStory || !activeNode) { setAttachedDiagrams([]); return; }
-    api.listDiagrams(activeStory.id).then((all) => {
-      setAttachedDiagrams(all.filter((d) => d.attached_node_id === activeNode.id));
-    }).catch(() => {});
+    if (!activeStory || !activeNode) {
+      setAttachedDiagrams([]);
+      return;
+    }
+    api
+      .listDiagrams(activeStory.id)
+      .then((all) => {
+        setAttachedDiagrams(all.filter((d) => d.attached_node_id === activeNode.id));
+      })
+      .catch(() => {});
   }, [activeNode?.id, activeStory?.id]);
 
   // Scene link helpers
   const flatNodes = flattenStructure(structure);
 
   function findNode(id: string): StructureNode | undefined {
-    return flatNodes.find(n => n.id === id);
+    return flatNodes.find((n) => n.id === id);
   }
 
   function getLinkLabel(link: SceneLink, isForward: boolean): string {
-    const t = LINK_TYPES.find(lt => lt.value === link.link_type);
+    const t = LINK_TYPES.find((lt) => lt.value === link.link_type);
     if (!t) return isForward ? `${link.link_type} →` : `← ${link.link_type}`;
     return isForward ? t.forward : t.reverse;
   }
@@ -1176,8 +1330,12 @@ export default function SceneEditor() {
   }
 
   async function handleDeleteLink(linkId: string) {
-    setSceneLinks(prev => prev.filter(l => l.id !== linkId));
-    try { await api.deleteSceneLink(linkId); } catch { /* optimistic removal stands */ }
+    setSceneLinks((prev) => prev.filter((l) => l.id !== linkId));
+    try {
+      await api.deleteSceneLink(linkId);
+    } catch {
+      /* optimistic removal stands */
+    }
   }
 
   async function handleCreateLink() {
@@ -1190,8 +1348,10 @@ export default function SceneEditor() {
         link_type: addLinkType,
         note: addLinkNote,
       });
-      setSceneLinks(prev => [...prev, link]);
-    } catch { /* silently ignore */ }
+      setSceneLinks((prev) => [...prev, link]);
+    } catch {
+      /* silently ignore */
+    }
     setShowAddLink(false);
     setAddLinkTarget(null);
     setAddLinkNote("");
@@ -1218,11 +1378,7 @@ export default function SceneEditor() {
   }
 
   const statusClass =
-    activeNode.status === "final"
-      ? styles.final
-      : activeNode.status === "revised"
-      ? styles.revised
-      : "";
+    activeNode.status === "final" ? styles.final : activeNode.status === "revised" ? styles.revised : "";
 
   // Derive display name for this node's level from the active template
   const levelLabel = (() => {
@@ -1246,9 +1402,7 @@ export default function SceneEditor() {
     await api.updateNode(nodeId, { title: trimmed });
     function patchTitle(nodes: StructureNode[]): StructureNode[] {
       return nodes.map((n) =>
-        n.id === nodeId
-          ? { ...n, title: trimmed }
-          : { ...n, children: patchTitle(n.children ?? []) }
+        n.id === nodeId ? { ...n, title: trimmed } : { ...n, children: patchTitle(n.children ?? []) },
       );
     }
     setStructure(patchTitle(structure));
@@ -1281,7 +1435,9 @@ export default function SceneEditor() {
               title="Change segment type"
             >
               {activeTemplate.levels.map((lvl, idx) => (
-                <option key={idx} value={idx}>{lvl.name}</option>
+                <option key={idx} value={idx}>
+                  {lvl.name}
+                </option>
               ))}
             </select>
           ) : (
@@ -1304,7 +1460,10 @@ export default function SceneEditor() {
               autoFocus
               onChange={(e) => setEditTitleValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); saveTitleEdit(); }
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  saveTitleEdit();
+                }
                 if (e.key === "Escape") setEditingTitle(false);
               }}
               onBlur={saveTitleEdit}
@@ -1312,7 +1471,10 @@ export default function SceneEditor() {
           ) : (
             <span
               className={styles.nodeTitle}
-              onClick={() => { setEditTitleValue(activeNode.title); setEditingTitle(true); }}
+              onClick={() => {
+                setEditTitleValue(activeNode.title);
+                setEditingTitle(true);
+              }}
               title="Click to rename"
             >
               {activeNode.title}
@@ -1335,7 +1497,15 @@ export default function SceneEditor() {
           <span className={styles.wordCount}>{wordCount.toLocaleString()} words</span>
           <span
             className={`${styles.saveIndicator} ${styles[`saveIndicator_${activeNode ? saveState : "idle"}`]}`}
-            title={saveState === "unsaved" ? "Unsaved changes" : saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+            title={
+              saveState === "unsaved"
+                ? "Unsaved changes"
+                : saveState === "saving"
+                  ? "Saving…"
+                  : saveState === "saved"
+                    ? "Saved"
+                    : ""
+            }
           />
           <button
             onClick={() => setImagePickerOpen(true)}
@@ -1365,7 +1535,10 @@ export default function SceneEditor() {
               {showGuideMenu && (
                 <div className={styles.guideMenu}>
                   <button
-                    onClick={() => { setShowSummary((s) => !s); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setShowSummary((s) => !s);
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="AI summary of the story up to this point"
                   >
@@ -1373,7 +1546,11 @@ export default function SceneEditor() {
                     Story So Far
                   </button>
                   <button
-                    onClick={() => { if (plannerPanelOpen) closePlannerPanel(); else openPlannerPanel(); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      if (plannerPanelOpen) closePlannerPanel();
+                      else openPlannerPanel();
+                      setShowGuideMenu(false);
+                    }}
                     className={`${styles.guideMenuItem} ${plannerPanelOpen ? styles.guideMenuItemActive : ""}`}
                     title="Plan this scene before writing"
                   >
@@ -1381,7 +1558,11 @@ export default function SceneEditor() {
                     Plan Scene
                   </button>
                   <button
-                    onClick={() => { if (brainstormPanelOpen) closeBrainstormPanel(); else openBrainstormPanel(); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      if (brainstormPanelOpen) closeBrainstormPanel();
+                      else openBrainstormPanel();
+                      setShowGuideMenu(false);
+                    }}
                     className={`${styles.guideMenuItem} ${brainstormPanelOpen ? styles.guideMenuItemActive : ""}`}
                     title="Brainstorm directions for this scene"
                   >
@@ -1391,7 +1572,11 @@ export default function SceneEditor() {
                   <div className={styles.guideMenuDivider} />
                   <div className={styles.guideMenuLabel}>Reference</div>
                   <button
-                    onClick={() => { setWritingGuidesLocalTab("dialogue"); openWritingGuides("dialogue"); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setWritingGuidesLocalTab("dialogue");
+                      openWritingGuides("dialogue");
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="Learn how to attribute dialogue to characters"
                   >
@@ -1399,7 +1584,11 @@ export default function SceneEditor() {
                     Dialogue Guide
                   </button>
                   <button
-                    onClick={() => { setWritingGuidesLocalTab("mice"); openWritingGuides("mice"); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setWritingGuidesLocalTab("mice");
+                      openWritingGuides("mice");
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="Understand the MICE Quotient — Milieu, Idea, Character, Event"
                   >
@@ -1407,15 +1596,21 @@ export default function SceneEditor() {
                     MICE Guide
                   </button>
                   <button
-                    onClick={() => { setWritingGuidesLocalTab("essential"); openWritingGuides("essential"); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setWritingGuidesLocalTab("essential");
+                      openWritingGuides("essential");
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="The 6 Essential Questions every story needs to answer"
                   >
-                    <BookMarked size={13} />
-                    6 Essential Questions
+                    <BookMarked size={13} />6 Essential Questions
                   </button>
                   <button
-                    onClick={() => { setShowAutoTag(true); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setShowAutoTag(true);
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="Scan for untagged quotes and propose speaker attribution"
                   >
@@ -1423,7 +1618,10 @@ export default function SceneEditor() {
                     Tag Suggestions
                   </button>
                   <button
-                    onClick={() => { setShowAutoLink(true); setShowGuideMenu(false); }}
+                    onClick={() => {
+                      setShowAutoLink(true);
+                      setShowGuideMenu(false);
+                    }}
                     className={styles.guideMenuItem}
                     title="Scan for unlinked character and location mentions"
                   >
@@ -1442,659 +1640,762 @@ export default function SceneEditor() {
             <Quote size={13} />
             <span>Dialogue</span>
           </button>
-          <div className={styles.sprintTimerWrap}><SprintTimer currentWordCount={wordCount} /></div>
+          <div className={styles.sprintTimerWrap}>
+            <SprintTimer currentWordCount={wordCount} />
+          </div>
           <FontPicker />
           <AIFeatureInfoTrigger pageId="scene-editor" size="sm" />
         </div>
       </div>
 
       <div className={styles.contentRow}>
-      <div className={styles.editorColumn}>
-
-      {showOverview && (
-        <div className={styles.overviewPanel}>
-          <div className={styles.overviewField}>
-            <label className={styles.overviewLabel}>Synopsis</label>
-            <textarea
-              value={synopsis}
-              onChange={(e) => {
-                setSynopsis(e.target.value);
-                scheduleOverviewSave({ synopsis: e.target.value });
-              }}
-              placeholder="Brief summary of what happens in this segment…"
-              className={styles.overviewTextarea}
-              rows={2}
-            />
-          </div>
-          <div className={styles.overviewField}>
-            <label className={styles.overviewLabel}>Purpose</label>
-            <textarea
-              value={purpose}
-              onChange={(e) => {
-                setPurpose(e.target.value);
-                scheduleOverviewSave({ metadata_: { purpose: e.target.value } });
-              }}
-              placeholder="Why does this segment exist? What narrative function does it serve?"
-              className={styles.overviewTextarea}
-              rows={2}
-            />
-            <p className={styles.overviewHint}>Consider: Where are things at the start? Where should they be at the end? What key events need to happen?</p>
-          </div>
-          <div className={styles.overviewField}>
-            <label className={styles.overviewLabel}>Entry State</label>
-            <textarea
-              value={entryState}
-              onChange={(e) => setEntryState(e.target.value)}
-              onBlur={async () => {
-                if (!activeNode) return;
-                const updated = await api.updateNode(activeNode.id, { entry_state: entryState });
-                setActiveNode({ ...activeNode, ...updated });
-              }}
-              placeholder="Who is Maya before this scene begins? What does she believe?"
-              className={styles.overviewTextarea}
-              rows={2}
-            />
-          </div>
-          <div className={styles.overviewField}>
-            <label className={styles.overviewLabel}>Exit State</label>
-            <textarea
-              value={exitState}
-              onChange={(e) => setExitState(e.target.value)}
-              onBlur={async () => {
-                if (!activeNode) return;
-                const updated = await api.updateNode(activeNode.id, { exit_state: exitState });
-                setActiveNode({ ...activeNode, ...updated });
-              }}
-              placeholder="How has the character or situation changed by the end of this scene?"
-              className={styles.overviewTextarea}
-              rows={2}
-            />
-          </div>
-          <div className={styles.overviewField}>
-            <label className={styles.overviewLabel}>Key Events</label>
-            <textarea
-              value={keyEvents}
-              onChange={(e) => setKeyEvents(e.target.value)}
-              onBlur={async () => {
-                if (!activeNode) return;
-                const updated = await api.updateNode(activeNode.id, { key_events: keyEvents });
-                setActiveNode({ ...activeNode, ...updated });
-              }}
-              placeholder="What must happen in this scene? List the pivotal moments or turning points."
-              className={styles.overviewTextarea}
-              rows={2}
-            />
-          </div>
-          {beatSheet && (
-            <div className={styles.overviewField}>
-              <label className={styles.overviewLabel}>Beat</label>
-              <select
-                className={styles.overviewSelect}
-                value={activeNode.beat_id ?? ""}
-                onChange={async (e) => {
-                  const beat_id = e.target.value || null;
-                  const updated = await api.updateNode(activeNode.id, { beat_id });
-                  setActiveNode({ ...activeNode, ...updated });
-                }}
-              >
-                <option value="">— None —</option>
-                {beatSheet.beats.map(beat => (
-                  <option key={beat.id} value={beat.id}>
-                    {beat.position_pct}% · {beat.name}
-                  </option>
-                ))}
-              </select>
-              {activeNode.beat_id && (() => {
-                const b = beatSheet.beats.find(b => b.id === activeNode.beat_id);
-                return b?.description ? (
-                  <p className={styles.overviewHint}>{b.description}</p>
-                ) : null;
-              })()}
-            </div>
-          )}
-          {activeStory && (activeStory.narrative_perspective === "first_person" || activeStory.narrative_perspective === "multiple_pov") && (
-            <div className={styles.overviewField}>
-              <label className={styles.overviewLabel}>POV Character</label>
-              <p className={styles.overviewHint}>Override the story-level narrator for this scene. Use for multiple-POV stories with alternating perspectives.</p>
-              <select
-                className={styles.overviewSelect}
-                value={activeNode.pov_character_id ?? ""}
-                onChange={async (e) => {
-                  const pov_character_id = e.target.value || null;
-                  const updated = await api.updateNode(activeNode.id, { pov_character_id });
-                  setActiveNode({ ...activeNode, ...updated });
-                }}
-              >
-                <option value="">
-                  {activeStory.pov_character_id
-                    ? `Story default (${characters.find(c => c.id === activeStory.pov_character_id)?.name ?? "Unknown"})`
-                    : "— Story default (none) —"}
-                </option>
-                {characters.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div className={styles.overviewField}>
-            <div className={styles.linkedHeader}>
-              <label className={styles.overviewLabel}>Settings</label>
-              <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
-                <select
-                  value={addSettingRole}
-                  onChange={(e) => setAddSettingRole(e.target.value)}
-                  style={{ fontSize: "0.72rem", fontFamily: "inherit", padding: "0.15rem 0.3rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-muted)", cursor: "pointer" }}
-                >
-                  <option value="primary">Primary</option>
-                  <option value="mentioned">Mentioned</option>
-                  <option value="flashback">Flashback</option>
-                </select>
-                <select
-                  value={addSettingId}
-                  onChange={(e) => setAddSettingId(e.target.value)}
-                  style={{ fontSize: "0.72rem", fontFamily: "inherit", padding: "0.15rem 0.3rem", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-muted)", cursor: "pointer" }}
-                >
-                  <option value="">Add location…</option>
-                  {flatLocations
-                    .filter((loc) => !sceneSettings.some((s) => s.location_id === loc.id))
-                    .map((loc) => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                </select>
-                <button
-                  className={styles.addLinkBtn}
-                  disabled={!addSettingId}
-                  onClick={async () => {
-                    if (!activeNode || !addSettingId) return;
-                    const created = await api.addSceneSetting({
-                      location_id: addSettingId,
-                      node_id: activeNode.id,
-                      role: addSettingRole,
-                    });
-                    setSceneSettings((prev) => [...prev, created]);
-                    setAddSettingId("");
+        <div className={styles.editorColumn}>
+          {showOverview && (
+            <div className={styles.overviewPanel}>
+              <div className={styles.overviewField}>
+                <label className={styles.overviewLabel}>Synopsis</label>
+                <textarea
+                  value={synopsis}
+                  onChange={(e) => {
+                    setSynopsis(e.target.value);
+                    scheduleOverviewSave({ synopsis: e.target.value });
                   }}
-                >
-                  <Plus size={11} />
-                </button>
+                  placeholder="Brief summary of what happens in this segment…"
+                  className={styles.overviewTextarea}
+                  rows={2}
+                />
               </div>
-            </div>
-            {sceneSettings.length === 0 ? (
-              <p className={styles.overviewHint}>No locations linked to this scene yet.</p>
-            ) : (
-              <div className={styles.linkChips}>
-                {sceneSettings.map((s) => {
-                  const loc = flatLocations.find((l) => l.id === s.location_id);
-                  return (
-                    <div key={s.id} className={styles.linkChip}>
-                      <span className={styles.linkChipContent} style={{ cursor: "default" }}>
-                        {s.role !== "primary" && (
-                          <span className={styles.linkChipLabel}>{s.role}</span>
-                        )}
-                        <span className={styles.linkChipTitle}>{loc?.name ?? s.location_id}</span>
-                      </span>
-                      <button
-                        className={styles.linkChipDelete}
-                        onClick={async () => {
-                          await api.removeSceneSetting(s.id);
-                          setSceneSettings((prev) => prev.filter((x) => x.id !== s.id));
-                        }}
-                        title="Remove location"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  );
-                })}
+              <div className={styles.overviewField}>
+                <label className={styles.overviewLabel}>Purpose</label>
+                <textarea
+                  value={purpose}
+                  onChange={(e) => {
+                    setPurpose(e.target.value);
+                    scheduleOverviewSave({ metadata_: { purpose: e.target.value } });
+                  }}
+                  placeholder="Why does this segment exist? What narrative function does it serve?"
+                  className={styles.overviewTextarea}
+                  rows={2}
+                />
+                <p className={styles.overviewHint}>
+                  Consider: Where are things at the start? Where should they be at the end? What key events
+                  need to happen?
+                </p>
               </div>
-            )}
-          </div>
-          <div className={styles.overviewField}>
-            <div className={styles.linkedHeader}>
-              <label className={styles.overviewLabel}>
-                AI Summary
-                {activeNode && (
-                  <span className={
-                    !contentSummary && !summaryStreamText
-                      ? styles.staleIndicatorNone
-                      : activeNode.summary_stale
-                      ? styles.staleIndicatorStale
-                      : styles.staleIndicatorFresh
-                  } title={
-                    !contentSummary && !summaryStreamText ? "Not generated" : activeNode.summary_stale ? "Stale — content has changed" : "Fresh"
-                  } />
-                )}
-                {activeNode?.summary_stale && contentSummary && (
-                  <span className={styles.staleBadge}>Stale</span>
-                )}
-                {(contentSummary || summaryStreamText) && activeNode?.summary_updated_at && (
-                  <span
-                    className={styles.summaryTimestamp}
-                    title={formatDate(activeNode.summary_updated_at)}
+              <div className={styles.overviewField}>
+                <label className={styles.overviewLabel}>Entry State</label>
+                <textarea
+                  value={entryState}
+                  onChange={(e) => setEntryState(e.target.value)}
+                  onBlur={async () => {
+                    if (!activeNode) return;
+                    const updated = await api.updateNode(activeNode.id, { entry_state: entryState });
+                    setActiveNode({ ...activeNode, ...updated });
+                  }}
+                  placeholder="Who is Maya before this scene begins? What does she believe?"
+                  className={styles.overviewTextarea}
+                  rows={2}
+                />
+              </div>
+              <div className={styles.overviewField}>
+                <label className={styles.overviewLabel}>Exit State</label>
+                <textarea
+                  value={exitState}
+                  onChange={(e) => setExitState(e.target.value)}
+                  onBlur={async () => {
+                    if (!activeNode) return;
+                    const updated = await api.updateNode(activeNode.id, { exit_state: exitState });
+                    setActiveNode({ ...activeNode, ...updated });
+                  }}
+                  placeholder="How has the character or situation changed by the end of this scene?"
+                  className={styles.overviewTextarea}
+                  rows={2}
+                />
+              </div>
+              <div className={styles.overviewField}>
+                <label className={styles.overviewLabel}>Key Events</label>
+                <textarea
+                  value={keyEvents}
+                  onChange={(e) => setKeyEvents(e.target.value)}
+                  onBlur={async () => {
+                    if (!activeNode) return;
+                    const updated = await api.updateNode(activeNode.id, { key_events: keyEvents });
+                    setActiveNode({ ...activeNode, ...updated });
+                  }}
+                  placeholder="What must happen in this scene? List the pivotal moments or turning points."
+                  className={styles.overviewTextarea}
+                  rows={2}
+                />
+              </div>
+              {beatSheet && (
+                <div className={styles.overviewField}>
+                  <label className={styles.overviewLabel}>Beat</label>
+                  <select
+                    className={styles.overviewSelect}
+                    value={activeNode.beat_id ?? ""}
+                    onChange={async (e) => {
+                      const beat_id = e.target.value || null;
+                      const updated = await api.updateNode(activeNode.id, { beat_id });
+                      setActiveNode({ ...activeNode, ...updated });
+                    }}
                   >
-                    {formatRelative(activeNode.summary_updated_at)}
-                  </span>
-                )}
-              </label>
-              <button
-                className={styles.summaryRefreshBtn}
-                onClick={() => {
-                  if (!activeNode) return;
-                  streamSummary((signal) => api.summarizeNode(activeNode.id, signal));
-                }}
-                disabled={generatingSummary || !activeNode?.content?.trim()}
-                title="Generate/Refresh summary"
-              >
-                <Compass size={11} />
-                {!contentSummary && !summaryStreamText ? "Generate" : generatingSummary ? "Generating…" : "Regenerate"}
-              </button>
-            </div>
-            {generatingSummary && summaryStreamText ? (
-              <p className={styles.overviewHint} style={{ fontStyle: "italic" }}>{summaryStreamText}</p>
-            ) : contentSummary ? (
-              <textarea
-                value={contentSummary}
-                onChange={(e) => setContentSummary(e.target.value)}
-                onBlur={async () => {
-                  if (!activeNode) return;
-                  const updated = await api.updateNode(activeNode.id, { content_summary: contentSummary });
-                  setActiveNode({ ...activeNode, ...updated });
-                }}
-                className={styles.overviewTextarea}
-                rows={3}
-              />
-            ) : (
-              <p className={styles.overviewHint}>
-                {activeNode?.content?.trim()
-                  ? "Click Generate to create an AI summary of this scene's content."
-                  : "Write some content first, then generate a summary."}
-              </p>
-            )}
-          </div>
-          <div className={styles.overviewField}>
-            <div className={styles.linkedHeader}>
-              <label className={styles.overviewLabel}>Inline Notes</label>
-              <button
-                className={styles.addLinkBtn}
-                onClick={triggerAddNote}
-                title="Select text in the editor, then click to annotate it"
-              >
-                <Plus size={11} />
-                Add Note
-              </button>
-            </div>
-            <div className={styles.noteLegend}>
-              <span className={styles.noteLegendItem}>
-                <span className={styles.noteLegendDot} />
-                Author
-              </span>
-              <span className={styles.noteLegendItem}>
-                <span className={styles.noteLegendDiamond} />
-                Editorial
-              </span>
-              {inlineNotes.some((n) => n.type === "editorial") && (
-                <button
-                  className={styles.noteLegendToggle}
-                  onClick={() => setHideEditorialNotes((s) => !s)}
-                  title={hideEditorialNotes ? "Show editorial notes" : "Hide editorial notes"}
-                >
-                  {hideEditorialNotes ? "Show" : "Hide"} editorial
-                </button>
+                    <option value="">— None —</option>
+                    {beatSheet.beats.map((beat) => (
+                      <option key={beat.id} value={beat.id}>
+                        {beat.position_pct}% · {beat.name}
+                      </option>
+                    ))}
+                  </select>
+                  {activeNode.beat_id &&
+                    (() => {
+                      const b = beatSheet.beats.find((b) => b.id === activeNode.beat_id);
+                      return b?.description ? <p className={styles.overviewHint}>{b.description}</p> : null;
+                    })()}
+                </div>
               )}
-            </div>
-            {inlineNotes.length === 0 ? (
-              <p className={styles.overviewHint}>
-                Select text in the editor and click Add Note (or press{" "}
-                {typeof navigator !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
-                +Shift+N).
-              </p>
-            ) : (
-              <div className={styles.inlineNoteList}>
-                {inlineNotes.map((note) => (
-                  <div key={note.id} className={`${styles.inlineNoteItem}${note.type === "editorial" ? ` ${styles.inlineNoteItemEditorial}` : ""}`}>
-                    <button
-                      className={styles.inlineNoteContent}
-                      onClick={() => scrollToNote(note.id)}
+              {activeStory &&
+                (activeStory.narrative_perspective === "first_person" ||
+                  activeStory.narrative_perspective === "multiple_pov") && (
+                  <div className={styles.overviewField}>
+                    <label className={styles.overviewLabel}>POV Character</label>
+                    <p className={styles.overviewHint}>
+                      Override the story-level narrator for this scene. Use for multiple-POV stories with
+                      alternating perspectives.
+                    </p>
+                    <select
+                      className={styles.overviewSelect}
+                      value={activeNode.pov_character_id ?? ""}
+                      onChange={async (e) => {
+                        const pov_character_id = e.target.value || null;
+                        const updated = await api.updateNode(activeNode.id, { pov_character_id });
+                        setActiveNode({ ...activeNode, ...updated });
+                      }}
                     >
-                      <span className={note.type === "editorial" ? styles.inlineNoteAnchorEditorial : styles.inlineNoteAnchor}>
-                        &ldquo;{note.anchor.length > 35 ? note.anchor.slice(0, 35) + "…" : note.anchor}&rdquo;
-                      </span>
-                      {note.note && (
-                        <span className={styles.inlineNoteText}>
-                          {note.note.length > 60 ? note.note.slice(0, 60) + "…" : note.note}
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      className={styles.linkChipDelete}
-                      onClick={() => handleDeleteNote(note.id)}
-                      title="Delete note"
+                      <option value="">
+                        {activeStory.pov_character_id
+                          ? `Story default (${characters.find((c) => c.id === activeStory.pov_character_id)?.name ?? "Unknown"})`
+                          : "— Story default (none) —"}
+                      </option>
+                      {characters.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              <div className={styles.overviewField}>
+                <div className={styles.linkedHeader}>
+                  <label className={styles.overviewLabel}>Settings</label>
+                  <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
+                    <select
+                      value={addSettingRole}
+                      onChange={(e) => setAddSettingRole(e.target.value)}
+                      style={{
+                        fontSize: "0.72rem",
+                        fontFamily: "inherit",
+                        padding: "0.15rem 0.3rem",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-surface)",
+                        color: "var(--color-text-muted)",
+                        cursor: "pointer",
+                      }}
                     >
-                      <X size={10} />
+                      <option value="primary">Primary</option>
+                      <option value="mentioned">Mentioned</option>
+                      <option value="flashback">Flashback</option>
+                    </select>
+                    <select
+                      value={addSettingId}
+                      onChange={(e) => setAddSettingId(e.target.value)}
+                      style={{
+                        fontSize: "0.72rem",
+                        fontFamily: "inherit",
+                        padding: "0.15rem 0.3rem",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid var(--color-border)",
+                        background: "var(--color-surface)",
+                        color: "var(--color-text-muted)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <option value="">Add location…</option>
+                      {flatLocations
+                        .filter((loc) => !sceneSettings.some((s) => s.location_id === loc.id))
+                        .map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      className={styles.addLinkBtn}
+                      disabled={!addSettingId}
+                      onClick={async () => {
+                        if (!activeNode || !addSettingId) return;
+                        const created = await api.addSceneSetting({
+                          location_id: addSettingId,
+                          node_id: activeNode.id,
+                          role: addSettingRole,
+                        });
+                        setSceneSettings((prev) => [...prev, created]);
+                        setAddSettingId("");
+                      }}
+                    >
+                      <Plus size={11} />
                     </button>
                   </div>
-                ))}
+                </div>
+                {sceneSettings.length === 0 ? (
+                  <p className={styles.overviewHint}>No locations linked to this scene yet.</p>
+                ) : (
+                  <div className={styles.linkChips}>
+                    {sceneSettings.map((s) => {
+                      const loc = flatLocations.find((l) => l.id === s.location_id);
+                      return (
+                        <div key={s.id} className={styles.linkChip}>
+                          <span className={styles.linkChipContent} style={{ cursor: "default" }}>
+                            {s.role !== "primary" && <span className={styles.linkChipLabel}>{s.role}</span>}
+                            <span className={styles.linkChipTitle}>{loc?.name ?? s.location_id}</span>
+                          </span>
+                          <button
+                            className={styles.linkChipDelete}
+                            onClick={async () => {
+                              await api.removeSceneSetting(s.id);
+                              setSceneSettings((prev) => prev.filter((x) => x.id !== s.id));
+                            }}
+                            title="Remove location"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className={styles.overviewField}>
-            <div className={styles.linkedHeader}>
-              <label className={styles.overviewLabel}>Linked Scenes</label>
-              <button className={styles.addLinkBtn} onClick={() => setShowAddLink(true)}>
-                <Plus size={11} />
-                Add Link
-              </button>
-            </div>
-            {sceneLinks.length === 0 ? (
-              <p className={styles.overviewHint}>No scene links yet.</p>
-            ) : (
-              <div className={styles.linkChips}>
-                {sceneLinks.map(link => {
-                  const isForward = link.source_node_id === activeNode.id;
-                  const linkedNodeId = isForward ? link.target_node_id : link.source_node_id;
-                  const linkedNode = findNode(linkedNodeId);
-                  const label = getLinkLabel(link, isForward);
-                  return (
-                    <div key={link.id} className={styles.linkChip}>
-                      <button
-                        className={styles.linkChipContent}
-                        onClick={() => handleNavigateToLink(link)}
-                        title={link.note || undefined}
+              <div className={styles.overviewField}>
+                <div className={styles.linkedHeader}>
+                  <label className={styles.overviewLabel}>
+                    AI Summary
+                    {activeNode && (
+                      <span
+                        className={
+                          !contentSummary && !summaryStreamText
+                            ? styles.staleIndicatorNone
+                            : activeNode.summary_stale
+                              ? styles.staleIndicatorStale
+                              : styles.staleIndicatorFresh
+                        }
+                        title={
+                          !contentSummary && !summaryStreamText
+                            ? "Not generated"
+                            : activeNode.summary_stale
+                              ? "Stale — content has changed"
+                              : "Fresh"
+                        }
+                      />
+                    )}
+                    {activeNode?.summary_stale && contentSummary && (
+                      <span className={styles.staleBadge}>Stale</span>
+                    )}
+                    {(contentSummary || summaryStreamText) && activeNode?.summary_updated_at && (
+                      <span
+                        className={styles.summaryTimestamp}
+                        title={formatDate(activeNode.summary_updated_at)}
                       >
-                        <span className={styles.linkChipLabel}>{label}</span>
-                        <span className={styles.linkChipTitle}>{linkedNode?.title ?? "Unknown scene"}</span>
-                      </button>
-                      <button
-                        className={styles.linkChipEdit}
-                        onClick={() => { setEditingLink(link); setEditLinkType(link.link_type); setEditLinkNote(link.note ?? ""); }}
-                        title="Edit link"
-                      >
-                        <Pencil size={10} />
-                      </button>
-                      <button
-                        className={styles.linkChipDelete}
-                        onClick={() => handleDeleteLink(link.id)}
-                        title="Remove link"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          {attachedDiagrams.length > 0 && activeStory && (
-            <div className={styles.overviewField}>
-              <div className={styles.linkedHeader}>
-                <label className={styles.overviewLabel}>Diagrams</label>
-              </div>
-              <div className={styles.diagramThumbnails}>
-                {attachedDiagrams.map((d) => (
-                  <DiagramThumbnail
-                    key={d.id}
-                    diagram={d}
-                    onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
+                        {formatRelative(activeNode.summary_updated_at)}
+                      </span>
+                    )}
+                  </label>
+                  <button
+                    className={styles.summaryRefreshBtn}
+                    onClick={() => {
+                      if (!activeNode) return;
+                      streamSummary((signal) => api.summarizeNode(activeNode.id, signal));
+                    }}
+                    disabled={generatingSummary || !activeNode?.content?.trim()}
+                    title="Generate/Refresh summary"
+                  >
+                    <Compass size={11} />
+                    {!contentSummary && !summaryStreamText
+                      ? "Generate"
+                      : generatingSummary
+                        ? "Generating…"
+                        : "Regenerate"}
+                  </button>
+                </div>
+                {generatingSummary && summaryStreamText ? (
+                  <p className={styles.overviewHint} style={{ fontStyle: "italic" }}>
+                    {summaryStreamText}
+                  </p>
+                ) : contentSummary ? (
+                  <textarea
+                    value={contentSummary}
+                    onChange={(e) => setContentSummary(e.target.value)}
+                    onBlur={async () => {
+                      if (!activeNode) return;
+                      const updated = await api.updateNode(activeNode.id, {
+                        content_summary: contentSummary,
+                      });
+                      setActiveNode({ ...activeNode, ...updated });
+                    }}
+                    className={styles.overviewTextarea}
+                    rows={3}
                   />
-                ))}
+                ) : (
+                  <p className={styles.overviewHint}>
+                    {activeNode?.content?.trim()
+                      ? "Click Generate to create an AI summary of this scene's content."
+                      : "Write some content first, then generate a summary."}
+                  </p>
+                )}
               </div>
-            </div>
-          )}
-          {activeStory?.discovery_enabled && (
-            <div className={styles.overviewField}>
-              <button
-                className={styles.analyzeBtn}
-                onClick={() => runDiscovery(activeNode.story_id, activeNode.id).catch(() => {})}
-                disabled={isDiscoveryAnalyzing}
-                title="Analyze this scene for new characters, settings, and other story elements"
-              >
-                <Telescope size={12} />
-                {isDiscoveryAnalyzing ? "Analyzing…" : "Analyze for discoveries"}
-              </button>
-            </div>
-          )}
-          {linkedTwists.length > 0 && activeStory && (
-            <div className={styles.overviewField}>
-              <div className={styles.linkedHeader}>
-                <label className={styles.overviewLabel}>
-                  <Eye size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />
-                  Linked Twists
-                </label>
-                <button
-                  className={styles.addLinkBtn}
-                  onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
-                  title="Manage twists"
-                >
-                  Manage
-                </button>
-              </div>
-              <div className={styles.linkChips}>
-                {linkedTwists.map((twist) => {
-                  const isReveal = twist.revealed_at_node_id === activeNode.id;
-                  const cluesHere = twist.clues.filter((c) => c.node_id === activeNode.id);
-                  return (
-                    <div key={twist.id} className={styles.linkChip}>
-                      <button
-                        className={styles.linkChipContent}
-                        onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
-                        title={isReveal ? "Reveal scene for this twist" : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""} planted here`}
-                      >
-                        <span className={styles.linkChipLabel}>
-                          {isReveal ? "reveal" : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""}`}
-                        </span>
-                        <span className={styles.linkChipTitle}>{twist.name}</span>
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-          {activeStory && (
-            <div className={styles.overviewField}>
-              <AssetPicker
-                storyId={activeStory.id}
-                objectType="structure_node"
-                objectId={activeNode.id}
-                label="Images & References"
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {showSummary && activeStory && (
-        <div className={styles.summaryWrap}>
-          <button
-            className={styles.summaryCloseBtn}
-            onClick={() => setShowSummary(false)}
-            title="Close"
-          >
-            <X size={13} />
-          </button>
-          <StorySummaryPanel storyId={activeStory.id} />
-        </div>
-      )}
-
-      {sceneSearchOpen && editor && (
-        <EditorSearchBar editor={editor} onClose={closeSceneSearch} />
-      )}
-
-      <div
-        className={styles.scrollArea}
-        ref={scrollAreaRef}
-        onClick={(e) => {
-          if (!dialogueIsolation && editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
-            editor.commands.focus("end");
-          }
-        }}
-      >
-        {dialogueIsolation ? (
-          <div className={styles.dialogueIsolationView}>
-            <div className={styles.dialogueIsolationHeader}>
-              <Quote size={13} />
-              Dialogue only — <button className={styles.dialogueIsolationExit} onClick={() => setDialogueIsolation(false)}>back to prose</button>
-              <div className={styles.dialogueIsolationActions}>
-                <button
-                  className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${aiSuggestLoading ? styles.dialogueIsolationBtnLoading : ""}`}
-                  title={aiSuggestLoading ? "Cancel" : "Auto-Tag — use AI to infer speakers for unattributed dialogue"}
-                  onClick={async () => {
-                    if (aiSuggestLoading) {
-                      aiSuggestAbortRef.current?.abort();
-                      return;
-                    }
-                    if (!activeNode) return;
-                    const ctrl = new AbortController();
-                    aiSuggestAbortRef.current = ctrl;
-                    setAiSuggestLoading(true);
-                    setDismissedAiSuggestions(new Set());
-                    try {
-                      const suggestions = await api.aiSuggestDialogueSpeakers(activeNode.id, ctrl.signal);
-                      setAiSuggestions(suggestions);
-                    } catch {
-                      setAiSuggestions([]);
-                    } finally {
-                      setAiSuggestLoading(false);
-                      aiSuggestAbortRef.current = null;
-                    }
-                  }}
-                >
-                  <Compass size={11} className={aiSuggestLoading ? styles.spinIcon : ""} />
-                  {aiSuggestLoading ? "Cancel" : "Auto-Tag"}
-                </button>
-                <button
-                  className={styles.dialogueIsolationBtn}
-                  title="Tag Suggestions — review heuristic speaker proposals for untagged quotes"
-                  onClick={() => setShowAutoTag(true)}
-                >
-                  <Tag size={11} />
-                  Tag Suggestions
-                </button>
-              </div>
-            </div>
-            {dialogueBlocks.length === 0 ? (
-              <p className={styles.dialogueIsolationEmpty}>No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code> to attribute dialogue.</p>
-            ) : (() => {
-              // Determine effective POV character for this scene
-              const isPovMode = activeStory?.narrative_perspective === "first_person" || activeStory?.narrative_perspective === "multiple_pov";
-              const effectivePovCharId = activeNode?.pov_character_id || activeStory?.pov_character_id || null;
-              const povChar = effectivePovCharId ? characters.find(c => c.id === effectivePovCharId) : null;
-
-              // Assign left/right sides based on speaker — first speaker left, second speaker right, alternating on change
-              const sideMap = new Map<string, "left" | "right">();
-              let sideToggle: "left" | "right" = "left";
-              return (
-                <div className={styles.dialogueBubbles}>
-                  {dialogueBlocks.map((b) => {
-                    const isThought = b.dialogue_type === "thought";
-                    const key = b.speaker_name || "__unknown__";
-                    if (!sideMap.has(key)) {
-                      sideMap.set(key, sideToggle);
-                      sideToggle = sideToggle === "left" ? "right" : "left";
-                    }
-                    const side = sideMap.get(key)!;
-                    const isInferred = b.attribution_method === "inferred" || b.attribution_method === "alternating";
-                    const isPovDefault = b.attribution_method === "pov_default";
-                    const isUnattr = b.attribution_method === "unattributed";
-                    const isPovSpeaker = isPovMode && povChar && b.speaker_name.toLowerCase() === povChar.name.toLowerCase();
-                    // Find matching AI suggestion for unattributed blocks
-                    const aiSuggestion = isUnattr
-                      ? aiSuggestions.find(
-                          (s) =>
-                            !dismissedAiSuggestions.has(s.id) &&
-                            s.quote_content.trim().toLowerCase() === b.content.trim().toLowerCase()
-                        )
-                      : undefined;
-                    return (
+              <div className={styles.overviewField}>
+                <div className={styles.linkedHeader}>
+                  <label className={styles.overviewLabel}>Inline Notes</label>
+                  <button
+                    className={styles.addLinkBtn}
+                    onClick={triggerAddNote}
+                    title="Select text in the editor, then click to annotate it"
+                  >
+                    <Plus size={11} />
+                    Add Note
+                  </button>
+                </div>
+                <div className={styles.noteLegend}>
+                  <span className={styles.noteLegendItem}>
+                    <span className={styles.noteLegendDot} />
+                    Author
+                  </span>
+                  <span className={styles.noteLegendItem}>
+                    <span className={styles.noteLegendDiamond} />
+                    Editorial
+                  </span>
+                  {inlineNotes.some((n) => n.type === "editorial") && (
+                    <button
+                      className={styles.noteLegendToggle}
+                      onClick={() => setHideEditorialNotes((s) => !s)}
+                      title={hideEditorialNotes ? "Show editorial notes" : "Hide editorial notes"}
+                    >
+                      {hideEditorialNotes ? "Show" : "Hide"} editorial
+                    </button>
+                  )}
+                </div>
+                {inlineNotes.length === 0 ? (
+                  <p className={styles.overviewHint}>
+                    Select text in the editor and click Add Note (or press{" "}
+                    {typeof navigator !== "undefined" && navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
+                    +Shift+N).
+                  </p>
+                ) : (
+                  <div className={styles.inlineNoteList}>
+                    {inlineNotes.map((note) => (
                       <div
-                        key={b.id}
-                        className={`${styles.dialogueBubbleWrap} ${side === "right" ? styles.dialogueBubbleWrapRight : ""}`}
+                        key={note.id}
+                        className={`${styles.inlineNoteItem}${note.type === "editorial" ? ` ${styles.inlineNoteItemEditorial}` : ""}`}
                       >
-                        {isThought ? (
-                          <div className={styles.dialogueBubbleSpeaker}>
-                            {isPovSpeaker ? null : (b.speaker_name || "Unknown")}
-                            <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
-                          </div>
-                        ) : isPovSpeaker ? (
-                          <div className={styles.dialogueBubbleSpeaker}>
-                            <span className={styles.dialogueBubblePovLabel}>I</span>
-                            {isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>}
-                          </div>
-                        ) : (
-                          <div className={styles.dialogueBubbleSpeaker}>
-                            {b.speaker_name || "Unknown"}
-                            {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
-                          </div>
-                        )}
-                        <div className={`
+                        <button className={styles.inlineNoteContent} onClick={() => scrollToNote(note.id)}>
+                          <span
+                            className={
+                              note.type === "editorial"
+                                ? styles.inlineNoteAnchorEditorial
+                                : styles.inlineNoteAnchor
+                            }
+                          >
+                            &ldquo;{note.anchor.length > 35 ? note.anchor.slice(0, 35) + "…" : note.anchor}
+                            &rdquo;
+                          </span>
+                          {note.note && (
+                            <span className={styles.inlineNoteText}>
+                              {note.note.length > 60 ? note.note.slice(0, 60) + "…" : note.note}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          className={styles.linkChipDelete}
+                          onClick={() => handleDeleteNote(note.id)}
+                          title="Delete note"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className={styles.overviewField}>
+                <div className={styles.linkedHeader}>
+                  <label className={styles.overviewLabel}>Linked Scenes</label>
+                  <button className={styles.addLinkBtn} onClick={() => setShowAddLink(true)}>
+                    <Plus size={11} />
+                    Add Link
+                  </button>
+                </div>
+                {sceneLinks.length === 0 ? (
+                  <p className={styles.overviewHint}>No scene links yet.</p>
+                ) : (
+                  <div className={styles.linkChips}>
+                    {sceneLinks.map((link) => {
+                      const isForward = link.source_node_id === activeNode.id;
+                      const linkedNodeId = isForward ? link.target_node_id : link.source_node_id;
+                      const linkedNode = findNode(linkedNodeId);
+                      const label = getLinkLabel(link, isForward);
+                      return (
+                        <div key={link.id} className={styles.linkChip}>
+                          <button
+                            className={styles.linkChipContent}
+                            onClick={() => handleNavigateToLink(link)}
+                            title={link.note || undefined}
+                          >
+                            <span className={styles.linkChipLabel}>{label}</span>
+                            <span className={styles.linkChipTitle}>
+                              {linkedNode?.title ?? "Unknown scene"}
+                            </span>
+                          </button>
+                          <button
+                            className={styles.linkChipEdit}
+                            onClick={() => {
+                              setEditingLink(link);
+                              setEditLinkType(link.link_type);
+                              setEditLinkNote(link.note ?? "");
+                            }}
+                            title="Edit link"
+                          >
+                            <Pencil size={10} />
+                          </button>
+                          <button
+                            className={styles.linkChipDelete}
+                            onClick={() => handleDeleteLink(link.id)}
+                            title="Remove link"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              {attachedDiagrams.length > 0 && activeStory && (
+                <div className={styles.overviewField}>
+                  <div className={styles.linkedHeader}>
+                    <label className={styles.overviewLabel}>Diagrams</label>
+                  </div>
+                  <div className={styles.diagramThumbnails}>
+                    {attachedDiagrams.map((d) => (
+                      <DiagramThumbnail
+                        key={d.id}
+                        diagram={d}
+                        onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {activeStory?.discovery_enabled && (
+                <div className={styles.overviewField}>
+                  <button
+                    className={styles.analyzeBtn}
+                    onClick={() => runDiscovery(activeNode.story_id, activeNode.id).catch(() => {})}
+                    disabled={isDiscoveryAnalyzing}
+                    title="Analyze this scene for new characters, settings, and other story elements"
+                  >
+                    <Telescope size={12} />
+                    {isDiscoveryAnalyzing ? "Analyzing…" : "Analyze for discoveries"}
+                  </button>
+                </div>
+              )}
+              {linkedTwists.length > 0 && activeStory && (
+                <div className={styles.overviewField}>
+                  <div className={styles.linkedHeader}>
+                    <label className={styles.overviewLabel}>
+                      <Eye
+                        size={11}
+                        style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }}
+                      />
+                      Linked Twists
+                    </label>
+                    <button
+                      className={styles.addLinkBtn}
+                      onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
+                      title="Manage twists"
+                    >
+                      Manage
+                    </button>
+                  </div>
+                  <div className={styles.linkChips}>
+                    {linkedTwists.map((twist) => {
+                      const isReveal = twist.revealed_at_node_id === activeNode.id;
+                      const cluesHere = twist.clues.filter((c) => c.node_id === activeNode.id);
+                      return (
+                        <div key={twist.id} className={styles.linkChip}>
+                          <button
+                            className={styles.linkChipContent}
+                            onClick={() => navigate(`/stories/${activeStory.id}/twists`)}
+                            title={
+                              isReveal
+                                ? "Reveal scene for this twist"
+                                : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""} planted here`
+                            }
+                          >
+                            <span className={styles.linkChipLabel}>
+                              {isReveal
+                                ? "reveal"
+                                : `${cluesHere.length} clue${cluesHere.length !== 1 ? "s" : ""}`}
+                            </span>
+                            <span className={styles.linkChipTitle}>{twist.name}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {activeStory && (
+                <div className={styles.overviewField}>
+                  <AssetPicker
+                    storyId={activeStory.id}
+                    objectType="structure_node"
+                    objectId={activeNode.id}
+                    label="Images & References"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {showSummary && activeStory && (
+            <div className={styles.summaryWrap}>
+              <button className={styles.summaryCloseBtn} onClick={() => setShowSummary(false)} title="Close">
+                <X size={13} />
+              </button>
+              <StorySummaryPanel storyId={activeStory.id} />
+            </div>
+          )}
+
+          {sceneSearchOpen && editor && <EditorSearchBar editor={editor} onClose={closeSceneSearch} />}
+
+          <div
+            className={styles.scrollArea}
+            ref={scrollAreaRef}
+            onClick={(e) => {
+              if (!dialogueIsolation && editor && !(e.target as HTMLElement).closest(".ProseMirror")) {
+                editor.commands.focus("end");
+              }
+            }}
+          >
+            {dialogueIsolation ? (
+              <div className={styles.dialogueIsolationView}>
+                <div className={styles.dialogueIsolationHeader}>
+                  <Quote size={13} />
+                  Dialogue only —{" "}
+                  <button
+                    className={styles.dialogueIsolationExit}
+                    onClick={() => setDialogueIsolation(false)}
+                  >
+                    back to prose
+                  </button>
+                  <div className={styles.dialogueIsolationActions}>
+                    <button
+                      className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${aiSuggestLoading ? styles.dialogueIsolationBtnLoading : ""}`}
+                      title={
+                        aiSuggestLoading
+                          ? "Cancel"
+                          : "Auto-Tag — use AI to infer speakers for unattributed dialogue"
+                      }
+                      onClick={async () => {
+                        if (aiSuggestLoading) {
+                          aiSuggestAbortRef.current?.abort();
+                          return;
+                        }
+                        if (!activeNode) return;
+                        const ctrl = new AbortController();
+                        aiSuggestAbortRef.current = ctrl;
+                        setAiSuggestLoading(true);
+                        setDismissedAiSuggestions(new Set());
+                        try {
+                          const suggestions = await api.aiSuggestDialogueSpeakers(activeNode.id, ctrl.signal);
+                          setAiSuggestions(suggestions);
+                        } catch {
+                          setAiSuggestions([]);
+                        } finally {
+                          setAiSuggestLoading(false);
+                          aiSuggestAbortRef.current = null;
+                        }
+                      }}
+                    >
+                      <Compass size={11} className={aiSuggestLoading ? styles.spinIcon : ""} />
+                      {aiSuggestLoading ? "Cancel" : "Auto-Tag"}
+                    </button>
+                    <button
+                      className={styles.dialogueIsolationBtn}
+                      title="Tag Suggestions — review heuristic speaker proposals for untagged quotes"
+                      onClick={() => setShowAutoTag(true)}
+                    >
+                      <Tag size={11} />
+                      Tag Suggestions
+                    </button>
+                  </div>
+                </div>
+                {dialogueBlocks.length === 0 ? (
+                  <p className={styles.dialogueIsolationEmpty}>
+                    No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code>{" "}
+                    to attribute dialogue.
+                  </p>
+                ) : (
+                  (() => {
+                    // Determine effective POV character for this scene
+                    const isPovMode =
+                      activeStory?.narrative_perspective === "first_person" ||
+                      activeStory?.narrative_perspective === "multiple_pov";
+                    const effectivePovCharId =
+                      activeNode?.pov_character_id || activeStory?.pov_character_id || null;
+                    const povChar = effectivePovCharId
+                      ? characters.find((c) => c.id === effectivePovCharId)
+                      : null;
+
+                    // Assign left/right sides based on speaker — first speaker left, second speaker right, alternating on change
+                    const sideMap = new Map<string, "left" | "right">();
+                    let sideToggle: "left" | "right" = "left";
+                    return (
+                      <div className={styles.dialogueBubbles}>
+                        {dialogueBlocks.map((b) => {
+                          const isThought = b.dialogue_type === "thought";
+                          const key = b.speaker_name || "__unknown__";
+                          if (!sideMap.has(key)) {
+                            sideMap.set(key, sideToggle);
+                            sideToggle = sideToggle === "left" ? "right" : "left";
+                          }
+                          const side = sideMap.get(key)!;
+                          const isInferred =
+                            b.attribution_method === "inferred" || b.attribution_method === "alternating";
+                          const isPovDefault = b.attribution_method === "pov_default";
+                          const isUnattr = b.attribution_method === "unattributed";
+                          const isPovSpeaker =
+                            isPovMode &&
+                            povChar &&
+                            b.speaker_name.toLowerCase() === povChar.name.toLowerCase();
+                          // Find matching AI suggestion for unattributed blocks
+                          const aiSuggestion = isUnattr
+                            ? aiSuggestions.find(
+                                (s) =>
+                                  !dismissedAiSuggestions.has(s.id) &&
+                                  s.quote_content.trim().toLowerCase() === b.content.trim().toLowerCase(),
+                              )
+                            : undefined;
+                          return (
+                            <div
+                              key={b.id}
+                              className={`${styles.dialogueBubbleWrap} ${side === "right" ? styles.dialogueBubbleWrapRight : ""}`}
+                            >
+                              {isThought ? (
+                                <div className={styles.dialogueBubbleSpeaker}>
+                                  {isPovSpeaker ? null : b.speaker_name || "Unknown"}
+                                  <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
+                                </div>
+                              ) : isPovSpeaker ? (
+                                <div className={styles.dialogueBubbleSpeaker}>
+                                  <span className={styles.dialogueBubblePovLabel}>I</span>
+                                  {isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>}
+                                </div>
+                              ) : (
+                                <div className={styles.dialogueBubbleSpeaker}>
+                                  {b.speaker_name || "Unknown"}
+                                  {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
+                                </div>
+                              )}
+                              <div
+                                className={`
                           ${styles.dialogueBubble}
                           ${side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft}
                           ${isUnattr ? styles.dialogueBubbleUnattr : ""}
                           ${isThought ? styles.dialogueBubbleThought : ""}
                           ${isPovSpeaker && !isThought ? styles.dialogueBubblePov : ""}
-                        `}>
-                          {isThought ? <em>{b.content}</em> : `"${b.content}"`}
-                        </div>
-                        {aiSuggestion && (
-                          <div className={styles.aiSuggestionRow}>
-                            <Compass size={10} className={styles.aiSuggestionIcon} />
-                            <span className={styles.aiSuggestionSpeaker}>{aiSuggestion.inferred_speaker}</span>
-                            {aiSuggestion.source_excerpt && (
-                              <span className={styles.aiSuggestionReason}>{aiSuggestion.source_excerpt}</span>
-                            )}
-                            <button
-                              className={styles.aiSuggestionAccept}
-                              title="Accept this attribution"
-                              onClick={async () => {
-                                if (!activeNode || !aiSuggestion.inferred_speaker) return;
-                                try {
-                                  const updated = await api.applyDialogueTags(activeNode.id, [{
-                                    quote_content: b.content,
-                                    speaker_name: aiSuggestion.inferred_speaker,
-                                  }]);
-                                  setActiveNode({ ...activeNode, ...updated });
-                                  if (editor && updated.content) {
-                                    editor.commands.setContent(updated.content, false);
-                                  }
-                                  // Refresh dialogue blocks
-                                  api.listDialogue(activeNode.id).then(setDialogueBlocks).catch(() => {});
-                                  setDismissedAiSuggestions((prev) => new Set([...prev, aiSuggestion.id]));
-                                } catch { /* ignore */ }
-                              }}
-                            >
-                              ✓
-                            </button>
-                            <button
-                              className={styles.aiSuggestionDismiss}
-                              title="Dismiss this suggestion"
-                              onClick={() => setDismissedAiSuggestions((prev) => new Set([...prev, aiSuggestion.id]))}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        )}
+                        `}
+                              >
+                                {isThought ? <em>{b.content}</em> : `"${b.content}"`}
+                              </div>
+                              {aiSuggestion && (
+                                <div className={styles.aiSuggestionRow}>
+                                  <Compass size={10} className={styles.aiSuggestionIcon} />
+                                  <span className={styles.aiSuggestionSpeaker}>
+                                    {aiSuggestion.inferred_speaker}
+                                  </span>
+                                  {aiSuggestion.source_excerpt && (
+                                    <span className={styles.aiSuggestionReason}>
+                                      {aiSuggestion.source_excerpt}
+                                    </span>
+                                  )}
+                                  <button
+                                    className={styles.aiSuggestionAccept}
+                                    title="Accept this attribution"
+                                    onClick={async () => {
+                                      if (!activeNode || !aiSuggestion.inferred_speaker) return;
+                                      try {
+                                        const updated = await api.applyDialogueTags(activeNode.id, [
+                                          {
+                                            quote_content: b.content,
+                                            speaker_name: aiSuggestion.inferred_speaker,
+                                          },
+                                        ]);
+                                        setActiveNode({ ...activeNode, ...updated });
+                                        if (editor && updated.content) {
+                                          editor.commands.setContent(updated.content, false);
+                                        }
+                                        // Refresh dialogue blocks
+                                        api
+                                          .listDialogue(activeNode.id)
+                                          .then(setDialogueBlocks)
+                                          .catch(() => {});
+                                        setDismissedAiSuggestions(
+                                          (prev) => new Set([...prev, aiSuggestion.id]),
+                                        );
+                                      } catch {
+                                        /* ignore */
+                                      }
+                                    }}
+                                  >
+                                    ✓
+                                  </button>
+                                  <button
+                                    className={styles.aiSuggestionDismiss}
+                                    title="Dismiss this suggestion"
+                                    onClick={() =>
+                                      setDismissedAiSuggestions((prev) => new Set([...prev, aiSuggestion.id]))
+                                    }
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     );
-                  })}
-                </div>
-              );
-            })()}
+                  })()
+                )}
+              </div>
+            ) : (
+              <div
+                className={`${styles.editorWrap}${hideEditorialNotes ? ` ${styles.hideEditorialNotes}` : ""}`}
+              >
+                <EditorContent editor={editor} />
+              </div>
+            )}
           </div>
-        ) : (
-          <div className={`${styles.editorWrap}${hideEditorialNotes ? ` ${styles.hideEditorialNotes}` : ""}`}>
-            <EditorContent editor={editor} />
-          </div>
+        </div>
+        {/* end editorColumn */}
+        {plannerPanelOpen && activeStory && (
+          <ScenePlannerPanel storyId={activeStory.id} nodeId={activeNode.id} />
+        )}
+        {brainstormPanelOpen && activeStory && (
+          <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}
       </div>
-
-      </div>{/* end editorColumn */}
-      {plannerPanelOpen && activeStory && (
-        <ScenePlannerPanel storyId={activeStory.id} nodeId={activeNode.id} />
-      )}
-      {brainstormPanelOpen && activeStory && (
-        <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
-      )}
-      </div>{/* end contentRow */}
+      {/* end contentRow */}
 
       {/* Writing reference guides — tabbed modal */}
       <WritingGuidesModal
@@ -2145,193 +2446,197 @@ export default function SceneEditor() {
       />
 
       {/* Inline note popover */}
-      {notePopover.open && (() => {
-        const rect = notePopover.rect;
-        const top = rect
-          ? Math.min(rect.bottom + 8, window.innerHeight - 220)
-          : window.innerHeight / 2 - 80;
-        const left = rect
-          ? Math.max(8, Math.min(rect.left, window.innerWidth - 296))
-          : window.innerWidth / 2 - 140;
-        const existingNote = !notePopover.isNew
-          ? inlineNotes.find((n) => n.id === notePopover.noteId)
-          : undefined;
-        return (
-          <div
-            ref={notePopoverRef}
-            className={styles.notePopover}
-            style={{ top, left }}
-          >
-            <div className={styles.notePopoverHeader}>
-              <span className={styles.notePopoverTitle}>
-                {notePopover.isNew ? "Add Note" : "Author Note"}
-              </span>
-              <div className={styles.notePopoverActions}>
-                {!notePopover.isNew && !notePopover.isEditing && (
-                  <button
-                    className={styles.notePopoverEdit}
-                    onClick={() => { setNoteEditText(existingNote?.note ?? ""); setNotePopover({ ...notePopover, isEditing: true }); }}
-                    title="Edit note"
-                  >
-                    <Pencil size={12} />
+      {notePopover.open &&
+        (() => {
+          const rect = notePopover.rect;
+          const top = rect
+            ? Math.min(rect.bottom + 8, window.innerHeight - 220)
+            : window.innerHeight / 2 - 80;
+          const left = rect
+            ? Math.max(8, Math.min(rect.left, window.innerWidth - 296))
+            : window.innerWidth / 2 - 140;
+          const existingNote = !notePopover.isNew
+            ? inlineNotes.find((n) => n.id === notePopover.noteId)
+            : undefined;
+          return (
+            <div ref={notePopoverRef} className={styles.notePopover} style={{ top, left }}>
+              <div className={styles.notePopoverHeader}>
+                <span className={styles.notePopoverTitle}>
+                  {notePopover.isNew ? "Add Note" : "Author Note"}
+                </span>
+                <div className={styles.notePopoverActions}>
+                  {!notePopover.isNew && !notePopover.isEditing && (
+                    <button
+                      className={styles.notePopoverEdit}
+                      onClick={() => {
+                        setNoteEditText(existingNote?.note ?? "");
+                        setNotePopover({ ...notePopover, isEditing: true });
+                      }}
+                      title="Edit note"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                  )}
+                  {!notePopover.isNew && (
+                    <button
+                      className={styles.notePopoverDelete}
+                      onClick={() => handleDeleteNote(notePopover.noteId)}
+                      title="Delete note"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                  <button className={styles.notePopoverClose} onClick={() => setNotePopover({ open: false })}>
+                    <X size={13} />
                   </button>
-                )}
-                {!notePopover.isNew && (
-                  <button
-                    className={styles.notePopoverDelete}
-                    onClick={() => handleDeleteNote(notePopover.noteId)}
-                    title="Delete note"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                )}
-                <button
-                  className={styles.notePopoverClose}
-                  onClick={() => setNotePopover({ open: false })}
-                >
-                  <X size={13} />
-                </button>
+                </div>
               </div>
-            </div>
-            <div className={styles.notePopoverBody}>
-              <p className={styles.notePopoverAnchor}>
-                &ldquo;{notePopover.isNew ? notePopover.anchor : existingNote?.anchor}&rdquo;
-              </p>
-              {notePopover.isNew ? (
-                <textarea
-                  className={styles.notePopoverInput}
-                  value={noteInputText}
-                  onChange={(e) => setNoteInputText(e.target.value)}
-                  placeholder="Your note…"
-                  rows={3}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") setNotePopover({ open: false });
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote();
-                  }}
-                />
-              ) : notePopover.isEditing ? (
-                <textarea
-                  className={styles.notePopoverInput}
-                  value={noteEditText}
-                  onChange={(e) => setNoteEditText(e.target.value)}
-                  rows={3}
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") setNotePopover({ ...notePopover, isEditing: false });
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleUpdateNote(notePopover.noteId, noteEditText);
-                  }}
-                />
-              ) : (
-                <p className={styles.notePopoverNoteText}>
-                  {existingNote?.note || <em>No note text.</em>}
+              <div className={styles.notePopoverBody}>
+                <p className={styles.notePopoverAnchor}>
+                  &ldquo;{notePopover.isNew ? notePopover.anchor : existingNote?.anchor}&rdquo;
                 </p>
+                {notePopover.isNew ? (
+                  <textarea
+                    className={styles.notePopoverInput}
+                    value={noteInputText}
+                    onChange={(e) => setNoteInputText(e.target.value)}
+                    placeholder="Your note…"
+                    rows={3}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setNotePopover({ open: false });
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote();
+                    }}
+                  />
+                ) : notePopover.isEditing ? (
+                  <textarea
+                    className={styles.notePopoverInput}
+                    value={noteEditText}
+                    onChange={(e) => setNoteEditText(e.target.value)}
+                    rows={3}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setNotePopover({ ...notePopover, isEditing: false });
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey))
+                        handleUpdateNote(notePopover.noteId, noteEditText);
+                    }}
+                  />
+                ) : (
+                  <p className={styles.notePopoverNoteText}>{existingNote?.note || <em>No note text.</em>}</p>
+                )}
+              </div>
+              {(notePopover.isNew || (!notePopover.isNew && notePopover.isEditing)) && (
+                <div className={styles.notePopoverFooter}>
+                  <button
+                    className={styles.modalCancel}
+                    onClick={() =>
+                      notePopover.isNew
+                        ? setNotePopover({ open: false })
+                        : setNotePopover({ ...notePopover, isEditing: false })
+                    }
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className={styles.modalSave}
+                    onClick={() =>
+                      notePopover.isNew
+                        ? handleSaveNote()
+                        : handleUpdateNote(notePopover.noteId, noteEditText)
+                    }
+                    disabled={notePopover.isNew ? !noteInputText.trim() : !noteEditText.trim()}
+                  >
+                    Save Note
+                  </button>
+                </div>
               )}
             </div>
-            {(notePopover.isNew || (!notePopover.isNew && notePopover.isEditing)) && (
-              <div className={styles.notePopoverFooter}>
-                <button
-                  className={styles.modalCancel}
-                  onClick={() => notePopover.isNew ? setNotePopover({ open: false }) : setNotePopover({ ...notePopover, isEditing: false })}
-                >
-                  Cancel
-                </button>
-                <button
-                  className={styles.modalSave}
-                  onClick={() => notePopover.isNew ? handleSaveNote() : handleUpdateNote(notePopover.noteId, noteEditText)}
-                  disabled={notePopover.isNew ? !noteInputText.trim() : !noteEditText.trim()}
-                >
-                  Save Note
-                </button>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Mention hover card */}
-      {hoverCard.open && (() => {
-        const card = hoverCard;
-        const top = Math.max(8, card.rect.top - 12);
-        const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
-        return (
-          <div
-            ref={hoverCardRef}
-            className={styles.hoverCard}
-            style={{ top, left, transform: "translateY(-100%)" }}
-            onMouseEnter={() => {
-              if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
-            }}
-            onMouseLeave={() => setHoverCard({ open: false })}
-          >
-            {card.found ? (
-              <>
-                <div className={styles.hoverCardHeader}>
-                  <span className={styles.hoverCardName}>{card.name}</span>
-                  <span className={styles.hoverCardLabel}>{card.roleOrLabel}</span>
-                  {card.pronouns && (
-                    <span className={styles.hoverCardPronouns}>{card.pronouns}</span>
+      {hoverCard.open &&
+        (() => {
+          const card = hoverCard;
+          const top = Math.max(8, card.rect.top - 12);
+          const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
+          return (
+            <div
+              ref={hoverCardRef}
+              className={styles.hoverCard}
+              style={{ top, left, transform: "translateY(-100%)" }}
+              onMouseEnter={() => {
+                if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+              }}
+              onMouseLeave={() => setHoverCard({ open: false })}
+            >
+              {card.found ? (
+                <>
+                  <div className={styles.hoverCardHeader}>
+                    <span className={styles.hoverCardName}>{card.name}</span>
+                    <span className={styles.hoverCardLabel}>{card.roleOrLabel}</span>
+                    {card.pronouns && <span className={styles.hoverCardPronouns}>{card.pronouns}</span>}
+                  </div>
+                  {card.excerpt && <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>}
+                  {activeStory && (
+                    <button
+                      className={styles.hoverCardViewBtn}
+                      onClick={() => {
+                        setHoverCard({ open: false });
+                        if (card.type === "character") {
+                          navigate(`/stories/${activeStory.id}/characters/${card.entityId}`);
+                        } else {
+                          navigate(`/stories/${activeStory.id}/worldbuilding`, {
+                            state: { selectLocationName: card.name },
+                          });
+                        }
+                      }}
+                    >
+                      View →
+                    </button>
                   )}
+                </>
+              ) : (
+                <div className={styles.hoverCardNotFound}>
+                  <span className={styles.hoverCardMissingName}>{card.name}</span>
+                  <span className={styles.hoverCardNotFoundBadge}>Not found</span>
                 </div>
-                {card.excerpt && (
-                  <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>
-                )}
-                {activeStory && (
-                  <button
-                    className={styles.hoverCardViewBtn}
-                    onClick={() => {
-                      setHoverCard({ open: false });
-                      if (card.type === "character") {
-                        navigate(`/stories/${activeStory.id}/characters/${card.entityId}`);
-                      } else {
-                        navigate(`/stories/${activeStory.id}/worldbuilding`, { state: { selectLocationName: card.name } });
-                      }
-                    }}
-                  >
-                    View →
-                  </button>
-                )}
-              </>
-            ) : (
-              <div className={styles.hoverCardNotFound}>
-                <span className={styles.hoverCardMissingName}>{card.name}</span>
-                <span className={styles.hoverCardNotFoundBadge}>Not found</span>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+              )}
+            </div>
+          );
+        })()}
 
       {/* Slash command picker */}
-      {slashOpen && (() => {
-        const matchingCmds = SLASH_COMMANDS.filter((c) => c.name.startsWith(slashQuery));
-        if (!matchingCmds.length) return null;
-        return (
-          <div
-            className={styles.slashDropdown}
-            style={{
-              top: Math.min(slashPos.bottom + 4, window.innerHeight - 160),
-              left: Math.max(8, Math.min(slashPos.left, window.innerWidth - 300)),
-            }}
-          >
-            <p className={styles.slashDropdownHint}>Slash commands</p>
-            {matchingCmds.map((cmd, idx) => (
-              <button
-                key={cmd.name}
-                className={`${styles.slashItem} ${idx === slashSelIdx ? styles.slashItemSelected : ""}`}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  if (slashRange) executeSlashCommand(cmd.name, slashRange.from, slashRange.to);
-                }}
-              >
-                <span className={styles.slashItemLabel}>{cmd.label}</span>
-                <span className={styles.slashItemDesc}>{cmd.description}</span>
-                <kbd className={styles.slashItemKbd}>Tab</kbd>
-              </button>
-            ))}
-          </div>
-        );
-      })()}
+      {slashOpen &&
+        (() => {
+          const matchingCmds = SLASH_COMMANDS.filter((c) => c.name.startsWith(slashQuery));
+          if (!matchingCmds.length) return null;
+          return (
+            <div
+              className={styles.slashDropdown}
+              style={{
+                top: Math.min(slashPos.bottom + 4, window.innerHeight - 160),
+                left: Math.max(8, Math.min(slashPos.left, window.innerWidth - 300)),
+              }}
+            >
+              <p className={styles.slashDropdownHint}>Slash commands</p>
+              {matchingCmds.map((cmd, idx) => (
+                <button
+                  key={cmd.name}
+                  className={`${styles.slashItem} ${idx === slashSelIdx ? styles.slashItemSelected : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (slashRange) executeSlashCommand(cmd.name, slashRange.from, slashRange.to);
+                  }}
+                >
+                  <span className={styles.slashItemLabel}>{cmd.label}</span>
+                  <span className={styles.slashItemDesc}>{cmd.description}</span>
+                  <kbd className={styles.slashItemKbd}>Tab</kbd>
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
       {/* Inline TODO input popup (opened by /todo) */}
       {todoInputOpen && (
@@ -2350,21 +2655,33 @@ export default function SceneEditor() {
             onChange={(e) => setTodoInputText(e.target.value)}
             placeholder="What needs doing?"
             onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); submitTodoInput(); }
-              if (e.key === "Escape") { e.preventDefault(); setTodoInputOpen(false); }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                submitTodoInput();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                setTodoInputOpen(false);
+              }
             }}
           />
           <div className={styles.todoInputActions}>
             <button
               className={styles.todoInputSubmit}
-              onMouseDown={(e) => { e.preventDefault(); submitTodoInput(); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                submitTodoInput();
+              }}
               disabled={!todoInputText.trim()}
             >
               Add TODO
             </button>
             <button
               className={styles.todoInputCancel}
-              onMouseDown={(e) => { e.preventDefault(); setTodoInputOpen(false); }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setTodoInputOpen(false);
+              }}
             >
               Cancel
             </button>
@@ -2381,16 +2698,8 @@ export default function SceneEditor() {
             left: Math.max(8, Math.min(mentionPos.left, window.innerWidth - 260)),
           }}
         >
-          {dialogueModeDropdown && (
-            <div className={styles.mentionDropdownDialogueMode}>
-              Dialogue speaker
-            </div>
-          )}
-          {attributionModeDropdown && (
-            <div className={styles.mentionDropdownDialogueMode}>
-              Attribute to
-            </div>
-          )}
+          {dialogueModeDropdown && <div className={styles.mentionDropdownDialogueMode}>Dialogue speaker</div>}
+          {attributionModeDropdown && <div className={styles.mentionDropdownDialogueMode}>Attribute to</div>}
           {filteredMentionItems.map((item, idx) => (
             <button
               key={`${item.type}:${item.name}`}
@@ -2418,7 +2727,7 @@ export default function SceneEditor() {
       {/* Add Link modal */}
       {showAddLink && (
         <div className={styles.modalOverlay} onClick={() => setShowAddLink(false)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <span className={styles.modalTitle}>Add Scene Link</span>
               <button className={styles.modalClose} onClick={() => setShowAddLink(false)}>
@@ -2432,17 +2741,17 @@ export default function SceneEditor() {
                   type="text"
                   placeholder="Search scenes…"
                   value={addLinkSearch}
-                  onChange={e => setAddLinkSearch(e.target.value)}
+                  onChange={(e) => setAddLinkSearch(e.target.value)}
                   className={styles.modalInput}
                   autoFocus
                 />
                 <div className={styles.nodeList}>
                   {flatNodes
-                    .filter(n =>
-                      n.id !== activeNode.id &&
-                      n.title.toLowerCase().includes(addLinkSearch.toLowerCase())
+                    .filter(
+                      (n) =>
+                        n.id !== activeNode.id && n.title.toLowerCase().includes(addLinkSearch.toLowerCase()),
                     )
-                    .map(n => (
+                    .map((n) => (
                       <button
                         key={n.id}
                         className={`${styles.nodeListItem} ${addLinkTarget?.id === n.id ? styles.nodeListItemSelected : ""}`}
@@ -2458,11 +2767,13 @@ export default function SceneEditor() {
                 <label className={styles.modalLabel}>Link Type</label>
                 <select
                   value={addLinkType}
-                  onChange={e => setAddLinkType(e.target.value)}
+                  onChange={(e) => setAddLinkType(e.target.value)}
                   className={styles.modalSelect}
                 >
-                  {LINK_TYPES.map(t => (
-                    <option key={t.value} value={t.value}>{t.forward}</option>
+                  {LINK_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.forward}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2470,7 +2781,7 @@ export default function SceneEditor() {
                 <label className={styles.modalLabel}>Note (optional)</label>
                 <textarea
                   value={addLinkNote}
-                  onChange={e => setAddLinkNote(e.target.value)}
+                  onChange={(e) => setAddLinkNote(e.target.value)}
                   placeholder="Describe how these scenes connect…"
                   className={styles.modalTextarea}
                   rows={2}
@@ -2481,11 +2792,7 @@ export default function SceneEditor() {
               <button className={styles.modalCancel} onClick={() => setShowAddLink(false)}>
                 Cancel
               </button>
-              <button
-                className={styles.modalSave}
-                onClick={handleCreateLink}
-                disabled={!addLinkTarget}
-              >
+              <button className={styles.modalSave} onClick={handleCreateLink} disabled={!addLinkTarget}>
                 Add Link
               </button>
             </div>
@@ -2496,7 +2803,7 @@ export default function SceneEditor() {
       {/* Edit Link modal */}
       {editingLink && (
         <div className={styles.modalOverlay} onClick={() => setEditingLink(null)}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <span className={styles.modalTitle}>Edit Scene Link</span>
               <button className={styles.modalClose} onClick={() => setEditingLink(null)}>
@@ -2508,11 +2815,13 @@ export default function SceneEditor() {
                 <label className={styles.modalLabel}>Link Type</label>
                 <select
                   value={editLinkType}
-                  onChange={e => setEditLinkType(e.target.value)}
+                  onChange={(e) => setEditLinkType(e.target.value)}
                   className={styles.modalSelect}
                 >
-                  {LINK_TYPES.map(t => (
-                    <option key={t.value} value={t.value}>{t.forward}</option>
+                  {LINK_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.forward}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -2520,7 +2829,7 @@ export default function SceneEditor() {
                 <label className={styles.modalLabel}>Note (optional)</label>
                 <textarea
                   value={editLinkNote}
-                  onChange={e => setEditLinkNote(e.target.value)}
+                  onChange={(e) => setEditLinkNote(e.target.value)}
                   placeholder="Describe how these scenes connect…"
                   className={styles.modalTextarea}
                   rows={2}

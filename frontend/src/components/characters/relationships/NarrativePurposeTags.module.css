@@ -62,7 +62,9 @@
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
   cursor: pointer;
-  transition: border-color var(--transition), color var(--transition);
+  transition:
+    border-color var(--transition),
+    color var(--transition);
 }
 
 .addBtn:hover {

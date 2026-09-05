@@ -1,5 +1,25 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { AlignLeft, Compass, HelpCircle, Search, Play, Loader2, BarChart3, Activity, GitMerge, Palette, Skull, FileCheck, ClipboardCheck, Repeat2, Users, ScrollText, Square, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  AlignLeft,
+  Compass,
+  HelpCircle,
+  Search,
+  Play,
+  Loader2,
+  BarChart3,
+  Activity,
+  GitMerge,
+  Palette,
+  Skull,
+  FileCheck,
+  ClipboardCheck,
+  Repeat2,
+  Users,
+  ScrollText,
+  Square,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
@@ -93,7 +113,9 @@ const ANALYSES: AnalysisDef[] = [
       const s = log.metadata_?.scene_count as number | undefined;
       if (t == null || p == null) return log.description;
       const total = t + p;
-      return total === 0 ? `${s} scenes — clean` : `${t} tense shift${t !== 1 ? "s" : ""} · ${p} POV flag${p !== 1 ? "s" : ""}`;
+      return total === 0
+        ? `${s} scenes — clean`
+        : `${t} tense shift${t !== 1 ? "s" : ""} · ${p} POV flag${p !== 1 ? "s" : ""}`;
     },
   },
   {
@@ -105,7 +127,11 @@ const ANALYSES: AnalysisDef[] = [
     run: (id, signal) => api.analyzePacing(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.issue_count as number | undefined;
-      return n != null ? (n === 0 ? "No pacing concerns" : `${n} slow spot${n !== 1 ? "s" : ""}`) : "Analysis run";
+      return n != null
+        ? n === 0
+          ? "No pacing concerns"
+          : `${n} slow spot${n !== 1 ? "s" : ""}`
+        : "Analysis run";
     },
   },
   {
@@ -117,7 +143,11 @@ const ANALYSES: AnalysisDef[] = [
     run: (id, signal) => api.analyzeContinuity(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.issue_count as number | undefined;
-      return n != null ? (n === 0 ? "No issues found" : `${n} continuity issue${n !== 1 ? "s" : ""}`) : "Analysis run";
+      return n != null
+        ? n === 0
+          ? "No issues found"
+          : `${n} continuity issue${n !== 1 ? "s" : ""}`
+        : "Analysis run";
     },
   },
   {
@@ -141,7 +171,11 @@ const ANALYSES: AnalysisDef[] = [
     run: (id, signal) => api.analyzePlotHoles(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.hole_count as number | undefined;
-      return n != null ? (n === 0 ? "No holes found" : `${n} plot hole${n !== 1 ? "s" : ""}`) : "Analysis run";
+      return n != null
+        ? n === 0
+          ? "No holes found"
+          : `${n} plot hole${n !== 1 ? "s" : ""}`
+        : "Analysis run";
     },
   },
   {
@@ -153,7 +187,11 @@ const ANALYSES: AnalysisDef[] = [
     run: (id, signal) => api.analyzeFirstPass(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.gap_count as number | undefined;
-      return n != null ? (n === 0 ? "Intent well realized" : `${n} intent gap${n !== 1 ? "s" : ""}`) : "Analysis run";
+      return n != null
+        ? n === 0
+          ? "Intent well realized"
+          : `${n} intent gap${n !== 1 ? "s" : ""}`
+        : "Analysis run";
     },
   },
   {
@@ -165,7 +203,11 @@ const ANALYSES: AnalysisDef[] = [
     run: (id, signal) => api.analyzeCliches(id, signal),
     summarize: (log) => {
       const n = log.metadata_?.cliche_count as number | undefined;
-      return n != null ? (n === 0 ? "No clichés found" : `${n} cliché${n !== 1 ? "s" : ""} found`) : "Analysis run";
+      return n != null
+        ? n === 0
+          ? "No clichés found"
+          : `${n} cliché${n !== 1 ? "s" : ""} found`
+        : "Analysis run";
     },
   },
   {
@@ -240,68 +282,96 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem("ls_health_actions_collapsed") === "true"; }
-    catch { return false; }
+    try {
+      return localStorage.getItem("ls_health_actions_collapsed") === "true";
+    } catch {
+      return false;
+    }
   });
 
   const [activeTab, setActiveTab] = useState<string>(() => {
-    try { return localStorage.getItem("ls_health_actions_tab") ?? CATEGORIES[0].id; }
-    catch { return CATEGORIES[0].id; }
+    try {
+      return localStorage.getItem("ls_health_actions_tab") ?? CATEGORIES[0].id;
+    } catch {
+      return CATEGORIES[0].id;
+    }
   });
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem("ls_health_actions_collapsed", String(next)); } catch {
-      /* ignore */
-    }
+      try {
+        localStorage.setItem("ls_health_actions_collapsed", String(next));
+      } catch {
+        /* ignore */
+      }
       return next;
     });
   }, []);
 
   const handleTabChange = useCallback((tabId: string) => {
     setActiveTab(tabId);
-    try { localStorage.setItem("ls_health_actions_tab", tabId); } catch {
+    try {
+      localStorage.setItem("ls_health_actions_tab", tabId);
+    } catch {
       /* ignore */
     }
   }, []);
 
   const fetchLatest = useCallback(() => {
-    Promise.all(
-      ANALYSES.map((a) => api.getLatestAnalysis(storyId, a.id).catch(() => null))
-    ).then((results) => {
-      const map: Record<string, ActivityLog | null> = {};
-      ANALYSES.forEach((a, i) => { map[a.id] = results[i]; });
-      setLatest(map);
-    });
+    Promise.all(ANALYSES.map((a) => api.getLatestAnalysis(storyId, a.id).catch(() => null))).then(
+      (results) => {
+        const map: Record<string, ActivityLog | null> = {};
+        ANALYSES.forEach((a, i) => {
+          map[a.id] = results[i];
+        });
+        setLatest(map);
+      },
+    );
   }, [storyId]);
 
-  useEffect(() => { fetchLatest(); }, [fetchLatest]);
+  useEffect(() => {
+    fetchLatest();
+  }, [fetchLatest]);
 
-  const runAnalysis = useCallback(async (analysis: AnalysisDef, signal: AbortSignal) => {
-    setRunning((prev) => new Set(prev).add(analysis.id));
-    setErrors((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
-    try {
-      await analysis.run(storyId, signal);
-      if (!signal.aborted) {
-        onAnalysisComplete();
-        fetchLatest();
+  const runAnalysis = useCallback(
+    async (analysis: AnalysisDef, signal: AbortSignal) => {
+      setRunning((prev) => new Set(prev).add(analysis.id));
+      setErrors((prev) => {
+        const s = new Set(prev);
+        s.delete(analysis.id);
+        return s;
+      });
+      try {
+        await analysis.run(storyId, signal);
+        if (!signal.aborted) {
+          onAnalysisComplete();
+          fetchLatest();
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        if (!signal.aborted) {
+          setErrors((prev) => new Set(prev).add(analysis.id));
+        }
+      } finally {
+        setRunning((prev) => {
+          const s = new Set(prev);
+          s.delete(analysis.id);
+          return s;
+        });
       }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      if (!signal.aborted) {
-        setErrors((prev) => new Set(prev).add(analysis.id));
-      }
-    } finally {
-      setRunning((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
-    }
-  }, [storyId, onAnalysisComplete, fetchLatest]);
+    },
+    [storyId, onAnalysisComplete, fetchLatest],
+  );
 
-  const runSingle = useCallback((analysis: AnalysisDef) => {
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    runAnalysis(analysis, controller.signal);
-  }, [runAnalysis]);
+  const runSingle = useCallback(
+    (analysis: AnalysisDef) => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      runAnalysis(analysis, controller.signal);
+    },
+    [runAnalysis],
+  );
 
   const runAll = useCallback(async () => {
     const controller = new AbortController();
@@ -332,7 +402,15 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   return (
     <div className={styles.toolbar}>
       {/* Header row — always visible */}
-      <div className={styles.toolbarHeader} onClick={toggleCollapsed} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleCollapsed(); }}>
+      <div
+        className={styles.toolbarHeader}
+        onClick={toggleCollapsed}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") toggleCollapsed();
+        }}
+      >
         <span className={styles.toolbarChevron}>
           {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
         </span>
@@ -347,7 +425,11 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
               Stop
             </button>
           ) : (
-            <button className={styles.runAllBtn} onClick={runAll} title="Run all analyses across all categories">
+            <button
+              className={styles.runAllBtn}
+              onClick={runAll}
+              title="Run all analyses across all categories"
+            >
               <Play size={11} />
               Run All
             </button>
@@ -385,11 +467,17 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
           <div className={styles.categoryMeta}>
             <span className={styles.categoryDesc}>{activeCategory.description}</span>
             <span className={styles.legendSep} />
-            <span className={styles.legendItem} style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}>
+            <span
+              className={styles.legendItem}
+              style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}
+            >
               <span className={styles.legendDot} />
               Local NLP
             </span>
-            <span className={styles.legendItem} style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}>
+            <span
+              className={styles.legendItem}
+              style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}
+            >
               <span className={styles.legendDot} />
               AI
             </span>
@@ -414,15 +502,14 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
                 >
                   <div className={styles.btnMain}>
                     <div className={styles.btnIcon}>
-                      {isRunning
-                        ? <Loader2 size={14} className={styles.spinner} />
-                        : <analysis.Icon size={14} />
-                      }
+                      {isRunning ? (
+                        <Loader2 size={14} className={styles.spinner} />
+                      ) : (
+                        <analysis.Icon size={14} />
+                      )}
                     </div>
                     <div className={styles.btnBody}>
-                      <span className={styles.btnLabel}>
-                        {isRunning ? "Running…" : analysis.label}
-                      </span>
+                      <span className={styles.btnLabel}>{isRunning ? "Running…" : analysis.label}</span>
                       <span className={styles.btnDesc}>{analysis.description}</span>
                       {isRunning ? null : log ? (
                         <span className={styles.btnMeta}>

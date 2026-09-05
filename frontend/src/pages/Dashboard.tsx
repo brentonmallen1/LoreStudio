@@ -49,7 +49,9 @@ export default function DashboardPage() {
               {user?.display_name ? `Good to see you, ${user.display_name.split(" ")[0]}` : "Your Stories"}
             </h1>
             <p className={styles.subtitle}>
-              {stories.length === 0 ? "No stories yet" : `${stories.length} ${stories.length === 1 ? "story" : "stories"}`}
+              {stories.length === 0
+                ? "No stories yet"
+                : `${stories.length} ${stories.length === 1 ? "story" : "stories"}`}
             </p>
           </div>
           <div className={styles.headActions}>
@@ -69,7 +71,8 @@ export default function DashboardPage() {
             <div className={styles.emptyBody}>
               <p className={styles.emptyHeadline}>A thinking space for writers.</p>
               <p className={styles.emptySubhead}>
-                LoreStudio helps you plan, organize, and understand your story — characters, structure, plot, and the ideas connecting them. You do the writing; LoreStudio keeps the threads straight.
+                LoreStudio helps you plan, organize, and understand your story — characters, structure, plot,
+                and the ideas connecting them. You do the writing; LoreStudio keeps the threads straight.
               </p>
               <ul className={styles.emptyFeatures} aria-label="Key features">
                 <li>Build a lorebook of characters, settings, and relationships</li>
@@ -98,9 +101,7 @@ export default function DashboardPage() {
                   aria-label={`Open ${story.title}`}
                 >
                   <h3 className={styles.storyTitle}>{story.title}</h3>
-                  {story.description && (
-                    <p className={styles.storyDesc}>{story.description}</p>
-                  )}
+                  {story.description && <p className={styles.storyDesc}>{story.description}</p>}
                   <div className={styles.storymeta}>
                     <Clock size={11} />
                     {formatRelative(story.updated_at)}
@@ -108,8 +109,18 @@ export default function DashboardPage() {
                 </button>
                 {pendingDeleteId === story.id ? (
                   <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-                    <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>Delete</button>
-                    <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteId(null); }}>Cancel</button>
+                    <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>
+                      Delete
+                    </button>
+                    <button
+                      className={styles.deleteConfirmNo}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteId(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 ) : (
                   <button

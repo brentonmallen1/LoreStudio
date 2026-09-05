@@ -46,11 +46,7 @@ export default function ChatInput({
           disabled={disabled}
         />
         {disabled && onCancel ? (
-          <button
-            onClick={onCancel}
-            className={styles.stopBtn}
-            title="Cancel response"
-          >
+          <button onClick={onCancel} className={styles.stopBtn} title="Cancel response">
             <Square size={13} />
           </button>
         ) : (

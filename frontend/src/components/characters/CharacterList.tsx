@@ -25,17 +25,21 @@ export default function CharacterList({ storyId }: Props) {
     if (!characters.length) return;
     Promise.all(
       characters.map((c) =>
-        api.listAttachments("character", c.id)
+        api
+          .listAttachments("character", c.id)
           .then((atts) => {
             const portrait = atts.find((a) => a.role === "portrait");
             return { id: c.id, url: portrait ? api.assetFileUrl(portrait.asset_id) : null };
           })
-          .catch(() => ({ id: c.id, url: null as string | null }))
-      )
+          .catch(() => ({ id: c.id, url: null as string | null })),
+      ),
     ).then((results) => {
       setPortraitUrls((prev) => {
         const next = { ...prev };
-        results.forEach(({ id, url }) => { if (url) next[id] = url; else delete next[id]; });
+        results.forEach(({ id, url }) => {
+          if (url) next[id] = url;
+          else delete next[id];
+        });
         return next;
       });
     });
@@ -94,12 +98,15 @@ export default function CharacterList({ storyId }: Props) {
               className={styles.charJumpSelect}
               value=""
               onChange={(e) => {
-                if (e.target.value) navigate(`/stories/${storyId}/characters/${e.target.value}?tab=relationships`);
+                if (e.target.value)
+                  navigate(`/stories/${storyId}/characters/${e.target.value}?tab=relationships`);
               }}
             >
               <option value="">View character relationships…</option>
               {characters.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           )}
@@ -114,13 +121,13 @@ export default function CharacterList({ storyId }: Props) {
       {view === "graph" && (
         <RelationshipGraph
           storyId={storyId}
-          onEditRelationship={(rel) => navigate(`/stories/${storyId}/characters/${rel.character_id}?tab=relationships`)}
+          onEditRelationship={(rel) =>
+            navigate(`/stories/${storyId}/characters/${rel.character_id}?tab=relationships`)
+          }
         />
       )}
 
-      {view === "relationships" && (
-        <GlobalRelationshipsView storyId={storyId} />
-      )}
+      {view === "relationships" && <GlobalRelationshipsView storyId={storyId} />}
 
       {view === "list" && (
         <div className={styles.listContent}>
@@ -128,8 +135,8 @@ export default function CharacterList({ storyId }: Props) {
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>No characters yet</p>
               <p className={styles.emptyDesc}>
-                Each character gets a full profile, a role in the story, and their own interview
-                space — so you can talk to them and understand them before you write them.
+                Each character gets a full profile, a role in the story, and their own interview space — so
+                you can talk to them and understand them before you write them.
               </p>
               <button onClick={() => setCreating(true)} className={styles.emptyBtn}>
                 Add your first character
@@ -144,7 +151,13 @@ export default function CharacterList({ storyId }: Props) {
                   className={styles.card}
                 >
                   {portraitUrls[c.id] ? (
-                    <img src={portraitUrls[c.id]} alt={c.name} className={styles.avatarImg} loading="lazy" decoding="async" />
+                    <img
+                      src={portraitUrls[c.id]}
+                      alt={c.name}
+                      className={styles.avatarImg}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   ) : (
                     <div className={styles.avatar}>{c.name[0].toUpperCase()}</div>
                   )}
@@ -153,18 +166,29 @@ export default function CharacterList({ storyId }: Props) {
                       <span className={styles.characterName}>{c.name}</span>
                       <span className={roleBadgeClass(c.role)}>{c.role}</span>
                     </div>
-                    {c.personality && (
-                      <p className={styles.personality}>{c.personality}</p>
-                    )}
+                    {c.personality && <p className={styles.personality}>{c.personality}</p>}
                   </div>
                   {pendingDeleteId === c.id ? (
                     <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-                      <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(c.id, e)}>Delete</button>
-                      <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); setPendingDeleteId(null); }}>Cancel</button>
+                      <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(c.id, e)}>
+                        Delete
+                      </button>
+                      <button
+                        className={styles.deleteConfirmNo}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPendingDeleteId(null);
+                        }}
+                      >
+                        Cancel
+                      </button>
                     </div>
                   ) : (
                     <button
-                      onClick={(e) => { e.stopPropagation(); setPendingDeleteId(c.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDeleteId(c.id);
+                      }}
                       disabled={deletingId === c.id}
                       className={styles.deleteBtn}
                     >

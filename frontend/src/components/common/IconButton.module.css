@@ -7,7 +7,10 @@
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .btn:disabled {

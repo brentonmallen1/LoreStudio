@@ -47,9 +47,7 @@ function buildGutterDecos(doc: PMNode): DecorationSet {
         e.preventDefault();
         _cb.onNoteActivate(noteId, el.getBoundingClientRect());
       });
-      decos.push(
-        Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:author` })
-      );
+      decos.push(Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:author` }));
     }
 
     if (firstEditorialNoteId) {
@@ -62,9 +60,7 @@ function buildGutterDecos(doc: PMNode): DecorationSet {
         e.preventDefault();
         _cb.onNoteActivate(noteId, el.getBoundingClientRect());
       });
-      decos.push(
-        Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:editorial` })
-      );
+      decos.push(Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:editorial` }));
     }
   });
   return DecorationSet.create(doc, decos);
@@ -84,8 +80,7 @@ export const InlineNoteExtension = Mark.create({
       },
       noteType: {
         default: "author",
-        parseHTML: (el) =>
-          (el as HTMLElement).getAttribute("data-note-type") ?? "author",
+        parseHTML: (el) => (el as HTMLElement).getAttribute("data-note-type") ?? "author",
         renderHTML: (attrs) => ({ "data-note-type": attrs.noteType }),
       },
     };
@@ -97,14 +92,8 @@ export const InlineNoteExtension = Mark.create({
 
   renderHTML({ HTMLAttributes }) {
     const isEditorial = HTMLAttributes["data-note-type"] === "editorial";
-    const cls = isEditorial
-      ? "note-anchor note-anchor--editorial"
-      : "note-anchor";
-    return [
-      "span",
-      mergeAttributes(HTMLAttributes, { class: cls }),
-      0,
-    ];
+    const cls = isEditorial ? "note-anchor note-anchor--editorial" : "note-anchor";
+    return ["span", mergeAttributes(HTMLAttributes, { class: cls }), 0];
   },
 
   addKeyboardShortcuts() {
@@ -127,23 +116,15 @@ export const InlineNoteExtension = Mark.create({
         key: gutterKey,
         state: {
           init: (_, state) => buildGutterDecos(state.doc),
-          apply: (tr, old) =>
-            tr.docChanged
-              ? buildGutterDecos(tr.doc)
-              : old.map(tr.mapping, tr.doc),
+          apply: (tr, old) => (tr.docChanged ? buildGutterDecos(tr.doc) : old.map(tr.mapping, tr.doc)),
         },
         props: {
           decorations: (state) => gutterKey.getState(state),
           handleClick(_view, _pos, event) {
             const target = event.target as HTMLElement;
-            const noteEl = target.closest(
-              ".note-anchor[data-note-id]"
-            ) as HTMLElement | null;
+            const noteEl = target.closest(".note-anchor[data-note-id]") as HTMLElement | null;
             if (noteEl?.dataset.noteId) {
-              _cb.onNoteActivate(
-                noteEl.dataset.noteId,
-                noteEl.getBoundingClientRect()
-              );
+              _cb.onNoteActivate(noteEl.dataset.noteId, noteEl.getBoundingClientRect());
               return true;
             }
             return false;

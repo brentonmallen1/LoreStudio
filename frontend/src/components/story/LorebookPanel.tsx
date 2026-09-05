@@ -10,17 +10,26 @@ import { SectionCard } from "../common";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./LorebookPanel.module.css";
 
-const LENGTH_OPTIONS = ["", "flash_fiction", "short_story", "novelette", "novella", "novel", "epic_saga", "series"] as const;
+const LENGTH_OPTIONS = [
+  "",
+  "flash_fiction",
+  "short_story",
+  "novelette",
+  "novella",
+  "novel",
+  "epic_saga",
+  "series",
+] as const;
 
 const LENGTH_LABELS: Record<string, string> = {
   "": "Not specified",
-  "flash_fiction": "Flash Fiction (<1K words)",
-  "short_story": "Short Story (1K–7.5K words)",
-  "novelette": "Novelette (7.5K–17.5K words)",
-  "novella": "Novella (17.5K–40K words)",
-  "novel": "Novel (40K–100K words)",
-  "epic_saga": "Epic / Saga (100K+ words)",
-  "series": "Series (multi-book)",
+  flash_fiction: "Flash Fiction (<1K words)",
+  short_story: "Short Story (1K–7.5K words)",
+  novelette: "Novelette (7.5K–17.5K words)",
+  novella: "Novella (17.5K–40K words)",
+  novel: "Novel (40K–100K words)",
+  epic_saga: "Epic / Saga (100K+ words)",
+  series: "Series (multi-book)",
 };
 
 // ── Theme tag input ────────────────────────────────────────────────────
@@ -100,9 +109,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
   return (
     <>
       <div className={styles.goalList}>
-        {goals.length === 0 && (
-          <p className={styles.emptyGoals}>No goals yet. Add one below.</p>
-        )}
+        {goals.length === 0 && <p className={styles.emptyGoals}>No goals yet. Add one below.</p>}
         {goals.map((g) => (
           <div key={g.id} className={`${styles.goalItem} ${g.completed ? styles.goalDone : ""}`}>
             <button
@@ -113,11 +120,7 @@ function GoalsPanel({ storyId }: { storyId: string }) {
               {g.completed ? <Check size={11} /> : null}
             </button>
             <span className={styles.goalText}>{g.text}</span>
-            <button
-              className={styles.goalDelete}
-              onClick={() => removeGoal(g.id)}
-              aria-label="Delete goal"
-            >
+            <button className={styles.goalDelete} onClick={() => removeGoal(g.id)} aria-label="Delete goal">
               <Trash2 size={11} />
             </button>
           </div>
@@ -222,15 +225,24 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
           <h2 className={styles.panelTitle}>Lorebook</h2>
           <AIFeatureInfoTrigger pageId="lorebook" />
         </div>
-        <p className={styles.panelSubtitle}>Reference and grounding for your story. Auto-saves as you type.</p>
+        <p className={styles.panelSubtitle}>
+          Reference and grounding for your story. Auto-saves as you type.
+        </p>
       </div>
 
       <div className={styles.scrollArea}>
         {/* ── Core Identity ── */}
-        <SectionCard title="Core Identity" variant="accent" collapsed={!!collapsed.identity} onToggle={() => toggle("identity")}>
+        <SectionCard
+          title="Core Identity"
+          variant="accent"
+          collapsed={!!collapsed.identity}
+          onToggle={() => toggle("identity")}
+        >
           <div>
             <p className={styles.subFieldLabel}>Logline</p>
-            <p className={styles.fieldHint}>One sentence: who wants what, against what obstacle, with what at stake.</p>
+            <p className={styles.fieldHint}>
+              One sentence: who wants what, against what obstacle, with what at stake.
+            </p>
             <input
               value={fields.logline}
               onChange={(e) => update("logline", e.target.value)}
@@ -240,7 +252,9 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
           </div>
           <div>
             <p className={styles.subFieldLabel}>Premise</p>
-            <p className={styles.fieldHint}>Expanded setup: the situation, the characters, and what's at stake.</p>
+            <p className={styles.fieldHint}>
+              Expanded setup: the situation, the characters, and what's at stake.
+            </p>
             <textarea
               value={fields.premise}
               onChange={(e) => update("premise", e.target.value)}
@@ -252,8 +266,16 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Narrative Intent ── */}
-        <SectionCard title="Narrative Intent" variant="intent" collapsed={!!collapsed.intent} onToggle={() => toggle("intent")}>
-          <p className={styles.fieldHint}>What is this story about (meaning, not plot)? What question does it ask? What should the reader feel at the end?</p>
+        <SectionCard
+          title="Narrative Intent"
+          variant="intent"
+          collapsed={!!collapsed.intent}
+          onToggle={() => toggle("intent")}
+        >
+          <p className={styles.fieldHint}>
+            What is this story about (meaning, not plot)? What question does it ask? What should the reader
+            feel at the end?
+          </p>
           <textarea
             value={fields.narrative_intent}
             onChange={(e) => update("narrative_intent", e.target.value)}
@@ -287,7 +309,9 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
           </div>
           <div>
             <p className={styles.subFieldLabel}>Narrative Perspective</p>
-            <p className={styles.fieldHint}>Point of view for the story. Guides AI tools on voice and perspective.</p>
+            <p className={styles.fieldHint}>
+              Point of view for the story. Guides AI tools on voice and perspective.
+            </p>
             <select
               value={fields.narrative_perspective}
               onChange={(e) => update("narrative_perspective", e.target.value)}
@@ -300,7 +324,8 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
               <option value="second_person">Second Person</option>
               <option value="multiple_pov">Multiple POV</option>
             </select>
-            {(fields.narrative_perspective === "first_person" || fields.narrative_perspective === "third_limited") && (
+            {(fields.narrative_perspective === "first_person" ||
+              fields.narrative_perspective === "third_limited") && (
               <div className={styles.subField}>
                 <p className={styles.subFieldLabel}>POV Character</p>
                 <select
@@ -310,7 +335,9 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
                 >
                   <option value="">Not specified</option>
                   {characters.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -322,20 +349,27 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
           <div>
             <p className={styles.subFieldLabel}>Intended Length</p>
-            <p className={styles.fieldHint}>Target form and word count range. Used by Story Health and AI tools.</p>
+            <p className={styles.fieldHint}>
+              Target form and word count range. Used by Story Health and AI tools.
+            </p>
             <select
               value={fields.intended_length}
               onChange={(e) => update("intended_length", e.target.value)}
               className={styles.input}
             >
               {LENGTH_OPTIONS.map((val) => (
-                <option key={val} value={val}>{LENGTH_LABELS[val]}</option>
+                <option key={val} value={val}>
+                  {LENGTH_LABELS[val]}
+                </option>
               ))}
             </select>
           </div>
           <div>
             <p className={styles.subFieldLabel}>Beat Sheet</p>
-            <p className={styles.fieldHint}>Optional story structure framework. Helps track where key beats fall relative to your word count.</p>
+            <p className={styles.fieldHint}>
+              Optional story structure framework. Helps track where key beats fall relative to your word
+              count.
+            </p>
             <BeatSheetSelector
               value={activeStory.beat_sheet_id}
               onChange={updateBeatSheet}
@@ -345,14 +379,15 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         {/* ── Themes & Conflict ── */}
-        <SectionCard title="Themes & Conflict" collapsed={!!collapsed.themes} onToggle={() => toggle("themes")}>
+        <SectionCard
+          title="Themes & Conflict"
+          collapsed={!!collapsed.themes}
+          onToggle={() => toggle("themes")}
+        >
           <div>
             <p className={styles.subFieldLabel}>Themes</p>
             <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
-            <ThemeInput
-              themes={fields.themes}
-              onChange={(t) => update("themes", t)}
-            />
+            <ThemeInput themes={fields.themes} onChange={(t) => update("themes", t)} />
           </div>
           <div>
             <p className={styles.subFieldLabel}>Central Conflict</p>
@@ -383,7 +418,9 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
 
         {/* ── Story Goals ── */}
         <SectionCard title="Story Goals" collapsed={!!collapsed.goals} onToggle={() => toggle("goals")}>
-          <p className={styles.fieldHint}>Explicit goals to hit as you write. Check them off as you accomplish them.</p>
+          <p className={styles.fieldHint}>
+            Explicit goals to hit as you write. Check them off as you accomplish them.
+          </p>
           <GoalsPanel storyId={storyId} />
         </SectionCard>
 

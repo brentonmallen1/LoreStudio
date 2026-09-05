@@ -24,22 +24,21 @@ export default function WritingCoachMode({ session }: Props) {
   // Auto-send the initial coaching request once, when the session has no messages
   useEffect(() => {
     if (autoSentRef.current) return;
-    if (session.messages.length > 0) { autoSentRef.current = true; return; }
+    if (session.messages.length > 0) {
+      autoSentRef.current = true;
+      return;
+    }
     if (!session.context.selectedText) return;
 
     autoSentRef.current = true;
 
-    const tones = tonePrefs.length > 0
-      ? `\n\nDirection I'm considering: ${tonePrefs.join(", ")}`
-      : "";
+    const tones = tonePrefs.length > 0 ? `\n\nDirection I'm considering: ${tonePrefs.join(", ")}` : "";
     const content = `I'd like some coaching on this passage:\n\n"${session.context.selectedText}"${tones}`;
     sendMessage(session.id, content);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleTone(tone: string) {
-    setTonePrefs((prev) =>
-      prev.includes(tone) ? prev.filter((t) => t !== tone) : [...prev, tone]
-    );
+    setTonePrefs((prev) => (prev.includes(tone) ? prev.filter((t) => t !== tone) : [...prev, tone]));
   }
 
   function handleSend(text?: string) {
@@ -60,11 +59,13 @@ export default function WritingCoachMode({ session }: Props) {
       title="Writing Coach"
       hideTokenBadge
       hideSettings
-      headerExtra={selectedText && (
-        <span className={styles.passageChip} title={selectedText}>
-          "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
-        </span>
-      )}
+      headerExtra={
+        selectedText && (
+          <span className={styles.passageChip} title={selectedText}>
+            "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
+          </span>
+        )
+      }
     >
       {/* Tone/style chips — shown before first send */}
       {!hasMessages && selectedText && (
@@ -99,7 +100,8 @@ export default function WritingCoachMode({ session }: Props) {
             onClick={() => {
               if (session.isStreaming) return;
               autoSentRef.current = true;
-              const tones = tonePrefs.length > 0 ? `\n\nDirection I'm considering: ${tonePrefs.join(", ")}` : "";
+              const tones =
+                tonePrefs.length > 0 ? `\n\nDirection I'm considering: ${tonePrefs.join(", ")}` : "";
               const content = `I'd like some coaching on this passage:\n\n"${selectedText}"${tones}`;
               sendMessage(session.id, content, undefined, state.sessionParams);
             }}

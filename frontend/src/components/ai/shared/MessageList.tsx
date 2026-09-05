@@ -45,9 +45,7 @@ function MessageContent({ content }: { content: string }) {
       )}
       {mainContent && (
         <div className={styles.markdown}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {mainContent}
-          </ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{mainContent}</ReactMarkdown>
         </div>
       )}
     </>
@@ -84,7 +82,9 @@ export default function MessageList({ messages, streamingText, isStreaming, empt
     isAutoScrolling.current = true;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     // smooth scroll takes ~300ms; reset flag after
-    setTimeout(() => { isAutoScrolling.current = false; }, 350);
+    setTimeout(() => {
+      isAutoScrolling.current = false;
+    }, 350);
   }
 
   // During streaming: only scroll if pinned
@@ -103,9 +103,7 @@ export default function MessageList({ messages, streamingText, isStreaming, empt
   return (
     <div className={styles.messages} ref={scrollRef} onScroll={handleScroll}>
       {messages.length === 0 && !isStreaming && (
-        <p className={styles.empty}>
-          {emptyText ?? "Start the conversation by sending a message."}
-        </p>
+        <p className={styles.empty}>{emptyText ?? "Start the conversation by sending a message."}</p>
       )}
       {messages.map((msg, i) => {
         if (msg.isSummary) {
@@ -124,7 +122,9 @@ export default function MessageList({ messages, streamingText, isStreaming, empt
             key={i}
             className={`${styles.row} ${msg.role === "user" ? styles.userRow : styles.assistantRow}`}
           >
-            <div className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}>
+            <div
+              className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}
+            >
               {msg.images?.length ? (
                 <div className={styles.imageList}>
                   {msg.images.map((b64, idx) => (
@@ -137,9 +137,7 @@ export default function MessageList({ messages, streamingText, isStreaming, empt
                   ))}
                 </div>
               ) : null}
-              {msg.role === "assistant"
-                ? <MessageContent content={msg.content} />
-                : msg.content}
+              {msg.role === "assistant" ? <MessageContent content={msg.content} /> : msg.content}
             </div>
           </div>
         );

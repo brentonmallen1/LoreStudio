@@ -53,11 +53,12 @@ const MICE_TYPES = [
 export function MICEContent() {
   return (
     <>
-    <div className={styles.intro}>
+      <div className={styles.intro}>
         <p>
-          The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're telling —
-          and when it's over. Every story thread belongs to one of four types. Tagging your threads helps you
-          ensure every question you open gets answered, and that nested threads close in the right order.
+          The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're
+          telling — and when it's over. Every story thread belongs to one of four types. Tagging your threads
+          helps you ensure every question you open gets answered, and that nested threads close in the right
+          order.
         </p>
         <p className={styles.credit}>
           Developed by Orson Scott Card, popularized for short fiction by Mary Robinette Kowal.
@@ -84,7 +85,9 @@ export function MICEContent() {
             </div>
             <div className={styles.examples}>
               {t.examples.map((ex) => (
-                <span key={ex} className={styles.examplePill}>{ex}</span>
+                <span key={ex} className={styles.examplePill}>
+                  {ex}
+                </span>
               ))}
             </div>
             <p className={styles.typeNote}>{t.note}</p>
@@ -96,13 +99,14 @@ export function MICEContent() {
         <CollapsibleSection title="Nesting Rules (LIFO)" defaultOpen>
           <div className={styles.sectionContent}>
             <p>
-              When you open multiple MICE threads in a story, they must close in <strong>reverse order</strong> —
-              last opened, first closed. This is sometimes called the "LIFO" rule (Last In, First Out).
+              When you open multiple MICE threads in a story, they must close in{" "}
+              <strong>reverse order</strong> — last opened, first closed. This is sometimes called the "LIFO"
+              rule (Last In, First Out).
             </p>
             <p>
               Readers hold open threads in their heads like a mental stack. Crossing threads — where an inner
-              thread outlasts an outer one — creates a feeling of structural instability, even if readers can't
-              name why.
+              thread outlasts an outer one — creates a feeling of structural instability, even if readers
+              can't name why.
             </p>
             <div className={styles.nestingDiagram}>
               <div className={styles.diagramLabel}>Correct nesting:</div>
@@ -117,7 +121,9 @@ export function MICEContent() {
                   <span>A opens → B opens → B closes → A closes ✓</span>
                 </div>
               </div>
-              <div className={styles.diagramLabel} style={{ marginTop: "0.75rem" }}>Broken nesting:</div>
+              <div className={styles.diagramLabel} style={{ marginTop: "0.75rem" }}>
+                Broken nesting:
+              </div>
               <div className={styles.diagramTrack}>
                 <div className={`${styles.diagramBar} ${styles.barA}`}>
                   <span>Thread A ←——————————————→</span>
@@ -128,8 +134,9 @@ export function MICEContent() {
               </div>
             </div>
             <p className={styles.tip}>
-              <strong>Tip:</strong> Short stories usually have 1-2 threads. Each additional thread requires more
-              word count to open and close cleanly — this is why flash fiction almost always has a single MICE element.
+              <strong>Tip:</strong> Short stories usually have 1-2 threads. Each additional thread requires
+              more word count to open and close cleanly — this is why flash fiction almost always has a single
+              MICE element.
             </p>
           </div>
         </CollapsibleSection>
@@ -192,14 +199,18 @@ export function MICEContent() {
             <div className={styles.outcomesGrid}>
               <div className={styles.outcomeCard}>
                 <div className={`${styles.outcomeBadge} ${styles.outcomeDisaster}`}>Fail — Disaster</div>
-                <p>The attempt fails <em>and makes things worse</em>. New problems are created.</p>
+                <p>
+                  The attempt fails <em>and makes things worse</em>. New problems are created.
+                </p>
               </div>
               <div className={styles.outcomeCard}>
                 <div className={`${styles.outcomeBadge} ${styles.outcomeSetback}`}>Fail — Setback</div>
                 <p>The attempt fails but doesn't worsen the situation. A dead end, not a catastrophe.</p>
               </div>
               <div className={styles.outcomeCard}>
-                <div className={`${styles.outcomeBadge} ${styles.outcomeSuccessCost}`}>Success — With Cost</div>
+                <div className={`${styles.outcomeBadge} ${styles.outcomeSuccessCost}`}>
+                  Success — With Cost
+                </div>
                 <p>The attempt succeeds but at a price — something lost, sacrificed, or damaged.</p>
               </div>
               <div className={styles.outcomeCard}>
@@ -227,7 +238,11 @@ export default function MICEGuide({ onClose }: Props) {
       title="The MICE Quotient"
       icon={<BookOpen size={15} />}
       size="lg"
-      footer={<button onClick={onClose} className={styles.closeBtn}>Close</button>}
+      footer={
+        <button onClick={onClose} className={styles.closeBtn}>
+          Close
+        </button>
+      }
     >
       <MICEContent />
     </Modal>

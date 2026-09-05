@@ -44,7 +44,10 @@
   font-size: 0.7rem;
   font-weight: 600;
   color: var(--color-text-muted);
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
 }
 
 .stepDot.active .stepNum {

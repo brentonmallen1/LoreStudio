@@ -33,7 +33,9 @@
   cursor: pointer;
   font-family: inherit;
   margin-bottom: -1px;
-  transition: color 0.1s, background 0.1s;
+  transition:
+    color 0.1s,
+    background 0.1s;
 }
 
 .tabBtn:hover {
@@ -148,7 +150,10 @@
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .typeBtn:hover {
@@ -330,7 +335,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .iconBtn:hover {
@@ -412,7 +419,9 @@
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .statusBtnActive.statusBtn_planned {

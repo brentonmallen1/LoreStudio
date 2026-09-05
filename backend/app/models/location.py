@@ -1,9 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, Boolean, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .location_travel import LocationTravel
     from .story import Story
@@ -12,11 +15,22 @@ if TYPE_CHECKING:
 
 PREDEFINED_LOCATION_TYPES = [
     # Celestial
-    "star_system", "star", "planet", "gas_giant", "moon",
-    "asteroid_belt", "orbital_station", "space_habitat",
+    "star_system",
+    "star",
+    "planet",
+    "gas_giant",
+    "moon",
+    "asteroid_belt",
+    "orbital_station",
+    "space_habitat",
     # Terrestrial
-    "continent", "region", "territory",
-    "settlement", "district", "landmark", "structure",
+    "continent",
+    "region",
+    "territory",
+    "settlement",
+    "district",
+    "landmark",
+    "structure",
     "natural_feature",
     # Mobile
     "vessel",
@@ -51,16 +65,14 @@ class Location(Base):
 
     # Discovery provenance — set when created via discovery approval
     is_stub: Mapped[bool] = mapped_column(Boolean, default=False)
-    discovered_from_id: Mapped[str | None] = mapped_column(
-        String, ForeignKey("discovered_elements.id"), nullable=True
-    )
+    discovered_from_id: Mapped[str | None] = mapped_column(String, ForeignKey("discovered_elements.id"), nullable=True)
     discovered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="locations")
@@ -70,18 +82,20 @@ class Location(Base):
         cascade="all, delete-orphan",
         order_by="Location.position",
     )
-    parent: Mapped["Location | None"] = relationship(
-        "Location", back_populates="children", remote_side="Location.id"
-    )
+    parent: Mapped["Location | None"] = relationship("Location", back_populates="children", remote_side="Location.id")
     scene_settings: Mapped[list["SceneSetting"]] = relationship(
         "SceneSetting", back_populates="location", cascade="all, delete-orphan"
     )
     travel_from: Mapped[list["LocationTravel"]] = relationship(
-        "LocationTravel", foreign_keys="LocationTravel.from_location_id", back_populates="from_location",
+        "LocationTravel",
+        foreign_keys="LocationTravel.from_location_id",
+        back_populates="from_location",
         cascade="all, delete-orphan",
     )
     travel_to: Mapped[list["LocationTravel"]] = relationship(
-        "LocationTravel", foreign_keys="LocationTravel.to_location_id", back_populates="to_location",
+        "LocationTravel",
+        foreign_keys="LocationTravel.to_location_id",
+        back_populates="to_location",
         cascade="all, delete-orphan",
     )
 
@@ -96,7 +110,7 @@ class SceneSetting(Base):
     node_id: Mapped[str] = mapped_column(String, ForeignKey("structure_nodes.id"), nullable=False)
     role: Mapped[str] = mapped_column(String, default="primary")  # primary, mentioned, flashback
     notes: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     location: Mapped["Location"] = relationship("Location", back_populates="scene_settings")
     node: Mapped["StructureNode"] = relationship("StructureNode", back_populates="scene_settings")

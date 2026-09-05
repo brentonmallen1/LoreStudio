@@ -21,13 +21,14 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
 
   useEffect(() => {
     if (!isOpen) return;
-    api.getAISettings().then(setSettings).catch(() => {});
+    api
+      .getAISettings()
+      .then(setSettings)
+      .catch(() => {});
   }, [isOpen]);
 
   const featureIds = PAGE_FEATURES[pageId] ?? [];
-  const allFeatures = featureIds
-    .map((id) => FEATURES[id])
-    .filter(Boolean) as AIFeatureInfo[];
+  const allFeatures = featureIds.map((id) => FEATURES[id]).filter(Boolean) as AIFeatureInfo[];
 
   const nlpFeatures = allFeatures.filter((f) => f.type === "nlp");
   const aiFeatures = allFeatures.filter((f) => f.type === "ai");
@@ -53,7 +54,10 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
   const footer = (
     <button
       className={styles.settingsLink}
-      onClick={() => { onClose(); navigate("/settings/ai-prompts"); }}
+      onClick={() => {
+        onClose();
+        navigate("/settings/ai-prompts");
+      }}
     >
       <Settings size={13} />
       Customize prompts in Settings
@@ -133,9 +137,7 @@ function FeatureCard({ feature, prompt, expanded, onToggle }: CardProps) {
             {feature.type === "nlp" ? "NLP" : "AI"}
           </span>
           <span className={styles.cardLabel}>{feature.label}</span>
-          {prompt?.isCustom && (
-            <span className={styles.customBadge}>customized</span>
-          )}
+          {prompt?.isCustom && <span className={styles.customBadge}>customized</span>}
         </div>
         <button
           className={styles.cardToggle}

@@ -41,41 +41,57 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
 
     # ── Story context ──
     lines.append(f"## Story: {s['title']}")
-    if s.get("genre"): lines.append(f"Genre: {s['genre']}")
-    if s.get("tone"): lines.append(f"Tone: {s['tone']}")
-    if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
-    if s.get("central_conflict"): lines.append(f"Central conflict: {s['central_conflict']}")
-    if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
-    if s.get("logline"): lines.append(f"Logline: {s['logline']}")
+    if s.get("genre"):
+        lines.append(f"Genre: {s['genre']}")
+    if s.get("tone"):
+        lines.append(f"Tone: {s['tone']}")
+    if s.get("themes"):
+        lines.append(f"Themes: {', '.join(s['themes'])}")
+    if s.get("central_conflict"):
+        lines.append(f"Central conflict: {s['central_conflict']}")
+    if s.get("narrative_intent"):
+        lines.append(f"Author's intent: {s['narrative_intent']}")
+    if s.get("logline"):
+        lines.append(f"Logline: {s['logline']}")
     if s.get("unresolved_goals"):
         lines.append(f"Unresolved story goals: {'; '.join(s['unresolved_goals'])}")
 
     # ── This scene ──
-    lines += ["", f"## Scene to plan: \"{sc['title']}\" ({sc.get('level_type', 'scene')})"]
+    lines += ["", f'## Scene to plan: "{sc["title"]}" ({sc.get("level_type", "scene")})']
     if sc.get("word_count", 0) > 0:
         lines.append(f"(Already has {sc['word_count']} words written)")
-    if sc.get("synopsis"): lines.append(f"Current synopsis: {sc['synopsis']}")
-    if sc.get("purpose"): lines.append(f"Current purpose note: {sc['purpose']}")
-    if sc.get("entry_state"): lines.append(f"Current entry state: {sc['entry_state']}")
-    if sc.get("exit_state"): lines.append(f"Current exit state: {sc['exit_state']}")
-    if sc.get("key_events"): lines.append(f"Current key events: {sc['key_events']}")
+    if sc.get("synopsis"):
+        lines.append(f"Current synopsis: {sc['synopsis']}")
+    if sc.get("purpose"):
+        lines.append(f"Current purpose note: {sc['purpose']}")
+    if sc.get("entry_state"):
+        lines.append(f"Current entry state: {sc['entry_state']}")
+    if sc.get("exit_state"):
+        lines.append(f"Current exit state: {sc['exit_state']}")
+    if sc.get("key_events"):
+        lines.append(f"Current key events: {sc['key_events']}")
 
     # ── Characters ──
     if ctx["characters_in_scene"]:
         lines += ["", "## Characters already in this scene"]
         for c in ctx["characters_in_scene"]:
             lines.append(f"\n### {c['name']} ({c.get('role', '')})")
-            if c.get("personality"): lines.append(f"Personality: {c['personality']}")
-            if c.get("motivation"): lines.append(f"Motivation: {c['motivation']}")
-            if c.get("arc_notes"): lines.append(f"Arc: {c['arc_notes']}")
-            if c.get("narrative_intent"): lines.append(f"Author's plan: {c['narrative_intent']}")
+            if c.get("personality"):
+                lines.append(f"Personality: {c['personality']}")
+            if c.get("motivation"):
+                lines.append(f"Motivation: {c['motivation']}")
+            if c.get("arc_notes"):
+                lines.append(f"Arc: {c['arc_notes']}")
+            if c.get("narrative_intent"):
+                lines.append(f"Author's plan: {c['narrative_intent']}")
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending milestones: {'; '.join(c['arc_milestones_pending'])}")
     if ctx["all_characters"]:
         lines += ["", "## All story characters"]
         for c in ctx["all_characters"]:
             line = f"- {c['name']} ({c['role']})"
-            if c.get("motivation"): line += f": {c['motivation'][:80]}"
+            if c.get("motivation"):
+                line += f": {c['motivation'][:80]}"
             lines.append(line)
 
     # ── Plot threads ──
@@ -83,12 +99,12 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
         lines += ["", "## Threads already tagged to this scene"]
         for t in ctx["threads_in_scene"]:
             line = f"- {t['name']} [{t['status']}]"
-            if t.get("description"): line += f": {t['description']}"
+            if t.get("description"):
+                line += f": {t['description']}"
             lines.append(line)
     if ctx["open_threads"]:
         open_threads_not_in_scene = [
-            t for t in ctx["open_threads"]
-            if not any(t["name"] == ts["name"] for ts in ctx["threads_in_scene"])
+            t for t in ctx["open_threads"] if not any(t["name"] == ts["name"] for ts in ctx["threads_in_scene"])
         ]
         if open_threads_not_in_scene:
             lines += ["", "## Other open threads in this story"]
@@ -100,12 +116,13 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
         lines += ["", "## Other scenes in this section (for structural awareness)"]
         for sib in ctx["sibling_scenes"]:
             line = f"- {sib['title']}"
-            if sib.get("synopsis"): line += f": {sib['synopsis']}"
+            if sib.get("synopsis"):
+                line += f": {sib['synopsis']}"
             lines.append(line)
 
     # ── Author's initial notes ──
     if initial_notes:
-        lines += ["", f"## What the author already knows about this scene", initial_notes]
+        lines += ["", "## What the author already knows about this scene", initial_notes]
 
     # ── Output format ──
     lines += [
@@ -115,7 +132,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
         "",
         "Respond with a JSON object matching this exact schema:",
         "",
-        '{',
+        "{",
         '  "synopsis": "1-2 sentences describing what happens — author shorthand, not prose",',
         '  "purpose": "Why this scene must exist. What narrative function does it serve?",',
         '  "entry_state": "The situation at the start: beliefs, tensions, physical state, stakes",',
@@ -123,7 +140,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
         '  "key_events": ["pivotal moment 1", "pivotal moment 2", "..."],',
         '  "characters_to_feature": [{"name": "character name", "reason": "why and how they serve the scene"}],',
         '  "threads_to_advance": [{"name": "thread name", "how": "specifically how this scene develops it"}]',
-        '}',
+        "}",
         "",
         "Rules:",
         "- Output ONLY valid JSON. No markdown, no extra text before or after.",

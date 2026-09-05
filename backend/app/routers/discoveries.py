@@ -1,24 +1,24 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.character import Character
+from ..models.discovered_element import DiscoveredElement
+from ..models.location import Location
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.character import Character
-from ..models.location import Location
-from ..models.discovered_element import DiscoveredElement
-from ..auth.dependencies import get_current_user
+from ..models.user import User
 from ..schemas.discovered_element import (
-    DiscoveredElementOut,
     DiscoveredElementApprove,
+    DiscoveredElementOut,
     DiscoveryRunRequest,
 )
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.discovery import build_discovery_prompt
 
 router = APIRouter()
@@ -55,6 +55,7 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
 def _strip_html(html: str) -> str:
     """Very basic HTML tag stripping for prose text sent to LLM."""
     import re
+
     text = re.sub(r"<[^>]+>", " ", html)
     text = re.sub(r"\s+", " ", text).strip()
     return text
@@ -147,12 +148,16 @@ async def run_discovery(
             continue
 
         # Skip if already pending/approved with same name in this story
-        existing = db.query(DiscoveredElement).filter(
-            DiscoveredElement.story_id == story_id,
-            DiscoveredElement.name == name,
-            DiscoveredElement.element_type == d.element_type,
-            DiscoveredElement.status == "pending",
-        ).first()
+        existing = (
+            db.query(DiscoveredElement)
+            .filter(
+                DiscoveredElement.story_id == story_id,
+                DiscoveredElement.name == name,
+                DiscoveredElement.element_type == d.element_type,
+                DiscoveredElement.status == "pending",
+            )
+            .first()
+        )
         if existing:
             continue
 
@@ -166,7 +171,7 @@ async def run_discovery(
             source_node_id=nodes_analyzed[0].id if len(nodes_analyzed) == 1 else None,
             source_excerpt=d.source_excerpt,
             status="pending",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         db.add(element)
         created.append(element)
@@ -226,7 +231,7 @@ def approve_discovery(
 
     name = body.name or element.name
     description = body.description or element.description
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     merged_to_type = None
     merged_to_id = None
@@ -284,7 +289,7 @@ def reject_discovery(
         raise HTTPException(status_code=404, detail="Discovery not found")
     _get_story(element.story_id, db, current_user)
     element.status = "rejected"
-    element.reviewed_at = datetime.now(timezone.utc)
+    element.reviewed_at = datetime.now(UTC)
     db.commit()
     db.refresh(element)
     return element

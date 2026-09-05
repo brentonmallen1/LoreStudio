@@ -15,12 +15,12 @@ import styles from "./WorldBuilding.module.css";
 type Tab = "locations" | "systems" | "cultures" | "history" | "travel" | "calendars";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: "locations",  label: "Locations",  icon: <MapPin size={13} /> },
-  { id: "systems",    label: "Systems",    icon: <Zap size={13} /> },
-  { id: "cultures",   label: "Cultures",   icon: <Users size={13} /> },
-  { id: "history",    label: "History",    icon: <Clock size={13} /> },
-  { id: "travel",     label: "Travel",     icon: <ArrowLeftRight size={13} /> },
-  { id: "calendars",  label: "Calendars",  icon: <Calendar size={13} /> },
+  { id: "locations", label: "Locations", icon: <MapPin size={13} /> },
+  { id: "systems", label: "Systems", icon: <Zap size={13} /> },
+  { id: "cultures", label: "Cultures", icon: <Users size={13} /> },
+  { id: "history", label: "History", icon: <Clock size={13} /> },
+  { id: "travel", label: "Travel", icon: <ArrowLeftRight size={13} /> },
+  { id: "calendars", label: "Calendars", icon: <Calendar size={13} /> },
 ];
 
 export default function WorldBuildingHub() {
@@ -53,14 +53,19 @@ export default function WorldBuildingHub() {
         ))}
       </div>
 
-      <div className={styles.tabContent} style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}>
+      <div
+        className={styles.tabContent}
+        style={{ display: "flex", flexDirection: "row", overflow: "hidden" }}
+      >
         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-          {activeTab === "locations"  && <LocationManager storyId={storyId} selectLocationName={selectLocationName} />}
-          {activeTab === "systems"    && <WorldSystemManager storyId={storyId} />}
-          {activeTab === "cultures"   && <CultureManager storyId={storyId} />}
-          {activeTab === "history"    && <HistoryTab storyId={storyId} />}
-          {activeTab === "travel"     && <TravelDistanceEditor storyId={storyId} />}
-          {activeTab === "calendars"  && <CalendarEditor storyId={storyId} />}
+          {activeTab === "locations" && (
+            <LocationManager storyId={storyId} selectLocationName={selectLocationName} />
+          )}
+          {activeTab === "systems" && <WorldSystemManager storyId={storyId} />}
+          {activeTab === "cultures" && <CultureManager storyId={storyId} />}
+          {activeTab === "history" && <HistoryTab storyId={storyId} />}
+          {activeTab === "travel" && <TravelDistanceEditor storyId={storyId} />}
+          {activeTab === "calendars" && <CalendarEditor storyId={storyId} />}
         </div>
         {worldBuildingAIPanelOpen && <WorldBuildingAIPanel />}
       </div>

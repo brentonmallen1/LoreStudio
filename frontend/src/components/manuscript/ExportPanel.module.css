@@ -7,7 +7,8 @@
   overflow-y: auto;
 }
 
-.section {}
+.section {
+}
 
 .sectionTitle {
   font-size: 0.7rem;
@@ -35,7 +36,9 @@
   background: none;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
   font-family: inherit;
 }
 

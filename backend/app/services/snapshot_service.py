@@ -3,9 +3,8 @@
 import copy
 import io
 import json
-import os
 import zipfile
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +12,7 @@ from sqlalchemy import DateTime as SA_DateTime
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
+from ..config import settings as app_settings
 from ..models.activity_log import ActivityLog
 from ..models.calendar import Calendar
 from ..models.character import Character, CharacterRelationship
@@ -21,8 +21,8 @@ from ..models.chat_message import ChatMessage
 from ..models.chat_session import ChatSession
 from ..models.compendium import CompendiumAttachment, CompendiumEntry
 from ..models.culture import Culture
-from ..models.dialogue import DialogueBlock
 from ..models.diagram import Diagram
+from ..models.dialogue import DialogueBlock
 from ..models.discovered_element import DiscoveredElement
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
@@ -36,9 +36,8 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.setting import Setting
-from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
+from ..models.snapshot import StoryBackupSettings, StorySnapshot
 from ..models.story import Story
-from ..config import settings as app_settings
 from ..models.structure import StructureNode
 from ..models.todo import StoryTodo
 from ..models.twist import Twist
@@ -50,6 +49,7 @@ APP_VERSION = "1.0.0"
 # ---------------------------------------------------------------------------
 # Disk helpers
 # ---------------------------------------------------------------------------
+
 
 def _get_snapshot_dir(story_id: str) -> Path:
     """Return (and create) the per-story snapshot directory on disk."""
@@ -168,6 +168,7 @@ SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings
 # Serialization helpers
 # ---------------------------------------------------------------------------
 
+
 def _model_to_dict(obj) -> dict:
     """Convert a SQLAlchemy model instance to a plain dict (attribute names as keys)."""
     result = {}
@@ -221,12 +222,9 @@ def _insert_ordered_tree(model_class, records: list[dict], db: Session) -> None:
 # Settings helpers
 # ---------------------------------------------------------------------------
 
+
 def _get_or_create_settings(story_id: str, db: Session) -> StoryBackupSettings:
-    settings = (
-        db.query(StoryBackupSettings)
-        .filter(StoryBackupSettings.story_id == story_id)
-        .first()
-    )
+    settings = db.query(StoryBackupSettings).filter(StoryBackupSettings.story_id == story_id).first()
     if not settings:
         settings = StoryBackupSettings(story_id=story_id)
         db.add(settings)
@@ -268,6 +266,7 @@ def _delta_is_empty(delta: dict) -> bool:
 # Serialization
 # ---------------------------------------------------------------------------
 
+
 def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | None = None) -> dict:
     """Serialize the full story state to a plain dict."""
     story = db.query(Story).filter(Story.id == story_id).first()
@@ -279,174 +278,144 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
 
     # Structure nodes (flat)
     data["structure_nodes"] = [
-        _model_to_dict(n)
-        for n in db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+        _model_to_dict(n) for n in db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     ]
 
     # Characters + relationships
-    char_ids = [
-        row[0]
-        for row in db.query(Character.id).filter(Character.story_id == story_id).all()
-    ]
+    char_ids = [row[0] for row in db.query(Character.id).filter(Character.story_id == story_id).all()]
     char_id_set = set(char_ids)
-    data["characters"] = [
-        _model_to_dict(c)
-        for c in db.query(Character).filter(Character.story_id == story_id).all()
-    ]
-    data["character_relationships"] = [
-        _model_to_dict(r)
-        for r in db.query(CharacterRelationship)
-        .filter(CharacterRelationship.character_id.in_(char_id_set))
-        .all()
-    ] if char_id_set else []
+    data["characters"] = [_model_to_dict(c) for c in db.query(Character).filter(Character.story_id == story_id).all()]
+    data["character_relationships"] = (
+        [
+            _model_to_dict(r)
+            for r in db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(char_id_set)).all()
+        ]
+        if char_id_set
+        else []
+    )
 
     # Plot threads + appearances
-    thread_ids = [
-        row[0]
-        for row in db.query(PlotThread.id).filter(PlotThread.story_id == story_id).all()
-    ]
+    thread_ids = [row[0] for row in db.query(PlotThread.id).filter(PlotThread.story_id == story_id).all()]
     thread_id_set = set(thread_ids)
     data["plot_threads"] = [
-        _model_to_dict(t)
-        for t in db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
+        _model_to_dict(t) for t in db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
     ]
-    data["plot_thread_appearances"] = [
-        _model_to_dict(a)
-        for a in db.query(PlotThreadAppearance)
-        .filter(PlotThreadAppearance.thread_id.in_(thread_id_set))
-        .all()
-    ] if thread_id_set else []
+    data["plot_thread_appearances"] = (
+        [
+            _model_to_dict(a)
+            for a in db.query(PlotThreadAppearance).filter(PlotThreadAppearance.thread_id.in_(thread_id_set)).all()
+        ]
+        if thread_id_set
+        else []
+    )
 
     # Twists (clues embedded in JSON)
-    data["twists"] = [
-        _model_to_dict(t)
-        for t in db.query(Twist).filter(Twist.story_id == story_id).all()
-    ]
+    data["twists"] = [_model_to_dict(t) for t in db.query(Twist).filter(Twist.story_id == story_id).all()]
 
     # Locations + scene_settings
-    loc_ids = [
-        row[0]
-        for row in db.query(Location.id).filter(Location.story_id == story_id).all()
-    ]
+    loc_ids = [row[0] for row in db.query(Location.id).filter(Location.story_id == story_id).all()]
     loc_id_set = set(loc_ids)
-    data["locations"] = [
-        _model_to_dict(loc)
-        for loc in db.query(Location).filter(Location.story_id == story_id).all()
-    ]
-    data["scene_settings"] = [
-        _model_to_dict(s)
-        for s in db.query(SceneSetting)
-        .filter(SceneSetting.location_id.in_(loc_id_set))
-        .all()
-    ] if loc_id_set else []
+    data["locations"] = [_model_to_dict(loc) for loc in db.query(Location).filter(Location.story_id == story_id).all()]
+    data["scene_settings"] = (
+        [_model_to_dict(s) for s in db.query(SceneSetting).filter(SceneSetting.location_id.in_(loc_id_set)).all()]
+        if loc_id_set
+        else []
+    )
 
     # World building
     data["world_systems"] = [
-        _model_to_dict(w)
-        for w in db.query(WorldSystem).filter(WorldSystem.story_id == story_id).all()
+        _model_to_dict(w) for w in db.query(WorldSystem).filter(WorldSystem.story_id == story_id).all()
     ]
-    data["cultures"] = [
-        _model_to_dict(c)
-        for c in db.query(Culture).filter(Culture.story_id == story_id).all()
-    ]
-    data["eras"] = [
-        _model_to_dict(e)
-        for e in db.query(Era).filter(Era.story_id == story_id).all()
-    ]
+    data["cultures"] = [_model_to_dict(c) for c in db.query(Culture).filter(Culture.story_id == story_id).all()]
+    data["eras"] = [_model_to_dict(e) for e in db.query(Era).filter(Era.story_id == story_id).all()]
     data["historical_events"] = [
-        _model_to_dict(h)
-        for h in db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story_id).all()
+        _model_to_dict(h) for h in db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story_id).all()
     ]
-    data["calendars"] = [
-        _model_to_dict(c)
-        for c in db.query(Calendar).filter(Calendar.story_id == story_id).all()
-    ]
+    data["calendars"] = [_model_to_dict(c) for c in db.query(Calendar).filter(Calendar.story_id == story_id).all()]
 
     # Settings (old-style named settings, distinct from StoryBackupSettings)
-    data["settings"] = [
-        _model_to_dict(s)
-        for s in db.query(Setting).filter(Setting.story_id == story_id).all()
-    ]
+    data["settings"] = [_model_to_dict(s) for s in db.query(Setting).filter(Setting.story_id == story_id).all()]
 
     # Notes
-    data["notes"] = [
-        _model_to_dict(n)
-        for n in db.query(StoryNote).filter(StoryNote.story_id == story_id).all()
-    ]
+    data["notes"] = [_model_to_dict(n) for n in db.query(StoryNote).filter(StoryNote.story_id == story_id).all()]
 
     # Compendium (metadata only — no binary assets inline)
     data["compendium_entries"] = [
-        _model_to_dict(e)
-        for e in db.query(CompendiumEntry).filter(CompendiumEntry.story_id == story_id).all()
+        _model_to_dict(e) for e in db.query(CompendiumEntry).filter(CompendiumEntry.story_id == story_id).all()
     ]
 
     # Outlines + items
     story_outlines = db.query(Outline).filter(Outline.story_id == story_id).all()
     outline_ids = [o.id for o in story_outlines]
     data["outlines"] = [_model_to_dict(o) for o in story_outlines]
-    data["outline_items"] = [
-        _model_to_dict(i)
-        for i in db.query(OutlineItem).filter(OutlineItem.outline_id.in_(outline_ids)).all()
-    ] if outline_ids else []
+    data["outline_items"] = (
+        [_model_to_dict(i) for i in db.query(OutlineItem).filter(OutlineItem.outline_id.in_(outline_ids)).all()]
+        if outline_ids
+        else []
+    )
 
     node_ids = [n["id"] for n in data["structure_nodes"]]
     node_id_set = set(node_ids)
 
     data["scene_links"] = [
-        _model_to_dict(link)
-        for link in db.query(SceneLink).filter(SceneLink.story_id == story_id).all()
+        _model_to_dict(link) for link in db.query(SceneLink).filter(SceneLink.story_id == story_id).all()
     ]
-    data["todos"] = [
-        _model_to_dict(t)
-        for t in db.query(StoryTodo).filter(StoryTodo.story_id == story_id).all()
-    ]
+    data["todos"] = [_model_to_dict(t) for t in db.query(StoryTodo).filter(StoryTodo.story_id == story_id).all()]
     data["reader_knowledge_events"] = [
         _model_to_dict(e)
         for e in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id).all()
     ]
     data["discovered_elements"] = [
-        _model_to_dict(e)
-        for e in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id).all()
+        _model_to_dict(e) for e in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id).all()
     ]
-    data["location_travel"] = [
-        _model_to_dict(t)
-        for t in db.query(LocationTravel)
-        .filter(LocationTravel.from_location_id.in_(loc_id_set))
-        .all()
-    ] if loc_id_set else []
-    data["dialogue_blocks"] = [
-        _model_to_dict(b)
-        for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(node_id_set)).all()
-    ] if node_id_set else []
-    data["character_journey_summaries"] = [
-        _model_to_dict(j)
-        for j in db.query(CharacterJourneySummary)
-        .filter(CharacterJourneySummary.character_id.in_(char_id_set))
-        .all()
-    ] if char_id_set else []
+    data["location_travel"] = (
+        [
+            _model_to_dict(t)
+            for t in db.query(LocationTravel).filter(LocationTravel.from_location_id.in_(loc_id_set)).all()
+        ]
+        if loc_id_set
+        else []
+    )
+    data["dialogue_blocks"] = (
+        [_model_to_dict(b) for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(node_id_set)).all()]
+        if node_id_set
+        else []
+    )
+    data["character_journey_summaries"] = (
+        [
+            _model_to_dict(j)
+            for j in db.query(CharacterJourneySummary)
+            .filter(CharacterJourneySummary.character_id.in_(char_id_set))
+            .all()
+        ]
+        if char_id_set
+        else []
+    )
     entry_ids = [e["id"] for e in data["compendium_entries"]]
-    data["compendium_attachments"] = [
-        _model_to_dict(a)
-        for a in db.query(CompendiumAttachment).filter(CompendiumAttachment.entry_id.in_(entry_ids)).all()
-    ] if entry_ids else []
+    data["compendium_attachments"] = (
+        [
+            _model_to_dict(a)
+            for a in db.query(CompendiumAttachment).filter(CompendiumAttachment.entry_id.in_(entry_ids)).all()
+        ]
+        if entry_ids
+        else []
+    )
 
     # Optional configurable content
     if settings is None or settings.include_diagrams:
-        data["diagrams"] = [
-            _model_to_dict(d)
-            for d in db.query(Diagram).filter(Diagram.story_id == story_id).all()
-        ]
+        data["diagrams"] = [_model_to_dict(d) for d in db.query(Diagram).filter(Diagram.story_id == story_id).all()]
 
     if settings is None or settings.include_interviews:
-        data["interviews"] = [
-            _model_to_dict(i)
-            for i in db.query(CharacterInterview)
-            .filter(CharacterInterview.character_id.in_(char_id_set))
-            .all()
-        ] if char_id_set else []
+        data["interviews"] = (
+            [
+                _model_to_dict(i)
+                for i in db.query(CharacterInterview).filter(CharacterInterview.character_id.in_(char_id_set)).all()
+            ]
+            if char_id_set
+            else []
+        )
         data["panel_interviews"] = [
-            _model_to_dict(p)
-            for p in db.query(PanelInterview).filter(PanelInterview.story_id == story_id).all()
+            _model_to_dict(p) for p in db.query(PanelInterview).filter(PanelInterview.story_id == story_id).all()
         ]
 
     if settings is None or settings.include_chat_sessions:
@@ -465,11 +434,7 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
         data["chat_sessions"] = session_data
 
     if settings is None or settings.include_activity_logs:
-        q = (
-            db.query(ActivityLog)
-            .filter(ActivityLog.story_id == story_id)
-            .order_by(ActivityLog.created_at.desc())
-        )
+        q = db.query(ActivityLog).filter(ActivityLog.story_id == story_id).order_by(ActivityLog.created_at.desc())
         limit = settings.activity_log_limit if settings else 500
         if limit:
             q = q.limit(limit)
@@ -477,14 +442,14 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
 
     if settings is None or settings.include_media_assets:
         data["media_assets"] = [
-            _model_to_dict(a)
-            for a in db.query(StoryAsset).filter(StoryAsset.story_id == story_id).all()
+            _model_to_dict(a) for a in db.query(StoryAsset).filter(StoryAsset.story_id == story_id).all()
         ]
         asset_ids = [a["id"] for a in data["media_assets"]]
-        data["asset_attachments"] = [
-            _model_to_dict(a)
-            for a in db.query(AssetAttachment).filter(AssetAttachment.asset_id.in_(asset_ids)).all()
-        ] if asset_ids else []
+        data["asset_attachments"] = (
+            [_model_to_dict(a) for a in db.query(AssetAttachment).filter(AssetAttachment.asset_id.in_(asset_ids)).all()]
+            if asset_ids
+            else []
+        )
 
     return data
 
@@ -502,6 +467,7 @@ def _compute_summary(data: dict) -> dict:
 # ---------------------------------------------------------------------------
 # Delta computation
 # ---------------------------------------------------------------------------
+
 
 def compute_delta(current_data: dict, base_data: dict) -> tuple[dict, dict]:
     """
@@ -526,10 +492,7 @@ def compute_delta(current_data: dict, base_data: dict) -> tuple[dict, dict]:
 
         added = [item for item in cur_list if item["id"] not in base_by_id]
         removed_ids = [id_ for id_ in base_by_id if id_ not in cur_by_id]
-        modified = [
-            item for item in cur_list
-            if item["id"] in base_by_id and item != base_by_id[item["id"]]
-        ]
+        modified = [item for item in cur_list if item["id"] in base_by_id and item != base_by_id[item["id"]]]
 
         if added or removed_ids or modified:
             delta[key] = {"added": added, "removed": removed_ids, "modified": modified}
@@ -625,6 +588,7 @@ def resolve_snapshot_data(snapshot: StorySnapshot, db: Session) -> dict:
 # Diff
 # ---------------------------------------------------------------------------
 
+
 def diff_snapshots(snap_a: StorySnapshot, snap_b: StorySnapshot, db: Session) -> dict:
     """
     Compare two snapshots structurally. a = older, b = newer.
@@ -651,8 +615,15 @@ def diff_snapshots(snap_a: StorySnapshot, snap_b: StorySnapshot, db: Session) ->
     }
 
     for key in [
-        "structure_nodes", "characters", "plot_threads", "twists",
-        "locations", "world_systems", "cultures", "eras", "outline_items",
+        "structure_nodes",
+        "characters",
+        "plot_threads",
+        "twists",
+        "locations",
+        "world_systems",
+        "cultures",
+        "eras",
+        "outline_items",
     ]:
         result = _diff_entities(key)
         if result:
@@ -664,6 +635,7 @@ def diff_snapshots(snap_a: StorySnapshot, snap_b: StorySnapshot, db: Session) ->
 # ---------------------------------------------------------------------------
 # Retention
 # ---------------------------------------------------------------------------
+
 
 def apply_retention(story_id: str, db: Session, settings: StoryBackupSettings) -> None:
     """Prune old unnamed auto-backups based on retention settings."""
@@ -684,11 +656,11 @@ def apply_retention(story_id: str, db: Session, settings: StoryBackupSettings) -
     to_delete: set[str] = set()
 
     if settings.max_age_days:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=settings.max_age_days)
+        cutoff = datetime.now(UTC) - timedelta(days=settings.max_age_days)
         for snap in candidates:
             created = snap.created_at
             if created.tzinfo is None:
-                created = created.replace(tzinfo=timezone.utc)
+                created = created.replace(tzinfo=UTC)
             if created < cutoff:
                 to_delete.add(snap.id)
 
@@ -712,6 +684,7 @@ def apply_retention(story_id: str, db: Session, settings: StoryBackupSettings) -
 # ---------------------------------------------------------------------------
 # Create snapshot
 # ---------------------------------------------------------------------------
+
 
 def create_snapshot(
     story_id: str,
@@ -776,7 +749,7 @@ def create_snapshot(
     db.flush()
 
     if trigger == "auto":
-        settings.last_auto_backup_at = datetime.now(timezone.utc)
+        settings.last_auto_backup_at = datetime.now(UTC)
         db.flush()
 
     apply_retention(story_id, db, settings)
@@ -794,6 +767,7 @@ def create_snapshot(
 # ---------------------------------------------------------------------------
 # Restore
 # ---------------------------------------------------------------------------
+
 
 def restore_snapshot(
     snapshot: StorySnapshot,
@@ -823,6 +797,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     are only cleared when ``state`` contains them, so restoring a snapshot that
     was taken without, say, media assets does not wipe the current ones.
     """
+
     def _has(key: str) -> bool:
         return state is None or key in state
 
@@ -906,9 +881,11 @@ def _insert_story_content(state: dict, db: Session) -> None:
             if k in ("id", "user_id", "created_at", "pov_character_id"):
                 continue  # pov_character_id is applied after characters are re-inserted
             if isinstance(v, str) and hasattr(Story, k):
-                col_type = sa_inspect(Story).mapper.column_attrs[k].columns[0].type if k in {
-                    ca.key for ca in sa_inspect(Story).mapper.column_attrs
-                } else None
+                col_type = (
+                    sa_inspect(Story).mapper.column_attrs[k].columns[0].type
+                    if k in {ca.key for ca in sa_inspect(Story).mapper.column_attrs}
+                    else None
+                )
                 if col_type and isinstance(col_type, SA_DateTime):
                     try:
                         v = datetime.fromisoformat(v)
@@ -979,6 +956,7 @@ def _insert_story_content(state: dict, db: Session) -> None:
 # Export / Import
 # ---------------------------------------------------------------------------
 
+
 def _build_zip_bytes(snapshot: StorySnapshot, db: Session) -> bytes:
     """Build the raw zip archive bytes for a snapshot (always recomputes)."""
     state = resolve_snapshot_data(snapshot, db)
@@ -986,7 +964,7 @@ def _build_zip_bytes(snapshot: StorySnapshot, db: Session) -> bytes:
 
     manifest = {
         "format_version": FORMAT_VERSION,
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": datetime.now(UTC).isoformat(),
         "app_version": APP_VERSION,
         "snapshot_id": snapshot.id,
         "story_id": snapshot.story_id,
@@ -1049,13 +1027,10 @@ def import_snapshot_file(file_bytes: bytes) -> dict:
 # Backup status
 # ---------------------------------------------------------------------------
 
+
 def get_backup_status(story_id: str, db: Session) -> dict:
     """Return backup status info for the header indicator."""
-    settings = (
-        db.query(StoryBackupSettings)
-        .filter(StoryBackupSettings.story_id == story_id)
-        .first()
-    )
+    settings = db.query(StoryBackupSettings).filter(StoryBackupSettings.story_id == story_id).first()
     last_snap = (
         db.query(StorySnapshot)
         .filter(StorySnapshot.story_id == story_id)
@@ -1078,9 +1053,9 @@ def get_backup_status(story_id: str, db: Session) -> dict:
 
     last_at = last_snap.created_at
     if last_at.tzinfo is None:
-        last_at = last_at.replace(tzinfo=timezone.utc)
+        last_at = last_at.replace(tzinfo=UTC)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     elapsed_minutes = (now - last_at).total_seconds() / 60
 
     if elapsed_minutes <= interval_minutes:

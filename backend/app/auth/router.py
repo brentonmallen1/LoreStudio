@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.user import User
-from .utils import verify_password, create_access_token
 from .dependencies import get_current_user
+from .utils import create_access_token, verify_password
 
 router = APIRouter()
 

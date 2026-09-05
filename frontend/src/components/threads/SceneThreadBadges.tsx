@@ -15,18 +15,15 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.listThreads(storyId)
+    api
+      .listThreads(storyId)
       .then(setThreads)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
 
-  const activeThreads = threads.filter((t) =>
-    t.appearances.some((a) => a.node_id === nodeId)
-  );
-  const inactiveThreads = threads.filter((t) =>
-    !t.appearances.some((a) => a.node_id === nodeId)
-  );
+  const activeThreads = threads.filter((t) => t.appearances.some((a) => a.node_id === nodeId));
+  const inactiveThreads = threads.filter((t) => !t.appearances.some((a) => a.node_id === nodeId));
 
   async function addThread(threadId: string) {
     await api.addThreadAppearance(threadId, nodeId);
@@ -70,11 +67,7 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
           {showPicker && (
             <div className={styles.picker}>
               {inactiveThreads.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => addThread(t.id)}
-                  className={styles.pickerItem}
-                >
+                <button key={t.id} onClick={() => addThread(t.id)} className={styles.pickerItem}>
                   <span className={styles.pickerDot} style={{ background: t.color }} />
                   {t.name}
                 </button>

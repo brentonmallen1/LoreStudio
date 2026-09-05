@@ -28,7 +28,9 @@ def system_status(db: Session = Depends(get_db), current_user: User = Depends(ge
         "database": {
             "backend": engine.url.get_backend_name(),
             "revision": revision,
-            "foreign_keys": bool(db.execute(text("PRAGMA foreign_keys")).scalar()) if engine.url.get_backend_name() == "sqlite" else None,
+            "foreign_keys": bool(db.execute(text("PRAGMA foreign_keys")).scalar())
+            if engine.url.get_backend_name() == "sqlite"
+            else None,
         },
         "backups": backup_status(),
         "insecure_defaults": settings.insecure_defaults() if settings.is_dev else [],

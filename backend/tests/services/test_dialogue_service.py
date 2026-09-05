@@ -7,13 +7,12 @@ back to < and > in handle_data, so extraction sees "Hello"<Name>.
 Tests use entity-encoded form to match the real production code path.
 """
 
-import pytest
-from app.services.dialogue_service import extract_dialogue, _html_to_paragraphs
-
+from app.services.dialogue_service import _html_to_paragraphs, extract_dialogue
 
 # ---------------------------------------------------------------------------
 # HTML → paragraph extraction
 # ---------------------------------------------------------------------------
+
 
 def test_html_to_paragraphs_basic():
     html = "<p>First paragraph.</p><p>Second paragraph.</p>"
@@ -32,8 +31,9 @@ def test_html_to_paragraphs_empty():
 # Explicit attribution: "..."<Name>  (stored as "..."&lt;Name&gt; in HTML)
 # ---------------------------------------------------------------------------
 
+
 def test_explicit_straight_quotes():
-    html = "<p>\"I don't think this will work.\"&lt;Maya&gt;</p>"
+    html = '<p>"I don\'t think this will work."&lt;Maya&gt;</p>'
     blocks = extract_dialogue(html)
     assert len(blocks) == 1
     b = blocks[0]
@@ -45,9 +45,9 @@ def test_explicit_straight_quotes():
 
 def test_explicit_multiple_speakers():
     html = (
-        "<p>\"I don't believe you.\"&lt;Maya&gt;</p>"
-        "<p>\"Why not?\"&lt;Thomas&gt;</p>"
-        "<p>\"Because you're lying.\"&lt;Maya&gt;</p>"
+        '<p>"I don\'t believe you."&lt;Maya&gt;</p>'
+        '<p>"Why not?"&lt;Thomas&gt;</p>'
+        '<p>"Because you\'re lying."&lt;Maya&gt;</p>'
     )
     blocks = extract_dialogue(html)
     assert len(blocks) == 3
@@ -58,7 +58,7 @@ def test_explicit_multiple_speakers():
 
 
 def test_explicit_with_multiword_name():
-    html = "<p>\"You shall not pass.\"&lt;Lady Ashford&gt;</p>"
+    html = '<p>"You shall not pass."&lt;Lady Ashford&gt;</p>'
     blocks = extract_dialogue(html)
     assert len(blocks) == 1
     assert blocks[0]["speaker_name"] == "Lady Ashford"
@@ -67,7 +67,7 @@ def test_explicit_with_multiword_name():
 
 def test_explicit_mid_sentence():
     """Speaker tag works when quote appears mid-sentence with surrounding prose."""
-    html = "<p>@Maya said to @Thomas, \"Hello.\"&lt;Maya&gt; He looked away.</p>"
+    html = '<p>@Maya said to @Thomas, "Hello."&lt;Maya&gt; He looked away.</p>'
     blocks = extract_dialogue(html)
     explicit = [b for b in blocks if b["attribution_method"] == "explicit"]
     assert len(explicit) == 1
@@ -78,6 +78,7 @@ def test_explicit_mid_sentence():
 # ---------------------------------------------------------------------------
 # Inferred attribution: "dialogue" ... @Name
 # ---------------------------------------------------------------------------
+
 
 def test_inferred_trailing_mention():
     html = '<p>"I don\'t think this will work," @Maya said, frowning.</p>'
@@ -98,7 +99,7 @@ def test_inferred_leading_mention():
 
 def test_explicit_not_also_inferred():
     """A "..."<Name> quote should NOT be picked up by the inference pass."""
-    html = "<p>\"I don't believe you.\"&lt;Maya&gt; @Thomas stood watching.</p>"
+    html = '<p>"I don\'t believe you."&lt;Maya&gt; @Thomas stood watching.</p>'
     blocks = extract_dialogue(html)
     # Should have exactly 1 block (explicit), not 2 (explicit + inferred)
     assert len(blocks) == 1
@@ -109,6 +110,7 @@ def test_explicit_not_also_inferred():
 # ---------------------------------------------------------------------------
 # Unattributed
 # ---------------------------------------------------------------------------
+
 
 def test_unattributed_no_mention():
     html = '<p>"Hello," she said quietly.</p>'
@@ -128,12 +130,10 @@ def test_no_dialogue():
 # Alternation
 # ---------------------------------------------------------------------------
 
+
 def test_alternation_between_two_speakers():
     html = (
-        '<p>@Maya turned to @Thomas.</p>'
-        '<p>"I don\'t believe you."</p>'
-        '<p>"Why not?"</p>'
-        '<p>"Because you\'re lying."</p>'
+        '<p>@Maya turned to @Thomas.</p><p>"I don\'t believe you."</p><p>"Why not?"</p><p>"Because you\'re lying."</p>'
     )
     blocks = extract_dialogue(html)
     # First quote should be attributed to Maya (nearest mention in para 0)
@@ -145,9 +145,11 @@ def test_alternation_between_two_speakers():
 # Export: _clean_mentions strips &lt;Name&gt; suffix
 # ---------------------------------------------------------------------------
 
+
 def test_explicit_dialogue_stripped_for_export():
     from app.services.manuscript_builder import _clean_mentions
-    html = "<p>\"I don't think this will work.\"&lt;Maya&gt;</p>"
+
+    html = '<p>"I don\'t think this will work."&lt;Maya&gt;</p>'
     cleaned = _clean_mentions(html)
     assert "&lt;Maya&gt;" not in cleaned
     assert "I don't think this will work." in cleaned
@@ -155,7 +157,8 @@ def test_explicit_dialogue_stripped_for_export():
 
 def test_export_preserves_surrounding_prose():
     from app.services.manuscript_builder import _clean_mentions
-    html = "<p>She said \"Hello.\"&lt;Maya&gt; He looked away.</p>"
+
+    html = '<p>She said "Hello."&lt;Maya&gt; He looked away.</p>'
     cleaned = _clean_mentions(html)
     assert "&lt;Maya&gt;" not in cleaned
     assert '"Hello."' in cleaned
@@ -164,6 +167,7 @@ def test_export_preserves_surrounding_prose():
 
 def test_regular_mention_still_stripped():
     from app.services.manuscript_builder import _clean_mentions
+
     html = "<p>@Maya walked into the room.</p>"
     cleaned = _clean_mentions(html)
     assert "@Maya" not in cleaned
@@ -172,6 +176,7 @@ def test_regular_mention_still_stripped():
 
 def test_setting_mention_stripped():
     from app.services.manuscript_builder import _clean_mentions
+
     html = "<p>She arrived at [[The Old Lighthouse]].</p>"
     cleaned = _clean_mentions(html)
     assert "[[" not in cleaned
@@ -180,8 +185,9 @@ def test_setting_mention_stripped():
 
 def test_export_does_not_strip_html_tags():
     from app.services.manuscript_builder import _clean_mentions
+
     # Entity-encoded speaker tag should be stripped; HTML tags preserved
-    html = "<p>She said \"Hello.\"&lt;Maya&gt; He <strong>nodded</strong>.</p>"
+    html = '<p>She said "Hello."&lt;Maya&gt; He <strong>nodded</strong>.</p>'
     cleaned = _clean_mentions(html)
     assert "<strong>" in cleaned
     assert "&lt;Maya&gt;" not in cleaned

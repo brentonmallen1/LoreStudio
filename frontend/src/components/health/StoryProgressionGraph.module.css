@@ -23,7 +23,10 @@
   background: none;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: border-color 0.12s, color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    color 0.12s,
+    background 0.12s;
 }
 
 .tab:hover {
@@ -55,7 +58,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   padding: 0;
-  transition: color var(--transition), border-color var(--transition);
+  transition:
+    color var(--transition),
+    border-color var(--transition);
   flex-shrink: 0;
 }
 

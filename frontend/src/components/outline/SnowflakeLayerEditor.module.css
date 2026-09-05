@@ -106,7 +106,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .guidanceBtn:hover {
@@ -162,7 +164,10 @@
   font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .charBtn:hover {

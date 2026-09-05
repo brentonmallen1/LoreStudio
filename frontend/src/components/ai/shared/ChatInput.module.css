@@ -47,7 +47,9 @@
   background: var(--color-ai);
   color: var(--color-ai-fg);
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .sendBtn:hover:not(:disabled) {

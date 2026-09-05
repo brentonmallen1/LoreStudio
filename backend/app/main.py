@@ -6,58 +6,66 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .config import settings
-from .database import engine, Base
-from .services.db_backup import backup_loop
-from .services.db_migrate import run_migrations
 from .auth.router import router as auth_router
-from .routers.users import router as users_router
-from .routers.stories import router as stories_router
-from .routers.structure import router as structure_router
-from .routers.characters import router as characters_router
-from .routers.settings_router import router as settings_router
-from .routers.interviews import router as interviews_router
-from .routers.templates import router as templates_router
+from .config import settings
+from .database import Base, engine
+from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
+from .routers.beat_sheets import router as beat_sheets_router
+from .routers.brainstorm import router as brainstorm_router
+from .routers.calendars import router as calendars_router
+from .routers.characters import router as characters_router
+from .routers.chat import router as chat_router
+from .routers.chronicle import router as chronicle_router
+from .routers.compendium import router as compendium_router
+from .routers.cultures import router as cultures_router
+from .routers.diagrams import router as diagrams_router
+from .routers.dialogue import router as dialogue_router
+from .routers.discoveries import router as discoveries_router
+from .routers.editorial import router as editorial_router
+from .routers.export import router as export_router
+from .routers.health import router as health_router
+from .routers.history import router as history_router
+from .routers.import_router import router as import_router
+from .routers.interviews import router as interviews_router
+from .routers.llm_preview import router as llm_preview_router
+from .routers.llm_settings import router as llm_settings_router
+from .routers.location_travel import router as location_travel_router
+from .routers.locations import router as locations_router
+from .routers.media import router as media_router
+from .routers.ollama import router as ollama_router
+from .routers.outlines import router as outlines_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
-from .routers.scene_links import router as scene_links_router
-from .routers.search import router as search_router
-from .routers.media import router as media_router
-from .routers.diagrams import router as diagrams_router
-from .routers.chat import router as chat_router
-from .routers.health import router as health_router
-from .routers.llm_preview import router as llm_preview_router
-from .routers.chronicle import router as chronicle_router
-from .routers.ai_settings import router as ai_settings_router
-from .routers.llm_settings import router as llm_settings_router
-from .routers.compendium import router as compendium_router
-from .routers.locations import router as locations_router
-from .routers.world_systems import router as world_systems_router
-from .routers.cultures import router as cultures_router
-from .routers.history import router as history_router
-from .routers.location_travel import router as location_travel_router
-from .routers.calendars import router as calendars_router
-from .routers.beat_sheets import router as beat_sheets_router
-from .routers.discoveries import router as discoveries_router
-from .routers.ollama import router as ollama_router
-from .routers.brainstorm import router as brainstorm_router
-from .routers.whatif import router as whatif_router
-from .routers.scene_planner import router as scene_planner_router
-from .routers.worldbuilding_ai import router as worldbuilding_ai_router
-from .routers.export import router as export_router
-from .routers.dialogue import router as dialogue_router
-from .routers.twists import router as twists_router
-from .routers.todos import router as todos_router
-from .routers.outlines import router as outlines_router
-from .routers.snapshots import router as snapshots_router
-from .routers.import_router import router as import_router
 from .routers.publication import router as publication_router
 from .routers.reader_knowledge import router as reader_knowledge_router
-from .routers.editorial import router as editorial_router
+from .routers.scene_links import router as scene_links_router
+from .routers.scene_planner import router as scene_planner_router
+from .routers.search import router as search_router
+from .routers.settings_router import router as settings_router
+from .routers.snapshots import router as snapshots_router
+from .routers.stories import router as stories_router
+from .routers.structure import router as structure_router
 from .routers.system import router as system_router
-from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets, seed_flash_fiction_demo, seed_short_story_demo, seed_first_person_demo
-
+from .routers.templates import router as templates_router
+from .routers.todos import router as todos_router
+from .routers.twists import router as twists_router
+from .routers.users import router as users_router
+from .routers.whatif import router as whatif_router
+from .routers.world_systems import router as world_systems_router
+from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .services.db_backup import backup_loop
+from .services.db_migrate import run_migrations
+from .services.seed import (
+    seed_admin,
+    seed_beat_sheets,
+    seed_demo_story,
+    seed_first_person_demo,
+    seed_flash_fiction_demo,
+    seed_scifi_demo_story,
+    seed_short_story_demo,
+    seed_structure_templates,
+)
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("lorestudio")

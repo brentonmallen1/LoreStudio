@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTree } from "@headless-tree/react";
-import {
-  syncDataLoaderFeature,
-  selectionFeature,
-  type ItemInstance,
-} from "@headless-tree/core";
+import { syncDataLoaderFeature, selectionFeature, type ItemInstance } from "@headless-tree/core";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
@@ -43,7 +39,7 @@ export function computeOps(childrenMap: ChildrenMap) {
       node_id: nodeId,
       parent_id: parentId === "root" ? null : parentId,
       position,
-    }))
+    })),
   );
 }
 

@@ -12,7 +12,9 @@ export default function DiagramThumbnail({ diagram, onClick }: Props) {
 
   return (
     <button className={styles.card} onClick={onClick} title={diagram.description || `Open: ${diagram.title}`}>
-      <div className={`${styles.preview} ${diagram.diagram_type === "mindmap" ? styles.previewMindmap : styles.previewFlowchart}`}>
+      <div
+        className={`${styles.preview} ${diagram.diagram_type === "mindmap" ? styles.previewMindmap : styles.previewFlowchart}`}
+      >
         <Icon size={22} className={styles.previewIcon} />
       </div>
       <div className={styles.info}>

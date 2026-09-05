@@ -184,9 +184,15 @@
   margin-top: 0.15rem;
 }
 
-.iconFound { color: var(--color-accent-secondary, #0d9488); }
-.iconMissing { color: var(--color-danger, #ef4444); }
-.iconWarning { color: var(--color-warning, #f59e0b); }
+.iconFound {
+  color: var(--color-accent-secondary, #0d9488);
+}
+.iconMissing {
+  color: var(--color-danger, #ef4444);
+}
+.iconWarning {
+  color: var(--color-warning, #f59e0b);
+}
 
 .clueVerifyText {
   display: flex;

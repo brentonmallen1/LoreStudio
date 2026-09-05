@@ -1,9 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .character_journey import CharacterJourneySummary
     from .dialogue import DialogueBlock
@@ -12,17 +15,22 @@ if TYPE_CHECKING:
     from .structure import StructureNode
 
 
-
 class Character(Base):
     __tablename__ = "characters"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
-    role: Mapped[str] = mapped_column(String, default="deuteragonist")  # protagonist, deuteragonist, antagonist, love_interest, confidant, foil, tertiary
+    role: Mapped[str] = mapped_column(
+        String, default="deuteragonist"
+    )  # protagonist, deuteragonist, antagonist, love_interest, confidant, foil, tertiary
     character_type: Mapped[str] = mapped_column(String, default="")  # round, flat, dynamic, static, stock, symbolic
-    jungian_archetype: Mapped[str] = mapped_column(String, default="")  # lover, hero, magician, outlaw, explorer, sage, innocent, creator, ruler, caregiver, everyman, jester
-    narrative_archetype: Mapped[str] = mapped_column(String, default="")  # hero, mentor, threshold_guardian, herald, shapeshifter, shadow, trickster, ally
+    jungian_archetype: Mapped[str] = mapped_column(
+        String, default=""
+    )  # lover, hero, magician, outlaw, explorer, sage, innocent, creator, ruler, caregiver, everyman, jester
+    narrative_archetype: Mapped[str] = mapped_column(
+        String, default=""
+    )  # hero, mentor, threshold_guardian, herald, shapeshifter, shadow, trickster, ally
     personality: Mapped[str] = mapped_column(Text, default="")
     motivation: Mapped[str] = mapped_column(Text, default="")
     background: Mapped[str] = mapped_column(Text, default="")
@@ -50,14 +58,14 @@ class Character(Base):
     # Format: [{"id": "uuid", "text": "...", "scene_id": null, "scene_title": null, "timestamp": "iso", "confirmed": false}]
 
     # Snowflake Method layers
-    snowflake_summary: Mapped[str] = mapped_column(Text, default="")   # Layer 3: goal, motivation, conflict, epiphany
+    snowflake_summary: Mapped[str] = mapped_column(Text, default="")  # Layer 3: goal, motivation, conflict, epiphany
     snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")  # Layer 5: full arc told in first person
     # Format: [{"id": "uuid", "text": "First moment of doubt", "completed": false}]
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="characters", foreign_keys="Character.story_id")
@@ -93,9 +101,7 @@ class Character(Base):
 
 class CharacterRelationship(Base):
     __tablename__ = "character_relationships"
-    __table_args__ = (
-        UniqueConstraint("character_id", "related_character_id", name="uq_relationship_directed_pair"),
-    )
+    __table_args__ = (UniqueConstraint("character_id", "related_character_id", name="uq_relationship_directed_pair"),)
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     character_id: Mapped[str] = mapped_column(String, ForeignKey("characters.id"), nullable=False, index=True)
@@ -115,11 +121,11 @@ class CharacterRelationship(Base):
     is_suggested: Mapped[bool] = mapped_column(Boolean, default=False)
     # Source of suggestion: "profile" (AI) or "prose" (NLP manuscript scan)
     suggestion_source: Mapped[str] = mapped_column(String, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     character: Mapped["Character"] = relationship(

@@ -73,7 +73,7 @@ function charLayerCount(layer: LayerId, characters: Character[]): { done: number
   const done = characters.filter((c) =>
     layer === "character_summary"
       ? c.snowflake_summary.trim().length > 0
-      : c.snowflake_synopsis.trim().length > 0
+      : c.snowflake_synopsis.trim().length > 0,
   ).length;
   return { done, total };
 }
@@ -88,29 +88,32 @@ interface Props {
 export default function SnowflakeView({ storyId, onSwitchToList }: Props) {
   const { activeStory, setActiveStory, characters } = useStoryStore();
   const [expanded, setExpanded] = useState<LayerId | null>("sentence");
-  const [selectedCharId, setSelectedCharId] = useState<string | null>(
-    characters[0]?.id ?? null
-  );
+  const [selectedCharId, setSelectedCharId] = useState<string | null>(characters[0]?.id ?? null);
 
   if (!activeStory) return null;
 
   // ── Save handlers ────────────────────────────────────────────────────────
 
-  async function saveStoryField(field: "snowflake_sentence" | "snowflake_paragraph" | "snowflake_synopsis", value: string) {
+  async function saveStoryField(
+    field: "snowflake_sentence" | "snowflake_paragraph" | "snowflake_synopsis",
+    value: string,
+  ) {
     const updated = await api.updateStory(storyId, { [field]: value });
     setActiveStory(updated);
   }
 
-  async function saveCharField(charId: string, field: "snowflake_summary" | "snowflake_synopsis", value: string) {
+  async function saveCharField(
+    charId: string,
+    field: "snowflake_summary" | "snowflake_synopsis",
+    value: string,
+  ) {
     const char = characters.find((c) => c.id === charId);
     if (!char) return;
     await api.updateCharacter(charId, { [field]: value });
     // Refresh characters from store — updateCharacter should trigger a store update upstream,
     // but we patch locally for immediate feedback
     useStoryStore.setState((s) => ({
-      characters: s.characters.map((c) =>
-        c.id === charId ? { ...c, [field]: value } : c
-      ),
+      characters: s.characters.map((c) => (c.id === charId ? { ...c, [field]: value } : c)),
     }));
   }
 
@@ -138,15 +141,9 @@ export default function SnowflakeView({ storyId, onSwitchToList }: Props) {
           return (
             <div key={layer.id} className={`${styles.step} ${isOpen ? styles.stepOpen : ""}`}>
               {/* Step header */}
-              <button
-                className={styles.stepHeader}
-                onClick={() => toggle(layer.id)}
-                aria-expanded={isOpen}
-              >
+              <button className={styles.stepHeader} onClick={() => toggle(layer.id)} aria-expanded={isOpen}>
                 <span className={`${styles.stepStatus} ${complete ? styles.complete : ""}`}>
-                  {complete
-                    ? <CheckCircle2 size={15} />
-                    : <Circle size={15} />}
+                  {complete ? <CheckCircle2 size={15} /> : <Circle size={15} />}
                 </span>
                 <span className={styles.stepNum}>{idx + 1}</span>
                 <div className={styles.stepMeta}>
@@ -154,7 +151,8 @@ export default function SnowflakeView({ storyId, onSwitchToList }: Props) {
                   {layer.perCharacter && (
                     <span className={styles.stepSub}>
                       <Users size={10} />
-                      {charLayerCount(layer.id, characters).done}/{charLayerCount(layer.id, characters).total} characters
+                      {charLayerCount(layer.id, characters).done}/{charLayerCount(layer.id, characters).total}{" "}
+                      characters
                     </span>
                   )}
                   {!layer.perCharacter && complete && (
@@ -188,9 +186,11 @@ export default function SnowflakeView({ storyId, onSwitchToList }: Props) {
                               key={`${layer.id}-${selectedChar.id}`}
                               storyId={storyId}
                               layer={layer.id}
-                              value={layer.id === "character_summary"
-                                ? selectedChar.snowflake_summary
-                                : selectedChar.snowflake_synopsis}
+                              value={
+                                layer.id === "character_summary"
+                                  ? selectedChar.snowflake_summary
+                                  : selectedChar.snowflake_synopsis
+                              }
                               prevContent={
                                 layer.id === "character_synopsis"
                                   ? selectedChar.snowflake_summary || undefined
@@ -200,8 +200,10 @@ export default function SnowflakeView({ storyId, onSwitchToList }: Props) {
                               onSave={(val) =>
                                 saveCharField(
                                   selectedChar.id,
-                                  layer.id === "character_summary" ? "snowflake_summary" : "snowflake_synopsis",
-                                  val
+                                  layer.id === "character_summary"
+                                    ? "snowflake_summary"
+                                    : "snowflake_synopsis",
+                                  val,
                                 )
                               }
                               onClose={() => setExpanded(null)}

@@ -11,8 +11,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .palette {
@@ -27,8 +31,14 @@
 }
 
 @keyframes slideDown {
-  from { transform: translateY(-6px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ── Search input row ── */
@@ -71,7 +81,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner {
@@ -194,9 +206,13 @@
   transform: rotate(180deg);
   transition: color var(--transition);
 }
-.backBtn:hover { color: var(--color-text); }
+.backBtn:hover {
+  color: var(--color-text);
+}
 
-.backIcon { flex-shrink: 0; }
+.backIcon {
+  flex-shrink: 0;
+}
 
 .subMenuContext {
   font-size: 0.78rem;

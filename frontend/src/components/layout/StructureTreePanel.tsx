@@ -56,14 +56,17 @@ function reorderInTree(
   nodes: StructureNode[],
   draggedId: string,
   targetId: string,
-  zone: "above" | "below" | "into"
+  zone: "above" | "below" | "into",
 ): StructureNode[] {
   // Extract dragged node from anywhere in the tree
   let dragged: StructureNode | null = null;
 
   function extract(list: StructureNode[]): StructureNode[] {
     return list.flatMap((n) => {
-      if (n.id === draggedId) { dragged = n; return []; }
+      if (n.id === draggedId) {
+        dragged = n;
+        return [];
+      }
       return [{ ...n, children: extract(n.children ?? []) }];
     });
   }
@@ -146,7 +149,7 @@ function NodeItem({
       return nodes.map((n) =>
         n.id === node.id
           ? { ...n, children: [...(n.children ?? []), { ...created, children: [] }] }
-          : { ...n, children: insertChild(n.children ?? []) }
+          : { ...n, children: insertChild(n.children ?? []) },
       );
     }
     setStructure(insertChild(structure));
@@ -162,7 +165,7 @@ function NodeItem({
     const pct = (e.clientY - rect.top) / rect.height;
     if (pct < 0.3) return "above";
     if (pct > 0.7) return "below";
-    return hasChildren ? "into" : (pct <= 0.5 ? "above" : "below");
+    return hasChildren ? "into" : pct <= 0.5 ? "above" : "below";
   }
 
   function handleDragStart(e: React.DragEvent) {
@@ -213,7 +216,9 @@ function NodeItem({
           dropZone === "above" ? styles.dropAbove : "",
           dropZone === "below" ? styles.dropBelow : "",
           dropZone === "into" ? styles.dropTarget : "",
-        ].filter(Boolean).join(" ")}
+        ]
+          .filter(Boolean)
+          .join(" ")}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
         {/* Drag handle */}
@@ -232,10 +237,17 @@ function NodeItem({
         >
           <span
             className={styles.chevron}
-            onClick={hasChildren ? (e) => { e.stopPropagation(); setExpanded((x) => !x); } : undefined}
+            onClick={
+              hasChildren
+                ? (e) => {
+                    e.stopPropagation();
+                    setExpanded((x) => !x);
+                  }
+                : undefined
+            }
             role={hasChildren ? "button" : undefined}
           >
-            {hasChildren ? (expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />) : null}
+            {hasChildren ? expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} /> : null}
           </span>
           {(() => {
             return (
@@ -248,7 +260,9 @@ function NodeItem({
           })()}
           <span className={styles.nodeLabel}>{node.title}</span>
           {node.status !== "draft" && (
-            <span className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}>
+            <span
+              className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}
+            >
               {node.status === "final" ? "✓" : "~"}
             </span>
           )}
@@ -257,7 +271,11 @@ function NodeItem({
         {canAddChild && (
           <button
             className={styles.nodeAddChildBtn}
-            onClick={(e) => { e.stopPropagation(); setAddingChild((s) => !s); setChildTitle(""); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddingChild((s) => !s);
+              setChildTitle("");
+            }}
             title={`Add ${childLevelDef.name}`}
           >
             <Plus size={11} />
@@ -275,7 +293,9 @@ function NodeItem({
               if (e.key === "Enter") addChild();
               if (e.key === "Escape") setAddingChild(false);
             }}
-            onBlur={() => { if (!childTitle.trim()) setAddingChild(false); }}
+            onBlur={() => {
+              if (!childTitle.trim()) setAddingChild(false);
+            }}
             placeholder={`${childLevelDef!.name} title…`}
             className={styles.addInput}
           />
@@ -328,11 +348,15 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  function insertNodeIntoTree(nodes: StructureNode[], parentId: string, newNode: StructureNode): StructureNode[] {
+  function insertNodeIntoTree(
+    nodes: StructureNode[],
+    parentId: string,
+    newNode: StructureNode,
+  ): StructureNode[] {
     return nodes.map((n) =>
       n.id === parentId
         ? { ...n, children: [...(n.children ?? []), newNode] }
-        : { ...n, children: insertNodeIntoTree(n.children ?? [], parentId, newNode) }
+        : { ...n, children: insertNodeIntoTree(n.children ?? [], parentId, newNode) },
     );
   }
 
@@ -407,7 +431,9 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
       const newWidth = Math.max(160, Math.min(500, resizeStartWidth.current + dx));
       setTreePanelWidth(newWidth);
     }
-    function onMouseUp() { isResizing.current = false; }
+    function onMouseUp() {
+      isResizing.current = false;
+    }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     return () => {
@@ -432,7 +458,11 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           <div className={styles.addMenuWrap} ref={addMenuRef}>
             <button
               className={`${styles.addBtn} ${showAddMenu ? styles.addBtnActive : ""}`}
-              onClick={() => { setShowAddMenu((v) => !v); setAddingLevel(null); setNewTitle(""); }}
+              onClick={() => {
+                setShowAddMenu((v) => !v);
+                setAddingLevel(null);
+                setNewTitle("");
+              }}
               title="Add structure node"
             >
               <Plus size={12} />
@@ -440,10 +470,9 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
             {showAddMenu && (
               <div className={styles.addMenu}>
                 {activeTemplate?.levels.map((level, idx) => {
-                  const enabled = idx === 0 || (activeNode?.level === idx - 1);
-                  const hint = idx > 0 && !enabled
-                    ? `Select a ${activeTemplate.levels[idx - 1].name} first`
-                    : undefined;
+                  const enabled = idx === 0 || activeNode?.level === idx - 1;
+                  const hint =
+                    idx > 0 && !enabled ? `Select a ${activeTemplate.levels[idx - 1].name} first` : undefined;
                   const Icon = getSegmentIcon(level.name.toLowerCase());
                   return (
                     <button
@@ -529,7 +558,9 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
                 if (e.key === "Enter") addNode();
                 if (e.key === "Escape") setAddingLevel(null);
               }}
-              onBlur={() => { if (!newTitle.trim()) setAddingLevel(null); }}
+              onBlur={() => {
+                if (!newTitle.trim()) setAddingLevel(null);
+              }}
               placeholder={
                 addingLevel === 0
                   ? `${activeTemplate?.levels[0]?.name ?? "Section"} title…`

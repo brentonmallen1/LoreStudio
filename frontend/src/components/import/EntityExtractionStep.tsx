@@ -1,7 +1,24 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, SkipForward, Loader2, User, MapPin, Link2, X, Cpu, Compass } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  SkipForward,
+  Loader2,
+  User,
+  MapPin,
+  Link2,
+  X,
+  Cpu,
+  Compass,
+} from "lucide-react";
 import { api } from "../../api/client";
-import type { AIEnrichOptions, ExtractionCandidate, ExtractionOptions, ImportPreviewTree, ImportUploadResponse } from "../../types";
+import type {
+  AIEnrichOptions,
+  ExtractionCandidate,
+  ExtractionOptions,
+  ImportPreviewTree,
+  ImportUploadResponse,
+} from "../../types";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import ExtractionCandidateCard from "./ExtractionCandidateCard";
 import styles from "./EntityExtractionStep.module.css";
@@ -30,13 +47,7 @@ const DEFAULT_AI_OPTIONS: AIEnrichOptions = {
 
 type Phase = "idle" | "nlp-loading" | "nlp-done" | "ai-loading" | "ai-done";
 
-export default function EntityExtractionStep({
-  uploadResponse,
-  preview,
-  onComplete,
-  onSkip,
-  onBack,
-}: Props) {
+export default function EntityExtractionStep({ uploadResponse, preview, onComplete, onSkip, onBack }: Props) {
   const [nlpOptions, setNlpOptions] = useState<ExtractionOptions>(DEFAULT_NLP_OPTIONS);
   const [aiOptions, setAiOptions] = useState<AIEnrichOptions>(DEFAULT_AI_OPTIONS);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -120,11 +131,7 @@ export default function EntityExtractionStep({
     setPhase("ai-loading");
     setAiError(null);
     try {
-      const result = await api.importEnrichCandidates(
-        preview.session_id,
-        approvedNlpCandidates,
-        aiOptions,
-      );
+      const result = await api.importEnrichCandidates(preview.session_id, approvedNlpCandidates, aiOptions);
       setFinalCandidates(result.candidates);
       setSelectedIds(new Set(result.candidates.map((c) => c.id)));
       setPhase("ai-done");
@@ -185,12 +192,22 @@ export default function EntityExtractionStep({
         {!nlpDone && (
           <div className={styles.phaseOptions}>
             <label className={styles.optionRow}>
-              <input type="checkbox" checked={nlpOptions.characters_nlp} onChange={() => toggleNlpOption("characters_nlp")} className={styles.checkbox} />
+              <input
+                type="checkbox"
+                checked={nlpOptions.characters_nlp}
+                onChange={() => toggleNlpOption("characters_nlp")}
+                className={styles.checkbox}
+              />
               <User size={13} style={{ color: "var(--color-nlp)" }} />
               Characters
             </label>
             <label className={styles.optionRow}>
-              <input type="checkbox" checked={nlpOptions.locations_nlp} onChange={() => toggleNlpOption("locations_nlp")} className={styles.checkbox} />
+              <input
+                type="checkbox"
+                checked={nlpOptions.locations_nlp}
+                onChange={() => toggleNlpOption("locations_nlp")}
+                className={styles.checkbox}
+              />
               <MapPin size={13} style={{ color: "var(--color-nlp)" }} />
               Locations
             </label>
@@ -212,7 +229,9 @@ export default function EntityExtractionStep({
 
         {/* NLP candidate review */}
         {nlpDone && nlpCandidates.length === 0 && (
-          <p className={styles.emptyState}>No entities detected. Try importing a document with character names.</p>
+          <p className={styles.emptyState}>
+            No entities detected. Try importing a document with character names.
+          </p>
         )}
 
         {nlpDone && nlpCandidates.length > 0 && (
@@ -230,7 +249,7 @@ export default function EntityExtractionStep({
                     key={c.id}
                     className={`${styles.candidateChip} ${removed ? styles.chipRemoved : ""}`}
                     style={{ "--chip-color": "var(--color-nlp)" } as React.CSSProperties}
-                    onClick={() => removed ? restoreCandidate(c.id) : removeCandidate(c.id)}
+                    onClick={() => (removed ? restoreCandidate(c.id) : removeCandidate(c.id))}
                     title={removed ? "Click to restore" : "Click to remove"}
                   >
                     <Icon size={11} />
@@ -242,7 +261,9 @@ export default function EntityExtractionStep({
               })}
             </div>
             {approvedCount > 0 && (
-              <p className={styles.approvedCount}>{approvedCount} candidate{approvedCount !== 1 ? "s" : ""} approved</p>
+              <p className={styles.approvedCount}>
+                {approvedCount} candidate{approvedCount !== 1 ? "s" : ""} approved
+              </p>
             )}
           </div>
         )}
@@ -261,17 +282,37 @@ export default function EntityExtractionStep({
           {!aiDone && (
             <div className={styles.phaseOptions}>
               <label className={`${styles.optionRow} ${!aiAvailable ? styles.optionRowDisabled : ""}`}>
-                <input type="checkbox" checked={aiOptions.characters_ai} disabled={!aiAvailable} onChange={() => toggleAiOption("characters_ai")} className={styles.checkbox} />
+                <input
+                  type="checkbox"
+                  checked={aiOptions.characters_ai}
+                  disabled={!aiAvailable}
+                  onChange={() => toggleAiOption("characters_ai")}
+                  className={styles.checkbox}
+                />
                 <User size={13} style={{ color: "var(--color-ai)" }} />
                 Character attributes
               </label>
               <label className={`${styles.optionRow} ${!aiAvailable ? styles.optionRowDisabled : ""}`}>
-                <input type="checkbox" checked={aiOptions.locations_ai} disabled={!aiAvailable} onChange={() => toggleAiOption("locations_ai")} className={styles.checkbox} />
+                <input
+                  type="checkbox"
+                  checked={aiOptions.locations_ai}
+                  disabled={!aiAvailable}
+                  onChange={() => toggleAiOption("locations_ai")}
+                  className={styles.checkbox}
+                />
                 <MapPin size={13} style={{ color: "var(--color-ai)" }} />
                 Location details
               </label>
-              <label className={`${styles.optionRow} ${(!aiAvailable || !aiOptions.characters_ai) ? styles.optionRowDisabled : ""}`}>
-                <input type="checkbox" checked={aiOptions.relationships_ai} disabled={!aiAvailable || !aiOptions.characters_ai} onChange={() => toggleAiOption("relationships_ai")} className={styles.checkbox} />
+              <label
+                className={`${styles.optionRow} ${!aiAvailable || !aiOptions.characters_ai ? styles.optionRowDisabled : ""}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={aiOptions.relationships_ai}
+                  disabled={!aiAvailable || !aiOptions.characters_ai}
+                  onChange={() => toggleAiOption("relationships_ai")}
+                  className={styles.checkbox}
+                />
                 <Link2 size={13} style={{ color: "var(--color-ai)" }} />
                 Relationships
               </label>
@@ -284,7 +325,11 @@ export default function EntityExtractionStep({
               onClick={handleAiEnrich}
               disabled={phase === "ai-loading" || !anyAiOptionEnabled}
             >
-              {phase === "ai-loading" ? <Loader2 size={13} className={styles.spinner} /> : <Compass size={13} />}
+              {phase === "ai-loading" ? (
+                <Loader2 size={13} className={styles.spinner} />
+              ) : (
+                <Compass size={13} />
+              )}
               {phase === "ai-loading" ? "Enriching…" : "Enrich with AI"}
             </button>
           )}
@@ -301,36 +346,64 @@ export default function EntityExtractionStep({
               {aiDone ? "Enriched candidates" : "Candidates"} — select which to add to Lorebook
             </span>
             <div className={styles.selectActions}>
-              <button className={styles.selectAllBtn} onClick={selectAll}>All</button>
+              <button className={styles.selectAllBtn} onClick={selectAll}>
+                All
+              </button>
               <span className={styles.selectSep}>/</span>
-              <button className={styles.selectAllBtn} onClick={selectNone}>None</button>
+              <button className={styles.selectAllBtn} onClick={selectNone}>
+                None
+              </button>
               <span className={styles.selectedCount}>{selectedIds.size} selected</span>
             </div>
           </div>
 
           {chars.length > 0 && (
             <div className={styles.entityGroup}>
-              <div className={styles.entityGroupLabel}><User size={13} />Characters ({chars.length})</div>
+              <div className={styles.entityGroupLabel}>
+                <User size={13} />
+                Characters ({chars.length})
+              </div>
               {chars.map((c) => (
-                <ExtractionCandidateCard key={c.id} candidate={c} selected={selectedIds.has(c.id)} onToggle={toggleSelected} />
+                <ExtractionCandidateCard
+                  key={c.id}
+                  candidate={c}
+                  selected={selectedIds.has(c.id)}
+                  onToggle={toggleSelected}
+                />
               ))}
             </div>
           )}
 
           {locs.length > 0 && (
             <div className={styles.entityGroup}>
-              <div className={styles.entityGroupLabel}><MapPin size={13} />Locations ({locs.length})</div>
+              <div className={styles.entityGroupLabel}>
+                <MapPin size={13} />
+                Locations ({locs.length})
+              </div>
               {locs.map((c) => (
-                <ExtractionCandidateCard key={c.id} candidate={c} selected={selectedIds.has(c.id)} onToggle={toggleSelected} />
+                <ExtractionCandidateCard
+                  key={c.id}
+                  candidate={c}
+                  selected={selectedIds.has(c.id)}
+                  onToggle={toggleSelected}
+                />
               ))}
             </div>
           )}
 
           {rels.length > 0 && (
             <div className={styles.entityGroup}>
-              <div className={styles.entityGroupLabel}><Link2 size={13} />Relationships ({rels.length})</div>
+              <div className={styles.entityGroupLabel}>
+                <Link2 size={13} />
+                Relationships ({rels.length})
+              </div>
               {rels.map((c) => (
-                <ExtractionCandidateCard key={c.id} candidate={c} selected={selectedIds.has(c.id)} onToggle={toggleSelected} />
+                <ExtractionCandidateCard
+                  key={c.id}
+                  candidate={c}
+                  selected={selectedIds.has(c.id)}
+                  onToggle={toggleSelected}
+                />
               ))}
             </div>
           )}

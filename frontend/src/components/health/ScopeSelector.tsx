@@ -23,9 +23,7 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
   const topLevel = structure.filter((n) => !n.parent_id);
   const secondLevel = structure.filter((n) => n.parent_id && topLevel.some((t) => t.id === n.parent_id));
   // Leaf nodes with content
-  const leaves = structure.filter(
-    (n) => !structure.some((c) => c.parent_id === n.id) && n.content
-  );
+  const leaves = structure.filter((n) => !structure.some((c) => c.parent_id === n.id) && n.content);
 
   function toggleId(id: string, type: ScopeType) {
     const current = value.type === type ? value.ids : [];
@@ -41,10 +39,7 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
   return (
     <div className={styles.root}>
       <label className={styles.label}>Scope</label>
-      <button
-        className={styles.trigger}
-        onClick={() => setExpanded((s) => !s)}
-      >
+      <button className={styles.trigger} onClick={() => setExpanded((s) => !s)}>
         <span>{scopeLabel}</span>
         {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
       </button>
@@ -53,7 +48,10 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
         <div className={styles.panel}>
           <button
             className={`${styles.scopeOption} ${value.type === "story" ? styles.scopeOptionActive : ""}`}
-            onClick={() => { onChange({ type: "story", ids: [] }); setExpanded(false); }}
+            onClick={() => {
+              onChange({ type: "story", ids: [] });
+              setExpanded(false);
+            }}
           >
             Whole Story
           </button>

@@ -50,10 +50,14 @@ export default function AIModeWrapper({
   showContextOptions = false,
 }: Props) {
   const {
-    sessionParams, setSessionParams,
-    showSettings, setShowSettings,
+    sessionParams,
+    setSessionParams,
+    showSettings,
+    setShowSettings,
     transparency,
-    ctxPct, ctxWarning, tokenTooltip,
+    ctxPct,
+    ctxWarning,
+    tokenTooltip,
   } = state;
 
   const [showCtxOptions, setShowCtxOptions] = useState(false);
@@ -67,12 +71,17 @@ export default function AIModeWrapper({
 
   async function handleNewChat() {
     if (session.chronicleSessionId) {
-      try { await api.updateChronicleSession(session.chronicleSessionId, { archived: true }); } catch { /* ignore */ }
+      try {
+        await api.updateChronicleSession(session.chronicleSessionId, { archived: true });
+      } catch {
+        /* ignore */
+      }
     }
     startFreshSession(session.id);
   }
   const allowedScopes = sessionType?.allowedScopes;
-  const currentScope: ContextScope = session.context.contextScope ?? sessionType?.defaultScope ?? "current-scene";
+  const currentScope: ContextScope =
+    session.context.contextScope ?? sessionType?.defaultScope ?? "current-scene";
 
   function handleScopeChange(scope: ContextScope) {
     updateSessionContext(session.id, { contextScope: scope });
@@ -118,11 +127,7 @@ export default function AIModeWrapper({
         )}
 
         {!hideTokenBadge && session.messages.length > 0 && (
-          <div
-            className={styles.ctxMeter}
-            data-warning={ctxWarning}
-            title={tokenTooltip}
-          >
+          <div className={styles.ctxMeter} data-warning={ctxWarning} title={tokenTooltip}>
             <Database size={10} />
             <div className={styles.ctxMeterBar}>
               <div className={styles.ctxMeterFill} style={{ width: `${ctxPct}%` }} />
@@ -132,10 +137,7 @@ export default function AIModeWrapper({
         )}
 
         {onTransparencyClick && (
-          <LLMTransparencyTrigger
-            disabled={!transparency.hasData}
-            onClick={onTransparencyClick}
-          />
+          <LLMTransparencyTrigger disabled={!transparency.hasData} onClick={onTransparencyClick} />
         )}
 
         {showContextOptions && (
@@ -193,9 +195,7 @@ export default function AIModeWrapper({
         <div className={styles.contextWarning} data-level={ctxWarning}>
           <AlertTriangle size={12} />
           <span>
-            {ctxWarning === "critical"
-              ? "Context limit nearly reached"
-              : "Context limit approaching"}
+            {ctxWarning === "critical" ? "Context limit nearly reached" : "Context limit approaching"}
           </span>
           <button className={styles.contextWarnBtn} onClick={() => setShowSummarize(true)}>
             Summarize

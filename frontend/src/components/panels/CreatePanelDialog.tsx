@@ -20,9 +20,7 @@ export default function CreatePanelDialog({ storyId, onCreated, onClose }: Props
   const [error, setError] = useState("");
 
   function toggleCharacter(id: string) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
   async function handleCreate() {
@@ -47,7 +45,9 @@ export default function CreatePanelDialog({ storyId, onCreated, onClose }: Props
 
   const footer = (
     <>
-      <button onClick={onClose} className={styles.cancelBtn}>Cancel</button>
+      <button onClick={onClose} className={styles.cancelBtn}>
+        Cancel
+      </button>
       <button
         onClick={handleCreate}
         disabled={creating || selectedIds.length < 2}
@@ -82,7 +82,10 @@ export default function CreatePanelDialog({ storyId, onCreated, onClose }: Props
           <label className={styles.label}>Characters (select 2+)</label>
           <div className={styles.characterList}>
             {characters.map((c) => (
-              <label key={c.id} className={`${styles.characterOption} ${selectedIds.includes(c.id) ? styles.selected : ""}`}>
+              <label
+                key={c.id}
+                className={`${styles.characterOption} ${selectedIds.includes(c.id) ? styles.selected : ""}`}
+              >
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(c.id)}

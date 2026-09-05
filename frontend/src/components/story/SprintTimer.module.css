@@ -16,7 +16,10 @@
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .startBtn:hover {
@@ -76,7 +79,10 @@
   font-size: 0.72rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .durationBtn:hover {
@@ -175,7 +181,9 @@
   cursor: pointer;
   border-radius: 3px;
   margin-left: 0.15rem;
-  transition: color var(--transition), background var(--transition);
+  transition:
+    color var(--transition),
+    background var(--transition);
 }
 
 .stopBtn:hover {

@@ -22,13 +22,14 @@ interface Props {
 }
 
 export default function StoryAssistantMode({ session }: Props) {
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } = useAIStore();
+  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } =
+    useAIStore();
   const { stories } = useStoryStore();
 
   const storyId = session.context.storyId ?? "";
 
   const { sources: contextSources, tokenBreakdown } = useLLMContextSources(
-    storyId ? { context_type: "scene-chat", story_id: storyId, node_id: "__story__" } : null
+    storyId ? { context_type: "scene-chat", story_id: storyId, node_id: "__story__" } : null,
   );
   const state = useAIModeState(session, tokenBreakdown);
 
@@ -46,10 +47,17 @@ export default function StoryAssistantMode({ session }: Props) {
       state={state}
       icon={BookOpen}
       title="Story Assistant"
-      onTransparencyClick={() => state.transparency.open(
-        { context_type: "scene-chat", story_id: storyId, node_id: "__story__", user_message: state.lastUserMsg.current },
-        state.lastResponse.current,
-      )}
+      onTransparencyClick={() =>
+        state.transparency.open(
+          {
+            context_type: "scene-chat",
+            story_id: storyId,
+            node_id: "__story__",
+            user_message: state.lastUserMsg.current,
+          },
+          state.lastResponse.current,
+        )
+      }
       headerExtra={
         !session.contextLocked ? (
           <select
@@ -59,7 +67,9 @@ export default function StoryAssistantMode({ session }: Props) {
           >
             <option value="">— pick a story —</option>
             {stories.map((s) => (
-              <option key={s.id} value={s.id}>{s.title}</option>
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
             ))}
           </select>
         ) : (
@@ -95,7 +105,12 @@ export default function StoryAssistantMode({ session }: Props) {
           </p>
           <div className={styles.starters}>
             {STARTER_PROMPTS.map((p) => (
-              <button key={p} className={styles.starterBtn} onClick={() => handleSend(p)} disabled={session.isStreaming}>
+              <button
+                key={p}
+                className={styles.starterBtn}
+                onClick={() => handleSend(p)}
+                disabled={session.isStreaming}
+              >
                 {p}
               </button>
             ))}

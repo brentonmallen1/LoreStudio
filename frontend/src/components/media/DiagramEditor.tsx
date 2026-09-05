@@ -36,7 +36,8 @@ function MindmapNode({ data, selected }: NodeProps) {
   }, [editing]);
 
   function commitLabel() {
-    if (data.onLabelChange) (data.onLabelChange as (id: string, label: string) => void)(data.id as string, label);
+    if (data.onLabelChange)
+      (data.onLabelChange as (id: string, label: string) => void)(data.id as string, label);
     setEditing(false);
   }
 
@@ -53,7 +54,13 @@ function MindmapNode({ data, selected }: NodeProps) {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           onBlur={commitLabel}
-          onKeyDown={(e) => { if (e.key === "Enter") commitLabel(); if (e.key === "Escape") { setLabel(data.label as string); setEditing(false); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitLabel();
+            if (e.key === "Escape") {
+              setLabel(data.label as string);
+              setEditing(false);
+            }
+          }}
           className={styles.nodeInput}
           onClick={(e) => e.stopPropagation()}
         />
@@ -75,7 +82,8 @@ function CentralNode({ data, selected }: NodeProps) {
   }, [editing]);
 
   function commitLabel() {
-    if (data.onLabelChange) (data.onLabelChange as (id: string, label: string) => void)(data.id as string, label);
+    if (data.onLabelChange)
+      (data.onLabelChange as (id: string, label: string) => void)(data.id as string, label);
     setEditing(false);
   }
 
@@ -92,7 +100,13 @@ function CentralNode({ data, selected }: NodeProps) {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           onBlur={commitLabel}
-          onKeyDown={(e) => { if (e.key === "Enter") commitLabel(); if (e.key === "Escape") { setLabel(data.label as string); setEditing(false); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitLabel();
+            if (e.key === "Escape") {
+              setLabel(data.label as string);
+              setEditing(false);
+            }
+          }}
           className={styles.nodeInput}
           onClick={(e) => e.stopPropagation()}
         />
@@ -117,13 +131,13 @@ const NODE_TYPES: NodeTypes = {
 // ---- Node category colors ----
 
 const NODE_CATEGORIES = [
-  { id: "none",      label: "Default",   color: "" },
+  { id: "none", label: "Default", color: "" },
   { id: "character", label: "Character", color: "#c26a3a" }, // --color-accent warm orange
-  { id: "setting",   label: "Setting",   color: "#4a7fa3" }, // blue
-  { id: "event",     label: "Event",     color: "#6a7a3a" }, // olive/green
-  { id: "clue",      label: "Clue",      color: "#8b6aa8" }, // --color-ai purple
-  { id: "twist",     label: "Twist",     color: "#a84a4a" }, // red
-  { id: "note",      label: "Note",      color: "#a88a2a" }, // amber
+  { id: "setting", label: "Setting", color: "#4a7fa3" }, // blue
+  { id: "event", label: "Event", color: "#6a7a3a" }, // olive/green
+  { id: "clue", label: "Clue", color: "#8b6aa8" }, // --color-ai purple
+  { id: "twist", label: "Twist", color: "#a84a4a" }, // red
+  { id: "note", label: "Note", color: "#a88a2a" }, // amber
 ] as const;
 
 // ---- Helpers ----
@@ -134,7 +148,9 @@ function makeNodeId() {
 
 function defaultNodesForType(type: string): RFNode[] {
   if (type === "mindmap") {
-    return [{ id: "central", type: "central", position: { x: 300, y: 200 }, data: { label: "Central Idea" } }];
+    return [
+      { id: "central", type: "central", position: { x: 300, y: 200 }, data: { label: "Central Idea" } },
+    ];
   }
   return [{ id: "start", type: "mindmap", position: { x: 100, y: 200 }, data: { label: "Start" } }];
 }
@@ -148,9 +164,14 @@ interface Props {
 }
 
 export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
-  const initialNodes: RFNode[] = (diagram.nodes.length
-    ? diagram.nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: { ...(n.data as RFNodeData) } }))
-    : defaultNodesForType(diagram.diagram_type));
+  const initialNodes: RFNode[] = diagram.nodes.length
+    ? diagram.nodes.map((n) => ({
+        id: n.id,
+        type: n.type,
+        position: n.position,
+        data: { ...(n.data as RFNodeData) },
+      }))
+    : defaultNodesForType(diagram.diagram_type);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<RFNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>(diagram.edges as RFEdge[]);
@@ -169,7 +190,9 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
     data: {
       ...n.data,
       onLabelChange: (id: string, label: string) => {
-        setNodes((ns) => ns.map((node) => node.id === id ? { ...node, data: { ...node.data, label } } : node));
+        setNodes((ns) =>
+          ns.map((node) => (node.id === id ? { ...node, data: { ...node.data, label } } : node)),
+        );
         setDirty(true);
       },
     },
@@ -180,7 +203,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
       setEdges((eds) => addEdge({ ...connection, animated: diagram.diagram_type === "flowchart" }, eds));
       setDirty(true);
     },
-    [setEdges, diagram.diagram_type]
+    [setEdges, diagram.diagram_type],
   );
 
   function addNode(type: "mindmap" | "central" = "mindmap") {
@@ -215,9 +238,9 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
   }
 
   function applyColor(color: string) {
-    setNodes((ns) => ns.map((n) =>
-      n.selected ? { ...n, data: { ...n.data, color: color || undefined } } : n
-    ));
+    setNodes((ns) =>
+      ns.map((n) => (n.selected ? { ...n, data: { ...n.data, color: color || undefined } } : n)),
+    );
     setColorPickerOpen(false);
     setDirty(true);
   }
@@ -226,7 +249,10 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
     setSaving(true);
     try {
       // Strip callback functions before persisting; cast to match API schema
-      const persistNodes = nodes.map(({ data: { onLabelChange: _cb, ...data }, ...rest }) => ({ ...rest, data }));
+      const persistNodes = nodes.map(({ data: { onLabelChange: _cb, ...data }, ...rest }) => ({
+        ...rest,
+        data,
+      }));
       const updated = await api.updateDiagram(diagram.id, {
         title,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -249,8 +275,13 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             autoFocus
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            onBlur={() => { setEditingTitle(false); setDirty(true); }}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === "Escape") setEditingTitle(false); }}
+            onBlur={() => {
+              setEditingTitle(false);
+              setDirty(true);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === "Escape") setEditingTitle(false);
+            }}
             className={styles.titleInput}
           />
         ) : (
@@ -261,7 +292,11 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
         )}
 
         <div className={styles.toolbarActions}>
-          <button onClick={() => setTemplateOpen(true)} className={styles.toolBtn} title="Start from template">
+          <button
+            onClick={() => setTemplateOpen(true)}
+            className={styles.toolBtn}
+            title="Start from template"
+          >
             <LayoutGrid size={13} />
           </button>
           <button onClick={() => addNode("mindmap")} className={styles.toolBtn} title="Add node">
@@ -291,7 +326,10 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
                   >
                     <span
                       className={styles.colorSwatch}
-                      style={{ background: cat.color || "var(--color-surface-raised)", border: cat.color ? "none" : "1px solid var(--color-border)" }}
+                      style={{
+                        background: cat.color || "var(--color-surface-raised)",
+                        border: cat.color ? "none" : "1px solid var(--color-border)",
+                      }}
                     />
                     {cat.label}
                   </button>
@@ -299,10 +337,19 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
               </div>
             )}
           </div>
-          <button onClick={deleteSelected} className={`${styles.toolBtn} ${styles.toolBtnDanger}`} title="Delete selected">
+          <button
+            onClick={deleteSelected}
+            className={`${styles.toolBtn} ${styles.toolBtnDanger}`}
+            title="Delete selected"
+          >
             <Trash2 size={13} />
           </button>
-          <button onClick={save} className={`${styles.toolBtn} ${styles.toolBtnSave}`} disabled={saving || !dirty} title="Save">
+          <button
+            onClick={save}
+            className={`${styles.toolBtn} ${styles.toolBtnSave}`}
+            disabled={saving || !dirty}
+            title="Save"
+          >
             <Save size={13} />
             {saving ? "Saving…" : dirty ? "Save" : "Saved"}
           </button>
@@ -316,10 +363,20 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             </button>
             {exportOpen && (
               <div className={styles.exportMenu}>
-                <button onClick={() => { if (canvasRef.current) exportDiagramPng(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                <button
+                  onClick={() => {
+                    if (canvasRef.current) exportDiagramPng(canvasRef.current, title || "diagram");
+                    setExportOpen(false);
+                  }}
+                >
                   Export PNG
                 </button>
-                <button onClick={() => { if (canvasRef.current) exportDiagramSvg(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                <button
+                  onClick={() => {
+                    if (canvasRef.current) exportDiagramSvg(canvasRef.current, title || "diagram");
+                    setExportOpen(false);
+                  }}
+                >
                   Export SVG
                 </button>
               </div>
@@ -337,8 +394,14 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
         <ReactFlow
           nodes={nodesWithCb}
           edges={edges}
-          onNodesChange={(changes) => { onNodesChange(changes); setDirty(true); }}
-          onEdgesChange={(changes) => { onEdgesChange(changes); setDirty(true); }}
+          onNodesChange={(changes) => {
+            onNodesChange(changes);
+            setDirty(true);
+          }}
+          onEdgesChange={(changes) => {
+            onEdgesChange(changes);
+            setDirty(true);
+          }}
           onConnect={onConnect}
           nodeTypes={NODE_TYPES}
           fitView
@@ -354,10 +417,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
       </div>
 
       {templateOpen && (
-        <DiagramTemplateSelector
-          onSelect={applyTemplate}
-          onClose={() => setTemplateOpen(false)}
-        />
+        <DiagramTemplateSelector onSelect={applyTemplate} onClose={() => setTemplateOpen(false)} />
       )}
     </div>
   );

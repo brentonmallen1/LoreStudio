@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.scene_link import SceneLink
-from ..schemas.scene_link import SceneLinkCreate, SceneLinkUpdate, SceneLinkOut
-from ..auth.dependencies import get_current_user
+from ..models.user import User
+from ..schemas.scene_link import SceneLinkCreate, SceneLinkOut, SceneLinkUpdate
 
 router = APIRouter()
 

@@ -48,7 +48,9 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
         <div className={styles.header}>
           <Keyboard size={15} className={styles.headerIcon} />
           <span className={styles.title}>Keyboard shortcuts</span>
-          <button className={styles.closeBtn} onClick={onClose}><X size={14} /></button>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={14} />
+          </button>
         </div>
 
         <div className={styles.body}>

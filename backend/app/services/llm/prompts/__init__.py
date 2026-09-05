@@ -6,38 +6,37 @@ Usage:
     from ..services.llm.prompts.interviews import build_character_interview_system_prompt
 """
 
+from .analysis import (
+    TARGET_AUDIENCES,
+    build_audience_adherence_prompt,
+    build_character_arc_prompt,
+    build_economy_analysis_prompt,
+    build_session_recap_prompt,
+    build_show_dont_tell_prompt,
+)
+from .brainstorm import build_brainstorm_system_prompt
+from .chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
 from .core import CORE_SYSTEM_PROMPT
+from .generation import (
+    build_attribute_generation_prompt,
+    build_relationship_suggestion_prompt,
+)
 from .interviews import (
     build_character_interview_system_prompt,
     build_interview_summary_prompt,
     build_panel_interview_system_prompt,
 )
+from .scene_planner import build_scene_planner_system_prompt
 from .summaries import (
-    build_story_summary_prompt,
     build_scene_summary_prompt,
+    build_story_summary_prompt,
     build_structure_section_summary_prompt,
 )
-from .analysis import (
-    build_character_arc_prompt,
-    build_economy_analysis_prompt,
-    build_session_recap_prompt,
-    build_show_dont_tell_prompt,
-    build_audience_adherence_prompt,
-    TARGET_AUDIENCES,
-)
-from .generation import (
-    build_attribute_generation_prompt,
-    build_relationship_suggestion_prompt,
-)
-from .chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
-from .brainstorm import build_brainstorm_system_prompt
-from .scene_planner import build_scene_planner_system_prompt
 from .worldbuilding import (
-    build_location_existence_prompt,
     build_element_suggestion_prompt,
     build_historical_implication_prompt,
+    build_location_existence_prompt,
 )
-
 
 # Feature identifier → human-readable label
 FEATURE_LABELS: dict[str, str] = {
@@ -113,9 +112,7 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
         "Focus on plot events, character actions, and what is established. "
         "Write in present tense."
     ),
-    "story-summary": (
-        "Focus on plot, character actions, and key developments. Write in present tense."
-    ),
+    "story-summary": ("Focus on plot, character actions, and key developments. Write in present tense."),
     "character-arc": (
         "Answer: Where is the character right now in their arc? What have they done, how have they changed, "
         "and what still needs to happen? Be specific about what's been written vs. what's planned."

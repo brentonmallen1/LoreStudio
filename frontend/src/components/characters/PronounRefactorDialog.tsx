@@ -28,7 +28,8 @@ export default function PronounRefactorDialog({
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    api.previewPronounRefactor(characterId, newPronouns)
+    api
+      .previewPronounRefactor(characterId, newPronouns)
       .then((data) => {
         setProposals(data.proposals);
         setSelected(new Set(data.proposals.map((p) => p.id)));
@@ -61,7 +62,7 @@ export default function PronounRefactorDialog({
       acc[p.node_id].items.push(p);
       return acc;
     },
-    {}
+    {},
   );
 
   async function handleApply() {
@@ -86,11 +87,7 @@ export default function PronounRefactorDialog({
         Skip
       </button>
       {!loading && proposals.length > 0 && (
-        <button
-          className={styles.applyBtn}
-          onClick={handleApply}
-          disabled={applying || selectedCount === 0}
-        >
+        <button className={styles.applyBtn} onClick={handleApply} disabled={applying || selectedCount === 0}>
           {applying ? "Applying…" : `Apply ${selectedCount > 0 ? `(${selectedCount})` : ""}`}
         </button>
       )}
@@ -116,7 +113,9 @@ export default function PronounRefactorDialog({
 
         {!loading && proposals.length === 0 && (
           <div className={styles.empty}>
-            <p>No gendered language found for <strong>{saved.name}</strong> in your scenes.</p>
+            <p>
+              No gendered language found for <strong>{saved.name}</strong> in your scenes.
+            </p>
             <p className={styles.emptyHint}>Pronouns updated. No prose changes needed.</p>
           </div>
         )}
@@ -155,9 +154,7 @@ export default function PronounRefactorDialog({
                         <div className={styles.original}>{p.original}</div>
                         <div className={styles.arrow}>↓</div>
                         <div className={styles.rewritten}>{p.rewritten}</div>
-                        {p.explanation && (
-                          <div className={styles.explanation}>{p.explanation}</div>
-                        )}
+                        {p.explanation && <div className={styles.explanation}>{p.explanation}</div>}
                       </div>
                     </div>
                   ))}

@@ -13,7 +13,13 @@ interface Props {
   onAttachmentsChange?: () => void;
 }
 
-export default function AssetPicker({ storyId, objectType, objectId, label = "Reference Images", onAttachmentsChange }: Props) {
+export default function AssetPicker({
+  storyId,
+  objectType,
+  objectId,
+  label = "Reference Images",
+  onAttachmentsChange,
+}: Props) {
   const [attachments, setAttachments] = useState<AssetAttachment[]>([]);
   const [storyAssets, setStoryAssets] = useState<StoryAsset[]>([]);
   const [open, setOpen] = useState(false);
@@ -29,7 +35,8 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
   useEffect(() => {
     if (!objectId) return;
     setLoading(true);
-    api.listAttachments(objectType, objectId)
+    api
+      .listAttachments(objectType, objectId)
       .then(setAttachments)
       .catch(() => setAttachments([]))
       .finally(() => setLoading(false));
@@ -116,8 +123,16 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
                       >
                         {isImage && asset ? (
                           <>
-                            <img src={api.assetFileUrl(asset.id)} alt={asset.alt_text || asset.original_filename} className={styles.attachImg} loading="lazy" decoding="async" />
-                            <span className={styles.attachZoom}><ZoomIn size={10} /></span>
+                            <img
+                              src={api.assetFileUrl(asset.id)}
+                              alt={asset.alt_text || asset.original_filename}
+                              className={styles.attachImg}
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <span className={styles.attachZoom}>
+                              <ZoomIn size={10} />
+                            </span>
                           </>
                         ) : (
                           <FileText size={14} />
@@ -140,7 +155,11 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
                 <ImageIcon size={12} />
                 Browse library
               </button>
-              <button className={styles.actionBtn} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+              <button
+                className={styles.actionBtn}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
                 <Upload size={12} />
                 {uploading ? "Uploading…" : "Upload file"}
               </button>
@@ -158,7 +177,9 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
               <div className={styles.browser}>
                 <div className={styles.browserHeader}>
                   <span>Story media</span>
-                  <button onClick={() => setBrowsing(false)} className={styles.closeBtn}><X size={12} /></button>
+                  <button onClick={() => setBrowsing(false)} className={styles.closeBtn}>
+                    <X size={12} />
+                  </button>
                 </div>
                 {storyAssets.length === 0 ? (
                   <p className={styles.hint}>No assets uploaded yet</p>
@@ -176,7 +197,13 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
                         >
                           <div className={styles.browserThumb}>
                             {isImage ? (
-                              <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.browserImg} loading="lazy" decoding="async" />
+                              <img
+                                src={api.assetFileUrl(asset.id)}
+                                alt={asset.original_filename}
+                                className={styles.browserImg}
+                                loading="lazy"
+                                decoding="async"
+                              />
                             ) : (
                               <FileText size={18} />
                             )}
@@ -195,21 +222,26 @@ export default function AssetPicker({ storyId, objectType, objectId, label = "Re
       </div>
 
       {/* Lightbox */}
-      {lightboxIndex !== null && (() => {
-        const att = imageAttachments[lightboxIndex];
-        const asset = att && storyAssets.find((a) => a.id === att.asset_id);
-        if (!asset) return null;
-        return (
-          <Lightbox
-            url={api.assetFileUrl(asset.id)}
-            alt={asset.alt_text || asset.original_filename}
-            filename={asset.original_filename}
-            onClose={() => setLightboxIndex(null)}
-            onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
-            onNext={lightboxIndex < imageAttachments.length - 1 ? () => setLightboxIndex((i) => (i ?? 0) + 1) : undefined}
-          />
-        );
-      })()}
+      {lightboxIndex !== null &&
+        (() => {
+          const att = imageAttachments[lightboxIndex];
+          const asset = att && storyAssets.find((a) => a.id === att.asset_id);
+          if (!asset) return null;
+          return (
+            <Lightbox
+              url={api.assetFileUrl(asset.id)}
+              alt={asset.alt_text || asset.original_filename}
+              filename={asset.original_filename}
+              onClose={() => setLightboxIndex(null)}
+              onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
+              onNext={
+                lightboxIndex < imageAttachments.length - 1
+                  ? () => setLightboxIndex((i) => (i ?? 0) + 1)
+                  : undefined
+              }
+            />
+          );
+        })()}
     </>
   );
 }

@@ -15,19 +15,36 @@ interface Props {
 
 const PREDEFINED_TYPES = [
   // Celestial
-  "star_system", "star", "planet", "gas_giant", "moon",
-  "asteroid_belt", "orbital_station", "space_habitat",
+  "star_system",
+  "star",
+  "planet",
+  "gas_giant",
+  "moon",
+  "asteroid_belt",
+  "orbital_station",
+  "space_habitat",
   // Terrestrial
-  "continent", "region", "territory",
-  "settlement", "district", "landmark", "structure",
+  "continent",
+  "region",
+  "territory",
+  "settlement",
+  "district",
+  "landmark",
+  "structure",
   "natural_feature",
   // Mobile
   "vessel",
 ];
 
 const CELESTIAL_TYPES = new Set([
-  "star_system", "star", "planet", "gas_giant", "moon",
-  "asteroid_belt", "orbital_station", "space_habitat",
+  "star_system",
+  "star",
+  "planet",
+  "gas_giant",
+  "moon",
+  "asteroid_belt",
+  "orbital_station",
+  "space_habitat",
 ]);
 
 function LocationTreeItem({
@@ -61,29 +78,39 @@ function LocationTreeItem({
       >
         <button
           className={hasChildren ? styles.treeToggle : styles.treeTogglePlaceholder}
-          onClick={(e) => { e.stopPropagation(); if (hasChildren) onToggleExpand(location.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasChildren) onToggleExpand(location.id);
+          }}
         >
-          {hasChildren ? (isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />) : null}
+          {hasChildren ? isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} /> : null}
         </button>
         <MapPin size={12} color={location.is_stub ? "var(--color-ai, #a78bfa)" : "var(--color-text-muted)"} />
-        <span className={styles.listItemName} style={location.is_stub ? { color: "var(--color-text-muted)" } : undefined}>
+        <span
+          className={styles.listItemName}
+          style={location.is_stub ? { color: "var(--color-text-muted)" } : undefined}
+        >
           {location.name}
         </span>
-        {location.location_type && (
-          <span className={styles.listItemBadge}>{location.location_type}</span>
-        )}
+        {location.location_type && <span className={styles.listItemBadge}>{location.location_type}</span>}
         {location.is_stub && <span className={styles.stubDot} title="Discovered — needs review" />}
         <button
           className={styles.treeAddBtn}
           title="Open location sheet"
-          onClick={(e) => { e.stopPropagation(); onOpenSheet(location.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenSheet(location.id);
+          }}
         >
           <ExternalLink size={10} />
         </button>
         <button
           className={styles.treeAddBtn}
           title={`Add location inside "${location.name}"`}
-          onClick={(e) => { e.stopPropagation(); onAddChild(location.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddChild(location.id);
+          }}
         >
           <Plus size={10} />
         </button>
@@ -132,36 +159,40 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const load = useCallback(() => {
-    Promise.all([
-      api.listLocations(storyId),
-      api.getLocationTypes(storyId),
-    ]).then(([locs, types]) => {
-      setLocations(locs);
-      setAvailableTypes(types);
-      // Auto-expand roots
-      setExpandedIds(new Set(locs.map((l) => l.id)));
-      // Auto-select if navigated from a [[Setting]] mention
-      if (selectLocationName) {
-        function findByName(list: Location[]): Location | undefined {
-          for (const loc of list) {
-            if (loc.name.toLowerCase() === selectLocationName!.toLowerCase()) return loc;
-            if (loc.children) {
-              const found = findByName(loc.children);
-              if (found) return found;
+    Promise.all([api.listLocations(storyId), api.getLocationTypes(storyId)])
+      .then(([locs, types]) => {
+        setLocations(locs);
+        setAvailableTypes(types);
+        // Auto-expand roots
+        setExpandedIds(new Set(locs.map((l) => l.id)));
+        // Auto-select if navigated from a [[Setting]] mention
+        if (selectLocationName) {
+          function findByName(list: Location[]): Location | undefined {
+            for (const loc of list) {
+              if (loc.name.toLowerCase() === selectLocationName!.toLowerCase()) return loc;
+              if (loc.children) {
+                const found = findByName(loc.children);
+                if (found) return found;
+              }
             }
           }
+          const match = findByName(locs);
+          if (match) setSelected(match);
         }
-        const match = findByName(locs);
-        if (match) setSelected(match);
-      }
-    }).finally(() => setLoading(false));
+      })
+      .finally(() => setLoading(false));
   }, [storyId, selectLocationName]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   useEffect(() => {
     if (!selected) return;
-    api.getSceneSettingsForLocation(selected.id).then(setSceneUsages).catch(() => {});
+    api
+      .getSceneSettingsForLocation(selected.id)
+      .then(setSceneUsages)
+      .catch(() => {});
   }, [selected]);
 
   function toggleExpand(id: string) {
@@ -176,7 +207,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   function scheduleUpdate(field: string, value: string) {
     if (!selected) return;
     const wasStub = selected.is_stub;
-    setSelected((prev) => prev ? { ...prev, [field]: value, is_stub: false } : null);
+    setSelected((prev) => (prev ? { ...prev, [field]: value, is_stub: false } : null));
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selected) return;
@@ -240,7 +271,10 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
           <h3 className={styles.sidebarTitle}>
             Locations
             {stubCount > 0 && (
-              <span className={styles.stubCount} title={`${stubCount} discovered location${stubCount !== 1 ? "s" : ""} need review`}>
+              <span
+                className={styles.stubCount}
+                title={`${stubCount} discovered location${stubCount !== 1 ? "s" : ""} need review`}
+              >
                 {stubCount}
               </span>
             )}
@@ -262,7 +296,10 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 onSelect={setSelected}
                 expandedIds={expandedIds}
                 onToggleExpand={toggleExpand}
-                onAddChild={(parentId) => { setNewParentId(parentId); setShowAddModal(true); }}
+                onAddChild={(parentId) => {
+                  setNewParentId(parentId);
+                  setShowAddModal(true);
+                }}
                 onOpenSheet={(id) => navigate(`/stories/${storyId}/locations/${id}`)}
               />
             ))
@@ -285,7 +322,9 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 <button
                   className={styles.aiBtn}
                   title="Analyzes this location's properties and generates ideas for: Built Environment, Natural Environment, Cultural Presence, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "what-exists", entityId: selected.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "what-exists", entityId: selected.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Brainstorm What Exists
@@ -293,7 +332,9 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 <button
                   className={styles.aiBtn}
                   title="Generates creative directions for: Creatures & Wildlife, Flora & Environment, Naming Patterns, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "location-suggest", entityId: selected.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "location-suggest", entityId: selected.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Suggest Elements
@@ -316,10 +357,12 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                 </span>
                 <button
                   className={styles.stubBannerDismiss}
-                  onClick={() => api.updateLocation(selected.id, { is_stub: false }).then(() => {
-                    setSelected((prev) => prev ? { ...prev, is_stub: false } : null);
-                    load();
-                  })}
+                  onClick={() =>
+                    api.updateLocation(selected.id, { is_stub: false }).then(() => {
+                      setSelected((prev) => (prev ? { ...prev, is_stub: false } : null));
+                      load();
+                    })
+                  }
                 >
                   Mark reviewed
                 </button>
@@ -421,8 +464,11 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               </SectionCard>
 
               {(CELESTIAL_TYPES.has(selected.location_type) ||
-                selected.orbital_period || selected.distance_from_parent ||
-                selected.gravity || selected.habitability || selected.radiation_level) && (
+                selected.orbital_period ||
+                selected.distance_from_parent ||
+                selected.gravity ||
+                selected.habitability ||
+                selected.radiation_level) && (
                 <SectionCard title="Celestial Properties">
                   <div className={styles.fieldRow}>
                     <div className={styles.fieldGroup}>
@@ -555,14 +601,23 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                   <option value="">None (root level)</option>
                   {flattenForSelect(locations).map(({ loc, depth }) => (
                     <option key={loc.id} value={loc.id}>
-                      {"  ".repeat(depth)}{loc.name}
+                      {"  ".repeat(depth)}
+                      {loc.name}
                     </option>
                   ))}
                 </select>
               </div>
             )}
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => { setShowAddModal(false); setNewParentId(null); }}>Cancel</button>
+              <button
+                className={styles.ghostBtn}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setNewParentId(null);
+                }}
+              >
+                Cancel
+              </button>
               <button className={styles.addBtn} onClick={createLocation} disabled={!newName.trim()}>
                 Add location
               </button>
@@ -580,7 +635,9 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
               This will also delete all nested child locations. This cannot be undone.
             </p>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
               <button
                 className={styles.addBtn}
                 style={{ background: "var(--color-danger)" }}
@@ -598,7 +655,10 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
 
 // Inline type selector with predefined + custom option
 function TypeSelector({
-  value, options, onChange, predefined,
+  value,
+  options,
+  onChange,
+  predefined,
 }: {
   value: string;
   options: string[];
@@ -609,18 +669,20 @@ function TypeSelector({
   const selectValue = isCustom ? "__custom__" : value;
 
   return (
-    <select
-      className={styles.fieldSelect}
-      value={selectValue}
-      onChange={(e) => onChange(e.target.value)}
-    >
+    <select className={styles.fieldSelect} value={selectValue} onChange={(e) => onChange(e.target.value)}>
       <option value="">— select type —</option>
       {predefined.map((t) => (
-        <option key={t} value={t}>{t}</option>
+        <option key={t} value={t}>
+          {t}
+        </option>
       ))}
-      {options.filter((t) => !predefined.includes(t)).map((t) => (
-        <option key={t} value={t}>{t} (custom)</option>
-      ))}
+      {options
+        .filter((t) => !predefined.includes(t))
+        .map((t) => (
+          <option key={t} value={t}>
+            {t} (custom)
+          </option>
+        ))}
       <option value="__custom__">Custom…</option>
     </select>
   );

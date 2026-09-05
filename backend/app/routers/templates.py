@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
-from ..auth.dependencies import get_current_user
 
 router = APIRouter()
 
@@ -34,15 +34,10 @@ class TemplateUpdate(BaseModel):
 
 
 @router.get("/structures", response_model=list[TemplateOut])
-def list_structure_templates(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_structure_templates(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return (
         db.query(StoryStructureTemplate)
-        .filter(
-            (StoryStructureTemplate.is_system.is_(True)) |
-            (StoryStructureTemplate.user_id == current_user.id)
-        )
+        .filter((StoryStructureTemplate.is_system.is_(True)) | (StoryStructureTemplate.user_id == current_user.id))
         .all()
     )
 

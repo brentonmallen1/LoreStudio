@@ -2,15 +2,31 @@ import { useEffect, useRef, useState } from "react";
 import { X, Eye, EyeOff, Layers } from "lucide-react";
 import { api } from "../../../api/client";
 import { SectionCard } from "../../common";
-import type { Character, CharacterRelationship, RelationshipTemplate, StrengthDimensions } from "../../../types";
+import type {
+  Character,
+  CharacterRelationship,
+  RelationshipTemplate,
+  StrengthDimensions,
+} from "../../../types";
 import StrengthSliders from "./StrengthSliders";
 import NarrativePurposeTags from "./NarrativePurposeTags";
 import TemplateSelector from "./TemplateSelector";
 import styles from "./RelationshipEditor.module.css";
 
 const RELATIONSHIP_TYPES = [
-  "acquaintance", "ally", "mentor", "rival", "enemy", "romantic", "family",
-  "confidant", "authority", "foil", "protector", "former ally", "custom",
+  "acquaintance",
+  "ally",
+  "mentor",
+  "rival",
+  "enemy",
+  "romantic",
+  "family",
+  "confidant",
+  "authority",
+  "foil",
+  "protector",
+  "former ally",
+  "custom",
 ];
 
 const DEFAULT_STRENGTH: StrengthDimensions = { trust: 5, power: 5, affection: 5, tension: 5, openness: 5 };
@@ -19,13 +35,21 @@ interface Props {
   characterId: string;
   characters: Character[];
   relationship: CharacterRelationship | null;
-  existingRelationships?: CharacterRelationship[];  // already-created relationships for the focus character
+  existingRelationships?: CharacterRelationship[]; // already-created relationships for the focus character
   onClose: () => void;
   onSaved: (rel: CharacterRelationship) => void;
   onDeleted?: (id: string) => void;
 }
 
-export default function RelationshipEditor({ characterId, characters, relationship, existingRelationships = [], onClose, onSaved, onDeleted }: Props) {
+export default function RelationshipEditor({
+  characterId,
+  characters,
+  relationship,
+  existingRelationships = [],
+  onClose,
+  onSaved,
+  onDeleted,
+}: Props) {
   const isNew = relationship === null;
 
   const [panelWidth, setPanelWidth] = useState(400);
@@ -50,7 +74,10 @@ export default function RelationshipEditor({ characterId, characters, relationsh
   const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
-    api.getRelationshipTemplates().then(setTemplates).catch(() => {});
+    api
+      .getRelationshipTemplates()
+      .then(setTemplates)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -59,7 +86,9 @@ export default function RelationshipEditor({ characterId, characters, relationsh
       const dx = resizeStartX.current - e.clientX;
       setPanelWidth(Math.max(300, Math.min(580, resizeStartWidth.current + dx)));
     }
-    function onMouseUp() { isResizing.current = false; }
+    function onMouseUp() {
+      isResizing.current = false;
+    }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     return () => {
@@ -84,7 +113,10 @@ export default function RelationshipEditor({ characterId, characters, relationsh
   }
 
   async function handleSave() {
-    if (purposes.length === 0) { setPurposeError(true); return; }
+    if (purposes.length === 0) {
+      setPurposeError(true);
+      return;
+    }
     setPurposeError(false);
     setSaveError("");
     setSaving(true);
@@ -109,7 +141,9 @@ export default function RelationshipEditor({ characterId, characters, relationsh
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("already exists")) {
-        setSaveError("A relationship from this character to the selected character already exists. Edit the existing one instead.");
+        setSaveError(
+          "A relationship from this character to the selected character already exists. Edit the existing one instead.",
+        );
       } else {
         setSaveError("Failed to save. Please try again.");
       }
@@ -130,9 +164,7 @@ export default function RelationshipEditor({ characterId, characters, relationsh
   const alreadyRelatedIds = new Set(existingRelationships.map((r) => r.related_character_id));
   const otherChars = characters.filter((c) => c.id !== characterId);
   // In create mode, exclude characters that already have a directed relationship from this character
-  const availableTargets = isNew
-    ? otherChars.filter((c) => !alreadyRelatedIds.has(c.id))
-    : otherChars;
+  const availableTargets = isNew ? otherChars.filter((c) => !alreadyRelatedIds.has(c.id)) : otherChars;
   const targetChar = characters.find((c) => c.id === (isNew ? targetId : relationship?.related_character_id));
   const selfChar = characters.find((c) => c.id === characterId);
 
@@ -160,18 +192,18 @@ export default function RelationshipEditor({ characterId, characters, relationsh
         {isNew && (
           <div className={styles.field}>
             <label className={styles.label}>Target Character *</label>
-            <select
-              className={styles.select}
-              value={targetId}
-              onChange={(e) => setTargetId(e.target.value)}
-            >
+            <select className={styles.select} value={targetId} onChange={(e) => setTargetId(e.target.value)}>
               <option value="">Select a character…</option>
               {availableTargets.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
             {availableTargets.length === 0 && (
-              <p className={styles.fieldHint}>All characters already have a relationship from this character.</p>
+              <p className={styles.fieldHint}>
+                All characters already have a relationship from this character.
+              </p>
             )}
           </div>
         )}
@@ -190,7 +222,9 @@ export default function RelationshipEditor({ characterId, characters, relationsh
           <label className={styles.label}>Relationship Type</label>
           <select className={styles.select} value={type} onChange={(e) => setType(e.target.value)}>
             {RELATIONSHIP_TYPES.map((t) => (
-              <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              <option key={t} value={t}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </option>
             ))}
           </select>
           {type === "custom" && (
@@ -222,7 +256,9 @@ export default function RelationshipEditor({ characterId, characters, relationsh
               <EyeOff size={12} /> Hidden
             </button>
             <span className={styles.visHint}>
-              {visibility === "hidden" ? "Other characters don't know about this relationship." : "This relationship is known to others in the story world."}
+              {visibility === "hidden"
+                ? "Other characters don't know about this relationship."
+                : "This relationship is known to others in the story world."}
             </span>
           </div>
         </div>
@@ -252,7 +288,9 @@ export default function RelationshipEditor({ characterId, characters, relationsh
         {/* Notes — first-class */}
         <div className={styles.field}>
           <label className={styles.label}>Author Notes</label>
-          <p className={styles.hint}>Nuance, subtext, or anything not captured above. Available for AI context.</p>
+          <p className={styles.hint}>
+            Nuance, subtext, or anything not captured above. Available for AI context.
+          </p>
           <textarea
             className={styles.notes}
             placeholder="Write anything about this relationship here…"
@@ -265,24 +303,25 @@ export default function RelationshipEditor({ characterId, characters, relationsh
 
       {saveError && <p className={styles.saveError}>{saveError}</p>}
       <div className={styles.footer}>
-        {!isNew && (
-          pendingDelete ? (
+        {!isNew &&
+          (pendingDelete ? (
             <div className={styles.deleteConfirm}>
-              <button className={styles.deleteConfirmYes} onClick={doDelete}>Delete</button>
-              <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+              <button className={styles.deleteConfirmYes} onClick={doDelete}>
+                Delete
+              </button>
+              <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>
+                Cancel
+              </button>
             </div>
           ) : (
             <button className={styles.deleteBtn} onClick={() => setPendingDelete(true)}>
               Delete
             </button>
-          )
-        )}
-        <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-        <button
-          className={styles.saveBtn}
-          onClick={handleSave}
-          disabled={saving || (isNew && !targetId)}
-        >
+          ))}
+        <button className={styles.cancelBtn} onClick={onClose}>
+          Cancel
+        </button>
+        <button className={styles.saveBtn} onClick={handleSave} disabled={saving || (isNew && !targetId)}>
           {saving ? "Saving…" : "Save"}
         </button>
       </div>

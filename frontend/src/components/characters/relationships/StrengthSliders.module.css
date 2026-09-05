@@ -30,9 +30,15 @@
   text-align: right;
 }
 
-.displayVal.neg  { color: #a06090; }
-.displayVal.pos  { color: #609878; }
-.displayVal.zero { color: var(--color-text-subtle); }
+.displayVal.neg {
+  color: #a06090;
+}
+.displayVal.pos {
+  color: #609878;
+}
+.displayVal.zero {
+  color: var(--color-text-subtle);
+}
 
 /* ── Track: negLabel  [leftHalf | tick | rightHalf]  posLabel ── */
 .track {

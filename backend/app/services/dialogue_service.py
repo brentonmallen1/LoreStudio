@@ -12,15 +12,14 @@ The HTML is stripped to plain text per paragraph before regex parsing.
 
 import re
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from .text_utils import html_to_paragraphs as _html_to_paragraphs, extract_em_blocks as _extract_em_blocks
-
-from ..models.dialogue import DialogueBlock
 from ..models.character import Character
-
+from ..models.dialogue import DialogueBlock
+from .text_utils import extract_em_blocks as _extract_em_blocks
+from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
 # ---------------------------------------------------------------------------
 # Patterns
@@ -30,8 +29,8 @@ from ..models.character import Character
 # Multi-word names are allowed (e.g. "Hello."<Lady Ashford>).
 # Captures: (dialogue_content, speaker_name)
 _EXPLICIT_RE = re.compile(
-    r'\u201c([^\u201d]+)\u201d<([^>]+)>'   # smart quotes "…"<Name>
-    r'|"([^"]+)"<([^>]+)>',                 # straight quotes "..."<Name>
+    r"\u201c([^\u201d]+)\u201d<([^>]+)>"  # smart quotes "…"<Name>
+    r'|"([^"]+)"<([^>]+)>',  # straight quotes "..."<Name>
     re.UNICODE,
 )
 
@@ -45,12 +44,13 @@ _STANDALONE_QUOTE_RE = re.compile(
 # Any @mention in a line (for proximity/alternation inference).
 # Deliberately excludes \s so that @Maya followed by prose words isn't consumed.
 # Multi-word names (e.g. Lady Ashford) require explicit @Name: "..." syntax.
-_MENTION_RE = re.compile(r'@([\w][\w\'-]{0,49})', re.UNICODE)
+_MENTION_RE = re.compile(r"@([\w][\w\'-]{0,49})", re.UNICODE)
 
 
 # ---------------------------------------------------------------------------
 # Per-paragraph extraction
 # ---------------------------------------------------------------------------
+
 
 def _extract_from_paragraph(
     text: str,
@@ -67,15 +67,17 @@ def _extract_from_paragraph(
             content, speaker = m.group(1).strip(), m.group(2).strip()
         else:
             content, speaker = m.group(3).strip(), m.group(4).strip()
-        results.append({
-            "speaker_name": speaker,
-            "content": content.strip(),
-            "raw_text": m.group(0),
-            "paragraph_index": para_index,
-            "position_in_paragraph": m.start(),
-            "attribution_method": "explicit",
-            "confidence": 1.0,
-        })
+        results.append(
+            {
+                "speaker_name": speaker,
+                "content": content.strip(),
+                "raw_text": m.group(0),
+                "paragraph_index": para_index,
+                "position_in_paragraph": m.start(),
+                "attribution_method": "explicit",
+                "confidence": 1.0,
+            }
+        )
         explicit_matches.add(m.start())
 
     if results:
@@ -94,9 +96,7 @@ def _extract_from_paragraph(
         return results
 
     # Find all @mentions with positions
-    mentions: list[tuple[int, str]] = [
-        (m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(text)
-    ]
+    mentions: list[tuple[int, str]] = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(text)]
 
     for q_pos, q_content in quotes:
         best_speaker = None
@@ -112,15 +112,17 @@ def _extract_from_paragraph(
 
         confidence = max(0.0, 1.0 - (best_dist / 150)) if best_speaker else 0.0
 
-        results.append({
-            "speaker_name": best_speaker or "",
-            "content": q_content,
-            "raw_text": f'"{q_content}"',
-            "paragraph_index": para_index,
-            "position_in_paragraph": q_pos,
-            "attribution_method": best_method,
-            "confidence": round(confidence, 2),
-        })
+        results.append(
+            {
+                "speaker_name": best_speaker or "",
+                "content": q_content,
+                "raw_text": f'"{q_content}"',
+                "paragraph_index": para_index,
+                "position_in_paragraph": q_pos,
+                "attribution_method": best_method,
+                "confidence": round(confidence, 2),
+            }
+        )
 
     return results
 
@@ -163,20 +165,23 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def extract_thoughts(scene_content: str, para_index_offset: int = 0) -> list[dict]:
     """Extract inner-monologue blocks from italicized spans (≥2 words) in TipTap HTML."""
     results = []
     for para_idx, char_offset, text in _extract_em_blocks(scene_content):
-        results.append({
-            "speaker_name": "",
-            "content": text,
-            "raw_text": f"*{text}*",
-            "paragraph_index": para_idx + para_index_offset,
-            "position_in_paragraph": char_offset,
-            "attribution_method": "unattributed",
-            "confidence": 0.0,
-            "dialogue_type": "thought",
-        })
+        results.append(
+            {
+                "speaker_name": "",
+                "content": text,
+                "raw_text": f"*{text}*",
+                "paragraph_index": para_idx + para_index_offset,
+                "position_in_paragraph": char_offset,
+                "attribution_method": "unattributed",
+                "confidence": 0.0,
+                "dialogue_type": "thought",
+            }
+        )
     return results
 
 
@@ -239,10 +244,7 @@ def sync_dialogue_blocks(
 
     # POV character resolution
     pov_char = None
-    use_pov_default = (
-        pov_character_id
-        and narrative_perspective in _FIRST_PERSON_PERSPECTIVES
-    )
+    use_pov_default = pov_character_id and narrative_perspective in _FIRST_PERSON_PERSPECTIVES
     if use_pov_default:
         pov_char = db.query(Character).filter(Character.id == pov_character_id).first()
 
@@ -265,15 +267,13 @@ def sync_dialogue_blocks(
     # Resolve character_ids from speaker names
     speaker_names = {b["speaker_name"] for b in all_raw if b["speaker_name"]}
     characters = (
-        db.query(Character)
-        .filter(Character.story_id == story_id, Character.name.in_(speaker_names))
-        .all()
+        db.query(Character).filter(Character.story_id == story_id, Character.name.in_(speaker_names)).all()
         if speaker_names
         else []
     )
     char_by_name = {c.name.lower(): c for c in characters}
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     saved: list[DialogueBlock] = []
 
     for raw in all_raw:
@@ -328,18 +328,11 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
     from ..models.structure import StructureNode
 
     # Get all leaf scene IDs for this story
-    scene_ids = [
-        row.id for row in
-        db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()
-    ]
+    scene_ids = [row.id for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
     if not scene_ids:
         return {"total_blocks": 0, "by_character": [], "unattributed": 0, "balance_score": None, "monologue_scenes": []}
 
-    blocks = (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.scene_id.in_(scene_ids))
-        .all()
-    )
+    blocks = db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(scene_ids)).all()
 
     total = len(blocks)
     unattributed = sum(1 for b in blocks if b.attribution_method == "unattributed")
@@ -384,20 +377,18 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
         "total_blocks": total,
         "unattributed": unattributed,
         "by_character": sorted(by_char.values(), key=lambda x: x["word_count"], reverse=True),
-        "balance_score": balance_score,          # 0–100, higher = more balanced
-        "monologue_scenes": monologue_scenes,    # scenes dominated by one speaker
+        "balance_score": balance_score,  # 0–100, higher = more balanced
+        "monologue_scenes": monologue_scenes,  # scenes dominated by one speaker
     }
 
 
 def get_interaction_matrix(story_id: str, db: Session) -> list[dict]:
     """Return pairwise character interaction data (co-presence in scenes)."""
-    from ..models.structure import StructureNode
     from collections import defaultdict
 
-    scene_ids = [
-        row.id for row in
-        db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()
-    ]
+    from ..models.structure import StructureNode
+
+    scene_ids = [row.id for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
     if not scene_ids:
         return []
 

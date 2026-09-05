@@ -30,7 +30,8 @@ export default function ReportsView({ storyId }: Props) {
 
   useEffect(() => {
     setLoading(true);
-    api.getAnalysisHistory(storyId)
+    api
+      .getAnalysisHistory(storyId)
       .then(setLogs)
       .catch(() => setLogs([]))
       .finally(() => setLoading(false));
@@ -65,9 +66,7 @@ export default function ReportsView({ storyId }: Props) {
       ) : filtered.length === 0 ? (
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>No reports yet</p>
-          <p className={styles.emptyHint}>
-            Run an analysis from the toolbar above to generate a report.
-          </p>
+          <p className={styles.emptyHint}>Run an analysis from the toolbar above to generate a report.</p>
         </div>
       ) : (
         <div className={styles.list}>

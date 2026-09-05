@@ -24,10 +24,14 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
         "",
         f"## Story: {s['title']}",
     ]
-    if s.get("genre"): lines.append(f"Genre: {s['genre']}")
-    if s.get("tone"): lines.append(f"Tone: {s['tone']}")
-    if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
-    if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
+    if s.get("genre"):
+        lines.append(f"Genre: {s['genre']}")
+    if s.get("tone"):
+        lines.append(f"Tone: {s['tone']}")
+    if s.get("themes"):
+        lines.append(f"Themes: {', '.join(s['themes'])}")
+    if s.get("narrative_intent"):
+        lines.append(f"Author's intent: {s['narrative_intent']}")
     if s.get("narrative_perspective"):
         pov_line = f"Narrative perspective: {s['narrative_perspective'].replace('_', ' ').title()}"
         if s.get("pov_character"):
@@ -36,14 +40,17 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
 
     if sc:
         lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
-        if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
-        if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
+        if sc.get("synopsis"):
+            lines.append(f"Synopsis: {sc['synopsis']}")
+        if sc.get("purpose"):
+            lines.append(f"Purpose: {sc['purpose']}")
 
     if ctx["characters_in_scene"]:
         lines += ["", "## Characters in this scene"]
         for c in ctx["characters_in_scene"]:
             line = f"- {c['name']}"
-            if c.get("personality"): line += f": {c['personality']}"
+            if c.get("personality"):
+                line += f": {c['personality']}"
             lines.append(line)
     elif ctx["all_characters"]:
         lines += ["", "## Story characters"]
@@ -71,12 +78,18 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
         "",
         f"## Story: {s['title']}",
     ]
-    if s.get("genre"): lines.append(f"Genre: {s['genre']}")
-    if s.get("tone"): lines.append(f"Tone: {s['tone']}")
-    if s.get("themes"): lines.append(f"Themes: {', '.join(s['themes'])}")
-    if s.get("central_conflict"): lines.append(f"Central conflict: {s['central_conflict']}")
-    if s.get("narrative_intent"): lines.append(f"Author's intent: {s['narrative_intent']}")
-    if s.get("logline"): lines.append(f"Logline: {s['logline']}")
+    if s.get("genre"):
+        lines.append(f"Genre: {s['genre']}")
+    if s.get("tone"):
+        lines.append(f"Tone: {s['tone']}")
+    if s.get("themes"):
+        lines.append(f"Themes: {', '.join(s['themes'])}")
+    if s.get("central_conflict"):
+        lines.append(f"Central conflict: {s['central_conflict']}")
+    if s.get("narrative_intent"):
+        lines.append(f"Author's intent: {s['narrative_intent']}")
+    if s.get("logline"):
+        lines.append(f"Logline: {s['logline']}")
     if s.get("narrative_perspective"):
         pov_line = f"Narrative perspective: {s['narrative_perspective'].replace('_', ' ').title()}"
         if s.get("pov_character"):
@@ -87,11 +100,16 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
 
     if sc:
         lines += ["", f"## Current scene: {sc['title']} ({sc.get('level_type', 'scene')})"]
-        if sc.get("synopsis"): lines.append(f"Synopsis: {sc['synopsis']}")
-        if sc.get("purpose"): lines.append(f"Purpose: {sc['purpose']}")
-        if sc.get("entry_state"): lines.append(f"Entry state: {sc['entry_state']}")
-        if sc.get("exit_state"): lines.append(f"Exit state (goal): {sc['exit_state']}")
-        if sc.get("key_events"): lines.append(f"Key events planned: {sc['key_events']}")
+        if sc.get("synopsis"):
+            lines.append(f"Synopsis: {sc['synopsis']}")
+        if sc.get("purpose"):
+            lines.append(f"Purpose: {sc['purpose']}")
+        if sc.get("entry_state"):
+            lines.append(f"Entry state: {sc['entry_state']}")
+        if sc.get("exit_state"):
+            lines.append(f"Exit state (goal): {sc['exit_state']}")
+        if sc.get("key_events"):
+            lines.append(f"Key events planned: {sc['key_events']}")
         if sc.get("prose_preview"):
             lines += ["", "Prose so far (excerpt):", sc["prose_preview"]]
 
@@ -99,31 +117,39 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
         lines += ["", "## Characters in this scene"]
         for c in ctx["characters_in_scene"]:
             lines.append(f"\n### {c['name']} ({c.get('role', '')})")
-            if c.get("personality"): lines.append(f"Personality: {c['personality']}")
-            if c.get("motivation"): lines.append(f"Motivation: {c['motivation']}")
-            if c.get("arc_notes"): lines.append(f"Arc: {c['arc_notes']}")
-            if c.get("narrative_intent"): lines.append(f"Author's plan for this character: {c['narrative_intent']}")
+            if c.get("personality"):
+                lines.append(f"Personality: {c['personality']}")
+            if c.get("motivation"):
+                lines.append(f"Motivation: {c['motivation']}")
+            if c.get("arc_notes"):
+                lines.append(f"Arc: {c['arc_notes']}")
+            if c.get("narrative_intent"):
+                lines.append(f"Author's plan for this character: {c['narrative_intent']}")
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
     elif ctx["all_characters"]:
         lines += ["", "## Story characters (all)"]
         for c in ctx["all_characters"]:
             line = f"- {c['name']} ({c['role']})"
-            if c.get("motivation"): line += f": {c['motivation']}"
+            if c.get("motivation"):
+                line += f": {c['motivation']}"
             lines.append(line)
 
     if ctx["settings_in_scene"]:
         lines += ["", "## Settings in this scene"]
         for setting in ctx["settings_in_scene"]:
             lines.append(f"\n### {setting['name']}")
-            if setting.get("description"): lines.append(setting["description"])
-            if setting.get("atmosphere"): lines.append(f"Atmosphere: {setting['atmosphere']}")
+            if setting.get("description"):
+                lines.append(setting["description"])
+            if setting.get("atmosphere"):
+                lines.append(f"Atmosphere: {setting['atmosphere']}")
 
     if ctx["threads_in_scene"]:
         lines += ["", "## Plot threads active in this scene"]
         for t in ctx["threads_in_scene"]:
             line = f"- {t['name']} [{t['status']}]"
-            if t.get("description"): line += f": {t['description']}"
+            if t.get("description"):
+                line += f": {t['description']}"
             lines.append(line)
     if ctx["open_threads"]:
         open_names = [t["name"] for t in ctx["open_threads"] if t not in ctx["threads_in_scene"]]
@@ -134,7 +160,8 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:
         lines += ["", "## Other scenes in this section"]
         for sib in ctx["sibling_scenes"]:
             line = f"- {sib['title']}"
-            if sib.get("synopsis"): line += f": {sib['synopsis']}"
+            if sib.get("synopsis"):
+                line += f": {sib['synopsis']}"
             lines.append(line)
 
     lines += [

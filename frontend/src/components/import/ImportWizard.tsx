@@ -60,13 +60,7 @@ export default function ImportWizard({ onClose }: Props) {
   const title = `Import Document — ${stepLabels[step]}`;
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title={title}
-      icon={<FileInput size={15} />}
-      size="lg"
-    >
+    <Modal isOpen onClose={onClose} title={title} icon={<FileInput size={15} />} size="lg">
       <div className={styles.wizard}>
         <div className={styles.stepBar}>
           {([1, 2, 3, 4] as Step[]).map((s) => (
@@ -81,9 +75,7 @@ export default function ImportWizard({ onClose }: Props) {
         </div>
 
         <div className={styles.stepContent}>
-          {step === 1 && (
-            <UploadStep onUploaded={handleUploaded} />
-          )}
+          {step === 1 && <UploadStep onUploaded={handleUploaded} />}
           {step === 2 && uploadResponse && preview && (
             <StructureReviewStep
               uploadResponse={uploadResponse}

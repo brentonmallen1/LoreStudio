@@ -17,7 +17,9 @@
   font-size: 0.65rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   max-width: 130px;
 }
 
@@ -147,7 +149,9 @@
   color: var(--color-text-muted);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .rowBtn:hover:not(:disabled) {
@@ -165,5 +169,7 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

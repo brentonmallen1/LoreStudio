@@ -72,8 +72,18 @@ function AssetCard({
       >
         {isImage ? (
           <>
-            <img src={fileUrl} alt={asset.alt_text || asset.original_filename} className={styles.thumb} loading="lazy" decoding="async" />
-            {onLightbox && <span className={styles.thumbZoom}><ZoomIn size={13} /></span>}
+            <img
+              src={fileUrl}
+              alt={asset.alt_text || asset.original_filename}
+              className={styles.thumb}
+              loading="lazy"
+              decoding="async"
+            />
+            {onLightbox && (
+              <span className={styles.thumbZoom}>
+                <ZoomIn size={13} />
+              </span>
+            )}
           </>
         ) : (
           <div className={styles.thumbPlaceholder}>
@@ -114,7 +124,9 @@ function AssetCard({
             </p>
             {asset.alt_text && <p className={styles.altText}>{asset.alt_text}</p>}
             {asset.description && <p className={styles.desc}>{asset.description}</p>}
-            <p className={styles.meta}>{formatBytes(asset.size_bytes)} · {asset.mime_type}</p>
+            <p className={styles.meta}>
+              {formatBytes(asset.size_bytes)} · {asset.mime_type}
+            </p>
           </>
         )}
 
@@ -123,7 +135,12 @@ function AssetCard({
             <Edit2 size={12} />
           </button>
           {isImage && (
-            <button onClick={runAnalysis} className={styles.actionBtn} title="AI: analyze mood & atmosphere" disabled={analyzing}>
+            <button
+              onClick={runAnalysis}
+              className={styles.actionBtn}
+              title="AI: analyze mood & atmosphere"
+              disabled={analyzing}
+            >
               <Compass size={12} />
             </button>
           )}
@@ -136,7 +153,11 @@ function AssetCard({
           </button>
           {confirmDelete ? (
             <>
-              <button onClick={() => onDelete(asset.id)} className={`${styles.actionBtn} ${styles.danger}`} title="Confirm delete">
+              <button
+                onClick={() => onDelete(asset.id)}
+                className={`${styles.actionBtn} ${styles.danger}`}
+                title="Confirm delete"
+              >
                 <Check size={12} />
               </button>
               <button onClick={() => setConfirmDelete(false)} className={styles.actionBtn}>
@@ -144,7 +165,11 @@ function AssetCard({
               </button>
             </>
           ) : (
-            <button onClick={() => setConfirmDelete(true)} className={`${styles.actionBtn} ${styles.danger}`} title="Delete">
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className={`${styles.actionBtn} ${styles.danger}`}
+              title="Delete"
+            >
               <Trash2 size={12} />
             </button>
           )}
@@ -204,7 +229,7 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
       setDragOver(false);
       if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
     },
-    [assets]
+    [assets],
   );
 
   async function handleDelete(assetId: string) {
@@ -232,8 +257,8 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
                 {f === "all"
                   ? assets.length
                   : f === "images"
-                  ? assets.filter((a) => a.mime_type.startsWith("image/")).length
-                  : assets.filter((a) => !a.mime_type.startsWith("image/")).length}
+                    ? assets.filter((a) => a.mime_type.startsWith("image/")).length
+                    : assets.filter((a) => !a.mime_type.startsWith("image/")).length}
               </span>
             </button>
           ))}
@@ -258,7 +283,10 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
 
       <div
         className={`${styles.dropZone} ${dragOver ? styles.dropActive : ""}`}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
       >
@@ -275,30 +303,39 @@ export default function MediaLibrary({ storyId, assets, onAssetsChange }: Props)
                 asset={asset}
                 onDelete={handleDelete}
                 onUpdate={handleUpdate}
-                onLightbox={asset.mime_type.startsWith("image/") ? () => {
-                  const idx = imageAssets.findIndex((a) => a.id === asset.id);
-                  setLightboxIndex(idx >= 0 ? idx : null);
-                } : undefined}
+                onLightbox={
+                  asset.mime_type.startsWith("image/")
+                    ? () => {
+                        const idx = imageAssets.findIndex((a) => a.id === asset.id);
+                        setLightboxIndex(idx >= 0 ? idx : null);
+                      }
+                    : undefined
+                }
               />
             ))}
           </div>
         )}
       </div>
 
-      {lightboxIndex !== null && (() => {
-        const asset = imageAssets[lightboxIndex];
-        if (!asset) return null;
-        return (
-          <Lightbox
-            url={api.assetFileUrl(asset.id)}
-            alt={asset.alt_text || asset.original_filename}
-            filename={asset.original_filename}
-            onClose={() => setLightboxIndex(null)}
-            onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
-            onNext={lightboxIndex < imageAssets.length - 1 ? () => setLightboxIndex((i) => (i ?? 0) + 1) : undefined}
-          />
-        );
-      })()}
+      {lightboxIndex !== null &&
+        (() => {
+          const asset = imageAssets[lightboxIndex];
+          if (!asset) return null;
+          return (
+            <Lightbox
+              url={api.assetFileUrl(asset.id)}
+              alt={asset.alt_text || asset.original_filename}
+              filename={asset.original_filename}
+              onClose={() => setLightboxIndex(null)}
+              onPrev={lightboxIndex > 0 ? () => setLightboxIndex((i) => (i ?? 1) - 1) : undefined}
+              onNext={
+                lightboxIndex < imageAssets.length - 1
+                  ? () => setLightboxIndex((i) => (i ?? 0) + 1)
+                  : undefined
+              }
+            />
+          );
+        })()}
     </div>
   );
 }

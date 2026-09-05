@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel
 
+from pydantic import BaseModel
 
 KnowledgeType = Literal[
     "truth_revealed",

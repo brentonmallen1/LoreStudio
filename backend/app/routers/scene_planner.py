@@ -7,18 +7,18 @@ synopsis, purpose, entry_state, exit_state, key_events.
 Distinct from What's Next? (brainstorming during/after writing).
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.scene_planner import build_scene_planner_system_prompt
-from ..schemas.llm_params import LLMParams
+from ..models.user import User
 from ..schemas.ai_responses import ScenePlanResponse, StructuredResult
+from ..schemas.llm_params import LLMParams
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.scene_planner import build_scene_planner_system_prompt
 from .chat import _build_context_packet
 
 router = APIRouter()

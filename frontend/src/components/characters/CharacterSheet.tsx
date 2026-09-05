@@ -1,6 +1,22 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Edit2, MessageSquare, ChevronRight, Plus, Trash2, Check, Eye, EyeOff, Wand2, Compass, Users, User, MapPin, ExternalLink, ArrowLeft } from "lucide-react";
+import {
+  Edit2,
+  MessageSquare,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Check,
+  Eye,
+  EyeOff,
+  Wand2,
+  Compass,
+  Users,
+  User,
+  MapPin,
+  ExternalLink,
+  ArrowLeft,
+} from "lucide-react";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { SectionCard } from "../common";
 import CharacterDialogueTab from "./CharacterDialogueTab";
@@ -13,12 +29,32 @@ import { useAIStore } from "../../stores/aiStore";
 import type { CharacterAttributes, StructureNode } from "../../types";
 
 const ATTRIBUTE_DEFS: { key: keyof CharacterAttributes; label: string; options: string[] }[] = [
-  { key: "intelligence",    label: "Intelligence",    options: ["Brilliant", "Sharp", "Average", "Simple", "Slow"] },
-  { key: "education",       label: "Education",       options: ["Scholarly", "Educated", "Common", "Unlettered"] },
-  { key: "moral_alignment", label: "Moral Alignment", options: ["Righteous", "Principled", "Pragmatic", "Self-Serving", "Corrupt"] },
-  { key: "disposition",     label: "Disposition",     options: ["Orderly", "Conventional", "Flexible", "Unpredictable", "Chaotic"] },
-  { key: "temperament",     label: "Temperament",     options: ["Serene", "Calm", "Balanced", "Volatile", "Explosive"] },
-  { key: "social_manner",   label: "Social Manner",   options: ["Refined", "Polished", "Casual", "Rough", "Crude"] },
+  {
+    key: "intelligence",
+    label: "Intelligence",
+    options: ["Brilliant", "Sharp", "Average", "Simple", "Slow"],
+  },
+  { key: "education", label: "Education", options: ["Scholarly", "Educated", "Common", "Unlettered"] },
+  {
+    key: "moral_alignment",
+    label: "Moral Alignment",
+    options: ["Righteous", "Principled", "Pragmatic", "Self-Serving", "Corrupt"],
+  },
+  {
+    key: "disposition",
+    label: "Disposition",
+    options: ["Orderly", "Conventional", "Flexible", "Unpredictable", "Chaotic"],
+  },
+  {
+    key: "temperament",
+    label: "Temperament",
+    options: ["Serene", "Calm", "Balanced", "Volatile", "Explosive"],
+  },
+  {
+    key: "social_manner",
+    label: "Social Manner",
+    options: ["Refined", "Polished", "Casual", "Rough", "Crude"],
+  },
 ];
 import RelationshipsTab from "./relationships/RelationshipsTab";
 import CharacterFormDialog from "./CharacterFormDialog";
@@ -27,7 +63,6 @@ import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../media/PortraitEditor";
 import styles from "./CharacterSheet.module.css";
-
 
 export default function CharacterSheet() {
   const { characterId, storyId } = useParams<{ characterId: string; storyId: string }>();
@@ -56,7 +91,12 @@ export default function CharacterSheet() {
   const [newTraitKey, setNewTraitKey] = useState("");
   const [newTraitValue, setNewTraitValue] = useState("");
 
-  const initialTab = searchParams.get("tab") === "arc" ? "arc" : searchParams.get("tab") === "relationships" ? "relationships" : "overview";
+  const initialTab =
+    searchParams.get("tab") === "arc"
+      ? "arc"
+      : searchParams.get("tab") === "relationships"
+        ? "relationships"
+        : "overview";
   const [activeTab, setActiveTab] = useState<"overview" | "dialogue" | "arc" | "relationships">(initialTab);
   const [sceneNodes, setSceneNodes] = useState<StructureNode[]>([]);
   const character = characters.find((c) => c.id === characterId);
@@ -158,7 +198,9 @@ export default function CharacterSheet() {
 
   async function toggleIntentHidden() {
     if (!character) return;
-    const updated = await api.updateCharacter(character.id, { narrative_intent_hidden: !character.narrative_intent_hidden });
+    const updated = await api.updateCharacter(character.id, {
+      narrative_intent_hidden: !character.narrative_intent_hidden,
+    });
     upsertCharacter(updated);
   }
 
@@ -174,7 +216,10 @@ export default function CharacterSheet() {
     if (!character) return;
     const m = character.arc_milestones.find((x) => x.id === milestoneId);
     if (!m) return;
-    const updated = await api.updateMilestone(character.id, milestoneId, { text: m.text, completed: !completed });
+    const updated = await api.updateMilestone(character.id, milestoneId, {
+      text: m.text,
+      completed: !completed,
+    });
     upsertCharacter(updated);
   }
 
@@ -230,7 +275,11 @@ export default function CharacterSheet() {
     setShowStartInterview(false);
     await resumeSession(
       "interview",
-      { characterId: character.id, storyId: storyId ?? character.story_id, nodeId: interview.context_node_id ?? undefined },
+      {
+        characterId: character.id,
+        storyId: storyId ?? character.story_id,
+        nodeId: interview.context_node_id ?? undefined,
+      },
       interview.id,
       (interview.messages ?? []).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
       interview.interview_notes ?? undefined,
@@ -243,7 +292,10 @@ export default function CharacterSheet() {
     let node = null;
     while (queue.length) {
       const n = queue.shift()!;
-      if (n.id === sceneId) { node = n; break; }
+      if (n.id === sceneId) {
+        node = n;
+        break;
+      }
       if (n.children) queue.push(...n.children);
     }
     if (node) setActiveNode(node);
@@ -251,27 +303,23 @@ export default function CharacterSheet() {
   }
 
   if (!character) {
-    return (
-      <div className={styles.loading}>Loading…</div>
-    );
+    return <div className={styles.loading}>Loading…</div>;
   }
 
   function roleBadgeClass() {
     const role = character!.role;
     if (role === "protagonist") return `${styles.roleBadge} ${styles.protagonist}`;
-    if (role === "antagonist")  return `${styles.roleBadge} ${styles.antagonist}`;
+    if (role === "antagonist") return `${styles.roleBadge} ${styles.antagonist}`;
     if (role === "deuteragonist") return `${styles.roleBadge} ${styles.deuteragonist}`;
     if (role === "love_interest") return `${styles.roleBadge} ${styles.loveInterest}`;
-    if (role === "confidant")  return `${styles.roleBadge} ${styles.confidant}`;
-    if (role === "foil")       return `${styles.roleBadge} ${styles.foil}`;
-    if (role === "tertiary")   return `${styles.roleBadge} ${styles.tertiary}`;
+    if (role === "confidant") return `${styles.roleBadge} ${styles.confidant}`;
+    if (role === "foil") return `${styles.roleBadge} ${styles.foil}`;
+    if (role === "tertiary") return `${styles.roleBadge} ${styles.tertiary}`;
     return styles.roleBadge;
   }
 
   function formatLabel(value: string) {
-    return value
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   return (
@@ -293,7 +341,9 @@ export default function CharacterSheet() {
               onChange={(e) => navigate(`/stories/${storyId}/characters/${e.target.value}?tab=${activeTab}`)}
             >
               {characters.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
               ))}
             </select>
           )}
@@ -314,27 +364,39 @@ export default function CharacterSheet() {
                 <h1 className={styles.name}>{character.name}</h1>
                 <span className={roleBadgeClass()}>{formatLabel(character.role)}</span>
                 {character.character_type && (
-                  <span className={styles.charTypeBadge} title="Character type — development &amp; complexity">{formatLabel(character.character_type)}</span>
+                  <span
+                    className={styles.charTypeBadge}
+                    title="Character type — development &amp; complexity"
+                  >
+                    {formatLabel(character.character_type)}
+                  </span>
                 )}
-                {character.pronouns && (
-                  <span className={styles.pronounsBadge}>{character.pronouns}</span>
-                )}
+                {character.pronouns && <span className={styles.pronounsBadge}>{character.pronouns}</span>}
               </div>
               {(character.jungian_archetype || character.narrative_archetype) && (
                 <div className={styles.archetypeRow}>
                   {character.jungian_archetype && (
-                    <span className={styles.jungianBadge} title="Jungian archetype — core identity">{formatLabel(character.jungian_archetype)}</span>
+                    <span className={styles.jungianBadge} title="Jungian archetype — core identity">
+                      {formatLabel(character.jungian_archetype)}
+                    </span>
                   )}
                   {character.narrative_archetype && (
-                    <span className={styles.narrativeBadge} title="Narrative archetype — Hero's Journey function">{formatLabel(character.narrative_archetype)}</span>
+                    <span
+                      className={styles.narrativeBadge}
+                      title="Narrative archetype — Hero's Journey function"
+                    >
+                      {formatLabel(character.narrative_archetype)}
+                    </span>
                   )}
                 </div>
               )}
               {character.mission_statement && (
                 <p className={styles.missionTeaser}>
-                  "{character.mission_statement.length > 90
+                  "
+                  {character.mission_statement.length > 90
                     ? character.mission_statement.slice(0, 90) + "…"
-                    : character.mission_statement}"
+                    : character.mission_statement}
+                  "
                 </p>
               )}
             </div>
@@ -347,11 +409,7 @@ export default function CharacterSheet() {
                 <MessageSquare size={14} />
                 Interview
               </button>
-              <button
-                onClick={() => setEditing(true)}
-                className={styles.editBtn}
-                title="Edit character"
-              >
+              <button onClick={() => setEditing(true)} className={styles.editBtn} title="Edit character">
                 <Edit2 size={14} />
               </button>
               <AIFeatureInfoTrigger pageId="character-sheet" size="sm" />
@@ -364,15 +422,17 @@ export default function CharacterSheet() {
               <div className={styles.portraitDescHeader}>
                 <span className={styles.portraitDescTitle}>Portrait Description</span>
                 <span className={styles.portraitDescAiBadge}>AI</span>
-                <button className={styles.portraitDescClose} onClick={() => setPortraitDesc(null)}>✕</button>
+                <button className={styles.portraitDescClose} onClick={() => setPortraitDesc(null)}>
+                  ✕
+                </button>
               </div>
               <div className={styles.portraitDescBody}>
                 {[
-                  { label: "Appearance",     value: portraitDesc.appearance },
-                  { label: "Personality",    value: portraitDesc.personality },
-                  { label: "Voice",          value: portraitDesc.voice },
-                  { label: "Age",            value: portraitDesc.age_estimate },
-                  { label: "Backstory Hints",value: portraitDesc.backstory_hints },
+                  { label: "Appearance", value: portraitDesc.appearance },
+                  { label: "Personality", value: portraitDesc.personality },
+                  { label: "Voice", value: portraitDesc.voice },
+                  { label: "Age", value: portraitDesc.age_estimate },
+                  { label: "Backstory Hints", value: portraitDesc.backstory_hints },
                 ].map(({ label, value }) => (
                   <div key={label} className={styles.portraitDescField}>
                     <span className={styles.portraitDescLabel}>{label}</span>
@@ -380,7 +440,9 @@ export default function CharacterSheet() {
                   </div>
                 ))}
               </div>
-              <p className={styles.portraitDescHint}>These are AI suggestions — copy what's useful into the character form.</p>
+              <p className={styles.portraitDescHint}>
+                These are AI suggestions — copy what's useful into the character form.
+              </p>
             </div>
           )}
 
@@ -433,7 +495,6 @@ export default function CharacterSheet() {
 
         {activeTab === "overview" && (
           <div className={styles.overview}>
-
             {/* ── Character Tools ── */}
             <div className={styles.toolsStrip}>
               <button
@@ -446,7 +507,9 @@ export default function CharacterSheet() {
                 </div>
                 <div className={styles.toolCardBody}>
                   <span className={styles.toolCardLabel}>Suggest Attributes</span>
-                  <span className={styles.toolCardDesc}>Generate traits, backstory, quirks, or appearance</span>
+                  <span className={styles.toolCardDesc}>
+                    Generate traits, backstory, quirks, or appearance
+                  </span>
                 </div>
                 <Compass size={14} className={styles.toolCardCompass} />
               </button>
@@ -460,7 +523,9 @@ export default function CharacterSheet() {
                 </div>
                 <div className={styles.toolCardBody}>
                   <span className={styles.toolCardLabel}>Character Depth</span>
-                  <span className={styles.toolCardDesc}>Assess dimensionality, contradictions, development</span>
+                  <span className={styles.toolCardDesc}>
+                    Assess dimensionality, contradictions, development
+                  </span>
                 </div>
                 <Compass size={14} className={styles.toolCardCompass} />
               </button>
@@ -475,40 +540,64 @@ export default function CharacterSheet() {
             <SectionCard title="Profile" collapsed={!!collapsed.profile} onToggle={() => toggle("profile")}>
               <div className={styles.field}>
                 <p className={styles.missionLabel}>Mission Statement</p>
-                <p className={styles.missionHint}>One sentence: what does this character fundamentally want or need?</p>
+                <p className={styles.missionHint}>
+                  One sentence: what does this character fundamentally want or need?
+                </p>
                 <textarea
                   value={missionText}
-                  onChange={(e) => { setMissionText(e.target.value); scheduleMissionSave(e.target.value); }}
+                  onChange={(e) => {
+                    setMissionText(e.target.value);
+                    scheduleMissionSave(e.target.value);
+                  }}
                   placeholder="e.g. To prove they deserve their father's respect, no matter the cost."
                   className={styles.missionTextarea}
                   rows={2}
                 />
               </div>
-              {(["personality", "motivation", "background", "appearance", "arc_notes"] as const).map((field) => (
-                <div key={field} className={styles.field}>
-                  <p className={styles.fieldLabel}>{field === "arc_notes" ? "Arc Notes" : field.charAt(0).toUpperCase() + field.slice(1)}</p>
-                  <textarea
-                    className={styles.fieldTextarea}
-                    value={localFields[field] ?? ""}
-                    onChange={(e) => scheduleFieldSave(field, e.target.value)}
-                    placeholder={`${field === "arc_notes" ? "Arc notes" : field.charAt(0).toUpperCase() + field.slice(1)}…`}
-                    rows={3}
-                  />
-                </div>
-              ))}
+              {(["personality", "motivation", "background", "appearance", "arc_notes"] as const).map(
+                (field) => (
+                  <div key={field} className={styles.field}>
+                    <p className={styles.fieldLabel}>
+                      {field === "arc_notes" ? "Arc Notes" : field.charAt(0).toUpperCase() + field.slice(1)}
+                    </p>
+                    <textarea
+                      className={styles.fieldTextarea}
+                      value={localFields[field] ?? ""}
+                      onChange={(e) => scheduleFieldSave(field, e.target.value)}
+                      placeholder={`${field === "arc_notes" ? "Arc notes" : field.charAt(0).toUpperCase() + field.slice(1)}…`}
+                      rows={3}
+                    />
+                  </div>
+                ),
+              )}
             </SectionCard>
 
             {/* ── Narrative Intent ── */}
-            <SectionCard title="Narrative Intent" collapsed={!!collapsed.intent} onToggle={() => toggle("intent")} variant="intent">
+            <SectionCard
+              title="Narrative Intent"
+              collapsed={!!collapsed.intent}
+              onToggle={() => toggle("intent")}
+              variant="intent"
+            >
               <div className={styles.intentHeader}>
-                <p className={styles.intentHint}>What is this character FOR in your story? (Arc trajectory, key moments, thematic role.)</p>
+                <p className={styles.intentHint}>
+                  What is this character FOR in your story? (Arc trajectory, key moments, thematic role.)
+                </p>
                 <button
                   className={styles.intentToggle}
                   onClick={toggleIntentHidden}
-                  title={character.narrative_intent_hidden ? "Hidden from AI interviews" : "Visible in AI writing assistance"}
+                  title={
+                    character.narrative_intent_hidden
+                      ? "Hidden from AI interviews"
+                      : "Visible in AI writing assistance"
+                  }
                 >
                   {character.narrative_intent_hidden ? <EyeOff size={12} /> : <Eye size={12} />}
-                  <span>{character.narrative_intent_hidden ? "Hidden from interviews" : "Shown in writing assistance"}</span>
+                  <span>
+                    {character.narrative_intent_hidden
+                      ? "Hidden from interviews"
+                      : "Shown in writing assistance"}
+                  </span>
                 </button>
               </div>
               <textarea
@@ -524,7 +613,11 @@ export default function CharacterSheet() {
             </SectionCard>
 
             {/* ── Snowflake Method ── */}
-            <SectionCard title="Snowflake Method" collapsed={!!collapsed.snowflake} onToggle={() => toggle("snowflake")}>
+            <SectionCard
+              title="Snowflake Method"
+              collapsed={!!collapsed.snowflake}
+              onToggle={() => toggle("snowflake")}
+            >
               <div className={styles.field}>
                 <p className={styles.fieldLabel}>Character Summary</p>
                 <p className={styles.intentHint}>One sentence: goal, motivation, conflict, and epiphany.</p>
@@ -538,7 +631,9 @@ export default function CharacterSheet() {
               </div>
               <div className={styles.field}>
                 <p className={styles.fieldLabel}>Character Synopsis</p>
-                <p className={styles.intentHint}>A full paragraph told in first person — the character's inner arc in their own voice.</p>
+                <p className={styles.intentHint}>
+                  A full paragraph told in first person — the character's inner arc in their own voice.
+                </p>
                 <textarea
                   className={styles.fieldTextarea}
                   value={localFields.snowflake_synopsis ?? ""}
@@ -550,11 +645,20 @@ export default function CharacterSheet() {
             </SectionCard>
 
             {/* ── Arc Milestones ── */}
-            <SectionCard title="Arc Milestones" collapsed={!!collapsed.milestones} onToggle={() => toggle("milestones")}>
-              <p className={styles.intentHint}>Checkable waypoints for this character's journey. Track progress as you write.</p>
+            <SectionCard
+              title="Arc Milestones"
+              collapsed={!!collapsed.milestones}
+              onToggle={() => toggle("milestones")}
+            >
+              <p className={styles.intentHint}>
+                Checkable waypoints for this character's journey. Track progress as you write.
+              </p>
               <div className={styles.milestoneList}>
                 {(character.arc_milestones ?? []).map((m) => (
-                  <div key={m.id} className={`${styles.milestoneItem} ${m.completed ? styles.milestoneDone : ""}`}>
+                  <div
+                    key={m.id}
+                    className={`${styles.milestoneItem} ${m.completed ? styles.milestoneDone : ""}`}
+                  >
                     <button
                       className={styles.milestoneCheck}
                       onClick={() => toggleMilestone(m.id, m.completed)}
@@ -584,7 +688,9 @@ export default function CharacterSheet() {
                       >
                         <option value="">— scene —</option>
                         {sceneNodes.map((n) => (
-                          <option key={n.id} value={n.id}>{n.title || "Untitled"}</option>
+                          <option key={n.id} value={n.id}>
+                            {n.title || "Untitled"}
+                          </option>
                         ))}
                       </select>
                     )}
@@ -606,18 +712,31 @@ export default function CharacterSheet() {
                   placeholder="Add a milestone…"
                   className={styles.milestoneInput}
                 />
-                <button onClick={addMilestone} className={styles.milestoneAddBtn} disabled={!newMilestone.trim()}>
+                <button
+                  onClick={addMilestone}
+                  className={styles.milestoneAddBtn}
+                  disabled={!newMilestone.trim()}
+                >
                   <Plus size={13} />
                 </button>
               </div>
             </SectionCard>
 
             {/* ── Discovery Notes ── */}
-            <SectionCard title="Discovery Notes" collapsed={!!collapsed.notes} onToggle={() => toggle("notes")}>
-              <p className={styles.intentHint}>Capture unconfirmed observations as you write. Confirm them to make them permanent.</p>
+            <SectionCard
+              title="Discovery Notes"
+              collapsed={!!collapsed.notes}
+              onToggle={() => toggle("notes")}
+            >
+              <p className={styles.intentHint}>
+                Capture unconfirmed observations as you write. Confirm them to make them permanent.
+              </p>
               <div className={styles.discoveryList}>
                 {(character.discovery_notes ?? []).map((note) => (
-                  <div key={note.id} className={`${styles.discoveryNote} ${note.confirmed ? styles.discoveryConfirmed : styles.discoveryPending}`}>
+                  <div
+                    key={note.id}
+                    className={`${styles.discoveryNote} ${note.confirmed ? styles.discoveryConfirmed : styles.discoveryPending}`}
+                  >
                     <p className={styles.discoveryText}>{note.text}</p>
                     {note.scene_title && (
                       <span className={styles.discoverySource}>from: {note.scene_title}</span>
@@ -629,7 +748,9 @@ export default function CharacterSheet() {
                         </button>
                       )}
                       {note.confirmed && (
-                        <span className={styles.confirmedBadge}><Check size={10} /> Confirmed</span>
+                        <span className={styles.confirmedBadge}>
+                          <Check size={10} /> Confirmed
+                        </span>
                       )}
                       <button className={styles.milestoneDelete} onClick={() => deleteDiscoveryNote(note.id)}>
                         <Trash2 size={11} />
@@ -646,16 +767,26 @@ export default function CharacterSheet() {
                   placeholder="Add an observation…"
                   className={styles.milestoneInput}
                 />
-                <button onClick={addDiscoveryNote} className={styles.milestoneAddBtn} disabled={!newNote.trim()}>
+                <button
+                  onClick={addDiscoveryNote}
+                  className={styles.milestoneAddBtn}
+                  disabled={!newNote.trim()}
+                >
                   <Plus size={13} />
                 </button>
               </div>
             </SectionCard>
 
             {/* ── Character Attributes ── */}
-            <SectionCard title="Character Attributes" collapsed={!!collapsed.attributes} onToggle={() => toggle("attributes")} variant="ai">
+            <SectionCard
+              title="Character Attributes"
+              collapsed={!!collapsed.attributes}
+              onToggle={() => toggle("attributes")}
+              variant="ai"
+            >
               <p className={styles.attributesHint}>
-                Shapes vocabulary, tone, and behaviour during interviews. Leave as Unknown to discover through writing.
+                Shapes vocabulary, tone, and behaviour during interviews. Leave as Unknown to discover through
+                writing.
               </p>
               <div className={styles.attributesGrid}>
                 {ATTRIBUTE_DEFS.map(({ key, label, options }) => {
@@ -672,7 +803,9 @@ export default function CharacterSheet() {
                       >
                         <option value="unknown">Unknown</option>
                         {options.map((o) => (
-                          <option key={o} value={o.toLowerCase().replace(" ", "_")}>{o}</option>
+                          <option key={o} value={o.toLowerCase().replace(" ", "_")}>
+                            {o}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -682,15 +815,19 @@ export default function CharacterSheet() {
             </SectionCard>
 
             {/* ── Interview Prompts ── */}
-            <SectionCard title="Interview Prompts" collapsed={!!collapsed.prompts} onToggle={() => toggle("prompts")} variant="ai">
-              <p className={styles.intentHint}>Starting questions for character interviews. Click a prompt to begin.</p>
+            <SectionCard
+              title="Interview Prompts"
+              collapsed={!!collapsed.prompts}
+              onToggle={() => toggle("prompts")}
+              variant="ai"
+            >
+              <p className={styles.intentHint}>
+                Starting questions for character interviews. Click a prompt to begin.
+              </p>
               <div className={styles.promptList}>
                 {(character.interview_prompts ?? []).map((prompt, i) => (
                   <div key={i} className={styles.promptRow}>
-                    <button
-                      onClick={() => setShowStartInterview(true)}
-                      className={styles.promptCard}
-                    >
+                    <button onClick={() => setShowStartInterview(true)} className={styles.promptCard}>
                       <span>{prompt}</span>
                       <ChevronRight size={13} className={styles.promptArrow} />
                     </button>
@@ -712,7 +849,11 @@ export default function CharacterSheet() {
                   onKeyDown={(e) => e.key === "Enter" && addInterviewPrompt()}
                   placeholder="Add a prompt…"
                 />
-                <button className={styles.milestoneAddBtn} onClick={addInterviewPrompt} disabled={!newPrompt.trim()}>
+                <button
+                  className={styles.milestoneAddBtn}
+                  onClick={addInterviewPrompt}
+                  disabled={!newPrompt.trim()}
+                >
                   <Plus size={13} />
                 </button>
               </div>
@@ -720,7 +861,9 @@ export default function CharacterSheet() {
 
             {/* ── Traits ── */}
             <SectionCard title="Traits" collapsed={!!collapsed.traits} onToggle={() => toggle("traits")}>
-              <p className={styles.intentHint}>Freeform key-value traits — any attributes that don't fit standard fields.</p>
+              <p className={styles.intentHint}>
+                Freeform key-value traits — any attributes that don't fit standard fields.
+              </p>
               {Object.keys(character.traits ?? {}).length > 0 && (
                 <div className={styles.traitsList}>
                   {Object.entries(character.traits ?? {}).map(([key, value]) => (
@@ -753,42 +896,24 @@ export default function CharacterSheet() {
                   onKeyDown={(e) => e.key === "Enter" && addTrait()}
                   placeholder="Value (e.g. heights)"
                 />
-                <button
-                  className={styles.milestoneAddBtn}
-                  onClick={addTrait}
-                  disabled={!newTraitKey.trim()}
-                >
+                <button className={styles.milestoneAddBtn} onClick={addTrait} disabled={!newTraitKey.trim()}>
                   <Plus size={13} />
                 </button>
               </div>
             </SectionCard>
 
             {/* ── Reference Images ── */}
-            {storyId && (
-              <AssetPicker
-                storyId={storyId}
-                objectType="character"
-                objectId={character.id}
-              />
-            )}
-
+            {storyId && <AssetPicker storyId={storyId} objectType="character" objectId={character.id} />}
           </div>
         )}
       </div>
 
       {showAttributeDialog && (
-        <AttributeGeneratorDialog
-          character={character}
-          onClose={() => setShowAttributeDialog(false)}
-        />
+        <AttributeGeneratorDialog character={character} onClose={() => setShowAttributeDialog(false)} />
       )}
 
       {editing && (
-        <CharacterFormDialog
-          storyId={storyId!}
-          character={character}
-          onClose={() => setEditing(false)}
-        />
+        <CharacterFormDialog storyId={storyId!} character={character} onClose={() => setEditing(false)} />
       )}
 
       {showStartInterview && (

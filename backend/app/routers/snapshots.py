@@ -1,29 +1,26 @@
 """Snapshots & backup settings router."""
 
-import os
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from ..models.story import Story
 from ..models.user import User
-from ..auth.dependencies import get_current_user
 from ..services.snapshot_service import (
+    _delete_snapshot_from_disk,
+    _get_or_create_settings,
     create_snapshot,
     diff_snapshots,
     export_snapshot,
     get_backup_status,
     import_snapshot_file,
-    _get_or_create_settings,
-    _delete_snapshot_from_disk,
     restore_snapshot,
-    serialize_story,
 )
 
 router = APIRouter()
@@ -33,6 +30,7 @@ router = APIRouter()
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def _verify_story_access(story_id: str, db: Session, user: User) -> Story:
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
     if not story:
@@ -41,10 +39,14 @@ def _verify_story_access(story_id: str, db: Session, user: User) -> Story:
 
 
 def _verify_snapshot_access(snapshot_id: str, story_id: str, db: Session) -> StorySnapshot:
-    snap = db.query(StorySnapshot).filter(
-        StorySnapshot.id == snapshot_id,
-        StorySnapshot.story_id == story_id,
-    ).first()
+    snap = (
+        db.query(StorySnapshot)
+        .filter(
+            StorySnapshot.id == snapshot_id,
+            StorySnapshot.story_id == story_id,
+        )
+        .first()
+    )
     if not snap:
         raise HTTPException(status_code=404, detail="Snapshot not found")
     return snap
@@ -54,15 +56,16 @@ def _verify_snapshot_access(snapshot_id: str, story_id: str, db: Session) -> Sto
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+
 class SnapshotOut(BaseModel):
     id: str
     story_id: str
-    name: Optional[str]
+    name: str | None
     trigger: str
     snapshot_type: str
-    base_snapshot_id: Optional[str]
-    summary: Optional[dict]
-    delta_summary: Optional[dict]
+    base_snapshot_id: str | None
+    summary: dict | None
+    delta_summary: dict | None
     created_at: str
 
     model_config = {"from_attributes": True}
@@ -71,7 +74,7 @@ class SnapshotOut(BaseModel):
     def from_orm_snap(cls, snap: StorySnapshot) -> "SnapshotOut":
         created = snap.created_at
         if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
+            created = created.replace(tzinfo=UTC)
         return cls(
             id=snap.id,
             story_id=snap.story_id,
@@ -86,11 +89,11 @@ class SnapshotOut(BaseModel):
 
 
 class CreateSnapshotBody(BaseModel):
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class RenameSnapshotBody(BaseModel):
-    name: Optional[str] = None
+    name: str | None = None
 
 
 class RestoreBody(BaseModel):
@@ -102,14 +105,14 @@ class BackupSettingsOut(BaseModel):
     story_id: str
     auto_enabled: bool
     interval_minutes: int
-    max_count: Optional[int]
-    max_age_days: Optional[int]
-    last_auto_backup_at: Optional[str]
+    max_count: int | None
+    max_age_days: int | None
+    last_auto_backup_at: str | None
     include_diagrams: bool
     include_interviews: bool
     include_chat_sessions: bool
     include_activity_logs: bool
-    activity_log_limit: Optional[int]
+    activity_log_limit: int | None
     include_media_assets: bool
 
     model_config = {"from_attributes": True}
@@ -118,7 +121,7 @@ class BackupSettingsOut(BaseModel):
     def from_orm_settings(cls, s: StoryBackupSettings) -> "BackupSettingsOut":
         last = s.last_auto_backup_at
         if last and last.tzinfo is None:
-            last = last.replace(tzinfo=timezone.utc)
+            last = last.replace(tzinfo=UTC)
         return cls(
             id=s.id,
             story_id=s.story_id,
@@ -137,16 +140,16 @@ class BackupSettingsOut(BaseModel):
 
 
 class BackupSettingsUpdate(BaseModel):
-    auto_enabled: Optional[bool] = None
-    interval_minutes: Optional[int] = None
-    max_count: Optional[int] = None
-    max_age_days: Optional[int] = None
-    include_diagrams: Optional[bool] = None
-    include_interviews: Optional[bool] = None
-    include_chat_sessions: Optional[bool] = None
-    include_activity_logs: Optional[bool] = None
-    activity_log_limit: Optional[int] = None
-    include_media_assets: Optional[bool] = None
+    auto_enabled: bool | None = None
+    interval_minutes: int | None = None
+    max_count: int | None = None
+    max_age_days: int | None = None
+    include_diagrams: bool | None = None
+    include_interviews: bool | None = None
+    include_chat_sessions: bool | None = None
+    include_activity_logs: bool | None = None
+    activity_log_limit: int | None = None
+    include_media_assets: bool | None = None
 
 
 class UserBackupDefaultsOut(BaseModel):
@@ -154,34 +157,35 @@ class UserBackupDefaultsOut(BaseModel):
     user_id: str
     auto_enabled: bool
     interval_minutes: int
-    max_count: Optional[int]
-    max_age_days: Optional[int]
+    max_count: int | None
+    max_age_days: int | None
     include_diagrams: bool
     include_interviews: bool
     include_chat_sessions: bool
     include_activity_logs: bool
-    activity_log_limit: Optional[int]
+    activity_log_limit: int | None
     include_media_assets: bool
 
     model_config = {"from_attributes": True}
 
 
 class UserBackupDefaultsUpdate(BaseModel):
-    auto_enabled: Optional[bool] = None
-    interval_minutes: Optional[int] = None
-    max_count: Optional[int] = None
-    max_age_days: Optional[int] = None
-    include_diagrams: Optional[bool] = None
-    include_interviews: Optional[bool] = None
-    include_chat_sessions: Optional[bool] = None
-    include_activity_logs: Optional[bool] = None
-    activity_log_limit: Optional[int] = None
-    include_media_assets: Optional[bool] = None
+    auto_enabled: bool | None = None
+    interval_minutes: int | None = None
+    max_count: int | None = None
+    max_age_days: int | None = None
+    include_diagrams: bool | None = None
+    include_interviews: bool | None = None
+    include_chat_sessions: bool | None = None
+    include_activity_logs: bool | None = None
+    activity_log_limit: int | None = None
+    include_media_assets: bool | None = None
 
 
 # ---------------------------------------------------------------------------
 # Snapshot CRUD
 # ---------------------------------------------------------------------------
+
 
 @router.post("/stories/{story_id}/snapshots", response_model=SnapshotOut)
 def create_manual_snapshot(
@@ -237,11 +241,11 @@ def check_auto_backup(
     if not settings.auto_enabled:
         return {"created": False}
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     last = settings.last_auto_backup_at
     if last:
         if last.tzinfo is None:
-            last = last.replace(tzinfo=timezone.utc)
+            last = last.replace(tzinfo=UTC)
         elapsed_minutes = (now - last).total_seconds() / 60
         if elapsed_minutes < settings.interval_minutes:
             return {"created": False}
@@ -326,6 +330,7 @@ def restore_to_snapshot(
 # Export / Import
 # ---------------------------------------------------------------------------
 
+
 @router.get("/stories/{story_id}/snapshots/{snapshot_id}/export")
 def export_snapshot_file(
     story_id: str,
@@ -373,6 +378,7 @@ async def import_into_story(
         create_snapshot(story_id, db, trigger="auto", name="Pre-import backup", settings=settings, force=True)
 
     from ..services.snapshot_service import _delete_story_content, _insert_story_content
+
     _delete_story_content(story_id, db)
     _insert_story_content(state, db)
     db.commit()
@@ -387,6 +393,7 @@ async def import_as_new_story(
 ):
     """Import a .lorestudio.zip as a brand-new story."""
     import uuid
+
     contents = await file.read()
     try:
         parsed = import_snapshot_file(contents)
@@ -405,8 +412,9 @@ async def import_as_new_story(
     state["story"]["id"] = new_story_id
     state["story"]["user_id"] = current_user.id
 
-    from ..services.snapshot_service import _insert_story_content
     from ..models.story import Story as StoryModel
+    from ..services.snapshot_service import _insert_story_content
+
     new_story = StoryModel(
         id=new_story_id,
         user_id=current_user.id,
@@ -422,6 +430,7 @@ async def import_as_new_story(
 # ---------------------------------------------------------------------------
 # Per-story backup settings
 # ---------------------------------------------------------------------------
+
 
 @router.get("/stories/{story_id}/backup-settings", response_model=BackupSettingsOut)
 def get_backup_settings(
@@ -455,16 +464,13 @@ def update_backup_settings(
 # Global user backup defaults
 # ---------------------------------------------------------------------------
 
+
 @router.get("/user/backup-defaults", response_model=UserBackupDefaultsOut)
 def get_user_backup_defaults(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    defaults = (
-        db.query(UserBackupDefaults)
-        .filter(UserBackupDefaults.user_id == current_user.id)
-        .first()
-    )
+    defaults = db.query(UserBackupDefaults).filter(UserBackupDefaults.user_id == current_user.id).first()
     if not defaults:
         defaults = UserBackupDefaults(user_id=current_user.id)
         db.add(defaults)
@@ -479,11 +485,7 @@ def update_user_backup_defaults(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    defaults = (
-        db.query(UserBackupDefaults)
-        .filter(UserBackupDefaults.user_id == current_user.id)
-        .first()
-    )
+    defaults = db.query(UserBackupDefaults).filter(UserBackupDefaults.user_id == current_user.id).first()
     if not defaults:
         defaults = UserBackupDefaults(user_id=current_user.id)
         db.add(defaults)

@@ -38,7 +38,11 @@ const STATUS_FILTER_VALUES: Record<StatusFilter, string | undefined> = {
 
 function headingTag(level: number): "h1" | "h2" | "h3" | "h4" | "h5" {
   const tags: Record<number, "h1" | "h2" | "h3" | "h4" | "h5"> = {
-    1: "h1", 2: "h2", 3: "h3", 4: "h4", 5: "h5",
+    1: "h1",
+    2: "h2",
+    3: "h3",
+    4: "h4",
+    5: "h5",
   };
   return tags[Math.min(level, 5)] ?? "h5";
 }
@@ -72,12 +76,11 @@ function SceneSection({
         </Heading>
       )}
       {section.content ? (
-        <div
-          className={styles.prose}
-          dangerouslySetInnerHTML={{ __html: section.content }}
-        />
+        <div className={styles.prose} dangerouslySetInnerHTML={{ __html: section.content }} />
       ) : (
-        <p className={styles.emptyScene}><em>No content yet.</em></p>
+        <p className={styles.emptyScene}>
+          <em>No content yet.</em>
+        </p>
       )}
       <div className={styles.sceneMeta}>
         <span className={`${styles.statusBadge} ${styles[`status_${section.status}`]}`}>
@@ -100,13 +103,16 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
 
   const load = useCallback(() => {
     setLoading(true);
-    api.getManuscript(storyId, STATUS_FILTER_VALUES[statusFilter])
+    api
+      .getManuscript(storyId, STATUS_FILTER_VALUES[statusFilter])
       .then(setManuscript)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId, statusFilter]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const isEmpty = !manuscript || manuscript.sections.filter((s) => s.is_leaf).length === 0;
 
@@ -115,9 +121,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <BookOpen size={14} className={styles.toolbarIcon} />
-        <span className={styles.toolbarTitle}>
-          {manuscript?.title ?? "Manuscript"}
-        </span>
+        <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
         {manuscript && (
           <span className={styles.toolbarMeta}>
             {manuscript.total_words.toLocaleString()} words
@@ -132,7 +136,9 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
           >
             {(Object.keys(STATUS_FILTER_LABELS) as StatusFilter[]).map((k) => (
-              <option key={k} value={k}>{STATUS_FILTER_LABELS[k]}</option>
+              <option key={k} value={k}>
+                {STATUS_FILTER_LABELS[k]}
+              </option>
             ))}
           </select>
           <button className={styles.refreshBtn} onClick={load} title="Refresh">
@@ -140,7 +146,10 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
           </button>
           <button
             className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
-            onClick={() => { setPubPrepOpen((v) => !v); setExportOpen(false); }}
+            onClick={() => {
+              setPubPrepOpen((v) => !v);
+              setExportOpen(false);
+            }}
             title="Publication preparation tools"
           >
             <Feather size={13} />
@@ -148,7 +157,10 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
           </button>
           <button
             className={`${styles.exportBtn} ${exportOpen ? styles.exportBtnActive : ""}`}
-            onClick={() => { setExportOpen((v) => !v); setPubPrepOpen(false); }}
+            onClick={() => {
+              setExportOpen((v) => !v);
+              setPubPrepOpen(false);
+            }}
             title="Export manuscript"
           >
             <Download size={13} />
@@ -235,10 +247,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
                 </button>
               </div>
               {showCompTitles && (
-                <CompTitlesSuggester
-                  storyId={storyId}
-                  onClose={() => setShowCompTitles(false)}
-                />
+                <CompTitlesSuggester storyId={storyId} onClose={() => setShowCompTitles(false)} />
               )}
             </div>
           </div>
@@ -248,11 +257,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
           <div className={styles.exportDrawer}>
             <div className={styles.exportDrawerHeader}>
               <span className={styles.exportDrawerTitle}>Export</span>
-              <button
-                className={styles.exportDrawerClose}
-                onClick={() => setExportOpen(false)}
-                title="Close"
-              >
+              <button className={styles.exportDrawerClose} onClick={() => setExportOpen(false)} title="Close">
                 <X size={13} />
               </button>
             </div>
@@ -264,10 +269,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
   );
 }
 
-function renderSections(
-  sections: ManuscriptSection[],
-  onNavigate?: (id: string) => void,
-) {
+function renderSections(sections: ManuscriptSection[], onNavigate?: (id: string) => void) {
   const elements: React.ReactNode[] = [];
   let prevWasLeaf = false;
 
@@ -276,18 +278,20 @@ function renderSections(
 
     if (s.is_leaf) {
       if (prevWasLeaf) {
-        elements.push(<div key={`break-${s.id}`} className={styles.sceneBreak}>* * *</div>);
+        elements.push(
+          <div key={`break-${s.id}`} className={styles.sceneBreak}>
+            * * *
+          </div>,
+        );
       }
-      elements.push(
-        <SceneSection key={s.id} section={s} onNavigate={onNavigate} />
-      );
+      elements.push(<SceneSection key={s.id} section={s} onNavigate={onNavigate} />);
       prevWasLeaf = true;
     } else {
       const Heading = headingTag(s.level);
       elements.push(
         <Heading key={s.id} className={styles.structureHeading}>
           {s.heading}
-        </Heading>
+        </Heading>,
       );
       prevWasLeaf = false;
     }

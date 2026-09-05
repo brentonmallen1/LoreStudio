@@ -52,7 +52,9 @@
   -webkit-appearance: none;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .typeSelect:hover {
@@ -118,7 +120,10 @@
   cursor: pointer;
   font-family: inherit;
   flex-shrink: 0;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .statusBadge:hover {
@@ -156,7 +161,9 @@
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .saveIndicator_idle {
@@ -182,8 +189,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 /* Labeled action buttons */
@@ -200,7 +212,10 @@
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .topbarBtn:hover {
@@ -275,7 +290,9 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -316,7 +333,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .focusBtn:hover {
@@ -364,7 +383,9 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .viewPickerItem:hover {
@@ -380,7 +401,6 @@
 .viewPickerItemActive:hover {
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
 }
-
 
 /* ── Segment overview panel ── */
 .overviewPanel {
@@ -553,7 +573,9 @@
   background: transparent;
   color: var(--color-ai);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -587,7 +609,10 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .addLinkBtn:hover {
@@ -631,7 +656,9 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-muted);
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   min-width: 0;
 }
 
@@ -668,7 +695,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .linkChipDelete:hover {
@@ -689,7 +718,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .linkChipEdit:hover {
@@ -745,7 +776,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .modalClose:hover {
@@ -869,7 +902,9 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .modalCancel:hover {
@@ -921,7 +956,9 @@
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .summaryCloseBtn:hover {
@@ -1063,7 +1100,9 @@
   opacity: 0.65;
   padding: 0;
   cursor: pointer;
-  transition: opacity var(--transition), transform var(--transition);
+  transition:
+    opacity var(--transition),
+    transform var(--transition);
   flex-shrink: 0;
 }
 
@@ -1201,7 +1240,9 @@
   background: transparent;
   color: var(--color-editorial);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .noteLegendToggle:hover {
@@ -1321,7 +1362,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .notePopoverDelete:hover {
@@ -1340,7 +1383,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .notePopoverEdit:hover {
@@ -1359,7 +1404,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .notePopoverClose:hover {
@@ -1539,7 +1586,9 @@
   font-size: 0.7rem;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .dialogueIsolationBtn:hover {
@@ -1565,8 +1614,13 @@
 }
 
 @keyframes aiPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .spinIcon {
@@ -1574,7 +1628,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .dialogueIsolationEmpty {
@@ -1952,7 +2008,9 @@
   background: transparent;
   color: var(--color-accent);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .hoverCardViewBtn:hover {
@@ -2183,8 +2241,13 @@
   transition: opacity var(--transition);
 }
 
-.todoInputSubmit:hover { opacity: 0.85; }
-.todoInputSubmit:disabled { opacity: 0.4; cursor: default; }
+.todoInputSubmit:hover {
+  opacity: 0.85;
+}
+.todoInputSubmit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .todoInputCancel {
   padding: 0.35rem 0.6rem;
@@ -2197,4 +2260,6 @@
   transition: color var(--transition);
 }
 
-.todoInputCancel:hover { color: var(--color-text); }
+.todoInputCancel:hover {
+  color: var(--color-text);
+}

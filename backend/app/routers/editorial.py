@@ -8,34 +8,35 @@ The result is also written back as inline notes on StructureNode.metadata_.
 """
 
 import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.activity_log import ActivityLog
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.activity_log import ActivityLog
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..models.user import User
+from ..schemas.chronicle import ActivityLogOut
 from ..schemas.editorial import (
-    EditorialRunRequest,
     EditorialReportMetadata,
+    EditorialRunRequest,
     EditorialStats,
     FreshEyesResponse,
-    PrioritiesResponse,
     IntentGapResponse,
-    VoiceResponse,
     MarginalNotesResponse,
+    PrioritiesResponse,
+    VoiceResponse,
 )
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.editorial import (
     build_fresh_eyes_prompt,
-    build_priorities_prompt,
     build_intent_gap_prompt,
-    build_voice_prompt,
     build_marginal_notes_prompt,
+    build_priorities_prompt,
+    build_voice_prompt,
 )
-from ..schemas.chronicle import ActivityLogOut
 
 router = APIRouter()
 
@@ -105,13 +106,15 @@ def _gather_sections(
             prose = n.content_summary or n.content or ""
         else:
             prose = n.content or ""
-        sections.append({
-            "id": n.id,
-            "title": n.title or "Untitled",
-            "content": prose,
-            "purpose": meta.get("purpose", ""),
-            "synopsis": n.synopsis or "",
-        })
+        sections.append(
+            {
+                "id": n.id,
+                "title": n.title or "Untitled",
+                "content": prose,
+                "purpose": meta.get("purpose", ""),
+                "synopsis": n.synopsis or "",
+            }
+        )
 
     return sections
 
@@ -146,9 +149,9 @@ def _apply_editorial_notes(
 
         meta = dict(node.metadata_ or {})
         existing = [
-            n for n in (meta.get("inline_notes") or [])
-            if n.get("source", "").startswith("editorial-") is False
-            or not n.get("source", "").startswith("editorial-")
+            n
+            for n in (meta.get("inline_notes") or [])
+            if n.get("source", "").startswith("editorial-") is False or not n.get("source", "").startswith("editorial-")
         ]
         # Remove previous editorial notes from this node
         existing = [n for n in (meta.get("inline_notes") or []) if n.get("type") != "editorial"]
@@ -352,48 +355,58 @@ async def run_editorial_pass(
 
     for q in fresh_eyes_result.questions:
         if q.anchor:
-            all_anchored.append({
-                "section_title": q.section_title,
-                "anchor": q.anchor,
-                "note": q.question,
-                "category": "fresh-eyes",
-            })
+            all_anchored.append(
+                {
+                    "section_title": q.section_title,
+                    "anchor": q.anchor,
+                    "note": q.question,
+                    "category": "fresh-eyes",
+                }
+            )
 
     for p in priorities_result.priorities:
         if p.anchor:
-            all_anchored.append({
-                "section_title": p.section_title,
-                "anchor": p.anchor,
-                "note": f"[Priority {p.rank}] {p.suggestion}",
-                "category": "priority",
-            })
+            all_anchored.append(
+                {
+                    "section_title": p.section_title,
+                    "anchor": p.anchor,
+                    "note": f"[Priority {p.rank}] {p.suggestion}",
+                    "category": "priority",
+                }
+            )
 
     for g in intent_gap_result.gaps:
         if g.anchor:
-            all_anchored.append({
-                "section_title": g.section_title,
-                "anchor": g.anchor,
-                "note": g.suggestion,
-                "category": "intent-gap",
-            })
+            all_anchored.append(
+                {
+                    "section_title": g.section_title,
+                    "anchor": g.anchor,
+                    "note": g.suggestion,
+                    "category": "intent-gap",
+                }
+            )
 
     for vs in voice_result.sections:
         if vs.anchor and vs.deviation:
-            all_anchored.append({
-                "section_title": vs.section_title,
-                "anchor": vs.anchor,
-                "note": vs.observation,
-                "category": "voice",
-            })
+            all_anchored.append(
+                {
+                    "section_title": vs.section_title,
+                    "anchor": vs.anchor,
+                    "note": vs.observation,
+                    "category": "voice",
+                }
+            )
 
     for mn in marginal_result.notes:
         if mn.anchor:
-            all_anchored.append({
-                "section_title": mn.section_title,
-                "anchor": mn.anchor,
-                "note": mn.comment,
-                "category": "marginal",
-            })
+            all_anchored.append(
+                {
+                    "section_title": mn.section_title,
+                    "anchor": mn.anchor,
+                    "note": mn.comment,
+                    "category": "marginal",
+                }
+            )
 
     if all_anchored:
         _apply_editorial_notes(sections, all_anchored, report_id, db)
@@ -467,22 +480,22 @@ def delete_editorial_report(
     """
     _get_story(story_id, db, current_user)
 
-    log = db.query(ActivityLog).filter(
-        ActivityLog.id == report_id,
-        ActivityLog.story_id == story_id,
-        ActivityLog.user_id == current_user.id,
-        ActivityLog.event_type == "editorial_pass",
-    ).first()
+    log = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.id == report_id,
+            ActivityLog.story_id == story_id,
+            ActivityLog.user_id == current_user.id,
+            ActivityLog.event_type == "editorial_pass",
+        )
+        .first()
+    )
     if not log:
         raise HTTPException(status_code=404, detail="Report not found")
 
     # Remove editorial inline notes from all nodes that have this source tag
     source_tag = f"editorial-{report_id}"
-    nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .all()
-    )
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     for node in nodes:
         meta = node.metadata_ or {}
         notes = meta.get("inline_notes") or []
@@ -504,11 +517,7 @@ def clear_all_editorial_notes(
     """Remove ALL editorial inline notes from every node in the story."""
     _get_story(story_id, db, current_user)
 
-    nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .all()
-    )
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     for node in nodes:
         meta = node.metadata_ or {}
         notes = meta.get("inline_notes") or []

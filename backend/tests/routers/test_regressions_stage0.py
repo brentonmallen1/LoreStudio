@@ -140,9 +140,19 @@ def test_delete_story_leaves_no_orphans(client, db_session, test_user):
     assert db_session.query(ActivityLog).filter(ActivityLog.story_id == sid).count() == 0
     assert db_session.query(Story).filter(Story.id == sid).count() == 0
     # indirect children are gone too
-    for t in ("character_relationships", "dialogue_blocks", "scene_settings", "location_travel",
-              "outline_items", "asset_attachments", "compendium_attachments", "chat_messages",
-              "character_journey_summaries", "plot_thread_appearances", "character_interviews"):
+    for t in (
+        "character_relationships",
+        "dialogue_blocks",
+        "scene_settings",
+        "location_travel",
+        "outline_items",
+        "asset_attachments",
+        "compendium_attachments",
+        "chat_messages",
+        "character_journey_summaries",
+        "plot_thread_appearances",
+        "character_interviews",
+    ):
         assert db_session.execute(text(f"SELECT count(*) FROM {t}")).scalar() == 0, t
 
 

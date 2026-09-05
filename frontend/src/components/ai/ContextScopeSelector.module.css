@@ -14,7 +14,9 @@
   font-size: 0.7rem;
   padding: 0.2rem 0.5rem;
   cursor: pointer;
-  transition: border-color var(--transition), color var(--transition);
+  transition:
+    border-color var(--transition),
+    color var(--transition);
   /* No dropdown arrow — keep it compact */
 }
 

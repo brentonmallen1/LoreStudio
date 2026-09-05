@@ -72,7 +72,9 @@
   background: var(--color-ai);
   color: var(--color-ai-fg);
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
   white-space: nowrap;
 }
 
@@ -132,7 +134,9 @@
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .regenerateBtn:hover {

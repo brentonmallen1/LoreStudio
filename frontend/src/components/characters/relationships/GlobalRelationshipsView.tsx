@@ -13,18 +13,18 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  family:        "#6b8e6b",
-  romantic:      "#c97878",
-  ally:          "#7898c9",
-  rival:         "#c9a060",
-  enemy:         "#c96060",
-  mentor:        "#9878c9",
-  confidant:     "#78a878",
-  authority:     "#a8a060",
-  foil:          "#c9c060",
-  protector:     "#609878",
+  family: "#6b8e6b",
+  romantic: "#c97878",
+  ally: "#7898c9",
+  rival: "#c9a060",
+  enemy: "#c96060",
+  mentor: "#9878c9",
+  confidant: "#78a878",
+  authority: "#a8a060",
+  foil: "#c9c060",
+  protector: "#609878",
   "former ally": "#9890a0",
-  acquaintance:  "#888",
+  acquaintance: "#888",
 };
 
 function typeColor(t: string) {
@@ -32,16 +32,18 @@ function typeColor(t: string) {
 }
 
 function initials(name: string) {
-  return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 function TypePill({ type }: { type: string }) {
   const c = typeColor(type);
   return (
-    <span
-      className={styles.typePill}
-      style={{ color: c, borderColor: `${c}40`, background: `${c}14` }}
-    >
+    <span className={styles.typePill} style={{ color: c, borderColor: `${c}40`, background: `${c}14` }}>
       {type}
     </span>
   );
@@ -68,28 +70,30 @@ function CharacterGroup({
 
         <div className={styles.groupInfo}>
           <span className={styles.groupName}>{character.name}</span>
-          <span className={`${styles.groupRole} ${styles[`role_${character.role}`] ?? ""}`}>{character.role}</span>
+          <span className={`${styles.groupRole} ${styles[`role_${character.role}`] ?? ""}`}>
+            {character.role}
+          </span>
         </div>
 
         <div className={styles.groupTypes}>
-          {distinctTypes.map((t) => <TypePill key={t} type={t} />)}
-          {rels.length > distinctTypes.length && (
-            <span className={styles.groupCount}>{rels.length}</span>
-          )}
+          {distinctTypes.map((t) => (
+            <TypePill key={t} type={t} />
+          ))}
+          {rels.length > distinctTypes.length && <span className={styles.groupCount}>{rels.length}</span>}
         </div>
 
         <button
           className={styles.viewBtn}
-          onClick={(e) => { e.stopPropagation(); onNavigate(character.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate(character.id);
+          }}
           title={`View ${character.name}'s relationships`}
         >
           <ExternalLink size={12} />
         </button>
 
-        <ChevronRight
-          size={14}
-          className={`${styles.chevron} ${expanded ? styles.chevronOpen : ""}`}
-        />
+        <ChevronRight size={14} className={`${styles.chevron} ${expanded ? styles.chevronOpen : ""}`} />
       </div>
 
       {expanded && (
@@ -101,9 +105,7 @@ function CharacterGroup({
                 <span className={styles.subAvatar}>{other ? initials(other.name) : "?"}</span>
                 <span className={styles.subName}>{other?.name ?? "Unknown"}</span>
                 <TypePill type={rel.relationship_type} />
-                {rel.description && (
-                  <span className={styles.subDesc}>{rel.description}</span>
-                )}
+                {rel.description && <span className={styles.subDesc}>{rel.description}</span>}
               </div>
             );
           })}
@@ -125,7 +127,8 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
 
   useEffect(() => {
     setLoading(true);
-    api.listStoryRelationships(storyId)
+    api
+      .listStoryRelationships(storyId)
       .then(setRelationships)
       .catch(() => setRelationships([]))
       .finally(() => setLoading(false));
@@ -133,7 +136,9 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
 
   const charMap = useMemo(() => {
     const m: Record<string, Character> = {};
-    characters.forEach((c) => { m[c.id] = c; });
+    characters.forEach((c) => {
+      m[c.id] = c;
+    });
     return m;
   }, [characters]);
 
@@ -159,9 +164,7 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
       byChar.set(r.character_id, existing);
     });
     // Sort groups by character order in the story
-    return characters
-      .filter((c) => byChar.has(c.id))
-      .map((c) => ({ character: c, rels: byChar.get(c.id)! }));
+    return characters.filter((c) => byChar.has(c.id)).map((c) => ({ character: c, rels: byChar.get(c.id)! }));
   }, [filtered, characters]);
 
   function handleNavigate(characterId: string) {
@@ -197,7 +200,9 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
             Show hidden
           </label>
 
-          <span className={styles.count}>{totalCount} relationship{totalCount !== 1 ? "s" : ""}</span>
+          <span className={styles.count}>
+            {totalCount} relationship{totalCount !== 1 ? "s" : ""}
+          </span>
         </div>
 
         <div className={styles.toolbarRight}>
@@ -253,10 +258,7 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
       )}
 
       {showSuggestDialog && (
-        <RelationshipSuggestionDialog
-          storyId={storyId}
-          onClose={() => setShowSuggestDialog(false)}
-        />
+        <RelationshipSuggestionDialog storyId={storyId} onClose={() => setShowSuggestDialog(false)} />
       )}
     </div>
   );

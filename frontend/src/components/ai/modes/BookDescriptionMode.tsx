@@ -33,12 +33,7 @@ export default function BookDescriptionMode({ session }: Props) {
   }
 
   return (
-    <AIModeWrapper
-      session={session}
-      state={state}
-      icon={Feather}
-      title="Book Description"
-    >
+    <AIModeWrapper session={session} state={state} icon={Feather} title="Book Description">
       {session.messages.length === 0 && !session.isStreaming ? (
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />

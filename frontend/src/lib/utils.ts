@@ -26,8 +26,5 @@ export function formatRelative(dateStr: string) {
 }
 
 export function wordCount(text: string): number {
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }

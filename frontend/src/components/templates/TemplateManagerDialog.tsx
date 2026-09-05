@@ -25,9 +25,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
   // Draft state for create/edit
   const [draftName, setDraftName] = useState("");
   const [draftDesc, setDraftDesc] = useState("");
-  const [draftLevels, setDraftLevels] = useState<LevelDraft[]>([
-    { name: "", plural: "" },
-  ]);
+  const [draftLevels, setDraftLevels] = useState<LevelDraft[]>([{ name: "", plural: "" }]);
 
   useEffect(() => {
     load();
@@ -132,7 +130,11 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
               className={styles.levelInput}
             />
             {draftLevels.length > 1 && (
-              <button onClick={() => removeLevel(i)} className={styles.removeLevelBtn} aria-label="Remove level">
+              <button
+                onClick={() => removeLevel(i)}
+                className={styles.removeLevelBtn}
+                aria-label="Remove level"
+              >
                 <X size={11} />
               </button>
             )}
@@ -146,7 +148,9 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
   }
 
   const footer = (
-    <button onClick={onClose} className={styles.doneBtn}>Done</button>
+    <button onClick={onClose} className={styles.doneBtn}>
+      Done
+    </button>
   );
 
   return (
@@ -189,7 +193,9 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
                 />
                 {renderLevelEditor()}
                 <div className={styles.editActions}>
-                  <button onClick={() => setCreating(false)} className={styles.cancelBtn}>Cancel</button>
+                  <button onClick={() => setCreating(false)} className={styles.cancelBtn}>
+                    Cancel
+                  </button>
                   <button
                     onClick={handleCreate}
                     disabled={!draftName.trim() || draftLevels.every((l) => !l.name.trim())}
@@ -223,7 +229,9 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
                     />
                     {renderLevelEditor()}
                     <div className={styles.editActions}>
-                      <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>Cancel</button>
+                      <button onClick={() => setEditingId(null)} className={styles.cancelBtn}>
+                        Cancel
+                      </button>
                       <button onClick={() => handleSaveEdit(t.id)} className={styles.saveBtn}>
                         <Check size={12} /> Save
                       </button>
@@ -234,9 +242,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
                     <div className={styles.templateInfo}>
                       <span className={styles.templateName}>{t.name}</span>
                       {t.description && <p className={styles.templateDesc}>{t.description}</p>}
-                      <p className={styles.templateLevels}>
-                        {t.levels.map((l) => l.name).join(" → ")}
-                      </p>
+                      <p className={styles.templateLevels}>{t.levels.map((l) => l.name).join(" → ")}</p>
                     </div>
                     <div className={styles.templateActions}>
                       <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
@@ -244,11 +250,19 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
                       </button>
                       {pendingDeleteId === t.id ? (
                         <div className={styles.deleteConfirm}>
-                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(t.id)}>Delete</button>
-                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>Cancel</button>
+                          <button className={styles.deleteConfirmYes} onClick={() => doDelete(t.id)}>
+                            Delete
+                          </button>
+                          <button className={styles.deleteConfirmNo} onClick={() => setPendingDeleteId(null)}>
+                            Cancel
+                          </button>
                         </div>
                       ) : (
-                        <button onClick={() => setPendingDeleteId(t.id)} className={`${styles.iconBtn} ${styles.danger}`} aria-label="Delete">
+                        <button
+                          onClick={() => setPendingDeleteId(t.id)}
+                          className={`${styles.iconBtn} ${styles.danger}`}
+                          aria-label="Delete"
+                        >
                           <Trash2 size={12} />
                         </button>
                       )}

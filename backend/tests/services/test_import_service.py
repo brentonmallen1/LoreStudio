@@ -3,20 +3,20 @@ Unit tests for import_service.py heuristic structure detection and break applica
 
 These tests cover pure functions — no DB, no pandoc, no LLM.
 """
-import pytest
+
+from app.schemas.import_schemas import BreakPosition, ParsedParagraph
 from app.services.import_service import (
     _extract_paragraphs,
-    detect_structure_heuristic,
+    _merge_breaks,
     apply_breaks,
     build_preview_tree,
-    _merge_breaks,
+    detect_structure_heuristic,
 )
-from app.schemas.import_schemas import BreakPosition, ParsedParagraph
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_para(index: int, tag: str, text: str) -> ParsedParagraph:
     return ParsedParagraph(
@@ -39,6 +39,7 @@ THREE_ACT_LEVELS = [
 # ---------------------------------------------------------------------------
 # _extract_paragraphs
 # ---------------------------------------------------------------------------
+
 
 class TestExtractParagraphs:
     def test_extracts_headings_and_paragraphs(self):
@@ -81,6 +82,7 @@ class TestExtractParagraphs:
 # ---------------------------------------------------------------------------
 # detect_structure_heuristic
 # ---------------------------------------------------------------------------
+
 
 class TestDetectStructureHeuristic:
     def test_h1_creates_level_0_break(self):
@@ -174,6 +176,7 @@ class TestDetectStructureHeuristic:
 # apply_breaks
 # ---------------------------------------------------------------------------
 
+
 class TestApplyBreaks:
     def test_produces_sections_from_heading_breaks(self):
         paragraphs = [
@@ -253,6 +256,7 @@ class TestApplyBreaks:
 # build_preview_tree
 # ---------------------------------------------------------------------------
 
+
 class TestBuildPreviewTree:
     def test_empty_sections_returns_warning(self):
         tree = build_preview_tree([], [], "sess-1", "freeform", FREEFORM_LEVELS, "txt", None)
@@ -302,6 +306,7 @@ class TestBuildPreviewTree:
 # ---------------------------------------------------------------------------
 # _merge_breaks
 # ---------------------------------------------------------------------------
+
 
 class TestMergeBreaks:
     def test_heuristic_breaks_preserved(self):

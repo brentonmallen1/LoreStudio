@@ -20,7 +20,15 @@ function urlDomain(url: string): string {
   }
 }
 
-export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete, isPendingDelete, onConfirmDelete, onCancelDelete }: Props) {
+export default function CompendiumEntryCard({
+  entry,
+  onClick,
+  onEdit,
+  onDelete,
+  isPendingDelete,
+  onConfirmDelete,
+  onCancelDelete,
+}: Props) {
   const icon =
     entry.entry_type === "note" ? (
       <FileText size={15} className={`${styles.cardIcon} ${styles.cardIconNote}`} />
@@ -39,20 +47,18 @@ export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete, 
 
       {entry.entry_type === "url" && entry.url && (
         <div className={styles.cardUrl}>
-          {entry.url_title && entry.url_title !== entry.title
-            ? entry.url_title
-            : urlDomain(entry.url)}
+          {entry.url_title && entry.url_title !== entry.title ? entry.url_title : urlDomain(entry.url)}
         </div>
       )}
 
       {entry.tags.length > 0 && (
         <div className={styles.cardTags}>
           {entry.tags.slice(0, 4).map((t) => (
-            <span key={t} className={styles.tag}>{t}</span>
+            <span key={t} className={styles.tag}>
+              {t}
+            </span>
           ))}
-          {entry.tags.length > 4 && (
-            <span className={styles.tag}>+{entry.tags.length - 4}</span>
-          )}
+          {entry.tags.length > 4 && <span className={styles.tag}>+{entry.tags.length - 4}</span>}
         </div>
       )}
 
@@ -68,8 +74,18 @@ export default function CompendiumEntryCard({ entry, onClick, onEdit, onDelete, 
         <div className={styles.cardActions}>
           {isPendingDelete ? (
             <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.deleteConfirmYes} onClick={onConfirmDelete}>Delete</button>
-              <button className={styles.deleteConfirmNo} onClick={(e) => { e.stopPropagation(); onCancelDelete?.(); }}>Cancel</button>
+              <button className={styles.deleteConfirmYes} onClick={onConfirmDelete}>
+                Delete
+              </button>
+              <button
+                className={styles.deleteConfirmNo}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancelDelete?.();
+                }}
+              >
+                Cancel
+              </button>
             </div>
           ) : (
             <>

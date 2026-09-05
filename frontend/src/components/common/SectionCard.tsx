@@ -42,7 +42,14 @@ export default function SectionCard({
     }
   }
 
-  const variantClass = variant === "ai" ? styles.ai : variant === "intent" ? styles.intent : variant === "accent" ? styles.accent : "";
+  const variantClass =
+    variant === "ai"
+      ? styles.ai
+      : variant === "intent"
+        ? styles.intent
+        : variant === "accent"
+          ? styles.accent
+          : "";
   const cardClass = [styles.card, variantClass, className ?? ""].filter(Boolean).join(" ");
 
   if (!collapsible) {

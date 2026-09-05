@@ -25,32 +25,37 @@ export default function HistoryTab({ storyId }: Props) {
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const load = useCallback(() => {
-    Promise.all([
-      api.listEras(storyId),
-      api.listHistoricalEvents(storyId),
-    ]).then(([e, ev]) => {
-      setEras(e);
-      setEvents(ev);
-      setExpandedEras(new Set(e.map((era) => era.id)));
-    }).finally(() => setLoading(false));
+    Promise.all([api.listEras(storyId), api.listHistoricalEvents(storyId)])
+      .then(([e, ev]) => {
+        setEras(e);
+        setEvents(ev);
+        setExpandedEras(new Set(e.map((era) => era.id)));
+      })
+      .finally(() => setLoading(false));
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function scheduleEventUpdate(field: string, value: unknown) {
     if (!selectedEvent) return;
-    setSelectedEvent((prev) => prev ? { ...prev, [field]: value } : null);
+    setSelectedEvent((prev) => (prev ? { ...prev, [field]: value } : null));
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selectedEvent) return;
-      api.updateHistoricalEvent(selectedEvent.id, { [field]: value } as Partial<HistoricalEvent>).then(() => load());
+      api
+        .updateHistoricalEvent(selectedEvent.id, { [field]: value } as Partial<HistoricalEvent>)
+        .then(() => load());
     }, 700);
   }
 
   async function createEra() {
     if (!newName.trim()) return;
     await api.createEra(storyId, { name: newName.trim(), position: eras.length });
-    setShowAddEraModal(false); setNewName(""); load();
+    setShowAddEraModal(false);
+    setNewName("");
+    load();
   }
 
   async function createEvent() {
@@ -60,7 +65,9 @@ export default function HistoryTab({ storyId }: Props) {
       era_id: newEraId,
       position: events.filter((e) => e.era_id === newEraId).length,
     });
-    setShowAddEventModal(false); setNewName(""); setNewEraId(null);
+    setShowAddEventModal(false);
+    setNewName("");
+    setNewEraId(null);
     load();
     setSelectedEvent(created);
   }
@@ -68,13 +75,17 @@ export default function HistoryTab({ storyId }: Props) {
   async function deleteEra() {
     if (!selectedEra) return;
     await api.deleteEra(selectedEra.id);
-    setSelectedEra(null); setShowDeleteConfirm(null); load();
+    setSelectedEra(null);
+    setShowDeleteConfirm(null);
+    load();
   }
 
   async function deleteEvent() {
     if (!selectedEvent) return;
     await api.deleteHistoricalEvent(selectedEvent.id);
-    setSelectedEvent(null); setShowDeleteConfirm(null); load();
+    setSelectedEvent(null);
+    setShowDeleteConfirm(null);
+    load();
   }
 
   const orphanEvents = events.filter((e) => !e.era_id);
@@ -111,7 +122,8 @@ export default function HistoryTab({ storyId }: Props) {
                   onClick={() => {
                     setExpandedEras((prev) => {
                       const next = new Set(prev);
-                      if (next.has(era.id)) next.delete(era.id); else next.add(era.id);
+                      if (next.has(era.id)) next.delete(era.id);
+                      else next.add(era.id);
                       return next;
                     });
                   }}
@@ -120,12 +132,19 @@ export default function HistoryTab({ storyId }: Props) {
                   <div className={styles.eraDot} />
                   <span className={styles.eraName}>{era.name}</span>
                   {era.start_date && (
-                    <span className={styles.eraDates}>{era.start_date}{era.end_date ? ` – ${era.end_date}` : ""}</span>
+                    <span className={styles.eraDates}>
+                      {era.start_date}
+                      {era.end_date ? ` – ${era.end_date}` : ""}
+                    </span>
                   )}
                   <button
                     className={`${styles.iconBtn} ${styles.danger}`}
                     style={{ marginLeft: "auto", flexShrink: 0 }}
-                    onClick={(e) => { e.stopPropagation(); setSelectedEra(era); setShowDeleteConfirm("era"); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEra(era);
+                      setShowDeleteConfirm("era");
+                    }}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -133,7 +152,13 @@ export default function HistoryTab({ storyId }: Props) {
                 {isExpanded && (
                   <div className={styles.eraLine}>
                     {eraEvents.length === 0 ? (
-                      <div style={{ fontSize: "0.78rem", color: "var(--color-text-subtle)", padding: "0.25rem 0" }}>
+                      <div
+                        style={{
+                          fontSize: "0.78rem",
+                          color: "var(--color-text-subtle)",
+                          padding: "0.25rem 0",
+                        }}
+                      >
                         No events in this era
                       </div>
                     ) : (
@@ -161,7 +186,9 @@ export default function HistoryTab({ storyId }: Props) {
             <div className={styles.eraBlock}>
               <div className={styles.eraHeader}>
                 <BookOpen size={14} color="var(--color-text-muted)" />
-                <span className={styles.eraName} style={{ color: "var(--color-text-muted)" }}>Unassigned Events</span>
+                <span className={styles.eraName} style={{ color: "var(--color-text-muted)" }}>
+                  Unassigned Events
+                </span>
               </div>
               <div className={styles.eraLine}>
                 {orphanEvents.map((ev) => (
@@ -198,13 +225,17 @@ export default function HistoryTab({ storyId }: Props) {
                 <button
                   className={styles.aiBtn}
                   title="Traces this event's ripple effects into: Physical Remnants, Cultural Legacy, Political Effects, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "implications", entityId: selectedEvent.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "implications", entityId: selectedEvent.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Trace Present-Day Effects
                 </button>
-                <button className={`${styles.iconBtn} ${styles.danger}`}
-                  onClick={() => setShowDeleteConfirm("event")}>
+                <button
+                  className={`${styles.iconBtn} ${styles.danger}`}
+                  onClick={() => setShowDeleteConfirm("event")}
+                >
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -213,61 +244,79 @@ export default function HistoryTab({ storyId }: Props) {
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Name</label>
-                <input className={styles.fieldInput} value={selectedEvent.name}
-                  onChange={(e) => scheduleEventUpdate("name", e.target.value)} />
+                <input
+                  className={styles.fieldInput}
+                  value={selectedEvent.name}
+                  onChange={(e) => scheduleEventUpdate("name", e.target.value)}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>In-World Date</label>
-                <input className={styles.fieldInput}
+                <input
+                  className={styles.fieldInput}
                   placeholder="e.g. Year 312, Third Moon…"
                   value={selectedEvent.in_world_date}
-                  onChange={(e) => scheduleEventUpdate("in_world_date", e.target.value)} />
+                  onChange={(e) => scheduleEventUpdate("in_world_date", e.target.value)}
+                />
               </div>
             </div>
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Era</label>
-              <select className={styles.fieldSelect}
+              <select
+                className={styles.fieldSelect}
                 value={selectedEvent.era_id ?? ""}
-                onChange={(e) => scheduleEventUpdate("era_id", e.target.value || null)}>
+                onChange={(e) => scheduleEventUpdate("era_id", e.target.value || null)}
+              >
                 <option value="">— no era —</option>
-                {eras.map((era) => <option key={era.id} value={era.id}>{era.name}</option>)}
+                {eras.map((era) => (
+                  <option key={era.id} value={era.id}>
+                    {era.name}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Description</label>
-              <textarea className={styles.fieldTextarea}
+              <textarea
+                className={styles.fieldTextarea}
                 placeholder="What happened?"
                 value={selectedEvent.description}
-                onChange={(e) => scheduleEventUpdate("description", e.target.value)} />
+                onChange={(e) => scheduleEventUpdate("description", e.target.value)}
+              />
             </div>
 
             <div className={styles.fieldRow}>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Causes</label>
-                <textarea className={styles.fieldTextarea}
+                <textarea
+                  className={styles.fieldTextarea}
                   placeholder="What led to this event?"
                   value={selectedEvent.causes}
-                  onChange={(e) => scheduleEventUpdate("causes", e.target.value)} />
+                  onChange={(e) => scheduleEventUpdate("causes", e.target.value)}
+                />
               </div>
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>Consequences</label>
-                <textarea className={styles.fieldTextarea}
+                <textarea
+                  className={styles.fieldTextarea}
                   placeholder="What were the immediate effects?"
                   value={selectedEvent.consequences}
-                  onChange={(e) => scheduleEventUpdate("consequences", e.target.value)} />
+                  onChange={(e) => scheduleEventUpdate("consequences", e.target.value)}
+                />
               </div>
             </div>
 
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Legacy Effects</label>
-              <textarea className={styles.fieldTextarea}
+              <textarea
+                className={styles.fieldTextarea}
                 placeholder="How does this event still shape the present day?"
                 value={selectedEvent.legacy_effects}
-                onChange={(e) => scheduleEventUpdate("legacy_effects", e.target.value)} />
+                onChange={(e) => scheduleEventUpdate("legacy_effects", e.target.value)}
+              />
             </div>
-
           </>
         )}
       </div>
@@ -278,13 +327,22 @@ export default function HistoryTab({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Add era</h3>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Name</label>
-              <input className={styles.fieldInput} autoFocus placeholder="Era name"
-                value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createEra()} />
+              <input
+                className={styles.fieldInput}
+                autoFocus
+                placeholder="Era name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createEra()}
+              />
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddEraModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createEra} disabled={!newName.trim()}>Add era</button>
+              <button className={styles.ghostBtn} onClick={() => setShowAddEraModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.addBtn} onClick={createEra} disabled={!newName.trim()}>
+                Add era
+              </button>
             </div>
           </div>
         </div>
@@ -296,20 +354,36 @@ export default function HistoryTab({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Add event</h3>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Name</label>
-              <input className={styles.fieldInput} autoFocus placeholder="Event name"
-                value={newName} onChange={(e) => setNewName(e.target.value)} />
+              <input
+                className={styles.fieldInput}
+                autoFocus
+                placeholder="Event name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Era (optional)</label>
-              <select className={styles.fieldSelect} value={newEraId ?? ""}
-                onChange={(e) => setNewEraId(e.target.value || null)}>
+              <select
+                className={styles.fieldSelect}
+                value={newEraId ?? ""}
+                onChange={(e) => setNewEraId(e.target.value || null)}
+              >
                 <option value="">— unassigned —</option>
-                {eras.map((era) => <option key={era.id} value={era.id}>{era.name}</option>)}
+                {eras.map((era) => (
+                  <option key={era.id} value={era.id}>
+                    {era.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddEventModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createEvent} disabled={!newName.trim()}>Add event</button>
+              <button className={styles.ghostBtn} onClick={() => setShowAddEventModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.addBtn} onClick={createEvent} disabled={!newName.trim()}>
+                Add event
+              </button>
             </div>
           </div>
         </div>
@@ -323,8 +397,16 @@ export default function HistoryTab({ storyId }: Props) {
               Events in this era will become unassigned, not deleted.
             </p>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
-              <button className={styles.addBtn} style={{ background: "var(--color-danger)" }} onClick={deleteEra}>Delete</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                style={{ background: "var(--color-danger)" }}
+                onClick={deleteEra}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
@@ -335,8 +417,16 @@ export default function HistoryTab({ storyId }: Props) {
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.modalTitle}>Delete "{selectedEvent.name}"?</h3>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
-              <button className={styles.addBtn} style={{ background: "var(--color-danger)" }} onClick={deleteEvent}>Delete</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                style={{ background: "var(--color-danger)" }}
+                onClick={deleteEvent}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

@@ -30,7 +30,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: border-color var(--transition), color var(--transition);
+  transition:
+    border-color var(--transition),
+    color var(--transition);
 }
 
 .backBtn:hover {
@@ -301,7 +303,9 @@
   color: var(--color-ai-fg);
   border: none;
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .interviewBtn:hover:not(:disabled) {
@@ -324,7 +328,9 @@
   background: var(--color-surface);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .editBtn:hover {
@@ -359,7 +365,9 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .toolCard:hover {
@@ -485,7 +493,9 @@
   font-family: inherit;
   color: var(--color-text);
   text-align: left;
-  transition: box-shadow var(--transition), border-color var(--transition);
+  transition:
+    box-shadow var(--transition),
+    border-color var(--transition);
   width: 100%;
 }
 
@@ -532,7 +542,10 @@
   box-sizing: border-box;
   transition: border-color var(--transition);
 }
-.fieldTextarea:focus { outline: none; border-color: var(--color-accent); }
+.fieldTextarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
 
 .traitsList {
   display: flex;
@@ -578,7 +591,9 @@
   margin-left: auto;
   flex-shrink: 0;
 }
-.traitDelete:hover { color: var(--color-danger); }
+.traitDelete:hover {
+  color: var(--color-danger);
+}
 
 .traitAdd {
   display: flex;
@@ -596,7 +611,10 @@
   font-size: 0.82rem;
   font-family: inherit;
 }
-.traitInput:focus { outline: none; border-color: var(--color-accent); }
+.traitInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
 
 .promptRow {
   display: flex;
@@ -616,7 +634,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
 }
-.promptDeleteBtn:hover { color: var(--color-danger); }
+.promptDeleteBtn:hover {
+  color: var(--color-danger);
+}
 
 /* ── Character Attributes ── */
 .attributesSection {
@@ -699,7 +719,9 @@
   padding: 0.2rem 0.5rem;
   cursor: pointer;
   font-family: inherit;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .intentToggle:hover {
@@ -726,7 +748,6 @@
 .intentTextarea:focus {
   border-color: var(--color-warning);
 }
-
 
 .missionTextarea {
   width: 100%;
@@ -795,7 +816,9 @@
   align-items: center;
   justify-content: center;
   color: var(--color-accent);
-  transition: background var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition);
 }
 
 .milestoneDone .milestoneCheck {
@@ -824,7 +847,9 @@
   display: flex;
   align-items: center;
   border-radius: var(--radius-sm);
-  transition: opacity var(--transition), color var(--transition);
+  transition:
+    opacity var(--transition),
+    color var(--transition);
 }
 
 .milestoneItem:hover .milestoneDelete {
@@ -916,7 +941,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .milestoneAddBtn:hover:not(:disabled) {
@@ -1065,7 +1092,10 @@
   opacity: 0.7;
   font-size: 11px;
 }
-.portraitDescClose:hover { opacity: 1; background: var(--color-ai-border); }
+.portraitDescClose:hover {
+  opacity: 1;
+  background: var(--color-ai-border);
+}
 
 .portraitDescBody {
   padding: 10px 12px;

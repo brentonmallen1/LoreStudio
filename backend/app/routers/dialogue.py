@@ -18,17 +18,22 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.character import Character
+from ..models.dialogue import DialogueBlock
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.dialogue import DialogueBlock
-from ..models.character import Character
-from ..services.dialogue_service import sync_dialogue_blocks, get_dialogue_stats, get_interaction_matrix, _html_to_paragraphs
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
+from ..models.user import User
 from ..schemas.ai_responses import DialogueAttributionResponse
-from ..auth.dependencies import get_current_user
+from ..services.dialogue_service import (
+    _html_to_paragraphs,
+    get_dialogue_stats,
+    get_interaction_matrix,
+    sync_dialogue_blocks,
+)
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
 
 router = APIRouter()
 
@@ -36,6 +41,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Schemas
 # ---------------------------------------------------------------------------
+
 
 class DialogueBlockOut(BaseModel):
     id: str
@@ -70,8 +76,8 @@ class ProposedDialogueTag(BaseModel):
 
 
 class ApplyTagRequest(BaseModel):
-    quote_content: str      # used to locate the quote in the HTML
-    speaker_name: str       # name to append as <Name> suffix
+    quote_content: str  # used to locate the quote in the HTML
+    speaker_name: str  # name to append as <Name> suffix
 
 
 class ApplyTagsBody(BaseModel):
@@ -102,6 +108,7 @@ class ApplyTagsBatchBody(BaseModel):
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _get_scene(scene_id: str, db: Session, user: User) -> StructureNode:
     node = db.get(StructureNode, scene_id)
     if not node:
@@ -122,6 +129,7 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
 # ---------------------------------------------------------------------------
 # Scene-level endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.get("/scenes/{scene_id}/dialogue", response_model=list[DialogueBlockOut])
 def list_dialogue(
@@ -153,7 +161,10 @@ def refresh_dialogue(
     pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
     narrative_perspective = story.narrative_perspective if story else ""
     return sync_dialogue_blocks(
-        scene_id, node.content, node.story_id, db,
+        scene_id,
+        node.content,
+        node.story_id,
+        db,
         pov_character_id=pov_char_id,
         narrative_perspective=narrative_perspective,
     )
@@ -175,14 +186,14 @@ def suggest_dialogue_tags(
     char_by_name = {c.name.lower(): c for c in characters}
 
     # Parse plain text paragraphs from the HTML
-    from ..services.dialogue_service import _html_to_paragraphs, _STANDALONE_QUOTE_RE, _MENTION_RE
+    from ..services.dialogue_service import _MENTION_RE, _STANDALONE_QUOTE_RE, _html_to_paragraphs
 
     paragraphs = _html_to_paragraphs(node.content)
 
     proposals: list[ProposedDialogueTag] = []
     for para in paragraphs:
         # Skip paragraphs that already have explicit <Name> attribution
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
             continue
 
         mentions = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(para)]
@@ -214,14 +225,16 @@ def suggest_dialogue_tags(
 
             char = char_by_name.get(best_speaker.lower()) if best_speaker else None
 
-            proposals.append(ProposedDialogueTag(
-                id=str(uuid.uuid4()),
-                quote_content=content,
-                inferred_speaker=best_speaker,
-                character_id=char.id if char else None,
-                confidence=confidence,
-                source_excerpt=excerpt,
-            ))
+            proposals.append(
+                ProposedDialogueTag(
+                    id=str(uuid.uuid4()),
+                    quote_content=content,
+                    inferred_speaker=best_speaker,
+                    character_id=char.id if char else None,
+                    confidence=confidence,
+                    source_excerpt=excerpt,
+                )
+            )
 
     return proposals
 
@@ -249,16 +262,14 @@ async def ai_suggest_dialogue_speakers(
     # Character list
     characters = db.query(Character).filter(Character.story_id == node.story_id).all()
     char_by_name = {c.name.lower(): c for c in characters}
-    character_list = "\n".join(
-        f"- {c.name}" + (f" ({c.role})" if c.role else "") for c in characters
-    )
+    character_list = "\n".join(f"- {c.name}" + (f" ({c.role})" if c.role else "") for c in characters)
 
     # Already-attributed dialogue (for voice context)
     already_attributed_lines = []
     for para in paragraphs:
         for m in re.finditer(r'"([^"]+)"<([^>]+)>', para):
             already_attributed_lines.append(f'{m.group(2)}: "{m.group(1)}"')
-        for m in re.finditer(r'\u201c([^\u201d]+)\u201d<([^>]+)>', para):
+        for m in re.finditer(r"\u201c([^\u201d]+)\u201d<([^>]+)>", para):
             already_attributed_lines.append(f'{m.group(2)}: "\u201c{m.group(1)}\u201d"')
     already_attributed = "\n".join(already_attributed_lines[:20])  # cap context length
 
@@ -273,7 +284,9 @@ async def ai_suggest_dialogue_speakers(
             pov_character_name = pov_char.name
 
     feature_prompt = build_dialogue_attribution_prompt(
-        scene_text, character_list, already_attributed,
+        scene_text,
+        character_list,
+        already_attributed,
         pov_character=pov_character_name,
         narrative_perspective=narrative_perspective,
     )
@@ -304,10 +317,11 @@ async def ai_suggest_dialogue_speakers(
     # quote_text back to the exact string. The LLM may paraphrase or alter
     # punctuation, which would cause the regex apply to silently fail.
     from ..services.dialogue_service import _STANDALONE_QUOTE_RE
+
     actual_quotes: list[str] = []
     for para in paragraphs:
         # Skip paragraphs that already have explicit <Name> attribution
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
             continue
         for m in _STANDALONE_QUOTE_RE.finditer(para):
             content = (m.group(1) or m.group(2) or "").strip()
@@ -351,14 +365,16 @@ async def ai_suggest_dialogue_speakers(
 
         char = char_by_name.get(speaker.lower())
 
-        proposals.append(ProposedDialogueTag(
-            id=str(uuid.uuid4()),
-            quote_content=snapped,
-            inferred_speaker=speaker,
-            character_id=char.id if char else None,
-            confidence=min(1.0, max(0.0, confidence)),
-            source_excerpt=reasoning[:120] if reasoning else "",
-        ))
+        proposals.append(
+            ProposedDialogueTag(
+                id=str(uuid.uuid4()),
+                quote_content=snapped,
+                inferred_speaker=speaker,
+                character_id=char.id if char else None,
+                confidence=min(1.0, max(0.0, confidence)),
+                source_excerpt=reasoning[:120] if reasoning else "",
+            )
+        )
 
     return proposals
 
@@ -393,8 +409,8 @@ def apply_dialogue_tags(
         )
         # Match smart quotes not already followed by &lt;
         content = re.sub(
-            f'\u201c(\s*{q}\s*)\u201d(?!&lt;)',
-            f'\u201c\\1\u201d{suffix}',
+            f"\u201c(\s*{q}\s*)\u201d(?!&lt;)",
+            f"\u201c\\1\u201d{suffix}",
             content,
         )
 
@@ -406,12 +422,16 @@ def apply_dialogue_tags(
     pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
     narrative_perspective = story.narrative_perspective if story else ""
     sync_dialogue_blocks(
-        scene_id, content, node.story_id, db,
+        scene_id,
+        content,
+        node.story_id,
+        db,
         pov_character_id=pov_char_id,
         narrative_perspective=narrative_perspective,
     )
 
     from ..schemas.structure import StructureNodeOut
+
     db.refresh(node)
     return StructureNodeOut.model_validate(node)
 
@@ -453,6 +473,7 @@ def patch_dialogue_block(
 # ---------------------------------------------------------------------------
 # Story-level analytics endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.get("/stories/{story_id}/dialogue/stats")
 def dialogue_stats(
@@ -515,11 +536,13 @@ def get_subtext_notes(
                 "scene_title": node.title if node else "Unknown Scene",
                 "blocks": [],
             }
-        scene_map[block.scene_id]["blocks"].append({
-            "id": block.id,
-            "content": block.content,
-            "subtext": block.subtext,
-        })
+        scene_map[block.scene_id]["blocks"].append(
+            {
+                "id": block.id,
+                "content": block.content,
+                "subtext": block.subtext,
+            }
+        )
 
     return list(scene_map.values())
 
@@ -541,7 +564,7 @@ def get_scenes_with_unattributed_dialogue(
     if not story:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    from ..services.dialogue_service import _html_to_paragraphs, _STANDALONE_QUOTE_RE
+    from ..services.dialogue_service import _STANDALONE_QUOTE_RE, _html_to_paragraphs
 
     scenes = (
         db.query(StructureNode)
@@ -560,16 +583,17 @@ def get_scenes_with_unattributed_dialogue(
         count = 0
         for para in paragraphs:
             # Skip paragraphs that already have explicit <Name> attribution
-            if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+            if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
                 continue
-            count += sum(1 for m in _STANDALONE_QUOTE_RE.finditer(para)
-                         if (m.group(1) or m.group(2) or "").strip())
+            count += sum(1 for m in _STANDALONE_QUOTE_RE.finditer(para) if (m.group(1) or m.group(2) or "").strip())
         if count > 0:
-            results.append({
-                "scene_id": scene.id,
-                "scene_title": scene.title or "Untitled Scene",
-                "unattributed_count": count,
-            })
+            results.append(
+                {
+                    "scene_id": scene.id,
+                    "scene_title": scene.title or "Untitled Scene",
+                    "unattributed_count": count,
+                }
+            )
 
     return results
 
@@ -578,14 +602,15 @@ def get_scenes_with_unattributed_dialogue(
 # Batch tagging endpoints
 # ---------------------------------------------------------------------------
 
+
 def _run_heuristic_suggestions(scene: StructureNode, char_by_name: dict) -> list[ProposedDialogueTag]:
     """Run heuristic speaker inference for a scene and return proposals."""
-    from ..services.dialogue_service import _html_to_paragraphs, _STANDALONE_QUOTE_RE, _MENTION_RE
+    from ..services.dialogue_service import _MENTION_RE, _STANDALONE_QUOTE_RE, _html_to_paragraphs
 
     paragraphs = _html_to_paragraphs(scene.content or "")
     proposals: list[ProposedDialogueTag] = []
     for para in paragraphs:
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r'\u201d<[^>]+>', para):
+        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
             continue
 
         mentions = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(para)]
@@ -616,14 +641,16 @@ def _run_heuristic_suggestions(scene: StructureNode, char_by_name: dict) -> list
 
             char = char_by_name.get(best_speaker.lower()) if best_speaker else None
 
-            proposals.append(ProposedDialogueTag(
-                id=str(uuid.uuid4()),
-                quote_content=content,
-                inferred_speaker=best_speaker,
-                character_id=char.id if char else None,
-                confidence=confidence,
-                source_excerpt=excerpt,
-            ))
+            proposals.append(
+                ProposedDialogueTag(
+                    id=str(uuid.uuid4()),
+                    quote_content=content,
+                    inferred_speaker=best_speaker,
+                    character_id=char.id if char else None,
+                    confidence=confidence,
+                    source_excerpt=excerpt,
+                )
+            )
 
     return proposals
 
@@ -654,11 +681,13 @@ def suggest_dialogue_tags_story_wide(
     for scene in scenes:
         proposals = _run_heuristic_suggestions(scene, char_by_name)
         if proposals:
-            result_scenes.append(SceneWithDialogueProposals(
-                scene_id=scene.id,
-                scene_title=scene.title or "Untitled Scene",
-                proposals=proposals,
-            ))
+            result_scenes.append(
+                SceneWithDialogueProposals(
+                    scene_id=scene.id,
+                    scene_title=scene.title or "Untitled Scene",
+                    proposals=proposals,
+                )
+            )
 
     return BatchSuggestResponse(
         total_proposals=sum(len(s.proposals) for s in result_scenes),
@@ -700,11 +729,13 @@ def suggest_dialogue_tags_for_character(
         # confirm which quotes belong to this character (speaker is fixed to char name).
         proposals = _run_heuristic_suggestions(scene, char_by_name)
         if proposals:
-            result_scenes.append(SceneWithDialogueProposals(
-                scene_id=scene.id,
-                scene_title=scene.title or "Untitled Scene",
-                proposals=proposals,
-            ))
+            result_scenes.append(
+                SceneWithDialogueProposals(
+                    scene_id=scene.id,
+                    scene_title=scene.title or "Untitled Scene",
+                    proposals=proposals,
+                )
+            )
 
     return BatchSuggestResponse(
         total_proposals=sum(len(s.proposals) for s in result_scenes),
@@ -735,7 +766,7 @@ def apply_dialogue_tags_batch(
             # Allow optional whitespace inside the quotes — content is stripped on
             # extraction but the raw HTML may have trailing spaces before the closing mark.
             content = re.sub(rf'"(\s*{q}\s*)"(?!&lt;)', rf'"\1"{suffix}', content)
-            content = re.sub(f'\u201c(\s*{q}\s*)\u201d(?!&lt;)', f'\u201c\\1\u201d{suffix}', content)
+            content = re.sub(f"\u201c(\s*{q}\s*)\u201d(?!&lt;)", f"\u201c\\1\u201d{suffix}", content)
 
         node.content = content
         db.commit()
@@ -743,7 +774,10 @@ def apply_dialogue_tags_batch(
         pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
         narrative_perspective = story.narrative_perspective if story else ""
         sync_dialogue_blocks(
-            scene_entry.scene_id, content, story_id, db,
+            scene_entry.scene_id,
+            content,
+            story_id,
+            db,
             pov_character_id=pov_char_id,
             narrative_perspective=narrative_perspective,
         )

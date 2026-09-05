@@ -5,7 +5,20 @@
  * Conversational follow-ups use the same endpoint; graceful fallback to raw text.
  */
 import { useState, useRef, useEffect } from "react";
-import { X, Map, User2, ChevronDown, ChevronUp, FileText, Target, LogIn, LogOut, List, Users, GitBranch } from "lucide-react";
+import {
+  X,
+  Map,
+  User2,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Target,
+  LogIn,
+  LogOut,
+  List,
+  Users,
+  GitBranch,
+} from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -26,13 +39,57 @@ interface PlanTurn {
 }
 
 const SCENE_PLAN_SCHEMA: SectionConfig[] = [
-  { key: "synopsis", label: "Synopsis", icon: FileText, color: "var(--color-accent)", type: "text", applyable: true },
+  {
+    key: "synopsis",
+    label: "Synopsis",
+    icon: FileText,
+    color: "var(--color-accent)",
+    type: "text",
+    applyable: true,
+  },
   { key: "purpose", label: "Purpose", icon: Target, color: "var(--color-warning)", type: "text" },
-  { key: "entry_state", label: "Entry State", icon: LogIn, color: "var(--segment-part)", type: "text", applyable: true },
-  { key: "exit_state", label: "Exit State", icon: LogOut, color: "var(--segment-beat)", type: "text", applyable: true },
-  { key: "key_events", label: "Key Events", icon: List, color: "var(--segment-scene)", type: "list", applyable: true },
-  { key: "characters_to_feature", label: "Characters to Feature", icon: Users, color: "var(--color-success)", type: "sublist", labelField: "name", descField: "reason" },
-  { key: "threads_to_advance", label: "Threads to Advance", icon: GitBranch, color: "var(--color-ai)", type: "sublist", labelField: "name", descField: "how" },
+  {
+    key: "entry_state",
+    label: "Entry State",
+    icon: LogIn,
+    color: "var(--segment-part)",
+    type: "text",
+    applyable: true,
+  },
+  {
+    key: "exit_state",
+    label: "Exit State",
+    icon: LogOut,
+    color: "var(--segment-beat)",
+    type: "text",
+    applyable: true,
+  },
+  {
+    key: "key_events",
+    label: "Key Events",
+    icon: List,
+    color: "var(--segment-scene)",
+    type: "list",
+    applyable: true,
+  },
+  {
+    key: "characters_to_feature",
+    label: "Characters to Feature",
+    icon: Users,
+    color: "var(--color-success)",
+    type: "sublist",
+    labelField: "name",
+    descField: "reason",
+  },
+  {
+    key: "threads_to_advance",
+    label: "Threads to Advance",
+    icon: GitBranch,
+    color: "var(--color-ai)",
+    type: "sublist",
+    labelField: "name",
+    descField: "how",
+  },
 ];
 
 const FOLLOW_UPS = [
@@ -55,7 +112,12 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
   const [panelWidth, setPanelWidth] = useState(380);
   const [showFollowUps, setShowFollowUps] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<{ base64: string; mimeType: string; filename: string; assetId?: string } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{
+    base64: string;
+    mimeType: string;
+    filename: string;
+    assetId?: string;
+  } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const isResizing = useRef(false);
@@ -75,7 +137,9 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
       const dx = resizeStartX.current - e.clientX;
       setPanelWidth(Math.max(300, Math.min(720, resizeStartWidth.current + dx)));
     }
-    function onMouseUp() { isResizing.current = false; }
+    function onMouseUp() {
+      isResizing.current = false;
+    }
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     return () => {
@@ -91,7 +155,11 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
   /** Build the API message history from completed turns */
   function buildApiMessages(completedTurns: PlanTurn[]): ChatMessage[] {
     return completedTurns.flatMap((t) => [
-      { role: "user" as const, content: t.userContent, ...(t.userImages?.length ? { images: t.userImages } : {}) },
+      {
+        role: "user" as const,
+        content: t.userContent,
+        ...(t.userImages?.length ? { images: t.userImages } : {}),
+      },
       { role: "assistant" as const, content: t.result.raw_text ?? JSON.stringify(t.result.data) ?? "" },
     ]);
   }
@@ -141,11 +209,17 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
       const history = buildApiMessages(turns);
       const userMsg: ChatMessage = { role: "user", content, ...(images.length ? { images } : {}) };
       const result = await callApi([...history, userMsg]);
-      setTurns((prev) => [...prev, { userContent: content, userImages: images.length ? images : undefined, result }]);
+      setTurns((prev) => [
+        ...prev,
+        { userContent: content, userImages: images.length ? images : undefined, result },
+      ]);
       setShowFollowUps(true);
       inputRef.current?.focus();
     } catch {
-      setTurns((prev) => [...prev, { userContent: content, result: { success: false, raw_text: "[Error reaching LLM]" } }]);
+      setTurns((prev) => [
+        ...prev,
+        { userContent: content, result: { success: false, raw_text: "[Error reaching LLM]" } },
+      ]);
     } finally {
       setPendingUser("");
       setPendingImages([]);
@@ -173,7 +247,8 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
     if (key === "synopsis") update.synopsis = String(value);
     else if (key === "entry_state") update.entry_state = String(value);
     else if (key === "exit_state") update.exit_state = String(value);
-    else if (key === "key_events") update.key_events = Array.isArray(value) ? (value as string[]).join("\n") : String(value);
+    else if (key === "key_events")
+      update.key_events = Array.isArray(value) ? (value as string[]).join("\n") : String(value);
     else return;
 
     const updated = await api.updateNode(nodeId, update);
@@ -207,12 +282,12 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
       {showingNotesForm && (
         <div className={styles.notesForm}>
           <p className={styles.notesIntro}>
-            I'll suggest ideas for how this scene might work — synopsis, purpose, entry &amp; exit
-            state, key events — based on your story's context.
+            I'll suggest ideas for how this scene might work — synopsis, purpose, entry &amp; exit state, key
+            events — based on your story's context.
           </p>
           <p className={styles.notesIntro} style={{ marginTop: "2px" }}>
-            These are starting points for your own thinking, not instructions. Share what you already
-            have in mind, or let me work from the story alone.
+            These are starting points for your own thinking, not instructions. Share what you already have in
+            mind, or let me work from the story alone.
           </p>
           <div className={styles.notesField}>
             <label className={styles.notesLabel}>What do you already know about this scene?</label>
@@ -246,12 +321,19 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
             <div key={i}>
               {/* User message */}
               <div className={`${styles.message} ${styles.userMessage}`}>
-                <div className={styles.messageAvatar}><User2 size={13} /></div>
+                <div className={styles.messageAvatar}>
+                  <User2 size={13} />
+                </div>
                 <div className={styles.messageContent}>
                   {turn.userImages && turn.userImages.length > 0 && (
                     <div className={styles.messageImages}>
                       {turn.userImages.map((b64, idx) => (
-                        <img key={idx} src={`data:image/jpeg;base64,${b64}`} alt="attached" className={styles.messageImage} />
+                        <img
+                          key={idx}
+                          src={`data:image/jpeg;base64,${b64}`}
+                          alt="attached"
+                          className={styles.messageImage}
+                        />
                       ))}
                     </div>
                   )}
@@ -260,7 +342,9 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
               </div>
               {/* AI response */}
               <div className={`${styles.message} ${styles.assistantMessage}`}>
-                <div className={styles.messageAvatar}><Map size={13} /></div>
+                <div className={styles.messageAvatar}>
+                  <Map size={13} />
+                </div>
                 <div className={styles.messageContent}>
                   <StructuredResponseRenderer
                     result={turn.result}
@@ -276,12 +360,19 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
           {/* Pending user message while generating */}
           {generating && pendingUser && (
             <div className={`${styles.message} ${styles.userMessage}`}>
-              <div className={styles.messageAvatar}><User2 size={13} /></div>
+              <div className={styles.messageAvatar}>
+                <User2 size={13} />
+              </div>
               <div className={styles.messageContent}>
                 {pendingImages.length > 0 && (
                   <div className={styles.messageImages}>
                     {pendingImages.map((b64, idx) => (
-                      <img key={idx} src={`data:image/jpeg;base64,${b64}`} alt="attached" className={styles.messageImage} />
+                      <img
+                        key={idx}
+                        src={`data:image/jpeg;base64,${b64}`}
+                        alt="attached"
+                        className={styles.messageImage}
+                      />
                     ))}
                   </div>
                 )}
@@ -291,8 +382,12 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
           )}
           {generating && (
             <div className={`${styles.message} ${styles.assistantMessage}`}>
-              <div className={styles.messageAvatar}><Map size={13} /></div>
-              <div className={styles.messageContent}><span className={styles.cursor}>▋</span></div>
+              <div className={styles.messageAvatar}>
+                <Map size={13} />
+              </div>
+              <div className={styles.messageContent}>
+                <span className={styles.cursor}>▋</span>
+              </div>
             </div>
           )}
 

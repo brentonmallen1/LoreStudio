@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -90,6 +92,7 @@ class LocationOut(BaseModel):
 
 class LocationTree(LocationOut):
     """Location with nested children for tree retrieval."""
+
     children: list[LocationTree] = []
 
     model_config = {"from_attributes": True}

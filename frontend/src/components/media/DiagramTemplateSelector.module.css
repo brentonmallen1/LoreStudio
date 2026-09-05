@@ -48,7 +48,9 @@
   color: var(--color-text-muted);
   cursor: pointer;
 }
-.closeBtn:hover { background: var(--color-surface-raised); }
+.closeBtn:hover {
+  background: var(--color-surface-raised);
+}
 
 .grid {
   display: grid;
@@ -69,7 +71,9 @@
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .card:hover {

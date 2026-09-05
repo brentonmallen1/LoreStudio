@@ -40,10 +40,23 @@ type TabGroup = { id: string; label?: string; tabs: TabDef[] };
 
 // Static map of tab → group for auto-expand logic
 const TAB_GROUP: Record<string, string> = {
-  overview: "core", story: "core", outline: "core", characters: "core",
-  lorebook: "world", compendium: "world", worldbuilding: "world",
-  threads: "tools", twists: "tools", whatif: "tools", panels: "tools", media: "tools",
-  health: "system", discoveries: "system", chronicle: "system", versions: "system", publish: "system",
+  overview: "core",
+  story: "core",
+  outline: "core",
+  characters: "core",
+  lorebook: "world",
+  compendium: "world",
+  worldbuilding: "world",
+  threads: "tools",
+  twists: "tools",
+  whatif: "tools",
+  panels: "tools",
+  media: "tools",
+  health: "system",
+  discoveries: "system",
+  chronicle: "system",
+  versions: "system",
+  publish: "system",
 };
 
 interface SidebarProps {
@@ -57,10 +70,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const location = useLocation();
   const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
   const { activeStory, characters } = useStoryStore();
-  const {
-    sidebarCollapsed, setSidebarCollapsed,
-    treeDetached, setTreeDetached,
-  } = useUIStore();
+  const { sidebarCollapsed, setSidebarCollapsed, treeDetached, setTreeDetached } = useUIStore();
   const { pendingCount, refreshCount } = useDiscoveryStore();
   const { alertCount, refreshAlerts } = useHealthStore();
   const getTabStatus = useLLMStore((s) => s.getTabStatus);
@@ -101,43 +111,57 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     {
       id: "core",
       tabs: [
-        { id: "overview",   icon: Home,    label: "Overview",   path: "" },
-        { id: "story",      icon: PenLine, label: "Write",      path: "/write" },
-        { id: "outline",    icon: ListTree, label: "Outline",   path: "/outline" },
-        { id: "characters", icon: Users,   label: "Characters", path: "/characters" },
+        { id: "overview", icon: Home, label: "Overview", path: "" },
+        { id: "story", icon: PenLine, label: "Write", path: "/write" },
+        { id: "outline", icon: ListTree, label: "Outline", path: "/outline" },
+        { id: "characters", icon: Users, label: "Characters", path: "/characters" },
       ],
     },
     {
       id: "world",
       label: "World",
       tabs: [
-        { id: "lorebook",      icon: Fingerprint, label: "Story Identity", path: "/lorebook" },
-        { id: "compendium",    icon: BookOpen, label: "Compendium",     path: "/compendium" },
-        { id: "worldbuilding", icon: Globe,    label: "World Building", path: "/worldbuilding" },
+        { id: "lorebook", icon: Fingerprint, label: "Story Identity", path: "/lorebook" },
+        { id: "compendium", icon: BookOpen, label: "Compendium", path: "/compendium" },
+        { id: "worldbuilding", icon: Globe, label: "World Building", path: "/worldbuilding" },
       ],
     },
     {
       id: "tools",
       label: "Tools",
       tabs: [
-        { id: "threads", icon: GitBranch,         label: "Plot Threads",     path: "/threads" },
-        { id: "twists",  icon: Eye,               label: "Twists",           path: "/twists" },
-        { id: "whatif",  icon: Shuffle,           label: "What If?",         path: "/whatif" },
-        { id: "panels",  icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
-        { id: "media",   icon: Images,            label: "Media & Diagrams", path: "/media" },
+        { id: "threads", icon: GitBranch, label: "Plot Threads", path: "/threads" },
+        { id: "twists", icon: Eye, label: "Twists", path: "/twists" },
+        { id: "whatif", icon: Shuffle, label: "What If?", path: "/whatif" },
+        { id: "panels", icon: MessageSquareMore, label: "Group Interviews", path: "/panels" },
+        { id: "media", icon: Images, label: "Media & Diagrams", path: "/media" },
       ],
     },
     {
       id: "system",
       label: "System",
       tabs: [
-        { id: "health",   icon: Activity, label: "Story Health", path: "/health",     badge: alertCount || undefined },
+        {
+          id: "health",
+          icon: Activity,
+          label: "Story Health",
+          path: "/health",
+          badge: alertCount || undefined,
+        },
         ...(activeStory?.discovery_enabled
-          ? [{ id: "discoveries", icon: Telescope, label: "Discoveries", path: "/discoveries", badge: pendingCount || undefined }]
+          ? [
+              {
+                id: "discoveries",
+                icon: Telescope,
+                label: "Discoveries",
+                path: "/discoveries",
+                badge: pendingCount || undefined,
+              },
+            ]
           : []),
-        { id: "chronicle", icon: Clock,    label: "Chronicle", path: "/chronicle" },
-        { id: "versions",  icon: History,  label: "Versions",  path: "/versions" },
-        { id: "publish",   icon: Send,     label: "Publish",   path: "/publish" },
+        { id: "chronicle", icon: Clock, label: "Chronicle", path: "/chronicle" },
+        { id: "versions", icon: History, label: "Versions", path: "/versions" },
+        { id: "publish", icon: Send, label: "Publish", path: "/publish" },
       ],
     },
   ];
@@ -151,7 +175,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   useEffect(() => {
     const activeGroup = TAB_GROUP[tab];
     if (activeGroup) {
-      setOpenGroups(prev => {
+      setOpenGroups((prev) => {
         if (prev.has(activeGroup)) return prev;
         return new Set([...prev, activeGroup]);
       });
@@ -159,7 +183,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   }, [tab]);
 
   function toggleGroup(groupId: string) {
-    setOpenGroups(prev => {
+    setOpenGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) {
         next.delete(groupId);
@@ -180,7 +204,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       return (
         <div key={t.id} className={styles.writeTabRow}>
           <button
-            onClick={() => { navigate(`/stories/${storyId}${t.path}`); markViewed(t.id); }}
+            onClick={() => {
+              navigate(`/stories/${storyId}${t.path}`);
+              markViewed(t.id);
+            }}
             className={`${styles.railBtn} ${styles.writeTabBtn} ${isActive ? styles.railBtnActive : ""}`}
           >
             <Icon size={16} />
@@ -205,7 +232,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     return (
       <button
         key={t.id}
-        onClick={() => { navigate(`/stories/${storyId}${t.path}`); markViewed(t.id); }}
+        onClick={() => {
+          navigate(`/stories/${storyId}${t.path}`);
+          markViewed(t.id);
+        }}
         className={`${styles.railBtn} ${isActive ? styles.railBtnActive : ""}`}
         title={isCollapsed ? (t.badge ? `${t.label} (${t.badge})` : t.label) : undefined}
       >
@@ -220,7 +250,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     );
   }
 
-  const allTabs = tabGroups.flatMap(g => g.tabs);
+  const allTabs = tabGroups.flatMap((g) => g.tabs);
 
   return (
     <aside
@@ -231,11 +261,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       {/* Header — expanded only */}
       {!isCollapsed && (
         <div className={styles.header}>
-          <button
-            onClick={() => navigate("/")}
-            className={styles.backBtn}
-            title="Back to dashboard"
-          >
+          <button onClick={() => navigate("/")} className={styles.backBtn} title="Back to dashboard">
             <SquareLibrary size={14} />
           </button>
           <span className={styles.storyTitle} title={activeStory?.title}>
@@ -256,59 +282,50 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       {/* Vertical tab rail */}
       <nav className={styles.tabRail}>
         {/* Expand button when collapsed */}
-        {isCollapsed && (
-          collapsedProp === undefined
-            ? (
-              <button
-                className={styles.railBtn}
-                onClick={() => setSidebarCollapsed(false)}
-                title="Expand sidebar"
-              >
-                <PanelLeftOpen size={15} />
-              </button>
-            )
-            : (
-              <button
-                onClick={() => navigate("/")}
-                className={styles.railBtn}
-                title="Back to dashboard"
-              >
-                <SquareLibrary size={16} />
-              </button>
-            )
-        )}
+        {isCollapsed &&
+          (collapsedProp === undefined ? (
+            <button
+              className={styles.railBtn}
+              onClick={() => setSidebarCollapsed(false)}
+              title="Expand sidebar"
+            >
+              <PanelLeftOpen size={15} />
+            </button>
+          ) : (
+            <button onClick={() => navigate("/")} className={styles.railBtn} title="Back to dashboard">
+              <SquareLibrary size={16} />
+            </button>
+          ))}
 
         {/* Collapsed: flat icon list. Expanded: grouped with collapsible sections. */}
-        {isCollapsed ? (
-          allTabs.map(t => renderTabButton(t))
-        ) : (
-          tabGroups.map(group => {
-            const isOpen = openGroups.has(group.id);
-            const groupBadgeTotal = group.tabs.reduce((sum, t) => sum + (t.badge ?? 0), 0);
+        {isCollapsed
+          ? allTabs.map((t) => renderTabButton(t))
+          : tabGroups.map((group) => {
+              const isOpen = openGroups.has(group.id);
+              const groupBadgeTotal = group.tabs.reduce((sum, t) => sum + (t.badge ?? 0), 0);
 
-            return (
-              <div key={group.id} className={styles.group}>
-                {group.label && (
-                  <button
-                    className={styles.groupHeader}
-                    onClick={() => toggleGroup(group.id)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className={styles.groupHeaderLabel}>{group.label}</span>
-                    {!isOpen && groupBadgeTotal > 0 && (
-                      <span className={styles.groupBadge}>{groupBadgeTotal}</span>
-                    )}
-                    <ChevronDown
-                      size={11}
-                      className={`${styles.groupChevron} ${!isOpen ? styles.groupChevronClosed : ""}`}
-                    />
-                  </button>
-                )}
-                {(isOpen || !group.label) && group.tabs.map(t => renderTabButton(t))}
-              </div>
-            );
-          })
-        )}
+              return (
+                <div key={group.id} className={styles.group}>
+                  {group.label && (
+                    <button
+                      className={styles.groupHeader}
+                      onClick={() => toggleGroup(group.id)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className={styles.groupHeaderLabel}>{group.label}</span>
+                      {!isOpen && groupBadgeTotal > 0 && (
+                        <span className={styles.groupBadge}>{groupBadgeTotal}</span>
+                      )}
+                      <ChevronDown
+                        size={11}
+                        className={`${styles.groupChevron} ${!isOpen ? styles.groupChevronClosed : ""}`}
+                      />
+                    </button>
+                  )}
+                  {(isOpen || !group.label) && group.tabs.map((t) => renderTabButton(t))}
+                </div>
+              );
+            })}
       </nav>
 
       {/* Content panels — expanded only */}
@@ -316,9 +333,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         <>
           {tab === "characters" && (
             <div className={styles.tree}>
-              {characters.length === 0 && (
-                <p className={styles.emptyHint}>Your cast will appear here.</p>
-              )}
+              {characters.length === 0 && <p className={styles.emptyHint}>Your cast will appear here.</p>}
               {characters.map((char) => (
                 <button
                   key={char.id}
@@ -335,10 +350,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
 
           {tab === "characters" && (
             <div className={styles.addSection}>
-              <button
-                onClick={() => navigate(`/stories/${storyId}/characters`)}
-                className={styles.addBtn}
-              >
+              <button onClick={() => navigate(`/stories/${storyId}/characters`)} className={styles.addBtn}>
                 <UserCircle2 size={12} />
                 All characters
               </button>

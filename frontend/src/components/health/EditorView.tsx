@@ -27,15 +27,20 @@ export function EditorView({ storyId }: Props) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    api.getEditorialReports(storyId).then((data) => {
-      if (!cancelled) {
-        setReports(data);
-        setLoading(false);
-      }
-    }).catch(() => {
-      if (!cancelled) setLoading(false);
-    });
-    return () => { cancelled = true; };
+    api
+      .getEditorialReports(storyId)
+      .then((data) => {
+        if (!cancelled) {
+          setReports(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [storyId]);
 
   async function runPass() {
@@ -44,13 +49,7 @@ export function EditorView({ storyId }: Props) {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const log = await api.runEditorialPass(
-        storyId,
-        contextLevel,
-        scope.type,
-        scope.ids,
-        controller.signal,
-      );
+      const log = await api.runEditorialPass(storyId, contextLevel, scope.type, scope.ids, controller.signal);
       setReports((prev) => [log, ...prev]);
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") {
@@ -60,7 +59,9 @@ export function EditorView({ storyId }: Props) {
         if (msg.includes("No written content")) {
           setError("No written content found in the selected scope. Write some scenes first.");
         } else if (msg.includes("context window") || msg.includes("context_length")) {
-          setError("The content exceeds your model's context window. Try 'With Summaries' mode or reduce the scope.");
+          setError(
+            "The content exceeds your model's context window. Try 'With Summaries' mode or reduce the scope.",
+          );
         } else if (msg.includes("timeout") || msg.includes("timed out")) {
           setError("Analysis timed out. Your model may need more resources, or try a smaller scope.");
         } else if (msg.includes("connect") || msg.includes("fetch")) {
@@ -124,7 +125,9 @@ export function EditorView({ storyId }: Props) {
         <div className={styles.errorBanner}>
           <AlertTriangle size={13} />
           <span>{error}</span>
-          <button className={styles.errorDismiss} onClick={() => setError(null)}>✕</button>
+          <button className={styles.errorDismiss} onClick={() => setError(null)}>
+            ✕
+          </button>
         </div>
       )}
 
@@ -148,8 +151,12 @@ export function EditorView({ storyId }: Props) {
       {confirmClearNotes && (
         <div className={styles.confirmBanner}>
           <span>Remove all editorial inline notes from every scene?</span>
-          <button className={styles.confirmYes} onClick={handleClearAllNotes}>Clear notes</button>
-          <button className={styles.confirmNo} onClick={() => setConfirmClearNotes(false)}>Cancel</button>
+          <button className={styles.confirmYes} onClick={handleClearAllNotes}>
+            Clear notes
+          </button>
+          <button className={styles.confirmNo} onClick={() => setConfirmClearNotes(false)}>
+            Cancel
+          </button>
         </div>
       )}
 

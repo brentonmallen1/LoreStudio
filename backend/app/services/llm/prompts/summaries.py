@@ -2,9 +2,6 @@
 Summary prompts — scene summaries, story summaries, structure section summaries.
 """
 
-from ....models.structure import StructureNode
-from ....models.story import Story
-
 
 def build_story_summary_prompt(
     title: str,
@@ -14,9 +11,7 @@ def build_story_summary_prompt(
     style: str,
 ) -> str:
     """Prompt to summarize the story up to a given point."""
-    content_text = "\n\n".join(
-        f"[{n['title']}]\n{n['content']}" for n in nodes_content if n.get("content")
-    )
+    content_text = "\n\n".join(f"[{n['title']}]\n{n['content']}" for n in nodes_content if n.get("content"))
     if not content_text:
         return f"The story '{title}' has no written content yet."
 

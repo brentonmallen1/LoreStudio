@@ -55,9 +55,8 @@ export default function DiscoveryQueuePage() {
     await runDiscovery(storyId, selectedSceneId || undefined);
   }
 
-  const filtered = typeFilter === "all"
-    ? discoveries
-    : discoveries.filter(d => d.element_type === typeFilter);
+  const filtered =
+    typeFilter === "all" ? discoveries : discoveries.filter((d) => d.element_type === typeFilter);
 
   const typeCounts: Record<string, number> = {};
   for (const d of discoveries) {
@@ -75,120 +74,116 @@ export default function DiscoveryQueuePage() {
 
   return (
     <div className={styles.page}>
-    <div className={styles.pageInner}>
-      <div className={styles.header}>
-        <div className={styles.titleRow}>
-          <h2 className={styles.title}>Discoveries</h2>
-          {pendingCount > 0 && (
-            <span className={styles.badge}>{pendingCount}</span>
-          )}
+      <div className={styles.pageInner}>
+        <div className={styles.header}>
+          <div className={styles.titleRow}>
+            <h2 className={styles.title}>Discoveries</h2>
+            {pendingCount > 0 && <span className={styles.badge}>{pendingCount}</span>}
+          </div>
+          <div className={styles.headerActions}>
+            <AIFeatureInfoTrigger pageId="discovery-queue" size="sm" />
+            <button
+              className={styles.settingsBtn}
+              onClick={() => setSettingsOpen((v) => !v)}
+              title="Discovery settings"
+            >
+              <Settings size={13} />
+              Settings
+            </button>
+          </div>
         </div>
-        <div className={styles.headerActions}>
-          <AIFeatureInfoTrigger pageId="discovery-queue" size="sm" />
-          <button
-            className={styles.settingsBtn}
-            onClick={() => setSettingsOpen(v => !v)}
-            title="Discovery settings"
-          >
-            <Settings size={13} />
-            Settings
-          </button>
-        </div>
-      </div>
 
-      {enabled && (
-        <div className={styles.analyzeBar}>
-          <select
-            className={styles.sceneSelect}
-            value={selectedSceneId}
-            onChange={e => setSelectedSceneId(e.target.value)}
-          >
-            <option value="">Entire story (recent scenes)</option>
-            {scenes.map(s => (
-              <option key={s.id} value={s.id}>{s.title}</option>
-            ))}
-          </select>
-          <button
-            className={styles.analyzeBtn}
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-          >
-            <Telescope size={13} />
-            {isAnalyzing ? "Analyzing…" : "Analyze"}
-          </button>
-        </div>
-      )}
-
-      {settingsOpen && (
-        <div className={styles.settingsPanel}>
-          <p className={styles.settingsPanelTitle}>Discovery Settings</p>
-          <DiscoverySettings storyId={storyId} />
-        </div>
-      )}
-
-      {!enabled ? (
-        <div className={styles.disabledNote}>
-          <span className={styles.emptyIcon}>🔭</span>
-          <p>Discovery is disabled for this story.</p>
-          <p>Enable it in Settings above to start observing your prose for new story elements.</p>
-        </div>
-      ) : loading ? (
-        <div className={styles.loading}>Loading discoveries…</div>
-      ) : (
-        <>
-          {isAnalyzing && (
-            <div className={styles.analyzingNote}>
-              <span className={styles.analyzingDot} />
-              Analyzing prose for new elements…
-            </div>
-          )}
-
-          {discoveries.length > 0 && (
-            <div className={styles.filterRow}>
-              {filterOptions.map(opt => {
-                const count = opt.value === "all" ? discoveries.length : typeCounts[opt.value];
-                if (opt.value !== "all" && !count) return null;
-                return (
-                  <button
-                    key={opt.value}
-                    className={`${styles.filterBtn} ${typeFilter === opt.value ? styles.filterBtnActive : ""}`}
-                    onClick={() => setTypeFilter(opt.value)}
-                  >
-                    {opt.label}
-                    {count ? <span className={styles.filterCount}>({count})</span> : null}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {filtered.length === 0 ? (
-            <div className={styles.empty}>
-              <span className={styles.emptyIcon}>🔭</span>
-              <p className={styles.emptyTitle}>
-                {discoveries.length === 0 ? "Queue is clear" : "No matches"}
-              </p>
-              <p className={styles.emptyText}>
-                {discoveries.length === 0
-                  ? "Select a scene above and click Analyze to find new story elements in your prose."
-                  : "Try a different filter."}
-              </p>
-            </div>
-          ) : (
-            <div className={styles.queue}>
-              {filtered.map(element => (
-                <DiscoveryCard
-                  key={element.id}
-                  element={element}
-                  onApprove={approveDiscovery}
-                  onReject={rejectDiscovery}
-                />
+        {enabled && (
+          <div className={styles.analyzeBar}>
+            <select
+              className={styles.sceneSelect}
+              value={selectedSceneId}
+              onChange={(e) => setSelectedSceneId(e.target.value)}
+            >
+              <option value="">Entire story (recent scenes)</option>
+              {scenes.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.title}
+                </option>
               ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
+            </select>
+            <button className={styles.analyzeBtn} onClick={handleAnalyze} disabled={isAnalyzing}>
+              <Telescope size={13} />
+              {isAnalyzing ? "Analyzing…" : "Analyze"}
+            </button>
+          </div>
+        )}
+
+        {settingsOpen && (
+          <div className={styles.settingsPanel}>
+            <p className={styles.settingsPanelTitle}>Discovery Settings</p>
+            <DiscoverySettings storyId={storyId} />
+          </div>
+        )}
+
+        {!enabled ? (
+          <div className={styles.disabledNote}>
+            <span className={styles.emptyIcon}>🔭</span>
+            <p>Discovery is disabled for this story.</p>
+            <p>Enable it in Settings above to start observing your prose for new story elements.</p>
+          </div>
+        ) : loading ? (
+          <div className={styles.loading}>Loading discoveries…</div>
+        ) : (
+          <>
+            {isAnalyzing && (
+              <div className={styles.analyzingNote}>
+                <span className={styles.analyzingDot} />
+                Analyzing prose for new elements…
+              </div>
+            )}
+
+            {discoveries.length > 0 && (
+              <div className={styles.filterRow}>
+                {filterOptions.map((opt) => {
+                  const count = opt.value === "all" ? discoveries.length : typeCounts[opt.value];
+                  if (opt.value !== "all" && !count) return null;
+                  return (
+                    <button
+                      key={opt.value}
+                      className={`${styles.filterBtn} ${typeFilter === opt.value ? styles.filterBtnActive : ""}`}
+                      onClick={() => setTypeFilter(opt.value)}
+                    >
+                      {opt.label}
+                      {count ? <span className={styles.filterCount}>({count})</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {filtered.length === 0 ? (
+              <div className={styles.empty}>
+                <span className={styles.emptyIcon}>🔭</span>
+                <p className={styles.emptyTitle}>
+                  {discoveries.length === 0 ? "Queue is clear" : "No matches"}
+                </p>
+                <p className={styles.emptyText}>
+                  {discoveries.length === 0
+                    ? "Select a scene above and click Analyze to find new story elements in your prose."
+                    : "Try a different filter."}
+                </p>
+              </div>
+            ) : (
+              <div className={styles.queue}>
+                {filtered.map((element) => (
+                  <DiscoveryCard
+                    key={element.id}
+                    element={element}
+                    onApprove={approveDiscovery}
+                    onReject={rejectDiscovery}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -207,7 +207,9 @@
   transition: background 0.1s;
 }
 
-.colorOption:hover { background: var(--color-surface-raised); }
+.colorOption:hover {
+  background: var(--color-surface-raised);
+}
 
 .colorSwatch {
   width: 12px;
@@ -227,7 +229,9 @@
   cursor: pointer;
   min-width: 80px;
   text-align: center;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .mindNode:hover {

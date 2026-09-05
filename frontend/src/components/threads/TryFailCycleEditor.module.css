@@ -144,7 +144,9 @@
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 0.3rem;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .removeBtn:hover {

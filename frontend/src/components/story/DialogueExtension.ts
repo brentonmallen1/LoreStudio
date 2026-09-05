@@ -69,10 +69,7 @@ function findExplicitQuotes(text: string): Array<[number, number, string, number
   return results;
 }
 
-function findInferredQuotes(
-  text: string,
-  explicitRanges: Array<[number, number]>
-): Array<[number, number]> {
+function findInferredQuotes(text: string, explicitRanges: Array<[number, number]>): Array<[number, number]> {
   const results: Array<[number, number]> = [];
 
   function isClaimed(s: number, e: number): boolean {
@@ -96,9 +93,7 @@ function findInferredQuotes(
     const qEnd = qStart + mm[0].trim().length;
     if (isClaimed(qStart, qEnd)) continue;
     // Check for nearby mention
-    const nearMention = mentionPositions.some(
-      (mp) => Math.abs(qStart - mp) <= 150
-    );
+    const nearMention = mentionPositions.some((mp) => Math.abs(qStart - mp) <= 150);
     if (nearMention) results.push([qStart, qEnd]);
   }
   return results;
@@ -106,7 +101,7 @@ function findInferredQuotes(
 
 function findUnattributedQuotes(
   text: string,
-  claimedRanges: Array<[number, number]>
+  claimedRanges: Array<[number, number]>,
 ): Array<[number, number]> {
   const results: Array<[number, number]> = [];
   function isClaimed(s: number, e: number): boolean {
@@ -138,10 +133,7 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
 
     // Explicit
     const explicit = findExplicitQuotes(text);
-    const explicitRanges: Array<[number, number]> = explicit.map(([s, e]) => [
-      s,
-      e,
-    ]);
+    const explicitRanges: Array<[number, number]> = explicit.map(([s, e]) => [s, e]);
 
     for (const [s, e, speaker, tagStart] of explicit) {
       // Quote portion: "dialogue"
@@ -149,29 +141,26 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
         Decoration.inline(pos + s, pos + tagStart, {
           class: "dialogue-explicit",
           "data-dialogue-speaker": speaker,
-        })
+        }),
       );
       // Speaker tag portion: <Name>
       decos.push(
         Decoration.inline(pos + tagStart, pos + e, {
           class: "dialogue-speaker-tag",
           "data-dialogue-speaker": speaker,
-        })
+        }),
       );
     }
 
     // Inferred (near @mention but not explicit)
     const inferred = findInferredQuotes(text, explicitRanges);
-    const allClaimed = [
-      ...explicitRanges,
-      ...inferred.map(([s, e]) => [s, e] as [number, number]),
-    ];
+    const allClaimed = [...explicitRanges, ...inferred.map(([s, e]) => [s, e] as [number, number])];
 
     for (const [s, e] of inferred) {
       decos.push(
         Decoration.inline(pos + s, pos + e, {
           class: "dialogue-inferred",
-        })
+        }),
       );
     }
 
@@ -180,7 +169,7 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
       decos.push(
         Decoration.inline(pos + s, pos + e, {
           class: "dialogue-unattributed",
-        })
+        }),
       );
     }
   });

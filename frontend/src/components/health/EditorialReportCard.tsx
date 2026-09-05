@@ -1,8 +1,17 @@
 import { useState } from "react";
 import {
-  ChevronDown, ChevronRight, Eye, ListOrdered,
-  GitCompare, Mic, StickyNote, AlertTriangle, Trash2,
-  ArrowUpCircle, MinusCircle, ArrowDownCircle,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  ListOrdered,
+  GitCompare,
+  Mic,
+  StickyNote,
+  AlertTriangle,
+  Trash2,
+  ArrowUpCircle,
+  MinusCircle,
+  ArrowDownCircle,
 } from "lucide-react";
 import type { ActivityLog } from "../../types";
 import styles from "./EditorialReportCard.module.css";
@@ -23,23 +32,44 @@ const SECTIONS: { key: Section; label: string; Icon: React.ElementType; countKey
 ];
 
 function ImpactBadge({ impact }: { impact: string }) {
-  if (impact === "high") return <span className={`${styles.badge} ${styles.badgeHigh}`}><ArrowUpCircle size={10} />High</span>;
-  if (impact === "low") return <span className={`${styles.badge} ${styles.badgeLow}`}><ArrowDownCircle size={10} />Low</span>;
-  return <span className={`${styles.badge} ${styles.badgeMed}`}><MinusCircle size={10} />Medium</span>;
+  if (impact === "high")
+    return (
+      <span className={`${styles.badge} ${styles.badgeHigh}`}>
+        <ArrowUpCircle size={10} />
+        High
+      </span>
+    );
+  if (impact === "low")
+    return (
+      <span className={`${styles.badge} ${styles.badgeLow}`}>
+        <ArrowDownCircle size={10} />
+        Low
+      </span>
+    );
+  return (
+    <span className={`${styles.badge} ${styles.badgeMed}`}>
+      <MinusCircle size={10} />
+      Medium
+    </span>
+  );
 }
 
 function NoteTypeBadge({ type }: { type: string }) {
-  if (type === "strength") return <span className={`${styles.typeBadge} ${styles.typeStrength}`}>Strength</span>;
+  if (type === "strength")
+    return <span className={`${styles.typeBadge} ${styles.typeStrength}`}>Strength</span>;
   if (type === "concern") return <span className={`${styles.typeBadge} ${styles.typeConcern}`}>Concern</span>;
   return <span className={`${styles.typeBadge} ${styles.typeSuggestion}`}>Suggestion</span>;
 }
 
 function FreshEyesSection({ data }: { data: { questions: unknown[]; summary: string } }) {
-  if (!data.questions?.length && !data.summary) return <p className={styles.empty}>No fresh eyes questions generated.</p>;
+  if (!data.questions?.length && !data.summary)
+    return <p className={styles.empty}>No fresh eyes questions generated.</p>;
   return (
     <div className={styles.sectionBody}>
       {data.summary && <p className={styles.summary}>{data.summary}</p>}
-      {(data.questions as Array<{ section_title: string; question: string; context: string; anchor: string }>).map((q, i) => (
+      {(
+        data.questions as Array<{ section_title: string; question: string; context: string; anchor: string }>
+      ).map((q, i) => (
         <div key={i} className={styles.item}>
           <div className={styles.itemHeader}>
             <span className={styles.sectionTag}>{q.section_title}</span>
@@ -58,7 +88,16 @@ function PrioritiesSection({ data }: { data: { priorities: unknown[]; overall_no
   return (
     <div className={styles.sectionBody}>
       {data.overall_note && <p className={styles.summary}>{data.overall_note}</p>}
-      {(data.priorities as Array<{ rank: number; section_title: string; issue: string; suggestion: string; impact: string; anchor: string }>).map((p, i) => (
+      {(
+        data.priorities as Array<{
+          rank: number;
+          section_title: string;
+          issue: string;
+          suggestion: string;
+          impact: string;
+          anchor: string;
+        }>
+      ).map((p, i) => (
         <div key={i} className={styles.item}>
           <div className={styles.itemHeader}>
             <span className={styles.rankBadge}>#{p.rank}</span>
@@ -74,18 +113,38 @@ function PrioritiesSection({ data }: { data: { priorities: unknown[]; overall_no
   );
 }
 
-function IntentGapsSection({ data }: { data: { gaps: unknown[]; sections_aligned: string[]; summary: string } }) {
-  if (!data.gaps?.length && !data.summary) return <p className={styles.empty}>No intent gaps found — strong alignment between plan and execution.</p>;
+function IntentGapsSection({
+  data,
+}: {
+  data: { gaps: unknown[]; sections_aligned: string[]; summary: string };
+}) {
+  if (!data.gaps?.length && !data.summary)
+    return (
+      <p className={styles.empty}>No intent gaps found — strong alignment between plan and execution.</p>
+    );
   return (
     <div className={styles.sectionBody}>
       {data.summary && <p className={styles.summary}>{data.summary}</p>}
       {data.sections_aligned?.length > 0 && (
         <div className={styles.aligned}>
           <span className={styles.alignedLabel}>Well-aligned:</span>
-          {data.sections_aligned.map((s, i) => <span key={i} className={styles.alignedTag}>{s}</span>)}
+          {data.sections_aligned.map((s, i) => (
+            <span key={i} className={styles.alignedTag}>
+              {s}
+            </span>
+          ))}
         </div>
       )}
-      {(data.gaps as Array<{ section_title: string; stated_intent: string; execution: string; gap: string; suggestion: string; anchor: string }>).map((g, i) => (
+      {(
+        data.gaps as Array<{
+          section_title: string;
+          stated_intent: string;
+          execution: string;
+          gap: string;
+          suggestion: string;
+          anchor: string;
+        }>
+      ).map((g, i) => (
         <div key={i} className={styles.item}>
           <div className={styles.itemHeader}>
             <span className={styles.sectionTag}>{g.section_title}</span>
@@ -107,10 +166,17 @@ function IntentGapsSection({ data }: { data: { gaps: unknown[]; sections_aligned
   );
 }
 
-function VoiceSection({ data }: { data: { overall_voice: string; sections: unknown[]; consistency_rating: string; summary: string } }) {
-  const ratingClass = data.consistency_rating === "consistent" ? styles.ratingGood
-    : data.consistency_rating === "minor-drift" ? styles.ratingWarn
-    : styles.ratingBad;
+function VoiceSection({
+  data,
+}: {
+  data: { overall_voice: string; sections: unknown[]; consistency_rating: string; summary: string };
+}) {
+  const ratingClass =
+    data.consistency_rating === "consistent"
+      ? styles.ratingGood
+      : data.consistency_rating === "minor-drift"
+        ? styles.ratingWarn
+        : styles.ratingBad;
   return (
     <div className={styles.sectionBody}>
       {data.overall_voice && (
@@ -125,16 +191,25 @@ function VoiceSection({ data }: { data: { overall_voice: string; sections: unkno
         </div>
       )}
       {data.summary && <p className={styles.summary}>{data.summary}</p>}
-      {(data.sections as Array<{ section_title: string; observation: string; anchor: string; deviation: boolean }>).filter(s => s.deviation).map((s, i) => (
-        <div key={i} className={`${styles.item} ${styles.itemDeviation}`}>
-          <div className={styles.itemHeader}>
-            <span className={styles.sectionTag}>{s.section_title}</span>
-            <span className={styles.driftTag}>Voice drift</span>
+      {(
+        data.sections as Array<{
+          section_title: string;
+          observation: string;
+          anchor: string;
+          deviation: boolean;
+        }>
+      )
+        .filter((s) => s.deviation)
+        .map((s, i) => (
+          <div key={i} className={`${styles.item} ${styles.itemDeviation}`}>
+            <div className={styles.itemHeader}>
+              <span className={styles.sectionTag}>{s.section_title}</span>
+              <span className={styles.driftTag}>Voice drift</span>
+            </div>
+            <p className={styles.itemText}>{s.observation}</p>
+            {s.anchor && <blockquote className={styles.anchor}>"{s.anchor}"</blockquote>}
           </div>
-          <p className={styles.itemText}>{s.observation}</p>
-          {s.anchor && <blockquote className={styles.anchor}>"{s.anchor}"</blockquote>}
-        </div>
-      ))}
+        ))}
     </div>
   );
 }
@@ -143,16 +218,18 @@ function MarginalSection({ data }: { data: { notes: unknown[] } }) {
   if (!data.notes?.length) return <p className={styles.empty}>No marginal notes generated.</p>;
   return (
     <div className={styles.sectionBody}>
-      {(data.notes as Array<{ section_title: string; anchor: string; comment: string; type: string }>).map((n, i) => (
-        <div key={i} className={styles.item}>
-          <div className={styles.itemHeader}>
-            <span className={styles.sectionTag}>{n.section_title}</span>
-            <NoteTypeBadge type={n.type} />
+      {(data.notes as Array<{ section_title: string; anchor: string; comment: string; type: string }>).map(
+        (n, i) => (
+          <div key={i} className={styles.item}>
+            <div className={styles.itemHeader}>
+              <span className={styles.sectionTag}>{n.section_title}</span>
+              <NoteTypeBadge type={n.type} />
+            </div>
+            {n.anchor && <blockquote className={styles.anchor}>"{n.anchor}"</blockquote>}
+            <p className={styles.itemText}>{n.comment}</p>
           </div>
-          {n.anchor && <blockquote className={styles.anchor}>"{n.anchor}"</blockquote>}
-          <p className={styles.itemText}>{n.comment}</p>
-        </div>
-      ))}
+        ),
+      )}
     </div>
   );
 }
@@ -171,21 +248,30 @@ export function EditorialReportCard({ log, onDelete }: Props) {
   const scopeIds = meta.scope_ids as string[] | undefined;
   const error = meta.error as string | undefined;
 
-  const scopeLabel = scopeType === "story" ? "Whole Story"
-    : scopeType === "chapters" ? `${scopeIds?.length ?? 0} chapter(s)`
-    : `${scopeIds?.length ?? 0} scene(s)`;
+  const scopeLabel =
+    scopeType === "story"
+      ? "Whole Story"
+      : scopeType === "chapters"
+        ? `${scopeIds?.length ?? 0} chapter(s)`
+        : `${scopeIds?.length ?? 0} scene(s)`;
 
-  const contextLabel = contextLevel === "full" ? "Full Manuscript"
-    : contextLevel === "summaries" ? "With Summaries"
-    : "Section Only";
+  const contextLabel =
+    contextLevel === "full"
+      ? "Full Manuscript"
+      : contextLevel === "summaries"
+        ? "With Summaries"
+        : "Section Only";
 
   const timestamp = new Date(log.created_at).toLocaleString(undefined, {
-    month: "short", day: "numeric", year: "numeric",
-    hour: "numeric", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
   function toggleSection(key: Section) {
-    setActiveSection((s) => s === key ? null : key);
+    setActiveSection((s) => (s === key ? null : key));
   }
 
   return (
@@ -205,7 +291,10 @@ export function EditorialReportCard({ log, onDelete }: Props) {
         </div>
         <button
           className={styles.deleteBtn}
-          onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmDelete(true);
+          }}
           title="Delete report"
         >
           <Trash2 size={13} />
@@ -216,7 +305,13 @@ export function EditorialReportCard({ log, onDelete }: Props) {
         <div className={styles.confirmDelete}>
           <p>Delete this report? Editorial notes from this run will also be removed.</p>
           <div className={styles.confirmActions}>
-            <button className={styles.confirmYes} onClick={() => { onDelete(log.id); setConfirmDelete(false); }}>
+            <button
+              className={styles.confirmYes}
+              onClick={() => {
+                onDelete(log.id);
+                setConfirmDelete(false);
+              }}
+            >
               Delete
             </button>
             <button className={styles.confirmNo} onClick={() => setConfirmDelete(false)}>
@@ -252,11 +347,36 @@ export function EditorialReportCard({ log, onDelete }: Props) {
                 </button>
                 {isActive && (
                   <div className={styles.sectionContent}>
-                    {key === "fresh-eyes" && <FreshEyesSection data={meta.fresh_eyes as { questions: unknown[]; summary: string }} />}
-                    {key === "priorities" && <PrioritiesSection data={meta.priorities as { priorities: unknown[]; overall_note: string }} />}
-                    {key === "intent-gaps" && <IntentGapsSection data={meta.intent_gaps as { gaps: unknown[]; sections_aligned: string[]; summary: string }} />}
-                    {key === "voice" && <VoiceSection data={meta.voice as { overall_voice: string; sections: unknown[]; consistency_rating: string; summary: string }} />}
-                    {key === "marginal" && <MarginalSection data={meta.marginal_notes as { notes: unknown[] }} />}
+                    {key === "fresh-eyes" && (
+                      <FreshEyesSection data={meta.fresh_eyes as { questions: unknown[]; summary: string }} />
+                    )}
+                    {key === "priorities" && (
+                      <PrioritiesSection
+                        data={meta.priorities as { priorities: unknown[]; overall_note: string }}
+                      />
+                    )}
+                    {key === "intent-gaps" && (
+                      <IntentGapsSection
+                        data={
+                          meta.intent_gaps as { gaps: unknown[]; sections_aligned: string[]; summary: string }
+                        }
+                      />
+                    )}
+                    {key === "voice" && (
+                      <VoiceSection
+                        data={
+                          meta.voice as {
+                            overall_voice: string;
+                            sections: unknown[];
+                            consistency_rating: string;
+                            summary: string;
+                          }
+                        }
+                      />
+                    )}
+                    {key === "marginal" && (
+                      <MarginalSection data={meta.marginal_notes as { notes: unknown[] }} />
+                    )}
                   </div>
                 )}
               </div>

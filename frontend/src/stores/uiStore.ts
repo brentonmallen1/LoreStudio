@@ -3,10 +3,18 @@ import { create } from "zustand";
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
 export type ColorMode = "light" | "dark" | "system";
 export type EditorFontFamily =
-  | "merriweather" | "noto-serif" | "literata" | "bitter"
-  | "inter" | "atkinson-hyperlegible"
-  | "jetbrains-mono" | "roboto-mono" | "space-mono"
-  | "courier-prime" | "cutive" | "special-elite";
+  | "merriweather"
+  | "noto-serif"
+  | "literata"
+  | "bitter"
+  | "inter"
+  | "atkinson-hyperlegible"
+  | "jetbrains-mono"
+  | "roboto-mono"
+  | "space-mono"
+  | "courier-prime"
+  | "cutive"
+  | "special-elite";
 export type EditorFontSize = "small" | "medium" | "large" | "xl";
 export type EditorLineWidth = "narrow" | "medium" | "wide";
 
@@ -21,21 +29,46 @@ export interface FontOption {
 
 export const FONT_OPTIONS: FontOption[] = [
   // Serif
-  { value: "merriweather", label: "Merriweather", category: "serif", stack: '"Merriweather", Georgia, serif' },
+  {
+    value: "merriweather",
+    label: "Merriweather",
+    category: "serif",
+    stack: '"Merriweather", Georgia, serif',
+  },
   { value: "noto-serif", label: "Noto Serif", category: "serif", stack: '"Noto Serif", Georgia, serif' },
   { value: "literata", label: "Literata", category: "serif", stack: '"Literata", Georgia, serif' },
   { value: "bitter", label: "Bitter", category: "serif", stack: '"Bitter", Georgia, serif' },
   // Sans
   { value: "inter", label: "Inter", category: "sans", stack: '"Inter", system-ui, sans-serif' },
-  { value: "atkinson-hyperlegible", label: "Atkinson Hyperlegible", category: "sans", stack: '"Atkinson Hyperlegible", system-ui, sans-serif' },
+  {
+    value: "atkinson-hyperlegible",
+    label: "Atkinson Hyperlegible",
+    category: "sans",
+    stack: '"Atkinson Hyperlegible", system-ui, sans-serif',
+  },
   // Mono
-  { value: "jetbrains-mono", label: "JetBrains Mono", category: "mono", stack: '"JetBrains Mono", monospace' },
+  {
+    value: "jetbrains-mono",
+    label: "JetBrains Mono",
+    category: "mono",
+    stack: '"JetBrains Mono", monospace',
+  },
   { value: "roboto-mono", label: "Roboto Mono", category: "mono", stack: '"Roboto Mono", monospace' },
   { value: "space-mono", label: "Space Mono", category: "mono", stack: '"Space Mono", monospace' },
   // Typewriter
-  { value: "courier-prime", label: "Courier Prime", category: "typewriter", stack: '"Courier Prime", "Courier New", monospace' },
+  {
+    value: "courier-prime",
+    label: "Courier Prime",
+    category: "typewriter",
+    stack: '"Courier Prime", "Courier New", monospace',
+  },
   { value: "cutive", label: "Cutive", category: "typewriter", stack: '"Cutive", "Courier New", monospace' },
-  { value: "special-elite", label: "Special Elite", category: "typewriter", stack: '"Special Elite", "Courier New", monospace' },
+  {
+    value: "special-elite",
+    label: "Special Elite",
+    category: "typewriter",
+    stack: '"Special Elite", "Courier New", monospace',
+  },
 ];
 
 export const FONT_CATEGORIES: { value: FontCategory; label: string }[] = [
@@ -52,7 +85,7 @@ export function getFontStack(fontFamily: EditorFontFamily): string {
 export const LINE_WIDTHS: Record<EditorLineWidth, string> = {
   narrow: "520px",
   medium: "640px",
-  wide:   "800px",
+  wide: "800px",
 };
 
 export const FONT_SIZES: Record<EditorFontSize, string> = {
@@ -127,7 +160,6 @@ interface UIState {
   viewMode: "tree" | "storyboard" | "summary" | "manuscript" | "todos";
   setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript" | "todos") => void;
 
-
   // Brainstorm panel ("What's Next?")
   brainstormPanelOpen: boolean;
   openBrainstormPanel: () => void;
@@ -170,7 +202,14 @@ interface UIState {
 }
 
 export interface WorldBuildingAIContext {
-  feature: "what-exists" | "location-suggest" | "culture-suggest" | "implications" | "system" | "calendar" | "travel";
+  feature:
+    | "what-exists"
+    | "location-suggest"
+    | "culture-suggest"
+    | "implications"
+    | "system"
+    | "calendar"
+    | "travel";
   entityId: string;
   storyId: string;
 }
@@ -337,12 +376,17 @@ export const useUIStore = create<UIState>((set) => ({
   sprintGoalWords: 500,
   sprintStartWordCount: 0,
   startSprint: (duration, goalWords, startWordCount) =>
-    set({ sprintActive: true, sprintStartTime: Date.now(), sprintDuration: duration, sprintGoalWords: goalWords, sprintStartWordCount: startWordCount }),
+    set({
+      sprintActive: true,
+      sprintStartTime: Date.now(),
+      sprintDuration: duration,
+      sprintGoalWords: goalWords,
+      sprintStartWordCount: startWordCount,
+    }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
   viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript" | "todos",
   setViewMode: (mode) => set({ viewMode: mode }),
-
 
   brainstormPanelOpen: false,
   openBrainstormPanel: () => set({ brainstormPanelOpen: true }),

@@ -1,17 +1,18 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import or_
-from pydantic import BaseModel
 import re
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.character import Character
-from ..models.structure import StructureNode
-from ..models.setting import Setting
-from ..models.plot_thread import PlotThread
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.character import Character
+from ..models.plot_thread import PlotThread
+from ..models.setting import Setting
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 
 router = APIRouter()
 
@@ -63,14 +64,16 @@ async def search(
         .all()
     )
     for s in stories:
-        results.append({
-            "type": "story",
-            "id": s.id,
-            "story_id": s.id,
-            "title": s.title,
-            "subtitle": s.genre or None,
-            "excerpt": _excerpt(s.description, q),
-        })
+        results.append(
+            {
+                "type": "story",
+                "id": s.id,
+                "story_id": s.id,
+                "title": s.title,
+                "subtitle": s.genre or None,
+                "excerpt": _excerpt(s.description, q),
+            }
+        )
 
     # Characters
     characters = (
@@ -90,14 +93,16 @@ async def search(
     )
     for c in characters:
         story = story_map.get(c.story_id)
-        results.append({
-            "type": "character",
-            "id": c.id,
-            "story_id": c.story_id,
-            "title": c.name,
-            "subtitle": story.title if story else None,
-            "excerpt": _excerpt(c.personality or c.motivation or c.background, q),
-        })
+        results.append(
+            {
+                "type": "character",
+                "id": c.id,
+                "story_id": c.story_id,
+                "title": c.name,
+                "subtitle": story.title if story else None,
+                "excerpt": _excerpt(c.personality or c.motivation or c.background, q),
+            }
+        )
 
     # Structure nodes (scenes, chapters, etc.)
     nodes = (
@@ -121,15 +126,17 @@ async def search(
             excerpt_src = n.content
         elif q.lower() in (n.synopsis or "").lower():
             excerpt_src = n.synopsis
-        results.append({
-            "type": "scene",
-            "id": n.id,
-            "story_id": n.story_id,
-            "title": n.title or "Untitled",
-            "subtitle": story.title if story else None,
-            "level_type": n.level_type,
-            "excerpt": _excerpt(excerpt_src, q),
-        })
+        results.append(
+            {
+                "type": "scene",
+                "id": n.id,
+                "story_id": n.story_id,
+                "title": n.title or "Untitled",
+                "subtitle": story.title if story else None,
+                "level_type": n.level_type,
+                "excerpt": _excerpt(excerpt_src, q),
+            }
+        )
 
     # Settings
     settings = (
@@ -147,14 +154,16 @@ async def search(
     )
     for s in settings:
         story = story_map.get(s.story_id)
-        results.append({
-            "type": "setting",
-            "id": s.id,
-            "story_id": s.story_id,
-            "title": s.name,
-            "subtitle": story.title if story else None,
-            "excerpt": _excerpt(s.description, q),
-        })
+        results.append(
+            {
+                "type": "setting",
+                "id": s.id,
+                "story_id": s.story_id,
+                "title": s.name,
+                "subtitle": story.title if story else None,
+                "excerpt": _excerpt(s.description, q),
+            }
+        )
 
     # Plot threads
     threads = (
@@ -168,19 +177,22 @@ async def search(
     )
     for t in threads:
         story = story_map.get(t.story_id)
-        results.append({
-            "type": "thread",
-            "id": t.id,
-            "story_id": t.story_id,
-            "title": t.name,
-            "subtitle": story.title if story else None,
-            "excerpt": _excerpt(t.description, q),
-        })
+        results.append(
+            {
+                "type": "thread",
+                "id": t.id,
+                "story_id": t.story_id,
+                "title": t.name,
+                "subtitle": story.title if story else None,
+                "excerpt": _excerpt(t.description, q),
+            }
+        )
 
     return results
 
 
 # ── Story-wide search ─────────────────────────────────────────────────────────
+
 
 class StorySearchRequest(BaseModel):
     query: str
@@ -236,13 +248,15 @@ async def story_search(
     for node in nodes:
         count, excerpt = _count_and_excerpt(node.content or "", req.query, req.case_sensitive)
         if count > 0:
-            results.append({
-                "node_id": node.id,
-                "node_title": node.title or "Untitled",
-                "excerpt": excerpt,
-                "match_count": count,
-                "level_type": node.level_type or "scene",
-            })
+            results.append(
+                {
+                    "node_id": node.id,
+                    "node_title": node.title or "Untitled",
+                    "excerpt": excerpt,
+                    "match_count": count,
+                    "level_type": node.level_type or "scene",
+                }
+            )
     results.sort(key=lambda r: r["match_count"], reverse=True)
     return {"matches": results}
 

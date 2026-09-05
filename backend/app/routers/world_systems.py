@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.world_system import WorldSystem, PREDEFINED_SYSTEM_TYPES
-from ..schemas.world_system import WorldSystemCreate, WorldSystemUpdate, WorldSystemOut
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.story import Story
+from ..models.user import User
+from ..models.world_system import PREDEFINED_SYSTEM_TYPES, WorldSystem
+from ..schemas.world_system import WorldSystemCreate, WorldSystemOut, WorldSystemUpdate
 
 router = APIRouter()
 
@@ -35,12 +35,7 @@ def list_world_systems(
     current_user: User = Depends(get_current_user),
 ):
     _verify_story_access(story_id, db, current_user)
-    return (
-        db.query(WorldSystem)
-        .filter(WorldSystem.story_id == story_id)
-        .order_by(WorldSystem.name)
-        .all()
-    )
+    return db.query(WorldSystem).filter(WorldSystem.story_id == story_id).order_by(WorldSystem.name).all()
 
 
 @router.get("/stories/{story_id}/world-system-types", response_model=list[str])

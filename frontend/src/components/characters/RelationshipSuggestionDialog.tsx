@@ -55,7 +55,9 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
     <>
       <LLMTransparencyTrigger
         disabled={!transparency.hasData}
-        onClick={() => transparency.open({ context_type: "relationships", story_id: storyId }, lastResultText.current)}
+        onClick={() =>
+          transparency.open({ context_type: "relationships", story_id: storyId }, lastResultText.current)
+        }
         size="md"
       />
       <button onClick={generate} disabled={generating} className={styles.regenBtn}>
@@ -69,7 +71,11 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
 
   return (
     <>
-      <LLMTransparencyModal isOpen={transparency.isOpen} onClose={transparency.close} data={transparency.data} />
+      <LLMTransparencyModal
+        isOpen={transparency.isOpen}
+        onClose={transparency.close}
+        data={transparency.data}
+      />
       <Modal
         isOpen
         onClose={onClose}
@@ -78,12 +84,8 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
         size="md"
         footer={footer}
       >
-        {generating && (
-          <p className={styles.generating}>Analyzing your characters…</p>
-        )}
-        {!generating && result && (
-          <StructuredResponseRenderer result={result} schema={REL_SCHEMA} />
-        )}
+        {generating && <p className={styles.generating}>Analyzing your characters…</p>}
+        {!generating && result && <StructuredResponseRenderer result={result} schema={REL_SCHEMA} />}
       </Modal>
     </>
   );

@@ -36,7 +36,9 @@
   color: var(--color-ai-fg);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .generateBtn:hover:not(:disabled) {
@@ -49,7 +51,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {
@@ -133,7 +137,9 @@
   color: var(--color-ai-fg);
   cursor: pointer;
   text-transform: capitalize;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .applyBtn:hover:not(:disabled) {

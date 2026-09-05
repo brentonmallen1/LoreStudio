@@ -22,7 +22,14 @@ interface Props {
   onAnalyzeForCharacter?: (desc: CharacterImageDescription) => void;
 }
 
-export default function PortraitEditor({ storyId, objectType, objectId, placeholder, size = 80, onAnalyzeForCharacter }: Props) {
+export default function PortraitEditor({
+  storyId,
+  objectType,
+  objectId,
+  placeholder,
+  size = 80,
+  onAnalyzeForCharacter,
+}: Props) {
   const [portraitAttachment, setPortraitAttachment] = useState<AssetAttachment | null>(null);
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -35,11 +42,14 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
 
   useEffect(() => {
     if (!objectId) return;
-    api.listAttachments(objectType, objectId).then((attachments) => {
-      const portrait = attachments.find((a) => a.role === "portrait") ?? null;
-      setPortraitAttachment(portrait);
-      setPortraitUrl(portrait ? api.assetFileUrl(portrait.asset_id) : null);
-    }).catch(() => {});
+    api
+      .listAttachments(objectType, objectId)
+      .then((attachments) => {
+        const portrait = attachments.find((a) => a.role === "portrait") ?? null;
+        setPortraitAttachment(portrait);
+        setPortraitUrl(portrait ? api.assetFileUrl(portrait.asset_id) : null);
+      })
+      .catch(() => {});
   }, [objectType, objectId]);
 
   useEffect(() => {
@@ -128,7 +138,11 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
         ) : (
           <div className={styles.placeholder}>{placeholder}</div>
         )}
-        {analyzing && <div className={styles.analyzingOverlay}><Feather size={16} className={styles.analyzingSpin} /></div>}
+        {analyzing && (
+          <div className={styles.analyzingOverlay}>
+            <Feather size={16} className={styles.analyzingSpin} />
+          </div>
+        )}
         <button
           className={styles.editOverlay}
           onClick={() => setOpen((v) => !v)}
@@ -144,7 +158,13 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
             <span>Portrait</span>
-            <button className={styles.closeBtn} onClick={() => { setOpen(false); setBrowsing(false); }}>
+            <button
+              className={styles.closeBtn}
+              onClick={() => {
+                setOpen(false);
+                setBrowsing(false);
+              }}
+            >
               <X size={12} />
             </button>
           </div>
@@ -207,7 +227,13 @@ export default function PortraitEditor({ storyId, objectType, objectId, placehol
                       onClick={() => setPortrait(asset.id)}
                       title={asset.original_filename}
                     >
-                      <img src={api.assetFileUrl(asset.id)} alt={asset.original_filename} className={styles.gridImg} loading="lazy" decoding="async" />
+                      <img
+                        src={api.assetFileUrl(asset.id)}
+                        alt={asset.original_filename}
+                        className={styles.gridImg}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </button>
                   ))}
                 </div>

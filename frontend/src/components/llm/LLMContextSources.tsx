@@ -22,16 +22,10 @@ export default function LLMContextSources({ sources, loading }: Props) {
 
   return (
     <div className={styles.root}>
-      <button
-        className={styles.toggle}
-        onClick={() => setExpanded((v) => !v)}
-        aria-expanded={expanded}
-      >
+      <button className={styles.toggle} onClick={() => setExpanded((v) => !v)} aria-expanded={expanded}>
         {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
         <span className={styles.toggleLabel}>Context</span>
-        <span className={styles.summary}>
-          {included.map((s) => s.label).join("  ·  ")}
-        </span>
+        <span className={styles.summary}>{included.map((s) => s.label).join("  ·  ")}</span>
       </button>
 
       {expanded && (

@@ -19,16 +19,15 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.structure import StructureNode
 from ..models.character import Character
 from ..models.plot_thread import PlotThread
-from ..services.word_count import get_word_count_status
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 from ..services.mice_validation import validate_thread_nesting
-
-from ..auth.dependencies import get_current_user
+from ..services.word_count import get_word_count_status
 
 router = APIRouter()
 
@@ -52,6 +51,7 @@ def _flatten_leaves(
     Uses an explicit children_map so we never touch the ORM relationship.
     """
     leaves = []
+
     def walk(ns: list[StructureNode]):
         for n in sorted(ns, key=lambda x: x.position):
             kids = children_map.get(n.id, [])
@@ -59,6 +59,7 @@ def _flatten_leaves(
                 leaves.append(n)
             else:
                 walk(kids)
+
     walk(nodes)
     return leaves
 
@@ -72,11 +73,7 @@ def story_health(
     story = _get_story(story_id, db, current_user)
 
     # Load everything
-    all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .all()
-    )
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
 
@@ -100,7 +97,7 @@ def story_health(
         scenes_by_status[n.status] = scenes_by_status.get(n.status, 0) + 1
 
     # ── Character-per-scene map (name match in content) ──
-    char_scene_map: dict[str, list[str]] = {}   # scene_id → [char_name, ...]
+    char_scene_map: dict[str, list[str]] = {}  # scene_id → [char_name, ...]
     for c in characters:
         name_lower = c.name.lower()
         for leaf in leaves:
@@ -131,14 +128,8 @@ def story_health(
 
     for c in characters:
         name_lower = c.name.lower()
-        scene_count = sum(
-            1 for n in leaves
-            if n.content and name_lower in n.content.lower()
-        )
-        recent_count = sum(
-            1 for n in recent_leaves
-            if n.content and name_lower in n.content.lower()
-        )
+        scene_count = sum(1 for n in leaves if n.content and name_lower in n.content.lower())
+        recent_count = sum(1 for n in recent_leaves if n.content and name_lower in n.content.lower())
 
         # Arc milestone progress
         milestones = c.arc_milestones or []
@@ -146,16 +137,18 @@ def story_health(
         done_ms = sum(1 for m in milestones if m.get("completed"))
         arc_pct = round(done_ms / total_ms * 100) if total_ms else None
 
-        char_screen_time.append({
-            "id": c.id,
-            "name": c.name,
-            "role": c.role,
-            "scene_appearances": scene_count,
-            "recent_appearances": recent_count,
-            "arc_milestones_total": total_ms,
-            "arc_milestones_done": done_ms,
-            "arc_pct": arc_pct,
-        })
+        char_screen_time.append(
+            {
+                "id": c.id,
+                "name": c.name,
+                "role": c.role,
+                "scene_appearances": scene_count,
+                "recent_appearances": recent_count,
+                "arc_milestones_total": total_ms,
+                "arc_milestones_done": done_ms,
+                "arc_pct": arc_pct,
+            }
+        )
 
         # Flag as absent if they have content scenes but haven't appeared recently
         written_leaves = [n for n in leaves if n.word_count > 0]
@@ -177,13 +170,15 @@ def story_health(
         "resolved": [],
     }
     for t in threads:
-        thread_health[t.status].append({
-            "id": t.id,
-            "name": t.name,
-            "description": t.description,
-            "mice_type": t.mice_type,
-            "try_fail_cycle_count": len(t.try_fail_cycles or []),
-        })
+        thread_health[t.status].append(
+            {
+                "id": t.id,
+                "name": t.name,
+                "description": t.description,
+                "mice_type": t.mice_type,
+                "try_fail_cycle_count": len(t.try_fail_cycles or []),
+            }
+        )
 
     # ── Story goals ──
     goals = story.goals or []
@@ -245,11 +240,7 @@ def story_health_alerts(
     """Lightweight endpoint returning only health alert counts for sidebar badge."""
     _get_story(story_id, db, current_user)
 
-    all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .all()
-    )
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
 

@@ -1,4 +1,5 @@
 """Tests for Gemma 4 thought-stripping utilities."""
+
 from app.services.llm.ollama import strip_thoughts, strip_thoughts_from_messages
 
 

@@ -1,18 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.plot_thread import PlotThread, PlotThreadAppearance
-from ..schemas.plot_thread import (
-    PlotThreadCreate,
-    PlotThreadUpdate,
-    PlotThreadAppearanceCreate,
-    PlotThreadOut,
-    PlotThreadAppearanceOut,
-)
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.plot_thread import (
+    PlotThreadAppearanceCreate,
+    PlotThreadAppearanceOut,
+    PlotThreadCreate,
+    PlotThreadOut,
+    PlotThreadUpdate,
+)
 
 router = APIRouter()
 
@@ -33,16 +33,9 @@ def _verify_thread(thread_id: str, db: Session, user: User) -> PlotThread:
 
 
 @router.get("/stories/{story_id}/threads", response_model=list[PlotThreadOut])
-def list_threads(
-    story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_threads(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     _verify_story(story_id, db, current_user)
-    return (
-        db.query(PlotThread)
-        .filter(PlotThread.story_id == story_id)
-        .order_by(PlotThread.created_at.asc())
-        .all()
-    )
+    return db.query(PlotThread).filter(PlotThread.story_id == story_id).order_by(PlotThread.created_at.asc()).all()
 
 
 @router.post("/stories/{story_id}/threads", response_model=PlotThreadOut, status_code=status.HTTP_201_CREATED)
@@ -76,15 +69,15 @@ def update_thread(
 
 
 @router.delete("/threads/{thread_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_thread(
-    thread_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def delete_thread(thread_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     thread = _verify_thread(thread_id, db, current_user)
     db.delete(thread)
     db.commit()
 
 
-@router.post("/threads/{thread_id}/appearances", response_model=PlotThreadAppearanceOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/threads/{thread_id}/appearances", response_model=PlotThreadAppearanceOut, status_code=status.HTTP_201_CREATED
+)
 def add_appearance(
     thread_id: str,
     body: PlotThreadAppearanceCreate,

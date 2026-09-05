@@ -30,7 +30,9 @@
   flex-shrink: 0;
 }
 
-.headerIcon { color: var(--color-text-muted); }
+.headerIcon {
+  color: var(--color-text-muted);
+}
 
 .title {
   flex: 1;
@@ -40,15 +42,24 @@
 }
 
 .closeBtn {
-  display: flex; align-items: center; justify-content: center;
-  width: 26px; height: 26px;
-  border: none; background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
   border-radius: var(--radius);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
-.closeBtn:hover { background: var(--color-surface-2); color: var(--color-text); }
+.closeBtn:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
 
 .body {
   overflow-y: auto;

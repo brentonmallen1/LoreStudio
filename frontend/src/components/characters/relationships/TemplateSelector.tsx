@@ -15,7 +15,9 @@ export default function TemplateSelector({ templates, onSelect }: Props) {
           <span className={styles.hint}>{t.description_hint}</span>
           <div className={styles.tags}>
             {t.default_narrative_purpose.slice(0, 2).map((p) => (
-              <span key={p} className={styles.tag}>{p}</span>
+              <span key={p} className={styles.tag}>
+                {p}
+              </span>
             ))}
           </div>
         </button>

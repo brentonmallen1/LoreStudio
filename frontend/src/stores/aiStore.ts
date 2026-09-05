@@ -131,7 +131,10 @@ interface AIStore {
 
   // ── Chronicle helpers ─────────────────────────────────────────────────────
   /** Pending data for creating a Chronicle session on first message */
-  _pendingChronicle: Record<string, { story_id: string; context_type: string; context_id: string; context_label: string }>;
+  _pendingChronicle: Record<
+    string,
+    { story_id: string; context_type: string; context_id: string; context_label: string }
+  >;
 }
 
 function makeSessionId() {
@@ -145,9 +148,7 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
     ? characters.find((c) => c.id === context.characterId)?.name
     : undefined;
 
-  const storyTitle = context.storyId
-    ? stories.find((s) => s.id === context.storyId)?.title
-    : undefined;
+  const storyTitle = context.storyId ? stories.find((s) => s.id === context.storyId)?.title : undefined;
 
   function findNodeTitle(nodes: import("../types").StructureNode[], id: string): string | undefined {
     for (const n of nodes) {
@@ -158,9 +159,7 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
     return undefined;
   }
 
-  const nodeName = context.nodeId
-    ? findNodeTitle(structure, context.nodeId)
-    : undefined;
+  const nodeName = context.nodeId ? findNodeTitle(structure, context.nodeId) : undefined;
 
   return { characterName, storyTitle, nodeName };
 }
@@ -241,9 +240,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
         // Re-resolve names asynchronously and update
         resolveNames(context).then((resolvedNames) => {
           set((s2) => ({
-            sessions: s2.sessions.map((s3) =>
-              s3.id === id ? { ...s3, resolvedNames } : s3
-            ),
+            sessions: s2.sessions.map((s3) => (s3.id === id ? { ...s3, resolvedNames } : s3)),
           }));
         });
         return { ...sess, context };
@@ -253,17 +250,13 @@ export const useAIStore = create<AIStore>((set, get) => ({
 
   lockSessionContext: (id) => {
     set((s) => ({
-      sessions: s.sessions.map((sess) =>
-        sess.id === id ? { ...sess, contextLocked: true } : sess
-      ),
+      sessions: s.sessions.map((sess) => (sess.id === id ? { ...sess, contextLocked: true } : sess)),
     }));
   },
 
   setInterviewNotes: (sessionId, notes) => {
     set((s) => ({
-      sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, interviewNotes: notes } : sess
-      ),
+      sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, interviewNotes: notes } : sess)),
     }));
   },
 
@@ -285,7 +278,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
   discardPendingResume: (sessionId) => {
     set((s) => ({
       sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, pendingResume: undefined } : sess
+        sess.id === sessionId ? { ...sess, pendingResume: undefined } : sess,
       ),
     }));
   },
@@ -334,7 +327,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       sessions: s.sessions.map((sess) =>
         sess.id === sessionId
           ? { ...sess, messages: [...sess.messages, userMessage], isStreaming: true, streamingText: "" }
-          : sess
+          : sess,
       ),
     }));
 
@@ -344,7 +337,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     // Store controller so cancelStreaming() can abort it
     set((s) => ({
       sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, _abortController: abortController } : sess
+        sess.id === sessionId ? { ...sess, _abortController: abortController } : sess,
       ),
     }));
 
@@ -352,7 +345,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
 
     sessionType
       .sendMessage(
-        { backendSessionId: updatedSession.backendSessionId, context: updatedSession.context, messages: updatedSession.messages },
+        {
+          backendSessionId: updatedSession.backendSessionId,
+          context: updatedSession.context,
+          messages: updatedSession.messages,
+        },
         content,
         abortController.signal,
         llmParams,
@@ -394,9 +391,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
 
   _setStreamingText: (sessionId, text) => {
     set((s) => ({
-      sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, streamingText: text } : sess
-      ),
+      sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, streamingText: text } : sess)),
     }));
   },
 
@@ -422,7 +417,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
     if (sess?.autoSummarize && sess.messages.length >= AUTO_SUMMARIZE_THRESHOLD) {
       const toSummarize = sess.messages.slice(0, sess.messages.length - AUTO_SUMMARIZE_KEEP);
       import("../api/client").then(({ api }) => {
-        api.summarizeConversation(toSummarize, sess.context.storyId)
+        api
+          .summarizeConversation(toSummarize, sess.context.storyId)
           .then(async (res) => {
             if (!res.ok || !res.body) return;
             const reader = res.body.getReader();
@@ -437,7 +433,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
               get().applySummary(sessionId, full.trim(), AUTO_SUMMARIZE_KEEP);
             }
           })
-          .catch(() => { /* silent fail */ });
+          .catch(() => {
+            /* silent fail */
+          });
       });
     }
   },
@@ -445,16 +443,14 @@ export const useAIStore = create<AIStore>((set, get) => ({
   _setChronicleSessionId: (sessionId, chronicleId) => {
     set((s) => ({
       sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, chronicleSessionId: chronicleId } : sess
+        sess.id === sessionId ? { ...sess, chronicleSessionId: chronicleId } : sess,
       ),
     }));
   },
 
   _setBackendSessionId: (sessionId, backendSessionId) => {
     set((s) => ({
-      sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, backendSessionId } : sess
-      ),
+      sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, backendSessionId } : sess)),
     }));
   },
 
@@ -462,8 +458,14 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: s.sessions.map((sess) =>
         sess.id === sessionId
-          ? { ...sess, messages: [], chronicleSessionId: undefined, contextLocked: false, streamingText: undefined }
-          : sess
+          ? {
+              ...sess,
+              messages: [],
+              chronicleSessionId: undefined,
+              contextLocked: false,
+              streamingText: undefined,
+            }
+          : sess,
       ),
     }));
   },
@@ -477,9 +479,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
           content: summaryText,
           isSummary: true,
         };
-        const recent = keepRecentCount > 0
-          ? sess.messages.slice(-keepRecentCount)
-          : [];
+        const recent = keepRecentCount > 0 ? sess.messages.slice(-keepRecentCount) : [];
         return { ...sess, messages: [summaryMsg, ...recent] };
       }),
     }));
@@ -488,12 +488,19 @@ export const useAIStore = create<AIStore>((set, get) => ({
   setAutoSummarize: (sessionId, enabled) => {
     set((s) => ({
       sessions: s.sessions.map((sess) =>
-        sess.id === sessionId ? { ...sess, autoSummarize: enabled } : sess
+        sess.id === sessionId ? { ...sess, autoSummarize: enabled } : sess,
       ),
     }));
   },
 
-  resumeFromChronicle: async (chronicleSessionId, contextType, contextId, storyId, _contextLabel, messages) => {
+  resumeFromChronicle: async (
+    chronicleSessionId,
+    contextType,
+    contextId,
+    storyId,
+    _contextLabel,
+    messages,
+  ) => {
     const typeMap: Record<string, string> = {
       scene: "scene-assistant",
       story: "story-assistant",
@@ -504,8 +511,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
 
     const context: SessionContext = {
       storyId,
-      nodeId: contextType === "scene" ? contextId ?? undefined : undefined,
-      characterId: contextType === "character" ? contextId ?? undefined : undefined,
+      nodeId: contextType === "scene" ? (contextId ?? undefined) : undefined,
+      characterId: contextType === "character" ? (contextId ?? undefined) : undefined,
     };
 
     const resolvedNames = await resolveNames(context);

@@ -2,21 +2,27 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.beat_sheet import BeatSheet
+from ..models.outline import Outline, OutlineItem
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.outline import Outline, OutlineItem
-from ..models.beat_sheet import BeatSheet
-from ..schemas.outline import (
-    OutlineCreate, OutlineUpdate, OutlineOut, OutlineWithItemsOut,
-    InjectBeatSheetPayload,
-    OutlineItemCreate, OutlineItemUpdate, OutlineItemOut,
-    ReorderPayload, BulkReorderPayload,
-)
+from ..models.user import User
 from ..schemas.ai_responses import ExtractedOutlineResponse, OutlineAlignmentResponse, StructuredResult
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..schemas.outline import (
+    BulkReorderPayload,
+    InjectBeatSheetPayload,
+    OutlineCreate,
+    OutlineItemCreate,
+    OutlineItemOut,
+    OutlineItemUpdate,
+    OutlineOut,
+    OutlineUpdate,
+    OutlineWithItemsOut,
+    ReorderPayload,
+)
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.outline import build_extract_outline_prompt, build_outline_alignment_prompt
 from ..services.text_utils import html_to_text
 
@@ -24,6 +30,7 @@ router = APIRouter()
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
 
 def _verify_story(story_id: str, db: Session, user: User) -> Story:
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
@@ -50,9 +57,7 @@ def _verify_item(item_id: str, db: Session, user: User) -> OutlineItem:
 
 def _build_tree(items: list[OutlineItem]) -> list[OutlineItemOut]:
     """Arrange flat list into a parent→children tree (root items only at top level)."""
-    by_id: dict[str, OutlineItemOut] = {
-        item.id: OutlineItemOut.model_validate(item) for item in items
-    }
+    by_id: dict[str, OutlineItemOut] = {item.id: OutlineItemOut.model_validate(item) for item in items}
     roots: list[OutlineItemOut] = []
     for node in by_id.values():
         if node.parent_id and node.parent_id in by_id:
@@ -67,6 +72,7 @@ def _build_tree(items: list[OutlineItem]) -> list[OutlineItemOut]:
 
 # ── Outline CRUD ───────────────────────────────────────────────────────────────
 
+
 @router.get("/stories/{story_id}/outlines", response_model=list[OutlineOut])
 def list_outlines(
     story_id: str,
@@ -74,12 +80,7 @@ def list_outlines(
     current_user: User = Depends(get_current_user),
 ):
     _verify_story(story_id, db, current_user)
-    return (
-        db.query(Outline)
-        .filter(Outline.story_id == story_id)
-        .order_by(Outline.position.asc())
-        .all()
-    )
+    return db.query(Outline).filter(Outline.story_id == story_id).order_by(Outline.position.asc()).all()
 
 
 @router.post("/stories/{story_id}/outlines", response_model=OutlineOut, status_code=status.HTTP_201_CREATED)
@@ -98,7 +99,9 @@ def create_outline(
     return outline
 
 
-@router.post("/stories/{story_id}/outlines/inject", response_model=OutlineWithItemsOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/stories/{story_id}/outlines/inject", response_model=OutlineWithItemsOut, status_code=status.HTTP_201_CREATED
+)
 def inject_beat_sheet(
     story_id: str,
     body: InjectBeatSheetPayload,
@@ -108,10 +111,14 @@ def inject_beat_sheet(
     """Create a new outline pre-populated from a beat sheet's beats."""
     _verify_story(story_id, db, current_user)
 
-    beat_sheet = db.query(BeatSheet).filter(
-        BeatSheet.id == body.beat_sheet_id,
-        or_(BeatSheet.is_system == True, BeatSheet.user_id == current_user.id),  # noqa: E712
-    ).first()
+    beat_sheet = (
+        db.query(BeatSheet)
+        .filter(
+            BeatSheet.id == body.beat_sheet_id,
+            or_(BeatSheet.is_system == True, BeatSheet.user_id == current_user.id),  # noqa: E712
+        )
+        .first()
+    )
     if not beat_sheet:
         raise HTTPException(status_code=404, detail="Beat sheet not found")
 
@@ -154,10 +161,7 @@ def get_outline(
 ):
     outline = _verify_outline(outline_id, db, current_user)
     items = (
-        db.query(OutlineItem)
-        .filter(OutlineItem.outline_id == outline_id)
-        .order_by(OutlineItem.position.asc())
-        .all()
+        db.query(OutlineItem).filter(OutlineItem.outline_id == outline_id).order_by(OutlineItem.position.asc()).all()
     )
     result = OutlineWithItemsOut.model_validate(outline)
     result.items = _build_tree(items)
@@ -193,6 +197,7 @@ def delete_outline(
 
 # ── OutlineItem CRUD ───────────────────────────────────────────────────────────
 
+
 @router.get("/outlines/{outline_id}/items", response_model=list[OutlineItemOut])
 def get_outline_items(
     outline_id: str,
@@ -201,10 +206,7 @@ def get_outline_items(
 ):
     _verify_outline(outline_id, db, current_user)
     items = (
-        db.query(OutlineItem)
-        .filter(OutlineItem.outline_id == outline_id)
-        .order_by(OutlineItem.position.asc())
-        .all()
+        db.query(OutlineItem).filter(OutlineItem.outline_id == outline_id).order_by(OutlineItem.position.asc()).all()
     )
     return _build_tree(items)
 
@@ -331,6 +333,7 @@ def bulk_reorder_outline(
 
 # ── AI: Extract outline from manuscript ───────────────────────────────────────
 
+
 @router.post("/stories/{story_id}/outlines/extract-from-prose", response_model=StructuredResult)
 async def extract_outline_from_prose(
     story_id: str,
@@ -414,6 +417,7 @@ async def extract_outline_from_prose(
 
 
 # ── AI: Outline alignment analysis ────────────────────────────────────────────
+
 
 @router.post("/outlines/{outline_id}/analyze-alignment", response_model=StructuredResult)
 async def analyze_outline_alignment(

@@ -8,12 +8,14 @@
   cursor: pointer;
   display: flex;
   overflow: hidden;
-  transition: box-shadow var(--transition-md), border-color var(--transition-md);
+  transition:
+    box-shadow var(--transition-md),
+    border-color var(--transition-md);
   user-select: none;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md, 0 4px 20px rgba(0,0,0,0.15));
+  box-shadow: var(--shadow-md, 0 4px 20px rgba(0, 0, 0, 0.15));
 }
 
 .dragOver {

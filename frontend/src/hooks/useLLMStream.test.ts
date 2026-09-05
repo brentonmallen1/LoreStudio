@@ -26,15 +26,11 @@ function mockStreamResponse(text: string, ok = true): Response {
 
 describe("useLLMStream", () => {
   it("streams text and updates store", async () => {
-    const { result } = renderHook(() =>
-      useLLMStream({ requestId: "test-req", label: "Test Stream" })
-    );
+    const { result } = renderHook(() => useLLMStream({ requestId: "test-req", label: "Test Stream" }));
 
     let finalText: string | null = null;
     await act(async () => {
-      finalText = await result.current.stream(() =>
-        Promise.resolve(mockStreamResponse("Hello world"))
-      );
+      finalText = await result.current.stream(() => Promise.resolve(mockStreamResponse("Hello world")));
     });
 
     expect(finalText).toBe("Hello world");
@@ -44,14 +40,10 @@ describe("useLLMStream", () => {
 
   it("calls onComplete with full text", async () => {
     const onComplete = vi.fn();
-    const { result } = renderHook(() =>
-      useLLMStream({ requestId: "test-req", label: "Test", onComplete })
-    );
+    const { result } = renderHook(() => useLLMStream({ requestId: "test-req", label: "Test", onComplete }));
 
     await act(async () => {
-      await result.current.stream(() =>
-        Promise.resolve(mockStreamResponse("Done!"))
-      );
+      await result.current.stream(() => Promise.resolve(mockStreamResponse("Done!")));
     });
 
     expect(onComplete).toHaveBeenCalledWith("Done!");
@@ -59,13 +51,11 @@ describe("useLLMStream", () => {
 
   it("marks status as error on failed response", async () => {
     const onError = vi.fn();
-    const { result } = renderHook(() =>
-      useLLMStream({ requestId: "test-req", label: "Test", onError })
-    );
+    const { result } = renderHook(() => useLLMStream({ requestId: "test-req", label: "Test", onError }));
 
     await act(async () => {
-      await result.current.stream(() =>
-        Promise.resolve(mockStreamResponse("", false)) // ok=false
+      await result.current.stream(
+        () => Promise.resolve(mockStreamResponse("", false)), // ok=false
       );
     });
 
@@ -74,13 +64,13 @@ describe("useLLMStream", () => {
   });
 
   it("cancel aborts the request", async () => {
-    const { result } = renderHook(() =>
-      useLLMStream({ requestId: "test-req", label: "Test" })
-    );
+    const { result } = renderHook(() => useLLMStream({ requestId: "test-req", label: "Test" }));
 
     // Start a never-resolving stream
     let resolveAbort!: () => void;
-    const abortPromise = new Promise<void>((res) => { resolveAbort = res; });
+    const abortPromise = new Promise<void>((res) => {
+      resolveAbort = res;
+    });
 
     act(() => {
       result.current.stream(async (signal) => {
@@ -105,9 +95,7 @@ describe("useLLMStream", () => {
   });
 
   it("returns empty string for text when no stream started", () => {
-    const { result } = renderHook(() =>
-      useLLMStream({ requestId: "idle-req", label: "Idle" })
-    );
+    const { result } = renderHook(() => useLLMStream({ requestId: "idle-req", label: "Idle" }));
 
     expect(result.current.text).toBe("");
     expect(result.current.status).toBe("idle");

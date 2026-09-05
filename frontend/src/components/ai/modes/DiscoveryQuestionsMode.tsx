@@ -64,7 +64,10 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   // Flatten scene tree for the scene picker
-  function flattenScenes(nodes: import("../../../types").StructureNode[], depth = 0): { id: string; label: string; indent: number }[] {
+  function flattenScenes(
+    nodes: import("../../../types").StructureNode[],
+    depth = 0,
+  ): { id: string; label: string; indent: number }[] {
     return nodes.flatMap((n) => [
       { id: n.id, label: n.title || "(untitled)", indent: depth },
       ...flattenScenes(n.children ?? [], depth + 1),
@@ -77,14 +80,16 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
     if (!storyId) return;
     if (focusArea === "character" && characters.length === 0) {
       setEntityLoading(true);
-      api.listCharacters(storyId)
+      api
+        .listCharacters(storyId)
         .then(setCharacters)
         .catch(() => {})
         .finally(() => setEntityLoading(false));
     }
     if (focusArea === "location") {
       setEntityLoading(true);
-      api.listLocationsFlat(storyId)
+      api
+        .listLocationsFlat(storyId)
         .then(setLocations)
         .catch(() => {})
         .finally(() => setEntityLoading(false));
@@ -156,7 +161,9 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
             disabled={loading}
           >
             {FOCUS_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
         </div>
@@ -165,11 +172,12 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
         {focusArea !== "story" && (
           <div className={styles.row}>
             <label className={styles.label}>
-              {focusArea === "character" ? "Character" :
-               focusArea === "location" ? "Location" : "Scene"}
+              {focusArea === "character" ? "Character" : focusArea === "location" ? "Location" : "Scene"}
             </label>
             {entityLoading ? (
-              <span className={styles.entityLoading}><Loader2 size={12} className={styles.spinner} /> Loading…</span>
+              <span className={styles.entityLoading}>
+                <Loader2 size={12} className={styles.spinner} /> Loading…
+              </span>
             ) : (
               <select
                 className={styles.select}
@@ -177,25 +185,39 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
                 onChange={(e) => setEntityId(e.target.value)}
                 disabled={loading}
               >
-                {focusArea === "character" && characters.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-                {focusArea === "location" && locations.map((l) => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-                {focusArea === "scene" && scenes.map((s) => (
-                  <option key={s.id} value={s.id} style={{ paddingLeft: `${s.indent * 12}px` }}>
-                    {"  ".repeat(s.indent)}{s.label}
-                  </option>
-                ))}
+                {focusArea === "character" &&
+                  characters.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                {focusArea === "location" &&
+                  locations.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                    </option>
+                  ))}
+                {focusArea === "scene" &&
+                  scenes.map((s) => (
+                    <option key={s.id} value={s.id} style={{ paddingLeft: `${s.indent * 12}px` }}>
+                      {"  ".repeat(s.indent)}
+                      {s.label}
+                    </option>
+                  ))}
                 {focusArea === "character" && characters.length === 0 && (
-                  <option value="" disabled>No characters yet</option>
+                  <option value="" disabled>
+                    No characters yet
+                  </option>
                 )}
                 {focusArea === "location" && locations.length === 0 && (
-                  <option value="" disabled>No locations yet</option>
+                  <option value="" disabled>
+                    No locations yet
+                  </option>
                 )}
                 {focusArea === "scene" && scenes.length === 0 && (
-                  <option value="" disabled>No scenes yet</option>
+                  <option value="" disabled>
+                    No scenes yet
+                  </option>
                 )}
               </select>
             )}
@@ -203,17 +225,20 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
         )}
 
         {/* Generate button */}
-        <button
-          className={styles.generateBtn}
-          onClick={generate}
-          disabled={loading || !canGenerate}
-        >
-          {loading
-            ? <><Loader2 size={13} className={styles.spinner} /> Generating…</>
-            : result
-              ? <><RefreshCw size={13} /> Generate More</>
-              : <><Compass size={13} /> Generate Questions</>
-          }
+        <button className={styles.generateBtn} onClick={generate} disabled={loading || !canGenerate}>
+          {loading ? (
+            <>
+              <Loader2 size={13} className={styles.spinner} /> Generating…
+            </>
+          ) : result ? (
+            <>
+              <RefreshCw size={13} /> Generate More
+            </>
+          ) : (
+            <>
+              <Compass size={13} /> Generate Questions
+            </>
+          )}
         </button>
       </div>
 
@@ -221,16 +246,16 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
       {error && !loading && (
         <div className={styles.errorBox}>
           <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} onClick={generate}>Try again</button>
+          <button className={styles.retryBtn} onClick={generate}>
+            Try again
+          </button>
         </div>
       )}
 
       {/* Results */}
       {result && !loading && (
         <div className={styles.results}>
-          {result.observation && (
-            <p className={styles.observation}>{result.observation}</p>
-          )}
+          {result.observation && <p className={styles.observation}>{result.observation}</p>}
           {result.questions.map((q, i) => (
             <QuestionCard key={i} q={q} />
           ))}
@@ -243,8 +268,8 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
           <Compass size={24} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Discovery Questions</p>
           <p className={styles.emptyHint}>
-            Select what you're developing and generate 3–5 tailored questions
-            to help you think more deeply about it.
+            Select what you're developing and generate 3–5 tailored questions to help you think more deeply
+            about it.
           </p>
         </div>
       )}

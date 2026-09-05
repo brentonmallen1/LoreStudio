@@ -23,7 +23,10 @@ export default function MediaPage() {
 
   useEffect(() => {
     if (!storyId) return;
-    api.listAssets(storyId).then(setAssets).catch(() => {});
+    api
+      .listAssets(storyId)
+      .then(setAssets)
+      .catch(() => {});
     loadDiagrams();
   }, [storyId]);
 
@@ -70,7 +73,9 @@ export default function MediaPage() {
             onSave={(updated) => {
               setActiveDiagram(updated);
               setDiagrams((prev) =>
-                prev.map((d) => (d.id === updated.id ? { ...d, title: updated.title, updated_at: updated.updated_at } : d))
+                prev.map((d) =>
+                  d.id === updated.id ? { ...d, title: updated.title, updated_at: updated.updated_at } : d,
+                ),
               );
             }}
             onClose={() => setActiveDiagram(null)}
@@ -116,7 +121,13 @@ export default function MediaPage() {
                     autoFocus
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") createDiagram(); if (e.key === "Escape") { setCreating(false); setNewTitle(""); } }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") createDiagram();
+                      if (e.key === "Escape") {
+                        setCreating(false);
+                        setNewTitle("");
+                      }
+                    }}
                     placeholder="Diagram title…"
                     className={styles.createInput}
                   />
@@ -131,7 +142,13 @@ export default function MediaPage() {
                   <button onClick={createDiagram} className={styles.createBtn} disabled={!newTitle.trim()}>
                     Create
                   </button>
-                  <button onClick={() => { setCreating(false); setNewTitle(""); }} className={styles.cancelBtn}>
+                  <button
+                    onClick={() => {
+                      setCreating(false);
+                      setNewTitle("");
+                    }}
+                    className={styles.cancelBtn}
+                  >
                     Cancel
                   </button>
                 </div>
@@ -169,13 +186,20 @@ export default function MediaPage() {
                     {confirmDelete === d.id ? (
                       <div className={styles.deleteConfirm}>
                         <span>Delete?</span>
-                        <button onClick={() => deleteDiagram(d.id)} className={styles.confirmYes}>Yes</button>
-                        <button onClick={() => setConfirmDelete(null)} className={styles.confirmNo}>No</button>
+                        <button onClick={() => deleteDiagram(d.id)} className={styles.confirmYes}>
+                          Yes
+                        </button>
+                        <button onClick={() => setConfirmDelete(null)} className={styles.confirmNo}>
+                          No
+                        </button>
                       </div>
                     ) : (
                       <button
                         className={styles.diagramDeleteBtn}
-                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(d.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDelete(d.id);
+                        }}
                         title="Delete diagram"
                       >
                         <Trash2 size={12} />

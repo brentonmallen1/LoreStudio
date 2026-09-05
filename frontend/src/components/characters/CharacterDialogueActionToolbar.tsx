@@ -103,16 +103,21 @@ export default function CharacterDialogueActionToolbar({
   const abortRefs = useRef<Record<string, AbortController>>({});
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem("ls_dialogue_toolbar_collapsed") === "true"; }
-    catch { return false; }
+    try {
+      return localStorage.getItem("ls_dialogue_toolbar_collapsed") === "true";
+    } catch {
+      return false;
+    }
   });
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem("ls_dialogue_toolbar_collapsed", String(next)); } catch {
-      /* ignore */
-    }
+      try {
+        localStorage.setItem("ls_dialogue_toolbar_collapsed", String(next));
+      } catch {
+        /* ignore */
+      }
       return next;
     });
   }, []);
@@ -120,48 +125,62 @@ export default function CharacterDialogueActionToolbar({
   const fetchLatest = useCallback(() => {
     // voice-distinctness and dialogue-prose are not in HEALTH_FEATURES; only voice-fidelity is
     // For the NLP analyses we just skip the last-run info (no ActivityLog written for them)
-    api.getLatestAnalysis(storyId, "voice-fidelity")
+    api
+      .getLatestAnalysis(storyId, "voice-fidelity")
       .then((log) => setLatest((prev) => ({ ...prev, "voice-fidelity": log })))
       .catch(() => {});
   }, [storyId]);
 
-  useEffect(() => { fetchLatest(); }, [fetchLatest]);
+  useEffect(() => {
+    fetchLatest();
+  }, [fetchLatest]);
 
-  const runAnalysis = useCallback(async (analysis: AnalysisDef) => {
-    const controller = new AbortController();
-    abortRefs.current[analysis.id] = controller;
+  const runAnalysis = useCallback(
+    async (analysis: AnalysisDef) => {
+      const controller = new AbortController();
+      abortRefs.current[analysis.id] = controller;
 
-    setRunning((prev) => new Set(prev).add(analysis.id));
-    setErrors((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
+      setRunning((prev) => new Set(prev).add(analysis.id));
+      setErrors((prev) => {
+        const s = new Set(prev);
+        s.delete(analysis.id);
+        return s;
+      });
 
-    try {
-      const result = await analysis.run(characterId, controller.signal);
-      if (controller.signal.aborted) return;
+      try {
+        const result = await analysis.run(characterId, controller.signal);
+        if (controller.signal.aborted) return;
 
-      if (analysis.id === "voice-distinctness") {
-        onVoiceResult(result as VoiceDistinctnessResult);
-      } else if (analysis.id === "dialogue-prose") {
-        onProseResult(result as CharacterDialogueProseResult);
-      } else if (analysis.id === "voice-fidelity") {
-        const sr = result as StructuredResult;
-        if (sr.success && sr.data) {
-          onFidelityResult(sr.data as unknown as VoiceFidelityResult);
-        } else if (sr.raw_text) {
-          onError(analysis.id, sr.raw_text || "Analysis returned no data.");
+        if (analysis.id === "voice-distinctness") {
+          onVoiceResult(result as VoiceDistinctnessResult);
+        } else if (analysis.id === "dialogue-prose") {
+          onProseResult(result as CharacterDialogueProseResult);
+        } else if (analysis.id === "voice-fidelity") {
+          const sr = result as StructuredResult;
+          if (sr.success && sr.data) {
+            onFidelityResult(sr.data as unknown as VoiceFidelityResult);
+          } else if (sr.raw_text) {
+            onError(analysis.id, sr.raw_text || "Analysis returned no data.");
+          }
+          fetchLatest();
         }
-        fetchLatest();
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        if (!controller.signal.aborted) {
+          setErrors((prev) => new Set(prev).add(analysis.id));
+          onError(analysis.id, "Analysis failed — ensure the character has attributed dialogue.");
+        }
+      } finally {
+        setRunning((prev) => {
+          const s = new Set(prev);
+          s.delete(analysis.id);
+          return s;
+        });
+        delete abortRefs.current[analysis.id];
       }
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") return;
-      if (!controller.signal.aborted) {
-        setErrors((prev) => new Set(prev).add(analysis.id));
-        onError(analysis.id, "Analysis failed — ensure the character has attributed dialogue.");
-      }
-    } finally {
-      setRunning((prev) => { const s = new Set(prev); s.delete(analysis.id); return s; });
-      delete abortRefs.current[analysis.id];
-    }
-  }, [characterId, onVoiceResult, onProseResult, onFidelityResult, onError, fetchLatest]);
+    },
+    [characterId, onVoiceResult, onProseResult, onFidelityResult, onError, fetchLatest],
+  );
 
   return (
     <div className={styles.toolbar}>
@@ -171,18 +190,26 @@ export default function CharacterDialogueActionToolbar({
         onClick={toggleCollapsed}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleCollapsed(); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") toggleCollapsed();
+        }}
       >
         <span className={styles.toolbarChevron}>
           {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
         </span>
         <span className={styles.toolbarTitle}>Dialogue Analysis</span>
         <div className={styles.toolbarLegend}>
-          <span className={styles.legendItem} style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}>
+          <span
+            className={styles.legendItem}
+            style={{ "--type-color": "var(--color-nlp)" } as React.CSSProperties}
+          >
             <span className={styles.legendDot} />
             NLP
           </span>
-          <span className={styles.legendItem} style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}>
+          <span
+            className={styles.legendItem}
+            style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}
+          >
             <span className={styles.legendDot} />
             AI
           </span>
@@ -211,23 +238,22 @@ export default function CharacterDialogueActionToolbar({
                 >
                   <div className={styles.btnMain}>
                     <div className={styles.btnIcon}>
-                      {isRunning
-                        ? <Loader2 size={14} className={styles.spinner} />
-                        : <analysis.Icon size={14} />
-                      }
+                      {isRunning ? (
+                        <Loader2 size={14} className={styles.spinner} />
+                      ) : (
+                        <analysis.Icon size={14} />
+                      )}
                     </div>
                     <div className={styles.btnBody}>
-                      <span className={styles.btnLabel}>
-                        {isRunning ? "Running…" : analysis.label}
-                      </span>
+                      <span className={styles.btnLabel}>{isRunning ? "Running…" : analysis.label}</span>
                       <span className={styles.btnDesc}>{analysis.description}</span>
                       {!isRunning && log ? (
                         <span className={styles.btnMeta}>
                           <span className={styles.btnSummary}>{analysis.summarize(log)}</span>
                           <span className={styles.btnAge}>{formatAge(log.created_at)}</span>
                         </span>
-                      ) : !isRunning && (
-                        <span className={styles.btnNotRun}>Not run yet</span>
+                      ) : (
+                        !isRunning && <span className={styles.btnNotRun}>Not run yet</span>
                       )}
                     </div>
                   </div>

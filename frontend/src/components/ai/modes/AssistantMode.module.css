@@ -9,7 +9,10 @@
   gap: 0.5rem;
 }
 
-.emptyIcon { color: var(--color-ai); opacity: 0.5; }
+.emptyIcon {
+  color: var(--color-ai);
+  opacity: 0.5;
+}
 
 .emptyTitle {
   font-size: 0.88rem;
@@ -43,7 +46,9 @@
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   line-height: 1.4;
 }
 

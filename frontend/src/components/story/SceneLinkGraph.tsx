@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Crosshair } from "lucide-react";
 import {
-  forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide,
-  type SimulationNodeDatum, type SimulationLinkDatum,
+  forceSimulation,
+  forceLink,
+  forceManyBody,
+  forceCenter,
+  forceCollide,
+  type SimulationNodeDatum,
+  type SimulationLinkDatum,
 } from "d3-force";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -12,32 +17,40 @@ import styles from "./SceneLinkGraph.module.css";
 // ── Link type definitions ──────────────────────────────────────
 const LINK_TYPES = [
   { value: "foreshadowing", label: "Foreshadowing", color: "#4a80b8", directional: true },
-  { value: "callback",      label: "Callback",      color: "#4a9c5e", directional: true },
-  { value: "causes",        label: "Causes",        color: "#c4791e", directional: true },
-  { value: "parallel",      label: "Parallel",      color: "#8b6aa8", directional: false },
-  { value: "contrast",      label: "Contrast",      color: "#b83232", directional: false },
-  { value: "echoes",        label: "Echoes",        color: "#2a9d8f", directional: false },
+  { value: "callback", label: "Callback", color: "#4a9c5e", directional: true },
+  { value: "causes", label: "Causes", color: "#c4791e", directional: true },
+  { value: "parallel", label: "Parallel", color: "#8b6aa8", directional: false },
+  { value: "contrast", label: "Contrast", color: "#b83232", directional: false },
+  { value: "echoes", label: "Echoes", color: "#2a9d8f", directional: false },
 ] as const;
 
 function getLinkColor(type: string): string {
-  return LINK_TYPES.find(t => t.value === type)?.color ?? "#888";
+  return LINK_TYPES.find((t) => t.value === type)?.color ?? "#888";
 }
 function isDirectional(type: string): boolean {
-  return LINK_TYPES.find(t => t.value === type)?.directional ?? true;
+  return LINK_TYPES.find((t) => t.value === type)?.directional ?? true;
 }
 
 // ── Node appearance ────────────────────────────────────────────
 const NODE_RADIUS = 18;
 const STATUS_STROKE: Record<string, string> = {
-  draft:   "var(--color-border)",
+  draft: "var(--color-border)",
   revised: "var(--color-warning)",
-  final:   "var(--color-accent)",
+  final: "var(--color-accent)",
 };
-function nodeStroke(status: string): string { return STATUS_STROKE[status] ?? "var(--color-border)"; }
+function nodeStroke(status: string): string {
+  return STATUS_STROKE[status] ?? "var(--color-border)";
+}
 
 // ── Force simulation ───────────────────────────────────────────
-interface SimNode extends SimulationNodeDatum { id: string; status: string }
-interface SimEdge extends SimulationLinkDatum<SimNode> { source: string; target: string }
+interface SimNode extends SimulationNodeDatum {
+  id: string;
+  status: string;
+}
+interface SimEdge extends SimulationLinkDatum<SimNode> {
+  source: string;
+  target: string;
+}
 
 function simulate(
   nodes: { id: string; status: string }[],
@@ -54,31 +67,41 @@ function simulate(
   }));
   forceSimulation<SimNode>(ns)
     .force("charge", forceManyBody<SimNode>().strength(-300))
-    .force("link", forceLink<SimNode, SimEdge>(edges as SimEdge[]).id(d => d.id).distance(160))
+    .force(
+      "link",
+      forceLink<SimNode, SimEdge>(edges as SimEdge[])
+        .id((d) => d.id)
+        .distance(160),
+    )
     .force("center", forceCenter(w / 2, h / 2).strength(0.08))
     .force("collide", forceCollide<SimNode>().radius(NODE_RADIUS + 20))
     .stop()
     .tick(300);
-  return new Map(ns.map(nd => [nd.id, { x: nd.x ?? w / 2, y: nd.y ?? h / 2 }]));
+  return new Map(ns.map((nd) => [nd.id, { x: nd.x ?? w / 2, y: nd.y ?? h / 2 }]));
 }
 
 // ── Bezier helpers ─────────────────────────────────────────────
 function curveCP(x1: number, y1: number, x2: number, y2: number, bend = 30) {
-  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-  const dx = x2 - x1, dy = y2 - y1;
+  const mx = (x1 + x2) / 2,
+    my = (y1 + y2) / 2;
+  const dx = x2 - x1,
+    dy = y2 - y1;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
   return { cx: mx - (dy / len) * bend, cy: my + (dx / len) * bend };
 }
 
 // For directional edges: move endpoint back along ctrl→target direction by r+markerSize
 function adjustedEnd(cx: number, cy: number, tx: number, ty: number, r: number) {
-  const dx = tx - cx, dy = ty - cy;
+  const dx = tx - cx,
+    dy = ty - cy;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
   const offset = r + 7; // node radius + arrow size
   return { x: tx - (dx / len) * offset, y: ty - (dy / len) * offset };
 }
 
-function trunc(s: string, max: number) { return s.length > max ? s.slice(0, max - 1) + "…" : s; }
+function trunc(s: string, max: number) {
+  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
 
 // ── Flatten leaf scenes ────────────────────────────────────────
 function flattenLeaves(nodes: StructureNode[]): StructureNode[] {
@@ -92,35 +115,46 @@ function flattenLeaves(nodes: StructureNode[]): StructureNode[] {
 }
 
 // ── Constants ──────────────────────────────────────────────────
-const ZOOM_MIN = 0.2, ZOOM_MAX = 4;
+const ZOOM_MIN = 0.2,
+  ZOOM_MAX = 4;
 const DEFAULT_XFORM = { scale: 1, tx: 0, ty: 0 };
 
 // ── Component ─────────────────────────────────────────────────
 export default function SceneLinkGraph() {
   const { structure, activeStory, setActiveNode } = useStoryStore();
   const wrapRef = useRef<HTMLDivElement>(null);
-  const svgRef  = useRef<SVGSVGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  const [links, setLinks]       = useState<SceneLink[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [dims, setDims]         = useState({ w: 700, h: 480 });
+  const [links, setLinks] = useState<SceneLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dims, setDims] = useState({ w: 700, h: 480 });
   const [positions, setPositions] = useState<Map<string, { x: number; y: number }>>(new Map());
-  const [hovNode, setHovNode]   = useState<string | null>(null);
+  const [hovNode, setHovNode] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [hovEdge, setHovEdge]   = useState<string | null>(null);
+  const [hovEdge, setHovEdge] = useState<string | null>(null);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Viewport transform
-  const [xform, setXform]   = useState(DEFAULT_XFORM);
-  const xformRef            = useRef(DEFAULT_XFORM);
-  useEffect(() => { xformRef.current = xform; }, [xform]);
+  const [xform, setXform] = useState(DEFAULT_XFORM);
+  const xformRef = useRef(DEFAULT_XFORM);
+  useEffect(() => {
+    xformRef.current = xform;
+  }, [xform]);
 
   // Drag state
   const [drag, setDrag] = useState<{
-    id: string; startSx: number; startSy: number; startWx: number; startWy: number; moved: boolean;
+    id: string;
+    startSx: number;
+    startSy: number;
+    startWx: number;
+    startWy: number;
+    moved: boolean;
   } | null>(null);
   const [pan, setPan] = useState<{
-    startSx: number; startSy: number; startTx: number; startTy: number;
+    startSx: number;
+    startSy: number;
+    startTx: number;
+    startTy: number;
   } | null>(null);
 
   // Container resize
@@ -139,7 +173,8 @@ export default function SceneLinkGraph() {
   useEffect(() => {
     if (!activeStory) return;
     setLoading(true);
-    api.getSceneLinks({ story_id: activeStory.id })
+    api
+      .getSceneLinks({ story_id: activeStory.id })
       .then(setLinks)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -152,11 +187,11 @@ export default function SceneLinkGraph() {
   useEffect(() => {
     if (sceneNodes.length === 0) return;
     const { w, h } = dims;
-    const nodeInput = sceneNodes.map(n => ({ id: n.id, status: n.status }));
-    const edgeInput = links.map(l => ({ source: l.source_node_id, target: l.target_node_id }));
+    const nodeInput = sceneNodes.map((n) => ({ id: n.id, status: n.status }));
+    const edgeInput = links.map((l) => ({ source: l.source_node_id, target: l.target_node_id }));
     setPositions(simulate(nodeInput, edgeInput, w, h));
     setXform(DEFAULT_XFORM);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sceneNodes.length, links.length, dims.w, dims.h]);
 
   // Zoom wheel
@@ -183,7 +218,7 @@ export default function SceneLinkGraph() {
   function onNodeMouseDown(e: React.MouseEvent, id: string) {
     e.stopPropagation();
     const rect = svgRef.current!.getBoundingClientRect();
-    const pos  = positions.get(id);
+    const pos = positions.get(id);
     if (!pos) return;
     setDrag({
       id,
@@ -198,7 +233,10 @@ export default function SceneLinkGraph() {
   function onSvgMouseDown(e: React.MouseEvent) {
     if (drag) return;
     setPan({ startSx: e.clientX, startSy: e.clientY, startTx: xform.tx, startTy: xform.ty });
-    if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null; }
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current);
+      clickTimerRef.current = null;
+    }
     setSelectedNode(null);
   }
 
@@ -209,8 +247,8 @@ export default function SceneLinkGraph() {
       const sy = e.clientY - rect.top;
       const wx = drag.startWx + (sx - drag.startSx) / xform.scale;
       const wy = drag.startWy + (sy - drag.startSy) / xform.scale;
-      setDrag(d => d ? { ...d, moved: true } : d);
-      setPositions(prev => new Map([...prev, [drag.id, { x: wx, y: wy }]]));
+      setDrag((d) => (d ? { ...d, moved: true } : d));
+      setPositions((prev) => new Map([...prev, [drag.id, { x: wx, y: wy }]]));
     } else if (pan) {
       setXform({
         scale: xform.scale,
@@ -220,24 +258,22 @@ export default function SceneLinkGraph() {
     }
   }
 
-  function onSvgMouseUp() { setDrag(null); setPan(null); }
+  function onSvgMouseUp() {
+    setDrag(null);
+    setPan(null);
+  }
 
   // ── Highlight state ─────────────────────────────────────────
   const activeNodeId = selectedNode ?? hovNode;
   const connectedLinks = activeNodeId
-    ? links.filter(l => l.source_node_id === activeNodeId || l.target_node_id === activeNodeId)
+    ? links.filter((l) => l.source_node_id === activeNodeId || l.target_node_id === activeNodeId)
     : null;
   const connectedNodeIds = connectedLinks
-    ? new Set(connectedLinks.flatMap(l => [l.source_node_id, l.target_node_id]))
+    ? new Set(connectedLinks.flatMap((l) => [l.source_node_id, l.target_node_id]))
     : null;
-  const connectedLinkIds = connectedLinks
-    ? new Set(connectedLinks.map(l => l.id))
-    : null;
+  const connectedLinkIds = connectedLinks ? new Set(connectedLinks.map((l) => l.id)) : null;
 
-  const activeLinkTypes = useMemo(
-    () => new Set(links.map(l => l.link_type)),
-    [links],
-  );
+  const activeLinkTypes = useMemo(() => new Set(links.map((l) => l.link_type)), [links]);
 
   const { w, h } = dims;
   const { scale, tx, ty } = xform;
@@ -246,9 +282,7 @@ export default function SceneLinkGraph() {
     <div className={styles.container}>
       <div className={styles.svgWrap} ref={wrapRef}>
         {loading && <div className={styles.overlay}>Loading…</div>}
-        {!loading && sceneNodes.length === 0 && (
-          <div className={styles.overlay}>No scenes yet.</div>
-        )}
+        {!loading && sceneNodes.length === 0 && <div className={styles.overlay}>No scenes yet.</div>}
         {!loading && sceneNodes.length > 0 && links.length === 0 && (
           <div className={styles.emptyHint}>
             No scene links yet — add links via the Notes panel in any scene.
@@ -257,7 +291,8 @@ export default function SceneLinkGraph() {
 
         <svg
           ref={svgRef}
-          width={w} height={h}
+          width={w}
+          height={h}
           onMouseDown={onSvgMouseDown}
           onMouseMove={onSvgMouseMove}
           onMouseUp={onSvgMouseUp}
@@ -269,12 +304,14 @@ export default function SceneLinkGraph() {
           }}
         >
           <defs>
-            {LINK_TYPES.filter(t => t.directional).map(t => (
+            {LINK_TYPES.filter((t) => t.directional).map((t) => (
               <marker
                 key={t.value}
                 id={`slg-arrow-${t.value}`}
-                markerWidth="7" markerHeight="7"
-                refX="5" refY="3"
+                markerWidth="7"
+                markerHeight="7"
+                refX="5"
+                refY="3"
                 orient="auto"
               >
                 <path d="M 0 0 L 0 6 L 7 3 z" fill={t.color} opacity={0.85} />
@@ -283,15 +320,14 @@ export default function SceneLinkGraph() {
           </defs>
 
           <g transform={`translate(${tx}, ${ty}) scale(${scale})`}>
-
             {/* ── Edges ── */}
-            {links.map(link => {
+            {links.map((link) => {
               const src = positions.get(link.source_node_id);
               const tgt = positions.get(link.target_node_id);
               if (!src || !tgt) return null;
 
               const color = getLinkColor(link.link_type);
-              const dir   = isDirectional(link.link_type);
+              const dir = isDirectional(link.link_type);
               const isLit = !connectedLinkIds || connectedLinkIds.has(link.id);
               const isHov = hovEdge === link.id;
 
@@ -301,11 +337,11 @@ export default function SceneLinkGraph() {
               const midX = 0.25 * src.x + 0.5 * cx + 0.25 * end.x;
               const midY = 0.25 * src.y + 0.5 * cy + 0.25 * end.y;
 
-              const typeInfo = LINK_TYPES.find(t => t.value === link.link_type);
+              const typeInfo = LINK_TYPES.find((t) => t.value === link.link_type);
               const labelText = typeInfo?.label ?? link.link_type;
-              const noteText  = link.note ? ` — ${trunc(link.note, 20)}` : "";
+              const noteText = link.note ? ` — ${trunc(link.note, 20)}` : "";
               const fullLabel = labelText + noteText;
-              const labelW    = Math.min(fullLabel.length * 5.8 + 12, 180);
+              const labelW = Math.min(fullLabel.length * 5.8 + 12, 180);
 
               return (
                 <g
@@ -318,7 +354,9 @@ export default function SceneLinkGraph() {
                   {/* Fat invisible hit zone */}
                   <path
                     d={`M ${src.x} ${src.y} Q ${cx} ${cy} ${end.x} ${end.y}`}
-                    fill="none" stroke="transparent" strokeWidth={14}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={14}
                   />
                   <path
                     d={`M ${src.x} ${src.y} Q ${cx} ${cy} ${end.x} ${end.y}`}
@@ -332,14 +370,17 @@ export default function SceneLinkGraph() {
                   {isHov && (
                     <g pointerEvents="none">
                       <rect
-                        x={midX - labelW / 2} y={midY - 18}
-                        width={labelW} height={13}
+                        x={midX - labelW / 2}
+                        y={midY - 18}
+                        width={labelW}
+                        height={13}
                         rx={3}
                         fill="var(--color-bg)"
                         opacity={0.93}
                       />
                       <text
-                        x={midX} y={midY - 8}
+                        x={midX}
+                        y={midY - 8}
                         textAnchor="middle"
                         fontSize={9.5}
                         fill="var(--color-text-subtle)"
@@ -354,14 +395,14 @@ export default function SceneLinkGraph() {
             })}
 
             {/* ── Nodes ── */}
-            {sceneNodes.map(scene => {
+            {sceneNodes.map((scene) => {
               const pos = positions.get(scene.id);
               if (!pos) return null;
 
               const isActive = activeNodeId === scene.id;
-              const isDim    = connectedNodeIds !== null && !connectedNodeIds.has(scene.id);
-              const s        = isActive ? 1.08 : 1;
-              const stroke   = nodeStroke(scene.status);
+              const isDim = connectedNodeIds !== null && !connectedNodeIds.has(scene.id);
+              const s = isActive ? 1.08 : 1;
+              const stroke = nodeStroke(scene.status);
 
               return (
                 <g
@@ -374,19 +415,25 @@ export default function SceneLinkGraph() {
                   }}
                   onMouseEnter={() => !drag && setHovNode(scene.id)}
                   onMouseLeave={() => setHovNode(null)}
-                  onMouseDown={e => onNodeMouseDown(e, scene.id)}
-                  onClick={e => {
+                  onMouseDown={(e) => onNodeMouseDown(e, scene.id)}
+                  onClick={(e) => {
                     e.stopPropagation();
                     if (drag?.moved) return;
-                    if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null; }
+                    if (clickTimerRef.current) {
+                      clearTimeout(clickTimerRef.current);
+                      clickTimerRef.current = null;
+                    }
                     clickTimerRef.current = setTimeout(() => {
-                      setSelectedNode(prev => prev === scene.id ? null : scene.id);
+                      setSelectedNode((prev) => (prev === scene.id ? null : scene.id));
                       clickTimerRef.current = null;
                     }, 220);
                   }}
-                  onDoubleClick={e => {
+                  onDoubleClick={(e) => {
                     e.stopPropagation();
-                    if (clickTimerRef.current) { clearTimeout(clickTimerRef.current); clickTimerRef.current = null; }
+                    if (clickTimerRef.current) {
+                      clearTimeout(clickTimerRef.current);
+                      clickTimerRef.current = null;
+                    }
                     setActiveNode(scene);
                   }}
                 >
@@ -406,7 +453,8 @@ export default function SceneLinkGraph() {
                   />
                   {/* Scene title inside circle */}
                   <text
-                    textAnchor="middle" y={-1}
+                    textAnchor="middle"
+                    y={-1}
                     fontSize={8.5}
                     fontWeight={isActive ? 600 : 400}
                     fill={isActive ? "var(--color-text)" : "var(--color-text-muted)"}
@@ -418,7 +466,8 @@ export default function SceneLinkGraph() {
                   </text>
                   {/* Level type below title */}
                   <text
-                    textAnchor="middle" y={11}
+                    textAnchor="middle"
+                    y={11}
                     fontSize={7.5}
                     fill="var(--color-text-subtle)"
                     fontFamily="Inter, system-ui, sans-serif"
@@ -426,21 +475,18 @@ export default function SceneLinkGraph() {
                   >
                     {scene.level_type}
                   </text>
-                  <title>{scene.title} ({scene.level_type}) · {scene.status}</title>
+                  <title>
+                    {scene.title} ({scene.level_type}) · {scene.status}
+                  </title>
                 </g>
               );
             })}
-
           </g>
         </svg>
 
         {/* Reset view button */}
         {!loading && sceneNodes.length > 0 && (
-          <button
-            className={styles.resetBtn}
-            onClick={() => setXform(DEFAULT_XFORM)}
-            title="Reset view"
-          >
+          <button className={styles.resetBtn} onClick={() => setXform(DEFAULT_XFORM)} title="Reset view">
             <Crosshair size={13} />
           </button>
         )}
@@ -458,22 +504,20 @@ export default function SceneLinkGraph() {
 
       {/* ── Legend ── */}
       <div className={styles.legend}>
-        {LINK_TYPES.filter(t => activeLinkTypes.has(t.value)).map(t => (
+        {LINK_TYPES.filter((t) => activeLinkTypes.has(t.value)).map((t) => (
           <span key={t.value} className={styles.legendItem}>
-            <span
-              className={styles.legendLine}
-              style={{ backgroundColor: t.color, opacity: 0.85 }}
-            />
-            {t.directional && (
-              <span className={styles.legendArrow} style={{ borderLeftColor: t.color }} />
-            )}
+            <span className={styles.legendLine} style={{ backgroundColor: t.color, opacity: 0.85 }} />
+            {t.directional && <span className={styles.legendArrow} style={{ borderLeftColor: t.color }} />}
             <span>{t.label}</span>
           </span>
         ))}
         <span className={styles.legendStatus}>
-          <span className={styles.statusDot} style={{ borderColor: "var(--color-border)" }} />draft
-          <span className={styles.statusDot} style={{ borderColor: "var(--color-warning)" }} />revised
-          <span className={styles.statusDot} style={{ borderColor: "var(--color-accent)" }} />final
+          <span className={styles.statusDot} style={{ borderColor: "var(--color-border)" }} />
+          draft
+          <span className={styles.statusDot} style={{ borderColor: "var(--color-warning)" }} />
+          revised
+          <span className={styles.statusDot} style={{ borderColor: "var(--color-accent)" }} />
+          final
         </span>
         <span className={styles.legendCount} style={{ marginLeft: "auto" }}>
           {sceneNodes.length} scene{sceneNodes.length !== 1 ? "s" : ""}

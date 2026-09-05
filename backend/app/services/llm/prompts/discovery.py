@@ -24,11 +24,13 @@ def build_discovery_prompt(
 
     existing_chars_text = (
         f"Already in Lorebook (do NOT re-suggest these): {', '.join(existing_characters)}"
-        if existing_characters else "No characters are in the Lorebook yet."
+        if existing_characters
+        else "No characters are in the Lorebook yet."
     )
     existing_settings_text = (
         f"Already in Lorebook (do NOT re-suggest these): {', '.join(existing_settings)}"
-        if existing_settings else "No settings are in the Lorebook yet."
+        if existing_settings
+        else "No settings are in the Lorebook yet."
     )
 
     return f"""You are a story analysis assistant reading prose written by an author who is discovering their story as they write.

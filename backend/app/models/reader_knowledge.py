@@ -1,14 +1,16 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, ForeignKey, Boolean, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .story import Story
     from .structure import StructureNode
     from .twist import Twist
-
 
 
 class ReaderKnowledgeEvent(Base):
@@ -27,25 +29,27 @@ class ReaderKnowledgeEvent(Base):
     # "truth_revealed" | "misdirection_planted" | "clue_planted" | "character_learns" | "reader_only"
     knowledge_type: Mapped[str] = mapped_column(String, nullable=False, default="truth_revealed")
 
-    subject: Mapped[str] = mapped_column(String, nullable=False)       # Brief label
-    detail: Mapped[str] = mapped_column(Text, default="")              # Full description
+    subject: Mapped[str] = mapped_column(String, nullable=False)  # Brief label
+    detail: Mapped[str] = mapped_column(Text, default="")  # Full description
 
     reader_knows: Mapped[bool] = mapped_column(Boolean, default=True)  # Does reader know at this point?
     characters_who_know: Mapped[list] = mapped_column(JSON, default=list, nullable=True)  # character IDs
-    is_truth: Mapped[bool] = mapped_column(Boolean, default=True)      # True = factual, False = misdirection
+    is_truth: Mapped[bool] = mapped_column(Boolean, default=True)  # True = factual, False = misdirection
 
     # When this event supersedes/corrects an earlier one (e.g. truth revealed after misdirection)
     supersedes_id: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     story: Mapped["Story"] = relationship("Story", back_populates="reader_knowledge_events")
     node: Mapped["StructureNode | None"] = relationship(
         "StructureNode", foreign_keys=[node_id], back_populates="reader_knowledge_events"
     )
-    twist: Mapped["Twist | None"] = relationship("Twist", foreign_keys=[twist_id], back_populates="reader_knowledge_events")
+    twist: Mapped["Twist | None"] = relationship(
+        "Twist", foreign_keys=[twist_id], back_populates="reader_knowledge_events"
+    )

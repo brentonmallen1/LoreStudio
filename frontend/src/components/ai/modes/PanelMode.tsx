@@ -10,14 +10,7 @@ import AIModeWrapper from "../AIModeWrapper";
 import ChatInput from "../shared/ChatInput";
 import styles from "./PanelMode.module.css";
 
-const CHAR_COLORS = [
-  "var(--color-accent)",
-  "#e8854a",
-  "#4aae8c",
-  "#c45fc4",
-  "#5f9ce8",
-  "#c4b44a",
-];
+const CHAR_COLORS = ["var(--color-accent)", "#e8854a", "#4aae8c", "#c45fc4", "#5f9ce8", "#c4b44a"];
 
 interface Props {
   session: AISession;
@@ -45,7 +38,8 @@ export default function PanelMode({ session }: Props) {
   // Load existing messages when panel is opened
   useEffect(() => {
     if (!session.backendSessionId) return;
-    api.getPanel(session.backendSessionId)
+    api
+      .getPanel(session.backendSessionId)
       .then((p) => setLocalMessages(p.messages))
       .catch(() => {});
   }, [session.backendSessionId]);
@@ -80,9 +74,7 @@ export default function PanelMode({ session }: Props) {
   }
 
   function toggleChar(id: string) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
   function cancel() {
@@ -109,7 +101,13 @@ export default function PanelMode({ session }: Props) {
     abortRef.current = abort;
 
     try {
-      const res = await api.sendPanelMessage(panelId, content, abort.signal, state.sessionParams as LLMParams | undefined, responseLength);
+      const res = await api.sendPanelMessage(
+        panelId,
+        content,
+        abort.signal,
+        state.sessionParams as LLMParams | undefined,
+        responseLength,
+      );
       if (!res.ok || !res.body) {
         setSending(false);
         return;
@@ -176,8 +174,8 @@ export default function PanelMode({ session }: Props) {
               const updated = await api.getPanel(panelId);
               setLocalMessages(updated.messages);
             } catch {
-      /* ignore */
-    }
+              /* ignore */
+            }
           }
         }
       }
@@ -206,9 +204,7 @@ export default function PanelMode({ session }: Props) {
         <div className={styles.setup}>
           <Users size={22} className={styles.setupIcon} />
           <p className={styles.setupTitle}>Set up a panel interview</p>
-          <p className={styles.setupHint}>
-            Select 2–3 characters to interview together.
-          </p>
+          <p className={styles.setupHint}>Select 2–3 characters to interview together.</p>
           {characters.length === 0 ? (
             <p className={styles.setupEmpty}>No characters found in this story.</p>
           ) : (
@@ -218,7 +214,14 @@ export default function PanelMode({ session }: Props) {
                   key={c.id}
                   className={`${styles.charChip} ${selectedIds.includes(c.id) ? styles.charChipSelected : ""}`}
                   onClick={() => toggleChar(c.id)}
-                  style={selectedIds.includes(c.id) ? { borderColor: CHAR_COLORS[i % CHAR_COLORS.length], color: CHAR_COLORS[i % CHAR_COLORS.length] } : {}}
+                  style={
+                    selectedIds.includes(c.id)
+                      ? {
+                          borderColor: CHAR_COLORS[i % CHAR_COLORS.length],
+                          color: CHAR_COLORS[i % CHAR_COLORS.length],
+                        }
+                      : {}
+                  }
                 >
                   {c.name}
                 </button>
@@ -244,12 +247,7 @@ export default function PanelMode({ session }: Props) {
 
   // ── Active panel conversation ─────────────────────────────────────────────
   return (
-    <AIModeWrapper
-      session={session}
-      state={state}
-      icon={Users}
-      title="Panel Interview"
-    >
+    <AIModeWrapper session={session} state={state} icon={Users} title="Panel Interview">
       <div className={styles.messages}>
         {localMessages.length === 0 && !sending && (
           <div className={styles.emptyMsg}>

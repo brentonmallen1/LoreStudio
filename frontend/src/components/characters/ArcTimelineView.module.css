@@ -8,7 +8,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spinner {
@@ -166,7 +168,9 @@
   max-width: 140px;
   overflow: hidden;
   cursor: help;
-  transition: max-width var(--transition), background var(--transition);
+  transition:
+    max-width var(--transition),
+    background var(--transition);
 }
 
 .milestoneFlag:hover {
@@ -194,7 +198,9 @@
   border: 2px solid;
   background: var(--color-surface);
   cursor: pointer;
-  transition: background var(--transition), transform var(--transition);
+  transition:
+    background var(--transition),
+    transform var(--transition);
   position: relative;
   z-index: 2;
   padding: 0;
@@ -222,7 +228,7 @@
   min-width: 140px;
   max-width: 200px;
   z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   pointer-events: none;
   display: flex;
   flex-direction: column;

@@ -1,6 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MessageSquare, ChevronRight, AlertCircle, ChevronUp, ChevronDown, MessageCircle, StickyNote } from "lucide-react";
+import {
+  MessageSquare,
+  ChevronRight,
+  AlertCircle,
+  ChevronUp,
+  ChevronDown,
+  MessageCircle,
+  StickyNote,
+} from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type {
@@ -73,7 +81,10 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
       const queue = [...structure];
       while (queue.length) {
         const n = queue.shift()!;
-        if (n.id === sceneId) { setActiveNode(n); break; }
+        if (n.id === sceneId) {
+          setActiveNode(n);
+          break;
+        }
         if (n.children) queue.push(...n.children);
       }
     }
@@ -82,7 +93,8 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
   useEffect(() => {
     setLoading(true);
-    api.getCharacterDialogue(characterId)
+    api
+      .getCharacterDialogue(characterId)
       .then(setBlocks)
       .catch(() => setBlocks([]))
       .finally(() => setLoading(false));
@@ -105,13 +117,13 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
   const totalWords = blocks.reduce((sum, b) => sum + b.content.split(/\s+/).length, 0);
   const inferredCount = blocks.filter(
-    (b) => b.attribution_method === "inferred" || b.attribution_method === "alternating"
+    (b) => b.attribution_method === "inferred" || b.attribution_method === "alternating",
   ).length;
 
   const focusProfile = voiceResult?.profiles.find((p) => p.character_id === characterId);
-  const similarToFocus = voiceResult?.similar_pairs.filter(
-    (p) => p.char_a_id === characterId || p.char_b_id === characterId
-  ) ?? [];
+  const similarToFocus =
+    voiceResult?.similar_pairs.filter((p) => p.char_a_id === characterId || p.char_b_id === characterId) ??
+    [];
 
   const fidelityColorClass = (fidelity: string) => {
     if (fidelity === "excellent") return styles.fidelityExcellent;
@@ -137,17 +149,26 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           onVoiceResult={(r) => {
             setVoiceResult(r);
             setShowVoice(true);
-            setTimeout(() => voicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+            setTimeout(
+              () => voicePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+              50,
+            );
           }}
           onProseResult={(r) => {
             setProseResult(r);
             setShowProse(true);
-            setTimeout(() => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+            setTimeout(
+              () => prosePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+              50,
+            );
           }}
           onFidelityResult={(r) => {
             setFidelityResult(r);
             setShowFidelity(true);
-            setTimeout(() => fidelityPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+            setTimeout(
+              () => fidelityPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+              50,
+            );
           }}
           onError={(id, msg) => setAnalysisErrors((prev) => ({ ...prev, [id]: msg }))}
         />
@@ -155,7 +176,9 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
 
       {/* Analysis errors */}
       {Object.values(analysisErrors).map((msg, i) => (
-        <span key={i} className={styles.analysisError}>{msg}</span>
+        <span key={i} className={styles.analysisError}>
+          {msg}
+        </span>
       ))}
 
       {/* ── Tag Dialogue panel ── */}
@@ -166,7 +189,12 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           characterId={characterId}
           characterName={characterName}
           characterNames={characterNames}
-          onApplied={() => api.getCharacterDialogue(characterId).then(setBlocks).catch(() => {})}
+          onApplied={() =>
+            api
+              .getCharacterDialogue(characterId)
+              .then(setBlocks)
+              .catch(() => {})
+          }
         />
       )}
 
@@ -175,8 +203,8 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           <MessageSquare size={24} className={styles.emptyIcon} />
           <p>No attributed dialogue found for {characterName}.</p>
           <p className={styles.emptyHint}>
-            Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the
-            panel above to find and tag unattributed quotes.
+            Add explicit attribution using <code>"text"&lt;{characterName}&gt;</code> or use the panel above
+            to find and tag unattributed quotes.
           </p>
         </div>
       )}
@@ -187,7 +215,9 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           <div className={styles.voicePanelHeader}>
             <span className={styles.voiceTitle}>
               Voice Analysis
-              <span className={`${styles.distinctnessBadge} ${styles[`distinctness_${voiceResult.overall_distinctness}`]}`}>
+              <span
+                className={`${styles.distinctnessBadge} ${styles[`distinctness_${voiceResult.overall_distinctness}`]}`}
+              >
                 {voiceResult.overall_distinctness.replace("_", " ")}
               </span>
             </span>
@@ -200,7 +230,9 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             <div className={styles.voiceProfile}>
               <div className={styles.profileStat}>
                 <span className={styles.profileLabel}>Vocabulary richness</span>
-                <span className={styles.profileValue}>{Math.round(focusProfile.vocabulary_richness * 100)}%</span>
+                <span className={styles.profileValue}>
+                  {Math.round(focusProfile.vocabulary_richness * 100)}%
+                </span>
               </div>
               <div className={styles.profileStat}>
                 <span className={styles.profileLabel}>Avg sentence length</span>
@@ -212,13 +244,17 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
               </div>
               <div className={styles.profileStat}>
                 <span className={styles.profileLabel}>Exclamations</span>
-                <span className={styles.profileValue}>{Math.round(focusProfile.exclamation_ratio * 100)}%</span>
+                <span className={styles.profileValue}>
+                  {Math.round(focusProfile.exclamation_ratio * 100)}%
+                </span>
               </div>
               {focusProfile.signature_words.length > 0 && (
                 <div className={styles.signatureWords}>
                   <span className={styles.profileLabel}>Signature words:</span>
                   {focusProfile.signature_words.map((w) => (
-                    <span key={w} className={styles.signatureWord}>{w}</span>
+                    <span key={w} className={styles.signatureWord}>
+                      {w}
+                    </span>
                   ))}
                 </div>
               )}
@@ -239,9 +275,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                       {Math.round(pair.similarity_score * 100)}% similar
                     </span>
                     {pair.shared_patterns.length > 0 && (
-                      <span className={styles.sharedPatterns}>
-                        shared: {pair.shared_patterns.join(", ")}
-                      </span>
+                      <span className={styles.sharedPatterns}>shared: {pair.shared_patterns.join(", ")}</span>
                     )}
                   </div>
                 );
@@ -277,13 +311,17 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
               <>
                 <div className={styles.profileStat}>
                   <span className={styles.profileLabel}>Avg sentence</span>
-                  <span className={`${styles.profileValue} ${proseResult.sentence_variety.assessment === "monotonous" ? styles.profileWarn : ""}`}>
+                  <span
+                    className={`${styles.profileValue} ${proseResult.sentence_variety.assessment === "monotonous" ? styles.profileWarn : ""}`}
+                  >
                     {proseResult.sentence_variety.mean_length}w
                   </span>
                 </div>
                 <div className={styles.profileStat}>
                   <span className={styles.profileLabel}>Variety</span>
-                  <span className={`${styles.profileValue} ${proseResult.sentence_variety.assessment === "monotonous" ? styles.profileWarn : ""}`}>
+                  <span
+                    className={`${styles.profileValue} ${proseResult.sentence_variety.assessment === "monotonous" ? styles.profileWarn : ""}`}
+                  >
                     {proseResult.sentence_variety.assessment}
                   </span>
                 </div>
@@ -292,7 +330,9 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             {proseResult.adverb_overuse && proseResult.adverb_overuse.adverb_count > 0 && (
               <div className={styles.profileStat}>
                 <span className={styles.profileLabel}>-ly adverbs</span>
-                <span className={`${styles.profileValue} ${proseResult.adverb_overuse.percentage > 5 ? styles.profileWarn : ""}`}>
+                <span
+                  className={`${styles.profileValue} ${proseResult.adverb_overuse.percentage > 5 ? styles.profileWarn : ""}`}
+                >
                   {proseResult.adverb_overuse.adverb_count} ({proseResult.adverb_overuse.percentage}%)
                 </span>
               </div>
@@ -302,11 +342,15 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           {proseResult.said_bookisms && proseResult.said_bookisms.bookism_count > 0 && (
             <div className={styles.similarityWarnings}>
               <p className={styles.similarityTitle}>
-                Said bookisms: {proseResult.said_bookisms.bookism_count} of {proseResult.said_bookisms.total_attributions} attributions
+                Said bookisms: {proseResult.said_bookisms.bookism_count} of{" "}
+                {proseResult.said_bookisms.total_attributions} attributions
               </p>
               {proseResult.said_bookisms.findings.slice(0, 5).map((f, i) => (
                 <div key={i} className={styles.similarityRow}>
-                  <span className={styles.excerpt}>"{f.passage.slice(0, 80)}{f.passage.length > 80 ? "…" : ""}"</span>
+                  <span className={styles.excerpt}>
+                    "{f.passage.slice(0, 80)}
+                    {f.passage.length > 80 ? "…" : ""}"
+                  </span>
                 </div>
               ))}
             </div>
@@ -320,7 +364,9 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           <div className={styles.voicePanelHeader}>
             <span className={styles.voiceTitle}>
               Voice Fidelity
-              <span className={`${styles.distinctnessBadge} ${fidelityColorClass(fidelityResult.overall_fidelity)}`}>
+              <span
+                className={`${styles.distinctnessBadge} ${fidelityColorClass(fidelityResult.overall_fidelity)}`}
+              >
                 {fidelityResult.overall_fidelity.replace("_", " ")}
               </span>
             </span>
@@ -333,9 +379,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             <p className={styles.fidelityAttributeSummary}>{fidelityResult.attribute_summary}</p>
           )}
 
-          {fidelityResult.summary && (
-            <p className={styles.fidelitySummary}>{fidelityResult.summary}</p>
-          )}
+          {fidelityResult.summary && <p className={styles.fidelitySummary}>{fidelityResult.summary}</p>}
 
           {/* Findings — issues and warnings only */}
           {fidelityResult.findings.filter((f) => f.severity !== "info").length > 0 && (
@@ -346,16 +390,15 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                   <div key={i} className={`${styles.findingRow} ${severityClass(finding.severity)}`}>
                     {finding.dialogue_excerpt && (
                       <p className={styles.findingExcerpt}>
-                        "{finding.dialogue_excerpt.slice(0, 100)}{finding.dialogue_excerpt.length > 100 ? "…" : ""}"
+                        "{finding.dialogue_excerpt.slice(0, 100)}
+                        {finding.dialogue_excerpt.length > 100 ? "…" : ""}"
                       </p>
                     )}
                     <p className={styles.findingExplanation}>{finding.explanation}</p>
                     {finding.attribute_context && (
                       <p className={styles.findingContext}>{finding.attribute_context}</p>
                     )}
-                    {finding.suggestion && (
-                      <p className={styles.findingSuggestion}>{finding.suggestion}</p>
-                    )}
+                    {finding.suggestion && <p className={styles.findingSuggestion}>{finding.suggestion}</p>}
                   </div>
                 ))}
             </div>
@@ -367,7 +410,8 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
               <p className={styles.similarityTitle}>Lines that ring true</p>
               {fidelityResult.authentic_examples.slice(0, 4).map((ex, i) => (
                 <p key={i} className={styles.authenticExample}>
-                  "{ex.slice(0, 100)}{ex.length > 100 ? "…" : ""}"
+                  "{ex.slice(0, 100)}
+                  {ex.length > 100 ? "…" : ""}"
                 </p>
               ))}
             </div>
@@ -413,9 +457,10 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
               </button>
               <div className={styles.lines}>
                 {sceneBlocks.map((block) => {
-                  const isInferred = block.attribution_method === "inferred" || block.attribution_method === "alternating";
+                  const isInferred =
+                    block.attribution_method === "inferred" || block.attribution_method === "alternating";
                   const isThought = block.dialogue_type === "thought";
-                  const hasSubtext = !!(getSubtext(block));
+                  const hasSubtext = !!getSubtext(block);
                   const isSubtextOpen = subtextOpen.has(block.id);
                   return (
                     <div
@@ -424,14 +469,22 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                     >
                       <div className={styles.lineRow}>
                         {isThought ? (
-                          <span className={styles.lineContent}><em>{block.content}</em></span>
+                          <span className={styles.lineContent}>
+                            <em>{block.content}</em>
+                          </span>
                         ) : (
                           <span className={styles.lineContent}>"{block.content}"</span>
                         )}
                         <div className={styles.lineBadges}>
-                          {isThought && <span className={styles.thoughtBadge} title="Inner monologue">thought</span>}
+                          {isThought && (
+                            <span className={styles.thoughtBadge} title="Inner monologue">
+                              thought
+                            </span>
+                          )}
                           {!isThought && isInferred && (
-                            <span className={styles.inferredBadge} title="Inferred attribution">?</span>
+                            <span className={styles.inferredBadge} title="Inferred attribution">
+                              ?
+                            </span>
                           )}
                           <button
                             className={`${styles.subtextBtn} ${hasSubtext ? styles.subtextBtnActive : ""}`}
@@ -464,10 +517,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
           {/* ── Subtext Notes section ── */}
           {blocks.some((b) => getSubtext(b)) && (
             <div className={styles.subtextSection}>
-              <button
-                className={styles.subtextSectionHeader}
-                onClick={() => setShowSubtextNotes((v) => !v)}
-              >
+              <button className={styles.subtextSectionHeader} onClick={() => setShowSubtextNotes((v) => !v)}>
                 <StickyNote size={13} className={styles.subtextSectionIcon} />
                 <span>Subtext Notes</span>
                 <span className={styles.subtextSectionCount}>
@@ -485,7 +535,10 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                         <p className={styles.subtextSceneTitle}>{title}</p>
                         {withSubtext.map((block) => (
                           <div key={block.id} className={styles.subtextNoteRow}>
-                            <p className={styles.subtextNoteQuote}>"{block.content.slice(0, 80)}{block.content.length > 80 ? "…" : ""}"</p>
+                            <p className={styles.subtextNoteQuote}>
+                              "{block.content.slice(0, 80)}
+                              {block.content.length > 80 ? "…" : ""}"
+                            </p>
                             <p className={styles.subtextNoteText}>{getSubtext(block)}</p>
                           </div>
                         ))}

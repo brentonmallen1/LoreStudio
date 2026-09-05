@@ -91,7 +91,9 @@
   border: 1.5px dashed var(--color-border);
   border-radius: 8px;
   overflow-y: auto;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   min-height: 200px;
 }
 
@@ -148,7 +150,9 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0);
   color: transparent;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   pointer-events: none;
 }
 .cardThumbClickable:hover .thumbZoom {

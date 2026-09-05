@@ -1,28 +1,37 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
 from ..models.character import Character
 from ..models.interview import CharacterInterview
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 from ..schemas.interview import (
-    InterviewCreate, InterviewMessageRequest, InterviewOut, InterviewSummaryOut,
-    InterviewUpdate, InterviewApplyRequest,
-)
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext, AICallResult
-from ..services.llm.prompts.interviews import (
-    build_character_interview_system_prompt, build_interview_summary_prompt, build_compaction_prompt,
+    InterviewApplyRequest,
+    InterviewCreate,
+    InterviewMessageRequest,
+    InterviewOut,
+    InterviewSummaryOut,
+    InterviewUpdate,
 )
 from ..services.character_journey import (
-    get_cached_journey, get_nodes_up_to, get_scenes_with_character,
-    build_journey_prompt, save_journey,
+    build_journey_prompt,
+    get_cached_journey,
+    get_nodes_up_to,
+    get_scenes_with_character,
+    save_journey,
 )
-from ..models.structure import StructureNode
+from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
+from ..services.llm.prompts.interviews import (
+    build_character_interview_system_prompt,
+    build_compaction_prompt,
+    build_interview_summary_prompt,
+)
 
 router = APIRouter()
 
@@ -46,9 +55,7 @@ def _verify_interview_access(interview_id: str, db: Session, user: User) -> Char
 
 
 @router.get("/characters/{character_id}", response_model=list[InterviewSummaryOut])
-def list_interviews(
-    character_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_interviews(character_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     _verify_character_access(character_id, db, current_user)
     interviews = (
         db.query(CharacterInterview)
@@ -108,7 +115,7 @@ async def send_message(
         raise HTTPException(status_code=404, detail="Character not found")
 
     # Append user message
-    user_msg = {"role": "user", "content": body.content, "timestamp": datetime.now(timezone.utc).isoformat()}
+    user_msg = {"role": "user", "content": body.content, "timestamp": datetime.now(UTC).isoformat()}
     messages = list(interview.messages)
     messages.append(user_msg)
     interview.messages = messages
@@ -190,7 +197,7 @@ async def send_message(
         assistant_msg = {
             "role": "assistant",
             "content": result.content,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         interview.messages = list(interview.messages) + [assistant_msg]
         db.commit()
@@ -239,6 +246,7 @@ async def summarize_interview(
 
     if not interview.messages:
         from fastapi.responses import Response
+
         return Response("No messages to summarize.", media_type="text/plain")
 
     feature_prompt = build_interview_summary_prompt(character, list(interview.messages))
@@ -279,6 +287,7 @@ def apply_interview_to_character(
 ):
     from ..models.character import Character as CharacterModel
     from ..schemas.character import CharacterOut
+
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(CharacterModel, interview.character_id)
     if not character:
@@ -292,7 +301,7 @@ def apply_interview_to_character(
 
 
 COMPACT_THRESHOLD = 10  # Minimum messages before compaction is allowed
-COMPACT_KEEP = 6       # Most recent messages to keep after compaction
+COMPACT_KEEP = 6  # Most recent messages to keep after compaction
 
 
 @router.post("/{interview_id}/compact", response_model=None)
@@ -352,9 +361,7 @@ async def compact_interview(
 
 
 @router.delete("/{interview_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_interview(
-    interview_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def delete_interview(interview_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     interview = _verify_interview_access(interview_id, db, current_user)
     db.delete(interview)
     db.commit()

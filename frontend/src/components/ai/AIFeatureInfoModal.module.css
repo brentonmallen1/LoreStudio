@@ -113,7 +113,9 @@
   cursor: pointer;
   padding: 2px 6px;
   border-radius: var(--radius);
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   flex-shrink: 0;
 }
 

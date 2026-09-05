@@ -100,13 +100,13 @@ export default function StructureTreeItem({
       parent_id: node.id,
       level: childLevel,
       level_type: childLevelDef.name.toLowerCase(),
-      position: (node.children?.length ?? 0),
+      position: node.children?.length ?? 0,
     });
     function insertChild(nodes: StructureNode[]): StructureNode[] {
       return nodes.map((n) =>
         n.id === node.id
           ? { ...n, children: [...(n.children ?? []), { ...created, children: [] }] }
-          : { ...n, children: insertChild(n.children ?? []) }
+          : { ...n, children: insertChild(n.children ?? []) },
       );
     }
     setStructure(insertChild(structure));
@@ -128,7 +128,7 @@ export default function StructureTreeItem({
     const pct = (e.clientY - rect.top) / rect.height;
     if (pct < 0.33) return "above";
     if (pct > 0.67) return "below";
-    return hasChildren ? "into" : (pct < 0.5 ? "above" : "below");
+    return hasChildren ? "into" : pct < 0.5 ? "above" : "below";
   }
 
   function handleDragOver(e: React.DragEvent) {
@@ -171,8 +171,7 @@ export default function StructureTreeItem({
       newMap[node.id] = [...newMap[node.id], draggedId];
     } else {
       // Find parent by scanning childrenMap (node.id appears in exactly one parent's list)
-      const parentId =
-        Object.keys(oldMap).find((pid) => oldMap[pid].includes(node.id)) ?? "root";
+      const parentId = Object.keys(oldMap).find((pid) => oldMap[pid].includes(node.id)) ?? "root";
 
       const siblings = [...(newMap[parentId] ?? [])];
       const targetIdx = siblings.indexOf(node.id);
@@ -250,8 +249,14 @@ export default function StructureTreeItem({
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (!e.altKey) return;
-    if (e.key === "ArrowUp") { e.preventDefault(); moveNode(-1); }
-    if (e.key === "ArrowDown") { e.preventDefault(); moveNode(1); }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      moveNode(-1);
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      moveNode(1);
+    }
   }
 
   const Icon = getSegmentIcon(node.level_type);
@@ -293,10 +298,18 @@ export default function StructureTreeItem({
         {/* Expand/collapse toggle */}
         <span
           className={styles.chevron}
-          onClick={isFolder ? (e) => { e.stopPropagation(); if (isExpanded) item.collapse(); else item.expand(); } : undefined}
+          onClick={
+            isFolder
+              ? (e) => {
+                  e.stopPropagation();
+                  if (isExpanded) item.collapse();
+                  else item.expand();
+                }
+              : undefined
+          }
           role={isFolder ? "button" : undefined}
         >
-          {isFolder ? (isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />) : null}
+          {isFolder ? isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} /> : null}
         </span>
 
         {/* Main clickable area */}
@@ -344,10 +357,7 @@ export default function StructureTreeItem({
 
       {/* Inline add input */}
       {addingChild && (
-        <div
-          style={{ paddingLeft: `${6 + (depth + 1) * 14}px` }}
-          className={styles.childAddRow}
-        >
+        <div style={{ paddingLeft: `${6 + (depth + 1) * 14}px` }} className={styles.childAddRow}>
           <input
             autoFocus
             value={childTitle}

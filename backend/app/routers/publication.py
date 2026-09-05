@@ -6,24 +6,24 @@ Publication preparation endpoints.
 - POST /stories/{story_id}/publication/comp-titles  — one-shot comparable titles (structured)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.character import Character
-from ..models.structure import StructureNode
 from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.publication import (
-    build_book_description_system_prompt,
-    build_query_letter_system_prompt,
-    build_comp_titles_prompt,
-)
+from ..database import get_db
+from ..models.character import Character
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
 from ..schemas.ai_responses import CompTitlesResponse, StructuredResult
 from ..schemas.llm_params import LLMParams
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.publication import (
+    build_book_description_system_prompt,
+    build_comp_titles_prompt,
+    build_query_letter_system_prompt,
+)
 
 router = APIRouter()
 
@@ -49,9 +49,7 @@ def _build_publication_context(story: Story, db: Session) -> dict:
 
     # Total word count from leaf scenes
     leaves = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story.id, StructureNode.level_type == "scene")
-        .all()
+        db.query(StructureNode).filter(StructureNode.story_id == story.id, StructureNode.level_type == "scene").all()
     )
     total_words = sum(getattr(n, "word_count", 0) or 0 for n in leaves)
 

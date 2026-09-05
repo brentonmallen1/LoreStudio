@@ -1,9 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Search, Settings, LogOut, Sun, Moon, Monitor, ChevronDown, PanelLeft, Maximize2, Feather, Database, PenLine } from "lucide-react";
+import {
+  Search,
+  Settings,
+  LogOut,
+  Sun,
+  Moon,
+  Monitor,
+  ChevronDown,
+  PanelLeft,
+  Maximize2,
+  Feather,
+  Database,
+  PenLine,
+} from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
-import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
+import type {
+  ThemeName,
+  ColorMode,
+  EditorFontFamily,
+  EditorFontSize,
+  EditorLineWidth,
+} from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
 import { hasScratchPadContent } from "../common/ScratchPadDrawer";
 import { api } from "../../api/client";
@@ -54,11 +73,21 @@ export default function GlobalHeader() {
   const { storyId } = useParams<{ storyId: string }>();
   const { user, logout } = useAuthStore();
   const {
-    themeName, colorMode, setThemeName, setColorMode,
-    editorFontFamily, editorFontSize, editorLineWidth,
-    setEditorFontFamily, setEditorFontSize, setEditorLineWidth,
-    setCommandPaletteOpen, viewState, setViewState,
-    toggleScratchPad, scratchPadOpen,
+    themeName,
+    colorMode,
+    setThemeName,
+    setColorMode,
+    editorFontFamily,
+    editorFontSize,
+    editorLineWidth,
+    setEditorFontFamily,
+    setEditorFontSize,
+    setEditorLineWidth,
+    setCommandPaletteOpen,
+    viewState,
+    setViewState,
+    toggleScratchPad,
+    scratchPadOpen,
   } = useUIStore();
   const { panelOpen, togglePanel } = useAIStore();
 
@@ -77,10 +106,19 @@ export default function GlobalHeader() {
   // (keeps both the data and the relative-time text current)
   const [backupStatus, setBackupStatus] = useState<BackupStatus | null>(null);
   useEffect(() => {
-    if (!storyId) { setBackupStatus(null); return; }
-    api.getBackupStatus(storyId).then(setBackupStatus).catch(() => {});
+    if (!storyId) {
+      setBackupStatus(null);
+      return;
+    }
+    api
+      .getBackupStatus(storyId)
+      .then(setBackupStatus)
+      .catch(() => {});
     const interval = setInterval(() => {
-      api.getBackupStatus(storyId).then(setBackupStatus).catch(() => {});
+      api
+        .getBackupStatus(storyId)
+        .then(setBackupStatus)
+        .catch(() => {});
     }, 60_000);
     return () => clearInterval(interval);
   }, [storyId]);
@@ -95,7 +133,7 @@ export default function GlobalHeader() {
     }
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panelOpen]);
 
   function handleAssistantToggle() {
@@ -148,7 +186,10 @@ export default function GlobalHeader() {
       {isFocused && !revealed && (
         <div
           className={styles.hoverZone}
-          onMouseEnter={() => { cancelHide(); setRevealed(true); }}
+          onMouseEnter={() => {
+            cancelHide();
+            setRevealed(true);
+          }}
         />
       )}
 
@@ -159,15 +200,13 @@ export default function GlobalHeader() {
       >
         <div className={styles.left}>
           {isFocused && (
-            <button
-              onClick={() => setViewState("normal")}
-              className={styles.iconBtn}
-              title="Restore sidebar"
-            >
+            <button onClick={() => setViewState("normal")} className={styles.iconBtn} title="Restore sidebar">
               <PanelLeft size={15} />
             </button>
           )}
-          <Link to="/" className={styles.wordmark}>LoreStudio</Link>
+          <Link to="/" className={styles.wordmark}>
+            LoreStudio
+          </Link>
         </div>
 
         {/* Backup indicator — shown when inside a story */}
@@ -175,9 +214,11 @@ export default function GlobalHeader() {
           <button
             className={`${styles.backupIndicator} ${
               backupStatus
-                ? backupStatus.staleness === "fresh" ? styles.backupFresh
-                : backupStatus.staleness === "stale" ? styles.backupStale
-                : styles.backupOverdue
+                ? backupStatus.staleness === "fresh"
+                  ? styles.backupFresh
+                  : backupStatus.staleness === "stale"
+                    ? styles.backupStale
+                    : styles.backupOverdue
                 : ""
             }`}
             onClick={() => navigate(`/stories/${storyId}/versions`)}
@@ -188,19 +229,22 @@ export default function GlobalHeader() {
             }
           >
             <Database size={12} />
-            {backupStatus?.last_backup_at
-              ? <span>{relativeTime(backupStatus.last_backup_at)}</span>
-              : !backupStatus
-              ? null
-              : <span>No backup</span>
-            }
-            <span className={`${styles.backupDot} ${
-              backupStatus
-                ? backupStatus.staleness === "fresh" ? styles.dotFresh
-                : backupStatus.staleness === "stale" ? styles.dotStale
-                : styles.dotOverdue
-                : styles.dotOverdue
-            }`} />
+            {backupStatus?.last_backup_at ? (
+              <span>{relativeTime(backupStatus.last_backup_at)}</span>
+            ) : !backupStatus ? null : (
+              <span>No backup</span>
+            )}
+            <span
+              className={`${styles.backupDot} ${
+                backupStatus
+                  ? backupStatus.staleness === "fresh"
+                    ? styles.dotFresh
+                    : backupStatus.staleness === "stale"
+                      ? styles.dotStale
+                      : styles.dotOverdue
+                  : styles.dotOverdue
+              }`}
+            />
           </button>
         )}
 
@@ -223,16 +267,11 @@ export default function GlobalHeader() {
             style={{ position: "relative" }}
           >
             <PenLine size={15} />
-            {scratchHasContent && !scratchPadOpen && (
-              <span className={styles.scratchDot} />
-            )}
+            {scratchHasContent && !scratchPadOpen && <span className={styles.scratchDot} />}
           </button>
 
           {/* Search */}
-          <button
-            onClick={() => setCommandPaletteOpen(true)}
-            className={styles.searchBtn}
-          >
+          <button onClick={() => setCommandPaletteOpen(true)} className={styles.searchBtn}>
             <Search size={14} />
             <span>Search</span>
             <kbd>⌘K</kbd>
@@ -308,7 +347,9 @@ export default function GlobalHeader() {
                     {FONT_CATEGORIES.map(({ value: cat, label: catLabel }) => (
                       <optgroup key={cat} label={catLabel}>
                         {FONT_OPTIONS.filter((f) => f.category === cat).map(({ value, label, stack }) => (
-                          <option key={value} value={value} style={{ fontFamily: stack }}>{label}</option>
+                          <option key={value} value={value} style={{ fontFamily: stack }}>
+                            {label}
+                          </option>
                         ))}
                       </optgroup>
                     ))}
@@ -348,7 +389,10 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownDivider} />
 
                 <button
-                  onClick={() => { setSettingsOpen(false); navigate("/settings"); }}
+                  onClick={() => {
+                    setSettingsOpen(false);
+                    navigate("/settings");
+                  }}
                   className={styles.allSettingsBtn}
                 >
                   All Settings
@@ -406,7 +450,10 @@ export default function GlobalHeader() {
                 </div>
                 <div className={styles.dropdownDivider} />
                 <button
-                  onClick={() => { logout(); setUserMenuOpen(false); }}
+                  onClick={() => {
+                    logout();
+                    setUserMenuOpen(false);
+                  }}
                   className={styles.menuItem}
                   role="menuitem"
                 >

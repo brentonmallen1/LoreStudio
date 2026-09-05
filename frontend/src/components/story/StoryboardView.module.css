@@ -54,7 +54,9 @@
   background: var(--color-bg);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .toolBtn:hover:not(:disabled) {
@@ -192,7 +194,9 @@
   border: 2px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
   position: relative;
 }
 
@@ -303,7 +307,9 @@
   cursor: pointer;
   color: var(--color-text-muted);
   padding: 0;
-  transition: background 0.1s, color 0.1s;
+  transition:
+    background 0.1s,
+    color 0.1s;
 }
 
 .noteDeleteBtn:hover {

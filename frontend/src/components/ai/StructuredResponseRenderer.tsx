@@ -52,14 +52,12 @@ function renderValue(
 ) {
   if (value === undefined || value === null) return null;
 
-  const applyBtn = config.applyable && onApply ? (
-    <button
-      className={styles.applyBtn}
-      onClick={() => onApply(config.key, value)}
-    >
-      {typeof applyLabel === "function" ? applyLabel(config.key) : (applyLabel ?? "Apply")}
-    </button>
-  ) : null;
+  const applyBtn =
+    config.applyable && onApply ? (
+      <button className={styles.applyBtn} onClick={() => onApply(config.key, value)}>
+        {typeof applyLabel === "function" ? applyLabel(config.key) : (applyLabel ?? "Apply")}
+      </button>
+    ) : null;
 
   if (config.type === "text") {
     return (
@@ -76,7 +74,9 @@ function renderValue(
       <div className={styles.sectionBody}>
         <ul className={styles.listValue}>
           {items.map((item, i) => (
-            <li key={i} className={styles.listItem}>{String(item)}</li>
+            <li key={i} className={styles.listItem}>
+              {String(item)}
+            </li>
           ))}
         </ul>
         {applyBtn}
@@ -92,8 +92,10 @@ function renderValue(
       <div className={styles.sectionBody}>
         <div className={styles.sublistValue}>
           {items.map((item, i) => {
-            const label = typeof item === "object" && item !== null ? (item as Record<string, unknown>)[lf] : item;
-            const desc = typeof item === "object" && item !== null ? (item as Record<string, unknown>)[df] : null;
+            const label =
+              typeof item === "object" && item !== null ? (item as Record<string, unknown>)[lf] : item;
+            const desc =
+              typeof item === "object" && item !== null ? (item as Record<string, unknown>)[df] : null;
             return (
               <div key={i} className={styles.sublistItem}>
                 <span className={styles.sublistLabel}>{String(label ?? "")}</span>
@@ -139,7 +141,11 @@ function renderSection(
   const Icon = config.icon;
 
   return (
-    <div key={config.key} className={styles.section} style={{ "--section-color": config.color } as React.CSSProperties}>
+    <div
+      key={config.key}
+      className={styles.section}
+      style={{ "--section-color": config.color } as React.CSSProperties}
+    >
       <div className={styles.sectionHeader}>
         <Icon size={13} className={styles.sectionIcon} />
         <span className={styles.sectionLabel}>{config.label}</span>
@@ -156,7 +162,9 @@ function renderSection(
         ((value as Record<string, unknown>).details as unknown[]).length > 0 && (
           <ul className={styles.detailsList}>
             {((value as Record<string, unknown>).details as unknown[]).map((d, i) => (
-              <li key={i} className={styles.detailsItem}>{String(d)}</li>
+              <li key={i} className={styles.detailsItem}>
+                {String(d)}
+              </li>
             ))}
           </ul>
         )}
@@ -188,9 +196,7 @@ export default function StructuredResponseRenderer({ result, schema, onApply, ap
   return (
     <div className={styles.root}>
       <FallbackWarning message="Response couldn't be parsed as structured output." />
-      {result.raw_text && (
-        <div className={styles.rawText}>{result.raw_text}</div>
-      )}
+      {result.raw_text && <div className={styles.rawText}>{result.raw_text}</div>}
     </div>
   );
 }

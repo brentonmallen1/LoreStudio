@@ -30,7 +30,8 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
   function handleRun() {
     setLoading(true);
     setError(null);
-    api.suggestCompTitles(storyId)
+    api
+      .suggestCompTitles(storyId)
       .then((res: StructuredResult) => {
         if (!res.success || !res.data) {
           setError(res.raw_text ?? "Analysis failed.");
@@ -59,7 +60,8 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           <div className={styles.intro}>
             <BookOpen size={20} className={styles.introIcon} />
             <p className={styles.introText}>
-              Suggest published books similar to yours in genre, tone, and themes — for use in query letters and pitch materials.
+              Suggest published books similar to yours in genre, tone, and themes — for use in query letters
+              and pitch materials.
             </p>
             <button className={styles.runBtn} onClick={handleRun}>
               <Compass size={13} />
@@ -79,7 +81,9 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           <div className={styles.errorState}>
             <AlertTriangle size={16} className={styles.errorIcon} />
             <span>{error}</span>
-            <button className={styles.retryBtn} onClick={handleRun}>Try again</button>
+            <button className={styles.retryBtn} onClick={handleRun}>
+              Try again
+            </button>
           </div>
         )}
 
@@ -99,7 +103,9 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
                   <p className={styles.reasoning}>{s.reasoning}</p>
                   <div className={styles.aspects}>
                     {s.similarity_aspects.map((a) => (
-                      <span key={a} className={styles.aspect}>{a}</span>
+                      <span key={a} className={styles.aspect}>
+                        {a}
+                      </span>
                     ))}
                   </div>
                 </div>

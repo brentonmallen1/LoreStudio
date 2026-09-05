@@ -10,45 +10,45 @@ Six features, all structured JSON output, all following the "guide not co-author
 - Travel Analysis         — journey considerations for a specific route
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.location import Location
+from ..models.calendar import Calendar
 from ..models.culture import Culture
 from ..models.historical_event import HistoricalEvent
-from ..models.world_system import WorldSystem
-from ..models.calendar import Calendar
+from ..models.location import Location
 from ..models.location_travel import LocationTravel
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.worldbuilding_context import (
-    build_location_context,
-    build_culture_context,
-    build_event_context,
-    build_system_context,
-    build_calendar_context,
-    build_travel_context,
+from ..models.story import Story
+from ..models.user import User
+from ..models.world_system import WorldSystem
+from ..schemas.ai_responses import (
+    CalendarSuggestionsResponse,
+    CultureElementSuggestionsResponse,
+    HistoricalImplicationsResponse,
+    LocationElementSuggestionsResponse,
+    LocationExistenceResponse,
+    StructuredResult,
+    SystemAnalysisResponse,
+    TravelAnalysisResponse,
 )
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.worldbuilding import (
-    build_location_existence_prompt,
+    build_calendar_suggestion_prompt,
     build_element_suggestion_prompt,
     build_historical_implication_prompt,
+    build_location_existence_prompt,
     build_system_analysis_prompt,
-    build_calendar_suggestion_prompt,
     build_travel_analysis_prompt,
 )
-from ..schemas.ai_responses import (
-    LocationExistenceResponse,
-    CultureElementSuggestionsResponse,
-    LocationElementSuggestionsResponse,
-    HistoricalImplicationsResponse,
-    SystemAnalysisResponse,
-    CalendarSuggestionsResponse,
-    TravelAnalysisResponse,
-    StructuredResult,
+from ..services.worldbuilding_context import (
+    build_calendar_context,
+    build_culture_context,
+    build_event_context,
+    build_location_context,
+    build_system_context,
+    build_travel_context,
 )
 
 router = APIRouter()
@@ -169,7 +169,9 @@ async def historical_implications(
 
     event_ctx = build_event_context(event, story, db)
     feature_prompt = build_historical_implication_prompt(event_ctx)
-    llm_messages = [{"role": "user", "content": f"Help me think through the present-day implications of '{event.name}'."}]
+    llm_messages = [
+        {"role": "user", "content": f"Help me think through the present-day implications of '{event.name}'."}
+    ]
 
     ctx = AICallContext(
         feature="historical-implications",

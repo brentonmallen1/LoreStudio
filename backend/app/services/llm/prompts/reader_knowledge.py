@@ -11,14 +11,11 @@ def build_reader_knowledge_scan_prompt(
     scenes: list[dict],
     existing_events: list[dict],
 ) -> str:
-    scenes_text = "\n".join(
-        f"- [{s['id']}] {s['title']}: {s.get('synopsis', '')}" for s in scenes
-    )
+    scenes_text = "\n".join(f"- [{s['id']}] {s['title']}: {s.get('synopsis', '')}" for s in scenes)
     existing_text = ""
     if existing_events:
         existing_text = "\n\nAlready logged events (do not duplicate):\n" + "\n".join(
-            f"- {e['subject']} ({e['knowledge_type']}) at node {e.get('node_id', 'unlinked')}"
-            for e in existing_events
+            f"- {e['subject']} ({e['knowledge_type']}) at node {e.get('node_id', 'unlinked')}" for e in existing_events
         )
 
     return f"""Story: "{story_title}"

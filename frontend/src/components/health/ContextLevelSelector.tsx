@@ -50,9 +50,9 @@ export function ContextLevelSelector({ value, onChange }: Props) {
         <div className={styles.warning}>
           <AlertTriangle size={12} />
           <span>
-            Full Manuscript requires a model with a large context window (128K+ tokens) and
-            sufficient hardware. The analysis may fail if your model cannot handle the full text.
-            If it fails, try <strong>With Summaries</strong> instead.
+            Full Manuscript requires a model with a large context window (128K+ tokens) and sufficient
+            hardware. The analysis may fail if your model cannot handle the full text. If it fails, try{" "}
+            <strong>With Summaries</strong> instead.
           </span>
         </div>
       )}

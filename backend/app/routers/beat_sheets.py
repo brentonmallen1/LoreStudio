@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.beat_sheet import BeatSheet
 from ..models.user import User
-from ..schemas.beat_sheet import BeatSheetOut, BeatSheetCreate, BeatSheetUpdate
-from ..auth.dependencies import get_current_user
+from ..schemas.beat_sheet import BeatSheetCreate, BeatSheetOut, BeatSheetUpdate
 
 router = APIRouter()
 

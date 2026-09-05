@@ -11,9 +11,11 @@ export function TabActivityIndicator({ status }: TabActivityIndicatorProps) {
     <span
       className={`${styles.led} ${styles[status]}`}
       title={
-        status === "streaming" ? "AI response in progress…"
-        : status === "unviewed" ? "New AI response"
-        : "AI request failed"
+        status === "streaming"
+          ? "AI response in progress…"
+          : status === "unviewed"
+            ? "New AI response"
+            : "AI request failed"
       }
     />
   );

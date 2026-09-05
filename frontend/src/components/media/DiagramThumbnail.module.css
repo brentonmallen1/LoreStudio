@@ -9,7 +9,9 @@
   cursor: pointer;
   text-align: left;
   width: 100%;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .card:hover {
@@ -73,4 +75,6 @@
   transition: opacity 0.15s;
 }
 
-.card:hover .openIcon { opacity: 1; }
+.card:hover .openIcon {
+  opacity: 1;
+}

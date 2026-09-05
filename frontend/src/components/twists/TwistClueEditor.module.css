@@ -118,7 +118,9 @@
   border: none;
   cursor: pointer;
   color: var(--color-text-subtle);
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -166,7 +168,9 @@
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 0.3rem;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .removeBtn:hover {

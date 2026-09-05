@@ -8,7 +8,8 @@ import styles from "./SnowflakeLayerEditor.module.css";
 const LAYER_META: Record<string, { goal: string; placeholder: string; prevLabel?: string }> = {
   sentence: {
     goal: "~25 words. No character names — use roles. Hint at conflict and what makes the story unique.",
-    placeholder: "A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
+    placeholder:
+      "A lighthouse keeper on a remote island discovers something unexpected when a stranger arrives during a storm.",
   },
   paragraph: {
     goal: "Five sentences: (1) protagonist in their world, (2) first disaster, (3) second disaster, (4) third disaster, (5) how it ends.",
@@ -26,7 +27,8 @@ const LAYER_META: Record<string, { goal: string; placeholder: string; prevLabel?
   },
   character_synopsis: {
     goal: "Tell this character's full story in first person (I). Their truth as they lived it — where they began emotionally, what happened, where they ended.",
-    placeholder: "I have kept the light burning every night for twenty years, because that was the promise I made…",
+    placeholder:
+      "I have kept the light burning every night for twenty years, because that was the promise I made…",
     prevLabel: "Character summary",
   },
 };
@@ -41,17 +43,28 @@ interface Props {
   onClose: () => void;
 }
 
-export default function SnowflakeLayerEditor({ storyId, layer, value, prevContent, character, onSave, onClose }: Props) {
+export default function SnowflakeLayerEditor({
+  storyId,
+  layer,
+  value,
+  prevContent,
+  character,
+  onSave,
+  onClose,
+}: Props) {
   const [text, setText] = useState(value);
   const [showGuidance, setShowGuidance] = useState(false);
   const [prevExpanded, setPrevExpanded] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const meta = LAYER_META[layer] ?? { goal: "", placeholder: "" };
 
-  const scheduleAutoSave = useCallback((val: string) => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => onSave(val), 600);
-  }, [onSave]);
+  const scheduleAutoSave = useCallback(
+    (val: string) => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => onSave(val), 600);
+    },
+    [onSave],
+  );
 
   function handleChange(val: string) {
     setText(val);
@@ -65,16 +78,11 @@ export default function SnowflakeLayerEditor({ storyId, layer, value, prevConten
       {/* Prev layer reference */}
       {prevContent && meta.prevLabel && (
         <div className={styles.prevWrap}>
-          <button
-            className={styles.prevToggle}
-            onClick={() => setPrevExpanded((e) => !e)}
-          >
+          <button className={styles.prevToggle} onClick={() => setPrevExpanded((e) => !e)}>
             {prevExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
             <span>{meta.prevLabel}</span>
           </button>
-          {prevExpanded && (
-            <div className={styles.prevContent}>{prevContent}</div>
-          )}
+          {prevExpanded && <div className={styles.prevContent}>{prevContent}</div>}
         </div>
       )}
 
@@ -91,7 +99,9 @@ export default function SnowflakeLayerEditor({ storyId, layer, value, prevConten
       />
 
       <div className={styles.footer}>
-        <span className={styles.wordCount}>{wordCount} {wordCount === 1 ? "word" : "words"}</span>
+        <span className={styles.wordCount}>
+          {wordCount} {wordCount === 1 ? "word" : "words"}
+        </span>
         <div className={styles.footerActions}>
           <button
             className={styles.guidanceBtn}
@@ -101,7 +111,13 @@ export default function SnowflakeLayerEditor({ storyId, layer, value, prevConten
             <Compass size={13} />
             {showGuidance ? "Hide guidance" : "Get guidance"}
           </button>
-          <button className={styles.doneBtn} onClick={() => { onSave(text); onClose(); }}>
+          <button
+            className={styles.doneBtn}
+            onClick={() => {
+              onSave(text);
+              onClose();
+            }}
+          >
             Done
           </button>
         </div>

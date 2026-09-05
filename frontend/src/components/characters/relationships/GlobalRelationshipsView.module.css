@@ -52,7 +52,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -277,7 +279,10 @@
   color: var(--color-text-muted);
   cursor: pointer;
   opacity: 0;
-  transition: opacity var(--transition), background var(--transition), color var(--transition);
+  transition:
+    opacity var(--transition),
+    background var(--transition),
+    color var(--transition);
   flex-shrink: 0;
 }
 

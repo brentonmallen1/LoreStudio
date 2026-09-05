@@ -1,6 +1,25 @@
 import { useState, useRef, useEffect } from "react";
 import { Compass, X, RefreshCw } from "lucide-react";
-import { Home, Leaf, Users, HelpCircle, Bug, Type, Star, Palette, Landmark, BookOpen, Shield, AlertCircle, Lightbulb, AlertTriangle, PartyPopper, Sun, Clock, Navigation } from "lucide-react";
+import {
+  Home,
+  Leaf,
+  Users,
+  HelpCircle,
+  Bug,
+  Type,
+  Star,
+  Palette,
+  Landmark,
+  BookOpen,
+  Shield,
+  AlertCircle,
+  Lightbulb,
+  AlertTriangle,
+  PartyPopper,
+  Sun,
+  Clock,
+  Navigation,
+} from "lucide-react";
 import { useUIStore } from "../../stores/uiStore";
 import type { WorldBuildingAIContext } from "../../stores/uiStore";
 import { api } from "../../api/client";
@@ -20,10 +39,34 @@ const FEATURE_CONFIGS: Record<WorldBuildingAIContext["feature"], FeatureConfig> 
     title: "Brainstorm What Exists",
     subtitle: "Generates: Built Environment · Natural Environment · Cultural Presence · Questions",
     schema: [
-      { key: "built_environment",  label: "Built Environment",  icon: Home,       color: "var(--color-accent)",   type: "list" },
-      { key: "natural_environment", label: "Natural Environment", icon: Leaf,       color: "var(--segment-beat)",   type: "list" },
-      { key: "cultural_presence",   label: "Cultural Presence",   icon: Users,      color: "var(--segment-part)",   type: "list" },
-      { key: "questions",           label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)",     type: "list" },
+      {
+        key: "built_environment",
+        label: "Built Environment",
+        icon: Home,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "natural_environment",
+        label: "Natural Environment",
+        icon: Leaf,
+        color: "var(--segment-beat)",
+        type: "list",
+      },
+      {
+        key: "cultural_presence",
+        label: "Cultural Presence",
+        icon: Users,
+        color: "var(--segment-part)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.analyzeLocationExistence(ctx.storyId, ctx.entityId),
   },
@@ -31,10 +74,34 @@ const FEATURE_CONFIGS: Record<WorldBuildingAIContext["feature"], FeatureConfig> 
     title: "Suggest Location Elements",
     subtitle: "Generates: Creature Ideas · Flora Ideas · Naming Patterns · Questions",
     schema: [
-      { key: "creature_directions", label: "Creature & Wildlife Directions", icon: Bug,        color: "var(--segment-beat)",   type: "list" },
-      { key: "flora_directions",    label: "Flora & Environment Directions", icon: Leaf,       color: "var(--color-accent)",   type: "list" },
-      { key: "naming_directions",   label: "Naming Directions",              icon: Type,       color: "var(--color-warning)",  type: "list" },
-      { key: "questions",           label: "Questions to Consider",          icon: HelpCircle, color: "var(--color-ai)",       type: "list" },
+      {
+        key: "creature_directions",
+        label: "Creature & Wildlife Directions",
+        icon: Bug,
+        color: "var(--segment-beat)",
+        type: "list",
+      },
+      {
+        key: "flora_directions",
+        label: "Flora & Environment Directions",
+        icon: Leaf,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "naming_directions",
+        label: "Naming Directions",
+        icon: Type,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.suggestWorldElements(ctx.storyId, "location", ctx.entityId),
   },
@@ -42,54 +109,175 @@ const FEATURE_CONFIGS: Record<WorldBuildingAIContext["feature"], FeatureConfig> 
     title: "Suggest Cultural Elements",
     subtitle: "Generates: Naming Patterns · Rituals & Customs · Aesthetics · Questions",
     schema: [
-      { key: "naming_directions",   label: "Naming Directions",              icon: Type,       color: "var(--color-accent)",   type: "list" },
-      { key: "ritual_directions",   label: "Ritual & Custom Directions",     icon: Star,       color: "var(--segment-part)",   type: "list" },
-      { key: "aesthetic_directions", label: "Aesthetic & Material Directions", icon: Palette,  color: "var(--color-warning)",  type: "list" },
-      { key: "questions",           label: "Questions to Consider",          icon: HelpCircle, color: "var(--color-ai)",       type: "list" },
+      {
+        key: "naming_directions",
+        label: "Naming Directions",
+        icon: Type,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "ritual_directions",
+        label: "Ritual & Custom Directions",
+        icon: Star,
+        color: "var(--segment-part)",
+        type: "list",
+      },
+      {
+        key: "aesthetic_directions",
+        label: "Aesthetic & Material Directions",
+        icon: Palette,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.suggestWorldElements(ctx.storyId, "culture", ctx.entityId),
   },
-  "implications": {
+  implications: {
     title: "Trace Present-Day Effects",
     subtitle: "Generates: Physical Remnants · Cultural Legacy · Political Effects · Questions",
     schema: [
-      { key: "physical_remnants",  label: "Physical Remnants",  icon: Landmark,   color: "var(--color-accent)",   type: "list" },
-      { key: "cultural_legacy",    label: "Cultural Legacy",    icon: BookOpen,   color: "var(--segment-part)",   type: "list" },
-      { key: "political_effects",  label: "Political Effects",  icon: Shield,     color: "var(--color-warning)",  type: "list" },
-      { key: "questions",          label: "Questions to Consider", icon: HelpCircle, color: "var(--color-ai)",    type: "list" },
+      {
+        key: "physical_remnants",
+        label: "Physical Remnants",
+        icon: Landmark,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "cultural_legacy",
+        label: "Cultural Legacy",
+        icon: BookOpen,
+        color: "var(--segment-part)",
+        type: "list",
+      },
+      {
+        key: "political_effects",
+        label: "Political Effects",
+        icon: Shield,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.analyzeHistoricalImplications(ctx.storyId, ctx.entityId),
   },
-  "system": {
+  system: {
     title: "Analyze Edge Cases",
     subtitle: "Generates: Edge Cases · Story Implications · Consistency Questions",
     schema: [
-      { key: "edge_cases",            label: "Edge Cases",              icon: AlertCircle,  color: "var(--color-accent)",  type: "list" },
-      { key: "story_implications",    label: "Story Implications",      icon: Lightbulb,    color: "var(--segment-part)",  type: "list" },
-      { key: "consistency_questions", label: "Consistency Questions",   icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
-      { key: "questions",             label: "Questions to Consider",   icon: HelpCircle,   color: "var(--color-ai)",      type: "list" },
+      {
+        key: "edge_cases",
+        label: "Edge Cases",
+        icon: AlertCircle,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "story_implications",
+        label: "Story Implications",
+        icon: Lightbulb,
+        color: "var(--segment-part)",
+        type: "list",
+      },
+      {
+        key: "consistency_questions",
+        label: "Consistency Questions",
+        icon: AlertTriangle,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.analyzeWorldSystem(ctx.storyId, ctx.entityId),
   },
-  "calendar": {
+  calendar: {
     title: "Suggest Special Days",
     subtitle: "Generates: Festivals · Seasonal Events · Historical Observances · Questions",
     schema: [
-      { key: "festivals",              label: "Festivals & Celebrations",  icon: PartyPopper, color: "var(--color-accent)",  type: "list" },
-      { key: "seasonal_events",        label: "Seasonal Events",           icon: Sun,         color: "var(--segment-part)",  type: "list" },
-      { key: "historical_observances", label: "Historical Observances",    icon: Clock,       color: "var(--color-warning)", type: "list" },
-      { key: "questions",              label: "Questions to Consider",     icon: HelpCircle,  color: "var(--color-ai)",      type: "list" },
+      {
+        key: "festivals",
+        label: "Festivals & Celebrations",
+        icon: PartyPopper,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "seasonal_events",
+        label: "Seasonal Events",
+        icon: Sun,
+        color: "var(--segment-part)",
+        type: "list",
+      },
+      {
+        key: "historical_observances",
+        label: "Historical Observances",
+        icon: Clock,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--color-ai)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.suggestCalendarEvents(ctx.storyId, ctx.entityId),
   },
-  "travel": {
+  travel: {
     title: "Analyze Route",
-    subtitle: "Generates: Journey Considerations · Hazards & Challenges · Narrative Possibilities · Questions",
+    subtitle:
+      "Generates: Journey Considerations · Hazards & Challenges · Narrative Possibilities · Questions",
     schema: [
-      { key: "journey_considerations",  label: "Journey Considerations",   icon: Navigation,    color: "var(--color-accent)",  type: "list" },
-      { key: "hazards_and_challenges",  label: "Hazards & Challenges",     icon: AlertTriangle, color: "var(--color-warning)", type: "list" },
-      { key: "narrative_possibilities", label: "Narrative Possibilities",  icon: BookOpen,      color: "var(--color-ai)",      type: "list" },
-      { key: "questions",               label: "Questions to Consider",    icon: HelpCircle,    color: "var(--segment-part)",  type: "list" },
+      {
+        key: "journey_considerations",
+        label: "Journey Considerations",
+        icon: Navigation,
+        color: "var(--color-accent)",
+        type: "list",
+      },
+      {
+        key: "hazards_and_challenges",
+        label: "Hazards & Challenges",
+        icon: AlertTriangle,
+        color: "var(--color-warning)",
+        type: "list",
+      },
+      {
+        key: "narrative_possibilities",
+        label: "Narrative Possibilities",
+        icon: BookOpen,
+        color: "var(--color-ai)",
+        type: "list",
+      },
+      {
+        key: "questions",
+        label: "Questions to Consider",
+        icon: HelpCircle,
+        color: "var(--segment-part)",
+        type: "list",
+      },
     ],
     call: (ctx) => api.analyzeTravelRoute(ctx.storyId, ctx.entityId),
   },
@@ -195,9 +383,7 @@ export default function WorldBuildingAIPanel() {
           </div>
         )}
         {error && <div className={styles.error}>⚠ {error}</div>}
-        {!generating && result && (
-          <StructuredResponseRenderer result={result} schema={config.schema} />
-        )}
+        {!generating && result && <StructuredResponseRenderer result={result} schema={config.schema} />}
       </div>
     </div>
   );

@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { Compass, Tag, Loader, ChevronLeft, ChevronRight, CheckSquare, Square, Zap, BrainCircuit, User, AlertCircle } from "lucide-react";
+import {
+  Compass,
+  Tag,
+  Loader,
+  ChevronLeft,
+  ChevronRight,
+  CheckSquare,
+  Square,
+  Zap,
+  BrainCircuit,
+  User,
+  AlertCircle,
+} from "lucide-react";
 import { api } from "../../api/client";
 import type { BatchSuggestResponse, ProposedDialogueTag, SceneWithDialogueProposals } from "../../types";
 import styles from "./AutoTagPanel.module.css";
@@ -9,8 +21,8 @@ const AUTO_CONFIDENCE_THRESHOLD = 0.7;
 interface Props {
   mode: "character" | "story";
   storyId: string;
-  characterId?: string;    // required when mode="character"
-  characterName?: string;  // display label for mode="character"
+  characterId?: string; // required when mode="character"
+  characterName?: string; // display label for mode="character"
   characterNames?: string[];
   onApplied?: () => void;
 }
@@ -19,7 +31,7 @@ function ConfidenceDots({ value }: { value: number }) {
   const level = value >= 0.8 ? 3 : value >= 0.5 ? 2 : 1;
   return (
     <span className={styles.confidence} title={`Confidence: ${Math.round(value * 100)}%`}>
-      {[1, 2, 3].map(i => (
+      {[1, 2, 3].map((i) => (
         <span key={i} className={`${styles.dot} ${i <= level ? styles.dotFilled : ""}`} />
       ))}
     </span>
@@ -37,7 +49,9 @@ function SpeakerInput({ value, characterNames, onChange }: SpeakerInputProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const filtered = value.trim()
-    ? characterNames.filter(n => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase())
+    ? characterNames.filter(
+        (n) => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase(),
+      )
     : characterNames;
 
   useEffect(() => {
@@ -53,17 +67,24 @@ function SpeakerInput({ value, characterNames, onChange }: SpeakerInputProps) {
       <input
         className={styles.speakerInput}
         value={value}
-        onChange={e => { onChange(e.target.value); setOpen(true); }}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
         onFocus={() => setOpen(true)}
         placeholder="Speaker…"
       />
       {open && filtered.length > 0 && (
         <div className={styles.speakerDropdown}>
-          {filtered.map(name => (
+          {filtered.map((name) => (
             <button
               key={name}
               className={styles.speakerOption}
-              onPointerDown={e => { e.preventDefault(); onChange(name); setOpen(false); }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                onChange(name);
+                setOpen(false);
+              }}
             >
               {name}
             </button>
@@ -74,7 +95,14 @@ function SpeakerInput({ value, characterNames, onChange }: SpeakerInputProps) {
   );
 }
 
-export default function AutoTagPanel({ mode, storyId, characterId, characterName, characterNames = [], onApplied }: Props) {
+export default function AutoTagPanel({
+  mode,
+  storyId,
+  characterId,
+  characterName,
+  characterNames = [],
+  onApplied,
+}: Props) {
   const [scanning, setScanning] = useState(false);
   const [applying, setApplying] = useState(false);
   const [aiRefining, setAiRefining] = useState(false);
@@ -86,9 +114,10 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
   async function scan() {
     setScanning(true);
     try {
-      const result = mode === "character" && characterId
-        ? await api.suggestDialogueTagsForCharacter(characterId)
-        : await api.suggestDialogueTagsStoryWide(storyId);
+      const result =
+        mode === "character" && characterId
+          ? await api.suggestDialogueTagsForCharacter(characterId)
+          : await api.suggestDialogueTagsStoryWide(storyId);
       setData(result);
       setSceneIndex(0);
       // In character mode pre-select all proposals (already filtered to this character).
@@ -97,7 +126,7 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
       const preSelected: Record<string, Set<string>> = {};
       for (const scene of result.scenes) {
         preSelected[scene.scene_id] = new Set(
-          scene.proposals.filter(p => p.confidence >= scanThreshold).map(p => p.id)
+          scene.proposals.filter((p) => p.confidence >= scanThreshold).map((p) => p.id),
         );
       }
       setSelected(preSelected);
@@ -115,26 +144,27 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
     try {
       const aiProposals = await api.aiSuggestDialogueSpeakers(currentScene.scene_id);
       // Filter to this character if in character mode
-      const filtered = mode === "character" && characterName
-        ? aiProposals.filter(p => p.inferred_speaker?.toLowerCase() === characterName.toLowerCase())
-        : aiProposals;
+      const filtered =
+        mode === "character" && characterName
+          ? aiProposals.filter((p) => p.inferred_speaker?.toLowerCase() === characterName.toLowerCase())
+          : aiProposals;
 
-      setData(prev => {
+      setData((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          scenes: prev.scenes.map(s =>
-            s.scene_id === currentScene.scene_id
-              ? { ...s, proposals: filtered }
-              : s
+          scenes: prev.scenes.map((s) =>
+            s.scene_id === currentScene.scene_id ? { ...s, proposals: filtered } : s,
           ),
           total_proposals: prev.total_proposals - currentScene.proposals.length + filtered.length,
         };
       });
       // Pre-select AI high-confidence ones for this scene
-      setSelected(prev => ({
+      setSelected((prev) => ({
         ...prev,
-        [currentScene.scene_id]: new Set(filtered.filter(p => p.confidence >= AUTO_CONFIDENCE_THRESHOLD).map(p => p.id)),
+        [currentScene.scene_id]: new Set(
+          filtered.filter((p) => p.confidence >= AUTO_CONFIDENCE_THRESHOLD).map((p) => p.id),
+        ),
       }));
     } catch {
       // ignore
@@ -147,12 +177,14 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
     if (!data) return;
     setApplying(true);
     try {
-      const scenes = data.scenes.map(scene => ({
-        scene_id: scene.scene_id,
-        tags: scene.proposals
-          .filter(p => p.confidence >= autoThreshold && resolvedSpeaker(p))
-          .map(p => ({ quote_content: p.quote_content, speaker_name: resolvedSpeaker(p)! })),
-      })).filter(s => s.tags.length > 0);
+      const scenes = data.scenes
+        .map((scene) => ({
+          scene_id: scene.scene_id,
+          tags: scene.proposals
+            .filter((p) => p.confidence >= autoThreshold && resolvedSpeaker(p))
+            .map((p) => ({ quote_content: p.quote_content, speaker_name: resolvedSpeaker(p)! })),
+        }))
+        .filter((s) => s.tags.length > 0);
 
       if (scenes.length) await api.applyDialogueTagsBatch(storyId, scenes);
       onApplied?.();
@@ -167,14 +199,14 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
     setApplying(true);
     try {
       const scenes = data.scenes
-        .filter(s => selected[s.scene_id]?.size)
-        .map(scene => ({
+        .filter((s) => selected[s.scene_id]?.size)
+        .map((scene) => ({
           scene_id: scene.scene_id,
           tags: scene.proposals
-            .filter(p => selected[scene.scene_id]?.has(p.id) && resolvedSpeaker(p))
-            .map(p => ({ quote_content: p.quote_content, speaker_name: resolvedSpeaker(p)! })),
+            .filter((p) => selected[scene.scene_id]?.has(p.id) && resolvedSpeaker(p))
+            .map((p) => ({ quote_content: p.quote_content, speaker_name: resolvedSpeaker(p)! })),
         }))
-        .filter(s => s.tags.length > 0);
+        .filter((s) => s.tags.length > 0);
 
       if (scenes.length) await api.applyDialogueTagsBatch(storyId, scenes);
       onApplied?.();
@@ -196,14 +228,14 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
   function toggleAll(scene: SceneWithDialogueProposals) {
     const sceneSet = selected[scene.scene_id] ?? new Set<string>();
     const allSelected = sceneSet.size === scene.proposals.length;
-    setSelected(prev => ({
+    setSelected((prev) => ({
       ...prev,
-      [scene.scene_id]: allSelected ? new Set() : new Set(scene.proposals.map(p => p.id)),
+      [scene.scene_id]: allSelected ? new Set() : new Set(scene.proposals.map((p) => p.id)),
     }));
   }
 
   function toggleOne(scene: SceneWithDialogueProposals, proposal: ProposedDialogueTag) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = { ...prev };
       const sceneSet = new Set(next[scene.scene_id] ?? []);
       if (sceneSet.has(proposal.id)) sceneSet.delete(proposal.id);
@@ -220,8 +252,11 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
   const currentScene = data?.scenes[sceneIndex];
   const totalSelected = Object.values(selected).reduce((sum, s) => sum + s.size, 0);
   const autoCount = data
-    ? data.scenes.reduce((sum, s) =>
-        sum + s.proposals.filter(p => p.confidence >= autoThreshold && resolvedSpeaker(p)).length, 0)
+    ? data.scenes.reduce(
+        (sum, s) =>
+          sum + s.proposals.filter((p) => p.confidence >= autoThreshold && resolvedSpeaker(p)).length,
+        0,
+      )
     : 0;
 
   return (
@@ -260,18 +295,21 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
           <div className={styles.sceneNav}>
             <button
               className={styles.navBtn}
-              onClick={() => setSceneIndex(i => i - 1)}
+              onClick={() => setSceneIndex((i) => i - 1)}
               disabled={sceneIndex === 0}
             >
               <ChevronLeft size={13} />
             </button>
             <span className={styles.sceneTitle}>
               {currentScene.scene_title}
-              <span className={styles.sceneCounter}> ({sceneIndex + 1}/{data.scenes.length})</span>
+              <span className={styles.sceneCounter}>
+                {" "}
+                ({sceneIndex + 1}/{data.scenes.length})
+              </span>
             </span>
             <button
               className={styles.navBtn}
-              onClick={() => setSceneIndex(i => i + 1)}
+              onClick={() => setSceneIndex((i) => i + 1)}
               disabled={sceneIndex === data.scenes.length - 1}
             >
               <ChevronRight size={13} />
@@ -293,40 +331,33 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
                 ? `Quotes likely spoken by ${characterName}`
                 : "Select quotes to tag"}
             </span>
-            <button
-              className={styles.selectAllBtn}
-              onClick={() => toggleAll(currentScene)}
-            >
+            <button className={styles.selectAllBtn} onClick={() => toggleAll(currentScene)}>
               {(selected[currentScene.scene_id]?.size ?? 0) === currentScene.proposals.length ? (
-                <><CheckSquare size={11} /> Deselect all</>
+                <>
+                  <CheckSquare size={11} /> Deselect all
+                </>
               ) : (
-                <><Square size={11} /> Select all</>
+                <>
+                  <Square size={11} /> Select all
+                </>
               )}
             </button>
           </div>
 
           <div className={styles.proposals}>
-            {currentScene.proposals.map(p => {
+            {currentScene.proposals.map((p) => {
               const isSelected = selected[currentScene.scene_id]?.has(p.id) ?? false;
               const speaker = resolvedSpeaker(p);
               return (
-                <div
-                  key={p.id}
-                  className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
-                >
+                <div key={p.id} className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}>
                   <div className={styles.cardTop}>
-                    <button
-                      className={styles.checkbox}
-                      onClick={() => toggleOne(currentScene, p)}
-                    >
+                    <button className={styles.checkbox} onClick={() => toggleOne(currentScene, p)}>
                       {isSelected ? <CheckSquare size={13} /> : <Square size={13} />}
                     </button>
                     <blockquote className={styles.quote}>"{p.quote_content}"</blockquote>
                     <ConfidenceDots value={p.confidence} />
                   </div>
-                  {p.source_excerpt && (
-                    <p className={styles.excerpt}>{p.source_excerpt}</p>
-                  )}
+                  {p.source_excerpt && <p className={styles.excerpt}>{p.source_excerpt}</p>}
                   <div className={styles.cardBottom}>
                     <User size={11} className={styles.speakerIcon} />
                     {mode === "character" && characterName ? (
@@ -335,7 +366,7 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
                       <SpeakerInput
                         value={editedSpeakers[p.id] ?? p.inferred_speaker ?? ""}
                         characterNames={characterNames}
-                        onChange={val => setEditedSpeakers(prev => ({ ...prev, [p.id]: val }))}
+                        onChange={(val) => setEditedSpeakers((prev) => ({ ...prev, [p.id]: val }))}
                       />
                     )}
                     {!speaker && (
@@ -351,11 +382,7 @@ export default function AutoTagPanel({ mode, storyId, characterId, characterName
 
           {totalSelected > 0 && (
             <div className={styles.applyRow}>
-              <button
-                onClick={applySelected}
-                disabled={applying || scanning}
-                className={styles.applyBtn}
-              >
+              <button onClick={applySelected} disabled={applying || scanning} className={styles.applyBtn}>
                 <Tag size={12} />
                 {applying ? "Applying…" : `Apply selected (${totalSelected})`}
               </button>

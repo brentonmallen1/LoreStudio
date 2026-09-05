@@ -1,25 +1,24 @@
 import base64
-import os
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse, StreamingResponse
+from pydantic import BaseModel as PydanticBase
 from sqlalchemy.orm import Session
 
-from ..config import settings
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.media import StoryAsset, AssetAttachment
-from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentOut
 from ..auth.dependencies import get_current_user
 from ..auth.utils import decode_token
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..config import settings
+from ..database import get_db
+from ..models.media import AssetAttachment, StoryAsset
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.user import User
+from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentOut
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.character_from_image import CHARACTER_FROM_IMAGE_SYSTEM, CHARACTER_FROM_IMAGE_USER
 from ..services.llm.prompts.scene_atmosphere import SCENE_ATMOSPHERE_SYSTEM, build_scene_atmosphere_prompt
-from ..models.structure import StructureNode
-from pydantic import BaseModel as PydanticBase
 
 router = APIRouter()
 
@@ -49,6 +48,7 @@ def _verify_asset_access(asset_id: str, db: Session, user: User) -> StoryAsset:
 
 
 # --- Upload ---
+
 
 @router.post("/stories/{story_id}/media/upload", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
 async def upload_asset(
@@ -94,6 +94,7 @@ async def upload_asset(
 
 
 # --- List / Get ---
+
 
 @router.get("/stories/{story_id}/media", response_model=list[AssetOut])
 def list_assets(
@@ -141,6 +142,7 @@ def serve_asset_file(
 
 # --- Update / Delete ---
 
+
 @router.patch("/media/{asset_id}", response_model=AssetOut)
 def update_asset(
     asset_id: str,
@@ -171,6 +173,7 @@ def delete_asset(
 
 
 # --- Attachments ---
+
 
 @router.get("/media/attachments/{object_type}/{object_id}", response_model=list[AttachmentOut])
 def list_attachments(
@@ -235,6 +238,7 @@ def delete_attachment(
 
 
 # --- AI Image Analysis ---
+
 
 @router.post("/media/{asset_id}/analyze")
 async def analyze_image(
@@ -345,6 +349,7 @@ async def analyze_image_for_character(
 
 
 # --- Scene Atmosphere Analysis ---
+
 
 class SceneAtmosphereRequest(PydanticBase):
     asset_ids: list[str]

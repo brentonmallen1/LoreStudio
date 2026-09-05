@@ -17,18 +17,18 @@ import uuid
 
 from .text_utils import html_to_text as _html_to_text
 
-
 # ---------------------------------------------------------------------------
 # Core logic
 # ---------------------------------------------------------------------------
+
 
 def _already_linked(text: str, name: str, entity_type: str) -> bool:
     """Return True if `name` is already linked in the plain text."""
     escaped = re.escape(name)
     if entity_type == "character":
-        return bool(re.search(rf'@{escaped}\b', text))
+        return bool(re.search(rf"@{escaped}\b", text))
     else:
-        return bool(re.search(rf'\[\[{re.escape(name)}\]\]', text, re.IGNORECASE))
+        return bool(re.search(rf"\[\[{re.escape(name)}\]\]", text, re.IGNORECASE))
 
 
 def _build_proposals(plain: str, characters: list, locations: list) -> list[dict]:
@@ -55,7 +55,7 @@ def _build_proposals(plain: str, characters: list, locations: list) -> list[dict
 
             escaped = re.escape(variant)
             # Find unlinked occurrences: not preceded by @, not inside [[...]]
-            for m in re.finditer(rf'(?<!@)\b({escaped})\b(?!\]\])', plain):
+            for m in re.finditer(rf"(?<!@)\b({escaped})\b(?!\]\])", plain):
                 # Skip if inside an existing @mention or [[...]]
                 start = m.start()
                 excerpt_start = max(0, start - 30)
@@ -68,16 +68,18 @@ def _build_proposals(plain: str, characters: list, locations: list) -> list[dict
 
                 confidence = 1.0 if variant == full_name else 0.75
 
-                proposals.append({
-                    "id": str(uuid.uuid4()),
-                    "entity_type": "character",
-                    "entity_id": char.id,
-                    "entity_name": full_name,
-                    "matched_text": variant,
-                    "text_start": start,
-                    "confidence": round(confidence, 2),
-                    "source_excerpt": excerpt,
-                })
+                proposals.append(
+                    {
+                        "id": str(uuid.uuid4()),
+                        "entity_type": "character",
+                        "entity_id": char.id,
+                        "entity_name": full_name,
+                        "matched_text": variant,
+                        "text_start": start,
+                        "confidence": round(confidence, 2),
+                        "source_excerpt": excerpt,
+                    }
+                )
                 break  # one proposal per variant per character
 
     # Locations → [[Name]] links
@@ -90,7 +92,7 @@ def _build_proposals(plain: str, characters: list, locations: list) -> list[dict
             continue
 
         escaped = re.escape(full_name)
-        for m in re.finditer(rf'(?<!\[\[)\b({escaped})\b(?!\]\])', plain, re.IGNORECASE):
+        for m in re.finditer(rf"(?<!\[\[)\b({escaped})\b(?!\]\])", plain, re.IGNORECASE):
             start = m.start()
             excerpt_start = max(0, start - 30)
             excerpt_end = min(len(plain), start + len(full_name) + 30)
@@ -100,16 +102,18 @@ def _build_proposals(plain: str, characters: list, locations: list) -> list[dict
             if excerpt_end < len(plain):
                 excerpt = excerpt + "…"
 
-            proposals.append({
-                "id": str(uuid.uuid4()),
-                "entity_type": "location",
-                "entity_id": loc.id,
-                "entity_name": full_name,
-                "matched_text": m.group(1),
-                "text_start": start,
-                "confidence": 1.0,
-                "source_excerpt": excerpt,
-            })
+            proposals.append(
+                {
+                    "id": str(uuid.uuid4()),
+                    "entity_type": "location",
+                    "entity_id": loc.id,
+                    "entity_name": full_name,
+                    "matched_text": m.group(1),
+                    "text_start": start,
+                    "confidence": 1.0,
+                    "source_excerpt": excerpt,
+                }
+            )
             break  # one proposal per location
 
     # Sort by position in text
@@ -172,7 +176,7 @@ def apply_entity_links(
             replacement = f"@{name}"
             # Replace first unlinked occurrence (not already preceded by @)
             content = re.sub(
-                rf'(?<!@)\b{escaped}\b',
+                rf"(?<!@)\b{escaped}\b",
                 replacement,
                 content,
                 count=1,
@@ -180,7 +184,7 @@ def apply_entity_links(
         else:
             replacement = f"[[{name}]]"
             content = re.sub(
-                rf'(?<!\[\[)\b{escaped}\b(?!\]\])',
+                rf"(?<!\[\[)\b{escaped}\b(?!\]\])",
                 replacement,
                 content,
                 count=1,

@@ -43,9 +43,15 @@
   transition: width 400ms ease;
 }
 
-.barNormal    { background: var(--color-accent); }
-.barApproaching { background: var(--color-warning); }
-.barExceeded  { background: var(--color-danger); }
+.barNormal {
+  background: var(--color-accent);
+}
+.barApproaching {
+  background: var(--color-warning);
+}
+.barExceeded {
+  background: var(--color-danger);
+}
 
 /* Soft ceiling marker (dashed vertical line) */
 .softMarker {

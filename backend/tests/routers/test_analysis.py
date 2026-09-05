@@ -7,14 +7,13 @@ POST /api/stories/{id}/analyze/show-dont-tell      — show don't tell
 """
 
 import uuid
-import pytest
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.models.character import Character
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.models.character import Character
-from app.models.plot_thread import PlotThread
 from tests.fixtures.ai_fixtures import (
     SAMPLE_ECONOMY_ANALYSIS,
     SAMPLE_ESSENTIAL_QUESTIONS,
@@ -60,9 +59,7 @@ def _character(story_id: str, name: str = "Maya") -> Character:
 
 
 class TestEconomyAnalysis:
-    def test_returns_analysis_on_success(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_analysis_on_success(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_ECONOMY_ANALYSIS)
         story = _story(test_user.id)
         scene = _scene(story.id)
@@ -109,9 +106,7 @@ class TestEconomyAnalysis:
 
 
 class TestEssentialQuestionsAnalysis:
-    def test_returns_analysis(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_analysis(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_ESSENTIAL_QUESTIONS)
         story = _story(test_user.id)
         char = _character(story.id)
@@ -125,9 +120,7 @@ class TestEssentialQuestionsAnalysis:
         assert data["success"] is True
         assert "protagonist" in data["data"]
 
-    def test_returns_422_when_no_characters(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_422_when_no_characters(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         """The endpoint requires at least one character to analyze."""
         mock_ai_gateway(structured_data=SAMPLE_ESSENTIAL_QUESTIONS)
         story = _story(test_user.id)
@@ -156,9 +149,7 @@ class TestShowDontTellAnalysis:
         assert data["success"] is True
         assert "instances" in data["data"]
 
-    def test_returns_instances_with_node_id(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_instances_with_node_id(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_SHOW_DONT_TELL)
         story = _story(test_user.id)
         scene = _scene(story.id, content="She was very angry. He felt sad.")

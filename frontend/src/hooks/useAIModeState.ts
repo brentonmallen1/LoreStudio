@@ -27,7 +27,8 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
     }
     if (_fetchingCtxLimit) return;
     _fetchingCtxLimit = true;
-    api.ollamaModelInfo()
+    api
+      .ollamaModelInfo()
       .then((info) => {
         const limit = info.context_length ?? CTX_LIMIT_FALLBACK;
         _cachedCtxLimit = limit;
@@ -41,9 +42,7 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
       });
   }, []);
 
-  const historyTokens = Math.round(
-    session.messages.reduce((sum, m) => sum + m.content.length, 0) / 4
-  );
+  const historyTokens = Math.round(session.messages.reduce((sum, m) => sum + m.content.length, 0) / 4);
   const systemTokens = contextBreakdown?.system_prompt ?? 0;
   const contextTokens = contextBreakdown?.context ?? 0;
   const estimatedTokens = historyTokens + systemTokens + contextTokens;
@@ -62,9 +61,12 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
     : `~${historyTokens.toLocaleString()} / ${ctxLimit.toLocaleString()} tokens (history only)`;
 
   return {
-    input, setInput,
-    sessionParams, setSessionParams,
-    showSettings, setShowSettings,
+    input,
+    setInput,
+    sessionParams,
+    setSessionParams,
+    showSettings,
+    setShowSettings,
     lastUserMsg,
     lastResponse,
     transparency,

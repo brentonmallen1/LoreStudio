@@ -53,7 +53,9 @@
   font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .guidesBtn:hover {
@@ -91,7 +93,9 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -119,7 +123,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .modeBtn:not(:last-child) {
@@ -150,7 +156,9 @@
   font-size: 0.78rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .addBeatBtn:hover {
@@ -246,7 +254,9 @@
   background: none;
   width: 100%;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .addRootRow:hover {
@@ -302,7 +312,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   white-space: nowrap;
 }
 
@@ -332,7 +344,9 @@
   transition: opacity var(--transition);
 }
 
-.bulkTextBtn:hover { opacity: 0.75; }
+.bulkTextBtn:hover {
+  opacity: 0.75;
+}
 
 .bulkCloseBtn {
   display: flex;
@@ -346,7 +360,9 @@
   border-radius: var(--radius-sm);
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .bulkCloseBtn:hover {
@@ -376,7 +392,9 @@
   scrollbar-width: none;
 }
 
-.tabs::-webkit-scrollbar { display: none; }
+.tabs::-webkit-scrollbar {
+  display: none;
+}
 
 .tab {
   display: flex;
@@ -391,7 +409,9 @@
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--transition), border-color var(--transition);
+  transition:
+    color var(--transition),
+    border-color var(--transition);
   margin-bottom: -1px;
   position: relative;
 }
@@ -423,7 +443,10 @@
   cursor: pointer;
   padding: 0;
   opacity: 0;
-  transition: opacity var(--transition), background var(--transition), color var(--transition);
+  transition:
+    opacity var(--transition),
+    background var(--transition),
+    color var(--transition);
 }
 
 .tab:hover .tabRenameBtn,
@@ -496,7 +519,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
   margin-left: 0.25rem;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .addTabBtn:hover {
@@ -531,7 +556,9 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .addTabMenuItem:hover {
@@ -567,7 +594,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
   flex-shrink: 0;
 }
 
@@ -587,7 +616,9 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .alignmentBtn:hover {
@@ -616,7 +647,10 @@
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .selectBtn:hover {
@@ -646,7 +680,9 @@
   color: var(--color-text-subtle);
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .infoBtn:hover {
@@ -663,13 +699,28 @@
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
-  transition: transform var(--transition), border-color var(--transition);
+  transition:
+    transform var(--transition),
+    border-color var(--transition);
 }
 
-.bulkDot:hover { transform: scale(1.4); }
+.bulkDot:hover {
+  transform: scale(1.4);
+}
 
-.dot_plot      { background: var(--segment-scene); }
-.dot_character { background: var(--color-ai); }
-.dot_theme     { background: var(--color-warning); }
-.dot_setting   { background: var(--color-success); }
-.dot_none      { background: var(--color-border); border-color: var(--color-border-light); }
+.dot_plot {
+  background: var(--segment-scene);
+}
+.dot_character {
+  background: var(--color-ai);
+}
+.dot_theme {
+  background: var(--color-warning);
+}
+.dot_setting {
+  background: var(--color-success);
+}
+.dot_none {
+  background: var(--color-border);
+  border-color: var(--color-border-light);
+}

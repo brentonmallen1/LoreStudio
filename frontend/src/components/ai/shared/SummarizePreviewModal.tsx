@@ -35,7 +35,8 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
     // Send all messages except the ones we'll keep
     const toSummarize = messages.slice(0, Math.max(0, messages.length - keepRecent));
 
-    api.summarizeConversation(toSummarize, storyId, ctrl.signal)
+    api
+      .summarizeConversation(toSummarize, storyId, ctrl.signal)
       .then(async (res) => {
         if (!res.ok || !res.body) {
           setError("Failed to generate summary.");
@@ -82,11 +83,7 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
       <button className={styles.cancelBtn} onClick={handleClose}>
         Cancel
       </button>
-      <button
-        className={styles.applyBtn}
-        onClick={handleApply}
-        disabled={!summary.trim() || streaming}
-      >
+      <button className={styles.applyBtn} onClick={handleApply} disabled={!summary.trim() || streaming}>
         Apply Summary
       </button>
     </div>
@@ -116,7 +113,9 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
             onChange={(e) => setKeepRecent(Number(e.target.value))}
           >
             {[0, 2, 4, 6, 8].map((n) => (
-              <option key={n} value={n}>{n === 0 ? "None" : `${n} messages`}</option>
+              <option key={n} value={n}>
+                {n === 0 ? "None" : `${n} messages`}
+              </option>
             ))}
           </select>
         </div>

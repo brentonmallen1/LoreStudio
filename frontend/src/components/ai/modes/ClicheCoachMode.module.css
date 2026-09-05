@@ -43,7 +43,10 @@
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .chip:hover {

@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -74,6 +75,7 @@ class StructureNodeOut(BaseModel):
 
 class StructureNodeMeta(BaseModel):
     """Lightweight node schema for tree/sidebar — excludes content and content_summary prose."""
+
     id: str
     story_id: str
     parent_id: str | None

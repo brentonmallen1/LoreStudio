@@ -1,7 +1,6 @@
 """Tests for word count status logic."""
 
-import pytest
-from app.services.word_count import get_word_count_status, WORD_COUNT_RANGES
+from app.services.word_count import WORD_COUNT_RANGES, get_word_count_status
 
 
 def test_normal_status():

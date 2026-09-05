@@ -7,13 +7,13 @@ POST /api/scenes/{scene_id}/dialogue/refresh       — re-extract dialogue block
 """
 
 import uuid
-import pytest
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.models.character import Character
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.models.character import Character
 from tests.fixtures.ai_fixtures import SAMPLE_DIALOGUE_ATTRIBUTION
 
 
@@ -40,15 +40,12 @@ def _character(story_id: str, name: str = "Maya") -> Character:
 
 
 SCENE_CONTENT = (
-    '<p>"Hello there," she said. Maya stepped into the room.</p>'
-    '<p>"Who are you?" he asked. Levi frowned.</p>'
+    '<p>"Hello there," she said. Maya stepped into the room.</p><p>"Who are you?" he asked. Levi frowned.</p>'
 )
 
 
 class TestAISuggestDialogue:
-    def test_returns_proposals_on_success(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_proposals_on_success(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_DIALOGUE_ATTRIBUTION)
         story = _story(test_user.id)
         char = _character(story.id, name="Maya")
@@ -63,9 +60,7 @@ class TestAISuggestDialogue:
         # At least the mock suggestion snapped to an actual quote
         assert len(proposals) >= 0  # may be 0 if quote text doesn't match scene
 
-    def test_returns_empty_for_empty_scene(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_empty_for_empty_scene(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_DIALOGUE_ATTRIBUTION)
         story = _story(test_user.id)
         scene = _scene(story.id, content="")
@@ -76,9 +71,7 @@ class TestAISuggestDialogue:
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_returns_empty_when_ai_fails(
-        self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
-    ):
+    def test_returns_empty_when_ai_fails(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(should_fail=True)
         story = _story(test_user.id)
         scene = _scene(story.id, content=SCENE_CONTENT)
@@ -102,9 +95,7 @@ class TestAISuggestDialogue:
         response = client.post(f"/api/scenes/{scene.id}/dialogue/ai-suggest")
         assert response.status_code == 200
 
-    def test_returns_404_for_unknown_scene(
-        self, client: TestClient, mock_ai_gateway
-    ):
+    def test_returns_404_for_unknown_scene(self, client: TestClient, mock_ai_gateway):
         mock_ai_gateway()
         response = client.post("/api/scenes/does-not-exist/dialogue/ai-suggest")
         assert response.status_code == 404
@@ -156,9 +147,7 @@ class TestAISuggestDialogue:
 
 
 class TestHeuristicSuggestTags:
-    def test_returns_proposals_for_scene_with_dialogue(
-        self, client: TestClient, db_session: Session, test_user
-    ):
+    def test_returns_proposals_for_scene_with_dialogue(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         char = _character(story.id, name="Levi")
         scene = _scene(story.id, content='<p>"I can\'t do this," Levi whispered.</p>')
@@ -169,9 +158,7 @@ class TestHeuristicSuggestTags:
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
-    def test_returns_empty_for_empty_scene(
-        self, client: TestClient, db_session: Session, test_user
-    ):
+    def test_returns_empty_for_empty_scene(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         scene = _scene(story.id, content="")
         db_session.add_all([story, scene])
@@ -183,9 +170,7 @@ class TestHeuristicSuggestTags:
 
 
 class TestRefreshDialogue:
-    def test_refresh_extracts_blocks(
-        self, client: TestClient, db_session: Session, test_user
-    ):
+    def test_refresh_extracts_blocks(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         char = _character(story.id, name="Maya")
         scene = _scene(story.id, content='<p>"Hello,"<Maya> she said.</p>')
@@ -196,9 +181,7 @@ class TestRefreshDialogue:
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
-    def test_refresh_returns_empty_for_empty_content(
-        self, client: TestClient, db_session: Session, test_user
-    ):
+    def test_refresh_returns_empty_for_empty_content(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         scene = _scene(story.id, content="")
         db_session.add_all([story, scene])

@@ -54,11 +54,7 @@ export default function NarrativePurposeTags({ value, onChange, error }: Props) 
           </span>
         ))}
         <div className={styles.addWrapper}>
-          <button
-            className={styles.addBtn}
-            type="button"
-            onClick={() => setShowDropdown((v) => !v)}
-          >
+          <button className={styles.addBtn} type="button" onClick={() => setShowDropdown((v) => !v)}>
             + Add purpose
           </button>
           {showDropdown && (
@@ -77,7 +73,12 @@ export default function NarrativePurposeTags({ value, onChange, error }: Props) 
                   onKeyDown={(e) => e.key === "Enter" && add(custom)}
                   autoFocus
                 />
-                <button className={styles.customAdd} type="button" onClick={() => add(custom)} disabled={!custom.trim()}>
+                <button
+                  className={styles.customAdd}
+                  type="button"
+                  onClick={() => add(custom)}
+                  disabled={!custom.trim()}
+                >
                   Add
                 </button>
               </div>

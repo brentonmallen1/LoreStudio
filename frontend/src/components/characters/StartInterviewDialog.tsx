@@ -27,7 +27,12 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   const [starting, setStarting] = useState(false);
   const flatNodes = flattenNodes(structure);
 
-  const { stream: streamRefresh, cancel: cancelRefresh, text: refreshStreamText, isStreaming: refreshing } = useLLMStream({
+  const {
+    stream: streamRefresh,
+    cancel: cancelRefresh,
+    text: refreshStreamText,
+    isStreaming: refreshing,
+  } = useLLMStream({
     requestId: `journey-refresh:${character.id}:${contextNodeId}`,
     label: "Refreshing journey context",
     tabId: "characters",
@@ -39,14 +44,18 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
 
   function loadJourney(nodeId: string) {
     setLoadingJourney(true);
-    api.getCharacterJourney(character.id, nodeId)
+    api
+      .getCharacterJourney(character.id, nodeId)
       .then(setJourney)
       .catch(() => setJourney(null))
       .finally(() => setLoadingJourney(false));
   }
 
   useEffect(() => {
-    if (!contextNodeId) { setJourney(null); return; }
+    if (!contextNodeId) {
+      setJourney(null);
+      return;
+    }
     loadJourney(contextNodeId);
   }, [contextNodeId]);
 
@@ -73,17 +82,15 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
     !journey || !journey.summary
       ? styles.indicatorNone
       : journey.is_stale
-      ? styles.indicatorStale
-      : styles.indicatorFresh;
+        ? styles.indicatorStale
+        : styles.indicatorFresh;
 
   const footer = (
     <>
-      <button onClick={onClose} className={styles.cancelBtn}>Cancel</button>
-      <button
-        onClick={handleStart}
-        disabled={starting}
-        className={styles.startBtn}
-      >
+      <button onClick={onClose} className={styles.cancelBtn}>
+        Cancel
+      </button>
+      <button onClick={handleStart} disabled={starting} className={styles.startBtn}>
         <MessageSquare size={13} />
         {starting ? "Starting…" : "Start Interview"}
       </button>
@@ -103,8 +110,8 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
         <div className={styles.field}>
           <label className={styles.label}>Story point (optional)</label>
           <p className={styles.hint}>
-            Interview this character at a specific moment in the story — they'll respond
-            with awareness of everything they've experienced up to that point.
+            Interview this character at a specific moment in the story — they'll respond with awareness of
+            everything they've experienced up to that point.
           </p>
           <select
             value={contextNodeId}
@@ -114,7 +121,8 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
             <option value="">No story context — timeless interview</option>
             {flatNodes.map((n) => (
               <option key={n.id} value={n.id}>
-                {"  ".repeat(n.level)}{n.title}
+                {"  ".repeat(n.level)}
+                {n.title}
               </option>
             ))}
           </select>
@@ -155,7 +163,9 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                 )}
 
                 {refreshing && refreshStreamText ? (
-                  <p className={styles.journeyText} style={{ fontStyle: "italic" }}>{refreshStreamText}</p>
+                  <p className={styles.journeyText} style={{ fontStyle: "italic" }}>
+                    {refreshStreamText}
+                  </p>
                 ) : journey.summary ? (
                   <p className={styles.journeyText}>{journey.summary}</p>
                 ) : journey.scene_count === 0 ? (
@@ -165,16 +175,22 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                       <button
                         type="button"
                         className={styles.generateLink}
-                        onClick={() => { onClose(); navigate(`/stories/${activeStory.id}/health`); }}
+                        onClick={() => {
+                          onClose();
+                          navigate(`/stories/${activeStory.id}/health`);
+                        }}
                       >
                         Generate scene summaries <ExternalLink size={10} />
                       </button>
-                    ) : "Generate scene summaries"}{" "}
+                    ) : (
+                      "Generate scene summaries"
+                    )}{" "}
                     to enable context-aware interviews.
                   </p>
                 ) : (
                   <p className={styles.journeyHint}>
-                    Journey not yet generated. Click Refresh to build context from {journey.scene_count} scene{journey.scene_count !== 1 ? "s" : ""}.
+                    Journey not yet generated. Click Refresh to build context from {journey.scene_count} scene
+                    {journey.scene_count !== 1 ? "s" : ""}.
                   </p>
                 )}
               </>

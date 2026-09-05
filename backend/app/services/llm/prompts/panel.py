@@ -8,11 +8,11 @@ and a history labeled by speaker so each character knows exactly who said what.
 
 from ....models.character import Character, CharacterRelationship
 from .interviews import (
-    _build_attribute_guidance,
-    _ROLE_GUIDANCE,
     _CHARACTER_TYPE_GUIDANCE,
     _JUNGIAN_GUIDANCE,
     _NARRATIVE_GUIDANCE,
+    _ROLE_GUIDANCE,
+    _build_attribute_guidance,
     _normalise,
 )
 
@@ -208,8 +208,7 @@ def build_panel_character_prompt(
         "You may use a single bracketed action cue when it captures something words genuinely can't: "
         "a hesitation, a physical tell, a moment of emotion. Think of it as punctuation, not decoration. "
         "Aim for no more than one every several exchanges, and never more than one per response. "
-        "Default to just speaking."
-        + length_instruction + "\n\n"
+        "Default to just speaking." + length_instruction + "\n\n"
         "If you truly have nothing meaningful to add to this moment, respond with exactly: [pass]\n\n"
         "Stay in character. Do not acknowledge that you are an AI."
     )

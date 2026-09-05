@@ -1,11 +1,11 @@
 export const WORD_COUNT_RANGES: Record<string, { min: number | null; max: number | null; label: string }> = {
-  flash_fiction: { min: 0,      max: 1_000,   label: "Flash Fiction" },
-  short_story:   { min: 1_000,  max: 7_500,   label: "Short Story" },
-  novelette:     { min: 7_500,  max: 17_500,  label: "Novelette" },
-  novella:       { min: 17_500, max: 40_000,  label: "Novella" },
-  novel:         { min: 40_000, max: 100_000, label: "Novel" },
-  epic_saga:     { min: 100_000,max: null,    label: "Epic / Saga" },
-  series:        { min: null,   max: null,    label: "Series" },
+  flash_fiction: { min: 0, max: 1_000, label: "Flash Fiction" },
+  short_story: { min: 1_000, max: 7_500, label: "Short Story" },
+  novelette: { min: 7_500, max: 17_500, label: "Novelette" },
+  novella: { min: 17_500, max: 40_000, label: "Novella" },
+  novel: { min: 40_000, max: 100_000, label: "Novel" },
+  epic_saga: { min: 100_000, max: null, label: "Epic / Saga" },
+  series: { min: null, max: null, label: "Series" },
 };
 
 /** Given the current word count, return the label of the form it falls into. */

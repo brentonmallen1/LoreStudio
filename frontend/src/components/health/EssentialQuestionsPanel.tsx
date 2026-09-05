@@ -92,9 +92,7 @@ export default function EssentialQuestionsPanel({ storyId, characters }: Props) 
             <Compass size={13} className={styles.icon} />
             <div>
               <h3 className={styles.title}>Story Compass</h3>
-              <p className={styles.subtitle}>
-                AI check of the 6 essential questions for a protagonist
-              </p>
+              <p className={styles.subtitle}>AI check of the 6 essential questions for a protagonist</p>
             </div>
           </div>
           <div className={styles.headerRight}>
@@ -122,20 +120,29 @@ export default function EssentialQuestionsPanel({ storyId, characters }: Props) 
             <select
               className={styles.charSelect}
               value={selectedId}
-              onChange={(e) => { setSelectedId(e.target.value); setResult(null); }}
+              onChange={(e) => {
+                setSelectedId(e.target.value);
+                setResult(null);
+              }}
             >
               {protagonists.length > 0 && (
                 <optgroup label="Protagonist(s)">
                   {protagonists.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
                   ))}
                 </optgroup>
               )}
               {characters.filter((c) => c.role !== "protagonist").length > 0 && (
                 <optgroup label="Other Characters">
-                  {characters.filter((c) => c.role !== "protagonist").map((c) => (
-                    <option key={c.id} value={c.id}>{c.name} ({c.role})</option>
-                  ))}
+                  {characters
+                    .filter((c) => c.role !== "protagonist")
+                    .map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.role})
+                      </option>
+                    ))}
                 </optgroup>
               )}
             </select>
@@ -146,8 +153,8 @@ export default function EssentialQuestionsPanel({ storyId, characters }: Props) 
 
         {!generating && !result && (
           <p className={styles.hint}>
-            Checks whether a reader could answer each essential question about your protagonist from
-            the story and character data you've defined so far.
+            Checks whether a reader could answer each essential question about your protagonist from the story
+            and character data you've defined so far.
           </p>
         )}
 
@@ -180,9 +187,7 @@ export default function EssentialQuestionsPanel({ storyId, characters }: Props) 
                         {STATUS_LABEL[q.status] ?? q.status}
                       </span>
                     </div>
-                    {q.evidence && (
-                      <p className={styles.evidence}>{q.evidence}</p>
-                    )}
+                    {q.evidence && <p className={styles.evidence}>{q.evidence}</p>}
                     {q.status !== "clear" && q.recommendation && (
                       <p className={styles.recommendation}>{q.recommendation}</p>
                     )}

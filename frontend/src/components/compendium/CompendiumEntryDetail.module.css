@@ -52,7 +52,9 @@
   background: transparent;
   color: var(--color-text-subtle);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .iconBtn:hover {
@@ -111,9 +113,15 @@
   margin-top: 3px;
 }
 
-.iconNote { color: #7c6f5a; }
-.iconUrl  { color: #4a7c8c; }
-.iconDoc  { color: #7a5c7c; }
+.iconNote {
+  color: #7c6f5a;
+}
+.iconUrl {
+  color: #4a7c8c;
+}
+.iconDoc {
+  color: #7a5c7c;
+}
 
 .title {
   font-size: 1.35rem;
@@ -249,7 +257,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {

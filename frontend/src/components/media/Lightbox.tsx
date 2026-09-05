@@ -15,11 +15,14 @@ export default function Lightbox({ url, alt, filename, onClose, onPrev, onNext }
   const [loaded, setLoaded] = useState(false);
   const [zoomed, setZoomed] = useState(false);
 
-  const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
-    if (e.key === "ArrowLeft") onPrev?.();
-    if (e.key === "ArrowRight") onNext?.();
-  }, [onClose, onPrev, onNext]);
+  const handleKey = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") onPrev?.();
+      if (e.key === "ArrowRight") onNext?.();
+    },
+    [onClose, onPrev, onNext],
+  );
 
   useEffect(() => {
     setLoaded(false);

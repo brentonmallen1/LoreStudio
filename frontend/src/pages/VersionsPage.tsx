@@ -1,9 +1,23 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
-  History, Plus, List, GitBranch, Settings, ChevronDown,
-  Download, Upload, Trash2, RotateCcw, GitCompare, Loader2, AlertCircle,
-  Circle, CheckCircle2, X, ChevronUp,
+  History,
+  Plus,
+  List,
+  GitBranch,
+  Settings,
+  ChevronDown,
+  Download,
+  Upload,
+  Trash2,
+  RotateCcw,
+  GitCompare,
+  Loader2,
+  AlertCircle,
+  Circle,
+  CheckCircle2,
+  X,
+  ChevronUp,
 } from "lucide-react";
 import { api } from "../api/client";
 import type { StorySnapshot, BackupSettings, SnapshotDiff, SnapshotDeltaSummary } from "../types";
@@ -28,8 +42,11 @@ function relativeTime(iso: string): string {
 
 function formatAbsoluteDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
-    month: "short", day: "numeric", year: "numeric",
-    hour: "numeric", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -42,9 +59,12 @@ function DeltaSummaryLine({ d }: { d: SnapshotDeltaSummary }) {
   const parts: string[] = [];
   if (d.scenes_added > 0) parts.push(`+${d.scenes_added} scene${d.scenes_added !== 1 ? "s" : ""}`);
   if (d.scenes_removed > 0) parts.push(`-${d.scenes_removed} scene${d.scenes_removed !== 1 ? "s" : ""}`);
-  if (d.scenes_modified > 0) parts.push(`${d.scenes_modified} scene${d.scenes_modified !== 1 ? "s" : ""} modified`);
-  if (d.characters_added > 0) parts.push(`+${d.characters_added} character${d.characters_added !== 1 ? "s" : ""}`);
-  if (d.characters_modified > 0) parts.push(`${d.characters_modified} character${d.characters_modified !== 1 ? "s" : ""} modified`);
+  if (d.scenes_modified > 0)
+    parts.push(`${d.scenes_modified} scene${d.scenes_modified !== 1 ? "s" : ""} modified`);
+  if (d.characters_added > 0)
+    parts.push(`+${d.characters_added} character${d.characters_added !== 1 ? "s" : ""}`);
+  if (d.characters_modified > 0)
+    parts.push(`${d.characters_modified} character${d.characters_modified !== 1 ? "s" : ""} modified`);
   if (d.threads_added > 0) parts.push(`+${d.threads_added} thread${d.threads_added !== 1 ? "s" : ""}`);
   const wc = formatDelta(d.word_count_delta);
   if (wc) parts.unshift(`${wc} words`);
@@ -84,15 +104,13 @@ function RestoreDialog({
           </div>
         )}
         <label className={styles.dialogCheckbox}>
-          <input
-            type="checkbox"
-            checked={safetyBackup}
-            onChange={(e) => setSafetyBackup(e.target.checked)}
-          />
+          <input type="checkbox" checked={safetyBackup} onChange={(e) => setSafetyBackup(e.target.checked)} />
           <span>Create a backup of current state first</span>
         </label>
         <div className={styles.dialogActions}>
-          <button className={styles.dialogCancel} onClick={onCancel}>Cancel</button>
+          <button className={styles.dialogCancel} onClick={onCancel}>
+            Cancel
+          </button>
           <button className={styles.dialogConfirm} onClick={() => onConfirm(safetyBackup)}>
             Restore
           </button>
@@ -117,15 +135,25 @@ function CompareModal({
   snapB: StorySnapshot;
   onClose: () => void;
 }) {
-  function EntitySection({ label, data }: { label: string; data?: { added: unknown[]; removed: unknown[]; modified: unknown[] } }) {
-    if (!data || (data.added.length + data.removed.length + data.modified.length === 0)) return null;
+  function EntitySection({
+    label,
+    data,
+  }: {
+    label: string;
+    data?: { added: unknown[]; removed: unknown[]; modified: unknown[] };
+  }) {
+    if (!data || data.added.length + data.removed.length + data.modified.length === 0) return null;
     return (
       <div className={styles.diffSection}>
         <h4 className={styles.diffSectionTitle}>{label}</h4>
         <div className={styles.diffCounts}>
           {data.added.length > 0 && <span className={styles.diffAdded}>+{data.added.length} added</span>}
-          {data.removed.length > 0 && <span className={styles.diffRemoved}>-{data.removed.length} removed</span>}
-          {data.modified.length > 0 && <span className={styles.diffModified}>{data.modified.length} modified</span>}
+          {data.removed.length > 0 && (
+            <span className={styles.diffRemoved}>-{data.removed.length} removed</span>
+          )}
+          {data.modified.length > 0 && (
+            <span className={styles.diffModified}>{data.modified.length} modified</span>
+          )}
         </div>
       </div>
     );
@@ -137,7 +165,9 @@ function CompareModal({
         <div className={styles.dialogHeader}>
           <GitCompare size={16} />
           <h3 className={styles.dialogTitle}>Comparing versions</h3>
-          <button className={styles.dialogClose} onClick={onClose}><X size={14} /></button>
+          <button className={styles.dialogClose} onClick={onClose}>
+            <X size={14} />
+          </button>
         </div>
         <div className={styles.diffMeta}>
           <div className={styles.diffMetaSnap}>
@@ -152,7 +182,8 @@ function CompareModal({
         </div>
         <div className={styles.diffSummaryRow}>
           <span className={styles.diffWordCount}>
-            {diff.word_count_delta >= 0 ? "+" : ""}{diff.word_count_delta.toLocaleString()} words
+            {diff.word_count_delta >= 0 ? "+" : ""}
+            {diff.word_count_delta.toLocaleString()} words
           </span>
           <span className={styles.diffStat}>
             A: {diff.summary.a.scene_count} scenes, {diff.summary.a.word_count.toLocaleString()} words
@@ -173,7 +204,9 @@ function CompareModal({
           <EntitySection label="Outline Items" data={diff.outline_items} />
         </div>
         <div className={styles.dialogActions}>
-          <button className={styles.dialogCancel} onClick={onClose}>Close</button>
+          <button className={styles.dialogCancel} onClick={onClose}>
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -200,21 +233,26 @@ function CreateSnapshotDialog({
         <div className={styles.dialogHeader}>
           <History size={16} />
           <h3 className={styles.dialogTitle}>Create Snapshot</h3>
-          <button className={styles.dialogClose} onClick={onCancel}><X size={14} /></button>
+          <button className={styles.dialogClose} onClick={onCancel}>
+            <X size={14} />
+          </button>
         </div>
-        <p className={styles.dialogBody}>
-          Save the current story state as a named checkpoint.
-        </p>
+        <p className={styles.dialogBody}>Save the current story state as a named checkpoint.</p>
         <input
           className={styles.dialogInput}
           placeholder='Name (optional) e.g. "Before Act 2 restructure"'
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") onConfirm(name); if (e.key === "Escape") onCancel(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onConfirm(name);
+            if (e.key === "Escape") onCancel();
+          }}
           autoFocus
         />
         <div className={styles.dialogActions}>
-          <button className={styles.dialogCancel} onClick={onCancel}>Cancel</button>
+          <button className={styles.dialogCancel} onClick={onCancel}>
+            Cancel
+          </button>
           <button className={styles.dialogConfirm} onClick={() => onConfirm(name)} disabled={loading}>
             {loading ? <Loader2 size={13} className={styles.spinning} /> : null}
             Create Snapshot
@@ -258,43 +296,57 @@ function SnapshotCard({
   }
 
   return (
-    <div className={`${styles.snapCard} ${isNamed ? styles.snapCardNamed : ""} ${compact ? styles.snapCardCompact : ""}`}>
+    <div
+      className={`${styles.snapCard} ${isNamed ? styles.snapCardNamed : ""} ${compact ? styles.snapCardCompact : ""}`}
+    >
       <div className={styles.snapCardHeader}>
         <div className={styles.snapCardLeft}>
-          {isNamed
-            ? <CheckCircle2 size={13} className={styles.snapIconNamed} />
-            : <Circle size={11} className={styles.snapIconAuto} />
-          }
+          {isNamed ? (
+            <CheckCircle2 size={13} className={styles.snapIconNamed} />
+          ) : (
+            <Circle size={11} className={styles.snapIconAuto} />
+          )}
           <div className={styles.snapCardInfo}>
             {editing ? (
               <input
                 className={styles.renameInput}
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") { setEditing(false); setEditName(snapshot.name ?? ""); } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") commitRename();
+                  if (e.key === "Escape") {
+                    setEditing(false);
+                    setEditName(snapshot.name ?? "");
+                  }
+                }}
                 onBlur={commitRename}
                 autoFocus
               />
             ) : (
               <span
                 className={`${styles.snapName} ${isNamed ? styles.snapNameNamed : ""}`}
-                onDoubleClick={() => { setEditing(true); setEditName(snapshot.name ?? ""); }}
+                onDoubleClick={() => {
+                  setEditing(true);
+                  setEditName(snapshot.name ?? "");
+                }}
                 title="Double-click to rename"
               >
                 {snapshot.name ?? (
-                  <span className={styles.snapNameAuto}>
-                    {relativeTime(snapshot.created_at)}
-                  </span>
+                  <span className={styles.snapNameAuto}>{relativeTime(snapshot.created_at)}</span>
                 )}
               </span>
             )}
             {isNamed && (
-              <span className={styles.snapTimestamp}>{relativeTime(snapshot.created_at)} — {formatAbsoluteDate(snapshot.created_at)}</span>
+              <span className={styles.snapTimestamp}>
+                {relativeTime(snapshot.created_at)} — {formatAbsoluteDate(snapshot.created_at)}
+              </span>
             )}
           </div>
         </div>
         <div className={styles.snapCardRight}>
-          <span className={`${styles.triggerBadge} ${snapshot.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}>
+          <span
+            className={`${styles.triggerBadge} ${snapshot.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}
+          >
             {snapshot.trigger === "manual" ? "Manual" : "Auto"}
           </span>
           {snapshot.summary && (
@@ -306,19 +358,41 @@ function SnapshotCard({
             <button className={styles.snapBtn} onClick={() => onExport(snapshot)} title="Download snapshot">
               <Download size={12} />
             </button>
-            <button className={styles.snapBtn} onClick={() => onCompare(snapshot)} title="Compare with another snapshot">
+            <button
+              className={styles.snapBtn}
+              onClick={() => onCompare(snapshot)}
+              title="Compare with another snapshot"
+            >
               <GitCompare size={12} />
             </button>
-            <button className={styles.snapBtn} onClick={() => onRestore(snapshot)} title="Restore to this version">
+            <button
+              className={styles.snapBtn}
+              onClick={() => onRestore(snapshot)}
+              title="Restore to this version"
+            >
               <RotateCcw size={12} />
             </button>
             {pendingDelete ? (
               <div className={styles.deleteConfirm}>
-                <button className={styles.deleteConfirmYes} onClick={() => { setPendingDelete(false); onDelete(snapshot); }}>Delete</button>
-                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>Cancel</button>
+                <button
+                  className={styles.deleteConfirmYes}
+                  onClick={() => {
+                    setPendingDelete(false);
+                    onDelete(snapshot);
+                  }}
+                >
+                  Delete
+                </button>
+                <button className={styles.deleteConfirmNo} onClick={() => setPendingDelete(false)}>
+                  Cancel
+                </button>
               </div>
             ) : (
-              <button className={`${styles.snapBtn} ${styles.snapBtnDanger}`} onClick={() => setPendingDelete(true)} title="Delete snapshot">
+              <button
+                className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
+                onClick={() => setPendingDelete(true)}
+                title="Delete snapshot"
+              >
                 <Trash2 size={12} />
               </button>
             )}
@@ -343,7 +417,7 @@ function SnapshotCard({
               <span key={k} className={styles.changelogDetailItem}>
                 <strong>{k.replace(/_/g, " ")}:</strong> {v > 0 ? `+${v}` : v}
               </span>
-            ) : null
+            ) : null,
           )}
         </div>
       )}
@@ -378,7 +452,9 @@ function GraphView({
             <div className={styles.graphLine}>
               <div className={`${styles.graphDot} ${isNamed ? styles.graphDotNamed : styles.graphDotAuto}`} />
               {!isLast && (
-                <div className={`${styles.graphConnector} ${isNamed ? styles.graphConnectorThick : styles.graphConnectorThin}`} />
+                <div
+                  className={`${styles.graphConnector} ${isNamed ? styles.graphConnectorThick : styles.graphConnectorThin}`}
+                />
               )}
             </div>
             <div className={`${styles.graphCard} ${isNamed ? styles.graphCardNamed : ""}`}>
@@ -386,7 +462,9 @@ function GraphView({
                 <span className={`${styles.snapName} ${isNamed ? styles.snapNameNamed : ""}`}>
                   {snap.name ?? relativeTime(snap.created_at)}
                 </span>
-                <span className={`${styles.triggerBadge} ${snap.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}>
+                <span
+                  className={`${styles.triggerBadge} ${snap.trigger === "manual" ? styles.triggerManual : styles.triggerAuto}`}
+                >
                   {snap.trigger === "manual" ? "Manual" : "Auto"}
                 </span>
               </div>
@@ -399,10 +477,22 @@ function GraphView({
                 </div>
               )}
               <div className={styles.snapActions}>
-                <button className={styles.snapBtn} onClick={() => onExport(snap)} title="Download"><Download size={11} /></button>
-                <button className={styles.snapBtn} onClick={() => onCompare(snap)} title="Compare"><GitCompare size={11} /></button>
-                <button className={styles.snapBtn} onClick={() => onRestore(snap)} title="Restore"><RotateCcw size={11} /></button>
-                <button className={`${styles.snapBtn} ${styles.snapBtnDanger}`} onClick={() => onDelete(snap)} title="Delete"><Trash2 size={11} /></button>
+                <button className={styles.snapBtn} onClick={() => onExport(snap)} title="Download">
+                  <Download size={11} />
+                </button>
+                <button className={styles.snapBtn} onClick={() => onCompare(snap)} title="Compare">
+                  <GitCompare size={11} />
+                </button>
+                <button className={styles.snapBtn} onClick={() => onRestore(snap)} title="Restore">
+                  <RotateCcw size={11} />
+                </button>
+                <button
+                  className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
+                  onClick={() => onDelete(snap)}
+                  title="Delete"
+                >
+                  <Trash2 size={11} />
+                </button>
               </div>
             </div>
           </div>
@@ -574,7 +664,9 @@ function BackupSettingsPanel({
               onChange={(e) => onChange({ interval_minutes: Number(e.target.value) })}
             >
               {INTERVAL_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -587,7 +679,9 @@ function BackupSettingsPanel({
               onChange={(e) => onChange({ max_count: e.target.value ? Number(e.target.value) : null })}
             >
               {MAX_COUNT_OPTIONS.map((o) => (
-                <option key={String(o.value)} value={o.value ?? ""}>{o.label}</option>
+                <option key={String(o.value)} value={o.value ?? ""}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -600,7 +694,9 @@ function BackupSettingsPanel({
               onChange={(e) => onChange({ max_age_days: e.target.value ? Number(e.target.value) : null })}
             >
               {MAX_AGE_OPTIONS.map((o) => (
-                <option key={String(o.value)} value={o.value ?? ""}>{o.label}</option>
+                <option key={String(o.value)} value={o.value ?? ""}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -612,29 +708,41 @@ function BackupSettingsPanel({
 
       <div className={styles.settingsRow}>
         <label className={styles.settingsLabel}>
-          <input type="checkbox" checked={settings.include_diagrams}
-            onChange={(e) => onChange({ include_diagrams: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={settings.include_diagrams}
+            onChange={(e) => onChange({ include_diagrams: e.target.checked })}
+          />
           Diagrams
         </label>
       </div>
       <div className={styles.settingsRow}>
         <label className={styles.settingsLabel}>
-          <input type="checkbox" checked={settings.include_interviews}
-            onChange={(e) => onChange({ include_interviews: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={settings.include_interviews}
+            onChange={(e) => onChange({ include_interviews: e.target.checked })}
+          />
           Character interviews & panel sessions
         </label>
       </div>
       <div className={styles.settingsRow}>
         <label className={styles.settingsLabel}>
-          <input type="checkbox" checked={settings.include_chat_sessions}
-            onChange={(e) => onChange({ include_chat_sessions: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={settings.include_chat_sessions}
+            onChange={(e) => onChange({ include_chat_sessions: e.target.checked })}
+          />
           AI chat sessions
         </label>
       </div>
       <div className={styles.settingsRow}>
         <label className={styles.settingsLabel}>
-          <input type="checkbox" checked={settings.include_activity_logs}
-            onChange={(e) => onChange({ include_activity_logs: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={settings.include_activity_logs}
+            onChange={(e) => onChange({ include_activity_logs: e.target.checked })}
+          />
           Activity logs
         </label>
         {settings.include_activity_logs && (
@@ -643,10 +751,14 @@ function BackupSettingsPanel({
             <select
               className={styles.settingsSelect}
               value={settings.activity_log_limit ?? ""}
-              onChange={(e) => onChange({ activity_log_limit: e.target.value ? Number(e.target.value) : null })}
+              onChange={(e) =>
+                onChange({ activity_log_limit: e.target.value ? Number(e.target.value) : null })
+              }
             >
               {LOG_LIMIT_OPTIONS.map((o) => (
-                <option key={String(o.value)} value={o.value ?? ""}>{o.label}</option>
+                <option key={String(o.value)} value={o.value ?? ""}>
+                  {o.label}
+                </option>
               ))}
             </select>
           </div>
@@ -654,8 +766,11 @@ function BackupSettingsPanel({
       </div>
       <div className={styles.settingsRow}>
         <label className={styles.settingsLabel}>
-          <input type="checkbox" checked={settings.include_media_assets}
-            onChange={(e) => onChange({ include_media_assets: e.target.checked })} />
+          <input
+            type="checkbox"
+            checked={settings.include_media_assets}
+            onChange={(e) => onChange({ include_media_assets: e.target.checked })}
+          />
           Media assets
         </label>
       </div>
@@ -700,10 +815,7 @@ export default function VersionsPage() {
     if (!storyId) return;
     setLoading(true);
     try {
-      const [snaps, cfg] = await Promise.all([
-        api.listSnapshots(storyId),
-        api.getBackupSettings(storyId),
-      ]);
+      const [snaps, cfg] = await Promise.all([api.listSnapshots(storyId), api.getBackupSettings(storyId)]);
       setSnapshots(snaps);
       setSettings(cfg);
     } finally {
@@ -711,7 +823,9 @@ export default function VersionsPage() {
     }
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleCreate(name: string) {
     if (!storyId) return;
@@ -748,13 +862,16 @@ export default function VersionsPage() {
   async function handleRename(snapshot: StorySnapshot, name: string) {
     if (!storyId) return;
     const updated = await api.renameSnapshot(storyId, snapshot.id, name || null);
-    setSnapshots((prev) => prev.map((s) => s.id === snapshot.id ? updated : s));
+    setSnapshots((prev) => prev.map((s) => (s.id === snapshot.id ? updated : s)));
   }
 
   async function handleExport(snapshot: StorySnapshot) {
     if (!storyId) return;
     const res = await api.exportSnapshot(storyId, snapshot.id);
-    if (!res.ok) { showToast("Export failed"); return; }
+    if (!res.ok) {
+      showToast("Export failed");
+      return;
+    }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -803,7 +920,10 @@ export default function VersionsPage() {
     const file = pendingImportFile;
     setPendingImportFile(null);
     const res = await api.importIntoStory(storyId, file, true);
-    if (!res.ok) { showToast("Import failed"); return; }
+    if (!res.ok) {
+      showToast("Import failed");
+      return;
+    }
     showToast("Import complete");
     load();
   }
@@ -811,7 +931,9 @@ export default function VersionsPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <div className={styles.loadingRow}><Loader2 size={16} className={styles.spinning} /> Loading version history…</div>
+        <div className={styles.loadingRow}>
+          <Loader2 size={16} className={styles.spinning} /> Loading version history…
+        </div>
       </div>
     );
   }
@@ -857,7 +979,11 @@ export default function VersionsPage() {
             onChange={handleImport}
             style={{ display: "none" }}
           />
-          <button className={styles.headerBtn} onClick={() => importRef.current?.click()} title="Import from file">
+          <button
+            className={styles.headerBtn}
+            onClick={() => importRef.current?.click()}
+            title="Import from file"
+          >
             <Upload size={14} /> Import
           </button>
           <button
@@ -877,11 +1003,16 @@ export default function VersionsPage() {
       {pendingImportFile && (
         <div className={styles.importConfirm}>
           <span className={styles.importConfirmText}>
-            Import <strong>{pendingImportFile.name}</strong>? The current story state will be saved as a backup first.
+            Import <strong>{pendingImportFile.name}</strong>? The current story state will be saved as a
+            backup first.
           </span>
           <div className={styles.importConfirmActions}>
-            <button className={styles.importConfirmYes} onClick={doImport}>Import</button>
-            <button className={styles.importConfirmNo} onClick={() => setPendingImportFile(null)}>Cancel</button>
+            <button className={styles.importConfirmYes} onClick={doImport}>
+              Import
+            </button>
+            <button className={styles.importConfirmNo} onClick={() => setPendingImportFile(null)}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
@@ -896,7 +1027,10 @@ export default function VersionsPage() {
         <div className={styles.empty}>
           <History size={32} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>No snapshots yet</p>
-          <p className={styles.emptyHint}>Create a manual snapshot to start tracking your story's history. Auto backups will appear here once they run.</p>
+          <p className={styles.emptyHint}>
+            Create a manual snapshot to start tracking your story's history. Auto backups will appear here
+            once they run.
+          </p>
           <button className={styles.createBtn} onClick={() => setDialog({ type: "create" })}>
             <Plus size={14} /> Create First Snapshot
           </button>
@@ -928,8 +1062,13 @@ export default function VersionsPage() {
       {/* Compare-pick mode: highlight selectable snapshots */}
       {dialog.type === "compare-pick" && (
         <div className={styles.comparePickBanner}>
-          <span>Select another snapshot to compare with <strong>{dialog.snapshot.name ?? relativeTime(dialog.snapshot.created_at)}</strong></span>
-          <button className={styles.comparePickCancel} onClick={() => setDialog({ type: "none" })}><X size={14} /></button>
+          <span>
+            Select another snapshot to compare with{" "}
+            <strong>{dialog.snapshot.name ?? relativeTime(dialog.snapshot.created_at)}</strong>
+          </span>
+          <button className={styles.comparePickCancel} onClick={() => setDialog({ type: "none" })}>
+            <X size={14} />
+          </button>
         </div>
       )}
 
@@ -938,12 +1077,20 @@ export default function VersionsPage() {
           <div className={styles.comparePickList}>
             <div className={styles.comparePickHeader}>
               <span>Select a snapshot to compare</span>
-              <button onClick={() => setDialog({ type: "none" })}><X size={14} /></button>
+              <button onClick={() => setDialog({ type: "none" })}>
+                <X size={14} />
+              </button>
             </div>
             {snapshots
-              .filter((s) => s.id !== (dialog as { type: "compare-pick"; snapshot: StorySnapshot }).snapshot.id)
+              .filter(
+                (s) => s.id !== (dialog as { type: "compare-pick"; snapshot: StorySnapshot }).snapshot.id,
+              )
               .map((snap) => (
-                <button key={snap.id} className={styles.comparePickItem} onClick={() => handleComparePick(snap)}>
+                <button
+                  key={snap.id}
+                  className={styles.comparePickItem}
+                  onClick={() => handleComparePick(snap)}
+                >
                   <span className={styles.snapName}>{snap.name ?? relativeTime(snap.created_at)}</span>
                   <span className={styles.snapTimestamp}>{formatAbsoluteDate(snap.created_at)}</span>
                 </button>

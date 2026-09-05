@@ -23,7 +23,9 @@ export default function SummaryOverviewView() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [streamText, setStreamText] = useState("");
-  const [localUpdates, setLocalUpdates] = useState<Record<string, { summary: string; stale: boolean; updatedAt: string | null }>>({});
+  const [localUpdates, setLocalUpdates] = useState<
+    Record<string, { summary: string; stale: boolean; updatedAt: string | null }>
+  >({});
   const [batchRunning, setBatchRunning] = useState(false);
   const [batchResult, setBatchResult] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -129,11 +131,15 @@ export default function SummaryOverviewView() {
           onClick={() => toggleExpand(node.id)}
         >
           <span className={styles.chevron}>
-            {hasChildren
-              ? isExpanded
-                ? <ChevronDown size={12} />
-                : <ChevronRight size={12} />
-              : <span className={styles.chevronPlaceholder} />}
+            {hasChildren ? (
+              isExpanded ? (
+                <ChevronDown size={12} />
+              ) : (
+                <ChevronRight size={12} />
+              )
+            ) : (
+              <span className={styles.chevronPlaceholder} />
+            )}
           </span>
           <span
             className={styles.levelBadge}
@@ -143,43 +149,30 @@ export default function SummaryOverviewView() {
           </span>
           <span className={styles.nodeTitle}>{node.title}</span>
           <span
-            className={
-              !hasSummary
-                ? styles.dotNone
-                : isStale
-                ? styles.dotStale
-                : styles.dotFresh
-            }
+            className={!hasSummary ? styles.dotNone : isStale ? styles.dotStale : styles.dotFresh}
             title={!hasSummary ? "No summary" : isStale ? "Stale" : "Fresh"}
           />
-          {hasSummary && (() => {
-            const updatedAt = update?.updatedAt ?? node.summary_updated_at;
-            return updatedAt ? (
-              <span
-                className={styles.timestamp}
-                title={formatDate(updatedAt)}
-              >
-                {formatRelative(updatedAt)}
-              </span>
-            ) : null;
-          })()}
+          {hasSummary &&
+            (() => {
+              const updatedAt = update?.updatedAt ?? node.summary_updated_at;
+              return updatedAt ? (
+                <span className={styles.timestamp} title={formatDate(updatedAt)}>
+                  {formatRelative(updatedAt)}
+                </span>
+              ) : null;
+            })()}
         </button>
 
         {isExpanded && (
           <>
-            <div
-              className={styles.nodeContent}
-              style={{ paddingLeft: `${depth * 20 + 40}px` }}
-            >
+            <div className={styles.nodeContent} style={{ paddingLeft: `${depth * 20 + 40}px` }}>
               {isGenerating ? (
                 <p className={styles.streamText}>{streamText || "Generating…"}</p>
               ) : hasSummary ? (
                 <p className={styles.summaryText}>{summary}</p>
               ) : (
                 <p className={styles.noSummary}>
-                  {canGenerate
-                    ? "No summary generated yet."
-                    : "No content to summarize."}
+                  {canGenerate ? "No summary generated yet." : "No content to summarize."}
                 </p>
               )}
               <div className={styles.nodeActions}>
@@ -210,7 +203,9 @@ export default function SummaryOverviewView() {
   if (allNodes.length === 0) {
     return (
       <div className={styles.empty}>
-        <p className={styles.emptyText}>No story structure yet. Add sections in the tree view to get started.</p>
+        <p className={styles.emptyText}>
+          No story structure yet. Add sections in the tree view to get started.
+        </p>
       </div>
     );
   }
@@ -222,8 +217,12 @@ export default function SummaryOverviewView() {
           <h2 className={styles.heading}>Summary Overview</h2>
         </div>
         <div className={styles.toolbarRight}>
-          <button className={styles.toolbarBtn} onClick={expandAll}>Expand All</button>
-          <button className={styles.toolbarBtn} onClick={collapseAll}>Collapse All</button>
+          <button className={styles.toolbarBtn} onClick={expandAll}>
+            Expand All
+          </button>
+          <button className={styles.toolbarBtn} onClick={collapseAll}>
+            Collapse All
+          </button>
           <button
             className={`${styles.toolbarBtn} ${styles.toolbarBtnAi}`}
             onClick={generateAllMissing}
@@ -235,13 +234,9 @@ export default function SummaryOverviewView() {
         </div>
       </div>
 
-      {batchResult && (
-        <div className={styles.batchNotice}>{batchResult}</div>
-      )}
+      {batchResult && <div className={styles.batchNotice}>{batchResult}</div>}
 
-      <div className={styles.tree}>
-        {structure.map((node) => renderNode(node, 0))}
-      </div>
+      <div className={styles.tree}>{structure.map((node) => renderNode(node, 0))}</div>
     </div>
   );
 }

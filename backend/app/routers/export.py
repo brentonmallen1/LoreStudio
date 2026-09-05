@@ -9,10 +9,8 @@ import asyncio
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 import weasyprint
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -31,14 +29,14 @@ ASSETS_DIR = Path(__file__).parent.parent / "assets"
 
 # format key → (pandoc format, mime type, file extension)
 EXPORT_FORMATS: dict[str, tuple[str, str, str]] = {
-    "docx":            ("docx",     "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
-    "docx_manuscript": ("docx",     "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
-    "epub":            ("epub",     "application/epub+zip",                                                    "epub"),
-    "markdown":        ("markdown", "text/markdown; charset=utf-8",                                            "md"),
-    "html":            ("html",     "text/html; charset=utf-8",                                                "html"),
-    "odt":             ("odt",      "application/vnd.oasis.opendocument.text",                                 "odt"),
-    "pdf":             ("pdf",      "application/pdf",                                                         "pdf"),
-    "txt":             ("txt",      "text/plain; charset=utf-8",                                               "txt"),
+    "docx": ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
+    "docx_manuscript": ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
+    "epub": ("epub", "application/epub+zip", "epub"),
+    "markdown": ("markdown", "text/markdown; charset=utf-8", "md"),
+    "html": ("html", "text/html; charset=utf-8", "html"),
+    "odt": ("odt", "application/vnd.oasis.opendocument.text", "odt"),
+    "pdf": ("pdf", "application/pdf", "pdf"),
+    "txt": ("txt", "text/plain; charset=utf-8", "txt"),
 }
 
 # PDF layout key → CSS override injected into the document <style> tag
@@ -75,7 +73,7 @@ class ExportOptions(BaseModel):
     include_scene_titles: bool = False
     title_page: bool = True
     scene_break: str = "* * *"
-    status_filter: Optional[list[str]] = None
+    status_filter: list[str] | None = None
     pdf_layout: str = "default"
 
 
@@ -150,7 +148,7 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
 @router.get("/stories/{story_id}/manuscript")
 def get_manuscript(
     story_id: str,
-    status_filter: Optional[str] = None,
+    status_filter: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -204,10 +202,10 @@ async def export_story(
 
     _, mime_type, ext = EXPORT_FORMATS[options.format]
 
-    safe_title = "".join(
-        c if c.isalnum() or c in "- _" else "_"
-        for c in (story.title or "manuscript")
-    ).strip("_") or "manuscript"
+    safe_title = (
+        "".join(c if c.isalnum() or c in "- _" else "_" for c in (story.title or "manuscript")).strip("_")
+        or "manuscript"
+    )
     filename = f"{safe_title}.{ext}"
 
     # Plain text: no pandoc or weasyprint needed
@@ -260,9 +258,12 @@ async def export_story(
 
         cmd = [
             "pandoc",
-            "--from", "html",
-            "--to", pandoc_fmt,
-            "--output", output_path,
+            "--from",
+            "html",
+            "--to",
+            pandoc_fmt,
+            "--output",
+            output_path,
             "--standalone",
             input_path,
         ]

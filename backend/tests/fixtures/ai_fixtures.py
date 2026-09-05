@@ -6,11 +6,10 @@ composition, parameter merging, and activity logging without real network calls.
 """
 
 from collections.abc import AsyncIterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from app.schemas.ai_responses import StructuredResult
-
 
 # ---------------------------------------------------------------------------
 # Sample response payloads (use in tests to avoid hardcoding dicts everywhere)
@@ -37,10 +36,20 @@ SAMPLE_ECONOMY_ANALYSIS = {
 SAMPLE_ESSENTIAL_QUESTIONS = {
     "protagonist": {"question": "Who is this about?", "status": "clear", "evidence": "...", "recommendation": ""},
     "want": {"question": "What do they want?", "status": "clear", "evidence": "...", "recommendation": ""},
-    "why": {"question": "Why do they want it?", "status": "partial", "evidence": "...", "recommendation": "Expand motivation"},
+    "why": {
+        "question": "Why do they want it?",
+        "status": "partial",
+        "evidence": "...",
+        "recommendation": "Expand motivation",
+    },
     "obstacle": {"question": "What stops them?", "status": "clear", "evidence": "...", "recommendation": ""},
     "stakes": {"question": "What if they fail?", "status": "clear", "evidence": "...", "recommendation": ""},
-    "change": {"question": "How do they change?", "status": "unclear", "evidence": "", "recommendation": "Define the arc"},
+    "change": {
+        "question": "How do they change?",
+        "status": "unclear",
+        "evidence": "",
+        "recommendation": "Define the arc",
+    },
     "overall_clarity": "fair",
     "summary": "Story has most core questions answered.",
 }
@@ -67,9 +76,11 @@ SAMPLE_STREAM_TEXT = "I understand your question. Let me think about that carefu
 # MockAIGateway
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class MockAIResponse:
     """Configure what the mock gateway returns."""
+
     stream_text: str = SAMPLE_STREAM_TEXT
     structured_data: dict | None = None
     should_fail: bool = False
@@ -100,11 +111,13 @@ class MockAIGateway:
         include_core_prompt: bool = True,
         on_complete: Any = None,
     ) -> AsyncIterator[str]:
-        self.stream_calls.append({
-            "messages": messages,
-            "feature_prompt": feature_prompt,
-            "context": context,
-        })
+        self.stream_calls.append(
+            {
+                "messages": messages,
+                "feature_prompt": feature_prompt,
+                "context": context,
+            }
+        )
 
         if self.response.should_fail:
             raise RuntimeError(self.response.error_message)
@@ -116,6 +129,7 @@ class MockAIGateway:
 
         if on_complete:
             from app.services.llm.gateway import AICallResult
+
             result = AICallResult(
                 content="".join(full_tokens),
                 tokens_in=10,
@@ -137,12 +151,14 @@ class MockAIGateway:
         llm_params: Any = None,
         include_core_prompt: bool = True,
     ) -> StructuredResult:
-        self.structured_calls.append({
-            "response_model": response_model,
-            "messages": messages,
-            "feature_prompt": feature_prompt,
-            "context": context,
-        })
+        self.structured_calls.append(
+            {
+                "response_model": response_model,
+                "messages": messages,
+                "feature_prompt": feature_prompt,
+                "context": context,
+            }
+        )
 
         if self.response.should_fail:
             return StructuredResult(

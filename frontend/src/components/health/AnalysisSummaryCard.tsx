@@ -78,14 +78,16 @@ export default function AnalysisSummaryCard({ storyId }: Props) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all(
-      FEATURES.map((f) => api.getLatestAnalysis(storyId, f.id).catch(() => null))
-    ).then((results) => {
-      const map: Record<string, ActivityLog | null> = {};
-      FEATURES.forEach((f, i) => { map[f.id] = results[i]; });
-      setLatest(map);
-      setLoading(false);
-    });
+    Promise.all(FEATURES.map((f) => api.getLatestAnalysis(storyId, f.id).catch(() => null))).then(
+      (results) => {
+        const map: Record<string, ActivityLog | null> = {};
+        FEATURES.forEach((f, i) => {
+          map[f.id] = results[i];
+        });
+        setLatest(map);
+        setLoading(false);
+      },
+    );
   }, [storyId]);
 
   const hasAny = Object.values(latest).some(Boolean);

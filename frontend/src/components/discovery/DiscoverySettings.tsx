@@ -14,12 +14,14 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
   const { activeStory, setActiveStory } = useStoryStore();
   if (!activeStory) return null;
 
-  async function patch(changes: Partial<{
-    discovery_enabled: boolean;
-    discovery_auto_analyze: boolean;
-    discovery_element_types: string[];
-    discovery_min_confidence: number;
-  }>) {
+  async function patch(
+    changes: Partial<{
+      discovery_enabled: boolean;
+      discovery_auto_analyze: boolean;
+      discovery_element_types: string[];
+      discovery_min_confidence: number;
+    }>,
+  ) {
     const updated = await api.updateStory(storyId, changes);
     setActiveStory(updated);
   }
@@ -30,7 +32,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
   const confidenceLabel = confidence >= 0.8 ? "High" : confidence >= 0.6 ? "Medium" : "Low";
 
   function toggleType(type: string) {
-    const next = types.includes(type) ? types.filter(t => t !== type) : [...types, type];
+    const next = types.includes(type) ? types.filter((t) => t !== type) : [...types, type];
     if (next.length === 0) return; // always keep at least one
     patch({ discovery_element_types: next });
   }
@@ -47,7 +49,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
           <input
             type="checkbox"
             checked={enabled}
-            onChange={e => patch({ discovery_enabled: e.target.checked })}
+            onChange={(e) => patch({ discovery_enabled: e.target.checked })}
           />
           <span className={styles.slider} />
         </label>
@@ -63,7 +65,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
           <input
             type="checkbox"
             checked={activeStory.discovery_auto_analyze}
-            onChange={e => patch({ discovery_auto_analyze: e.target.checked })}
+            onChange={(e) => patch({ discovery_auto_analyze: e.target.checked })}
             disabled={!enabled}
           />
           <span className={styles.slider} />
@@ -74,7 +76,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
       <div className={`${styles.section} ${!enabled ? styles.disabled : ""}`}>
         <p className={styles.sectionTitle}>Look for</p>
         <div className={styles.checkboxGroup}>
-          {ELEMENT_TYPE_OPTIONS.map(opt => (
+          {ELEMENT_TYPE_OPTIONS.map((opt) => (
             <label key={opt.value} className={styles.checkboxLabel}>
               <input
                 type="checkbox"
@@ -98,7 +100,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
             max={0.9}
             step={0.1}
             value={confidence}
-            onChange={e => patch({ discovery_min_confidence: parseFloat(e.target.value) })}
+            onChange={(e) => patch({ discovery_min_confidence: parseFloat(e.target.value) })}
           />
           <div className={styles.confidenceLabels}>
             <span>Catch more (lower bar)</span>

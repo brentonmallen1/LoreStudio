@@ -27,20 +27,21 @@ export default function WorldSystemManager({ storyId }: Props) {
   const saveRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const load = useCallback(() => {
-    Promise.all([
-      api.listWorldSystems(storyId),
-      api.getSystemTypes(storyId),
-    ]).then(([s, types]) => {
-      setSystems(s);
-      setAvailableTypes(types.length ? types : PREDEFINED_TYPES);
-    }).finally(() => setLoading(false));
+    Promise.all([api.listWorldSystems(storyId), api.getSystemTypes(storyId)])
+      .then(([s, types]) => {
+        setSystems(s);
+        setAvailableTypes(types.length ? types : PREDEFINED_TYPES);
+      })
+      .finally(() => setLoading(false));
   }, [storyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;
-    setSelected((prev) => prev ? { ...prev, [field]: value } : null);
+    setSelected((prev) => (prev ? { ...prev, [field]: value } : null));
     if (saveRef.current) clearTimeout(saveRef.current);
     saveRef.current = setTimeout(() => {
       if (!selected) return;
@@ -53,7 +54,9 @@ export default function WorldSystemManager({ storyId }: Props) {
     const type = newType === "__custom__" ? newCustomType.trim() : newType;
     const created = await api.createWorldSystem(storyId, { name: newName.trim(), system_type: type });
     setShowAddModal(false);
-    setNewName(""); setNewType(""); setNewCustomType("");
+    setNewName("");
+    setNewType("");
+    setNewCustomType("");
     load();
     setSelected(created);
   }
@@ -68,13 +71,16 @@ export default function WorldSystemManager({ storyId }: Props) {
 
   function addTier() {
     if (!selected) return;
-    const tiers = [...selected.hierarchy_tiers, { name: `Tier ${selected.hierarchy_tiers.length + 1}`, description: "", examples: [] }];
+    const tiers = [
+      ...selected.hierarchy_tiers,
+      { name: `Tier ${selected.hierarchy_tiers.length + 1}`, description: "", examples: [] },
+    ];
     scheduleUpdate("hierarchy_tiers", tiers);
   }
 
   function updateTier(idx: number, field: string, value: string) {
     if (!selected) return;
-    const tiers = selected.hierarchy_tiers.map((t, i) => i === idx ? { ...t, [field]: value } : t);
+    const tiers = selected.hierarchy_tiers.map((t, i) => (i === idx ? { ...t, [field]: value } : t));
     scheduleUpdate("hierarchy_tiers", tiers);
   }
 
@@ -128,7 +134,9 @@ export default function WorldSystemManager({ storyId }: Props) {
                 <button
                   className={styles.aiBtn}
                   title="Surfaces issues with this system: Edge Cases, Story Implications, Consistency Questions, and Questions to Consider"
-                  onClick={() => openWorldBuildingAIPanel({ feature: "system", entityId: selected.id, storyId })}
+                  onClick={() =>
+                    openWorldBuildingAIPanel({ feature: "system", entityId: selected.id, storyId })
+                  }
                 >
                   <Compass size={11} />
                   Analyze Edge Cases
@@ -148,8 +156,11 @@ export default function WorldSystemManager({ storyId }: Props) {
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Name</label>
-                    <input className={styles.fieldInput} value={selected.name}
-                      onChange={(e) => scheduleUpdate("name", e.target.value)} />
+                    <input
+                      className={styles.fieldInput}
+                      value={selected.name}
+                      onChange={(e) => scheduleUpdate("name", e.target.value)}
+                    />
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Type</label>
@@ -159,7 +170,11 @@ export default function WorldSystemManager({ storyId }: Props) {
                       onChange={(e) => scheduleUpdate("system_type", e.target.value)}
                     >
                       <option value="">— select type —</option>
-                      {availableTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                      {availableTypes.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
                       <option value="__custom__">Custom…</option>
                     </select>
                   </div>
@@ -169,18 +184,22 @@ export default function WorldSystemManager({ storyId }: Props) {
               <SectionCard title="How It Works">
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Source / Origin</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Where does this system come from? What is its basis?"
                     value={selected.source_origin}
-                    onChange={(e) => scheduleUpdate("source_origin", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("source_origin", e.target.value)}
+                  />
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Rules</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     style={{ minHeight: "7rem" }}
                     placeholder="How does this system work? What are the mechanics?"
                     value={selected.rules}
-                    onChange={(e) => scheduleUpdate("rules", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("rules", e.target.value)}
+                  />
                 </div>
               </SectionCard>
 
@@ -188,25 +207,31 @@ export default function WorldSystemManager({ storyId }: Props) {
                 <div className={styles.fieldRow}>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Limitations</label>
-                    <textarea className={styles.fieldTextarea}
+                    <textarea
+                      className={styles.fieldTextarea}
                       placeholder="What can't it do? What restricts its use?"
                       value={selected.limitations}
-                      onChange={(e) => scheduleUpdate("limitations", e.target.value)} />
+                      onChange={(e) => scheduleUpdate("limitations", e.target.value)}
+                    />
                   </div>
                   <div className={styles.fieldGroup}>
                     <label className={styles.fieldLabel}>Costs</label>
-                    <textarea className={styles.fieldTextarea}
+                    <textarea
+                      className={styles.fieldTextarea}
                       placeholder="What does it cost to use? Physical, mental, social?"
                       value={selected.costs}
-                      onChange={(e) => scheduleUpdate("costs", e.target.value)} />
+                      onChange={(e) => scheduleUpdate("costs", e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className={styles.fieldGroup}>
                   <label className={styles.fieldLabel}>Notes</label>
-                  <textarea className={styles.fieldTextarea}
+                  <textarea
+                    className={styles.fieldTextarea}
                     placeholder="Anything else worth noting about this system…"
                     value={selected.notes}
-                    onChange={(e) => scheduleUpdate("notes", e.target.value)} />
+                    onChange={(e) => scheduleUpdate("notes", e.target.value)}
+                  />
                 </div>
               </SectionCard>
 
@@ -220,7 +245,8 @@ export default function WorldSystemManager({ storyId }: Props) {
                 </button>
                 {selected.hierarchy_tiers.length === 0 ? (
                   <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", margin: 0 }}>
-                    No tiers defined. Add tiers to represent power levels, ranks, or categories in this system.
+                    No tiers defined. Add tiers to represent power levels, ranks, or categories in this
+                    system.
                   </p>
                 ) : (
                   <div className={styles.tierList}>
@@ -242,7 +268,10 @@ export default function WorldSystemManager({ storyId }: Props) {
                             onChange={(e) => updateTier(i, "description", e.target.value)}
                           />
                         </div>
-                        <button className={`${styles.iconBtn} ${styles.danger}`} onClick={() => removeTier(i)}>
+                        <button
+                          className={`${styles.iconBtn} ${styles.danger}`}
+                          onClick={() => removeTier(i)}
+                        >
                           <Trash2 size={13} />
                         </button>
                       </div>
@@ -261,26 +290,47 @@ export default function WorldSystemManager({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Add world system</h3>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Name</label>
-              <input className={styles.fieldInput} autoFocus placeholder="System name"
-                value={newName} onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && createSystem()} />
+              <input
+                className={styles.fieldInput}
+                autoFocus
+                placeholder="System name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createSystem()}
+              />
             </div>
             <div className={styles.fieldGroup}>
               <label className={styles.fieldLabel}>Type</label>
-              <select className={styles.fieldSelect} value={newType} onChange={(e) => setNewType(e.target.value)}>
+              <select
+                className={styles.fieldSelect}
+                value={newType}
+                onChange={(e) => setNewType(e.target.value)}
+              >
                 <option value="">— select type —</option>
-                {PREDEFINED_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                {PREDEFINED_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
                 <option value="__custom__">Custom…</option>
               </select>
               {newType === "__custom__" && (
-                <input className={styles.fieldInput} style={{ marginTop: "0.5rem" }}
-                  placeholder="Enter custom type" value={newCustomType}
-                  onChange={(e) => setNewCustomType(e.target.value)} />
+                <input
+                  className={styles.fieldInput}
+                  style={{ marginTop: "0.5rem" }}
+                  placeholder="Enter custom type"
+                  value={newCustomType}
+                  onChange={(e) => setNewCustomType(e.target.value)}
+                />
               )}
             </div>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>Cancel</button>
-              <button className={styles.addBtn} onClick={createSystem} disabled={!newName.trim()}>Add system</button>
+              <button className={styles.ghostBtn} onClick={() => setShowAddModal(false)}>
+                Cancel
+              </button>
+              <button className={styles.addBtn} onClick={createSystem} disabled={!newName.trim()}>
+                Add system
+              </button>
             </div>
           </div>
         </div>
@@ -292,8 +342,16 @@ export default function WorldSystemManager({ storyId }: Props) {
             <h3 className={styles.modalTitle}>Delete "{selected.name}"?</h3>
             <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>This cannot be undone.</p>
             <div className={styles.modalActions}>
-              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button className={styles.addBtn} style={{ background: "var(--color-danger)" }} onClick={deleteSystem}>Delete</button>
+              <button className={styles.ghostBtn} onClick={() => setShowDeleteConfirm(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.addBtn}
+                style={{ background: "var(--color-danger)" }}
+                onClick={deleteSystem}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

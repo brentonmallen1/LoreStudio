@@ -69,10 +69,7 @@ export default function CompendiumPanel({ storyId }: Props) {
   }
 
   function handleCreated(entry: CompendiumEntry) {
-    setEntries((prev) => [
-      { ...entry, attachment_count: 0 },
-      ...prev,
-    ]);
+    setEntries((prev) => [{ ...entry, attachment_count: 0 }, ...prev]);
     setCreating(false);
     setSelectedEntry(entry);
   }
@@ -80,10 +77,8 @@ export default function CompendiumPanel({ storyId }: Props) {
   function handleUpdated(updated: CompendiumEntry) {
     setEntries((prev) =>
       prev.map((e) =>
-        e.id === updated.id
-          ? { ...updated, attachment_count: updated.attachments.length }
-          : e
-      )
+        e.id === updated.id ? { ...updated, attachment_count: updated.attachments.length } : e,
+      ),
     );
     setEditingEntry(null);
     if (selectedEntry?.id === updated.id) setSelectedEntry(updated);
@@ -104,10 +99,8 @@ export default function CompendiumPanel({ storyId }: Props) {
           setSelectedEntry(updated);
           setEntries((prev) =>
             prev.map((e) =>
-              e.id === updated.id
-                ? { ...updated, attachment_count: updated.attachments.length }
-                : e
-            )
+              e.id === updated.id ? { ...updated, attachment_count: updated.attachments.length } : e,
+            ),
           );
         }}
         storyId={storyId}
@@ -174,10 +167,13 @@ export default function CompendiumPanel({ storyId }: Props) {
                 entry={entry}
                 onClick={() => handleCardClick(entry.id)}
                 onEdit={(e) => handleEdit(entry.id, e)}
-                onDelete={(e) => { e.stopPropagation(); setPendingDeleteId(entry.id); }}
-              isPendingDelete={pendingDeleteId === entry.id}
-              onConfirmDelete={() => doDelete(entry.id)}
-              onCancelDelete={() => setPendingDeleteId(null)}
+                onDelete={(e) => {
+                  e.stopPropagation();
+                  setPendingDeleteId(entry.id);
+                }}
+                isPendingDelete={pendingDeleteId === entry.id}
+                onConfirmDelete={() => doDelete(entry.id)}
+                onCancelDelete={() => setPendingDeleteId(null)}
               />
             ))}
           </div>

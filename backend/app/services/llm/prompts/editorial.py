@@ -88,7 +88,8 @@ def build_priorities_prompt(
         for s in sections
     )
 
-    return f"""You are a developmental editor reviewing "{story_title}".
+    return (
+        f"""You are a developmental editor reviewing "{story_title}".
 {context_note}
 Story intent: {story_intent or "Not specified"}
 
@@ -120,7 +121,9 @@ Rules:
 - List 3-8 priorities total — fewer is better if they're truly the most important
 - impact "high" = affects core reader experience; "medium" = noticeable but not fatal; "low" = polish
 - Suggestions must be specific: not "improve pacing" but "Scene X establishes the stakes too late — move the confrontation to the second paragraph"
-- anchor must be a verbatim short excerpt or empty string """""
+- anchor must be a verbatim short excerpt or empty string """
+        ""
+    )
 
 
 def build_intent_gap_prompt(
@@ -188,10 +191,7 @@ def build_voice_prompt(
     }.get(context_level, "")
 
     # For voice analysis, use actual prose only
-    sections_block = "\n\n".join(
-        f"=== {s['title']} ===\n{s['content'] or '(no content)'}"
-        for s in sections
-    )
+    sections_block = "\n\n".join(f"=== {s['title']} ===\n{s['content'] or '(no content)'}" for s in sections)
 
     return f"""You are a prose editor analyzing the narrative voice in "{story_title}".
 {context_note}
@@ -232,10 +232,7 @@ def build_marginal_notes_prompt(
     story_intent: str | None,
     sections: list[dict],  # [{"title": str, "content": str}]
 ) -> str:
-    sections_block = "\n\n".join(
-        f"=== {s['title']} ===\n{s['content'] or '(no content)'}"
-        for s in sections
-    )
+    sections_block = "\n\n".join(f"=== {s['title']} ===\n{s['content'] or '(no content)'}" for s in sections)
 
     return f"""You are a developmental editor leaving marginal notes on "{story_title}".
 Story intent: {story_intent or "Not specified"}

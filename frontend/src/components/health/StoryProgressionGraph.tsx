@@ -78,7 +78,10 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   // Build flat node map for click-to-navigate
   const nodeMap = useCallback(() => {
     const map = new Map<string, import("../../types").StructureNode>();
-    function walk(n: import("../../types").StructureNode) { map.set(n.id, n); n.children.forEach(walk); }
+    function walk(n: import("../../types").StructureNode) {
+      map.set(n.id, n);
+      n.children.forEach(walk);
+    }
     structure.forEach(walk);
     return map;
   }, [structure])();
@@ -89,11 +92,9 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   const maxWords = Math.max(...pacing.map((p) => p.word_count), 1);
 
   // Character data for the characters tab
-  const allCharNames = Array.from(
-    new Set(pacing.flatMap((p) => p.character_names ?? []))
-  ).sort();
+  const allCharNames = Array.from(new Set(pacing.flatMap((p) => p.character_names ?? []))).sort();
   const charColorMap = Object.fromEntries(
-    allCharNames.map((name, i) => [name, CHAR_COLORS[i % CHAR_COLORS.length]])
+    allCharNames.map((name, i) => [name, CHAR_COLORS[i % CHAR_COLORS.length]]),
   );
 
   // Beat markers: map position_pct → scene index
@@ -104,33 +105,36 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
 
   // Thread spans: min/max scene index where each thread appears
   const sceneIndexMap = new Map(pacing.map((p, i) => [p.id, i]));
-  const threadSpans = threads.map((thread) => {
-    const indices = thread.appearances
-      .map((a) => sceneIndexMap.get(a.node_id))
-      .filter((i): i is number => i !== undefined)
-      .sort((a, b) => a - b);
+  const threadSpans = threads
+    .map((thread) => {
+      const indices = thread.appearances
+        .map((a) => sceneIndexMap.get(a.node_id))
+        .filter((i): i is number => i !== undefined)
+        .sort((a, b) => a - b);
 
-    // Fall back to opens_at/closes_at if no tagged appearances
-    let minIdx = indices[0] ?? null;
-    let maxIdx = indices[indices.length - 1] ?? null;
-    if (minIdx === null && thread.opens_at_node_id) {
-      const i = sceneIndexMap.get(thread.opens_at_node_id);
-      if (i !== undefined) minIdx = i;
-    }
-    if (maxIdx === null && thread.closes_at_node_id) {
-      const i = sceneIndexMap.get(thread.closes_at_node_id);
-      if (i !== undefined) maxIdx = i;
-    }
-    if (minIdx !== null && maxIdx === null) maxIdx = minIdx;
+      // Fall back to opens_at/closes_at if no tagged appearances
+      let minIdx = indices[0] ?? null;
+      let maxIdx = indices[indices.length - 1] ?? null;
+      if (minIdx === null && thread.opens_at_node_id) {
+        const i = sceneIndexMap.get(thread.opens_at_node_id);
+        if (i !== undefined) minIdx = i;
+      }
+      if (maxIdx === null && thread.closes_at_node_id) {
+        const i = sceneIndexMap.get(thread.closes_at_node_id);
+        if (i !== undefined) maxIdx = i;
+      }
+      if (minIdx !== null && maxIdx === null) maxIdx = minIdx;
 
-    return { thread, minIdx, maxIdx, activeSet: new Set(indices) };
-  }).filter((s) => s.minIdx !== null);
+      return { thread, minIdx, maxIdx, activeSet: new Set(indices) };
+    })
+    .filter((s) => s.minIdx !== null);
 
   // Dynamic SVG height based on current tab
   const svgHeight = (() => {
     if (tab === "threads") return MARGIN.top + Math.max(threadSpans.length, 1) * THREAD_ROW_H + MARGIN.bottom;
     if (tab === "status") return MARGIN.top + STATUS_H + MARGIN.bottom;
-    if (tab === "characters") return MARGIN.top + Math.max(allCharNames.length, 1) * CHAR_ROW_H + MARGIN.bottom;
+    if (tab === "characters")
+      return MARGIN.top + Math.max(allCharNames.length, 1) * CHAR_ROW_H + MARGIN.bottom;
     return MARGIN.top + CHART_H + MARGIN.bottom; // words
   })();
 
@@ -192,15 +196,24 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
           <button
             key={t}
             className={`${styles.tab} ${tab === t ? styles.tabActive : ""}`}
-            onClick={() => { setTab(t); setTooltip(null); }}
+            onClick={() => {
+              setTab(t);
+              setTooltip(null);
+            }}
             type="button"
           >
             {TAB_LABELS[t]}
           </button>
         ))}
-        <span className={styles.sceneCount}>{sceneCount} scene{sceneCount !== 1 ? "s" : ""}</span>
+        <span className={styles.sceneCount}>
+          {sceneCount} scene{sceneCount !== 1 ? "s" : ""}
+        </span>
         {zoom > 1 && (
-          <button className={styles.zoomBtn} onClick={() => setZoomIdx(Math.max(0, zoomIdx - 1))} title="Zoom out">
+          <button
+            className={styles.zoomBtn}
+            onClick={() => setZoomIdx(Math.max(0, zoomIdx - 1))}
+            title="Zoom out"
+          >
             <ZoomOut size={12} />
           </button>
         )}
@@ -215,218 +228,278 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
       </div>
 
       <div className={styles.scrollWrap} ref={scrollRef}>
-      <svg
-        className={styles.svg}
-        width={svgWidth}
-        height={svgHeight}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setTooltip(null)}
-        onClick={handleClick}
-        style={{ cursor: "pointer" }}
-      >
-        {/* Beat markers — shown across all tabs */}
-        {beatMarkers.map(({ beat, idx }) => {
-          const x = xForScene(idx) + slotW / 2;
-          return (
-            <g key={beat.id}>
-              <line
-                x1={x} y1={MARGIN.top - 8}
-                x2={x} y2={svgHeight - MARGIN.bottom}
-                stroke="var(--color-accent)"
-                strokeWidth={1}
-                strokeDasharray="3 3"
-                opacity={0.5}
-              />
-              <text
-                x={x} y={MARGIN.top - 10}
-                textAnchor="middle"
-                fontSize={8}
-                fill="var(--color-accent)"
-                opacity={0.8}
-              >
-                {beat.position_pct}%
-              </text>
-            </g>
-          );
-        })}
-
-        {/* ── WORD COUNT TAB ── */}
-        {tab === "words" && (
-          <>
-            {/* Y-axis */}
-            {yTicks.map(({ frac, label, y }) => frac > 0 && (
-              <g key={frac}>
-                <line x1={MARGIN.left - 4} y1={y} x2={svgWidth - MARGIN.right} y2={y}
-                  stroke="var(--color-border)" strokeWidth={0.5} />
-                <text x={MARGIN.left - 6} y={y + 3} textAnchor="end" fontSize={9} fill="var(--color-text-muted)">
-                  {label}
+        <svg
+          className={styles.svg}
+          width={svgWidth}
+          height={svgHeight}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setTooltip(null)}
+          onClick={handleClick}
+          style={{ cursor: "pointer" }}
+        >
+          {/* Beat markers — shown across all tabs */}
+          {beatMarkers.map(({ beat, idx }) => {
+            const x = xForScene(idx) + slotW / 2;
+            return (
+              <g key={beat.id}>
+                <line
+                  x1={x}
+                  y1={MARGIN.top - 8}
+                  x2={x}
+                  y2={svgHeight - MARGIN.bottom}
+                  stroke="var(--color-accent)"
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                  opacity={0.5}
+                />
+                <text
+                  x={x}
+                  y={MARGIN.top - 10}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fill="var(--color-accent)"
+                  opacity={0.8}
+                >
+                  {beat.position_pct}%
                 </text>
               </g>
-            ))}
-            {/* Baseline */}
-            <line
-              x1={MARGIN.left} y1={MARGIN.top + CHART_H}
-              x2={svgWidth - MARGIN.right} y2={MARGIN.top + CHART_H}
-              stroke="var(--color-border)" strokeWidth={1}
-            />
-            {/* Bars */}
-            {pacing.map((entry, i) => {
-              const barH = maxWords > 0 ? (entry.word_count / maxWords) * CHART_H : 0;
-              const x = xForScene(i);
-              const color = statusColor(entry.status);
-              const isHovered = tooltip?.sceneIdx === i;
-              return (
-                <rect
-                  key={entry.id}
-                  x={x + 1}
-                  y={MARGIN.top + CHART_H - barH}
-                  width={Math.max(slotW - 2, 1)}
-                  height={Math.max(barH, 1)}
-                  fill={color}
-                  opacity={isHovered ? 1 : 0.65}
-                />
-              );
-            })}
-          </>
-        )}
+            );
+          })}
 
-        {/* ── STATUS TAB ── */}
-        {tab === "status" && (
-          <>
-            {pacing.map((entry, i) => {
-              const x = xForScene(i);
-              const isHovered = tooltip?.sceneIdx === i;
-              return (
-                <rect
-                  key={entry.id}
-                  x={x}
-                  y={MARGIN.top}
-                  width={Math.max(slotW - 1, 1)}
-                  height={STATUS_H}
-                  fill={statusColor(entry.status)}
-                  opacity={isHovered ? 1 : 0.7}
-                />
-              );
-            })}
-            {/* Status legend labels on Y */}
-            <text x={MARGIN.left - 6} y={MARGIN.top + STATUS_H / 2 + 4} textAnchor="end" fontSize={9} fill="var(--color-text-muted)">
-              status
-            </text>
-          </>
-        )}
-
-        {/* ── THREADS TAB ── */}
-        {tab === "threads" && (
-          <>
-            {threadSpans.length === 0 ? (
-              <text x={MARGIN.left + innerW / 2} y={MARGIN.top + 20} textAnchor="middle"
-                fontSize={11} fill="var(--color-text-subtle)">
-                No thread activity to display
-              </text>
-            ) : (
-              threadSpans.map(({ thread, minIdx, maxIdx, activeSet }, row) => {
-                const y = MARGIN.top + row * THREAD_ROW_H;
-                const spanX = xForScene(minIdx!);
-                const spanW = xForScene(maxIdx! + 1) - spanX;
-                const color = thread.color || "var(--color-accent)";
-                return (
-                  <g key={thread.id}>
-                    {/* Row background */}
-                    <rect x={MARGIN.left} y={y + 2} width={innerW} height={THREAD_ROW_H - 4}
-                      fill="var(--color-surface-raised)" opacity={0.4} rx={2} />
-                    {/* Active span */}
-                    <rect x={spanX} y={y + 4} width={Math.max(spanW, slotW)}
-                      height={THREAD_ROW_H - 8} fill={color} opacity={0.5} rx={3} />
-                    {/* Per-scene dots for tagged appearances */}
-                    {Array.from(activeSet).map((idx) => (
-                      <circle key={idx}
-                        cx={xForScene(idx) + slotW / 2}
-                        cy={y + THREAD_ROW_H / 2}
-                        r={Math.min(slotW / 2 - 1, 4)}
-                        fill={color} opacity={0.9}
+          {/* ── WORD COUNT TAB ── */}
+          {tab === "words" && (
+            <>
+              {/* Y-axis */}
+              {yTicks.map(
+                ({ frac, label, y }) =>
+                  frac > 0 && (
+                    <g key={frac}>
+                      <line
+                        x1={MARGIN.left - 4}
+                        y1={y}
+                        x2={svgWidth - MARGIN.right}
+                        y2={y}
+                        stroke="var(--color-border)"
+                        strokeWidth={0.5}
                       />
-                    ))}
-                    {/* Thread name label */}
-                    <text
-                      x={MARGIN.left - 6}
-                      y={y + THREAD_ROW_H / 2 + 4}
-                      textAnchor="end"
-                      fontSize={9}
-                      fill="var(--color-text-muted)"
-                    >
-                      {thread.name.length > 14 ? thread.name.slice(0, 13) + "…" : thread.name}
-                    </text>
-                  </g>
-                );
-              })
-            )}
-          </>
-        )}
-
-        {/* ── CHARACTERS TAB ── */}
-        {tab === "characters" && (
-          <>
-            {allCharNames.length === 0 ? (
-              <text x={MARGIN.left + innerW / 2} y={MARGIN.top + 20} textAnchor="middle"
-                fontSize={11} fill="var(--color-text-subtle)">
-                No character appearances in prose yet
-              </text>
-            ) : (
-              allCharNames.map((name, row) => {
-                const y = MARGIN.top + row * CHAR_ROW_H;
-                const color = charColorMap[name];
+                      <text
+                        x={MARGIN.left - 6}
+                        y={y + 3}
+                        textAnchor="end"
+                        fontSize={9}
+                        fill="var(--color-text-muted)"
+                      >
+                        {label}
+                      </text>
+                    </g>
+                  ),
+              )}
+              {/* Baseline */}
+              <line
+                x1={MARGIN.left}
+                y1={MARGIN.top + CHART_H}
+                x2={svgWidth - MARGIN.right}
+                y2={MARGIN.top + CHART_H}
+                stroke="var(--color-border)"
+                strokeWidth={1}
+              />
+              {/* Bars */}
+              {pacing.map((entry, i) => {
+                const barH = maxWords > 0 ? (entry.word_count / maxWords) * CHART_H : 0;
+                const x = xForScene(i);
+                const color = statusColor(entry.status);
+                const isHovered = tooltip?.sceneIdx === i;
                 return (
-                  <g key={name}>
-                    {/* Row background */}
-                    <rect x={MARGIN.left} y={y + 2} width={innerW} height={CHAR_ROW_H - 4}
-                      fill="var(--color-surface-raised)" opacity={0.35} rx={2} />
-                    {/* Scene cells */}
-                    {pacing.map((entry, i) => {
-                      const present = (entry.character_names ?? []).includes(name);
-                      if (!present) return null;
-                      return (
-                        <rect
-                          key={entry.id}
-                          x={xForScene(i) + 1}
-                          y={y + 4}
-                          width={Math.max(slotW - 2, 1)}
-                          height={CHAR_ROW_H - 8}
-                          fill={color}
-                          opacity={tooltip?.sceneIdx === i ? 1 : 0.65}
-                          rx={2}
-                        />
-                      );
-                    })}
-                    {/* Character name label */}
-                    <text
-                      x={MARGIN.left - 6}
-                      y={y + CHAR_ROW_H / 2 + 4}
-                      textAnchor="end"
-                      fontSize={9}
-                      fill="var(--color-text-muted)"
-                    >
-                      {name.length > 14 ? name.slice(0, 13) + "…" : name}
-                    </text>
-                  </g>
+                  <rect
+                    key={entry.id}
+                    x={x + 1}
+                    y={MARGIN.top + CHART_H - barH}
+                    width={Math.max(slotW - 2, 1)}
+                    height={Math.max(barH, 1)}
+                    fill={color}
+                    opacity={isHovered ? 1 : 0.65}
+                  />
                 );
-              })
-            )}
-          </>
-        )}
+              })}
+            </>
+          )}
 
-        {/* Hover highlight column */}
-        {tooltip !== null && (
-          <rect
-            x={xForScene(tooltip.sceneIdx)}
-            y={MARGIN.top}
-            width={slotW}
-            height={svgHeight - MARGIN.top - MARGIN.bottom}
-            fill="var(--color-text)"
-            opacity={0.06}
-            style={{ pointerEvents: "none" }}
-          />
-        )}
-      </svg>
+          {/* ── STATUS TAB ── */}
+          {tab === "status" && (
+            <>
+              {pacing.map((entry, i) => {
+                const x = xForScene(i);
+                const isHovered = tooltip?.sceneIdx === i;
+                return (
+                  <rect
+                    key={entry.id}
+                    x={x}
+                    y={MARGIN.top}
+                    width={Math.max(slotW - 1, 1)}
+                    height={STATUS_H}
+                    fill={statusColor(entry.status)}
+                    opacity={isHovered ? 1 : 0.7}
+                  />
+                );
+              })}
+              {/* Status legend labels on Y */}
+              <text
+                x={MARGIN.left - 6}
+                y={MARGIN.top + STATUS_H / 2 + 4}
+                textAnchor="end"
+                fontSize={9}
+                fill="var(--color-text-muted)"
+              >
+                status
+              </text>
+            </>
+          )}
+
+          {/* ── THREADS TAB ── */}
+          {tab === "threads" && (
+            <>
+              {threadSpans.length === 0 ? (
+                <text
+                  x={MARGIN.left + innerW / 2}
+                  y={MARGIN.top + 20}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill="var(--color-text-subtle)"
+                >
+                  No thread activity to display
+                </text>
+              ) : (
+                threadSpans.map(({ thread, minIdx, maxIdx, activeSet }, row) => {
+                  const y = MARGIN.top + row * THREAD_ROW_H;
+                  const spanX = xForScene(minIdx!);
+                  const spanW = xForScene(maxIdx! + 1) - spanX;
+                  const color = thread.color || "var(--color-accent)";
+                  return (
+                    <g key={thread.id}>
+                      {/* Row background */}
+                      <rect
+                        x={MARGIN.left}
+                        y={y + 2}
+                        width={innerW}
+                        height={THREAD_ROW_H - 4}
+                        fill="var(--color-surface-raised)"
+                        opacity={0.4}
+                        rx={2}
+                      />
+                      {/* Active span */}
+                      <rect
+                        x={spanX}
+                        y={y + 4}
+                        width={Math.max(spanW, slotW)}
+                        height={THREAD_ROW_H - 8}
+                        fill={color}
+                        opacity={0.5}
+                        rx={3}
+                      />
+                      {/* Per-scene dots for tagged appearances */}
+                      {Array.from(activeSet).map((idx) => (
+                        <circle
+                          key={idx}
+                          cx={xForScene(idx) + slotW / 2}
+                          cy={y + THREAD_ROW_H / 2}
+                          r={Math.min(slotW / 2 - 1, 4)}
+                          fill={color}
+                          opacity={0.9}
+                        />
+                      ))}
+                      {/* Thread name label */}
+                      <text
+                        x={MARGIN.left - 6}
+                        y={y + THREAD_ROW_H / 2 + 4}
+                        textAnchor="end"
+                        fontSize={9}
+                        fill="var(--color-text-muted)"
+                      >
+                        {thread.name.length > 14 ? thread.name.slice(0, 13) + "…" : thread.name}
+                      </text>
+                    </g>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* ── CHARACTERS TAB ── */}
+          {tab === "characters" && (
+            <>
+              {allCharNames.length === 0 ? (
+                <text
+                  x={MARGIN.left + innerW / 2}
+                  y={MARGIN.top + 20}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill="var(--color-text-subtle)"
+                >
+                  No character appearances in prose yet
+                </text>
+              ) : (
+                allCharNames.map((name, row) => {
+                  const y = MARGIN.top + row * CHAR_ROW_H;
+                  const color = charColorMap[name];
+                  return (
+                    <g key={name}>
+                      {/* Row background */}
+                      <rect
+                        x={MARGIN.left}
+                        y={y + 2}
+                        width={innerW}
+                        height={CHAR_ROW_H - 4}
+                        fill="var(--color-surface-raised)"
+                        opacity={0.35}
+                        rx={2}
+                      />
+                      {/* Scene cells */}
+                      {pacing.map((entry, i) => {
+                        const present = (entry.character_names ?? []).includes(name);
+                        if (!present) return null;
+                        return (
+                          <rect
+                            key={entry.id}
+                            x={xForScene(i) + 1}
+                            y={y + 4}
+                            width={Math.max(slotW - 2, 1)}
+                            height={CHAR_ROW_H - 8}
+                            fill={color}
+                            opacity={tooltip?.sceneIdx === i ? 1 : 0.65}
+                            rx={2}
+                          />
+                        );
+                      })}
+                      {/* Character name label */}
+                      <text
+                        x={MARGIN.left - 6}
+                        y={y + CHAR_ROW_H / 2 + 4}
+                        textAnchor="end"
+                        fontSize={9}
+                        fill="var(--color-text-muted)"
+                      >
+                        {name.length > 14 ? name.slice(0, 13) + "…" : name}
+                      </text>
+                    </g>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* Hover highlight column */}
+          {tooltip !== null && (
+            <rect
+              x={xForScene(tooltip.sceneIdx)}
+              y={MARGIN.top}
+              width={slotW}
+              height={svgHeight - MARGIN.top - MARGIN.bottom}
+              fill="var(--color-text)"
+              opacity={0.06}
+              style={{ pointerEvents: "none" }}
+            />
+          )}
+        </svg>
       </div>
 
       {/* Tooltip */}
@@ -444,14 +517,15 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
             <span className={styles.ttStatus}>{tooltipEntry.status}</span>
             <span className={styles.ttWords}>{tooltipEntry.word_count.toLocaleString()} words</span>
           </div>
-          {tooltipBeat && (
-            <div className={styles.ttBeat}>Beat: {tooltipBeat.name}</div>
-          )}
+          {tooltipBeat && <div className={styles.ttBeat}>Beat: {tooltipBeat.name}</div>}
           {tooltipThreads.length > 0 && (
             <div className={styles.ttThreads}>
               {tooltipThreads.map((t) => (
-                <span key={t.id} className={styles.ttThread}
-                  style={{ borderColor: t.color || "var(--color-accent)" }}>
+                <span
+                  key={t.id}
+                  className={styles.ttThread}
+                  style={{ borderColor: t.color || "var(--color-accent)" }}
+                >
                   {t.name}
                 </span>
               ))}
@@ -479,13 +553,19 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
       ) : tab !== "threads" ? (
         <div className={styles.legend}>
           <span className={styles.legendItem}>
-            <span className={styles.swatch} style={{ background: "var(--color-text-muted)", opacity: 0.65 }} /> Draft
+            <span
+              className={styles.swatch}
+              style={{ background: "var(--color-text-muted)", opacity: 0.65 }}
+            />{" "}
+            Draft
           </span>
           <span className={styles.legendItem}>
-            <span className={styles.swatch} style={{ background: "var(--color-accent)", opacity: 0.65 }} /> Revised
+            <span className={styles.swatch} style={{ background: "var(--color-accent)", opacity: 0.65 }} />{" "}
+            Revised
           </span>
           <span className={styles.legendItem}>
-            <span className={styles.swatch} style={{ background: "var(--color-success)", opacity: 0.65 }} /> Final
+            <span className={styles.swatch} style={{ background: "var(--color-success)", opacity: 0.65 }} />{" "}
+            Final
           </span>
           {beatSheet && (
             <span className={styles.legendItem} style={{ marginLeft: "auto", color: "var(--color-accent)" }}>

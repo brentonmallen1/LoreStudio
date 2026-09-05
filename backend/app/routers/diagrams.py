@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.diagram import Diagram
-from ..schemas.diagram import DiagramCreate, DiagramUpdate, DiagramOut, DiagramSummary
 from ..auth.dependencies import get_current_user
+from ..database import get_db
+from ..models.diagram import Diagram
+from ..models.story import Story
+from ..models.user import User
+from ..schemas.diagram import DiagramCreate, DiagramOut, DiagramSummary, DiagramUpdate
 
 router = APIRouter()
 
@@ -48,12 +48,7 @@ def list_diagrams(
     current_user: User = Depends(get_current_user),
 ):
     _verify_story_access(story_id, db, current_user)
-    return (
-        db.query(Diagram)
-        .filter(Diagram.story_id == story_id)
-        .order_by(Diagram.updated_at.desc())
-        .all()
-    )
+    return db.query(Diagram).filter(Diagram.story_id == story_id).order_by(Diagram.updated_at.desc()).all()
 
 
 @router.get("/diagrams/{diagram_id}", response_model=DiagramOut)

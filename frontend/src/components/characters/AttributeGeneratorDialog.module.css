@@ -44,7 +44,9 @@
   background: var(--color-surface-2);
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--transition), background var(--transition);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
 }
 
 .typeBtn:hover {
@@ -103,7 +105,9 @@
   background: var(--color-ai);
   color: var(--color-ai-fg);
   cursor: pointer;
-  transition: background var(--transition), opacity var(--transition);
+  transition:
+    background var(--transition),
+    opacity var(--transition);
 }
 
 .generateBtn:hover:not(:disabled) {

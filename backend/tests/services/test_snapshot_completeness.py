@@ -17,7 +17,11 @@ def test_every_story_owned_table_is_snapshotted():
     dependants = set()
     for t in Base.metadata.sorted_tables:
         for fk in t.foreign_keys:
-            if fk.column.table.name in story_tables and t.name not in ("users", "beat_sheets", "story_structure_templates"):
+            if fk.column.table.name in story_tables and t.name not in (
+                "users",
+                "beat_sheets",
+                "story_structure_templates",
+            ):
                 dependants.add(t.name)
     uncovered = sorted(d for d in dependants if d not in covered and "story_id" not in Base.metadata.tables[d].c)
     assert uncovered == [], f"child tables not covered by snapshots: {uncovered}"
@@ -52,6 +56,7 @@ def test_snapshot_restore_roundtrip(db_session, test_user):
     scene = next(n for n in story.structure_nodes if n.title == "Lamp")
     scene.metadata_ = {"purpose": "changed"}
     from app.models import Character
+
     db_session.add(Character(story_id=sid, name="Extra"))
     db_session.commit()
 

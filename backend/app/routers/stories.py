@@ -1,29 +1,29 @@
 import uuid
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..schemas.character import CharacterCreate
-from ..models.user import User
+from ..models.activity_log import ActivityLog
+from ..models.character import Character, CharacterRelationship
+from ..models.interview import CharacterInterview
+from ..models.plot_thread import PlotThread
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.character import Character, CharacterRelationship
-from ..schemas.story import StoryCreate, StoryUpdate, StoryOut, StoryGoalCreate, StoryGoalUpdate, StoryOverview
-from ..models.plot_thread import PlotThread
-from ..models.activity_log import ActivityLog
-from ..models.interview import CharacterInterview
-from ..services.word_count import get_word_count_status
-from ..schemas.character import RelationshipOut
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.summaries import build_story_summary_prompt
-from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
-from ..services.llm.prompts.snowflake import build_snowflake_guidance_prompt, LAYER_SPECS
+from ..models.user import User
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
-from ..schemas.structure import StructureNodeCreate, StructureNodeOut, StructureNodeMeta, ReorderStructurePayload
-from ..auth.dependencies import get_current_user
+from ..schemas.character import CharacterCreate, RelationshipOut
+from ..schemas.story import StoryCreate, StoryGoalCreate, StoryGoalUpdate, StoryOut, StoryOverview, StoryUpdate
+from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
+from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
+from ..services.llm.prompts.summaries import build_story_summary_prompt
+from ..services.word_count import get_word_count_status
 
 router = APIRouter()
 
@@ -221,7 +221,9 @@ async def summarize_story(
         raise HTTPException(status_code=404, detail="Story not found")
 
     # Gather all scene nodes with content
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
+    all_nodes = (
+        db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
+    )
     nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes if n.content and n.content.strip()]
 
     up_to_title = None
@@ -231,7 +233,11 @@ async def summarize_story(
             up_to_title = target.title
             # Only include nodes up to this one
             target_idx = next((i for i, n in enumerate(all_nodes) if n.id == up_to_node_id), len(all_nodes))
-            nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes[:target_idx + 1] if n.content and n.content.strip()]
+            nodes_content = [
+                {"title": n.title, "content": n.content}
+                for n in all_nodes[: target_idx + 1]
+                if n.content and n.content.strip()
+            ]
 
     feature_prompt = build_story_summary_prompt(
         title=story.title,
@@ -343,15 +349,19 @@ async def suggest_relationships(
     if len(characters) < 2:
         raise HTTPException(status_code=400, detail="Need at least 2 characters to suggest relationships")
 
-    existing_rels = db.query(CharacterRelationship).filter(
-        CharacterRelationship.character_id.in_([c.id for c in characters])
-    ).all()
+    existing_rels = (
+        db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_([c.id for c in characters])).all()
+    )
 
-    char_by_id   = {c.id: c    for c in characters}
+    char_by_id = {c.id: c for c in characters}
     char_by_name = {c.name.lower(): c for c in characters}
-    char_names   = {c.id: c.name for c in characters}
+    char_names = {c.id: c.name for c in characters}
     existing = [
-        {"from": char_names.get(r.character_id, "?"), "to": char_names.get(r.related_character_id, "?"), "type": r.relationship_type}
+        {
+            "from": char_names.get(r.character_id, "?"),
+            "to": char_names.get(r.related_character_id, "?"),
+            "type": r.relationship_type,
+        }
         for r in existing_rels
     ]
 
@@ -395,18 +405,13 @@ async def suggest_relationships(
 
 
 @router.get("/{story_id}/structure", response_model=list[StructureNodeMeta])
-def get_story_structure(
-    story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def get_story_structure(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     # Single flat query — avoids N+1 from recursive lazy-loaded children
     all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .order_by(StructureNode.position)
-        .all()
+        db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
     )
     # Python attribute names for all column properties (handles metadata_ → "metadata" DB column)
     col_attrs = [prop.key for prop in sa_inspect(StructureNode).mapper.column_attrs]
@@ -479,6 +484,7 @@ def reorder_structure(
 def list_characters(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     from ..models.character import Character
     from ..schemas.character import CharacterOut
+
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -494,6 +500,7 @@ def list_story_relationships(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     from sqlalchemy import select
+
     char_subq = select(Character.id).where(Character.story_id == story_id)
     return db.query(CharacterRelationship).filter(CharacterRelationship.character_id.in_(char_subq)).all()
 
@@ -507,6 +514,7 @@ def create_character(
 ):
     from ..models.character import Character
     from ..schemas.character import CharacterOut
+
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -606,8 +614,8 @@ async def identity_workshop(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from ..services.llm.prompts.workshop import build_identity_workshop_prompt
     from ..schemas.llm_params import LLMParams
+    from ..services.llm.prompts.workshop import build_identity_workshop_prompt
 
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
@@ -641,6 +649,7 @@ async def identity_workshop(
 def list_settings(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     from ..models.setting import Setting
     from ..schemas.setting import SettingOut
+
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")

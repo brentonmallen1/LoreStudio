@@ -31,7 +31,8 @@ export default function SceneAtmosphereMode({ session }: Props) {
   useEffect(() => {
     if (!storyId) return;
     setAssetsLoading(true);
-    api.listAssets(storyId)
+    api
+      .listAssets(storyId)
       .then((list) => setAssets(list))
       .catch(() => {})
       .finally(() => setAssetsLoading(false));
@@ -54,12 +55,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
 
     try {
       const nodeId = session.context.nodeId ?? undefined;
-      const res = await api.analyzeSceneAtmosphere(
-        storyId,
-        selected,
-        nodeId,
-        userQuery.trim() || undefined,
-      );
+      const res = await api.analyzeSceneAtmosphere(storyId, selected, nodeId, userQuery.trim() || undefined);
       if (!res.body) throw new Error("No response body");
 
       const reader = res.body.getReader();
@@ -67,7 +63,10 @@ export default function SceneAtmosphereMode({ session }: Props) {
       let accumulated = "";
 
       while (true) {
-        if (abortRef.current) { reader.cancel(); break; }
+        if (abortRef.current) {
+          reader.cancel();
+          break;
+        }
         const { done, value } = await reader.read();
         if (done) break;
         accumulated += decoder.decode(value, { stream: true });
@@ -96,7 +95,14 @@ export default function SceneAtmosphereMode({ session }: Props) {
   // --- Empty / no story ---
   if (!storyId) {
     return (
-      <AIModeWrapper session={session} state={state} icon={Feather} title="Scene Atmosphere" hideSettings hideTokenBadge>
+      <AIModeWrapper
+        session={session}
+        state={state}
+        icon={Feather}
+        title="Scene Atmosphere"
+        hideSettings
+        hideTokenBadge
+      >
         <div className={styles.empty}>
           <Images size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Scene Atmosphere</p>
@@ -137,12 +143,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
               {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? "Copied" : "Copy"}
             </button>
-            <button
-              className={styles.regenBtn}
-              onClick={generate}
-              disabled={generating}
-              title="Regenerate"
-            >
+            <button className={styles.regenBtn} onClick={generate} disabled={generating} title="Regenerate">
               <RefreshCw size={13} className={generating ? styles.spinner : undefined} />
               Regenerate
             </button>
@@ -197,7 +198,9 @@ export default function SceneAtmosphereMode({ session }: Props) {
           )}
 
           {/* Optional query */}
-          <div className={styles.sectionLabel}>Additional context <span className={styles.optional}>(optional)</span></div>
+          <div className={styles.sectionLabel}>
+            Additional context <span className={styles.optional}>(optional)</span>
+          </div>
           <textarea
             className={styles.queryInput}
             value={userQuery}
@@ -232,9 +235,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
             )}
           </button>
 
-          {selected.length === 0 && (
-            <p className={styles.hint}>Select at least one image above</p>
-          )}
+          {selected.length === 0 && <p className={styles.hint}>Select at least one image above</p>}
         </div>
       )}
     </AIModeWrapper>

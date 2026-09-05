@@ -1,20 +1,19 @@
-import uuid
-from fastapi import APIRouter, Depends, HTTPException, Body, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.user import User
-from ..models.story import Story
-from ..models.twist import Twist
-from ..models.structure import StructureNode
-from ..models.plot_thread import PlotThread
-from ..models.character import Character
-from ..schemas.twist import TwistCreate, TwistUpdate, TwistOut
-from ..schemas.ai_responses import TwistAnalysisResponse, StructuredResult
 from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
-from ..services.llm.prompts.twists import build_twist_analysis_prompt
+from ..database import get_db
+from ..models.character import Character
+from ..models.plot_thread import PlotThread
+from ..models.story import Story
+from ..models.structure import StructureNode
+from ..models.twist import Twist
+from ..models.user import User
+from ..schemas.ai_responses import StructuredResult, TwistAnalysisResponse
+from ..schemas.twist import TwistCreate, TwistOut, TwistUpdate
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
+from ..services.llm.prompts.twists import build_twist_analysis_prompt
 
 router = APIRouter()
 
@@ -36,6 +35,7 @@ def _verify_twist(twist_id: str, db: Session, user: User) -> Twist:
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
 
+
 @router.get("/stories/{story_id}/twists", response_model=list[TwistOut])
 def list_twists(
     story_id: str,
@@ -43,12 +43,7 @@ def list_twists(
     current_user: User = Depends(get_current_user),
 ):
     _verify_story(story_id, db, current_user)
-    return (
-        db.query(Twist)
-        .filter(Twist.story_id == story_id)
-        .order_by(Twist.created_at.asc())
-        .all()
-    )
+    return db.query(Twist).filter(Twist.story_id == story_id).order_by(Twist.created_at.asc()).all()
 
 
 @router.post("/stories/{story_id}/twists", response_model=TwistOut, status_code=status.HTTP_201_CREATED)
@@ -103,6 +98,7 @@ def delete_twist(
 
 # ── Scene linking helper ──────────────────────────────────────────────────────
 
+
 @router.get("/structure/{node_id}/twists", response_model=list[TwistOut])
 def twists_for_scene(
     node_id: str,
@@ -116,28 +112,19 @@ def twists_for_scene(
     _verify_story(node.story_id, db, current_user)
 
     # Twists where this is the reveal scene
-    reveal_matches = (
-        db.query(Twist)
-        .filter(Twist.story_id == node.story_id, Twist.revealed_at_node_id == node_id)
-        .all()
-    )
+    reveal_matches = db.query(Twist).filter(Twist.story_id == node.story_id, Twist.revealed_at_node_id == node_id).all()
 
     # Twists where this node appears in any clue
-    clue_matches = (
-        db.query(Twist)
-        .filter(Twist.story_id == node.story_id)
-        .all()
-    )
+    clue_matches = db.query(Twist).filter(Twist.story_id == node.story_id).all()
     clue_matches = [
-        t for t in clue_matches
-        if any(c.get("node_id") == node_id for c in (t.clues or []))
-        and t not in reveal_matches
+        t for t in clue_matches if any(c.get("node_id") == node_id for c in (t.clues or [])) and t not in reveal_matches
     ]
 
     return reveal_matches + clue_matches
 
 
 # ── AI Analysis ───────────────────────────────────────────────────────────────
+
 
 @router.post("/twists/{twist_id}/analyze", response_model=StructuredResult)
 async def analyze_twist(
@@ -156,7 +143,7 @@ async def analyze_twist(
 
     # Assemble clue scene context
     clue_scenes = []
-    for clue in (twist.clues or []):
+    for clue in twist.clues or []:
         scene_title = None
         scene_content = None
         if clue.get("node_id"):
@@ -164,14 +151,16 @@ async def analyze_twist(
             if node:
                 scene_title = node.title
                 scene_content = node.content or ""
-        clue_scenes.append({
-            "clue_id": clue.get("id", ""),
-            "clue_text": clue.get("text", ""),
-            "points_to": clue.get("points_to", "truth"),
-            "subtlety": clue.get("subtlety", "moderate"),
-            "scene_title": scene_title,
-            "scene_content": scene_content,
-        })
+        clue_scenes.append(
+            {
+                "clue_id": clue.get("id", ""),
+                "clue_text": clue.get("text", ""),
+                "points_to": clue.get("points_to", "truth"),
+                "subtlety": clue.get("subtlety", "moderate"),
+                "scene_title": scene_title,
+                "scene_content": scene_content,
+            }
+        )
 
     # Reveal scene context
     reveal_scene = None
@@ -183,10 +172,7 @@ async def analyze_twist(
     # Pass all leaf scenes so the LLM can suggest scene links for unlinked clues
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == twist.story_id).all()
     children_ids = {n.parent_id for n in all_nodes if n.parent_id}
-    all_scenes_ref = [
-        {"id": n.id, "title": n.title or "Untitled"}
-        for n in all_nodes if n.id not in children_ids
-    ]
+    all_scenes_ref = [{"id": n.id, "title": n.title or "Untitled"} for n in all_nodes if n.id not in children_ids]
 
     feature_prompt = build_twist_analysis_prompt(
         twist=twist,
@@ -206,7 +192,7 @@ async def analyze_twist(
 
     return await ai_gateway.generate_structured(
         response_model=TwistAnalysisResponse,
-        messages=[{"role": "user", "content": f"Please analyze the twist \"{twist.name}\"."}],
+        messages=[{"role": "user", "content": f'Please analyze the twist "{twist.name}".'}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -226,16 +212,8 @@ async def analyze_twist_impact(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    threads = (
-        db.query(PlotThread)
-        .filter(PlotThread.story_id == twist.story_id)
-        .all()
-    )
-    characters = (
-        db.query(Character)
-        .filter(Character.story_id == twist.story_id)
-        .all()
-    )
+    threads = db.query(PlotThread).filter(PlotThread.story_id == twist.story_id).all()
+    characters = db.query(Character).filter(Character.story_id == twist.story_id).all()
     all_nodes = (
         db.query(StructureNode)
         .filter(StructureNode.story_id == twist.story_id)
@@ -298,7 +276,7 @@ async def analyze_twist_impact(
 
     return await ai_gateway.generate_structured(
         response_model=TwistImpactResponse,
-        messages=[{"role": "user", "content": f"Analyze the downstream impact of the twist \"{twist.name}\"."}],
+        messages=[{"role": "user", "content": f'Analyze the downstream impact of the twist "{twist.name}".'}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -331,4 +309,5 @@ def link_clue_to_scene(
     db.commit()
     db.refresh(twist)
     from ..schemas.twist import TwistOut
+
     return TwistOut.model_validate(twist)

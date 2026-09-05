@@ -1,21 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.user import User
+from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.twist import Twist
-from ..models.reader_knowledge import ReaderKnowledgeEvent
+from ..models.user import User
 from ..schemas.reader_knowledge import (
     ReaderKnowledgeEventCreate,
-    ReaderKnowledgeEventUpdate,
     ReaderKnowledgeEventOut,
+    ReaderKnowledgeEventUpdate,
 )
-from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.reader_knowledge import (
-    READER_KNOWLEDGE_SCAN_SYSTEM,
     build_reader_knowledge_scan_prompt,
 )
 
@@ -47,6 +46,7 @@ def _enrich(event: ReaderKnowledgeEvent, db: Session) -> ReaderKnowledgeEventOut
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
+
 
 @router.get("/stories/{story_id}/reader-knowledge", response_model=list[ReaderKnowledgeEventOut])
 def list_events(
@@ -130,6 +130,7 @@ def delete_event(
 
 # ── AI Scan ───────────────────────────────────────────────────────────────────
 
+
 @router.post("/stories/{story_id}/reader-knowledge/scan", response_model=list[ReaderKnowledgeEventOut])
 async def scan_for_knowledge_events(
     story_id: str,
@@ -141,10 +142,7 @@ async def scan_for_knowledge_events(
 
     # Gather scenes (leaf nodes with content or synopsis)
     all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == story_id)
-        .order_by(StructureNode.position.asc())
-        .all()
+        db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position.asc()).all()
     )
     child_ids = {n.parent_id for n in all_nodes if n.parent_id}
     scenes = [
@@ -156,14 +154,9 @@ async def scan_for_knowledge_events(
     if not scenes:
         return []
 
-    existing = (
-        db.query(ReaderKnowledgeEvent)
-        .filter(ReaderKnowledgeEvent.story_id == story_id)
-        .all()
-    )
+    existing = db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id).all()
     existing_dicts = [
-        {"subject": e.subject, "knowledge_type": e.knowledge_type, "node_id": e.node_id}
-        for e in existing
+        {"subject": e.subject, "knowledge_type": e.knowledge_type, "node_id": e.node_id} for e in existing
     ]
 
     feature_prompt = build_reader_knowledge_scan_prompt(
@@ -179,9 +172,9 @@ async def scan_for_knowledge_events(
         tags=["mystery", "reader-knowledge", "ai-assist", "user-initiated"],
     )
 
-    from ..schemas.ai_responses import StructuredResult
     from pydantic import BaseModel as PydanticBase
-    from typing import Any
+
+    from ..schemas.ai_responses import StructuredResult
 
     class ScannedEvent(PydanticBase):
         node_id: str | None = None
@@ -209,12 +202,15 @@ async def scan_for_knowledge_events(
 
     # Build valid knowledge_type set for filtering
     valid_types = {
-        "truth_revealed", "misdirection_planted", "clue_planted",
-        "character_learns", "reader_only",
+        "truth_revealed",
+        "misdirection_planted",
+        "clue_planted",
+        "character_learns",
+        "reader_only",
     }
 
     created = []
-    for ev in (result.data.get("events") or []):
+    for ev in result.data.get("events") or []:
         kt = ev.get("knowledge_type", "truth_revealed")
         if kt not in valid_types:
             kt = "truth_revealed"

@@ -44,16 +44,20 @@ function ProgressRing({
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (Math.min(pct, 100) / 100) * circumference;
   const color =
-    warning === "exceeded" ? "var(--color-danger)" :
-    warning === "approaching" ? "var(--color-warning)" :
-    "var(--color-accent)";
+    warning === "exceeded"
+      ? "var(--color-danger)"
+      : warning === "approaching"
+        ? "var(--color-warning)"
+        : "var(--color-accent)";
 
   return (
     <svg width={size} height={size} className={styles.ring}>
       <circle className={styles.ringBg} cx={size / 2} cy={size / 2} r={radius} strokeWidth={stroke} />
       <circle
         className={styles.ringFill}
-        cx={size / 2} cy={size / 2} r={radius}
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
         strokeWidth={stroke}
         strokeDasharray={circumference}
         strokeDashoffset={offset}
@@ -79,7 +83,8 @@ export default function StoryOverviewPage() {
 
   useEffect(() => {
     if (!storyId) return;
-    api.getStoryOverview(storyId)
+    api
+      .getStoryOverview(storyId)
       .then(setOverview)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -131,7 +136,9 @@ export default function StoryOverviewPage() {
     if (!storyId) return;
     if (ov?.recent_scenes?.[0]) {
       const node = findNode(ov.recent_scenes[0].id);
-      if (node) { setActiveNode(node); }
+      if (node) {
+        setActiveNode(node);
+      }
     }
     navigate(`/stories/${storyId}/write`);
   }
@@ -152,8 +159,8 @@ export default function StoryOverviewPage() {
   const lastSessionText = recentScene
     ? `Last worked on "${recentScene.title}" ${timeAgo(recentScene.updated_at)}`
     : hasContent
-    ? `Last updated ${timeAgo(story.updated_at)}`
-    : null;
+      ? `Last updated ${timeAgo(story.updated_at)}`
+      : null;
 
   // Count non-leaf nodes as structural containers (acts/chapters)
   const totalNodes = structure.reduce(function count(sum: number, n): number {
@@ -164,7 +171,6 @@ export default function StoryOverviewPage() {
   return (
     <div className={styles.page}>
       <div className={styles.content}>
-
         {/* ── Title + identity ── */}
         <div className={styles.hero}>
           <div className={styles.heroText}>
@@ -174,7 +180,9 @@ export default function StoryOverviewPage() {
             ) : story.premise ? (
               <p className={styles.logline}>{story.premise}</p>
             ) : story.narrative_intent ? (
-              <p className={styles.logline}><em>{story.narrative_intent}</em></p>
+              <p className={styles.logline}>
+                <em>{story.narrative_intent}</em>
+              </p>
             ) : null}
             <div className={styles.meta}>
               {story.genre && <span className={styles.metaItem}>{story.genre}</span>}
@@ -213,9 +221,11 @@ export default function StoryOverviewPage() {
                     style={{
                       width: `${Math.min(targetPct, 100)}%`,
                       background:
-                        targetWarning === "exceeded" ? "#e05050" :
-                        targetWarning === "approaching" ? "#f0a050" :
-                        "var(--color-accent)",
+                        targetWarning === "exceeded"
+                          ? "#e05050"
+                          : targetWarning === "approaching"
+                            ? "#f0a050"
+                            : "var(--color-accent)",
                     }}
                   />
                 </div>
@@ -224,9 +234,7 @@ export default function StoryOverviewPage() {
             <div className={styles.metricDivider} />
             <div className={styles.metric}>
               <span className={styles.metricValue}>{ov.scene_count}</span>
-              <span className={styles.metricLabel}>
-                {ov.scene_count === 1 ? "scene" : "scenes"}
-              </span>
+              <span className={styles.metricLabel}>{ov.scene_count === 1 ? "scene" : "scenes"}</span>
               <div className={styles.metricSubrow}>
                 <span className={styles.metricSub} style={{ color: "var(--color-text-muted)" }}>
                   {ov.scenes_by_status.draft ?? 0} draft
@@ -244,9 +252,7 @@ export default function StoryOverviewPage() {
                 <div className={styles.metricDivider} />
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>{containerCount}</span>
-                  <span className={styles.metricLabel}>
-                    {containerCount === 1 ? "chapter" : "chapters"}
-                  </span>
+                  <span className={styles.metricLabel}>{containerCount === 1 ? "chapter" : "chapters"}</span>
                 </div>
               </>
             )}
@@ -257,12 +263,17 @@ export default function StoryOverviewPage() {
                 {ov.character_count === 1 ? "character" : "characters"}
               </span>
             </div>
-            {((ov.thread_counts.open ?? 0) + (ov.thread_counts.developing ?? 0) + (ov.thread_counts.resolved ?? 0)) > 0 && (
+            {(ov.thread_counts.open ?? 0) +
+              (ov.thread_counts.developing ?? 0) +
+              (ov.thread_counts.resolved ?? 0) >
+              0 && (
               <>
                 <div className={styles.metricDivider} />
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>
-                    {(ov.thread_counts.open ?? 0) + (ov.thread_counts.developing ?? 0) + (ov.thread_counts.resolved ?? 0)}
+                    {(ov.thread_counts.open ?? 0) +
+                      (ov.thread_counts.developing ?? 0) +
+                      (ov.thread_counts.resolved ?? 0)}
                   </span>
                   <span className={styles.metricLabel}>plot threads</span>
                   <div className={styles.metricSubrow}>
@@ -286,14 +297,9 @@ export default function StoryOverviewPage() {
                     {entry.title}
                   </span>
                   <div className={styles.distTrack}>
-                    <div
-                      className={styles.distFill}
-                      style={{ width: `${entry.pct}%` }}
-                    />
+                    <div className={styles.distFill} style={{ width: `${entry.pct}%` }} />
                   </div>
-                  <span className={styles.distCount}>
-                    {entry.word_count.toLocaleString()}
-                  </span>
+                  <span className={styles.distCount}>{entry.word_count.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -312,15 +318,16 @@ export default function StoryOverviewPage() {
           {hasContent && (
             <button
               className={styles.manuscriptBtn}
-              onClick={() => { setViewMode("manuscript"); navigate(`/stories/${storyId}/write`); }}
+              onClick={() => {
+                setViewMode("manuscript");
+                navigate(`/stories/${storyId}/write`);
+              }}
             >
               <BookOpen size={14} />
               View Manuscript
             </button>
           )}
-          {lastSessionText && (
-            <p className={styles.lastSession}>{lastSessionText}</p>
-          )}
+          {lastSessionText && <p className={styles.lastSession}>{lastSessionText}</p>}
         </div>
 
         {/* ── Session recap ── */}
@@ -358,11 +365,7 @@ export default function StoryOverviewPage() {
             <h2 className={styles.sectionTitle}>Pick up where you left off</h2>
             <div className={styles.sceneCards}>
               {ov.recent_scenes.slice(0, 4).map((scene) => (
-                <button
-                  key={scene.id}
-                  className={styles.sceneCard}
-                  onClick={() => openScene(scene.id)}
-                >
+                <button key={scene.id} className={styles.sceneCard} onClick={() => openScene(scene.id)}>
                   <span className={styles.sceneCardTitle}>{scene.title}</span>
                   <span className={styles.sceneCardMeta}>
                     {scene.word_count.toLocaleString()} words · {timeAgo(scene.updated_at)}
@@ -378,31 +381,28 @@ export default function StoryOverviewPage() {
           <div className={styles.emptyState}>
             <p className={styles.emptyStateLabel}>Where would you like to start?</p>
             <div className={styles.startPaths}>
-              <button
-                className={styles.startPath}
-                onClick={() => navigate(`/stories/${storyId}/write`)}
-              >
-                <span className={styles.startPathIcon}><PenLine size={15} /></span>
+              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/write`)}>
+                <span className={styles.startPathIcon}>
+                  <PenLine size={15} />
+                </span>
                 <span className={styles.startPathName}>Write a scene</span>
                 <span className={styles.startPathHint}>
                   Jump straight in. Add structure, characters, and details as you go.
                 </span>
               </button>
-              <button
-                className={styles.startPath}
-                onClick={() => navigate(`/stories/${storyId}/characters`)}
-              >
-                <span className={styles.startPathIcon}><Users size={15} /></span>
+              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/characters`)}>
+                <span className={styles.startPathIcon}>
+                  <Users size={15} />
+                </span>
                 <span className={styles.startPathName}>Build your cast</span>
                 <span className={styles.startPathHint}>
                   Create characters first. Give them roles, interview them, then write.
                 </span>
               </button>
-              <button
-                className={styles.startPath}
-                onClick={() => navigate(`/stories/${storyId}/outline`)}
-              >
-                <span className={styles.startPathIcon}><ListTree size={15} /></span>
+              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/outline`)}>
+                <span className={styles.startPathIcon}>
+                  <ListTree size={15} />
+                </span>
                 <span className={styles.startPathName}>Plan the structure</span>
                 <span className={styles.startPathHint}>
                   Map acts, chapters, and beats before the prose begins.
@@ -411,7 +411,6 @@ export default function StoryOverviewPage() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

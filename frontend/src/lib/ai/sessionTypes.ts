@@ -23,19 +23,19 @@ export interface SessionContext {
   storyId?: string;
   characterId?: string;
   nodeId?: string;
-  characterIds?: string[];  // For panel interviews
-  selectedText?: string;    // For writing-coach sessions: the highlighted text
-  tonePrefs?: string[];     // For writing-coach sessions: e.g. ["darker", "direct"]
+  characterIds?: string[]; // For panel interviews
+  selectedText?: string; // For writing-coach sessions: the highlighted text
+  tonePrefs?: string[]; // For writing-coach sessions: e.g. ["darker", "direct"]
   contextScope?: ContextScope; // How much story context to include
   contextOptions?: import("../../types").ContextOptions; // Selective context toggles
-  attributeType?: string;      // For attribute-generator sessions
+  attributeType?: string; // For attribute-generator sessions
 }
 
 /** A single context option shown in the context picker dropdown */
 export interface ContextOption {
   id: string;
   label: string;
-  indent?: number;  // Visual indentation level for nested items
+  indent?: number; // Visual indentation level for nested items
 }
 
 /**
@@ -85,7 +85,10 @@ export interface SessionTypeConfig {
    * Return the backendSessionId if one is created (e.g. interview), or null.
    * Return initial messages to pre-populate (e.g. resuming an existing session).
    */
-  initSession: (ctx: SessionContext, params?: { title?: string }) => Promise<{
+  initSession: (
+    ctx: SessionContext,
+    params?: { title?: string },
+  ) => Promise<{
     backendSessionId?: string;
     messages?: import("../../types").ChatMessage[];
     interviewNotes?: string;
@@ -103,7 +106,11 @@ export interface SessionTypeConfig {
    * Send a message in this session. Returns a streaming Response.
    */
   sendMessage: (
-    session: { backendSessionId?: string; context: SessionContext; messages: import("../../types").ChatMessage[] },
+    session: {
+      backendSessionId?: string;
+      context: SessionContext;
+      messages: import("../../types").ChatMessage[];
+    },
     content: string,
     signal?: AbortSignal,
     llmParams?: LLMParams,

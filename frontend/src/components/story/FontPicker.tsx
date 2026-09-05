@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Type } from "lucide-react";
-import { useUIStore, FONT_OPTIONS, FONT_CATEGORIES, type EditorFontFamily, type EditorFontSize, type EditorLineWidth } from "../../stores/uiStore";
+import {
+  useUIStore,
+  FONT_OPTIONS,
+  FONT_CATEGORIES,
+  type EditorFontFamily,
+  type EditorFontSize,
+  type EditorLineWidth,
+} from "../../stores/uiStore";
 import styles from "./FontPicker.module.css";
 
 const sizeOptions: { value: EditorFontSize; label: string }[] = [
@@ -17,7 +24,14 @@ const widthOptions: { value: EditorLineWidth; label: string }[] = [
 ];
 
 export default function FontPicker() {
-  const { editorFontFamily, editorFontSize, editorLineWidth, setEditorFontFamily, setEditorFontSize, setEditorLineWidth } = useUIStore();
+  const {
+    editorFontFamily,
+    editorFontSize,
+    editorLineWidth,
+    setEditorFontFamily,
+    setEditorFontSize,
+    setEditorLineWidth,
+  } = useUIStore();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

@@ -18,7 +18,8 @@ export function useLLMContextSources(request: PromptPreviewRequest | null) {
     }
     let cancelled = false;
     setLoading(true);
-    api.getPromptPreview(request)
+    api
+      .getPromptPreview(request)
       .then((preview) => {
         if (!cancelled) {
           setSources(preview.sources ?? []);
@@ -34,7 +35,9 @@ export function useLLMContextSources(request: PromptPreviewRequest | null) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [key]);
 
   return { sources, tokenBreakdown, loading };

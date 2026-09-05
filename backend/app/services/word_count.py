@@ -3,13 +3,13 @@
 # Maps intended_length values to {min, max, soft_warning_at} in words.
 # soft_warning_at = 85% of max (None for unbounded forms).
 WORD_COUNT_RANGES: dict[str, dict] = {
-    "flash_fiction": {"min": 0,     "max": 1_000,   "soft_warning_at": 850},
-    "short_story":   {"min": 1_000, "max": 7_500,   "soft_warning_at": 6_375},
-    "novelette":     {"min": 7_500, "max": 17_500,  "soft_warning_at": 14_875},
-    "novella":       {"min": 17_500,"max": 40_000,  "soft_warning_at": 34_000},
-    "novel":         {"min": 40_000,"max": 100_000, "soft_warning_at": 85_000},
-    "epic_saga":     {"min": 100_000, "max": None,  "soft_warning_at": None},
-    "series":        {"min": None,  "max": None,    "soft_warning_at": None},
+    "flash_fiction": {"min": 0, "max": 1_000, "soft_warning_at": 850},
+    "short_story": {"min": 1_000, "max": 7_500, "soft_warning_at": 6_375},
+    "novelette": {"min": 7_500, "max": 17_500, "soft_warning_at": 14_875},
+    "novella": {"min": 17_500, "max": 40_000, "soft_warning_at": 34_000},
+    "novel": {"min": 40_000, "max": 100_000, "soft_warning_at": 85_000},
+    "epic_saga": {"min": 100_000, "max": None, "soft_warning_at": None},
+    "series": {"min": None, "max": None, "soft_warning_at": None},
 }
 
 

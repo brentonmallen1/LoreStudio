@@ -57,7 +57,7 @@ Rules:
 def build_outline_alignment_prompt(
     story_title: str,
     outline_name: str,
-    outline_items: list[str],    # ["Act 1: Opening", "  - The protagonist arrives", ...]
+    outline_items: list[str],  # ["Act 1: Opening", "  - The protagonist arrives", ...]
     scenes_with_content: list[str],  # ["[Scene Title]\n{excerpt}"]
 ) -> str:
     """

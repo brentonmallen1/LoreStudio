@@ -75,16 +75,19 @@ export default function ExtractionCandidateCard({ candidate, selected, onToggle 
   return (
     <button
       className={`${styles.candidateCard} ${selected ? styles.candidateSelected : ""}`}
-      style={{
-        "--candidate-color": isAiEnriched ? "var(--color-ai)" : "var(--color-nlp)",
-      } as React.CSSProperties}
+      style={
+        {
+          "--candidate-color": isAiEnriched ? "var(--color-ai)" : "var(--color-nlp)",
+        } as React.CSSProperties
+      }
       onClick={() => onToggle(candidate.id)}
     >
       <div className={styles.candidateCheckbox}>
-        {selected
-          ? <CheckSquare size={15} style={{ color: "var(--candidate-color)" }} />
-          : <Square size={15} style={{ color: "var(--color-text-muted)" }} />
-        }
+        {selected ? (
+          <CheckSquare size={15} style={{ color: "var(--candidate-color)" }} />
+        ) : (
+          <Square size={15} style={{ color: "var(--color-text-muted)" }} />
+        )}
       </div>
 
       <div className={styles.candidateIcon} style={{ color: "var(--candidate-color)" }}>
@@ -98,9 +101,7 @@ export default function ExtractionCandidateCard({ candidate, selected, onToggle 
 
       <div className={styles.candidateMeta}>
         <ConfidenceDots value={candidate.confidence} />
-        <span className={styles.occurrenceCount}>
-          {candidate.occurrences}×
-        </span>
+        <span className={styles.occurrenceCount}>{candidate.occurrences}×</span>
         <span
           className={styles.sourceTag}
           style={{ color: isAiEnriched ? "var(--color-ai)" : "var(--color-nlp)" }}

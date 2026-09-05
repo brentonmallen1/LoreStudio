@@ -6,6 +6,7 @@ helps the author think — but never writes content for them.
 """
 
 from sqlalchemy.orm import Session
+
 from ....models.story import Story
 
 
@@ -13,13 +14,7 @@ def build_identity_workshop_prompt(story: Story, db: Session) -> str:
     from ....models.character import Character
     from ....models.structure import StructureNode
 
-    chars = (
-        db.query(Character)
-        .filter(Character.story_id == story.id)
-        .order_by(Character.name)
-        .limit(12)
-        .all()
-    )
+    chars = db.query(Character).filter(Character.story_id == story.id).order_by(Character.name).limit(12).all()
     scenes = (
         db.query(StructureNode)
         .filter(
@@ -46,8 +41,12 @@ def build_identity_workshop_prompt(story: Story, db: Session) -> str:
     identity_lines = []
     identity_lines.append(f"Logline: {story.logline!r}" if story.logline else "Logline: (empty)")
     identity_lines.append(f"Premise: {story.premise!r}" if story.premise else "Premise: (empty)")
-    identity_lines.append(f"Narrative intent: {story.narrative_intent!r}" if story.narrative_intent else "Narrative intent: (empty)")
-    identity_lines.append(f"Central conflict: {story.central_conflict!r}" if story.central_conflict else "Central conflict: (empty)")
+    identity_lines.append(
+        f"Narrative intent: {story.narrative_intent!r}" if story.narrative_intent else "Narrative intent: (empty)"
+    )
+    identity_lines.append(
+        f"Central conflict: {story.central_conflict!r}" if story.central_conflict else "Central conflict: (empty)"
+    )
     if story.themes:
         identity_lines.append(f"Themes: {', '.join(story.themes)}")
     else:

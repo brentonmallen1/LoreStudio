@@ -104,11 +104,13 @@ export default function AudienceAdherenceMode({ session }: Props) {
       title="Audience Fit"
       hideTokenBadge
       hideSettings
-      headerExtra={selectedText && (
-        <span className={styles.passageChip} title={selectedText}>
-          "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
-        </span>
-      )}
+      headerExtra={
+        selectedText && (
+          <span className={styles.passageChip} title={selectedText}>
+            "{selectedText.length > 40 ? selectedText.slice(0, 40) + "…" : selectedText}"
+          </span>
+        )
+      }
     >
       {/* Empty state */}
       {!hasContent && !loading && (
@@ -116,12 +118,10 @@ export default function AudienceAdherenceMode({ session }: Props) {
           <Users size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Audience Fit</p>
           <p className={styles.emptyHint}>
-            Select a passage and click Audience, or open this tool with a scene loaded, to check
-            how well your prose matches its target audience.
+            Select a passage and click Audience, or open this tool with a scene loaded, to check how well your
+            prose matches its target audience.
           </p>
-          <p className={styles.emptyHint}>
-            Set a target audience in the story's Lorebook first.
-          </p>
+          <p className={styles.emptyHint}>Set a target audience in the story's Lorebook first.</p>
         </div>
       )}
 
@@ -138,7 +138,9 @@ export default function AudienceAdherenceMode({ session }: Props) {
         <div className={styles.errorBox}>
           <p className={styles.errorText}>{error}</p>
           {!error.includes("Lorebook") && (
-            <button className={styles.retryBtn} onClick={runAnalysis}>Try again</button>
+            <button className={styles.retryBtn} onClick={runAnalysis}>
+              Try again
+            </button>
           )}
         </div>
       )}
@@ -199,19 +201,25 @@ export default function AudienceAdherenceMode({ session }: Props) {
           {critical.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Critical</p>
-              {critical.map((issue, i) => <IssueCard key={i} issue={issue} />)}
+              {critical.map((issue, i) => (
+                <IssueCard key={i} issue={issue} />
+              ))}
             </section>
           )}
           {moderate.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Moderate</p>
-              {moderate.map((issue, i) => <IssueCard key={i} issue={issue} />)}
+              {moderate.map((issue, i) => (
+                <IssueCard key={i} issue={issue} />
+              ))}
             </section>
           )}
           {minor.length > 0 && (
             <section className={styles.group}>
               <p className={styles.groupLabel}>Minor</p>
-              {minor.map((issue, i) => <IssueCard key={i} issue={issue} />)}
+              {minor.map((issue, i) => (
+                <IssueCard key={i} issue={issue} />
+              ))}
             </section>
           )}
         </div>

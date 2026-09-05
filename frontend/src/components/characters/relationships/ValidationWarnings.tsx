@@ -27,10 +27,16 @@ export default function ValidationWarnings({ relationships, characters, currentC
 
   // Characters with no outgoing or incoming relationships
   const connectedIds = new Set<string>();
-  relationships.forEach((r) => { connectedIds.add(r.character_id); connectedIds.add(r.related_character_id); });
+  relationships.forEach((r) => {
+    connectedIds.add(r.character_id);
+    connectedIds.add(r.related_character_id);
+  });
   const isolated = characters.filter((c) => c.id !== currentCharacterId && !connectedIds.has(c.id));
   if (isolated.length > 0) {
-    const names = isolated.slice(0, 3).map((c) => c.name).join(", ");
+    const names = isolated
+      .slice(0, 3)
+      .map((c) => c.name)
+      .join(", ");
     warnings.push({
       id: "isolated",
       message: `${isolated.length > 3 ? `${isolated.length} characters` : names} ${isolated.length === 1 ? "has" : "have"} no relationships in this story.`,
@@ -44,7 +50,9 @@ export default function ValidationWarnings({ relationships, characters, currentC
       <AlertTriangle size={13} className={styles.icon} />
       <div className={styles.list}>
         {warnings.map((w) => (
-          <span key={w.id} className={styles.warning}>{w.message}</span>
+          <span key={w.id} className={styles.warning}>
+            {w.message}
+          </span>
         ))}
       </div>
     </div>

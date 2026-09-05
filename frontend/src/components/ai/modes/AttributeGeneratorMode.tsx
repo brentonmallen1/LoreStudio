@@ -10,10 +10,10 @@ import StructuredResponseRenderer, { type SectionConfig } from "../StructuredRes
 import styles from "./AttributeGeneratorMode.module.css";
 
 const ATTRIBUTE_TYPES = [
-  { value: "traits",    label: "Traits",             field: "arc_notes",    fieldLabel: "arc notes" },
-  { value: "backstory", label: "Backstory elements",  field: "background",   fieldLabel: "background" },
-  { value: "quirks",    label: "Quirks & mannerisms", field: "personality",  fieldLabel: "personality" },
-  { value: "appearance",label: "Appearance",          field: "appearance",   fieldLabel: "appearance" },
+  { value: "traits", label: "Traits", field: "arc_notes", fieldLabel: "arc notes" },
+  { value: "backstory", label: "Backstory elements", field: "background", fieldLabel: "background" },
+  { value: "quirks", label: "Quirks & mannerisms", field: "personality", fieldLabel: "personality" },
+  { value: "appearance", label: "Appearance", field: "appearance", fieldLabel: "appearance" },
 ];
 
 interface Props {
@@ -112,7 +112,9 @@ export default function AttributeGeneratorMode({ session }: Props) {
           disabled={loading}
         >
           {ATTRIBUTE_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
+            <option key={t.value} value={t.value}>
+              {t.label}
+            </option>
           ))}
         </select>
         <button
@@ -138,7 +140,9 @@ export default function AttributeGeneratorMode({ session }: Props) {
       {error && !loading && (
         <div className={styles.errorBox}>
           <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} onClick={generate}>Try again</button>
+          <button className={styles.retryBtn} onClick={generate}>
+            Try again
+          </button>
         </div>
       )}
 
@@ -154,7 +158,9 @@ export default function AttributeGeneratorMode({ session }: Props) {
               title={`Append suggestions to the ${typeConfig.fieldLabel} field`}
             >
               {applied ? (
-                <><Check size={12} /> Applied to {typeConfig.fieldLabel}</>
+                <>
+                  <Check size={12} /> Applied to {typeConfig.fieldLabel}
+                </>
               ) : (
                 <>Apply to {typeConfig.fieldLabel}</>
               )}
@@ -169,8 +175,8 @@ export default function AttributeGeneratorMode({ session }: Props) {
           <Wand2 size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Attribute Suggestions</p>
           <p className={styles.emptyHint}>
-            Select a category and click Generate to get AI-powered suggestions
-            grounded in this character's existing profile.
+            Select a category and click Generate to get AI-powered suggestions grounded in this character's
+            existing profile.
           </p>
         </div>
       )}

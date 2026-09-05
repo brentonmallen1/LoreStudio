@@ -21,22 +21,27 @@ const FORMATS: {
   sublabel: string;
   icon: React.ElementType;
 }[] = [
-  { key: "docx",            label: "DOCX",              sublabel: "Microsoft Word",             icon: FileType2 },
-  { key: "docx_manuscript", label: "DOCX — Manuscript", sublabel: "Standard manuscript format", icon: FileType2 },
-  { key: "epub",            label: "ePub",              sublabel: "E-reader format",            icon: BookOpen  },
-  { key: "markdown",        label: "Markdown",          sublabel: "Plain text with formatting", icon: FileCode  },
-  { key: "txt",             label: "Plain Text",        sublabel: "For submission systems",     icon: FileText  },
-  { key: "html",            label: "HTML",              sublabel: "Web / print to PDF",         icon: FileText  },
-  { key: "odt",             label: "ODT",               sublabel: "LibreOffice / OpenDocument", icon: FileType2 },
-  { key: "pdf",             label: "PDF",               sublabel: "Print-ready document",       icon: FileText  },
+  { key: "docx", label: "DOCX", sublabel: "Microsoft Word", icon: FileType2 },
+  {
+    key: "docx_manuscript",
+    label: "DOCX — Manuscript",
+    sublabel: "Standard manuscript format",
+    icon: FileType2,
+  },
+  { key: "epub", label: "ePub", sublabel: "E-reader format", icon: BookOpen },
+  { key: "markdown", label: "Markdown", sublabel: "Plain text with formatting", icon: FileCode },
+  { key: "txt", label: "Plain Text", sublabel: "For submission systems", icon: FileText },
+  { key: "html", label: "HTML", sublabel: "Web / print to PDF", icon: FileText },
+  { key: "odt", label: "ODT", sublabel: "LibreOffice / OpenDocument", icon: FileType2 },
+  { key: "pdf", label: "PDF", sublabel: "Print-ready document", icon: FileText },
 ];
 
 const PDF_LAYOUTS: { key: PdfLayout; label: string; desc: string }[] = [
-  { key: "default",    label: "Default",     desc: "LoreStudio default styling" },
-  { key: "novel",      label: "Novel",       desc: "Georgia serif, generous margins, indented paragraphs" },
-  { key: "manuscript", label: "Manuscript",  desc: "Courier, double-spaced, industry standard" },
-  { key: "compact",    label: "Compact",     desc: "Sans-serif, tighter leading, for screen reading" },
-  { key: "dark",       label: "Dark Mode",   desc: "Dark background, warm text" },
+  { key: "default", label: "Default", desc: "LoreStudio default styling" },
+  { key: "novel", label: "Novel", desc: "Georgia serif, generous margins, indented paragraphs" },
+  { key: "manuscript", label: "Manuscript", desc: "Courier, double-spaced, industry standard" },
+  { key: "compact", label: "Compact", desc: "Sans-serif, tighter leading, for screen reading" },
+  { key: "dark", label: "Dark Mode", desc: "Dark background, warm text" },
 ];
 
 const SCENE_BREAKS = ["* * *", "---", "###", ""];
@@ -57,9 +62,7 @@ export default function ExportPanel({ storyId }: Props) {
     setError(null);
     try {
       const sf: string[] | null =
-        statusFilter === "all" ? null :
-        statusFilter === "revised_final" ? ["revised", "final"] :
-        ["final"];
+        statusFilter === "all" ? null : statusFilter === "revised_final" ? ["revised", "final"] : ["final"];
 
       const options: ExportOptions = {
         format,
@@ -80,7 +83,14 @@ export default function ExportPanel({ storyId }: Props) {
       // Extract filename from Content-Disposition header
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const match = disposition.match(/filename="([^"]+)"/);
-      const ext = format === "docx_manuscript" ? "docx" : format === "markdown" ? "md" : format === "txt" ? "txt" : format;
+      const ext =
+        format === "docx_manuscript"
+          ? "docx"
+          : format === "markdown"
+            ? "md"
+            : format === "txt"
+              ? "txt"
+              : format;
       const filename = match?.[1] ?? `manuscript.${ext}`;
 
       const blob = await res.blob();
@@ -126,12 +136,20 @@ export default function ExportPanel({ storyId }: Props) {
         </label>
 
         <label className={styles.checkRow}>
-          <input type="checkbox" checked={includeHeaders} onChange={(e) => setIncludeHeaders(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={includeHeaders}
+            onChange={(e) => setIncludeHeaders(e.target.checked)}
+          />
           <span>Include act / chapter headings</span>
         </label>
 
         <label className={styles.checkRow}>
-          <input type="checkbox" checked={includeSceneTitles} onChange={(e) => setIncludeSceneTitles(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={includeSceneTitles}
+            onChange={(e) => setIncludeSceneTitles(e.target.checked)}
+          />
           <span>Include scene titles</span>
         </label>
 
@@ -143,7 +161,9 @@ export default function ExportPanel({ storyId }: Props) {
             onChange={(e) => setSceneBreak(e.target.value)}
           >
             {SCENE_BREAKS.map((b) => (
-              <option key={b} value={b}>{b === "" ? "(blank line)" : b}</option>
+              <option key={b} value={b}>
+                {b === "" ? "(blank line)" : b}
+              </option>
             ))}
           </select>
         </div>
@@ -170,7 +190,9 @@ export default function ExportPanel({ storyId }: Props) {
               onChange={(e) => setPdfLayout(e.target.value as PdfLayout)}
             >
               {PDF_LAYOUTS.map(({ key, label }) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}
+                </option>
               ))}
             </select>
           </div>
@@ -184,20 +206,13 @@ export default function ExportPanel({ storyId }: Props) {
         </div>
       )}
 
-      <button
-        className={styles.exportBtn}
-        onClick={handleExport}
-        disabled={exporting}
-        type="button"
-      >
+      <button className={styles.exportBtn} onClick={handleExport} disabled={exporting} type="button">
         <Download size={14} />
         {exporting ? "Exporting…" : "Download"}
       </button>
 
       {format === "html" && (
-        <p className={styles.hint}>
-          HTML can be opened in any browser and printed to PDF via File → Print.
-        </p>
+        <p className={styles.hint}>HTML can be opened in any browser and printed to PDF via File → Print.</p>
       )}
       {format === "txt" && (
         <p className={styles.hint}>

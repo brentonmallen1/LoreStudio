@@ -85,7 +85,10 @@
   font-size: 0.75rem;
   font-family: inherit;
 }
-.closeBtn:hover { color: var(--color-text); background: var(--color-surface-2); }
+.closeBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
 
 .panelActions {
   display: flex;
@@ -108,16 +111,34 @@
   font-family: inherit;
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
-.actionBtn:hover:not(:disabled) { background: var(--color-surface-2); color: var(--color-text); }
-.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.actionBtn:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-.removeBtn { color: var(--color-danger); }
-.removeBtn:hover { background: color-mix(in srgb, var(--color-danger) 10%, transparent) !important; color: var(--color-danger) !important; }
+.removeBtn {
+  color: var(--color-danger);
+}
+.removeBtn:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent) !important;
+  color: var(--color-danger) !important;
+}
 
-.analyzeBtn { color: var(--color-ai); }
-.analyzeBtn:hover:not(:disabled) { background: var(--color-ai-subtle) !important; color: var(--color-ai) !important; }
+.analyzeBtn {
+  color: var(--color-ai);
+}
+.analyzeBtn:hover:not(:disabled) {
+  background: var(--color-ai-subtle) !important;
+  color: var(--color-ai) !important;
+}
 
 .analyzingOverlay {
   position: absolute;
@@ -136,9 +157,15 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(-10deg) scale(1); }
-  50% { transform: rotate(10deg) scale(1.1); }
-  100% { transform: rotate(-10deg) scale(1); }
+  0% {
+    transform: rotate(-10deg) scale(1);
+  }
+  50% {
+    transform: rotate(10deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(-10deg) scale(1);
+  }
 }
 
 /* ── Library browser ── */
@@ -184,8 +211,12 @@
   aspect-ratio: 1;
   transition: border-color var(--transition);
 }
-.gridItem:hover { border-color: var(--color-accent); }
-.gridItemActive { border-color: var(--color-accent); }
+.gridItem:hover {
+  border-color: var(--color-accent);
+}
+.gridItemActive {
+  border-color: var(--color-accent);
+}
 
 .gridImg {
   width: 100%;

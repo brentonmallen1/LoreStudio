@@ -20,7 +20,8 @@ export default function MaintenanceView({ storyId }: Props) {
     {
       id: "dialogue" as const,
       label: "Dialogue Tagging",
-      description: "Find and tag unattributed dialogue across all scenes · NLP + optional AI re-analysis per scene",
+      description:
+        "Find and tag unattributed dialogue across all scenes · NLP + optional AI re-analysis per scene",
       hint: "Scans your manuscript for quoted text without an explicit speaker and infers who is speaking based on nearby character mentions. Use Auto to apply high-confidence suggestions instantly, or review and select manually. Click AI on any scene to re-analyze with the language model for better accuracy.",
       Icon: Tag,
       type: "nlp" as const,
@@ -82,11 +83,7 @@ export default function MaintenanceView({ storyId }: Props) {
                   <p className={styles.hint}>{section.hint}</p>
 
                   {section.id === "dialogue" && (
-                    <AutoTagPanel
-                      mode="story"
-                      storyId={storyId}
-                      characterNames={characterNames}
-                    />
+                    <AutoTagPanel mode="story" storyId={storyId} characterNames={characterNames} />
                   )}
 
                   {section.id === "mentions" && (
@@ -95,9 +92,7 @@ export default function MaintenanceView({ storyId }: Props) {
                         <div key={c.id} className={styles.characterCard}>
                           <button
                             className={styles.characterRow}
-                            onClick={() =>
-                              setOpenMentionCharId((prev) => (prev === c.id ? null : c.id))
-                            }
+                            onClick={() => setOpenMentionCharId((prev) => (prev === c.id ? null : c.id))}
                           >
                             <span className={styles.characterName}>{c.name}</span>
                             {openMentionCharId === c.id ? (
@@ -108,10 +103,7 @@ export default function MaintenanceView({ storyId }: Props) {
                           </button>
                           {openMentionCharId === c.id && (
                             <div className={styles.mentionPanel}>
-                              <MentionReviewPanel
-                                characterId={c.id}
-                                characterName={c.name}
-                              />
+                              <MentionReviewPanel characterId={c.id} characterName={c.name} />
                             </div>
                           )}
                         </div>

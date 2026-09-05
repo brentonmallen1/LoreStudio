@@ -34,7 +34,8 @@ function DefaultPromptModal({ label, prompt, onClose }: DefaultPromptModalProps)
           </button>
         </div>
         <p className={styles.modalNote}>
-          Story and character context is automatically prepended at runtime. This is the behavioral instruction portion.
+          Story and character context is automatically prepended at runtime. This is the behavioral
+          instruction portion.
         </p>
         <pre className={styles.modalPrompt}>{prompt}</pre>
         <div className={styles.modalActions}>
@@ -144,17 +145,16 @@ export default function SettingsAIPage() {
 
       <main className={styles.main}>
         <p className={styles.intro}>
-          These prompts control how LoreStudio's AI behaves. The core prompt is always included.
-          Feature prompts are appended for specific interactions. Leave a feature prompt blank to use the built-in default.
+          These prompts control how LoreStudio's AI behaves. The core prompt is always included. Feature
+          prompts are appended for specific interactions. Leave a feature prompt blank to use the built-in
+          default.
         </p>
 
         {/* Core Prompt */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionLabel}>Core System Prompt</h2>
-            {settings?.core_prompt_is_custom && (
-              <span className={styles.customBadge}>Custom</span>
-            )}
+            {settings?.core_prompt_is_custom && <span className={styles.customBadge}>Custom</span>}
           </div>
           <p className={styles.sectionDesc}>
             Always sent with every AI request. Sets the overall tone and expectations.
@@ -177,11 +177,7 @@ export default function SettingsAIPage() {
                 <RotateCcw size={13} />
                 Reset to default
               </button>
-              <button
-                className={styles.saveBtn}
-                onClick={saveCorePrompt}
-                disabled={saving !== null}
-              >
+              <button className={styles.saveBtn} onClick={saveCorePrompt} disabled={saving !== null}>
                 {saved === "core" ? "Saved" : saving === "core" ? "Saving…" : "Save"}
               </button>
             </div>
@@ -196,82 +192,81 @@ export default function SettingsAIPage() {
           </p>
 
           <div className={styles.featureList}>
-            {defaults && Object.entries(defaults.feature_labels).map(([featureId, label]) => {
-              const isExpanded = expandedFeature === featureId;
-              const isCustom = Boolean(settings?.feature_prompts[featureId]);
-              const currentValue = featureEdits[featureId] ?? "";
-              const hasDefault = Boolean(defaults.feature_defaults[featureId]);
+            {defaults &&
+              Object.entries(defaults.feature_labels).map(([featureId, label]) => {
+                const isExpanded = expandedFeature === featureId;
+                const isCustom = Boolean(settings?.feature_prompts[featureId]);
+                const currentValue = featureEdits[featureId] ?? "";
+                const hasDefault = Boolean(defaults.feature_defaults[featureId]);
 
-              return (
-                <div key={featureId} className={styles.featureItem}>
-                  <button
-                    className={styles.featureHeader}
-                    onClick={() => setExpandedFeature(isExpanded ? null : featureId)}
-                  >
-                    <span className={styles.featureChevron}>
-                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </span>
-                    <span className={styles.featureLabel}>{label}</span>
-                    {isCustom && <span className={styles.customBadge}>Custom</span>}
-                    {hasDefault && (
-                      <span
-                        className={styles.infoBtn}
-                        role="button"
-                        tabIndex={0}
-                        title="View default prompt"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDefaultModal({ featureId, label });
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                return (
+                  <div key={featureId} className={styles.featureItem}>
+                    <button
+                      className={styles.featureHeader}
+                      onClick={() => setExpandedFeature(isExpanded ? null : featureId)}
+                    >
+                      <span className={styles.featureChevron}>
+                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                      </span>
+                      <span className={styles.featureLabel}>{label}</span>
+                      {isCustom && <span className={styles.customBadge}>Custom</span>}
+                      {hasDefault && (
+                        <span
+                          className={styles.infoBtn}
+                          role="button"
+                          tabIndex={0}
+                          title="View default prompt"
+                          onClick={(e) => {
                             e.stopPropagation();
                             setDefaultModal({ featureId, label });
-                          }
-                        }}
-                      >
-                        <Info size={13} />
-                      </span>
-                    )}
-                  </button>
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.stopPropagation();
+                              setDefaultModal({ featureId, label });
+                            }
+                          }}
+                        >
+                          <Info size={13} />
+                        </span>
+                      )}
+                    </button>
 
-                  {isExpanded && (
-                    <div className={styles.featureBody}>
-                      <textarea
-                        className={styles.textarea}
-                        value={currentValue}
-                        onChange={(e) => setFeatureEdits((prev) => ({ ...prev, [featureId]: e.target.value }))}
-                        rows={6}
-                        placeholder="Leave blank to use the built-in default prompt…"
-                        spellCheck={false}
-                      />
-                      <div className={styles.actions}>
-                        <button
-                          className={styles.resetBtn}
-                          onClick={() => resetFeaturePrompt(featureId)}
-                          disabled={saving !== null || !isCustom}
-                          title="Reset to default"
-                        >
-                          <RotateCcw size={13} />
-                          Reset to default
-                        </button>
-                        <button
-                          className={styles.saveBtn}
-                          onClick={() => saveFeaturePrompt(featureId)}
-                          disabled={saving !== null}
-                        >
-                          {saved === featureId
-                            ? "Saved"
-                            : saving === featureId
-                            ? "Saving…"
-                            : "Save"}
-                        </button>
+                    {isExpanded && (
+                      <div className={styles.featureBody}>
+                        <textarea
+                          className={styles.textarea}
+                          value={currentValue}
+                          onChange={(e) =>
+                            setFeatureEdits((prev) => ({ ...prev, [featureId]: e.target.value }))
+                          }
+                          rows={6}
+                          placeholder="Leave blank to use the built-in default prompt…"
+                          spellCheck={false}
+                        />
+                        <div className={styles.actions}>
+                          <button
+                            className={styles.resetBtn}
+                            onClick={() => resetFeaturePrompt(featureId)}
+                            disabled={saving !== null || !isCustom}
+                            title="Reset to default"
+                          >
+                            <RotateCcw size={13} />
+                            Reset to default
+                          </button>
+                          <button
+                            className={styles.saveBtn}
+                            onClick={() => saveFeaturePrompt(featureId)}
+                            disabled={saving !== null}
+                          >
+                            {saved === featureId ? "Saved" : saving === featureId ? "Saving…" : "Save"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    )}
+                  </div>
+                );
+              })}
           </div>
         </section>
       </main>

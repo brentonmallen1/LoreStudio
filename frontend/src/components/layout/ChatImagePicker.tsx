@@ -72,7 +72,8 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
   useEffect(() => {
     if (!open) return;
     setLoadingAssets(true);
-    api.listAssets(storyId)
+    api
+      .listAssets(storyId)
       .then((all) => setAssets(all.filter((a) => a.mime_type.startsWith("image/"))))
       .catch(() => setAssets([]))
       .finally(() => setLoadingAssets(false));
@@ -118,7 +119,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
     ? assets.filter((a) =>
         (a.original_filename + " " + (a.alt_text ?? "") + " " + (a.description ?? ""))
           .toLowerCase()
-          .includes(query.toLowerCase())
+          .includes(query.toLowerCase()),
       )
     : assets;
 
@@ -191,9 +192,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
                 <p className={styles.hint}>Loading…</p>
               ) : filteredAssets.length === 0 ? (
                 <p className={styles.hint}>
-                  {assets.length === 0
-                    ? "No images in media library yet."
-                    : "No images match your filter."}
+                  {assets.length === 0 ? "No images in media library yet." : "No images match your filter."}
                 </p>
               ) : (
                 <div className={styles.grid}>
@@ -228,8 +227,8 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
           {mode === "upload" && (
             <div className={styles.uploadMode}>
               <p className={styles.uploadHint}>
-                Upload a new image — it will be saved to your story's media library
-                and attached to this message.
+                Upload a new image — it will be saved to your story's media library and attached to this
+                message.
               </p>
               <button
                 className={styles.uploadBtn}

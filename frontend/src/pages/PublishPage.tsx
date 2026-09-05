@@ -14,7 +14,10 @@ export default function PublishPage() {
     const queue = [...structure];
     while (queue.length) {
       const n = queue.shift()!;
-      if (n.id === id) { setActiveNode(n); break; }
+      if (n.id === id) {
+        setActiveNode(n);
+        break;
+      }
       if (n.children) queue.push(...n.children);
     }
     setViewMode("tree");
@@ -23,10 +26,5 @@ export default function PublishPage() {
 
   if (!storyId) return null;
 
-  return (
-    <ManuscriptView
-      storyId={storyId}
-      onNavigateToScene={handleNavigateToScene}
-    />
-  );
+  return <ManuscriptView storyId={storyId} onNavigateToScene={handleNavigateToScene} />;
 }

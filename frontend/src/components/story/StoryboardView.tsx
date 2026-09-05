@@ -84,7 +84,9 @@ function StructureStoryboardNode({ data, selected }: NodeProps) {
   return (
     <div
       className={`${styles.structureNode} ${selected ? styles.structureNodeSelected : ""}`}
-      style={{ borderColor: `color-mix(in srgb, var(--segment-${levelType}, var(--color-border)) 55%, var(--color-border))` }}
+      style={{
+        borderColor: `color-mix(in srgb, var(--segment-${levelType}, var(--color-border)) 55%, var(--color-border))`,
+      }}
       onClick={() => onCenter?.(structureId)}
       onDoubleClick={() => onOpen?.(structureId)}
       title="Click to center · Double-click to open in editor"
@@ -106,9 +108,7 @@ function StructureStoryboardNode({ data, selected }: NodeProps) {
       </div>
       <div className={styles.snTitle}>{data.label as string}</div>
       {summary ? (
-        <div className={styles.snSummary}>
-          {summary.length > 80 ? summary.slice(0, 77) + "…" : summary}
-        </div>
+        <div className={styles.snSummary}>{summary.length > 80 ? summary.slice(0, 77) + "…" : summary}</div>
       ) : (
         <div className={styles.snNoSummary}>No summary yet</div>
       )}
@@ -127,7 +127,9 @@ function NoteStoryboardNode({ data, id, selected }: NodeProps) {
   const onLabelChange = data.onLabelChange as ((id: string, l: string) => void) | undefined;
   const onDelete = data.onDelete as ((id: string) => void) | undefined;
 
-  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
   function commit() {
     onLabelChange?.(id, label);
@@ -139,9 +141,7 @@ function NoteStoryboardNode({ data, id, selected }: NodeProps) {
       className={`${styles.noteNode} ${selected ? styles.noteNodeSelected : ""}`}
       style={{
         borderColor: color || undefined,
-        backgroundColor: color
-          ? `color-mix(in srgb, ${color} 12%, var(--color-surface))`
-          : undefined,
+        backgroundColor: color ? `color-mix(in srgb, ${color} 12%, var(--color-surface))` : undefined,
       }}
       onDoubleClick={() => setEditing(true)}
     >
@@ -155,7 +155,10 @@ function NoteStoryboardNode({ data, id, selected }: NodeProps) {
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === "Enter") commit();
-            if (e.key === "Escape") { setLabel(data.label as string); setEditing(false); }
+            if (e.key === "Escape") {
+              setLabel(data.label as string);
+              setEditing(false);
+            }
           }}
           className={`${styles.noteInput} nodrag`}
           onClick={(e) => e.stopPropagation()}
@@ -167,7 +170,10 @@ function NoteStoryboardNode({ data, id, selected }: NodeProps) {
       {selected && (
         <button
           className={`${styles.noteDeleteBtn} nodrag nopan`}
-          onClick={(e) => { e.stopPropagation(); onDelete?.(id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete?.(id);
+          }}
           title="Delete note"
         >
           <X size={10} />
@@ -253,11 +259,9 @@ export default function StoryboardView() {
   function centerOnNode(structureId: string) {
     const rfNode = rfRef.current?.getNode(`structure-${structureId}`);
     if (rfNode && rfRef.current) {
-      rfRef.current.setCenter(
-        rfNode.position.x + NODE_W / 2,
-        rfNode.position.y + NODE_H / 2,
-        { duration: 400 },
-      );
+      rfRef.current.setCenter(rfNode.position.x + NODE_W / 2, rfNode.position.y + NODE_H / 2, {
+        duration: 400,
+      });
     }
   }
 
@@ -299,7 +303,9 @@ export default function StoryboardView() {
           animated: e.animated,
         }));
       }
-    } catch { /* silently skip */ }
+    } catch {
+      /* silently skip */
+    }
 
     setStoryboardDiagramId(savedId);
     setNodes([...laidOut, ...noteNodes]);
@@ -372,7 +378,9 @@ export default function StoryboardView() {
         data: {
           ...n.data,
           onLabelChange: (id: string, label: string) => {
-            setNodes((ns) => ns.map((node) => node.id === id ? { ...node, data: { ...node.data, label } } : node));
+            setNodes((ns) =>
+              ns.map((node) => (node.id === id ? { ...node, data: { ...node.data, label } } : node)),
+            );
             setDirty(true);
           },
           onDelete: (id: string) => {
@@ -534,7 +542,9 @@ export default function StoryboardView() {
         <ReactFlow
           nodes={visibleNodes}
           edges={visibleEdges}
-          onInit={(instance) => { rfRef.current = instance; }}
+          onInit={(instance) => {
+            rfRef.current = instance;
+          }}
           onNodesChange={(changes) => {
             // Block keyboard-delete for structure nodes
             const safe = changes.filter((c) => {
@@ -554,7 +564,10 @@ export default function StoryboardView() {
             });
             if (noteChanges.length > 0) setDirty(true);
           }}
-          onEdgesChange={(changes) => { onEdgesChange(changes); setDirty(true); }}
+          onEdgesChange={(changes) => {
+            onEdgesChange(changes);
+            setDirty(true);
+          }}
           onConnect={onConnect}
           nodeTypes={NODE_TYPES}
           fitView

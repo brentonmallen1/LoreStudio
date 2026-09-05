@@ -1,9 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..database import Base
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from ..database import Base
+
 if TYPE_CHECKING:
     from .character import Character
     from .character_journey import CharacterJourneySummary
@@ -16,7 +19,6 @@ if TYPE_CHECKING:
     from .story import Story
     from .todo import StoryTodo
     from .twist import Twist
-
 
 
 class StoryStructureTemplate(Base):
@@ -57,13 +59,15 @@ class StructureNode(Base):
     summary_stale: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     summary_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     beat_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
-    pov_character_id: Mapped[str | None] = mapped_column(String, ForeignKey("characters.id"), nullable=True, default=None)
+    pov_character_id: Mapped[str | None] = mapped_column(
+        String, ForeignKey("characters.id"), nullable=True, default=None
+    )
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     pov_character: Mapped["Character | None"] = relationship(
@@ -78,11 +82,15 @@ class StructureNode(Base):
         "SceneSetting", back_populates="node", cascade="all, delete-orphan"
     )
     scene_links_out: Mapped[list["SceneLink"]] = relationship(
-        "SceneLink", foreign_keys="SceneLink.source_node_id", back_populates="source_node",
+        "SceneLink",
+        foreign_keys="SceneLink.source_node_id",
+        back_populates="source_node",
         cascade="all, delete-orphan",
     )
     scene_links_in: Mapped[list["SceneLink"]] = relationship(
-        "SceneLink", foreign_keys="SceneLink.target_node_id", back_populates="target_node",
+        "SceneLink",
+        foreign_keys="SceneLink.target_node_id",
+        back_populates="target_node",
         cascade="all, delete-orphan",
     )
     thread_appearances: Mapped[list["PlotThreadAppearance"]] = relationship(

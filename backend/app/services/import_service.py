@@ -20,14 +20,14 @@ import re
 import subprocess
 import tempfile
 import uuid
-from html.parser import HTMLParser
-from typing import Literal, Optional
+from typing import Literal
 
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 
 from ..models.story import Story
 from ..models.structure import StructureNode
+from ..schemas.ai_responses import StructuredResult
 from ..schemas.import_schemas import (
     AIBreakSuggestion,
     BreakPosition,
@@ -37,7 +37,6 @@ from ..schemas.import_schemas import (
     ParsedParagraph,
     PreviewNode,
 )
-from ..schemas.ai_responses import StructuredResult
 
 logger = logging.getLogger(__name__)
 
@@ -97,9 +96,7 @@ def _detect_pandoc_format(filename: str, mime_type: str) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 
-def parse_document(
-    file_bytes: bytes, filename: str, mime_type: str
-) -> tuple[list[ParsedParagraph], Optional[str], str]:
+def parse_document(file_bytes: bytes, filename: str, mime_type: str) -> tuple[list[ParsedParagraph], str | None, str]:
     """
     Convert an uploaded file to HTML via pandoc, then extract paragraphs.
 
@@ -130,7 +127,7 @@ def parse_document(
         if result.returncode != 0:
             raise RuntimeError(f"pandoc failed: {result.stderr}")
 
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             html_content = f.read()
     finally:
         os.unlink(input_path)
@@ -141,18 +138,14 @@ def parse_document(
     return paragraphs, detected_title, display_format
 
 
-def _extract_paragraphs(html: str) -> tuple[list[ParsedParagraph], Optional[str]]:
+def _extract_paragraphs(html: str) -> tuple[list[ParsedParagraph], str | None]:
     """Parse pandoc HTML output into a flat list of paragraphs."""
     soup = BeautifulSoup(html, "html.parser")
 
     # Try to extract document title
-    detected_title: Optional[str] = None
+    detected_title: str | None = None
     title_tag = soup.find("title")
-    if (
-        title_tag
-        and title_tag.text.strip()
-        and title_tag.text.strip() not in ("", "Untitled")
-    ):
+    if title_tag and title_tag.text.strip() and title_tag.text.strip() not in ("", "Untitled"):
         detected_title = title_tag.text.strip()
 
     body = soup.find("body") or soup
@@ -287,7 +280,7 @@ class _Section:
         level: int,
         source: Literal["heuristic", "ai", "user"],
         confidence: float,
-        title_para: Optional[ParsedParagraph] = None,
+        title_para: ParsedParagraph | None = None,
     ):
         self.id = str(uuid.uuid4())
         self.level = level
@@ -295,7 +288,7 @@ class _Section:
         self.confidence = confidence
         self.title_para = title_para  # heading paragraph, if any
         self.content_paras: list[ParsedParagraph] = []
-        self.parent_id: Optional[str] = None
+        self.parent_id: str | None = None
 
     @property
     def title(self) -> str:
@@ -361,13 +354,11 @@ def apply_breaks(
     # Skip scene-break marker paragraphs (pure "* * *" / hr lines)
     skip_indices: set[int] = set()
     for para in paragraphs:
-        if para.tag == "hr" or (
-            para.tag == "p" and _SCENE_BREAK_RE.match(para.text_preview)
-        ):
+        if para.tag == "hr" or (para.tag == "p" and _SCENE_BREAK_RE.match(para.text_preview)):
             skip_indices.add(para.index)
 
     sections: list[_Section] = []
-    current_section: Optional[_Section] = None
+    current_section: _Section | None = None
 
     for para in paragraphs:
         prev_index = para.index - 1
@@ -430,7 +421,7 @@ def build_preview_tree(
     template_id: str,
     template_levels: list[dict],
     source_format: str,
-    detected_title: Optional[str],
+    detected_title: str | None,
 ) -> ImportPreviewTree:
     """
     Convert flat sections into a hierarchical ImportPreviewTree for the frontend.
@@ -462,7 +453,7 @@ def build_preview_tree(
 
     for sec in sections:
         # Determine parent: the most recent section at a lower level
-        parent_id: Optional[str] = None
+        parent_id: str | None = None
         for lvl in range(sec.level - 1, -1, -1):
             if lvl in level_stack:
                 parent_id = level_stack[lvl]
@@ -492,8 +483,7 @@ def build_preview_tree(
                 word_count=sec.word_count,
                 source=sec.source,
                 confidence=sec.confidence,
-                needs_review=sec.confidence < 0.7
-                or (not sec.title and sec.word_count > 500),
+                needs_review=sec.confidence < 0.7 or (not sec.title and sec.word_count > 500),
                 paragraph_start=sec.paragraph_start,
                 paragraph_end=sec.paragraph_end,
             )
@@ -502,9 +492,7 @@ def build_preview_tree(
     total_words = sum(p.word_count for p in paragraphs)
     has_only_one_node = len(nodes) == 1
     if has_only_one_node and total_words > 1000:
-        warnings.append(
-            "Document has no detectable structure. Use 'Auto-segment' to find scene breaks."
-        )
+        warnings.append("Document has no detectable structure. Use 'Auto-segment' to find scene breaks.")
 
     return ImportPreviewTree(
         session_id=session_id,
@@ -523,9 +511,7 @@ def build_preview_tree(
 # ---------------------------------------------------------------------------
 
 
-def _build_ai_prompt(
-    paragraphs: list[ParsedParagraph], template_levels: list[dict]
-) -> str:
+def _build_ai_prompt(paragraphs: list[ParsedParagraph], template_levels: list[dict]) -> str:
     level_names = " → ".join(t["name"] for t in template_levels)
     lines = [
         "You are analyzing a document to identify its structure.",
@@ -571,22 +557,20 @@ async def detect_structure_ai(
     context,  # AICallContext
     db: Session,
     user,
-) -> tuple[Optional[list[BreakPosition]], Optional[str]]:
+) -> tuple[list[BreakPosition] | None, str | None]:
     """
     Ask the AI to suggest structural break positions.
 
     Returns (breaks, error_message). breaks is None only when Ollama is unreachable.
     AI only returns indices — all actual content comes from the original paragraphs.
     """
-    from .llm.gateway import ai_gateway, AICallContext
+    from .llm.gateway import ai_gateway
 
     max_paragraphs = 500  # cap for very long documents
     sample = paragraphs[:max_paragraphs]
 
     feature_prompt = _build_ai_prompt(sample, template_levels)
-    messages = [
-        {"role": "user", "content": "Analyze the document structure as instructed."}
-    ]
+    messages = [{"role": "user", "content": "Analyze the document structure as instructed."}]
 
     result: StructuredResult = await ai_gateway.generate_structured(
         response_model=AIBreakSuggestion,
@@ -609,9 +593,7 @@ async def detect_structure_ai(
     if result.success and result.data:
         data = result.data
     elif result.raw_data and isinstance(result.raw_data, dict):
-        logger.info(
-            "AI structure detection: using raw_data fallback (schema validation failed)"
-        )
+        logger.info("AI structure detection: using raw_data fallback (schema validation failed)")
         data = result.raw_data
     else:
         logger.warning("AI structure detection: no usable data in response")
@@ -624,21 +606,15 @@ async def detect_structure_ai(
 
     for idx in data.get("scene_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(
-                BreakPosition(after_index=idx, level=2, source="ai", confidence=0.75)
-            )
+            breaks.append(BreakPosition(after_index=idx, level=2, source="ai", confidence=0.75))
 
     for idx in data.get("chapter_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(
-                BreakPosition(after_index=idx, level=1, source="ai", confidence=0.70)
-            )
+            breaks.append(BreakPosition(after_index=idx, level=1, source="ai", confidence=0.70))
 
     for idx in data.get("part_breaks_after", []):
         if 0 <= idx <= max_idx:
-            breaks.append(
-                BreakPosition(after_index=idx, level=0, source="ai", confidence=0.65)
-            )
+            breaks.append(BreakPosition(after_index=idx, level=0, source="ai", confidence=0.65))
 
     breaks.sort(key=lambda b: b.after_index)
     return breaks, None
@@ -659,9 +635,7 @@ def _merge_breaks(
 
     for ai_break in ai:
         # Skip if heuristic already placed a break nearby
-        near_existing = any(
-            abs(ai_break.after_index - h_idx) <= 1 for h_idx in heuristic_indices
-        )
+        near_existing = any(abs(ai_break.after_index - h_idx) <= 1 for h_idx in heuristic_indices)
         if not near_existing:
             merged.append(ai_break)
 
@@ -689,9 +663,7 @@ def apply_adjustment(
 
     if adjustment.action == "rename" and adjustment.new_title:
         idx = next(i for i, n in enumerate(nodes) if n.id == adjustment.node_id)
-        nodes[idx] = target.model_copy(
-            update={"title": adjustment.new_title, "source": "user"}
-        )
+        nodes[idx] = target.model_copy(update={"title": adjustment.new_title, "source": "user"})
 
     elif adjustment.action == "relevel" and adjustment.new_level is not None:
         template_levels = preview.template_levels
@@ -740,7 +712,7 @@ def _reassign_parents(nodes: list[PreviewNode]) -> list[PreviewNode]:
     result: list[PreviewNode] = []
 
     for node in nodes:
-        parent_id: Optional[str] = None
+        parent_id: str | None = None
         for lvl in range(node.level - 1, -1, -1):
             if lvl in level_stack:
                 parent_id = level_stack[lvl]
@@ -790,10 +762,10 @@ def create_story_from_import(
     node_db_ids: dict[str, str] = {}  # preview_node_id → db node_id
 
     # Track position counters per parent
-    position_counters: dict[Optional[str], int] = {}
+    position_counters: dict[str | None, int] = {}
 
     for node in preview.nodes:
-        parent_db_id: Optional[str] = None
+        parent_db_id: str | None = None
         if node.parent_id and node.parent_id in node_db_ids:
             parent_db_id = node_db_ids[node.parent_id]
 
@@ -916,9 +888,10 @@ def extract_entities_nlp(
     Run spaCy NER across preview nodes and return entity candidates.
     Returns list of ExtractionCandidate objects.
     """
-    from ..services.nlp_analysis_service import extract_unknown_entities
-    from ..schemas.import_extraction import ExtractionCandidate
     import uuid as _uuid
+
+    from ..schemas.import_extraction import ExtractionCandidate
+    from ..services.nlp_analysis_service import extract_unknown_entities
 
     # Build "scenes" from preview nodes
     scenes = []
@@ -987,19 +960,20 @@ async def extract_entities_ai(
     since each is an independent Ollama call. Relationship detection runs after,
     as it depends on the enriched character list.
     """
-    from ..services.llm.gateway import ai_gateway
+    import uuid as _uuid
+
     from ..schemas.import_extraction import (
         ExtractedCharacter,
         ExtractedLocation,
         ExtractedRelationship,
         ExtractionCandidate,
     )
+    from ..services.llm.gateway import ai_gateway
     from .llm.prompts.import_extraction import (
         build_character_extraction_prompt,
         build_location_extraction_prompt,
         build_relationship_extraction_prompt,
     )
-    import uuid as _uuid
 
     # Local Ollama processes one request at a time on a single GPU, but allowing
     # a small buffer of concurrent requests pipelines HTTP overhead and keeps
@@ -1008,7 +982,9 @@ async def extract_entities_ai(
     semaphore = asyncio.Semaphore(_AI_CONCURRENCY)
 
     async def _enrich_character(index: int, candidate):
-        excerpts = _gather_excerpts(candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences)
+        excerpts = _gather_excerpts(
+            candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences
+        )
         prompt = build_character_extraction_prompt(candidate.name, candidate.occurrences, excerpts)
         async with semaphore:
             result = await ai_gateway.generate_structured(
@@ -1026,7 +1002,9 @@ async def extract_entities_ai(
         return index, candidate
 
     async def _enrich_location(index: int, candidate):
-        excerpts = _gather_excerpts(candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences)
+        excerpts = _gather_excerpts(
+            candidate.name, candidate.scene_ids, preview_nodes, paragraphs, candidate.occurrences
+        )
         prompt = build_location_extraction_prompt(candidate.name, candidate.occurrences, excerpts)
         async with semaphore:
             result = await ai_gateway.generate_structured(
@@ -1080,6 +1058,7 @@ async def extract_entities_ai(
                     pair_scenes.setdefault(key, []).append(scene_id)
 
         from ..services.text_utils import html_to_text
+
         node_map = {n.id: n for n in preview_nodes}
 
         async def _detect_relationship(name_a: str, name_b: str, shared_scenes: list[str]):
@@ -1145,9 +1124,10 @@ def create_entities_from_extraction(
     approved extraction candidates.
     Returns counts of created entities.
     """
+    import uuid as _uuid
+
     from ..models.character import Character, CharacterRelationship
     from ..models.location import Location
-    import uuid as _uuid
 
     char_name_to_id: dict[str, str] = {}
     counts = {
@@ -1210,8 +1190,7 @@ def create_entities_from_extraction(
             id=str(_uuid.uuid4()),
             character_id=char_a_id,
             related_character_id=char_b_id,
-            relationship_type=data.get("relationship_type", "acquaintance")
-            or "acquaintance",
+            relationship_type=data.get("relationship_type", "acquaintance") or "acquaintance",
             description=data.get("description", "") or "",
         )
         db.add(rel)

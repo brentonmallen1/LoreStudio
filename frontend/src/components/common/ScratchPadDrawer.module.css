@@ -21,8 +21,12 @@
 }
 
 @keyframes slideIn {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 /* ── Header ── */
@@ -68,7 +72,9 @@
   border-radius: var(--radius);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .iconBtn:hover {
@@ -101,7 +107,9 @@
   font-family: inherit;
 }
 
-.tab:hover { color: var(--color-text); }
+.tab:hover {
+  color: var(--color-text);
+}
 
 .tabActive {
   color: var(--color-accent);

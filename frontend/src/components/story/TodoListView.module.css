@@ -63,7 +63,9 @@
   transition: opacity var(--transition);
 }
 
-.addBtn:hover { opacity: 0.85; }
+.addBtn:hover {
+  opacity: 0.85;
+}
 
 .deleteDoneBtn {
   display: flex;
@@ -77,7 +79,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   cursor: pointer;
-  transition: color var(--transition), border-color var(--transition);
+  transition:
+    color var(--transition),
+    border-color var(--transition);
 }
 
 .deleteDoneBtn:hover {
@@ -180,8 +184,13 @@
   transition: opacity var(--transition);
 }
 
-.addSubmit:hover { opacity: 0.85; }
-.addSubmit:disabled { opacity: 0.4; cursor: default; }
+.addSubmit:hover {
+  opacity: 0.85;
+}
+.addSubmit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 
 .addCancel {
   display: flex;
@@ -197,7 +206,9 @@
   transition: color var(--transition);
 }
 
-.addCancel:hover { color: var(--color-text); }
+.addCancel:hover {
+  color: var(--color-text);
+}
 
 /* ── Body ── */
 
@@ -265,11 +276,17 @@
   transition: color var(--transition);
 }
 
-.groupHeader:hover { color: var(--color-text); }
+.groupHeader:hover {
+  color: var(--color-text);
+}
 
-.groupHeader svg { flex-shrink: 0; }
+.groupHeader svg {
+  flex-shrink: 0;
+}
 
-.groupLabel { flex: 1; }
+.groupLabel {
+  flex: 1;
+}
 
 .groupCount {
   font-size: 0.7rem;
@@ -323,7 +340,9 @@
   transition: color var(--transition);
 }
 
-.todoCheck:hover { opacity: 0.7; }
+.todoCheck:hover {
+  opacity: 0.7;
+}
 
 .todoContent {
   flex: 1;
@@ -334,9 +353,14 @@
   word-break: break-word;
 }
 
-.todoContent:hover { color: var(--color-todo); }
+.todoContent:hover {
+  color: var(--color-todo);
+}
 
-.todoDone .todoContent:hover { color: var(--color-text-muted); cursor: default; }
+.todoDone .todoContent:hover {
+  color: var(--color-text-muted);
+  cursor: default;
+}
 
 .todoEditInput {
   flex: 1;
@@ -379,8 +403,12 @@
   transition: opacity var(--transition);
 }
 
-.todoItem:hover .todoMenuBtn { opacity: 1; }
-.todoMenuBtn:hover { background: var(--color-surface-raised, var(--color-border)); }
+.todoItem:hover .todoMenuBtn {
+  opacity: 1;
+}
+.todoMenuBtn:hover {
+  background: var(--color-surface-raised, var(--color-border));
+}
 
 .todoMenu {
   position: absolute;
@@ -410,9 +438,13 @@
   transition: background var(--transition);
 }
 
-.todoMenu button:hover { background: var(--color-surface-raised, var(--color-border)); }
+.todoMenu button:hover {
+  background: var(--color-surface-raised, var(--color-border));
+}
 
-.todoMenuDanger { color: var(--color-danger) !important; }
+.todoMenuDanger {
+  color: var(--color-danger) !important;
+}
 
 /* ── Done section ── */
 
@@ -437,7 +469,9 @@
   transition: color var(--transition);
 }
 
-.doneHeader:hover { color: var(--color-text); }
+.doneHeader:hover {
+  color: var(--color-text);
+}
 
 .doneItems {
   display: flex;

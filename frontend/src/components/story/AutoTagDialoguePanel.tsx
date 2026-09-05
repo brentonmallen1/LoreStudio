@@ -17,7 +17,7 @@ function ConfidenceDots({ value }: { value: number }) {
   const level = value >= 0.8 ? 3 : value >= 0.5 ? 2 : 1;
   return (
     <span className={styles.confidence} title={`Confidence: ${Math.round(value * 100)}%`}>
-      {[1, 2, 3].map(i => (
+      {[1, 2, 3].map((i) => (
         <span key={i} className={`${styles.dot} ${i <= level ? styles.dotFilled : ""}`} />
       ))}
     </span>
@@ -39,14 +39,13 @@ function SpeakerInput({ value, characterNames, storyId, onChange, onNewCharacter
   // When empty show all; when typing filter by prefix; exclude exact match
   const filtered = value.trim()
     ? characterNames.filter(
-        (n) => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase()
+        (n) => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase(),
       )
     : characterNames;
 
   // Show "Create new" option when the typed name doesn't exactly match any character
-  const showCreate = storyId && value.trim() && !characterNames.some(
-    (n) => n.toLowerCase() === value.trim().toLowerCase()
-  );
+  const showCreate =
+    storyId && value.trim() && !characterNames.some((n) => n.toLowerCase() === value.trim().toLowerCase());
 
   const showDropdown = open && (filtered.length > 0 || !!showCreate);
 
@@ -65,7 +64,10 @@ function SpeakerInput({ value, characterNames, storyId, onChange, onNewCharacter
       <input
         className={styles.speakerInput}
         value={value}
-        onChange={(e) => { onChange(e.target.value); setOpen(true); }}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
         onFocus={() => setOpen(true)}
         placeholder="Speaker name…"
       />
@@ -104,7 +106,13 @@ function SpeakerInput({ value, characterNames, storyId, onChange, onNewCharacter
   );
 }
 
-export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames = [], onClose, onApplied }: Props) {
+export default function AutoTagDialoguePanel({
+  sceneId,
+  storyId,
+  characterNames = [],
+  onClose,
+  onApplied,
+}: Props) {
   const { characters, setCharacters } = useStoryStore();
   const [proposals, setProposals] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,15 +124,18 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
   const [localCharacterNames, setLocalCharacterNames] = useState<string[]>(characterNames);
 
   // Sync when characterNames prop changes
-  useEffect(() => { setLocalCharacterNames(characterNames); }, [characterNames]);
+  useEffect(() => {
+    setLocalCharacterNames(characterNames);
+  }, [characterNames]);
 
   useEffect(() => {
     setLoading(true);
-    api.suggestDialogueTags(sceneId)
+    api
+      .suggestDialogueTags(sceneId)
       .then((data) => {
         setProposals(data);
         // Pre-select proposals that have an inferred speaker
-        const preSelected = new Set(data.filter(p => p.inferred_speaker).map(p => p.id));
+        const preSelected = new Set(data.filter((p) => p.inferred_speaker).map((p) => p.id));
         setSelected(preSelected);
       })
       .catch(() => setProposals([]))
@@ -135,12 +146,12 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
     if (selected.size === proposals.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(proposals.map(p => p.id)));
+      setSelected(new Set(proposals.map((p) => p.id)));
     }
   }
 
   function toggleOne(id: string) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -156,7 +167,9 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
       setLocalCharacterNames((prev) => [...prev, newChar.name]);
       // Update the global store so @mentions and the editor know about it
       setCharacters([...characters, newChar]);
-    } catch { /* silently skip if creation fails */ }
+    } catch {
+      /* silently skip if creation fails */
+    }
   }
 
   async function handleAiRefine() {
@@ -164,7 +177,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
     try {
       const aiProposals = await api.aiSuggestDialogueSpeakers(sceneId);
       setProposals(aiProposals);
-      const preSelected = new Set(aiProposals.filter(p => p.inferred_speaker).map(p => p.id));
+      const preSelected = new Set(aiProposals.filter((p) => p.inferred_speaker).map((p) => p.id));
       setSelected(preSelected);
       setEditedSpeakers({});
     } catch {
@@ -176,12 +189,12 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
 
   async function handleApply() {
     const tags = proposals
-      .filter(p => selected.has(p.id))
-      .map(p => ({
+      .filter((p) => selected.has(p.id))
+      .map((p) => ({
         quote_content: p.quote_content,
         speaker_name: editedSpeakers[p.id] ?? p.inferred_speaker ?? "",
       }))
-      .filter(t => t.speaker_name.trim());
+      .filter((t) => t.speaker_name.trim());
 
     if (!tags.length) return;
 
@@ -192,7 +205,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
       // Rescan so the panel shows remaining untagged dialogue
       const fresh = await api.suggestDialogueTags(sceneId);
       setProposals(fresh);
-      setSelected(new Set(fresh.filter(p => p.inferred_speaker).map(p => p.id)));
+      setSelected(new Set(fresh.filter((p) => p.inferred_speaker).map((p) => p.id)));
       setEditedSpeakers({});
       if (fresh.length === 0) onClose();
     } finally {
@@ -201,7 +214,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
   }
 
   const applicableCount = proposals.filter(
-    p => selected.has(p.id) && (editedSpeakers[p.id] ?? p.inferred_speaker ?? "").trim()
+    (p) => selected.has(p.id) && (editedSpeakers[p.id] ?? p.inferred_speaker ?? "").trim(),
   ).length;
 
   return (
@@ -218,15 +231,15 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
         </div>
 
         <div className={styles.body}>
-          {loading && (
-            <div className={styles.empty}>Analyzing scene…</div>
-          )}
+          {loading && <div className={styles.empty}>Analyzing scene…</div>}
 
           {!loading && proposals.length === 0 && (
             <div className={styles.empty}>
               <Tag size={22} className={styles.emptyIcon} />
               <p>No untagged quotes found.</p>
-              <p className={styles.emptyHint}>All dialogue already has explicit attribution, or no standalone quotes were detected.</p>
+              <p className={styles.emptyHint}>
+                All dialogue already has explicit attribution, or no standalone quotes were detected.
+              </p>
             </div>
           )}
 
@@ -246,18 +259,17 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
                   {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
                   {aiRefining ? "Refining…" : "AI Refine"}
                 </button>
-                <span className={styles.count}>{proposals.length} proposal{proposals.length !== 1 ? "s" : ""}</span>
+                <span className={styles.count}>
+                  {proposals.length} proposal{proposals.length !== 1 ? "s" : ""}
+                </span>
               </div>
 
               <div className={styles.list}>
-                {proposals.map(p => {
+                {proposals.map((p) => {
                   const isSelected = selected.has(p.id);
                   const speakerVal = editedSpeakers[p.id] ?? p.inferred_speaker ?? "";
                   return (
-                    <div
-                      key={p.id}
-                      className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}
-                    >
+                    <div key={p.id} className={`${styles.card} ${isSelected ? styles.cardSelected : ""}`}>
                       <div className={styles.cardTop}>
                         <button
                           className={styles.checkbox}
@@ -269,9 +281,7 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
                         <blockquote className={styles.quote}>"{p.quote_content}"</blockquote>
                       </div>
 
-                      {p.source_excerpt && (
-                        <p className={styles.excerpt}>{p.source_excerpt}</p>
-                      )}
+                      {p.source_excerpt && <p className={styles.excerpt}>{p.source_excerpt}</p>}
 
                       <div className={styles.cardBottom}>
                         <User size={12} className={styles.speakerIcon} />
@@ -279,12 +289,10 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
                           value={speakerVal}
                           characterNames={localCharacterNames}
                           storyId={storyId}
-                          onChange={(val) => setEditedSpeakers(prev => ({ ...prev, [p.id]: val }))}
+                          onChange={(val) => setEditedSpeakers((prev) => ({ ...prev, [p.id]: val }))}
                           onNewCharacter={handleNewCharacter}
                         />
-                        {p.inferred_speaker && (
-                          <ConfidenceDots value={p.confidence} />
-                        )}
+                        {p.inferred_speaker && <ConfidenceDots value={p.confidence} />}
                         {!p.inferred_speaker && (
                           <span className={styles.unknownBadge}>
                             <AlertCircle size={11} /> No speaker found
@@ -308,7 +316,9 @@ export default function AutoTagDialoguePanel({ sceneId, storyId, characterNames 
             >
               {applying ? "Applying…" : `Apply ${applicableCount > 0 ? `(${applicableCount})` : ""}`}
             </button>
-            <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+            <button className={styles.cancelBtn} onClick={onClose}>
+              Cancel
+            </button>
           </div>
         )}
       </div>

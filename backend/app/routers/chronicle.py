@@ -16,38 +16,51 @@ Endpoints:
   GET  /chronicle/stats                    Aggregate statistics
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..database import get_db
-from ..models.chat_session import ChatSession
-from ..models.chat_message import ChatMessage
-from ..models.activity_log import ActivityLog
-from ..models.user import User
 from ..auth.dependencies import get_current_user
-from ..services.llm.gateway import ai_gateway, AICallContext
+from ..database import get_db
+from ..models.activity_log import ActivityLog
+from ..models.chat_message import ChatMessage
+from ..models.chat_session import ChatSession
+from ..models.user import User
 from ..schemas.chronicle import (
-    ChatSessionCreate, ChatSessionUpdate, ChatSessionOut, ChatSessionDetail,
-    ChatMessageCreate, ChatMessageOut,
-    ActivityLogOut, ActivityLogUpdate,
-    SessionListResponse, ActivityListResponse,
-    SearchResponse, SearchResult,
+    ActivityListResponse,
+    ActivityLogOut,
+    ActivityLogUpdate,
+    ChatMessageCreate,
+    ChatMessageOut,
+    ChatSessionCreate,
+    ChatSessionDetail,
+    ChatSessionOut,
+    ChatSessionUpdate,
     ChronicleStats,
+    SearchResponse,
+    SearchResult,
+    SessionListResponse,
 )
+from ..services.llm.gateway import AICallContext, ai_gateway
 
 router = APIRouter()
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
+
 def _session_or_404(session_id: str, db: Session, user: User) -> ChatSession:
-    s = db.query(ChatSession).filter(
-        ChatSession.id == session_id,
-        ChatSession.user_id == user.id,
-    ).first()
+    s = (
+        db.query(ChatSession)
+        .filter(
+            ChatSession.id == session_id,
+            ChatSession.user_id == user.id,
+        )
+        .first()
+    )
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
     return s
@@ -98,8 +111,10 @@ def _enrich_sessions(sessions: list[ChatSession], db: Session) -> list[ChatSessi
     )
     last_msgs = (
         db.query(ChatMessage)
-        .join(max_created, (ChatMessage.session_id == max_created.c.session_id) &
-              (ChatMessage.created_at == max_created.c.max_at))
+        .join(
+            max_created,
+            (ChatMessage.session_id == max_created.c.session_id) & (ChatMessage.created_at == max_created.c.max_at),
+        )
         .all()
     )
     last_map: dict[str, str | None] = {}
@@ -107,13 +122,11 @@ def _enrich_sessions(sessions: list[ChatSession], db: Session) -> list[ChatSessi
         text = msg.content[:120].replace("\n", " ").strip()
         last_map[msg.session_id] = f"{text}…" if len(msg.content) > 120 else text
 
-    return [
-        _session_to_out(s, count_map.get(s.id, 0), last_map.get(s.id))
-        for s in sessions
-    ]
+    return [_session_to_out(s, count_map.get(s.id, 0), last_map.get(s.id)) for s in sessions]
 
 
 # ── Session endpoints ──────────────────────────────────────────────────
+
 
 @router.get("/chronicle/sessions", response_model=SessionListResponse)
 def list_sessions(
@@ -212,19 +225,23 @@ def fork_session(
         context_type=original.context_type,
         context_id=original.context_id,
         context_label=original.context_label,
-        title=f"{original.title or original.context_label} (fork)" if (original.title or original.context_label) else "Forked session",
+        title=f"{original.title or original.context_label} (fork)"
+        if (original.title or original.context_label)
+        else "Forked session",
     )
     db.add(fork)
     db.flush()  # get fork.id
     for msg in original.messages:
-        db.add(ChatMessage(
-            session_id=fork.id,
-            role=msg.role,
-            content=msg.content,
-            model=msg.model,
-            tokens_in=msg.tokens_in,
-            tokens_out=msg.tokens_out,
-        ))
+        db.add(
+            ChatMessage(
+                session_id=fork.id,
+                role=msg.role,
+                content=msg.content,
+                model=msg.model,
+                tokens_in=msg.tokens_in,
+                tokens_out=msg.tokens_out,
+            )
+        )
     db.commit()
     db.refresh(fork)
     return _session_to_out(fork)
@@ -244,7 +261,12 @@ async def generate_session_title(
     # Use first 5 messages for title generation
     sample = s.messages[:5]
     messages = [{"role": m.role, "content": m.content[:500]} for m in sample]
-    messages.append({"role": "user", "content": "Generate a short title (3-6 words) for this conversation. Reply with ONLY the title, no punctuation or quotes."})
+    messages.append(
+        {
+            "role": "user",
+            "content": "Generate a short title (3-6 words) for this conversation. Reply with ONLY the title, no punctuation or quotes.",
+        }
+    )
 
     feature_prompt = (
         "You are a conversation titler. "
@@ -309,7 +331,7 @@ def add_message(
         tokens_out=body.tokens_out,
     )
     # Bump session updated_at so it floats to top of lists
-    s.updated_at = datetime.now(timezone.utc)
+    s.updated_at = datetime.now(UTC)
     db.add(msg)
     db.commit()
     db.refresh(msg)
@@ -317,6 +339,7 @@ def add_message(
 
 
 # ── Activity log endpoints ─────────────────────────────────────────────
+
 
 @router.get("/chronicle/activity", response_model=ActivityListResponse)
 def list_activity(
@@ -348,17 +371,20 @@ def list_activity(
     logs = q.order_by(ActivityLog.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
 
     return ActivityListResponse(
-        logs=[ActivityLogOut(
-            id=log.id,
-            user_id=log.user_id,
-            story_id=log.story_id,
-            event_type=log.event_type,
-            category=log.category,
-            description=log.description,
-            metadata_=log.metadata_,
-            starred=log.starred,
-            created_at=log.created_at,
-        ) for log in logs],
+        logs=[
+            ActivityLogOut(
+                id=log.id,
+                user_id=log.user_id,
+                story_id=log.story_id,
+                event_type=log.event_type,
+                category=log.category,
+                description=log.description,
+                metadata_=log.metadata_,
+                starred=log.starred,
+                created_at=log.created_at,
+            )
+            for log in logs
+        ],
         total=total,
         page=page,
         page_size=page_size,
@@ -372,10 +398,14 @@ def update_activity_log(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    log = db.query(ActivityLog).filter(
-        ActivityLog.id == log_id,
-        ActivityLog.user_id == user.id,
-    ).first()
+    log = (
+        db.query(ActivityLog)
+        .filter(
+            ActivityLog.id == log_id,
+            ActivityLog.user_id == user.id,
+        )
+        .first()
+    )
     if not log:
         raise HTTPException(status_code=404, detail="Activity log not found")
     if body.starred is not None:
@@ -419,6 +449,7 @@ def log_activity(
 
 
 # ── Search ─────────────────────────────────────────────────────────────
+
 
 @router.get("/chronicle/search", response_model=SearchResponse)
 def search_chronicle(
@@ -479,21 +510,23 @@ def search_chronicle(
     for session, excerpt in session_results:
         results.append(SearchResult(type="session", session=enriched[session.id], excerpt=excerpt))
     for log in log_results:
-        results.append(SearchResult(
-            type="activity",
-            log=ActivityLogOut(
-                id=log.id,
-                user_id=log.user_id,
-                story_id=log.story_id,
-                event_type=log.event_type,
-                category=log.category,
-                description=log.description,
-                metadata_=log.metadata_,
-                starred=getattr(log, "starred", False),
-                created_at=log.created_at,
-            ),
-            excerpt=log.description[:200],
-        ))
+        results.append(
+            SearchResult(
+                type="activity",
+                log=ActivityLogOut(
+                    id=log.id,
+                    user_id=log.user_id,
+                    story_id=log.story_id,
+                    event_type=log.event_type,
+                    category=log.category,
+                    description=log.description,
+                    metadata_=log.metadata_,
+                    starred=getattr(log, "starred", False),
+                    created_at=log.created_at,
+                ),
+                excerpt=log.description[:200],
+            )
+        )
 
     def sort_key(r: SearchResult):
         if r.session:
@@ -504,12 +537,13 @@ def search_chronicle(
 
     results.sort(key=sort_key, reverse=True)
     total = len(results)
-    paginated = results[offset: offset + page_size]
+    paginated = results[offset : offset + page_size]
 
     return SearchResponse(results=paginated, total=total, query=q)
 
 
 # ── Stats ──────────────────────────────────────────────────────────────
+
 
 @router.get("/chronicle/stats", response_model=ChronicleStats)
 def get_stats(
@@ -532,9 +566,7 @@ def get_stats(
     total_messages = 0
     if session_ids:
         total_messages = (
-            db.query(func.count(ChatMessage.id))
-            .filter(ChatMessage.session_id.in_(session_ids))
-            .scalar()
+            db.query(func.count(ChatMessage.id)).filter(ChatMessage.session_id.in_(session_ids)).scalar()
         ) or 0
 
     log_q = db.query(ActivityLog).filter(ActivityLog.user_id == user.id)

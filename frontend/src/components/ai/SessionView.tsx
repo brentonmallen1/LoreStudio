@@ -58,7 +58,9 @@ export default function SessionView({ session }: Props) {
     default:
       return (
         <div className={styles.unknown}>
-          <p>Unknown session type: <code>{session.type}</code></p>
+          <p>
+            Unknown session type: <code>{session.type}</code>
+          </p>
         </div>
       );
   }
