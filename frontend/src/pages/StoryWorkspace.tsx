@@ -10,7 +10,7 @@ import StorySearchPanel from "../components/story/StorySearchPanel";
 import styles from "./StoryWorkspace.module.css";
 
 // Lazy-loaded route panels — only fetched when the user navigates to them
-const SceneEditor = lazy(() => import("../components/story/SceneEditor"));
+const SceneEditor = lazy(() => import("../components/editor/SceneEditor"));
 const CharacterSheet = lazy(() => import("../components/characters/CharacterSheet"));
 const CharacterList = lazy(() => import("../components/characters/CharacterList"));
 const StoryIdentityPanel = lazy(() => import("../components/story/StoryIdentityPanel"));
