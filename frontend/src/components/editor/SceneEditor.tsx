@@ -38,6 +38,7 @@ import { SlashPicker, TodoInputPopup } from "./SlashPicker";
 import InlineNotePopover from "./InlineNotePopover";
 import MentionHoverCard from "./MentionHoverCard";
 import EditorTopbar from "./EditorTopbar";
+import { DraftBanner } from "./SaveStatusPill";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
 import styles from "./SceneEditor.module.css";
@@ -75,7 +76,6 @@ export default function SceneEditor() {
   const selectionDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const autosave = useSceneAutosave();
   const notePopoverRef = useRef<HTMLDivElement>(null);
   const hoverCardRef = useRef<HTMLDivElement>(null);
 
@@ -106,7 +106,12 @@ export default function SceneEditor() {
         setSelectionRect(rect && rect.width > 0 ? rect : null);
       }, SELECTION_DEBOUNCE_MS);
     },
-    onUpdate: ({ editor }) => autosave.handleUpdate(editor),
+    onUpdate: ({ editor }) => autosaveRef.current?.handleUpdate(editor),
+  });
+  const autosave = useSceneAutosave(editor);
+  const autosaveRef = useRef(autosave);
+  useEffect(() => {
+    autosaveRef.current = autosave;
   });
 
   const mention = useMentionDropdown({ editor, activeStory, characters, setCharacters });
@@ -202,7 +207,7 @@ export default function SceneEditor() {
       <EditorTopbar
         activeNode={activeNode}
         wordCount={autosave.wordCount}
-        saveState={autosave.saveState}
+        autosave={autosave}
         showOverview={showOverview}
         onToggleOverview={() => setShowOverview((s) => !s)}
         dialogueIsolation={dialogueIsolation}
@@ -240,6 +245,7 @@ export default function SceneEditor() {
           )}
 
           {sceneSearchOpen && editor && <EditorSearchBar editor={editor} onClose={closeSceneSearch} />}
+          <DraftBanner autosave={autosave} />
 
           <div
             className={styles.scrollArea}

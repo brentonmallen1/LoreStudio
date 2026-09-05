@@ -19,6 +19,13 @@ from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_s
 router = APIRouter()
 
 
+def _differs(expected: datetime, actual: datetime) -> bool:
+    """Compare ignoring timezone awareness and sub-second noise from JSON round-trips."""
+    e = expected.replace(tzinfo=None)
+    a = actual.replace(tzinfo=None)
+    return abs((e - a).total_seconds()) > 1
+
+
 def _verify_node_access(node_id: str, db: Session, user: User) -> StructureNode:
     node = db.get(StructureNode, node_id)
     if not node:
@@ -43,6 +50,16 @@ def update_node(
 ):
     node = _verify_node_access(node_id, db, current_user)
     data = body.model_dump(exclude_none=True)
+    expected = data.pop("expected_updated_at", None)
+    if expected is not None and node.updated_at is not None and _differs(expected, node.updated_at):
+        # Someone (another tab, an undo, a restore) changed this node since the client loaded it.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "This segment changed since you loaded it.",
+                "node": StructureNodeOut.model_validate(node).model_dump(mode="json"),
+            },
+        )
     if "metadata_" in data:
         incoming = dict(data["metadata_"])
         # purpose and inline_notes are columns now; hoist them if an older client sends them here.

@@ -45,6 +45,8 @@ class StructureNodeUpdate(BaseModel):
     purpose: str | None = None
     inline_notes: list[dict] | None = None
     metadata_: dict | None = None
+    # Optimistic concurrency: the updated_at the client last saw. A mismatch is a 409.
+    expected_updated_at: datetime | None = None
 
 
 class StructureNodeOut(BaseModel):

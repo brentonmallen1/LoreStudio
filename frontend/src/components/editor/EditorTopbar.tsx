@@ -21,13 +21,14 @@ import SprintTimer from "../story/SprintTimer";
 import FontPicker from "../story/FontPicker";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
-import type { SaveState } from "./useSceneAutosave";
+import type { AutosaveState } from "./useSceneAutosave";
+import SaveStatusPill from "./SaveStatusPill";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
   activeNode: StructureNode;
   wordCount: number;
-  saveState: SaveState;
+  autosave: AutosaveState;
   showOverview: boolean;
   onToggleOverview: () => void;
   dialogueIsolation: boolean;
@@ -40,12 +41,6 @@ interface Props {
 }
 
 const STATUS_CYCLE: StructureNode["status"][] = ["draft", "revised", "final"];
-const SAVE_TITLES: Record<SaveState, string> = {
-  idle: "",
-  unsaved: "Unsaved changes",
-  saving: "Saving…",
-  saved: "Saved",
-};
 
 function GuideItem({
   label,
@@ -209,10 +204,7 @@ export default function EditorTopbar(p: Props) {
           </div>
         )}
         <span className={styles.wordCount}>{p.wordCount.toLocaleString()} words</span>
-        <span
-          className={`${styles.saveIndicator} ${styles[`saveIndicator_${p.saveState}`]}`}
-          title={SAVE_TITLES[p.saveState]}
-        />
+        <SaveStatusPill autosave={p.autosave} />
         <button
           onClick={p.onOpenImagePicker}
           className={styles.topbarBtn}

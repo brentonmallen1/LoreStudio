@@ -4,6 +4,24 @@ function getToken() {
   return localStorage.getItem("ls_token");
 }
 
+/** Non-2xx response. `detail` is whatever the backend put in the body's `detail`. */
+export class ApiError extends Error {
+  status: number;
+  detail: unknown;
+  constructor(status: number, detail: unknown) {
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail && typeof detail === "object" && "message" in detail
+          ? String((detail as { message: unknown }).message)
+          : "Request failed";
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {
@@ -21,8 +39,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   if (!res.ok) {
-    const detail = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(detail.detail ?? "Request failed");
+    const body = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new ApiError(res.status, body.detail ?? "Request failed");
   }
 
   if (res.status === 204) return undefined as T;
@@ -285,7 +303,10 @@ export const api = {
       body: JSON.stringify(data),
     }),
   getNode: (nodeId: string) => request<import("../types").StructureNode>(`/structure/${nodeId}`),
-  updateNode: (nodeId: string, data: Partial<import("../types").StructureNode>) =>
+  updateNode: (
+    nodeId: string,
+    data: Partial<import("../types").StructureNode> & { expected_updated_at?: string },
+  ) =>
     request<import("../types").StructureNode>(`/structure/${nodeId}`, {
       method: "PATCH",
       body: JSON.stringify(data),

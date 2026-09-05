@@ -193,3 +193,21 @@ def test_purpose_and_inline_notes_are_columns_and_legacy_metadata_is_hoisted(cli
     assert body["purpose"] == "release"
     assert body["inline_notes"] == notes
     assert body["metadata_"] == {"mice_opens": "x"}
+
+
+# optimistic concurrency on scene updates (Stage 1) --------------------------
+def test_update_node_conflict_detection(client):
+    sid = _make_story(client)
+    node = _make_scene(client, sid)
+    seen = node["updated_at"]
+    ok = client.patch(f"/api/structure/{node['id']}", json={"content": "<p>v2</p>", "expected_updated_at": seen})
+    assert ok.status_code == 200, ok.text
+    # a second client still holding the old timestamp is refused and told the current state
+    stale = client.patch(
+        f"/api/structure/{node['id']}", json={"content": "<p>v3</p>", "expected_updated_at": "2000-01-01T00:00:00"}
+    )
+    assert stale.status_code == 409, stale.text
+    assert stale.json()["detail"]["node"]["content"] == "<p>v2</p>"
+    # without the field the write is unconditional (undo, restore, older clients)
+    force = client.patch(f"/api/structure/{node['id']}", json={"content": "<p>v3</p>"})
+    assert force.status_code == 200
