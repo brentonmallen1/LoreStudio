@@ -1391,6 +1391,11 @@ export const api = {
     ),
   ollamaModelInfo: () => request<{ model: string; context_length: number | null }>("/ollama/model-info"),
 
+  // System (Settings › Backups / System)
+  systemStatus: () => request<import("../types/system").SystemStatus>("/system/status"),
+  runDbBackupNow: () =>
+    request<import("../types/system").SystemStatus["backups"]>("/system/backups", { method: "POST" }),
+
   // World Building — Locations
   listLocations: (storyId: string) => request<import("../types").Location[]>(`/stories/${storyId}/locations`),
   listLocationsFlat: (storyId: string) =>

@@ -10,7 +10,7 @@ Distinct from the What's Next? brainstormer (which helps during/after writing):
 """
 
 
-def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = None) -> str:
+def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
     """
     Build the system prompt for the Scene Planner feature.
 

@@ -397,7 +397,7 @@ def seed_admin():
             db.commit()
 
 
-def seed_demo_story():
+def seed_demo_story():  # noqa: PLR0915
     with Session(engine) as db:
         admin = db.query(User).filter(User.username == settings.admin_username).first()
         if not admin:
@@ -2273,7 +2273,7 @@ def seed_demo_story():
         db.commit()
 
 
-def seed_scifi_demo_story():
+def seed_scifi_demo_story():  # noqa: PLR0915
     with Session(engine) as db:
         admin = db.query(User).filter(User.username == settings.admin_username).first()
         if not admin:
@@ -4090,7 +4090,7 @@ def seed_flash_fiction_demo():
         db.commit()
 
 
-def seed_short_story_demo():
+def seed_short_story_demo():  # noqa: PLR0915
     """
     Short story demo: 'The Audition'
 

@@ -944,7 +944,7 @@ def extract_entities_nlp(
     return candidates
 
 
-async def extract_entities_ai(
+async def extract_entities_ai(  # noqa: C901, PLR0915
     candidates: list,
     paragraphs: list[ParsedParagraph],
     preview_nodes,

@@ -496,9 +496,6 @@ def get_arc_timeline(
 
     leaves = flatten_leaves(roots)
 
-    # Find milestone-to-scene mappings
-    milestone_scene_ids: set[str] = {m["scene_id"] for m in (character.arc_milestones or []) if m.get("scene_id")}
-
     name_lower = character.name.lower()
     scenes = []
     for i, n in enumerate(leaves):

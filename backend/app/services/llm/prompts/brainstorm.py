@@ -7,7 +7,7 @@ and references story context — it never drafts narrative text.
 """
 
 
-def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None) -> str:
+def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
     """
     Build the system prompt for the "What's Next?" brainstorming feature.
 

@@ -240,7 +240,7 @@ def suggest_dialogue_tags(
 
 
 @router.post("/scenes/{scene_id}/dialogue/ai-suggest", response_model=list[ProposedDialogueTag])
-async def ai_suggest_dialogue_speakers(
+async def ai_suggest_dialogue_speakers(  # noqa: C901
     scene_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

@@ -178,7 +178,7 @@ def _apply_editorial_notes(
 
 
 @router.post("/stories/{story_id}/editorial/run", response_model=ActivityLogOut)
-async def run_editorial_pass(
+async def run_editorial_pass(  # noqa: C901, PLR0912, PLR0915
     story_id: str,
     body: EditorialRunRequest,
     db: Session = Depends(get_db),

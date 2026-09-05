@@ -66,3 +66,5 @@ backups/
 .chunkhound/
 
 notes/
+coverage/
+.coverage

@@ -65,7 +65,7 @@ def _systems_section(systems: list[dict]) -> list[str]:
     return lines
 
 
-def build_location_existence_prompt(location_ctx: dict) -> str:
+def build_location_existence_prompt(location_ctx: dict) -> str:  # noqa: C901, PLR0912
     """
     'What Would Exist Here?' prompt.
 
@@ -161,7 +161,7 @@ def build_location_existence_prompt(location_ctx: dict) -> str:
     return "\n".join(lines)
 
 
-def build_element_suggestion_prompt(element: dict, element_type: str, world_ctx: dict) -> str:
+def build_element_suggestion_prompt(element: dict, element_type: str, world_ctx: dict) -> str:  # noqa: C901, PLR0912
     """
     Element brainstorming prompt for locations or cultures.
 
@@ -276,7 +276,7 @@ def build_element_suggestion_prompt(element: dict, element_type: str, world_ctx:
     return "\n".join(lines)
 
 
-def build_historical_implication_prompt(event_ctx: dict) -> str:
+def build_historical_implication_prompt(event_ctx: dict) -> str:  # noqa: C901, PLR0912
     """
     Historical Implication Analysis prompt.
 

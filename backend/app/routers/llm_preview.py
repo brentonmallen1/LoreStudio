@@ -86,7 +86,7 @@ def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]
 
 
 @router.post("/llm/prompt-preview", response_model=PromptPreviewResponse)
-def get_prompt_preview(
+def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
     body: PromptPreviewRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

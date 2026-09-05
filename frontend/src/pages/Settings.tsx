@@ -24,6 +24,7 @@ import type {
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
 import type { LLMSettings, ImageTokenBudget, UserBackupDefaults } from "../types";
+import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import styles from "./Settings.module.css";
 
 const OLLAMA_URL_DEFAULT = "http://localhost:11434";
@@ -758,6 +759,7 @@ export default function SettingsPage() {
               <p className={styles.hint}>Loading…</p>
             )}
           </div>
+          <DatabaseBackupCard isAdmin={!!user?.is_admin} />
         </section>
 
         {/* Account */}

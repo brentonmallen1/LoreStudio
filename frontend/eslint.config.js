@@ -6,10 +6,10 @@ import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 /**
- * `npm run lint` is a CI gate (`just ci`). Two rule families are warnings
- * rather than errors so the gate can go in against the existing tree: the
- * warning count is the debt and should go down, never up. Everything else
- * is an error.
+ * `npm run lint` is a CI gate (`just ci`). The react-hooks/react-refresh
+ * families are warnings so the gate could go in against the existing tree;
+ * `--max-warnings` in package.json is the ratchet (152 at Stage 0). Lower it
+ * as warnings are fixed; never raise it. Everything else is an error.
  */
 const LEGACY_WARNINGS = {
   "react-hooks/set-state-in-effect": "warn",

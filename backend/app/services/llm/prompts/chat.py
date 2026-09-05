@@ -65,7 +65,7 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
     return "\n".join(lines)
 
 
-def build_scene_chat_system_prompt(ctx: dict) -> str:
+def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PLR0915
     """
     Build the system prompt for the scene-aware chat assistant.
     Assembles context from the story lorebook, active scene, characters, threads, etc.

@@ -33,9 +33,19 @@ Use these terms consistently in code, UI, and documentation.
 ```bash
 just dev              # Start backend (:8000) + frontend (:5173) concurrently
 just setup            # Install all dependencies (uv + npm)
-just test             # pytest -v
+just ci               # Everything GitHub CI runs: size budget, ruff, ty, pytest+coverage, prettier, tsc, eslint, vitest, build
+just lint / just fix  # Lint only / auto-fix + format both halves
+just test             # backend pytest -v (uses `python -m pytest`; robust to a moved venv)
 just test-watch       # pytest with file watcher
+just hooks            # Install the pre-commit hook (size budget + ruff, ~2s)
+just db-check         # Models and Alembic migrations agree
 ```
+
+**Run `just ci` before pushing.** It is byte-for-byte what `.github/workflows/ci.yml` runs.
+Quality gates are ratchets: `scripts/check-size.py` (file-length debt list), coverage
+`fail_under` in `backend/pyproject.toml`, ESLint warnings (the count goes down, never up).
+Never raise a ratchet number. Planning docs for the 2026-09 refactor live in
+`notes/refactor-2026-09/` (gitignored): read `CHECKLIST.md` before starting work.
 
 Or run separately:
 ```bash
@@ -51,23 +61,26 @@ cd frontend && npm run lint    # ESLint
 
 ## Database
 
-Schema is created via `Base.metadata.create_all()` in the FastAPI lifespan on startup. **Alembic exists but `create_all` only creates missing tables — it never adds columns.** Adding a new column requires both a model change and an Alembic migration.
+**Alembic is the only schema path.** On startup `app/services/db_migrate.py` runs the
+migration chain (fresh DB), adopts a database created by the old `create_all` path (stamps
+it at head), or upgrades an existing one. See `docs/upgrading.md`.
 
-To reset and reseed from scratch:
+Changing a model means adding a migration in the same change:
 ```bash
-cd backend && rm -f data/lorestudio.db && uv run python -c "
-import importlib, os
-for f in os.listdir('app/models'):
-    if f.endswith('.py') and f != '__init__.py':
-        try: importlib.import_module(f'app.models.{f[:-3]}')
-        except: pass
-from app.database import engine, Base; Base.metadata.create_all(engine)
-from app.services.seed import seed_structure_templates, seed_admin, seed_demo_story
-seed_structure_templates(); seed_admin(); seed_demo_story()
-"
+cd backend && uv run python -m alembic revision --autogenerate -m "add thing"
+just db-check    # tests/test_migrations.py fails CI if models and migrations drift
 ```
+Migrations use `render_as_batch=True` because SQLite cannot ALTER in place.
 
-All three seed functions are idempotent (skip if data exists) and run automatically on every backend startup.
+SQLite runs with `PRAGMA foreign_keys=ON` and WAL (`app/database.py`). Every child table
+of Story has an ORM cascade or a nulling relationship; `test_delete_story_leaves_no_orphans`
+walks `Base.metadata` and fails if a new `story_id` table is missed. Snapshots have the
+same guard (`SNAPSHOT_KEYS_BY_TABLE` in `snapshot_service.py`).
+
+To reset: `just db-reset`, then start the backend (migrations + seed run on start).
+Seeding: templates, beat sheets and the admin user always; "The Last Lighthouse" only when
+`SEED_DEMO=true` (default) and the DB has no stories; the other demos need
+`SEED_EXTRA_DEMOS=true`. All seed functions are idempotent.
 
 ## Architecture
 
@@ -135,7 +148,7 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 ### AI UI component patterns
 
-**Never use the `Sparkles` icon for AI buttons.** The app has established conventions — use them everywhere, without exception.
+**Never use the `Sparkles` icon for AI buttons.** ESLint enforces this (`no-restricted-imports` in `frontend/eslint.config.js`). The app has established conventions — use them everywhere, without exception.
 
 | Element | Icon | When to use |
 |---------|------|-------------|
@@ -197,7 +210,7 @@ Run tests:
 ```bash
 just test              # pytest -v
 just test-watch        # pytest with file watcher
-cd backend && uv run pytest -v  # direct
+cd backend && uv run python -m pytest -v   # direct (not `uv run pytest`: its shebang breaks when the repo moves)
 ```
 
 Test structure mirrors app structure:
@@ -223,9 +236,12 @@ backend/tests/
 - Refactors: ensure existing tests pass before and after
 
 #### Test fixtures (conftest.py)
-- `test_db` — In-memory SQLite session for isolated DB tests
-- `mock_thread(...)` — Factory for PlotThread-like objects with test data
-- `api_client` — TestClient with auth headers for endpoint tests
+- `db_session` — In-memory SQLite session (foreign keys ON) for isolated DB tests
+- `client` — TestClient with `get_db` and `get_current_user` overridden; no lifespan
+- `mock_ai_gateway(...)` — Patches `ai_gateway` in every router module (auto-discovered)
+- `mock_thread(...)` — Factory for PlotThread-like objects
+- `tests/fixtures/story_factory.build_full_story` — one row in every story-owned table
+- Bug fixes get a regression test first: `tests/routers/test_regressions_stage0.py` is the pattern
 
 ## Feature Tracking
 

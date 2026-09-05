@@ -117,7 +117,7 @@ def build_panel_orchestrator_prompt(
     )
 
 
-def build_panel_character_prompt(
+def build_panel_character_prompt(  # noqa: C901, PLR0912
     character: Character,
     other_characters: list[Character],
     relationships: list[CharacterRelationship],

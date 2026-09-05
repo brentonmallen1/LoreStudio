@@ -123,7 +123,7 @@ def _build_attribute_guidance(attributes: dict) -> str:
     return "\n".join(lines)
 
 
-def build_character_interview_system_prompt(
+def build_character_interview_system_prompt(  # noqa: C901
     character: Character,
     journey_summary: str | None = None,
     previous_session_summary: str | None = None,
@@ -267,7 +267,7 @@ def build_compaction_prompt(character_name: str, messages: list[dict]) -> str:
     )
 
 
-def build_panel_interview_system_prompt(characters: list[Character]) -> str:
+def build_panel_interview_system_prompt(characters: list[Character]) -> str:  # noqa: C901, PLR0912
     """
     System prompt for a multi-character panel interview.
     The LLM plays ALL characters, responding as each in turn using [Name]: prefix blocks.

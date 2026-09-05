@@ -719,7 +719,7 @@ def analyze_character_dialogue_prose(dialogue_texts: list[str]) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def analyze_voice_distinctness(
+def analyze_voice_distinctness(  # noqa: C901, PLR0912, PLR0915
     character_dialogue: list[dict],  # [{character_id, character_name, content (text)}]
 ) -> dict:
     """

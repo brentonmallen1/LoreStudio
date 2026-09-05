@@ -1,5 +1,4 @@
 from datetime import UTC
-from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -1567,7 +1566,7 @@ async def cliche_coach_chat(
 
 
 @router.post("/stories/{story_id}/discovery-questions", response_model=StructuredResult)
-async def generate_discovery_questions(
+async def generate_discovery_questions(  # noqa: C901, PLR0912
     story_id: str,
     focus_area: str = Body(...),  # "character" | "location" | "scene" | "story"
     entity_id: str | None = Body(None),  # character_id, location_id, or node_id
@@ -2054,7 +2053,7 @@ HEALTH_FEATURES = {
 }
 
 
-@router.get("/stories/{story_id}/analysis/latest", response_model=Optional[ActivityLogOut])
+@router.get("/stories/{story_id}/analysis/latest", response_model=ActivityLogOut | None)
 def get_latest_analysis(
     story_id: str,
     feature: str = Query(..., description="Feature key, e.g. prose-analysis"),

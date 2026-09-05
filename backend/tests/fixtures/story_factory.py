@@ -53,7 +53,7 @@ def _uid() -> str:
     return str(uuid.uuid4())
 
 
-def build_full_story(db: Session, user: User, title: str = "Factory Story") -> Story:
+def build_full_story(db: Session, user: User, title: str = "Factory Story") -> Story:  # noqa: PLR0915
     """Create one row in every story-owned table and return the Story."""
     story = Story(id=_uid(), user_id=user.id, title=title, goals=[{"id": _uid(), "text": "g", "completed": False}])
     db.add(story)

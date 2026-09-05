@@ -267,7 +267,7 @@ def _delta_is_empty(delta: dict) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | None = None) -> dict:
+def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | None = None) -> dict:  # noqa: PLR0915
     """Serialize the full story state to a plain dict."""
     story = db.query(Story).filter(Story.id == story_id).first()
     if not story:
@@ -871,7 +871,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     db.flush()
 
 
-def _insert_story_content(state: dict, db: Session) -> None:
+def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
     """Re-insert story content from a serialized state dict."""
     # Update story metadata (keep the story row — just update fields)
     story_dict = state.get("story", {})

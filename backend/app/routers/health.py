@@ -121,7 +121,6 @@ def story_health(
     # ── Character screen time ──
     # Count scenes (leaf nodes with content) where the character is @mentioned or name appears
     recent_leaves = leaves[-RECENT_SCENE_WINDOW:] if len(leaves) >= RECENT_SCENE_WINDOW else leaves
-    recent_leaf_ids = {n.id for n in recent_leaves}
 
     char_screen_time: list[dict[str, Any]] = []
     absent_characters = []

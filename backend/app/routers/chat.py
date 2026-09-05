@@ -68,7 +68,7 @@ def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
 VIRTUAL_NODE_IDS = {"__global__", "__story__"}
 
 
-def _build_context_packet(
+def _build_context_packet(  # noqa: C901, PLR0912
     story: Story, node: StructureNode | None, db: Session, context_options: ContextOptions | None = None
 ) -> dict:
     """Assemble the full context dict — used for both the preview endpoint and chat."""

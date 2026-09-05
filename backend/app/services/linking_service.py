@@ -31,7 +31,7 @@ def _already_linked(text: str, name: str, entity_type: str) -> bool:
         return bool(re.search(rf"\[\[{re.escape(name)}\]\]", text, re.IGNORECASE))
 
 
-def _build_proposals(plain: str, characters: list, locations: list) -> list[dict]:
+def _build_proposals(plain: str, characters: list, locations: list) -> list[dict]:  # noqa: C901
     """Core proposal logic operating on pre-extracted plain text and entity lists."""
     proposals: list[dict] = []
 

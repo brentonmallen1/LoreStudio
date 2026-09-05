@@ -7,7 +7,7 @@ The AI is an analyst, not a co-author: it surfaces consequences, never writes pr
 """
 
 
-def build_whatif_system_prompt(ctx: dict) -> str:
+def build_whatif_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912
     """
     Build the system prompt for the "What If?" scenario simulator.
 

@@ -68,7 +68,7 @@ cd backend
 uv sync
 
 # Download the spaCy English model (for NLP analysis features)
-uv run python -m spacy download en_core_web_sm
+# (the spaCy model is a declared dependency; `uv sync` installs it)
 
 # Start the API server
 uv run uvicorn app.main:app --reload --port 8000
@@ -176,6 +176,7 @@ Run `just` to see all available tasks:
 | `just dev` | Start backend + frontend concurrently |
 | `just setup` | Install all dependencies |
 | `just test` | Run backend tests |
+| `just ci` | Run every quality gate (what GitHub CI runs) |
 | `just db-migrate` | Apply pending database migrations |
 | `just db-reset` | **Destructive:** Reset database to fresh state |
 | `just build` | Build Docker images |
