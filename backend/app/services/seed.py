@@ -908,10 +908,13 @@ def seed_demo_story():  # noqa: PLR0915
                 "<h2>The Visitor</h2>"
                 "<p>The person on the other side of the door was not what she had expected. She had expected a fisherman, perhaps, or someone's stray nephew caught in the weather. What she got was a woman of about fifty, grey-haired, wearing a canvas jacket that was soaked through and carrying a bag over one shoulder as if she'd simply stepped off a bus in light drizzle.</p>"
                 "<p>She was not panicked. That was the thing Eleanor kept returning to later. Most people, arriving at a stranger's door in a storm like this, would be apologetic, breathless, grateful. This woman looked at Eleanor the way someone looks at a landmark they've been navigating by for years.</p>"
+                # Deliberately mixed quote styles and one misspelt name: the Checks and
+                # Quote style tools in the scene Notes panel have something to find here.
+                "<p>“You’re Elenor Vance,” the visitor said, as if confirming a fact.</p>"
                 '<p>"Ms. Vance," she said. "I\'m sorry to impose."</p>'
                 "<p>Eleanor stepped back. Later she would wonder why. At the time it felt like the only sensible thing to do.</p>"
             ),
-            word_count=214,
+            word_count=225,
         )
         db.add(scene2)
         db.flush()

@@ -141,6 +141,24 @@ JWT token stored in `localStorage` as `ls_token`. Sent as `Authorization: Bearer
 ### Character interviews
 The character's full profile becomes the LLM system prompt — the character IS the persona, not injected as context. This keeps interviews feeling like talking to the character rather than about them.
 
+### Writer and Studio modes
+`user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,
+`getMode()`, `setMode()`; saved through `PATCH /api/auth/me`). **Writer mode renders no AI
+affordance at all**, not even disabled: guard every AI surface with `useMode() === "studio"`
+(header Assistant button, AI panel, selection-toolbar AI entries, `AIFeatureInfoTrigger`,
+AI fields in panels). Palette commands in the `"AI"` group are hidden by a registry filter.
+Non-AI tools (consistency Checks, quote normalisation, NLP analyses) use `--color-nlp` and
+stay available in both modes.
+
+### Manuscript editor
+`frontend/src/components/editor/` — `SceneEditor.tsx` is a thin shell over hooks
+(`useSceneAutosave`, `useMentionDropdown`, `useSlashCommands`, `useInlineNotes`,
+`useMentionHoverCard`) and components (`EditorTopbar`, `DialogueIsolationView`, `panels/*`).
+Autosave sends `expected_updated_at`; a 409 means the scene changed elsewhere and the pill
+offers Keep mine / Take theirs. Every edit is mirrored to an IndexedDB draft buffer
+(`lib/draftBuffer.ts`). `purpose` and `inline_notes` are columns on StructureNode, not
+metadata keys.
+
 ### Unified AI assistant
 All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single AI panel opened via the header button. No redundant AI entry points in sub-components (scene editor topbar, etc.) — the header button is the one place. Each tool runs in its own tab within the panel, preserving conversation history.
 
