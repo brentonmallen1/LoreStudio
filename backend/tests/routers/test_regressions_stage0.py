@@ -101,12 +101,10 @@ def test_txt_export_title_page(client):
 def test_update_node_merges_metadata(client):
     sid = _make_story(client)
     nid = _make_scene(client, sid)["id"]
-    notes = [{"id": "n1", "anchor": "Hello", "note": "keep me", "position": 0}]
-    client.patch(f"/api/structure/{nid}", json={"metadata_": {"inline_notes": notes}})
-    client.patch(f"/api/structure/{nid}", json={"metadata_": {"purpose": "tension"}})
+    client.patch(f"/api/structure/{nid}", json={"metadata_": {"mice_opens": "q"}})
+    client.patch(f"/api/structure/{nid}", json={"metadata_": {"pov_note": "x"}})
     meta = client.get(f"/api/structure/{nid}").json()["metadata_"]
-    assert meta["purpose"] == "tension"
-    assert meta["inline_notes"] == notes
+    assert meta == {"mice_opens": "q", "pov_note": "x"}
 
 
 # B11 -----------------------------------------------------------------------
@@ -177,3 +175,21 @@ def test_delete_single_entities_with_foreign_keys_on(client, db_session, test_us
         assert r.status_code in (200, 204), f"{url}: {r.status_code} {r.text}"
     db_session.expire_all()
     assert client.get(f"/api/stories/{sid}").status_code == 200
+
+
+# purpose / inline_notes columns (Stage 1) --------------------------------------
+def test_purpose_and_inline_notes_are_columns_and_legacy_metadata_is_hoisted(client):
+    sid = _make_story(client)
+    nid = _make_scene(client, sid)["id"]
+    notes = [{"id": "n1", "anchor": "Hello", "note": "keep me", "position": 0}]
+    # new clients write the columns
+    r = client.patch(f"/api/structure/{nid}", json={"purpose": "tension", "inline_notes": notes})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["purpose"] == "tension" and body["inline_notes"] == notes
+    # an older client sending them inside metadata_ still lands in the columns, not the JSON
+    r = client.patch(f"/api/structure/{nid}", json={"metadata_": {"purpose": "release", "mice_opens": "x"}})
+    body = r.json()
+    assert body["purpose"] == "release"
+    assert body["inline_notes"] == notes
+    assert body["metadata_"] == {"mice_opens": "x"}

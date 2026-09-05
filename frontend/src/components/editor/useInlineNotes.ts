@@ -19,7 +19,7 @@ interface Args {
 /** Inline notes: the anchored marks in the prose and the list in the overview panel. */
 export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }: Args) {
   // The node is the source of truth for notes; edits update it optimistically.
-  const notes: InlineNote[] = activeNode?.metadata_?.inline_notes ?? [];
+  const notes: InlineNote[] = activeNode?.inline_notes ?? [];
   const [hideEditorial, setHideEditorial] = useState(false);
   // A popover belongs to the node it was opened on; switching nodes closes it.
   const [popoverState, setPopoverState] = useState<{ nodeId: string | undefined; value: NotePopover }>({
@@ -69,11 +69,10 @@ export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }
 
   async function persist(updated: InlineNote[]) {
     if (!activeNode) return;
-    setActiveNode({ ...activeNode, metadata_: { ...activeNode.metadata_, inline_notes: updated } });
+    setActiveNode({ ...activeNode, inline_notes: updated });
     try {
-      // The server merges metadata_, so only inline_notes is sent.
-      const patched = await api.updateNode(activeNode.id, { metadata_: { inline_notes: updated } });
-      setActiveNode({ ...activeNode, metadata_: patched.metadata_ });
+      const patched = await api.updateNode(activeNode.id, { inline_notes: updated });
+      setActiveNode({ ...activeNode, inline_notes: patched.inline_notes });
     } catch {
       /* the local list stands; the next save retries */
     }

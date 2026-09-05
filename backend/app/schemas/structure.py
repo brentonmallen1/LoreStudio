@@ -22,6 +22,7 @@ class StructureNodeCreate(BaseModel):
     content: str = ""
     position: int = 0
     status: str = "draft"
+    purpose: str = ""
 
 
 class StructureNodeUpdate(BaseModel):
@@ -41,6 +42,8 @@ class StructureNodeUpdate(BaseModel):
     summary_stale: bool | None = None
     beat_id: str | None = None
     pov_character_id: str | None = None
+    purpose: str | None = None
+    inline_notes: list[dict] | None = None
     metadata_: dict | None = None
 
 
@@ -65,6 +68,8 @@ class StructureNodeOut(BaseModel):
     summary_updated_at: datetime | None = None
     beat_id: str | None = None
     pov_character_id: str | None = None
+    purpose: str = ""
+    inline_notes: list[dict] | None = []
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime

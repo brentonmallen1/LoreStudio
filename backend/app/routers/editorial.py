@@ -101,7 +101,6 @@ def _gather_sections(
 
     sections = []
     for n in content_nodes:
-        meta = n.metadata_ or {}
         if context_level == "summaries":
             prose = n.content_summary or n.content or ""
         else:
@@ -111,7 +110,7 @@ def _gather_sections(
                 "id": n.id,
                 "title": n.title or "Untitled",
                 "content": prose,
-                "purpose": meta.get("purpose", ""),
+                "purpose": n.purpose or "",
                 "synopsis": n.synopsis or "",
             }
         )
@@ -147,14 +146,8 @@ def _apply_editorial_notes(
         if not node:
             continue
 
-        meta = dict(node.metadata_ or {})
-        existing = [
-            n
-            for n in (meta.get("inline_notes") or [])
-            if n.get("source", "").startswith("editorial-") is False or not n.get("source", "").startswith("editorial-")
-        ]
-        # Remove previous editorial notes from this node
-        existing = [n for n in (meta.get("inline_notes") or []) if n.get("type") != "editorial"]
+        # Replace previous editorial notes on this node, keep the author's own
+        existing = [n for n in (node.inline_notes or []) if n.get("type") != "editorial"]
 
         source_tag = f"editorial-{report_id}"
         new_notes = [
@@ -171,8 +164,7 @@ def _apply_editorial_notes(
             if n.get("anchor")  # Only create note if we have an anchor passage
         ]
 
-        meta["inline_notes"] = existing + new_notes
-        node.metadata_ = meta
+        node.inline_notes = existing + new_notes
 
     db.commit()
 
@@ -497,12 +489,10 @@ def delete_editorial_report(
     source_tag = f"editorial-{report_id}"
     nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     for node in nodes:
-        meta = node.metadata_ or {}
-        notes = meta.get("inline_notes") or []
+        notes = node.inline_notes or []
         filtered = [n for n in notes if n.get("source") != source_tag]
         if len(filtered) != len(notes):
-            meta["inline_notes"] = filtered
-            node.metadata_ = meta
+            node.inline_notes = filtered
 
     db.delete(log)
     db.commit()
@@ -519,11 +509,9 @@ def clear_all_editorial_notes(
 
     nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     for node in nodes:
-        meta = node.metadata_ or {}
-        notes = meta.get("inline_notes") or []
+        notes = node.inline_notes or []
         filtered = [n for n in notes if n.get("type") != "editorial"]
         if len(filtered) != len(notes):
-            meta["inline_notes"] = filtered
-            node.metadata_ = meta
+            node.inline_notes = filtered
 
     db.commit()

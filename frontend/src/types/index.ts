@@ -96,10 +96,8 @@ export interface InlineNote {
   source?: string; // e.g. "editorial-{report_id}"
 }
 
-export interface SegmentMeta {
-  purpose?: string;
-  inline_notes?: InlineNote[];
-}
+/** Free-form per-segment keys. purpose and inline_notes are columns on StructureNode now. */
+export type SegmentMeta = Record<string, unknown>;
 
 export interface StructureNode {
   id: string;
@@ -113,6 +111,8 @@ export interface StructureNode {
   position: number;
   word_count: number;
   status: "draft" | "revised" | "final";
+  purpose: string;
+  inline_notes: InlineNote[];
   metadata_: SegmentMeta;
   entry_state: string;
   exit_state: string;

@@ -106,7 +106,7 @@ def _build_context_packet(  # noqa: C901, PLR0912
             "title": node.title,
             "level_type": node.level_type,
             "synopsis": node.synopsis or None,
-            "purpose": (node.metadata_ or {}).get("purpose") or None,
+            "purpose": node.purpose or None,
             "entry_state": node.entry_state or None,
             "exit_state": node.exit_state or None,
             "key_events": node.key_events or None,

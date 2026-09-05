@@ -62,6 +62,10 @@ class StructureNode(Base):
     pov_character_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("characters.id"), nullable=True, default=None
     )
+    # Author intent for the segment ("why does this exist?") and anchored inline notes.
+    # Both were keys inside metadata_ until migration 0002; they are first-class now.
+    purpose: Mapped[str] = mapped_column(Text, default="", server_default="")
+    inline_notes: Mapped[list | None] = mapped_column(JSON, nullable=True, default=list)
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(

@@ -54,7 +54,8 @@ def test_snapshot_restore_roundtrip(db_session, test_user):
     # mutate: rename the story, drop a scene's notes, add a character
     story.title = "Changed"
     scene = next(n for n in story.structure_nodes if n.title == "Lamp")
-    scene.metadata_ = {"purpose": "changed"}
+    scene.purpose = "changed"
+    scene.inline_notes = []
     from app.models import Character
 
     db_session.add(Character(story_id=sid, name="Extra"))
@@ -68,7 +69,8 @@ def test_snapshot_restore_roundtrip(db_session, test_user):
     after = _row_counts(db_session, sid)
     assert after == before, {k: (before[k], after[k]) for k in before if before[k] != after[k]}
     scene = next(n for n in restored.structure_nodes if n.title == "Lamp")
-    assert scene.metadata_["inline_notes"] == [{"id": "n1", "note": "keep"}]
+    assert scene.inline_notes == [{"id": "n1", "note": "keep"}]
+    assert scene.purpose == "setup"
     assert restored.pov_character_id is not None
 
 

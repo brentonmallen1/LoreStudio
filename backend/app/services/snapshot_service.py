@@ -183,6 +183,15 @@ def _model_to_dict(obj) -> dict:
 
 def _dict_to_model(model_class, data: dict):
     """Create a model instance from a dict, converting ISO datetime strings back."""
+    if model_class is StructureNode and isinstance(data.get("metadata_"), dict):
+        # Snapshots taken before migration 0002 kept purpose/inline_notes inside metadata_.
+        meta = dict(data["metadata_"])
+        data = {**data, "metadata_": meta}
+        for key in ("purpose", "inline_notes"):
+            if key in meta and not data.get(key):
+                data[key] = meta.pop(key)
+            else:
+                meta.pop(key, None)
     mapper = sa_inspect(model_class).mapper
     processed = {}
     col_types = {ca.key: ca.columns[0].type for ca in mapper.column_attrs}

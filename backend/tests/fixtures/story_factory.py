@@ -79,7 +79,9 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
         position=0,
         content='<p>"We should go," said Mara.</p>',
         pov_character_id=hero.id,
-        metadata_={"purpose": "setup", "inline_notes": [{"id": "n1", "note": "keep"}]},
+        purpose="setup",
+        inline_notes=[{"id": "n1", "note": "keep"}],
+        metadata_={"mice_opens": "q"},
     )
     scene2 = StructureNode(
         id=_uid(),

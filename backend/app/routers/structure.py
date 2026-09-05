@@ -44,9 +44,16 @@ def update_node(
     node = _verify_node_access(node_id, db, current_user)
     data = body.model_dump(exclude_none=True)
     if "metadata_" in data:
-        # Merge, never replace: different UI surfaces write different keys
-        # (purpose, inline_notes, ...) of the same JSON column.
-        data["metadata_"] = {**(node.metadata_ or {}), **data["metadata_"]}
+        incoming = dict(data["metadata_"])
+        # purpose and inline_notes are columns now; hoist them if an older client sends them here.
+        for key in ("purpose", "inline_notes"):
+            if key in incoming and key not in data:
+                data[key] = incoming.pop(key)
+            else:
+                incoming.pop(key, None)
+        # Merge, never replace: different UI surfaces write different keys of the same JSON column.
+        merged = {k: v for k, v in (node.metadata_ or {}).items() if k not in ("purpose", "inline_notes")}
+        data["metadata_"] = {**merged, **incoming}
     # If content is being updated, mark summary as stale (unless author is explicitly setting summary_stale)
     if "content" in data and "summary_stale" not in data:
         node.summary_stale = True

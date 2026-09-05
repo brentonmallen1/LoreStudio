@@ -64,7 +64,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
   const navigate = useNavigate();
   // Seeded once per node: the parent renders this panel with key={activeNode.id}.
   const [synopsis, setSynopsis] = useState(activeNode.synopsis ?? "");
-  const [purpose, setPurpose] = useState(activeNode.metadata_?.purpose ?? "");
+  const [purpose, setPurpose] = useState(activeNode.purpose ?? "");
   const [entryState, setEntryState] = useState(activeNode.entry_state ?? "");
   const [exitState, setExitState] = useState(activeNode.exit_state ?? "");
   const [keyEvents, setKeyEvents] = useState(activeNode.key_events ?? "");
@@ -114,7 +114,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         value={purpose}
         onChange={(v) => {
           setPurpose(v);
-          scheduleSave({ metadata_: { purpose: v } });
+          scheduleSave({ purpose: v });
         }}
         placeholder="Why does this segment exist? What narrative function does it serve?"
         hint="Consider: Where are things at the start? Where should they be at the end? What key events need to happen?"

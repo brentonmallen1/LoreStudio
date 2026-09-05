@@ -806,9 +806,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Act 1: The Arrival",
             synopsis="The storm arrives and so does the stranger. Eleanor's solitary world is interrupted.",
             position=0,
-            metadata_={
-                "purpose": "Establish Eleanor's world and the fragile equilibrium she's built. Introduce the Visitor as a disruption. End with Eleanor's curiosity overcoming her guardedness — she lets the stranger in."
-            },
+            purpose="Establish Eleanor's world and the fragile equilibrium she's built. Introduce the Visitor as a disruption. End with Eleanor's curiosity overcoming her guardedness — she lets the stranger in.",
         )
         db.add(act1)
         db.flush()
@@ -821,9 +819,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 1: Storm Warning",
             synopsis="Eleanor monitors the approaching storm and prepares the lighthouse.",
             position=0,
-            metadata_={
-                "purpose": "Ground the reader in Eleanor's routine and sensory relationship with the lighthouse. Establish the log as a central object before its gaps become significant. Foreshadow disruption through the approaching storm."
-            },
+            purpose="Ground the reader in Eleanor's routine and sensory relationship with the lighthouse. Establish the log as a central object before its gaps become significant. Foreshadow disruption through the approaching storm.",
         )
         db.add(ch1)
         db.flush()
@@ -841,17 +837,15 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Eleanor alone in her lighthouse, mid-routine — log entry made, barometer falling, the world predictably hers.",
             exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
             key_events="Barometer reading logged; lamp room climb; sight of the unexpected boat in the storm.",
-            metadata_={
-                "purpose": "Open in Eleanor's element — she is competent and alone by choice. The barometer and the log establish her observational nature and her father's lingering presence. The boat at the end pivots the scene: something is coming that she can't control.",
-                "inline_notes": [
-                    {
-                        "id": "demo-note-1",
-                        "anchor": "going very still, as if drawing a breath",
-                        "note": "This stillness mirrors Eleanor's internal state — she is also holding her breath, waiting. Consider echoing this image in the Act 3 climax when she finally has to act.",
-                        "position": 180,
-                    }
-                ],
-            },
+            purpose="Open in Eleanor's element — she is competent and alone by choice. The barometer and the log establish her observational nature and her father's lingering presence. The boat at the end pivots the scene: something is coming that she can't control.",
+            inline_notes=[
+                {
+                    "id": "demo-note-1",
+                    "anchor": "going very still, as if drawing a breath",
+                    "note": "This stillness mirrors Eleanor's internal state — she is also holding her breath, waiting. Consider echoing this image in the Act 3 climax when she finally has to act.",
+                    "position": 180,
+                }
+            ],
             content=(
                 "<p>The barometer had been falling since noon.</p>"
                 "<p>Eleanor noted it in the log — <em>1012, 1008, 1003</em> — each reading a quiet sentence in a language she'd learned to read before she could properly read words. Her father had taught her that. <em>The glass doesn't lie,</em> he'd said. <em>People lie. Weather lies sometimes too, but the glass is always honest about what it knows.</em></p>"
@@ -888,9 +882,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 2: The Stranger",
             synopsis="The visitor arrives at Eleanor's door, soaked and inexplicably calm.",
             position=1,
-            metadata_={
-                "purpose": "Make the Visitor's arrival concrete and strange. Eleanor is on her own ground but the Visitor seems unsurprised to be here. Seed the first question about their identity without making them overtly threatening."
-            },
+            purpose="Make the Visitor's arrival concrete and strange. Eleanor is on her own ground but the Visitor seems unsurprised to be here. Seed the first question about their identity without making them overtly threatening.",
         )
         db.add(ch2)
         db.flush()
@@ -907,9 +899,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Eleanor wary, alone, storm at full strength — she has decided not to open the door if anyone comes.",
             exit_state="The Visitor is inside, dry, and drinking Eleanor's tea. Eleanor's boundary has been crossed — by her own choice.",
             key_events="Knock at the door; Eleanor's hesitation; the Visitor's inexplicable calm; Eleanor lets them in.",
-            metadata_={
-                "purpose": "First direct encounter between Eleanor and the Visitor. Establish Eleanor's suspicion without hostility — she lets them in against her better judgment. The Visitor's calm is the first signal that something about their story doesn't add up."
-            },
+            purpose="First direct encounter between Eleanor and the Visitor. Establish Eleanor's suspicion without hostility — she lets them in against her better judgment. The Visitor's calm is the first signal that something about their story doesn't add up.",
             content=(
                 "<p>The knock came at quarter past nine.</p>"
                 "<p>Eleanor had been expecting it ever since she saw the boat — a small, impossible thing — beached on the shingle below the breakwater. She'd watched it from the lamp room for twenty minutes, telling herself she was waiting to see if anyone emerged, knowing she was just delaying the moment when she'd have to make a decision.</p>"
@@ -943,9 +933,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Act 2: The Discovery",
             synopsis="As the storm traps them together, Eleanor begins to suspect the visitor's true purpose.",
             position=1,
-            metadata_={
-                "purpose": "The storm keeps them together long enough for Eleanor to see through the Visitor's story. Surface the missing log entries as a physical object of investigation. Begin closing the distance between the Visitor's true purpose and Eleanor's buried past."
-            },
+            purpose="The storm keeps them together long enough for Eleanor to see through the Visitor's story. Surface the missing log entries as a physical object of investigation. Begin closing the distance between the Visitor's true purpose and Eleanor's buried past.",
         )
         db.add(act2)
         db.flush()
@@ -958,9 +946,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 3: Old Records",
             synopsis="The visitor asks to see the lighthouse logs. Eleanor shows them — and notices what's missing.",
             position=0,
-            metadata_={
-                "purpose": "The log request exposes the Visitor's real interest. Eleanor showing them the logs — then noticing the gaps — is both a breach of her guardedness and a realization she'd been avoiding. The chapter should feel like a key turning in a lock."
-            },
+            purpose="The log request exposes the Visitor's real interest. Eleanor showing them the logs — then noticing the gaps — is both a breach of her guardedness and a realization she'd been avoiding. The chapter should feel like a key turning in a lock.",
         )
         db.add(ch3)
         db.flush()
@@ -975,9 +961,7 @@ def seed_demo_story():  # noqa: PLR0915
             position=0,
             timeline_position=4,
             status="draft",
-            metadata_={
-                "purpose": "Show Eleanor's guardedness cracking under the Visitor's seemingly reasonable request. The logs are sacred to her — her father's handwriting fills half of them. The act of handing them over should feel like a small surrender."
-            },
+            purpose="Show Eleanor's guardedness cracking under the Visitor's seemingly reasonable request. The logs are sacred to her — her father's handwriting fills half of them. The act of handing them over should feel like a small surrender.",
             content=(
                 "<p>The logs were kept in a cabinet in the watch room — twelve volumes, cloth-bound, labelled by year in @Eleanor Vance's careful hand and, before that, in the older, more certain hand of @Thomas Vance.</p>"
                 "<p>@Eleanor Vance had not shown them to anyone. They were not secret, exactly. They were simply not the sort of thing one shared. A record of weather and maintenance and minor incident: the language of [[The Lighthouse]], addressed to no one and everyone who might need to know what the sea had been doing on a particular night.</p>"
@@ -1018,9 +1002,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Eleanor and the Visitor are in the watch room with the logbooks open on the desk.",
             exit_state="The gap is exposed. The Visitor has confirmed they knew about it. Eleanor has asked who the Visitor really is.",
             key_events="The gap discovered; Eleanor registers its weight; the Visitor's unsurprised reaction; Eleanor's confrontation.",
-            metadata_={
-                "purpose": "The missing entries are the story's central wound made visible. Eleanor has been avoiding looking at this gap. The Visitor's unsurprised reaction confirms they came here knowing about it."
-            },
+            purpose="The missing entries are the story's central wound made visible. Eleanor has been avoiding looking at this gap. The Visitor's unsurprised reaction confirms they came here knowing about it.",
             content=(
                 "<p>The volume for five years ago was lighter than it should have been.</p>"
                 "<p>@Eleanor Vance noticed it the moment she lifted it from the shelf — that wrongness of weight, the way books tell you something is missing before you even open them. She had carried these volumes a hundred times. She knew them by heft.</p>"
@@ -1061,9 +1043,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 4: What the Storm Carries",
             synopsis="Trapped by the weather, Eleanor and the Visitor talk through the night.",
             position=1,
-            metadata_={
-                "purpose": "The storm removes the option to flee — for Eleanor or the Visitor. Use the forced proximity to strip away their respective defenses. By morning, enough truth has surfaced that the confrontation of Act 3 is inevitable."
-            },
+            purpose="The storm removes the option to flee — for Eleanor or the Visitor. Use the forced proximity to strip away their respective defenses. By morning, enough truth has surfaced that the confrontation of Act 3 is inevitable.",
         )
         db.add(ch4)
         db.flush()
@@ -1081,9 +1061,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Eleanor has discovered the missing log entries. Trust has fractured. The storm rages outside.",
             exit_state="The Visitor has admitted they aren't a historian. Eleanor has asked about her father directly.",
             key_events="The Visitor's confession; Eleanor's question about Thomas; the storm reaches its peak.",
-            metadata_={
-                "purpose": "The Visitor's partial confession raises the stakes: they know more than they've said, and some of it is damaging. Eleanor has to decide how much she wants to know. The scene should end with her asking the question she's been afraid to ask."
-            },
+            purpose="The Visitor's partial confession raises the stakes: they know more than they've said, and some of it is damaging. Eleanor has to decide how much she wants to know. The scene should end with her asking the question she's been afraid to ask.",
             content=(
                 "<p>They sat in the kitchen while the storm did its work outside. @Eleanor Vance had put the kettle on again — not because either of them wanted more tea, but because the ritual of it gave her hands something to do that wasn't reaching for the logbook.</p>"
                 '<p>"I\'m not a historian."&lt;Calder&gt;</p>'
@@ -1129,9 +1107,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Act 3: Resolution",
             synopsis="The truth surfaces. Eleanor must decide what to do with it.",
             position=2,
-            metadata_={
-                "purpose": "Force Eleanor to a choice she can no longer defer. The truth about her father and the Visitor's identity should feel inevitable in retrospect. Eleanor's decision — whatever it is — must come from character, not plot convenience."
-            },
+            purpose="Force Eleanor to a choice she can no longer defer. The truth about her father and the Visitor's identity should feel inevitable in retrospect. Eleanor's decision — whatever it is — must come from character, not plot convenience.",
         )
         db.add(act3)
         db.flush()
@@ -1144,9 +1120,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 5: The Truth of It",
             synopsis="The full story emerges. Eleanor and the Visitor confront what it means.",
             position=0,
-            metadata_={
-                "purpose": "Everything that has been withheld must come out here — cleanly, without melodrama. The revelation about Thomas Vance should recontextualize what we've read without invalidating it. Eleanor's final decision must feel earned."
-            },
+            purpose="Everything that has been withheld must come out here — cleanly, without melodrama. The revelation about Thomas Vance should recontextualize what we've read without invalidating it. Eleanor's final decision must feel earned.",
         )
         db.add(ch5)
         db.flush()
@@ -1164,9 +1138,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Morning after the storm. Eleanor has not slept. The Visitor has one more truth to tell.",
             exit_state="Eleanor knows the full story. Her understanding of her father has been overwritten.",
             key_events="The Visitor's final revelation; the truth about the Ardent; what Thomas chose.",
-            metadata_={
-                "purpose": "The revelation scene. Keep it grounded — Eleanor receives this information in her body, not just her mind. The facts matter less than what they cost her to hear."
-            },
+            purpose="The revelation scene. Keep it grounded — Eleanor receives this information in her body, not just her mind. The facts matter less than what they cost her to hear.",
             content=(
                 "<p>The storm broke at dawn.</p>"
                 "<p>@Eleanor Vance had been awake for it — had watched the sky go from black to grey to a pale, exhausted blue, the clouds pulling apart like something defeated. The sea was still rough, but the violence had gone out of it. What remained was just the ordinary churn of aftermath.</p>"
@@ -1227,9 +1199,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Eleanor knows everything. The choice is hers alone.",
             exit_state="A decision has been made. The lighthouse still stands.",
             key_events="Eleanor's choice; what she offers Calder; the logbooks' fate.",
-            metadata_={
-                "purpose": "Eleanor's choice is the story's true ending. It should tell us who she is — not who she was at the start. Whether she protects her father's memory or burns it down, the act must be hers."
-            },
+            purpose="Eleanor's choice is the story's true ending. It should tell us who she is — not who she was at the start. Whether she protects her father's memory or burns it down, the act must be hers.",
             content=(
                 "<p>The logbooks were still on the table where they'd left them. Twelve volumes. A lifetime of weather.</p>"
                 "<p>@Eleanor Vance picked up the one with the gap — five years ago, the missing months, the silence where her father's guilt should have been recorded. She held it for a long moment, feeling its wrongness, its incompleteness.</p>"
@@ -1282,9 +1252,7 @@ def seed_demo_story():  # noqa: PLR0915
             title="Chapter 6: After the Storm",
             synopsis="In the aftermath, Eleanor begins to rebuild — not the lighthouse, but her understanding of it.",
             position=1,
-            metadata_={
-                "purpose": "The denouement. Show Eleanor's world after the revelation — changed but not destroyed. Resolve the question of whether she will stay or leave. Plant the first seed of whatever comes next."
-            },
+            purpose="The denouement. Show Eleanor's world after the revelation — changed but not destroyed. Resolve the question of whether she will stay or leave. Plant the first seed of whatever comes next.",
         )
         db.add(ch6)
         db.flush()
@@ -1302,9 +1270,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="The truth has been exchanged. Calder has what she came for.",
             exit_state="Eleanor is alone again — but not the same alone she was before.",
             key_events="Calder's departure; Eleanor's vigil at the breakwater; the return to routine.",
-            metadata_={
-                "purpose": "The mirror of the arrival scene. Calder leaves by boat as she came, but the weather is clear and Eleanor chooses to watch. The watching is an act of release, not vigilance."
-            },
+            purpose="The mirror of the arrival scene. Calder leaves by boat as she came, but the weather is clear and Eleanor chooses to watch. The watching is an act of release, not vigilance.",
             content=(
                 "<p>The boat came for Calder at noon — a fishing vessel from the mainland, summoned by radio. @Eleanor Vance walked with her to the breakwater where the small craft that had brought her still sat beached and battered, waiting for someone to deal with it.</p>"
                 '<p>"I\'ll have someone come for that," Calder said, nodding at her ruined boat. "Unless you want to keep it for parts."</p>'
@@ -1344,9 +1310,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="Two days after the storm. Eleanor has resumed her routine, but differently.",
             exit_state="Margaret has offered what she knows. Eleanor has to decide if she wants to hear it.",
             key_events="Margaret's arrival; the unasked question; what Margaret saw five years ago.",
-            metadata_={
-                "purpose": "Margaret functions as a witness to the island's long memory. She knows more than she's said. This scene plants the possibility that the story isn't quite finished — that there's more to learn about Thomas Vance, if Eleanor chooses to ask."
-            },
+            purpose="Margaret functions as a witness to the island's long memory. She knows more than she's said. This scene plants the possibility that the story isn't quite finished — that there's more to learn about Thomas Vance, if Eleanor chooses to ask.",
             content=(
                 "<p>@Margaret Holt came by on Wednesday, same as always.</p>"
                 "<p>She brought eggs from her chickens, a jar of preserved tomatoes, and the particular silence of a woman who had lived long enough to know when not to ask questions. @Eleanor Vance traded coffee and lamp oil and a silence of her own, and for a while they sat at the kitchen table like they always did, saying nothing about anything that mattered.</p>"
@@ -1390,9 +1354,7 @@ def seed_demo_story():  # noqa: PLR0915
             entry_state="A week after the storm. Eleanor stands in the watch room with the current logbook open.",
             exit_state="The log has been updated. The lighthouse continues. So does Eleanor.",
             key_events="Eleanor's entry; what she chooses to record; the lamp comes on at dusk.",
-            metadata_={
-                "purpose": "The final scene mirrors the first: Eleanor alone in the lighthouse, making an entry in the log. But she is changed — she writes differently now, records differently, sees the ritual differently. The story ends not with resolution but with continuation."
-            },
+            purpose="The final scene mirrors the first: Eleanor alone in the lighthouse, making an entry in the log. But she is changed — she writes differently now, records differently, sees the ritual differently. The story ends not with resolution but with continuation.",
             content=(
                 "<p>The logbook lay open on the desk, its pages patient and blank.</p>"
                 "<p>@Eleanor Vance stood in the watch room with a pen in her hand and nothing particular to say. A week had passed since the storm. The repairs were done — a few shingles replaced, a window resealed, the driftwood from Calder's boat stacked for burning. The radio worked. The lamp worked. Everything was as it should be.</p>"
@@ -2629,9 +2591,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Act 1: The Signal",
             synopsis="Yuki's isolated routine is fractured by an anomalous data burst. MIRA calls it noise. Yuki is not convinced.",
             position=0,
-            metadata_={
-                "purpose": "Establish Yuki's world and the fragile equilibrium of her five-year posting. Introduce the anomalous signal as a disruption. End with Yuki's discovery of the Persephone carrier wave — certainty that this is not stellar noise."
-            },
+            purpose="Establish Yuki's world and the fragile equilibrium of her five-year posting. Introduce the anomalous signal as a disruption. End with Yuki's discovery of the Persephone carrier wave — certainty that this is not stellar noise.",
         )
         db.add(act1)
         db.flush()
@@ -2644,9 +2604,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 1: Static and Stars",
             synopsis="Yuki maintains the station during a routine cycle, monitoring relay traffic and talking to MIRA.",
             position=0,
-            metadata_={
-                "purpose": "Ground the reader in Yuki's world — the sensory texture of the station, her relationship with MIRA, the comfortable loneliness she has made into a life. Establish the relay array as a central object before it becomes significant. Foreshadow disruption with the anomalous burst."
-            },
+            purpose="Ground the reader in Yuki's world — the sensory texture of the station, her relationship with MIRA, the comfortable loneliness she has made into a life. Establish the relay array as a central object before it becomes significant. Foreshadow disruption with the anomalous burst.",
         )
         db.add(ch1)
         db.flush()
@@ -2664,17 +2622,15 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Yuki alone at her console, mid-watch — routine traffic logged, the array humming, the void predictably quiet.",
             exit_state="An anomalous burst of data has appeared and disappeared. MIRA has flagged it as stellar interference. Yuki is not satisfied.",
             key_events="Routine relay traffic; the anomalous burst; MIRA's dismissal; Yuki's uncertainty.",
-            metadata_={
-                "purpose": "Open in Yuki's element — she is competent and alone by choice. The array establishes her observational nature and the station's purpose. The burst at the end pivots the scene: something doesn't fit the pattern.",
-                "inline_notes": [
-                    {
-                        "id": "scifi-note-1",
-                        "anchor": "not quite silence",
-                        "note": "The station is never truly silent — systems hum, the array ticks, MIRA breathes in servo cycles. Yuki has learned to hear the absence of noise within noise. This detail matters when the signal arrives: she hears it before MIRA classifies it.",
-                        "position": 150,
-                    }
-                ],
-            },
+            purpose="Open in Yuki's element — she is competent and alone by choice. The array establishes her observational nature and the station's purpose. The burst at the end pivots the scene: something doesn't fit the pattern.",
+            inline_notes=[
+                {
+                    "id": "scifi-note-1",
+                    "anchor": "not quite silence",
+                    "note": "The station is never truly silent — systems hum, the array ticks, MIRA breathes in servo cycles. Yuki has learned to hear the absence of noise within noise. This detail matters when the signal arrives: she hears it before MIRA classifies it.",
+                    "position": 150,
+                }
+            ],
             content=(
                 "<p>The array never slept.</p>"
                 "<p>@Yuki Tanaka had learned this in her first week at [[Waypoint 7 Relay Station]] — that the silence she'd come here for wasn't silence at all, but a specific frequency of noise: the tick of thermal expansion in the relay lattice, the low harmonic of the station's rotation, MIRA's server fans cycling through their maintenance rhythm. After five years she had stopped noticing it the way she'd stopped noticing her own heartbeat. It was just <span data-note-id=\"scifi-note-1\" class=\"note-anchor\">not quite silence</span>, and not quite alone.</p>"
@@ -2723,9 +2679,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Yuki has replayed the burst three times and is increasingly certain it is not stellar interference.",
             exit_state="MIRA has provided a thorough explanation. Yuki disagrees but has no counterargument yet — just instinct.",
             key_events="MIRA's analysis; Yuki's objections; MIRA's final classification; Yuki's decision to keep watching.",
-            metadata_={
-                "purpose": "Establish the dynamic between Yuki and MIRA — Yuki's instinct vs. MIRA's protocol. MIRA is not wrong. She is applying the right framework to the wrong signal. The scene should feel like a conversation between two people who are almost having the same argument."
-            },
+            purpose="Establish the dynamic between Yuki and MIRA — Yuki's instinct vs. MIRA's protocol. MIRA is not wrong. She is applying the right framework to the wrong signal. The scene should feel like a conversation between two people who are almost having the same argument.",
             content=(
                 "<p>The burst had a shape.</p>"
                 "<p>@Yuki Tanaka ran it through the analysis suite four times — spectral decomposition, signal-to-noise mapping, frequency envelope — and each time @MIRA provided the same result with the patient repetition of something that had been correct before and saw no reason to change its mind.</p>"
@@ -2769,9 +2723,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 2: The Pattern",
             synopsis="The signal repeats. Yuki begins to recognize structure in what MIRA calls noise — and discovers something in the carrier wave that changes everything.",
             position=1,
-            metadata_={
-                "purpose": "The signal's repetition confirms it is not random. Yuki bypasses MIRA's filters to record the raw data. Her discovery of the Persephone carrier wave should land with weight — a thirty-year question suddenly, impossibly present."
-            },
+            purpose="The signal's repetition confirms it is not random. Yuki bypasses MIRA's filters to record the raw data. Her discovery of the Persephone carrier wave should land with weight — a thirty-year question suddenly, impossibly present.",
         )
         db.add(ch2)
         db.flush()
@@ -2789,9 +2741,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Forty-seven hours after the first burst. Yuki has been watching the deep-listen band more closely than her duties require.",
             exit_state="The signal has returned, stronger and longer. Yuki has raw unfiltered data. She now has proof it is repeating.",
             key_events="The signal returns; Yuki's manual recording; MIRA's objection; the data secured.",
-            metadata_={
-                "purpose": "Show Yuki's methodical determination — she isn't acting on impulse, she is doing exactly the patient, precise work that defines her. Bypassing MIRA's filters is a small protocol violation, but it is the first one."
-            },
+            purpose="Show Yuki's methodical determination — she isn't acting on impulse, she is doing exactly the patient, precise work that defines her. Bypassing MIRA's filters is a small protocol violation, but it is the first one.",
             content=(
                 "<p>It came back on the third day.</p>"
                 "<p>@Yuki Tanaka had spent forty-seven hours with half her attention on the deep-listen band — enough to be watching when the signal reappeared at 0317 station time, while she was supposed to be running antenna alignment checks on [[The Array]].</p>"
@@ -2832,9 +2782,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Yuki has been analyzing the raw data for six hours. She is looking for anything that distinguishes this burst from genuine stellar emission.",
             exit_state="Shock, fear, hope: the carrier wave embedded in the signal matches Persephone's last known identification frequency. That ship has been silent for thirty years.",
             key_events="The carrier wave analysis; the archive cross-reference; the match with Persephone's signature; Yuki's realization.",
-            metadata_={
-                "purpose": "The discovery that changes everything. Keep it grounded in technical detail — Yuki is a communications engineer, she should find this the way a professional finds it. The emotional weight should come from what the match means, not from melodrama."
-            },
+            purpose="The discovery that changes everything. Keep it grounded in technical detail — Yuki is a communications engineer, she should find this the way a professional finds it. The emotional weight should come from what the match means, not from melodrama.",
             content=(
                 "<p>Carrier waves were the bones of any transmission.</p>"
                 "<p>Every ship, every station, every relay node broadcast on a unique identification frequency — a signature buried in the signal's substructure that persisted even when the content was noise, even when the signal was too weak to carry meaning. It was how you knew who was speaking when you couldn't hear the words.</p>"
@@ -2881,9 +2829,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Act 2: The Choice",
             synopsis="Yuki digs into the Persephone archives and discovers the signal may be a human voice. The First Contact Protocol forbids response. She must decide.",
             position=1,
-            metadata_={
-                "purpose": "Force Yuki to understand what she has found and what answering it will cost. The decision must feel genuinely weighted — she has real reasons to stay silent and real reasons to respond. By the end of Act 2, she has chosen."
-            },
+            purpose="Force Yuki to understand what she has found and what answering it will cost. The decision must feel genuinely weighted — she has real reasons to stay silent and real reasons to respond. By the end of Act 2, she has chosen.",
         )
         db.add(act2)
         db.flush()
@@ -2896,9 +2842,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 3: The Archive",
             synopsis="Yuki digs into the Persephone records, learning about Volkov and the colonists. MIRA resists her investigation.",
             position=0,
-            metadata_={
-                "purpose": "Make the Persephone real: names, faces, a departure that was hope rather than loss. Yuki researching Volkov should feel like grief for people she never met. Establish Protocol Delta as the concrete barrier to acting on what she's found."
-            },
+            purpose="Make the Persephone real: names, faces, a departure that was hope rather than loss. Yuki researching Volkov should feel like grief for people she never met. Establish Protocol Delta as the concrete barrier to acting on what she's found.",
         )
         db.add(ch3)
         db.flush()
@@ -2916,9 +2860,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Yuki is in the [[Archive Room]], digging through the Persephone files MIRA has never had reason to index.",
             exit_state="The colonists have become real to her — 1,247 names and faces, not a statistic. Volkov's voice is now something she recognizes.",
             key_events="The Persephone departure footage; Volkov's address; Yuki's emotional response; the weight of 1,247 people.",
-            metadata_={
-                "purpose": "Give the Persephone human weight before Yuki risks everything for it. The colonists must be real people whose fate Yuki can imagine, not an abstraction."
-            },
+            purpose="Give the Persephone human weight before Yuki risks everything for it. The colonists must be real people whose fate Yuki can imagine, not an abstraction.",
             content=(
                 "<p>The departure footage was forty-three minutes long.</p>"
                 "<p>@Yuki Tanaka had been looking for technical data — ship specifications, the IFF frequency registry documentation, maintenance logs — when @MIRA flagged a media archive she hadn't seen in the directory listing. <em>CSV Persephone: Pre-Launch Record, YE 87, Public Broadcast File.</em></p>"
@@ -2964,9 +2906,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Yuki knows what the signal is. She is looking for a way to respond that doesn't end her career.",
             exit_state="There is no loophole. If she responds, she does it alone and accepts the consequences.",
             key_events="Reading Protocol Delta; the specific prohibition on response; MIRA's recitation; Yuki's decision to proceed anyway.",
-            metadata_={
-                "purpose": "Make the cost concrete. Yuki is not acting impulsively — she is choosing to break a specific rule with full knowledge of what that means. The protocol language should feel bureaucratic and absolute, which makes her eventual response all the more significant."
-            },
+            purpose="Make the cost concrete. Yuki is not acting impulsively — she is choosing to break a specific rule with full knowledge of what that means. The protocol language should feel bureaucratic and absolute, which makes her eventual response all the more significant.",
             content=(
                 "<p>Protocol Delta-7 was forty-three pages long.</p>"
                 "<p>@Yuki Tanaka had read it before — it was part of standard relay operator certification, covered on a single afternoon in a year-long training program, examined by multiple choice. She had known the headlines: <em>Do not engage. Do not respond. Log and report through official channels. Await instruction from the Contact Studies Institute.</em></p>"
@@ -3012,9 +2952,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 4: The Transmission",
             synopsis="The signal repeats with new content. Yuki isolates a fragment of human voice. She knows what she has to do.",
             position=1,
-            metadata_={
-                "purpose": "The voice is the tipping point. Yuki could have remained uncertain about the carrier wave match; hearing what might be Volkov removes that uncertainty. By the end of Act 2, she has decided."
-            },
+            purpose="The voice is the tipping point. Yuki could have remained uncertain about the carrier wave match; hearing what might be Volkov removes that uncertainty. By the end of Act 2, she has decided.",
         )
         db.add(ch4)
         db.flush()
@@ -3032,9 +2970,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="The signal has repeated a fourth time. Yuki is now recording everything, unfiltered, the moment it arrives.",
             exit_state="Certainty: this is a human distress call, thirty years old and somehow still transmitting. Yuki knows what she has to do.",
             key_events="The fourth signal occurrence; Yuki's audio isolation; the voice fragment; recognition of Volkov's cadence; the decision.",
-            metadata_={
-                "purpose": "The emotional peak of Act 2. Keep the voice fragment ambiguous enough to be real — she cannot fully confirm it is Volkov, but she cannot dismiss it either. The decision that follows should feel inevitable rather than dramatic."
-            },
+            purpose="The emotional peak of Act 2. Keep the voice fragment ambiguous enough to be real — she cannot fully confirm it is Volkov, but she cannot dismiss it either. The decision that follows should feel inevitable rather than dramatic.",
             content=(
                 "<p>The fourth occurrence came nine days after the first.</p>"
                 "<p>@Yuki Tanaka was ready. She had written three custom filters, tested them against the stellar emission archive, and verified that they would extract anything structured from the deep-listen band without MIRA's classification layer intervening. She had also written a four-hundred-word log entry explaining exactly what she was doing and why, timestamped and archived. If she was wrong, she wanted the record to show methodical error rather than recklessness. If she was right, she wanted the record to show that she had tried to be careful.</p>"
@@ -3084,9 +3020,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Act 3: The Answer",
             synopsis="Yuki transmits a response. Help arrives. And the void, against all probability, answers back.",
             position=2,
-            metadata_={
-                "purpose": "The decision is made; now live with the consequences. Yuki's response triggers institutional reaction (Priya's arrival), which leads to the collaborative decoding of the full signal. The reply validates everything — and opens a question too large for one person to hold."
-            },
+            purpose="The decision is made; now live with the consequences. Yuki's response triggers institutional reaction (Priya's arrival), which leads to the collaborative decoding of the full signal. The reply validates everything — and opens a question too large for one person to hold.",
         )
         db.add(act3)
         db.flush()
@@ -3099,9 +3033,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 5: Breaking Silence",
             synopsis="Yuki transmits a response using Persephone's old call signs. Priya Sharma arrives with institutional authority and personal history.",
             position=0,
-            metadata_={
-                "purpose": "The act of transmission is irreversible — Yuki has made her choice public. Priya's arrival is the consequence: someone who can challenge Yuki's certainty and share the work. Their reconciliation should feel earned rather than convenient."
-            },
+            purpose="The act of transmission is irreversible — Yuki has made her choice public. Priya's arrival is the consequence: someone who can challenge Yuki's certainty and share the work. Their reconciliation should feel earned rather than convenient.",
         )
         db.add(ch5)
         db.flush()
@@ -3119,9 +3051,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="The decision is made. Yuki is at her console, drafting the transmission.",
             exit_state="The signal is sent. MIRA has logged the Protocol Delta-7 violation. There is no taking it back.",
             key_events="Drafting the response; MIRA's choice to help; the transmission; the violation logged; the waiting.",
-            metadata_={
-                "purpose": "The transmission is the story's pivot. Keep it simple — Yuki is not a poet, she is a communications officer. The professionalism of the act is part of its meaning. MIRA's decision to help, without being asked, is her arc's key moment."
-            },
+            purpose="The transmission is the story's pivot. Keep it simple — Yuki is not a poet, she is a communications officer. The professionalism of the act is part of its meaning. MIRA's decision to help, without being asked, is her arc's key moment.",
             content=(
                 "<p>She wrote it in plain language because anything else felt dishonest.</p>"
                 "<p><em>CSV Persephone, this is Waypoint 7 Relay Station, @Yuki Tanaka commanding. We have received your signal. We are here. Please confirm origin and status of all personnel aboard. Repeat: we have received your signal. We are here.</em></p>"
@@ -3170,9 +3100,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Seventy-two hours after the transmission. Yuki has been waiting. Priya arrives on an emergency shuttle.",
             exit_state="They have decoded coordinates from the signal — a location beyond charted space. The Persephone found something, and something found them.",
             key_events="Priya's arrival; the confrontation about Yuki's choices; the collaborative decoding; the coordinate discovery.",
-            metadata_={
-                "purpose": "The reunion between Yuki and Priya should feel like unfinished work resumed. Their estrangement is real but not permanent; the signal gives them something more important to argue about than their past."
-            },
+            purpose="The reunion between Yuki and Priya should feel like unfinished work resumed. Their estrangement is real but not permanent; the signal gives them something more important to argue about than their past.",
             content=(
                 "<p>The shuttle docked at 1430 and @Dr. Priya Sharma came through the airlock with a bag over one shoulder and the expression of someone who had been in transit for three days and was saving their composure for the part where it mattered.</p>"
                 '<p>"Yuki."</p>'
@@ -3225,9 +3153,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             title="Chapter 6: Contact",
             synopsis="The reply arrives. A new voice — younger, not Volkov — confirms that someone on the other end has been waiting.",
             position=1,
-            metadata_={
-                "purpose": "The reply is the story's emotional resolution. Keep it simple, keep it human — this should not feel like alien contact but like a door being opened between two people who have been in separate rooms for too long."
-            },
+            purpose="The reply is the story's emotional resolution. Keep it simple, keep it human — this should not feel like alien contact but like a door being opened between two people who have been in separate rooms for too long.",
         )
         db.add(ch6)
         db.flush()
@@ -3245,9 +3171,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             entry_state="Waiting. The signal has been decoding, the coordinates confirmed, the Institute notified. Yuki and Priya at their consoles.",
             exit_state="Contact confirmed. Not alien, not entirely human anymore — but alive. The void has answered. What comes next is larger than Waypoint 7.",
             key_events="The signal changes; the new voice; the words; Yuki and Priya's response; what it means for what comes next.",
-            metadata_={
-                "purpose": "The final scene mirrors the first: Yuki in the observation deck, monitoring the array. But the silence is not empty anymore. What began as routine observation ends as the most significant moment in thirty years of human space history."
-            },
+            purpose="The final scene mirrors the first: Yuki in the observation deck, monitoring the array. But the silence is not empty anymore. What began as routine observation ends as the most significant moment in thirty years of human space history.",
             content=(
                 "<p>The signal changed on the fourteenth day.</p>"
                 "<p>@Yuki Tanaka and @Dr. Priya Sharma were both at their consoles — they had settled into a rotation, sleeping in shifts, eating at the secondary console, speaking to each other in the shorthand of people who had once known each other well and were cautiously remembering how. @MIRA had begun providing two meal schedules without being asked.</p>"
@@ -3962,10 +3886,8 @@ def seed_flash_fiction_demo():
             entry_state="Lena in the rental car, engine off, key in hand. Two years of avoidance.",
             exit_state="Lena gets out of the car. She is going in.",
             key_events="Lena arrives; memory of Marco's laugh; she decides to try.",
-            metadata_={
-                "purpose": "Open the Character MICE thread. Lena's dissatisfaction must be clear: she is not living, she is waiting. The thread question is: will she finally allow herself to grieve — and move?",
-                "mice_opens": "Will Lena let go? — opened here, when Lena arrives for the first time.",
-            },
+            purpose="Open the Character MICE thread. Lena's dissatisfaction must be clear: she is not living, she is waiting. The thread question is: will she finally allow herself to grieve — and move?",
+            metadata_={"mice_opens": "Will Lena let go? — opened here, when Lena arrives for the first time."},
             content=(
                 "<p>The key is the right one. Lena knows this — she&#x27;s used it a thousand times, "
                 "back when this house was hers too. And yet her hand won&#x27;t turn.</p>"
@@ -4009,9 +3931,7 @@ def seed_flash_fiction_demo():
             entry_state="Lena on the front step, key in the lock.",
             exit_state="Lena sitting at the kitchen table, letter in hand, reading.",
             key_events="Entry; kitchen unchanged; drawer of unsent mail; Marco's letter to Lena.",
-            metadata_={
-                "purpose": "Try: Lena enters and survives the first wave of grief. Fail: the kitchen is too much — she almost runs. Try again: she opens the drawer instead of leaving. The unfinished letter is the pivot.",
-            },
+            purpose="Try: Lena enters and survives the first wave of grief. Fail: the kitchen is too much — she almost runs. Try again: she opens the drawer instead of leaving. The unfinished letter is the pivot.",
             content=(
                 "<p>The kitchen smells like him. She doesn&#x27;t know how that&#x27;s possible after "
                 "two years but it&#x27;s there — coffee and something underneath it, something that&#x27;s "
@@ -4055,10 +3975,8 @@ def seed_flash_fiction_demo():
             entry_state="Lena at the kitchen table, letter in hand.",
             exit_state="Lena outside, walking away, lighter. The house is behind her.",
             key_events="Reading the letter; staying until dark; leaving the key; walking out.",
-            metadata_={
-                "purpose": "Close the Character MICE thread. Lena is no longer the woman who sat in the car. She is not healed — but she has moved. The key on the table is the symbol of release.",
-                "mice_closes": "Will Lena let go? — closed here. She does.",
-            },
+            purpose="Close the Character MICE thread. Lena is no longer the woman who sat in the car. She is not healed — but she has moved. The key on the table is the symbol of release.",
+            metadata_={"mice_closes": "Will Lena let go? — closed here. She does."},
             content=(
                 "<p>The letter is three paragraphs. The handwriting gets looser as it goes, like he got "
                 "tired or distracted, like he meant to come back to it. He never does. He is writing "
@@ -4230,9 +4148,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             title="Movement 1: Before",
             synopsis="Backstage at the conservatory. Elena's hands are worse than yesterday. She decides to go on anyway.",
             position=0,
-            metadata_={
-                "purpose": "Open both MICE threads. The Character thread opens first (Elena's dissatisfaction is named). The Event thread opens second (she commits to the stage). By the end of this movement, both questions are live."
-            },
+            purpose="Open both MICE threads. The Character thread opens first (Elena's dissatisfaction is named). The Event thread opens second (she commits to the stage). By the end of this movement, both questions are live.",
         )
         db.add(mov1)
         db.flush()
@@ -4250,9 +4166,9 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena backstage, alone, forty minutes before curtain. She is doing the thing she always does: running through the fingering in her mind, hands still.",
             exit_state="Elena's left hand has trembled during a warm-up run. She knows the tremor is worse than yesterday. She has not told anyone.",
             key_events="Warm-up run; tremor noticed; memory of her teacher; the decision not to withdraw.",
+            purpose="Open the Character MICE thread. Elena's dissatisfaction is established: she is a performer who is losing the ability to perform. She has not accepted this yet.",
             metadata_={
-                "purpose": "Open the Character MICE thread. Elena's dissatisfaction is established: she is a performer who is losing the ability to perform. She has not accepted this yet.",
-                "mice_opens": "Character thread: 'Will Elena accept the end of performing?' — opened here, in the tremor she cannot explain away.",
+                "mice_opens": "Character thread: 'Will Elena accept the end of performing?' — opened here, in the tremor she cannot explain away."
             },
             content=(
                 "<p>The warm-up room is too bright. It always is, in conservatories — they overlight "
@@ -4302,9 +4218,9 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena alone, hands settled, time running out.",
             exit_state="Elena at the stage door. She has committed. The question is no longer whether she goes on — it's whether she gets through.",
             key_events="Stage manager's call; Elena's last check; walking to the door.",
+            purpose="Open the Event MICE thread. Elena commits to the stage — a concrete, bounded question now exists: will she get through the audition? This is the inner thread (second opened, first closed).",
             metadata_={
-                "purpose": "Open the Event MICE thread. Elena commits to the stage — a concrete, bounded question now exists: will she get through the audition? This is the inner thread (second opened, first closed).",
-                "mice_opens": "Event thread: 'Will Elena get through the audition?' — opened when she walks through the stage door.",
+                "mice_opens": "Event thread: 'Will Elena get through the audition?' — opened when she walks through the stage door."
             },
         )
         db.add(beat2)
@@ -4328,9 +4244,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             title="Movement 2: The Audition",
             synopsis="Elena performs. The first movement is perfect. The second movement begins to fail. She improvises. She finishes. She does not win.",
             position=1,
-            metadata_={
-                "purpose": "Develop and close the Event thread. The audition is a discrete event with a clear result. The Character thread continues through this movement — Elena's relationship to her own music shifts under pressure."
-            },
+            purpose="Develop and close the Event thread. The audition is a discrete event with a clear result. The Character thread continues through this movement — Elena's relationship to her own music shifts under pressure.",
         )
         db.add(mov2)
         db.flush()
@@ -4348,9 +4262,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena on stage, introduced, the room quiet.",
             exit_state="First movement complete. The panel is attentive. Elena knows the adagio is next.",
             key_events="Opening notes; the room's attention; first movement completed cleanly.",
-            metadata_={
-                "purpose": "False hope. Give Elena — and the reader — a moment where it seems like she might get through cleanly. The adagio will break this."
-            },
+            purpose="False hope. Give Elena — and the reader — a moment where it seems like she might get through cleanly. The adagio will break this.",
         )
         db.add(beat3)
         db.flush()
@@ -4383,9 +4295,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena midway through the performance, moving into the slow movement.",
             exit_state="The tremor happened. The panel saw. Elena knows the result. She plays the final bars anyway.",
             key_events="Tremor in bar sixteen; fingering adjustment; the panel's exchanged glance; Elena's decision to finish.",
-            metadata_={
-                "purpose": "The Event thread reaches its crisis. The audition is not going to be won. But the question of whether Elena finishes it still holds."
-            },
+            purpose="The Event thread reaches its crisis. The audition is not going to be won. But the question of whether Elena finishes it still holds.",
         )
         db.add(beat4)
         db.flush()
@@ -4418,10 +4328,8 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena in the final movement, the outcome decided.",
             exit_state="Elena has finished. She has walked off stage. The audition is over. She did not win.",
             key_events="Final bars; the bow; the walk offstage; the panel's silence.",
-            metadata_={
-                "purpose": "Close the Event MICE thread (inner thread). The bounded question 'will Elena get through the audition?' is answered: yes, she finished. The result was not the one she came for. The Character thread remains open.",
-                "mice_closes": "Event thread: 'Will Elena get through the audition?' — closed here. She did.",
-            },
+            purpose="Close the Event MICE thread (inner thread). The bounded question 'will Elena get through the audition?' is answered: yes, she finished. The result was not the one she came for. The Character thread remains open.",
+            metadata_={"mice_closes": "Event thread: 'Will Elena get through the audition?' — closed here. She did."},
         )
         db.add(beat5)
         db.flush()
@@ -4445,9 +4353,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             title="Movement 3: After",
             synopsis="Backstage, a young student asks Elena for guidance. Elena teaches — and realizes what she has been preparing for all along.",
             position=2,
-            metadata_={
-                "purpose": "Close the Character thread (outer thread). Elena's dissatisfaction is resolved not through recovery, but through transmission. She finds the thing worth becoming."
-            },
+            purpose="Close the Character thread (outer thread). Elena's dissatisfaction is resolved not through recovery, but through transmission. She finds the thing worth becoming.",
         )
         db.add(mov3)
         db.flush()
@@ -4465,9 +4371,9 @@ def seed_short_story_demo():  # noqa: PLR0915
             entry_state="Elena backstage, coat on, ready to leave. The result isn't posted yet but she already knows.",
             exit_state="Elena has given something away. She walks out lighter than she came in.",
             key_events="The student's question; Elena's answer; the realization; the exit.",
+            purpose="Close the Character MICE thread (outer thread). Elena's dissatisfaction — 'I am losing the thing that defines me' — resolves when she discovers that what she's been building for thirty years was never the performances. It was this.",
             metadata_={
-                "purpose": "Close the Character MICE thread (outer thread). Elena's dissatisfaction — 'I am losing the thing that defines me' — resolves when she discovers that what she's been building for thirty years was never the performances. It was this.",
-                "mice_closes": "Character thread: 'Will Elena accept the end of performing?' — closed here. She does, because she finds what comes next.",
+                "mice_closes": "Character thread: 'Will Elena accept the end of performing?' — closed here. She does, because she finds what comes next."
             },
             content=(
                 "<p>The girl is sitting on the floor outside the warm-up room, arms wrapped around "
@@ -4861,10 +4767,10 @@ def seed_first_person_demo():
             entry_state="Maya alone at the corner table, ten minutes early.",
             exit_state="Victor walks in. Maya sets her notebook on the table.",
             key_events="Maya&#x27;s inner monologue establishes the stakes; Victor arrives; first exchange.",
+            purpose="Establish first-person interiority. Maya is in control before Victor arrives — her thoughts are tactical, not anxious. The Event thread opens the moment she sits down.",
             metadata_={
-                "purpose": "Establish first-person interiority. Maya is in control before Victor arrives \u2014 her thoughts are tactical, not anxious. The Event thread opens the moment she sits down.",
-                "mice_opens": "What is Victor hiding? \u2014 thread opens here, when Maya arrives with eight months of research.",
-                "pov_note": "Unattributed lines are Maya\u2019s (pov_default). Italicized text is inner monologue (thought). Victor\u2019s first line uses @mention proximity (inferred). His second uses explicit &lt;Name&gt; attribution.",
+                "mice_opens": "What is Victor hiding? — thread opens here, when Maya arrives with eight months of research.",
+                "pov_note": "Unattributed lines are Maya’s (pov_default). Italicized text is inner monologue (thought). Victor’s first line uses @mention proximity (inferred). His second uses explicit &lt;Name&gt; attribution.",
             },
             content=(
                 "<p>I get there ten minutes early. I always do \u2014 not from anxiety, but because "
@@ -4909,9 +4815,9 @@ def seed_first_person_demo():
             entry_state="Victor seated, comfortable. Maya&#x27;s recorder is on the table \u2014 he agreed to it.",
             exit_state="Victor has deflected everything. Maya has one question left. She has been saving it.",
             key_events="Professional rapport; Victor&#x27;s polished deflections; Maya escalates to the 2019 pilot; Victor holds; rapid back-and-forth exchange.",
+            purpose="The try/fail engine: Maya tries to get Victor to engage with the 2019 pilot directly. He evades without lying. She tries again. The tension is that he’s very good at this.",
             metadata_={
-                "purpose": "The try/fail engine: Maya tries to get Victor to engage with the 2019 pilot directly. He evades without lying. She tries again. The tension is that he\u2019s very good at this.",
-                "dialogue_note": "The rapid exchange demonstrates alternating attribution. After two speakers are established (Maya via explicit, Victor via explicit), subsequent unattributed lines resolve to the alternating method.",
+                "dialogue_note": "The rapid exchange demonstrates alternating attribution. After two speakers are established (Maya via explicit, Victor via explicit), subsequent unattributed lines resolve to the alternating method."
             },
             content=(
                 "<p>He orders sparkling water. <em>Of course he does.</em></p>"
@@ -4963,9 +4869,9 @@ def seed_first_person_demo():
             entry_state="Victor relaxed, talking about the company\u2019s future. Twelve minutes left on the hour.",
             exit_state="Maya closes her notebook. She has what she came for.",
             key_events="Maya\u2019s final question; Victor\u2019s slip; Maya ends the interview.",
+            purpose="Close the Event thread. Victor has been managing the conversation for fifty-seven minutes. The slip is small — a word, a tense — but it’s enough. Maya recognizes it immediately.",
             metadata_={
-                "purpose": "Close the Event thread. Victor has been managing the conversation for fifty-seven minutes. The slip is small \u2014 a word, a tense \u2014 but it\u2019s enough. Maya recognizes it immediately.",
-                "mice_closes": "What is Victor hiding? \u2014 closes here. Victor confirms the pilot existed and had a compliance gap.",
+                "mice_closes": "What is Victor hiding? — closes here. Victor confirms the pilot existed and had a compliance gap.",
                 "dialogue_note": "@Victor proximity attribution demonstrates the inferred method: the @mention and the quote are in the same paragraph, giving the dialogue service a speaker candidate without explicit tagging.",
             },
             content=(
