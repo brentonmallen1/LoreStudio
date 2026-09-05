@@ -39,6 +39,7 @@ import InlineNotePopover from "./InlineNotePopover";
 import MentionHoverCard from "./MentionHoverCard";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
+import { useMode } from "../../lib/mode";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
 import styles from "./SceneEditor.module.css";
@@ -64,6 +65,7 @@ export default function SceneEditor() {
     closeWritingGuides,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
+  const mode = useMode();
 
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
@@ -314,6 +316,7 @@ export default function SceneEditor() {
         onAnalyzeShowTell={() => openSelectionSession("show-dont-tell")}
         onAnalyzeAudience={() => openSelectionSession("audience-adherence")}
         onClicheCoach={() => openSelectionSession("cliche-coach")}
+        showAI={mode === "studio"}
       />
 
       <InlineNotePopover notes={notes} popoverRef={notePopoverRef} />

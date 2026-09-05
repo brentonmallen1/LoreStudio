@@ -25,6 +25,7 @@ import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
 import type { LLMSettings, ImageTokenBudget, UserBackupDefaults } from "../types";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
+import ModeToggle from "../components/settings/ModeToggle";
 import styles from "./Settings.module.css";
 
 const OLLAMA_URL_DEFAULT = "http://localhost:11434";
@@ -389,6 +390,8 @@ export default function SettingsPage() {
         {/* Appearance */}
         <section className={styles.section}>
           <h2 className={styles.sectionLabel}>Appearance</h2>
+
+          <ModeToggle />
 
           <div className={styles.settingGroup}>
             <p className={styles.settingGroupLabel}>Theme</p>

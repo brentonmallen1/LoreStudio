@@ -22,10 +22,41 @@ import {
   BookMarked,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
+import { api } from "../../api/client";
+import { toolsApi } from "../../api/tools";
 import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAIStore } from "../../stores/aiStore";
+
+// ── Manuscript tools (non-AI) ─────────────────────────────────────────────────
+
+for (const style of ["curly", "straight"] as const) {
+  commandRegistry.register({
+    id: `quotes-normalize-${style}`,
+    label:
+      style === "curly" ? "Normalize quotes: make all curly “ ”" : 'Normalize quotes: make all straight " "',
+    keywords: ["quotes", "quotation", "smart quotes", "typography", style],
+    icon: Quote,
+    group: "Manuscript",
+    when: () => Boolean(useStoryStore.getState().activeStory),
+    action: async () => {
+      const story = useStoryStore.getState().activeStory;
+      if (!story) return;
+      const preview = await toolsApi.normalizeQuotes(story.id, { style, dry_run: true });
+      if (preview.changed_chars === 0) return;
+      if (
+        !window.confirm(
+          `Convert ${preview.changed_chars} quote characters in ${preview.scenes.length} scene(s) to ${style} quotes?`,
+        )
+      )
+        return;
+      await toolsApi.normalizeQuotes(story.id, { style });
+      const node = useStoryStore.getState().activeNode;
+      if (node) useStoryStore.getState().setActiveNode(await api.getNode(node.id));
+    },
+  });
+}
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 

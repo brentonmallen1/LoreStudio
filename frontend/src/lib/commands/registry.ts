@@ -163,8 +163,16 @@ class CommandRegistry {
     // No notify — callers refresh on every render anyway
   }
 
+  /** Applied to every listing/search: the UI mode hides whole groups (e.g. AI in Writer mode). */
+  private globalFilter: ((action: CommandAction) => boolean) | null = null;
+
+  setGlobalFilter(fn: ((action: CommandAction) => boolean) | null) {
+    this.globalFilter = fn;
+  }
+
   getAll(): CommandAction[] {
-    return Array.from(this.actions.values());
+    const all = Array.from(this.actions.values());
+    return this.globalFilter ? all.filter(this.globalFilter) : all;
   }
 
   /**
@@ -174,6 +182,7 @@ class CommandRegistry {
   search(query: string): CommandAction[] {
     const results: Array<{ action: CommandAction; score: number }> = [];
     for (const action of this.actions.values()) {
+      if (this.globalFilter && !this.globalFilter(action)) continue;
       if (action.when && !action.when()) continue;
       const s = score(action, query);
       if (s > 0) results.push({ action, score: s });

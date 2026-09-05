@@ -3,6 +3,7 @@ import type { Editor } from "@tiptap/react";
 import { Compass, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
+import { useMode } from "../../lib/mode";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -39,6 +40,7 @@ export default function DialogueIsolationView({
   onExit,
   onOpenAutoTag,
 }: Props) {
+  const studio = useMode() === "studio";
   const [blocks, setBlocks] = useState<DialogueBlock[]>([]);
   const [suggestions, setSuggestions] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(false);
@@ -110,14 +112,16 @@ export default function DialogueIsolationView({
           back to prose
         </button>
         <div className={styles.dialogueIsolationActions}>
-          <button
-            className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${loading ? styles.dialogueIsolationBtnLoading : ""}`}
-            title={loading ? "Cancel" : "Auto-Tag — use AI to infer speakers for unattributed dialogue"}
-            onClick={suggest}
-          >
-            <Compass size={11} className={loading ? styles.spinIcon : ""} />
-            {loading ? "Cancel" : "Auto-Tag"}
-          </button>
+          {studio && (
+            <button
+              className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${loading ? styles.dialogueIsolationBtnLoading : ""}`}
+              title={loading ? "Cancel" : "Auto-Tag — use AI to infer speakers for unattributed dialogue"}
+              onClick={suggest}
+            >
+              <Compass size={11} className={loading ? styles.spinIcon : ""} />
+              {loading ? "Cancel" : "Auto-Tag"}
+            </button>
+          )}
           <button
             className={styles.dialogueIsolationBtn}
             title="Tag Suggestions — review heuristic speaker proposals for untagged quotes"

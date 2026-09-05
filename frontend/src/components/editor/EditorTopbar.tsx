@@ -23,6 +23,7 @@ import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
+import { useMode } from "../../lib/mode";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -90,6 +91,7 @@ export default function EditorTopbar(p: Props) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
+  const studio = useMode() === "studio";
   const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -224,49 +226,54 @@ export default function EditorTopbar(p: Props) {
           <div className={styles.guideMenuWrap} ref={guideRef}>
             <button
               onClick={() => setGuideOpen((v) => !v)}
-              className={`${styles.topbarBtn} ${styles.topbarBtnAI} ${guideOpen || plannerPanelOpen || brainstormPanelOpen ? styles.topbarBtnAIActive : ""}`}
-              title="AI writing guides — Story So Far, Plan Scene, What's Next?"
+              className={`${styles.topbarBtn} ${studio ? styles.topbarBtnAI : ""} ${guideOpen || plannerPanelOpen || brainstormPanelOpen ? (studio ? styles.topbarBtnAIActive : styles.topbarBtnActive) : ""}`}
+              title={
+                studio
+                  ? "AI writing guides — Story So Far, Plan Scene, What's Next?"
+                  : "Writing reference guides"
+              }
             >
-              <Compass size={13} />
+              {studio ? <Compass size={13} /> : <BookOpen size={13} />}
               <span>Guide</span>
             </button>
             {guideOpen && (
               <div className={styles.guideMenu}>
-                {[
-                  {
-                    label: "Story So Far",
-                    icon: <BookOpen size={13} />,
-                    title: "AI summary of the story up to this point",
-                    run: p.onToggleSummary,
-                  },
-                  {
-                    label: "Plan Scene",
-                    icon: <MapIcon size={13} />,
-                    title: "Plan this scene before writing",
-                    run: () => (plannerPanelOpen ? closePlannerPanel() : openPlannerPanel()),
-                    active: plannerPanelOpen,
-                  },
-                  {
-                    label: "What's Next?",
-                    icon: <Compass size={13} />,
-                    title: "Brainstorm directions for this scene",
-                    run: () => (brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel()),
-                    active: brainstormPanelOpen,
-                  },
-                ].map((item) => (
-                  <GuideItem
-                    key={item.label}
-                    label={item.label}
-                    icon={item.icon}
-                    title={item.title}
-                    active={item.active}
-                    onSelect={() => {
-                      item.run();
-                      setGuideOpen(false);
-                    }}
-                  />
-                ))}
-                <div className={styles.guideMenuDivider} />
+                {studio &&
+                  [
+                    {
+                      label: "Story So Far",
+                      icon: <BookOpen size={13} />,
+                      title: "AI summary of the story up to this point",
+                      run: p.onToggleSummary,
+                    },
+                    {
+                      label: "Plan Scene",
+                      icon: <MapIcon size={13} />,
+                      title: "Plan this scene before writing",
+                      run: () => (plannerPanelOpen ? closePlannerPanel() : openPlannerPanel()),
+                      active: plannerPanelOpen,
+                    },
+                    {
+                      label: "What's Next?",
+                      icon: <Compass size={13} />,
+                      title: "Brainstorm directions for this scene",
+                      run: () => (brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel()),
+                      active: brainstormPanelOpen,
+                    },
+                  ].map((item) => (
+                    <GuideItem
+                      key={item.label}
+                      label={item.label}
+                      icon={item.icon}
+                      title={item.title}
+                      active={item.active}
+                      onSelect={() => {
+                        item.run();
+                        setGuideOpen(false);
+                      }}
+                    />
+                  ))}
+                {studio && <div className={styles.guideMenuDivider} />}
                 <div className={styles.guideMenuLabel}>Reference</div>
                 {[
                   {
@@ -327,7 +334,7 @@ export default function EditorTopbar(p: Props) {
           <SprintTimer currentWordCount={p.wordCount} />
         </div>
         <FontPicker />
-        <AIFeatureInfoTrigger pageId="scene-editor" size="sm" />
+        {studio && <AIFeatureInfoTrigger pageId="scene-editor" size="sm" />}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ export interface User {
   username: string;
   display_name: string;
   is_admin: boolean;
+  settings?: Record<string, unknown>;
 }
 
 export interface Beat {

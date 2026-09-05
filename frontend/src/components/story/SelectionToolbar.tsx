@@ -12,6 +12,8 @@ interface Props {
   onAnalyzeShowTell?: () => void;
   onAnalyzeAudience?: () => void;
   onClicheCoach?: () => void;
+  /** Writer mode renders no AI entries at all. */
+  showAI?: boolean;
 }
 
 export default function SelectionToolbar({
@@ -22,6 +24,7 @@ export default function SelectionToolbar({
   onAnalyzeShowTell,
   onAnalyzeAudience,
   onClicheCoach,
+  showAI = true,
 }: Props) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
@@ -52,20 +55,24 @@ export default function SelectionToolbar({
 
   return createPortal(
     <div ref={toolbarRef} className={styles.toolbar} role="toolbar" aria-label="Text actions">
-      <button
-        className={`${styles.btn} ${styles.coachBtn}`}
-        onClick={onOpenCoach}
-        title="Writing Coach — get feedback and alternative directions (⌘⇧R)"
-      >
-        <Feather size={12} />
-        Writing Coach
-      </button>
-      <div className={styles.divider} />
+      {showAI && (
+        <>
+          <button
+            className={`${styles.btn} ${styles.coachBtn}`}
+            onClick={onOpenCoach}
+            title="Writing Coach — get feedback and alternative directions (⌘⇧R)"
+          >
+            <Feather size={12} />
+            Writing Coach
+          </button>
+          <div className={styles.divider} />
+        </>
+      )}
       <button className={styles.btn} onClick={onAddNote} title="Add inline note (⌘⇧N)">
         <MessageSquare size={12} />
         Note
       </button>
-      {onAnalyzeShowTell && (
+      {showAI && onAnalyzeShowTell && (
         <>
           <div className={styles.divider} />
           <button className={styles.btn} onClick={onAnalyzeShowTell} title="Show Don't Tell analysis (⌘⇧T)">
@@ -74,7 +81,7 @@ export default function SelectionToolbar({
           </button>
         </>
       )}
-      {onAnalyzeAudience && (
+      {showAI && onAnalyzeAudience && (
         <>
           <div className={styles.divider} />
           <button className={styles.btn} onClick={onAnalyzeAudience} title="Check target audience fit (⌘⇧A)">
@@ -96,7 +103,7 @@ export default function SelectionToolbar({
           </button>
         </>
       )}
-      {onClicheCoach && (
+      {showAI && onClicheCoach && (
         <>
           <div className={styles.divider} />
           <button

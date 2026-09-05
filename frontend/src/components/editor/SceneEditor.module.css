@@ -2263,3 +2263,44 @@
 .todoInputCancel:hover {
   color: var(--color-text);
 }
+
+.nlpIcon {
+  color: var(--color-nlp);
+  vertical-align: middle;
+  margin-right: 0.2rem;
+}
+.checkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.checkItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 2px solid var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 6%, transparent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.75rem;
+}
+.checkItemWarn {
+  border-left-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 7%, transparent);
+}
+.checkKind {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+.checkText {
+  color: var(--color-text);
+}
+.checkExcerpt {
+  color: var(--color-text-muted);
+  font-style: italic;
+}

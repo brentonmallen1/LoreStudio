@@ -5,11 +5,20 @@ import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import { useUIStore } from "../../stores/uiStore";
 import { useHistoryStore } from "../../stores/historyStore";
 import AIPanel from "../ai/AIPanel";
+import { useMode } from "../../lib/mode";
+import { commandRegistry } from "../../lib/commands/registry";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
   const { viewState } = useUIStore();
   const isFocused = viewState !== "normal";
+  const mode = useMode();
+
+  // Writer mode: AI commands never appear in the palette.
+  useEffect(() => {
+    commandRegistry.setGlobalFilter(mode === "writer" ? (a) => a.group !== "AI" : null);
+    return () => commandRegistry.setGlobalFilter(null);
+  }, [mode]);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
@@ -47,6 +56,12 @@ export default function GlobalLayout() {
         e.preventDefault();
         setShortcutsOpen((v) => !v);
       }
+      // ⌘⇧F: focus mode (hide chrome, hover-reveal sidebar)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "F" || e.key === "f")) {
+        e.preventDefault();
+        const { viewState: v, setViewState } = useUIStore.getState();
+        setViewState(v === "focus" ? "normal" : "focus");
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -58,7 +73,7 @@ export default function GlobalLayout() {
       <div className={`${styles.content} ${isFocused ? styles.contentFocused : styles.contentNormal}`}>
         <Outlet />
       </div>
-      <AIPanel />
+      {mode === "studio" && <AIPanel />}
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   );

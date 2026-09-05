@@ -15,6 +15,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
+import { useMode } from "../../lib/mode";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type {
   ThemeName,
@@ -72,6 +73,7 @@ export default function GlobalHeader() {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const { user, logout } = useAuthStore();
+  const mode = useMode();
   const {
     themeName,
     colorMode,
@@ -137,6 +139,7 @@ export default function GlobalHeader() {
   }, [panelOpen]);
 
   function handleAssistantToggle() {
+    if (mode === "writer") return;
     togglePanel();
   }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -249,15 +252,17 @@ export default function GlobalHeader() {
         )}
 
         <div className={styles.right}>
-          {/* AI Assistant */}
-          <button
-            onClick={handleAssistantToggle}
-            className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}
-            title="AI Assistant (⌘/)"
-          >
-            <Feather size={14} />
-            <span>Assistant</span>
-          </button>
+          {/* AI Assistant — absent in Writer mode */}
+          {mode === "studio" && (
+            <button
+              onClick={handleAssistantToggle}
+              className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}
+              title="AI Assistant (⌘/)"
+            >
+              <Feather size={14} />
+              <span>Assistant</span>
+            </button>
+          )}
 
           {/* Scratch Pad */}
           <button
