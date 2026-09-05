@@ -839,7 +839,7 @@ def analyze_prose_nlp(
     No LLM involved — all analysis is local and deterministic.
     node_ids=null runs all scenes; checks=null runs all checks.
     """
-    story = _get_story(story_id, db, current_user)
+    _get_story(story_id, db, current_user)
 
     if node_ids:
         nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
@@ -923,7 +923,7 @@ def analyze_entity_suggestions(
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     locations = db.query(Location).filter(Location.story_id == story_id).all()
     known_characters = {c.name for c in characters}
-    known_locations = {l.name for l in locations}
+    known_locations = {loc.name for loc in locations}
 
     # Gather all scene content
     nodes = (
@@ -1464,15 +1464,12 @@ async def analyze_first_pass(
             parts.append(f"  Pending milestones: {', '.join(pending[:3])}")
         characters_summary.append("\n".join(parts))
 
-    # Story goals from metadata
-    story_goals = []
-    if story.metadata_ and isinstance(story.metadata_, dict):
-        goals_raw = story.metadata_.get("story_goals", [])
-        story_goals = [
-            g.get("text", "")
-            for g in goals_raw
-            if isinstance(g, dict) and g.get("text")
-        ]
+    # Story goals checklist (Story.goals is a JSON list of {id, text, completed})
+    story_goals = [
+        g.get("text", "")
+        for g in (story.goals or [])
+        if isinstance(g, dict) and g.get("text")
+    ]
 
     feature_prompt = build_first_pass_prompt(
         story_title=story.title,
@@ -2278,5 +2275,5 @@ def get_analysis_history(
         .all()
     )
     if feature_set:
-        logs = [l for l in logs if l.metadata_.get("feature") in feature_set]
+        logs = [log for log in logs if log.metadata_.get("feature") in feature_set]
     return logs[:limit]

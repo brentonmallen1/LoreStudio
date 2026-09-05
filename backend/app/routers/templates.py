@@ -40,7 +40,7 @@ def list_structure_templates(
     return (
         db.query(StoryStructureTemplate)
         .filter(
-            (StoryStructureTemplate.is_system == True) |
+            (StoryStructureTemplate.is_system.is_(True)) |
             (StoryStructureTemplate.user_id == current_user.id)
         )
         .all()

@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Integer, Float, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .character import Character
+    from .structure import StructureNode
+
 
 
 class DialogueBlock(Base):
@@ -55,4 +60,7 @@ class DialogueBlock(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    character: Mapped["Character | None"] = relationship("Character", foreign_keys=[character_id])
+    scene: Mapped["StructureNode"] = relationship("StructureNode", back_populates="dialogue_blocks")
+    character: Mapped["Character | None"] = relationship(
+        "Character", foreign_keys=[character_id], back_populates="dialogue_blocks"
+    )

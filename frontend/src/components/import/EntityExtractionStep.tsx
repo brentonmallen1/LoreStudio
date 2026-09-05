@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, SkipForward, Loader2, User, MapPin, Link2, X, Cpu, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, SkipForward, Loader2, User, MapPin, Link2, X, Cpu, Compass } from "lucide-react";
 import { api } from "../../api/client";
 import type { AIEnrichOptions, ExtractionCandidate, ExtractionOptions, ImportPreviewTree, ImportUploadResponse } from "../../types";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
@@ -284,7 +284,7 @@ export default function EntityExtractionStep({
               onClick={handleAiEnrich}
               disabled={phase === "ai-loading" || !anyAiOptionEnabled}
             >
-              {phase === "ai-loading" ? <Loader2 size={13} className={styles.spinner} /> : <Sparkles size={13} />}
+              {phase === "ai-loading" ? <Loader2 size={13} className={styles.spinner} /> : <Compass size={13} />}
               {phase === "ai-loading" ? "Enriching…" : "Enrich with AI"}
             </button>
           )}

@@ -252,14 +252,18 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem("ls_health_actions_collapsed", String(next)); } catch {}
+      try { localStorage.setItem("ls_health_actions_collapsed", String(next)); } catch {
+      /* ignore */
+    }
       return next;
     });
   }, []);
 
   const handleTabChange = useCallback((tabId: string) => {
     setActiveTab(tabId);
-    try { localStorage.setItem("ls_health_actions_tab", tabId); } catch {}
+    try { localStorage.setItem("ls_health_actions_tab", tabId); } catch {
+      /* ignore */
+    }
   }, []);
 
   const fetchLatest = useCallback(() => {

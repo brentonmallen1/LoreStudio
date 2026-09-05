@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass, Wand2, Map } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Shuffle, Users, Eye, Images, Compass, Wand2, Map } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -272,7 +272,7 @@ registerSessionType({
   contextTitle: (_ctx, names) =>
     names.nodeName ? `Coach: ${names.nodeName}` : "Writing Coach",
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
-  icon: Sparkles,
+  icon: Feather,
   accentVar: "--color-ai-coach",
 
   requiresStory: true,

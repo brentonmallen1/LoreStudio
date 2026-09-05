@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, MessageSquare, Quote, Eye, Users, Feather } from "lucide-react";
+import { Feather, MessageSquare, Quote, Eye, Users } from "lucide-react";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -49,7 +49,7 @@ export default function SelectionToolbar({ selectionRect, onOpenCoach, onAddNote
         onClick={onOpenCoach}
         title="Writing Coach — get feedback and alternative directions (⌘⇧R)"
       >
-        <Sparkles size={12} />
+        <Feather size={12} />
         Writing Coach
       </button>
       <div className={styles.divider} />

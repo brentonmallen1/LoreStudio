@@ -58,6 +58,7 @@ tasks/
 docker-compose.override.yml
 snapshots/
 uploads/
+backups/
 
 .claude
 .mcp.json

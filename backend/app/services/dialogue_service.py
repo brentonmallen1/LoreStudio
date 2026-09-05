@@ -375,7 +375,7 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
         if len(speakers) < 2:
             continue  # Only one speaker — not really a monologue concern
         total_scene_words = sum(speakers.values())
-        dominant = max(speakers, key=speakers.get)
+        dominant = max(speakers.items(), key=lambda kv: kv[1])[0]
         dominant_pct = speakers[dominant] / total_scene_words if total_scene_words > 0 else 0
         if dominant_pct >= 0.80:
             monologue_scenes.append({"scene_id": sid, "dominant_speaker": dominant, "pct": round(dominant_pct * 100)})
@@ -413,7 +413,8 @@ def get_interaction_matrix(story_id: str, db: Session) -> list[dict]:
     # Build scene → speaker set mapping
     scene_speakers: dict[str, set[str]] = defaultdict(set)
     for b in blocks:
-        scene_speakers[b.scene_id].add(b.character_id)
+        if b.character_id:
+            scene_speakers[b.scene_id].add(b.character_id)
 
     # Count pairwise co-occurrences
     pair_counts: dict[tuple[str, str], int] = defaultdict(int)

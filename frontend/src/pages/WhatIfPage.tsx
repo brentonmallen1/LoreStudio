@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Shuffle, Send, Square, RotateCcw, Sparkles, Brain } from "lucide-react";
+import { Shuffle, Send, Square, RotateCcw, Feather, Brain } from "lucide-react";
 import { api } from "../api/client";
 import type { ChatMessage } from "../types";
 import { useLLMStream } from "../hooks/useLLMStream";
@@ -112,7 +112,7 @@ export default function WhatIfPage() {
       <div className={styles.messageList}>
         {isEmpty ? (
           <div className={styles.emptyState}>
-            <Sparkles size={28} className={styles.emptyIcon} />
+            <Feather size={28} className={styles.emptyIcon} />
             <p className={styles.emptyTitle}>Ask a "What if?" question</p>
             <p className={styles.emptyHint}>
               Explore how a single change could ripple through your characters, plot threads, and themes.

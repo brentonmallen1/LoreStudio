@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, Sparkles, ExternalLink } from "lucide-react";
+import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import type { Location, SceneSetting } from "../../types";
 import { SectionCard } from "../common";
@@ -310,7 +310,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
 
             {selected.is_stub && (
               <div className={styles.stubBanner}>
-                <Sparkles size={14} color="var(--color-ai, #a78bfa)" style={{ flexShrink: 0, marginTop: 1 }} />
+                <Compass size={14} color="var(--color-ai, #a78bfa)" style={{ flexShrink: 0, marginTop: 1 }} />
                 <span className={styles.stubBannerText}>
                   Discovered from your prose. Fill in the details to add this place to your lorebook.
                 </span>

@@ -181,7 +181,6 @@ export default function OutlineItem({
           <input
             className={styles.textInput}
             value={item.text}
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={focusId === item.id}
             data-outline-input
             onChange={(e) => onUpdate(item.id, { text: e.target.value })}

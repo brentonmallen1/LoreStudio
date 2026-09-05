@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .character import Character
+    from .structure import StructureNode
+
 
 
 class CharacterJourneySummary(Base):
@@ -28,5 +33,5 @@ class CharacterJourneySummary(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    character: Mapped["Character"] = relationship("Character", backref="journey_summaries")
-    up_to_node: Mapped["StructureNode"] = relationship("StructureNode")
+    character: Mapped["Character"] = relationship("Character", back_populates="journey_summaries")
+    up_to_node: Mapped["StructureNode"] = relationship("StructureNode", back_populates="journey_summaries")

@@ -104,6 +104,8 @@ async def send_message(
 ):
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(Character, interview.character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
 
     # Append user message
     user_msg = {"role": "user", "content": body.content, "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -128,7 +130,6 @@ async def send_message(
                     scene_summaries = [(n.title, n.content_summary) for n in relevant]
                     source_ids = [n.id for n in relevant]
                     prompt = build_journey_prompt(character, scene_summaries)
-                    story = db.query(Story).filter(Story.id == character.story_id).first()
                     ctx = AICallContext(
                         feature="character-journey",
                         user_id=current_user.id,
@@ -233,6 +234,8 @@ async def summarize_interview(
 ):
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(Character, interview.character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
 
     if not interview.messages:
         from fastapi.responses import Response
@@ -278,6 +281,8 @@ def apply_interview_to_character(
     from ..schemas.character import CharacterOut
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(CharacterModel, interview.character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
     for field in body.fields:
         if field in body.content and hasattr(character, field):
             setattr(character, field, body.content[field])
@@ -299,6 +304,8 @@ async def compact_interview(
     """Summarize the oldest messages into a compacted context block to free up context space."""
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(Character, interview.character_id)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
 
     messages = list(interview.messages)
     if len(messages) < COMPACT_THRESHOLD:

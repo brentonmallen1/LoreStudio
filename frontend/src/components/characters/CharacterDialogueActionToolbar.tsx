@@ -110,7 +110,9 @@ export default function CharacterDialogueActionToolbar({
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem("ls_dialogue_toolbar_collapsed", String(next)); } catch {}
+      try { localStorage.setItem("ls_dialogue_toolbar_collapsed", String(next)); } catch {
+      /* ignore */
+    }
       return next;
     });
   }, []);

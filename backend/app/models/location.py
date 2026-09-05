@@ -3,6 +3,12 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Integer, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .location_travel import LocationTravel
+    from .story import Story
+    from .structure import StructureNode
+
 
 PREDEFINED_LOCATION_TYPES = [
     # Celestial
@@ -70,6 +76,14 @@ class Location(Base):
     scene_settings: Mapped[list["SceneSetting"]] = relationship(
         "SceneSetting", back_populates="location", cascade="all, delete-orphan"
     )
+    travel_from: Mapped[list["LocationTravel"]] = relationship(
+        "LocationTravel", foreign_keys="LocationTravel.from_location_id", back_populates="from_location",
+        cascade="all, delete-orphan",
+    )
+    travel_to: Mapped[list["LocationTravel"]] = relationship(
+        "LocationTravel", foreign_keys="LocationTravel.to_location_id", back_populates="to_location",
+        cascade="all, delete-orphan",
+    )
 
 
 class SceneSetting(Base):
@@ -85,4 +99,4 @@ class SceneSetting(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     location: Mapped["Location"] = relationship("Location", back_populates="scene_settings")
-    node: Mapped["StructureNode"] = relationship("StructureNode")
+    node: Mapped["StructureNode"] = relationship("StructureNode", back_populates="scene_settings")

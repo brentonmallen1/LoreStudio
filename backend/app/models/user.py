@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .snapshot import UserBackupDefaults
+    from .story import Story
+
 
 
 class User(Base):

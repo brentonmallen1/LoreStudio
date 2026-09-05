@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Check, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { X, Check, ChevronDown, ChevronUp, Compass } from "lucide-react";
 import type { RelationshipSuggestion, Character, CharacterRelationship, StrengthDimensions } from "../../../types";
 import { api } from "../../../api/client";
 import { STRENGTH_DIMS } from "./StrengthSliders";
@@ -168,7 +168,7 @@ export default function RelationshipSuggestionsModal({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <Sparkles size={15} className={styles.headerIcon} />
+            <Compass size={15} className={styles.headerIcon} />
             <span className={styles.title}>AI Relationship Suggestions</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose}><X size={16} /></button>

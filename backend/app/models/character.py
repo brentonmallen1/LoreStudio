@@ -3,6 +3,14 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .character_journey import CharacterJourneySummary
+    from .dialogue import DialogueBlock
+    from .interview import CharacterInterview
+    from .story import Story
+    from .structure import StructureNode
+
 
 
 class Character(Base):
@@ -62,6 +70,25 @@ class Character(Base):
         back_populates="character",
         cascade="all, delete-orphan",
     )
+    relationships_in: Mapped[list["CharacterRelationship"]] = relationship(
+        "CharacterRelationship",
+        foreign_keys="CharacterRelationship.related_character_id",
+        back_populates="related_character",
+        cascade="all, delete-orphan",
+    )
+    journey_summaries: Mapped[list["CharacterJourneySummary"]] = relationship(
+        "CharacterJourneySummary", back_populates="character", cascade="all, delete-orphan"
+    )
+    # Nulled (not deleted) when the character goes away:
+    dialogue_blocks: Mapped[list["DialogueBlock"]] = relationship(
+        "DialogueBlock", foreign_keys="DialogueBlock.character_id", back_populates="character"
+    )
+    pov_nodes: Mapped[list["StructureNode"]] = relationship(
+        "StructureNode", foreign_keys="StructureNode.pov_character_id", back_populates="pov_character"
+    )
+    pov_stories: Mapped[list["Story"]] = relationship(
+        "Story", foreign_keys="Story.pov_character_id", back_populates="pov_character", post_update=True
+    )
 
 
 class CharacterRelationship(Base):
@@ -98,4 +125,6 @@ class CharacterRelationship(Base):
     character: Mapped["Character"] = relationship(
         "Character", foreign_keys=[character_id], back_populates="relationships_out"
     )
-    related_character: Mapped["Character"] = relationship("Character", foreign_keys=[related_character_id])
+    related_character: Mapped["Character"] = relationship(
+        "Character", foreign_keys=[related_character_id], back_populates="relationships_in"
+    )

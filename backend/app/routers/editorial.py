@@ -102,7 +102,7 @@ def _gather_sections(
     for n in content_nodes:
         meta = n.metadata_ or {}
         if context_level == "summaries":
-            prose = n.summary or n.content or ""
+            prose = n.content_summary or n.content or ""
         else:
             prose = n.content or ""
         sections.append({

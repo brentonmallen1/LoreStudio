@@ -1373,7 +1373,7 @@ export default function SceneEditor() {
                     Story So Far
                   </button>
                   <button
-                    onClick={() => { plannerPanelOpen ? closePlannerPanel() : openPlannerPanel(); setShowGuideMenu(false); }}
+                    onClick={() => { if (plannerPanelOpen) closePlannerPanel(); else openPlannerPanel(); setShowGuideMenu(false); }}
                     className={`${styles.guideMenuItem} ${plannerPanelOpen ? styles.guideMenuItemActive : ""}`}
                     title="Plan this scene before writing"
                   >
@@ -1381,7 +1381,7 @@ export default function SceneEditor() {
                     Plan Scene
                   </button>
                   <button
-                    onClick={() => { brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel(); setShowGuideMenu(false); }}
+                    onClick={() => { if (brainstormPanelOpen) closeBrainstormPanel(); else openBrainstormPanel(); setShowGuideMenu(false); }}
                     className={`${styles.guideMenuItem} ${brainstormPanelOpen ? styles.guideMenuItemActive : ""}`}
                     title="Brainstorm directions for this scene"
                   >

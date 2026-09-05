@@ -1,0 +1,93 @@
+# Runs the same checks as `just ci`, on every PR and on main. The job names
+# (gates / backend / frontend / dependency-review) are meant to be the required
+# status checks on the main branch ruleset; renaming one silently removes its
+# gate.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    name: gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: File-length budget
+        run: python3 scripts/check-size.py
+
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - name: Install dependencies
+        run: uv sync --frozen --all-groups
+      - name: Lint (ruff)
+        run: |
+          uv run ruff check app/ tests/
+          uv run ruff format --check app/ tests/
+      - name: Type check (ty)
+        run: uv run ty check app/
+      - name: Tests (pytest + coverage ratchet)
+        run: uv run python -m pytest -q --cov
+      - name: Migrations match models
+        run: uv run python -m pytest -q tests/test_migrations.py
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Format (prettier)
+        run: npm run format:check
+      - name: Type check
+        run: npm run typecheck
+      - name: Lint (eslint)
+        run: npm run lint
+      - name: Tests (vitest)
+        run: npm run test:coverage
+      - name: Build
+        run: npm run build
+
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure

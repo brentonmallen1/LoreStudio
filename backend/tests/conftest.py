@@ -114,8 +114,9 @@ def client(db_session: Session, test_user: User):
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
 
-    with TestClient(app, raise_server_exceptions=True) as c:
-        yield c
+    # No `with`: the lifespan (migrations, seeding, nightly backup) targets the
+    # real data/ directory and has no business running inside a unit test.
+    yield TestClient(app, raise_server_exceptions=True)
 
     app.dependency_overrides.clear()
 
@@ -157,33 +158,12 @@ def mock_ai_gateway(monkeypatch):
         )
         created.append(gw)
 
-        # Patch in every router module that imports ai_gateway
-        modules_to_patch = [
-            "app.routers.interviews",
-            "app.routers.dialogue",
-            "app.routers.analysis",
-            "app.routers.chat",
-            "app.routers.stories",
-            "app.routers.chronicle",
-            "app.routers.characters",
-            "app.routers.twists",
-            "app.routers.reader_knowledge",
-            "app.routers.media",
-            "app.routers.publication",
-            "app.routers.outlines",
-            "app.routers.discoveries",
-            "app.routers.structure",
-            "app.routers.whatif",
-            "app.routers.worldbuilding_ai",
-            "app.routers.scene_planner",
-            "app.routers.brainstorm",
-            "app.routers.panel_interviews",
-        ]
-        for module in modules_to_patch:
-            try:
-                monkeypatch.setattr(f"{module}.ai_gateway", gw)
-            except AttributeError:
-                pass  # router doesn't use ai_gateway
+        # Patch every router module that imports ai_gateway. Discovered, not
+        # listed: a hand-written list once missed app.routers.editorial and the
+        # "mocked" test spent 68 seconds waiting on a real Ollama.
+        for module_name, module in list(sys.modules.items()):
+            if module_name.startswith("app.routers.") and hasattr(module, "ai_gateway"):
+                monkeypatch.setattr(module, "ai_gateway", gw)
 
         return gw
 

@@ -52,7 +52,7 @@ def build_identity_workshop_prompt(story: Story, db: Session) -> str:
         identity_lines.append(f"Themes: {', '.join(story.themes)}")
     else:
         identity_lines.append("Themes: (none)")
-    context_lines.append("Story identity fields:\n" + "\n".join(f"  {l}" for l in identity_lines))
+    context_lines.append("Story identity fields:\n" + "\n".join(f"  {line}" for line in identity_lines))
 
     if chars:
         char_lines = []

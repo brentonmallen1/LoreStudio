@@ -1,0 +1,17 @@
+.git
+.github
+notes
+docs
+**/node_modules
+**/.venv
+**/__pycache__
+**/dist
+**/coverage
+**/data
+**/.env
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/tests
+.claude
+.mcp.json

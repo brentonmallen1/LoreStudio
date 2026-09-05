@@ -49,7 +49,7 @@ class TestAISuggestDialogue:
     def test_returns_proposals_on_success(
         self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
     ):
-        gw = mock_ai_gateway(structured_data=SAMPLE_DIALOGUE_ATTRIBUTION)
+        mock_ai_gateway(structured_data=SAMPLE_DIALOGUE_ATTRIBUTION)
         story = _story(test_user.id)
         char = _character(story.id, name="Maya")
         scene = _scene(story.id, content=SCENE_CONTENT)

@@ -3,6 +3,20 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .character import Character
+    from .character_journey import CharacterJourneySummary
+    from .dialogue import DialogueBlock
+    from .discovered_element import DiscoveredElement
+    from .location import SceneSetting
+    from .plot_thread import PlotThreadAppearance
+    from .reader_knowledge import ReaderKnowledgeEvent
+    from .scene_link import SceneLink
+    from .story import Story
+    from .todo import StoryTodo
+    from .twist import Twist
+
 
 
 class StoryStructureTemplate(Base):
@@ -52,8 +66,44 @@ class StructureNode(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    pov_character: Mapped["Character | None"] = relationship("Character", foreign_keys=[pov_character_id], uselist=False)
+    pov_character: Mapped["Character | None"] = relationship(
+        "Character", foreign_keys=[pov_character_id], uselist=False, back_populates="pov_nodes"
+    )
     story: Mapped["Story"] = relationship("Story", back_populates="structure_nodes")
+    # Rows that must go when the node goes:
+    dialogue_blocks: Mapped[list["DialogueBlock"]] = relationship(
+        "DialogueBlock", back_populates="scene", cascade="all, delete-orphan"
+    )
+    scene_settings: Mapped[list["SceneSetting"]] = relationship(
+        "SceneSetting", back_populates="node", cascade="all, delete-orphan"
+    )
+    scene_links_out: Mapped[list["SceneLink"]] = relationship(
+        "SceneLink", foreign_keys="SceneLink.source_node_id", back_populates="source_node",
+        cascade="all, delete-orphan",
+    )
+    scene_links_in: Mapped[list["SceneLink"]] = relationship(
+        "SceneLink", foreign_keys="SceneLink.target_node_id", back_populates="target_node",
+        cascade="all, delete-orphan",
+    )
+    thread_appearances: Mapped[list["PlotThreadAppearance"]] = relationship(
+        "PlotThreadAppearance", back_populates="node", cascade="all, delete-orphan"
+    )
+    journey_summaries: Mapped[list["CharacterJourneySummary"]] = relationship(
+        "CharacterJourneySummary", back_populates="up_to_node", cascade="all, delete-orphan"
+    )
+    # Rows that merely point at the node: their reference is nulled on delete.
+    reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(
+        "ReaderKnowledgeEvent", foreign_keys="ReaderKnowledgeEvent.node_id", back_populates="node"
+    )
+    todos: Mapped[list["StoryTodo"]] = relationship(
+        "StoryTodo", foreign_keys="StoryTodo.node_id", back_populates="node"
+    )
+    discovered_elements: Mapped[list["DiscoveredElement"]] = relationship(
+        "DiscoveredElement", back_populates="source_node"
+    )
+    twists_revealed: Mapped[list["Twist"]] = relationship(
+        "Twist", foreign_keys="Twist.revealed_at_node_id", back_populates="revealed_at_node"
+    )
     children: Mapped[list["StructureNode"]] = relationship(
         "StructureNode",
         back_populates="parent",

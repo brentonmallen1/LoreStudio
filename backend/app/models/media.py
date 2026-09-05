@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .compendium import CompendiumEntry
+    from .story import Story
+
 
 
 class StoryAsset(Base):
@@ -24,7 +29,10 @@ class StoryAsset(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    story: Mapped["Story"] = relationship("Story")
+    story: Mapped["Story"] = relationship("Story", back_populates="assets")
+    compendium_entries: Mapped[list["CompendiumEntry"]] = relationship(
+        "CompendiumEntry", back_populates="asset"
+    )  # no delete cascade: entries survive, asset_id is nulled
     attachments: Mapped[list["AssetAttachment"]] = relationship(
         "AssetAttachment", back_populates="asset", cascade="all, delete-orphan"
     )

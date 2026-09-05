@@ -93,8 +93,6 @@ def _build_plain_text(
 
     if title_page:
         lines.append((story.title or "Untitled").upper())
-        if story.author or getattr(story, "metadata_", {}) or True:
-            pass  # title block — just the title for now
         lines.append("")
         lines.append("")
 

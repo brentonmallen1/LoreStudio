@@ -3,6 +3,12 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .reader_knowledge import ReaderKnowledgeEvent
+    from .story import Story
+    from .structure import StructureNode
+
 
 
 class Twist(Base):
@@ -39,5 +45,8 @@ class Twist(Base):
 
     story: Mapped["Story"] = relationship("Story", back_populates="twists")
     revealed_at_node: Mapped["StructureNode | None"] = relationship(
-        "StructureNode", foreign_keys=[revealed_at_node_id]
+        "StructureNode", foreign_keys=[revealed_at_node_id], back_populates="twists_revealed"
     )
+    reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(
+        "ReaderKnowledgeEvent", foreign_keys="ReaderKnowledgeEvent.twist_id", back_populates="twist"
+    )  # nulled on delete

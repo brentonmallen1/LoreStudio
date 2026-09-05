@@ -16,24 +16,31 @@ from sqlalchemy.orm import Session
 from ..models.activity_log import ActivityLog
 from ..models.calendar import Calendar
 from ..models.character import Character, CharacterRelationship
+from ..models.character_journey import CharacterJourneySummary
 from ..models.chat_message import ChatMessage
 from ..models.chat_session import ChatSession
-from ..models.compendium import CompendiumEntry
+from ..models.compendium import CompendiumAttachment, CompendiumEntry
 from ..models.culture import Culture
+from ..models.dialogue import DialogueBlock
 from ..models.diagram import Diagram
+from ..models.discovered_element import DiscoveredElement
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, SceneSetting
-from ..models.media import StoryAsset
+from ..models.location_travel import LocationTravel
+from ..models.media import AssetAttachment, StoryAsset
 from ..models.note import StoryNote
 from ..models.outline import Outline, OutlineItem
 from ..models.panel_interview import PanelInterview
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.reader_knowledge import ReaderKnowledgeEvent
+from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from ..models.story import Story
 from ..config import settings as app_settings
 from ..models.structure import StructureNode
+from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.world_system import WorldSystem
 
@@ -93,7 +100,68 @@ _DELTA_ENTITY_KEYS = [
     "interviews",
     "panel_interviews",
     "media_assets",
+    "outlines",
+    "scene_links",
+    "todos",
+    "reader_knowledge_events",
+    "location_travel",
+    "asset_attachments",
+    "discovered_elements",
+    "dialogue_blocks",
+    "compendium_attachments",
+    "character_journey_summaries",
 ]
+
+#: Every table that carries a ``story_id`` column, mapped to the key it is
+#: serialized under. ``tests/services/test_snapshot_completeness.py`` walks
+#: ``Base.metadata`` and fails if a story-owned table is missing here, so a new
+#: model cannot silently fall out of backups. Tables reached through another
+#: parent (character_relationships via characters, dialogue_blocks via
+#: structure_nodes, ...) are listed in ``SNAPSHOT_INDIRECT_TABLES``.
+SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
+    "structure_nodes": "structure_nodes",
+    "characters": "characters",
+    "plot_threads": "plot_threads",
+    "twists": "twists",
+    "locations": "locations",
+    "world_systems": "world_systems",
+    "cultures": "cultures",
+    "eras": "eras",
+    "historical_events": "historical_events",
+    "calendars": "calendars",
+    "settings": "settings",
+    "story_notes": "notes",
+    "compendium_entries": "compendium_entries",
+    "outlines": "outlines",
+    "diagrams": "diagrams",
+    "panel_interviews": "panel_interviews",
+    "chat_sessions": "chat_sessions",
+    "activity_logs": "activity_logs",
+    "story_assets": "media_assets",
+    "scene_links": "scene_links",
+    "story_todos": "todos",
+    "reader_knowledge_events": "reader_knowledge_events",
+    "discovered_elements": "discovered_elements",
+}
+
+#: Story-owned tables that have no story_id column of their own.
+SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
+    "character_relationships": "character_relationships",
+    "character_interviews": "interviews",
+    "character_journey_summaries": "character_journey_summaries",
+    "plot_thread_appearances": "plot_thread_appearances",
+    "scene_settings": "scene_settings",
+    "location_travel": "location_travel",
+    "outline_items": "outline_items",
+    "asset_attachments": "asset_attachments",
+    "compendium_attachments": "compendium_attachments",
+    "dialogue_blocks": "dialogue_blocks",
+    "chat_messages": "chat_sessions",  # nested inside each session
+}
+
+#: Tables with a story_id that are deliberately not part of a snapshot: the
+#: snapshot machinery itself.
+SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings"}
 
 
 # ---------------------------------------------------------------------------
@@ -262,8 +330,8 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     ]
     loc_id_set = set(loc_ids)
     data["locations"] = [
-        _model_to_dict(l)
-        for l in db.query(Location).filter(Location.story_id == story_id).all()
+        _model_to_dict(loc)
+        for loc in db.query(Location).filter(Location.story_id == story_id).all()
     ]
     data["scene_settings"] = [
         _model_to_dict(s)
@@ -321,6 +389,47 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
         for i in db.query(OutlineItem).filter(OutlineItem.outline_id.in_(outline_ids)).all()
     ] if outline_ids else []
 
+    node_ids = [n["id"] for n in data["structure_nodes"]]
+    node_id_set = set(node_ids)
+
+    data["scene_links"] = [
+        _model_to_dict(link)
+        for link in db.query(SceneLink).filter(SceneLink.story_id == story_id).all()
+    ]
+    data["todos"] = [
+        _model_to_dict(t)
+        for t in db.query(StoryTodo).filter(StoryTodo.story_id == story_id).all()
+    ]
+    data["reader_knowledge_events"] = [
+        _model_to_dict(e)
+        for e in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id).all()
+    ]
+    data["discovered_elements"] = [
+        _model_to_dict(e)
+        for e in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id).all()
+    ]
+    data["location_travel"] = [
+        _model_to_dict(t)
+        for t in db.query(LocationTravel)
+        .filter(LocationTravel.from_location_id.in_(loc_id_set))
+        .all()
+    ] if loc_id_set else []
+    data["dialogue_blocks"] = [
+        _model_to_dict(b)
+        for b in db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(node_id_set)).all()
+    ] if node_id_set else []
+    data["character_journey_summaries"] = [
+        _model_to_dict(j)
+        for j in db.query(CharacterJourneySummary)
+        .filter(CharacterJourneySummary.character_id.in_(char_id_set))
+        .all()
+    ] if char_id_set else []
+    entry_ids = [e["id"] for e in data["compendium_entries"]]
+    data["compendium_attachments"] = [
+        _model_to_dict(a)
+        for a in db.query(CompendiumAttachment).filter(CompendiumAttachment.entry_id.in_(entry_ids)).all()
+    ] if entry_ids else []
+
     # Optional configurable content
     if settings is None or settings.include_diagrams:
         data["diagrams"] = [
@@ -364,13 +473,18 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
         limit = settings.activity_log_limit if settings else 500
         if limit:
             q = q.limit(limit)
-        data["activity_logs"] = [_model_to_dict(l) for l in q.all()]
+        data["activity_logs"] = [_model_to_dict(log) for log in q.all()]
 
     if settings is None or settings.include_media_assets:
         data["media_assets"] = [
             _model_to_dict(a)
             for a in db.query(StoryAsset).filter(StoryAsset.story_id == story_id).all()
         ]
+        asset_ids = [a["id"] for a in data["media_assets"]]
+        data["asset_attachments"] = [
+            _model_to_dict(a)
+            for a in db.query(AssetAttachment).filter(AssetAttachment.asset_id.in_(asset_ids)).all()
+        ] if asset_ids else []
 
     return data
 
@@ -430,8 +544,8 @@ def compute_delta(current_data: dict, base_data: dict) -> tuple[dict, dict]:
         delta["chat_sessions"] = {"added": s_added, "removed": s_removed, "modified": s_modified}
 
     # Activity logs (append-only — only track new entries)
-    base_log_ids = {l["id"] for l in base_data.get("activity_logs", [])}
-    new_logs = [l for l in current_data.get("activity_logs", []) if l["id"] not in base_log_ids]
+    base_log_ids = {log["id"] for log in base_data.get("activity_logs", [])}
+    new_logs = [log for log in current_data.get("activity_logs", []) if log["id"] not in base_log_ids]
     if new_logs:
         delta["activity_logs"] = {"added": new_logs}
 
@@ -488,7 +602,7 @@ def apply_delta(base_data: dict, delta_data: dict) -> dict:
 
     # Activity logs (append only)
     if "activity_logs" in delta_data:
-        existing_ids = {l["id"] for l in result.get("activity_logs", [])}
+        existing_ids = {log["id"] for log in result.get("activity_logs", [])}
         for log in delta_data["activity_logs"].get("added", []):
             if log["id"] not in existing_ids:
                 result.setdefault("activity_logs", []).append(log)
@@ -694,63 +808,91 @@ def restore_snapshot(
         create_snapshot(story_id, db, trigger="auto", name="Pre-restore backup", settings=settings, force=True)
 
     state = resolve_snapshot_data(snapshot, db)
-    _delete_story_content(story_id, db)
+    _delete_story_content(story_id, db, state)
     _insert_story_content(state, db)
     db.commit()
-    return db.get(Story, story_id)
+    story = db.get(Story, story_id)
+    assert story is not None
+    return story
 
 
-def _delete_story_content(story_id: str, db: Session) -> None:
-    """Delete all story content in FK-safe order (preserves the Story row itself)."""
-    char_ids = [
-        row[0]
-        for row in db.query(Character.id).filter(Character.story_id == story_id).all()
-    ]
-    if char_ids:
-        db.query(CharacterRelationship).filter(
-            CharacterRelationship.character_id.in_(char_ids)
-        ).delete(synchronize_session=False)
-        db.query(CharacterInterview).filter(
-            CharacterInterview.character_id.in_(char_ids)
-        ).delete(synchronize_session=False)
+def _delete_story_content(story_id: str, db: Session, state: dict | None = None) -> None:
+    """Delete story content in FK-safe order (preserves the Story row itself).
 
-    thread_ids = [
-        row[0]
-        for row in db.query(PlotThread.id).filter(PlotThread.story_id == story_id).all()
-    ]
-    if thread_ids:
-        db.query(PlotThreadAppearance).filter(
-            PlotThreadAppearance.thread_id.in_(thread_ids)
-        ).delete(synchronize_session=False)
+    Optional sections (diagrams, interviews, chat sessions, activity logs, media)
+    are only cleared when ``state`` contains them, so restoring a snapshot that
+    was taken without, say, media assets does not wipe the current ones.
+    """
+    def _has(key: str) -> bool:
+        return state is None or key in state
 
-    loc_ids = [
-        row[0]
-        for row in db.query(Location.id).filter(Location.story_id == story_id).all()
-    ]
-    if loc_ids:
-        db.query(SceneSetting).filter(
-            SceneSetting.location_id.in_(loc_ids)
-        ).delete(synchronize_session=False)
+    char_ids = [row[0] for row in db.query(Character.id).filter(Character.story_id == story_id).all()]
+    node_ids = [row[0] for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
+    loc_ids = [row[0] for row in db.query(Location.id).filter(Location.story_id == story_id).all()]
+    thread_ids = [row[0] for row in db.query(PlotThread.id).filter(PlotThread.story_id == story_id).all()]
+    outline_ids = [row[0] for row in db.query(Outline.id).filter(Outline.story_id == story_id).all()]
+    entry_ids = [row[0] for row in db.query(CompendiumEntry.id).filter(CompendiumEntry.story_id == story_id).all()]
 
-    db.query(ChatSession).filter(ChatSession.story_id == story_id).delete(synchronize_session=False)
-    db.query(ActivityLog).filter(ActivityLog.story_id == story_id).delete(synchronize_session=False)
-    db.query(PanelInterview).filter(PanelInterview.story_id == story_id).delete(synchronize_session=False)
+    def _bulk_delete(model, column, ids) -> None:
+        if ids:
+            db.query(model).filter(column.in_(ids)).delete(synchronize_session=False)
 
-    db.query(StructureNode).filter(StructureNode.story_id == story_id).delete(synchronize_session=False)
-    db.query(Character).filter(Character.story_id == story_id).delete(synchronize_session=False)
-    db.query(PlotThread).filter(PlotThread.story_id == story_id).delete(synchronize_session=False)
-    db.query(Twist).filter(Twist.story_id == story_id).delete(synchronize_session=False)
-    db.query(Location).filter(Location.story_id == story_id).delete(synchronize_session=False)
-    db.query(WorldSystem).filter(WorldSystem.story_id == story_id).delete(synchronize_session=False)
-    db.query(Culture).filter(Culture.story_id == story_id).delete(synchronize_session=False)
-    db.query(Era).filter(Era.story_id == story_id).delete(synchronize_session=False)
-    db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story_id).delete(synchronize_session=False)
-    db.query(Calendar).filter(Calendar.story_id == story_id).delete(synchronize_session=False)
-    db.query(CompendiumEntry).filter(CompendiumEntry.story_id == story_id).delete(synchronize_session=False)
-    db.query(OutlineItem).filter(OutlineItem.story_id == story_id).delete(synchronize_session=False)
-    db.query(Setting).filter(Setting.story_id == story_id).delete(synchronize_session=False)
-    db.query(StoryNote).filter(StoryNote.story_id == story_id).delete(synchronize_session=False)
-    db.query(Diagram).filter(Diagram.story_id == story_id).delete(synchronize_session=False)
+    def _delete_by_story(model) -> None:
+        db.query(model).filter(model.story_id == story_id).delete(synchronize_session=False)
+
+    # Break the Story -> pov_character reference before characters go away.
+    story_row = db.get(Story, story_id)
+    if story_row is not None:
+        story_row.pov_character_id = None
+        db.flush()
+
+    # Leaves first: rows that reference characters, nodes, locations, threads.
+    _bulk_delete(CharacterRelationship, CharacterRelationship.character_id, char_ids)
+    _bulk_delete(CharacterJourneySummary, CharacterJourneySummary.character_id, char_ids)
+    _bulk_delete(DialogueBlock, DialogueBlock.scene_id, node_ids)
+    _bulk_delete(PlotThreadAppearance, PlotThreadAppearance.thread_id, thread_ids)
+    _bulk_delete(SceneSetting, SceneSetting.location_id, loc_ids)
+    _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
+    _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
+    _bulk_delete(CompendiumAttachment, CompendiumAttachment.entry_id, entry_ids)
+    _delete_by_story(SceneLink)
+    _delete_by_story(StoryTodo)
+    _delete_by_story(ReaderKnowledgeEvent)
+    _delete_by_story(DiscoveredElement)
+
+    if _has("interviews"):
+        _bulk_delete(CharacterInterview, CharacterInterview.character_id, char_ids)
+    if _has("panel_interviews"):
+        _delete_by_story(PanelInterview)
+    if _has("chat_sessions"):
+        session_ids = [row[0] for row in db.query(ChatSession.id).filter(ChatSession.story_id == story_id).all()]
+        _bulk_delete(ChatMessage, ChatMessage.session_id, session_ids)
+        _delete_by_story(ChatSession)
+    if _has("activity_logs"):
+        _delete_by_story(ActivityLog)
+    if _has("diagrams"):
+        _delete_by_story(Diagram)
+
+    # Twists reference nodes; nodes reference characters; compendium entries reference assets.
+    _delete_by_story(Twist)
+    _delete_by_story(StructureNode)
+    _delete_by_story(Character)
+    _delete_by_story(PlotThread)
+    _delete_by_story(Location)
+    _delete_by_story(WorldSystem)
+    _delete_by_story(Culture)
+    _delete_by_story(HistoricalEvent)
+    _delete_by_story(Era)
+    _delete_by_story(Calendar)
+    _delete_by_story(CompendiumEntry)
+    _delete_by_story(Outline)
+    _delete_by_story(Setting)
+    _delete_by_story(StoryNote)
+
+    if _has("media_assets"):
+        asset_ids = [row[0] for row in db.query(StoryAsset.id).filter(StoryAsset.story_id == story_id).all()]
+        _bulk_delete(AssetAttachment, AssetAttachment.asset_id, asset_ids)
+        _delete_by_story(StoryAsset)
     db.flush()
 
 
@@ -761,8 +903,8 @@ def _insert_story_content(state: dict, db: Session) -> None:
     story = db.get(Story, story_dict.get("id"))
     if story:
         for k, v in story_dict.items():
-            if k in ("id", "user_id", "created_at"):
-                continue
+            if k in ("id", "user_id", "created_at", "pov_character_id"):
+                continue  # pov_character_id is applied after characters are re-inserted
             if isinstance(v, str) and hasattr(Story, k):
                 col_type = sa_inspect(Story).mapper.column_attrs[k].columns[0].type if k in {
                     ca.key for ca in sa_inspect(Story).mapper.column_attrs
@@ -775,11 +917,7 @@ def _insert_story_content(state: dict, db: Session) -> None:
             setattr(story, k, v)
 
     # Tree structures: insert parent-first
-    _insert_ordered_tree(StructureNode, state.get("structure_nodes", []), db)
-    _insert_ordered_tree(Location, state.get("locations", []), db)
-    _insert_ordered_tree(OutlineItem, state.get("outline_items", []), db)
-
-    # Flat entities
+    # Characters first: structure nodes and the story row may point at a POV character.
     def _insert_all(model_class, records: list[dict]) -> None:
         for rec in records:
             db.add(_dict_to_model(model_class, rec))
@@ -787,6 +925,15 @@ def _insert_story_content(state: dict, db: Session) -> None:
             db.flush()
 
     _insert_all(Character, state.get("characters", []))
+    if story and story_dict.get("pov_character_id"):
+        story.pov_character_id = story_dict["pov_character_id"]
+        db.flush()
+    _insert_ordered_tree(StructureNode, state.get("structure_nodes", []), db)
+    _insert_ordered_tree(Location, state.get("locations", []), db)
+    _insert_all(Outline, state.get("outlines", []))
+    _insert_ordered_tree(OutlineItem, state.get("outline_items", []), db)
+
+    # Flat entities
     _insert_all(CharacterRelationship, state.get("character_relationships", []))
     _insert_all(PlotThread, state.get("plot_threads", []))
     _insert_all(PlotThreadAppearance, state.get("plot_thread_appearances", []))
@@ -797,6 +944,9 @@ def _insert_story_content(state: dict, db: Session) -> None:
     _insert_all(Era, state.get("eras", []))
     _insert_all(HistoricalEvent, state.get("historical_events", []))
     _insert_all(Calendar, state.get("calendars", []))
+    if "media_assets" in state:  # compendium entries may reference assets
+        _insert_all(StoryAsset, state.get("media_assets", []))
+        _insert_all(AssetAttachment, state.get("asset_attachments", []))
     _insert_all(CompendiumEntry, state.get("compendium_entries", []))
     _insert_all(Setting, state.get("settings", []))
     _insert_all(StoryNote, state.get("notes", []))
@@ -804,6 +954,14 @@ def _insert_story_content(state: dict, db: Session) -> None:
     _insert_all(CharacterInterview, state.get("interviews", []))
     _insert_all(PanelInterview, state.get("panel_interviews", []))
     _insert_all(ActivityLog, state.get("activity_logs", []))
+    _insert_all(SceneLink, state.get("scene_links", []))
+    _insert_all(StoryTodo, state.get("todos", []))
+    _insert_all(ReaderKnowledgeEvent, state.get("reader_knowledge_events", []))
+    _insert_all(DiscoveredElement, state.get("discovered_elements", []))
+    _insert_all(LocationTravel, state.get("location_travel", []))
+    _insert_all(DialogueBlock, state.get("dialogue_blocks", []))
+    _insert_all(CharacterJourneySummary, state.get("character_journey_summaries", []))
+    _insert_all(CompendiumAttachment, state.get("compendium_attachments", []))
 
     # Chat sessions with nested messages
     for session_data in state.get("chat_sessions", []):

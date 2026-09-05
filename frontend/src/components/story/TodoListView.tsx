@@ -311,7 +311,7 @@ export default function TodoListView() {
       setError(null);
       const data = await api.listTodos(storyId);
       setTodos(data);
-    } catch (e) {
+    } catch {
       setError("Failed to load todos");
     } finally {
       setLoading(false);

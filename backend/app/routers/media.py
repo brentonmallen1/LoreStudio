@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status,
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..database import get_db
 from ..models.user import User
 from ..models.story import Story
@@ -22,7 +23,7 @@ from pydantic import BaseModel as PydanticBase
 
 router = APIRouter()
 
-UPLOADS_DIR = Path("data/uploads")
+UPLOADS_DIR = Path(settings.uploads_path)
 ALLOWED_MIME_PREFIXES = ("image/", "application/pdf", "text/plain")
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 

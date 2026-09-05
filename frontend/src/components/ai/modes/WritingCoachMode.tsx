@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Sparkles } from "lucide-react";
+import { Feather, Compass } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
@@ -56,7 +56,7 @@ export default function WritingCoachMode({ session }: Props) {
     <AIModeWrapper
       session={session}
       state={state}
-      icon={Sparkles}
+      icon={Feather}
       title="Writing Coach"
       hideTokenBadge
       hideSettings
@@ -105,7 +105,7 @@ export default function WritingCoachMode({ session }: Props) {
             }}
             disabled={session.isStreaming}
           >
-            <Sparkles size={13} />
+            <Compass size={13} />
             Get Coaching
           </button>
         </div>
@@ -114,7 +114,7 @@ export default function WritingCoachMode({ session }: Props) {
       {/* Empty state when no selected text */}
       {!hasMessages && !selectedText && (
         <div className={styles.empty}>
-          <Sparkles size={22} className={styles.emptyIcon} />
+          <Feather size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Writing Coach</p>
           <p className={styles.emptyHint}>
             Select a passage in your scene and click Writing Coach to get feedback and explore directions.

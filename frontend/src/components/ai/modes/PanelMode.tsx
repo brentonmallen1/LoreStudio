@@ -175,7 +175,9 @@ export default function PanelMode({ session }: Props) {
             try {
               const updated = await api.getPanel(panelId);
               setLocalMessages(updated.messages);
-            } catch {}
+            } catch {
+      /* ignore */
+    }
           }
         }
       }

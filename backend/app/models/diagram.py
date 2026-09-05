@@ -3,6 +3,10 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .story import Story
+
 
 
 class Diagram(Base):
@@ -27,4 +31,4 @@ class Diagram(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    story: Mapped["Story"] = relationship("Story")
+    story: Mapped["Story"] = relationship("Story", back_populates="diagrams")

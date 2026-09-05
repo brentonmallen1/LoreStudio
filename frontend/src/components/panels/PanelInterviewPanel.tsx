@@ -67,7 +67,9 @@ export default function PanelInterviewPanel({ storyId }: Props) {
     try {
       const panel = await api.getPanel(id);
       setActivePanel(panel);
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   }
 
   async function handleCreated(panel: PanelInterview) {
@@ -183,7 +185,9 @@ export default function PanelInterviewPanel({ storyId }: Props) {
             try {
               const updated = await api.getPanel(panel.id);
               setActivePanel(updated);
-            } catch {}
+            } catch {
+      /* ignore */
+    }
           }
         }
       }

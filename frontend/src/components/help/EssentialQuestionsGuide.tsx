@@ -1,4 +1,4 @@
-import { BookOpen, User, Target, Heart, Swords, Flame, Sparkles } from "lucide-react";
+import { BookOpen, User, Target, Heart, Swords, Flame, Compass } from "lucide-react";
 import { Modal } from "../common";
 import CollapsibleSection from "../common/CollapsibleSection";
 import styles from "./EssentialQuestionsGuide.module.css";
@@ -62,7 +62,7 @@ const QUESTIONS = [
     key: "change",
     number: 6,
     label: "How do they change?",
-    icon: <Sparkles size={14} />,
+    icon: <Compass size={14} />,
     tagline: "The arc is why the story matters",
     meaning: "The transformation — how the protagonist is fundamentally different by the end. This doesn't require redemption or growth: a tragedy is a change toward something worse. But something must shift.",
     inLoreStudio: "Character arc notes, arc milestones, and narrative intent. What the author intends for this character to become.",

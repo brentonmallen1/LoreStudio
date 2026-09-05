@@ -3,6 +3,10 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .location import Location
+
 
 
 class LocationTravel(Base):
@@ -27,8 +31,8 @@ class LocationTravel(Base):
     )
 
     from_location: Mapped["Location"] = relationship(
-        "Location", foreign_keys=[from_location_id]
+        "Location", foreign_keys=[from_location_id], back_populates="travel_from"
     )
     to_location: Mapped["Location"] = relationship(
-        "Location", foreign_keys=[to_location_id]
+        "Location", foreign_keys=[to_location_id], back_populates="travel_to"
     )

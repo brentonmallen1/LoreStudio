@@ -17,6 +17,7 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "weasyprint>=68.1",
     "spacy>=3.8.0",
+    "en-core-web-sm",
 ]
 
 [dependency-groups]
@@ -24,7 +25,46 @@ dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
     "httpx>=0.28.0",
+    "ruff>=0.16.6",
+    "ty>=0.0.78",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+# E/F: correctness. I: import order. UP: modern syntax. C90 + PLR0912/PLR0915:
+# complexity, so a 300-line branch-heavy handler is flagged rather than grown.
+select = ["E", "F", "I", "UP", "C90", "PLR0912", "PLR0915"]
+# E501: ruff format owns code width; long prompt strings and comments are not gated.
+ignore = ["E501"]
+[tool.ruff.lint.per-file-ignores]
+# spaCy/weasyprint imports are deliberately placed after environment setup.
+"app/services/llm/ollama.py" = ["E402"]
+"app/routers/import_router.py" = ["E402"]
+"tests/conftest.py" = ["E402"]
+"alembic/env.py" = ["E402"]
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+[tool.ruff.lint.pylint]
+max-branches = 15
+max-statements = 60
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/services/seed.py", "app/services/llm/prompts/*"]
+[tool.coverage.report]
+# Ratchet: raise when coverage rises, never lower. Stage 0 baseline.
+fail_under = 40
+skip_covered = false
+show_missing = false
+
+[tool.uv.sources]
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }

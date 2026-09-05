@@ -191,7 +191,10 @@ def create_manual_snapshot(
     current_user: User = Depends(get_current_user),
 ):
     _verify_story_access(story_id, db, current_user)
-    snap = create_snapshot(story_id, db, trigger="manual", name=body.name)
+    # A manual snapshot is always written, even when nothing changed since the anchor.
+    snap = create_snapshot(story_id, db, trigger="manual", name=body.name, force=True)
+    if snap is None:
+        raise HTTPException(status_code=500, detail="Snapshot was not created")
     return SnapshotOut.from_orm_snap(snap)
 
 

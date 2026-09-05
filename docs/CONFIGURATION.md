@@ -6,50 +6,65 @@ LoreStudio is configured through environment variables, typically set in a `.env
 
 ## Environment Variables
 
-### Server Settings
+Every variable has a default; only `SECRET_KEY` and `ADMIN_PASSWORD` must be set
+when `ENV=prod` (the backend refuses to start with the defaults).
+
+### Server
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PORT` | `8000` | Backend API port |
-| `FRONTEND_PORT` | `5173` | Frontend dev server port |
+| `ENV` | `dev` | `dev` or `prod`. Prod refuses default secrets. Docker images default to `prod`. |
+| `PORT` | `8000` | Backend API port (compose) |
+| `FRONTEND_PORT` | `5173` | Frontend port (compose) |
 | `TZ` | `America/Los_Angeles` | Timezone for timestamps and logs |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Comma-separated browser origins allowed to call the API. Add your reverse-proxy origin. |
+| `LOG_LEVEL` | `INFO` | Backend log level |
 
 ### Security
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SECRET_KEY` | *required* | JWT signing key. Use a random 32+ character string. |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | How long login sessions last (default: 7 days) |
-| `ADMIN_USERNAME` | `admin` | Initial admin account username |
-| `ADMIN_PASSWORD` | *required* | Initial admin account password |
+| `SECRET_KEY` | dev placeholder | JWT signing key. `openssl rand -hex 32`. Required in prod. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | Login session length (7 days) |
+| `ADMIN_USERNAME` | `admin` | Initial admin account |
+| `ADMIN_PASSWORD` | `change-me` | Initial admin password. Required in prod. |
 
-**Generating a secret key:**
-```bash
-openssl rand -hex 32
-```
-
-### Database
+### Database and files
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `sqlite:///./data/lorestudio.db` | SQLAlchemy database URL |
-| `SNAPSHOTS_PATH` | `./data/snapshots` | Where version snapshots are stored |
+| `DATABASE_URL` | `sqlite:///./data/lorestudio.db` | SQLAlchemy URL (SQLite; WAL mode and foreign keys are enabled automatically) |
+| `AUTO_MIGRATE` | `true` | Run Alembic migrations on start (see [upgrading.md](upgrading.md)) |
+| `SNAPSHOTS_PATH` | `./data/snapshots` | Story snapshot archives |
+| `UPLOADS_PATH` | `./data/uploads` | Uploaded media |
+| `BACKUPS_PATH` | `./data/backups` | Nightly SQLite backups |
+| `DB_BACKUP_ENABLED` | `true` | Nightly `VACUUM INTO` backup of the database |
+| `DB_BACKUP_KEEP` | `14` | Nightly backups retained |
 
-### Paths (Docker/Deployment)
+### Demo content
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATA_PATH` | `./data` | Host path for data volume mount |
-| `CONFIG_PATH` | `./config` | Host path for config volume mount |
+| `SEED_DEMO` | `true` | Seed "The Last Lighthouse" into an empty database |
+| `SEED_EXTRA_DEMOS` | `false` | Also seed the sci-fi, flash fiction, short story and first-person demos |
 
-### AI / Ollama Settings
+### Paths (compose bind mounts)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATA_PATH` | `./data` | Host path mounted at `/app/data` (database, snapshots, uploads, backups) |
+
+### AI / Ollama
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama API endpoint |
-| `OLLAMA_MODEL` | `llama3.2` | Default model for AI features |
-| `OLLAMA_TEMPERATURE` | `0.8` | Generation temperature (0.0–2.0) |
-| `OLLAMA_KEEP_ALIVE` | `10m` | How long to keep the model loaded after requests |
+| `OLLAMA_MODEL` | `gemma4` | Default model |
+| `OLLAMA_TEMPERATURE` | `1.0` | Sampling temperature |
+| `OLLAMA_TOP_P` | `0.95` | |
+| `OLLAMA_TOP_K` | `64` | |
+| `OLLAMA_KEEP_ALIVE` | `10m` | How long the model stays loaded after a request |
+| `OLLAMA_THINKING_ENABLED` | `false` | Gemma 4 thinking mode by default (per-feature overrides in Settings) |
 
 ---
 

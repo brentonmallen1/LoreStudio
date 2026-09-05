@@ -43,7 +43,9 @@ def update_node(
     node = _verify_node_access(node_id, db, current_user)
     data = body.model_dump(exclude_none=True)
     if "metadata_" in data:
-        data["metadata_"] = data.pop("metadata_")
+        # Merge, never replace: different UI surfaces write different keys
+        # (purpose, inline_notes, ...) of the same JSON column.
+        data["metadata_"] = {**(node.metadata_ or {}), **data["metadata_"]}
     # If content is being updated, mark summary as stale (unless author is explicitly setting summary_stale)
     if "content" in data and "summary_stale" not in data:
         node.summary_stale = True
@@ -80,6 +82,8 @@ async def summarize_node(
 
     node = _verify_node_access(node_id, db, current_user)
     story = db.query(Story).filter(Story.id == node.story_id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
 
     # Leaf node: has direct prose content
     if node.content and node.content.strip():
@@ -219,7 +223,7 @@ def apply_links(
 
     updated_content = apply_entity_links(
         node.content or "",
-        [l.model_dump() for l in body.links],
+        [link.model_dump() for link in body.links],
     )
     node.content = updated_content
     db.commit()

@@ -1,8 +1,13 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .story import Story
+    from .structure import StructureNode
+
 
 
 class SceneLink(Base):
@@ -17,3 +22,11 @@ class SceneLink(Base):
     link_type: Mapped[str] = mapped_column(String, nullable=False)  # callback, foreshadowing, parallel, reference
     note: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    story: Mapped["Story"] = relationship("Story", back_populates="scene_links")
+    source_node: Mapped["StructureNode"] = relationship(
+        "StructureNode", foreign_keys=[source_node_id], back_populates="scene_links_out"
+    )
+    target_node: Mapped["StructureNode"] = relationship(
+        "StructureNode", foreign_keys=[target_node_id], back_populates="scene_links_in"
+    )

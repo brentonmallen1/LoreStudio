@@ -16,7 +16,7 @@ Endpoints:
   GET  /chronicle/stats                    Aggregate statistics
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, or_
@@ -309,7 +309,7 @@ def add_message(
         tokens_out=body.tokens_out,
     )
     # Bump session updated_at so it floats to top of lists
-    s.updated_at = datetime.utcnow()
+    s.updated_at = datetime.now(timezone.utc)
     db.add(msg)
     db.commit()
     db.refresh(msg)
@@ -438,7 +438,7 @@ def search_chronicle(
         .join(ChatMessage, ChatMessage.session_id == ChatSession.id)
         .filter(
             ChatSession.user_id == user.id,
-            ChatSession.archived == False,
+            ChatSession.archived.is_(False),
             ChatMessage.content.ilike(term),
         )
         .order_by(ChatSession.updated_at.desc())

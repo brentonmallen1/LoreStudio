@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Float, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .story import Story
+    from .structure import StructureNode
+
 
 
 class DiscoveredElement(Base):
@@ -35,4 +40,4 @@ class DiscoveredElement(Base):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     story: Mapped["Story"] = relationship("Story", back_populates="discovered_elements")
-    source_node: Mapped["StructureNode | None"] = relationship("StructureNode")
+    source_node: Mapped["StructureNode | None"] = relationship("StructureNode", back_populates="discovered_elements")

@@ -316,10 +316,10 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             </button>
             {exportOpen && (
               <div className={styles.exportMenu}>
-                <button onClick={() => { canvasRef.current && exportDiagramPng(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                <button onClick={() => { if (canvasRef.current) exportDiagramPng(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
                   Export PNG
                 </button>
-                <button onClick={() => { canvasRef.current && exportDiagramSvg(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
+                <button onClick={() => { if (canvasRef.current) exportDiagramSvg(canvasRef.current, title || "diagram"); setExportOpen(false); }}>
                   Export SVG
                 </button>
               </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass, BookOpen, User, Target, Heart, Swords, Flame, Sparkles } from "lucide-react";
+import { Compass, BookOpen, User, Target, Heart, Swords, Flame, Repeat } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult, CharacterHealth } from "../../types";
 import EssentialQuestionsGuide from "../help/EssentialQuestionsGuide";
@@ -17,7 +17,7 @@ const QUESTION_ICONS = {
   why: Heart,
   obstacle: Swords,
   stakes: Flame,
-  change: Sparkles,
+  change: Repeat,
 };
 
 const QUESTION_LABELS: Record<string, string> = {

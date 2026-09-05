@@ -4,8 +4,8 @@ from typing import AsyncIterator
 
 class LLMProvider(ABC):
     @abstractmethod
-    async def chat_stream(self, messages: list[dict], system_prompt: str) -> AsyncIterator[str]:
-        """Stream chat response tokens."""
+    def chat_stream(self, messages: list[dict], system_prompt: str) -> AsyncIterator[str]:
+        """Stream chat response tokens (implemented as an async generator)."""
         ...
 
     @abstractmethod

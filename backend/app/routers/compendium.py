@@ -71,13 +71,13 @@ async def _fetch_url_metadata(url: str) -> dict:
             if soup.title and soup.title.string:
                 title = soup.title.string.strip()
             elif og_title := soup.find("meta", attrs={"property": "og:title"}):
-                title = (og_title.get("content") or "").strip() or None
+                title = str(og_title.get("content") or "").strip() or None
 
             description = None
             if meta_desc := soup.find("meta", attrs={"name": "description"}):
-                description = (meta_desc.get("content") or "").strip() or None
+                description = str(meta_desc.get("content") or "").strip() or None
             elif og_desc := soup.find("meta", attrs={"property": "og:description"}):
-                description = (og_desc.get("content") or "").strip() or None
+                description = str(og_desc.get("content") or "").strip() or None
 
             return {"title": title, "description": description}
     except Exception:

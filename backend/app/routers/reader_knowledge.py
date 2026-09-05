@@ -143,7 +143,7 @@ async def scan_for_knowledge_events(
     all_nodes = (
         db.query(StructureNode)
         .filter(StructureNode.story_id == story_id)
-        .order_by(StructureNode.order.asc())
+        .order_by(StructureNode.position.asc())
         .all()
     )
     child_ids = {n.parent_id for n in all_nodes if n.parent_id}

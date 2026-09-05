@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .story import Story
+    from .structure import StructureNode
+
 
 
 class PlotThread(Base):
@@ -41,3 +46,4 @@ class PlotThreadAppearance(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     thread: Mapped["PlotThread"] = relationship("PlotThread", back_populates="appearances")
+    node: Mapped["StructureNode"] = relationship("StructureNode", back_populates="thread_appearances")

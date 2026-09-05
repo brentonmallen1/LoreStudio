@@ -160,7 +160,7 @@ def apply_entity_links(
     content = scene_content
 
     # Sort longest match first to avoid partial replacement conflicts.
-    sorted_links = sorted(links, key=lambda l: len(l["matched_text"]), reverse=True)
+    sorted_links = sorted(links, key=lambda link: len(link["matched_text"]), reverse=True)
 
     for link in sorted_links:
         matched = link["matched_text"]

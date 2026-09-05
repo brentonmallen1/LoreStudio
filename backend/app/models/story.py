@@ -3,6 +3,32 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, Boolean, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .calendar import Calendar
+    from .character import Character
+    from .chat_session import ChatSession
+    from .compendium import CompendiumEntry
+    from .culture import Culture
+    from .diagram import Diagram
+    from .discovered_element import DiscoveredElement
+    from .historical_event import Era, HistoricalEvent
+    from .location import Location
+    from .media import StoryAsset
+    from .note import StoryNote
+    from .outline import Outline
+    from .panel_interview import PanelInterview
+    from .plot_thread import PlotThread
+    from .reader_knowledge import ReaderKnowledgeEvent
+    from .scene_link import SceneLink
+    from .setting import Setting
+    from .snapshot import StoryBackupSettings, StorySnapshot
+    from .structure import StructureNode
+    from .todo import StoryTodo
+    from .twist import Twist
+    from .user import User
+    from .world_system import WorldSystem
+
 
 
 class Story(Base):
@@ -60,7 +86,8 @@ class Story(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="stories")
     pov_character: Mapped["Character | None"] = relationship(
-        "Character", foreign_keys=[pov_character_id], uselist=False
+        "Character", foreign_keys=[pov_character_id], uselist=False,
+        back_populates="pov_stories", post_update=True,
     )
     structure_nodes: Mapped[list["StructureNode"]] = relationship(
         "StructureNode", back_populates="story", cascade="all, delete-orphan"
@@ -120,4 +147,19 @@ class Story(Base):
     )
     backup_settings: Mapped["StoryBackupSettings | None"] = relationship(
         "StoryBackupSettings", back_populates="story", uselist=False, cascade="all, delete-orphan"
+    )
+    chat_sessions: Mapped[list["ChatSession"]] = relationship(
+        "ChatSession", back_populates="story", cascade="all, delete-orphan"
+    )
+    diagrams: Mapped[list["Diagram"]] = relationship(
+        "Diagram", back_populates="story", cascade="all, delete-orphan"
+    )
+    scene_links: Mapped[list["SceneLink"]] = relationship(
+        "SceneLink", back_populates="story", cascade="all, delete-orphan"
+    )
+    reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(
+        "ReaderKnowledgeEvent", back_populates="story", cascade="all, delete-orphan"
+    )
+    assets: Mapped[list["StoryAsset"]] = relationship(
+        "StoryAsset", back_populates="story", cascade="all, delete-orphan"
     )

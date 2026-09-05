@@ -46,7 +46,8 @@ function segmentColor(levelType: string): string {
 }
 
 // Module-level dragged ID so all sibling instances can see it
-let _draggedId: string | null = null;
+// Shared across every tree item so a drop knows what was picked up.
+const dragState: { id: string | null } = { id: null };
 
 type DropZone = "above" | "below" | "into" | null;
 
@@ -117,7 +118,7 @@ export default function StructureTreeItem({
   // ── Drag ───────────────────────────────────────────────────────────────────
 
   function handleDragStart(e: React.DragEvent) {
-    _draggedId = node.id;
+    dragState.id = node.id;
     e.dataTransfer.setData("text/plain", node.id);
     e.dataTransfer.effectAllowed = "move";
   }
@@ -131,7 +132,7 @@ export default function StructureTreeItem({
   }
 
   function handleDragOver(e: React.DragEvent) {
-    if (!_draggedId || _draggedId === node.id) return;
+    if (!dragState.id || dragState.id === node.id) return;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = "move";
@@ -148,8 +149,8 @@ export default function StructureTreeItem({
   async function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const draggedId = e.dataTransfer.getData("text/plain") || _draggedId;
-    _draggedId = null;
+    const draggedId = e.dataTransfer.getData("text/plain") || dragState.id;
+    dragState.id = null;
     const zone = getDropZone(e);
     setDropZone(null);
 
@@ -292,7 +293,7 @@ export default function StructureTreeItem({
         {/* Expand/collapse toggle */}
         <span
           className={styles.chevron}
-          onClick={isFolder ? (e) => { e.stopPropagation(); isExpanded ? item.collapse() : item.expand(); } : undefined}
+          onClick={isFolder ? (e) => { e.stopPropagation(); if (isExpanded) item.collapse(); else item.expand(); } : undefined}
           role={isFolder ? "button" : undefined}
         >
           {isFolder ? (isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />) : null}

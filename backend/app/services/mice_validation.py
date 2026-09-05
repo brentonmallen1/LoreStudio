@@ -65,12 +65,10 @@ def validate_thread_nesting(
             # Determine which opened first.
             if a_open <= b_open:
                 outer, inner = a, b
-                outer_open, outer_close = a_open, a_close
-                inner_open, inner_close = b_open, b_close
+                outer_close, inner_close = a_close, b_close
             else:
                 outer, inner = b, a
-                outer_open, outer_close = b_open, b_close
-                inner_open, inner_close = a_open, a_close
+                outer_close, inner_close = b_close, a_close
 
             # Violation: inner thread closes AFTER outer thread.
             if inner_close > outer_close:

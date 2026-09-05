@@ -14,7 +14,7 @@ from ..schemas.ai_responses import TwistAnalysisResponse, StructuredResult
 from ..auth.dependencies import get_current_user
 from ..services.llm.gateway import ai_gateway, AICallContext
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
-from ..services.llm.prompts.twist_impact import TWIST_IMPACT_SYSTEM, build_twist_impact_prompt
+from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
 
 router = APIRouter()
 
@@ -151,6 +151,8 @@ async def analyze_twist(
     """
     twist = _verify_twist(twist_id, db, current_user)
     story = db.get(Story, twist.story_id)
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
 
     # Assemble clue scene context
     clue_scenes = []
@@ -221,6 +223,8 @@ async def analyze_twist_impact(
     """Analyze downstream effects when a twist resolves: affected threads, arcs, scenes to review."""
     twist = _verify_twist(twist_id, db, current_user)
     story = db.get(Story, twist.story_id)
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
 
     threads = (
         db.query(PlotThread)
@@ -235,7 +239,7 @@ async def analyze_twist_impact(
     all_nodes = (
         db.query(StructureNode)
         .filter(StructureNode.story_id == twist.story_id)
-        .order_by(StructureNode.order.asc())
+        .order_by(StructureNode.position.asc())
         .all()
     )
     child_ids = {n.parent_id for n in all_nodes if n.parent_id}
@@ -295,7 +299,7 @@ async def analyze_twist_impact(
     return await ai_gateway.generate_structured(
         response_model=TwistImpactResponse,
         messages=[{"role": "user", "content": f"Analyze the downstream impact of the twist \"{twist.name}\"."}],
-        feature_prompt=TWIST_IMPACT_SYSTEM,
+        feature_prompt=feature_prompt,
         context=ctx,
         db=db,
         user=current_user,

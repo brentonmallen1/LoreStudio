@@ -21,7 +21,7 @@ import subprocess
 import tempfile
 import uuid
 from html.parser import HTMLParser
-from typing import Optional
+from typing import Literal, Optional
 
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
@@ -285,7 +285,7 @@ class _Section:
     def __init__(
         self,
         level: int,
-        source: str,
+        source: Literal["heuristic", "ai", "user"],
         confidence: float,
         title_para: Optional[ParsedParagraph] = None,
     ):
@@ -1055,7 +1055,7 @@ async def extract_entities_ai(
     if tasks:
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for result in results:
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 logger.warning("AI enrichment task failed: %s", result)
                 continue
             idx, updated = result
@@ -1164,7 +1164,7 @@ def create_entities_from_extraction(
             char_id = str(_uuid.uuid4())
             char_name_to_id[candidate.name] = char_id
             data = candidate.extracted_character or {}
-            if hasattr(data, "model_dump"):
+            if not isinstance(data, dict):
                 data = data.model_dump()
             char = Character(
                 id=char_id,
@@ -1181,7 +1181,7 @@ def create_entities_from_extraction(
 
         elif candidate.entity_type == "location":
             data = candidate.extracted_location or {}
-            if hasattr(data, "model_dump"):
+            if not isinstance(data, dict):
                 data = data.model_dump()
             loc = Location(
                 id=str(_uuid.uuid4()),
@@ -1204,7 +1204,7 @@ def create_entities_from_extraction(
         if not char_a_id or not char_b_id:
             continue
         data = candidate.extracted_relationship or {}
-        if hasattr(data, "model_dump"):
+        if not isinstance(data, dict):
             data = data.model_dump()
         rel = CharacterRelationship(
             id=str(_uuid.uuid4()),

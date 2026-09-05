@@ -6,6 +6,7 @@ from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
 from ..database import get_db
+from ..schemas.character import CharacterCreate
 from ..models.user import User
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -500,12 +501,12 @@ def list_story_relationships(
 @router.post("/{story_id}/characters", status_code=status.HTTP_201_CREATED)
 def create_character(
     story_id: str,
-    body,
+    body: CharacterCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     from ..models.character import Character
-    from ..schemas.character import CharacterCreate, CharacterOut
+    from ..schemas.character import CharacterOut
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
@@ -534,6 +535,23 @@ def add_goal(
     return story
 
 
+@router.patch("/{story_id}/goals/reorder", response_model=StoryOut)
+def reorder_goals(
+    story_id: str,
+    body: list[str] = Body(..., description="Ordered list of goal IDs"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    goals_by_id = {g["id"]: g for g in (story.goals or [])}
+    story.goals = [goals_by_id[gid] for gid in body if gid in goals_by_id]
+    db.commit()
+    db.refresh(story)
+    return story
+
+
 @router.patch("/{story_id}/goals/{goal_id}", response_model=StoryOut)
 def update_goal(
     story_id: str,
@@ -545,7 +563,9 @@ def update_goal(
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    goals = list(story.goals or [])
+    # Copy the dicts: mutating the loaded JSON in place leaves the column unchanged
+    # from SQLAlchemy's point of view and the edit is never written.
+    goals = [dict(g) for g in (story.goals or [])]
     for goal in goals:
         if goal["id"] == goal_id:
             if body.text is not None:
@@ -569,23 +589,6 @@ def delete_goal(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     story.goals = [g for g in (story.goals or []) if g["id"] != goal_id]
-    db.commit()
-    db.refresh(story)
-    return story
-
-
-@router.patch("/{story_id}/goals/reorder", response_model=StoryOut)
-def reorder_goals(
-    story_id: str,
-    body: list[str] = Body(..., description="Ordered list of goal IDs"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
-    goals_by_id = {g["id"]: g for g in (story.goals or [])}
-    story.goals = [goals_by_id[gid] for gid in body if gid in goals_by_id]
     db.commit()
     db.refresh(story)
     return story

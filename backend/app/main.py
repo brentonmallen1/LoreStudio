@@ -1,9 +1,15 @@
+import asyncio
+import logging
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .config import settings
 from .database import engine, Base
+from .services.db_backup import backup_loop
+from .services.db_migrate import run_migrations
 from .auth.router import router as auth_router
 from .routers.users import router as users_router
 from .routers.stories import router as stories_router
@@ -49,28 +55,58 @@ from .routers.import_router import router as import_router
 from .routers.publication import router as publication_router
 from .routers.reader_knowledge import router as reader_knowledge_router
 from .routers.editorial import router as editorial_router
+from .routers.system import router as system_router
 from .services.seed import seed_admin, seed_structure_templates, seed_demo_story, seed_scifi_demo_story, seed_beat_sheets, seed_flash_fiction_demo, seed_short_story_demo, seed_first_person_demo
+
+
+logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger("lorestudio")
+
+
+def refuse_insecure_defaults() -> None:
+    """Outside development, default secrets are a misconfiguration, not a warning."""
+    problems = settings.insecure_defaults()
+    if problems and not settings.is_dev:
+        for name in problems:
+            logger.critical("%s is still a default value. Set it before starting with ENV=%s.", name, settings.env)
+        sys.exit(1)
+    for name in problems:
+        logger.warning("%s is a default value (fine for ENV=dev, refused otherwise)", name)
+
+
+def seed_all() -> None:
+    seed_structure_templates()
+    seed_beat_sheets()
+    seed_admin()
+    if settings.seed_demo:
+        seed_demo_story()
+    if settings.seed_extra_demos:
+        seed_scifi_demo_story()
+        seed_flash_fiction_demo()
+        seed_short_story_demo()
+        seed_first_person_demo()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    seed_structure_templates()
-    seed_beat_sheets()
-    seed_admin()
-    seed_demo_story()
-    seed_scifi_demo_story()
-    seed_flash_fiction_demo()
-    seed_short_story_demo()
-    seed_first_person_demo()
+    refuse_insecure_defaults()
+    if settings.auto_migrate:
+        run_migrations(engine)
+    else:
+        Base.metadata.create_all(bind=engine)
+    seed_all()
+    backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
+    logger.info("startup complete (env=%s)", settings.env)
     yield
+    if backup_task:
+        backup_task.cancel()
 
 
 app = FastAPI(title="LoreStudio API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -120,6 +156,7 @@ app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
 app.include_router(publication_router, prefix="/api", tags=["publication"])
 app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
+app.include_router(system_router, prefix="/api", tags=["system"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

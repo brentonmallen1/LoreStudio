@@ -18,6 +18,7 @@ since it needs access to the Lorebook's known characters and locations.
 from __future__ import annotations
 
 import statistics
+from typing import Any
 from collections import defaultdict
 
 from .text_utils import html_to_text
@@ -246,7 +247,7 @@ def _analyze_sentence_variety(doc) -> SentenceVarietyResult:
         return SentenceVarietyResult()
 
     lengths = [len([t for t in sent if not t.is_space and not t.is_punct]) for sent in sentences]
-    lengths = [l for l in lengths if l > 0]
+    lengths = [n for n in lengths if n > 0]
 
     if not lengths:
         return SentenceVarietyResult()
@@ -257,7 +258,7 @@ def _analyze_sentence_variety(doc) -> SentenceVarietyResult:
     # Build histogram
     histogram: list[SentenceLengthBucket] = []
     for label, lo, hi in _SENTENCE_BUCKETS:
-        count = sum(1 for l in lengths if lo <= l <= hi)
+        count = sum(1 for n in lengths if lo <= n <= hi)
         histogram.append(SentenceLengthBucket(label=label, count=count))
 
     # Assess variety
@@ -427,7 +428,7 @@ def check_pov_drift(doc) -> POVDriftResult:
                     ),
                 ))
 
-    dominant = max(perspective_subject_counts, key=perspective_subject_counts.get) if perspective_subject_counts else ""
+    dominant = max(perspective_subject_counts.items(), key=lambda kv: kv[1])[0] if perspective_subject_counts else ""
     all_subjects = sorted(perspective_subject_counts.keys())[:10]
 
     # Deduplicate findings (only keep unique sentence offsets)
@@ -713,7 +714,7 @@ def analyze_voice_distinctness(
 
     # Pairwise similarity (Jaccard on top-50 words)
     SIMILARITY_THRESHOLD = 0.35
-    similar_pairs = []
+    similar_pairs: list[dict[str, Any]] = []
     char_ids = list(char_data.keys())
     for i in range(len(char_ids)):
         for j in range(i + 1, len(char_ids)):

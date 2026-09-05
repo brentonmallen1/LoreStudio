@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Sparkles, Compass, CheckSquare } from "lucide-react";
+import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Compass, CheckSquare } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { useHistoryStore } from "../../stores/historyStore";
@@ -654,7 +654,7 @@ export default function OutlineManager({ storyId }: Props) {
             onClick={() => setShowExtractPanel(true)}
             title="AI: Extract outline from manuscript prose"
           >
-            <Sparkles size={13} />
+            <Compass size={13} />
             Extract
           </button>
 

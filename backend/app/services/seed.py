@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 from sqlalchemy.orm import Session
 from ..database import engine
 from ..models.user import User
@@ -105,7 +106,7 @@ def seed_structure_templates():
         db.commit()
 
 
-BEAT_SHEETS = [
+BEAT_SHEETS: list[dict[str, Any]] = [
     {
         "id": "save-the-cat",
         "name": "Save the Cat",

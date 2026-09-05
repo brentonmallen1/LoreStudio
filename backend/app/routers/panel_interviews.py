@@ -121,7 +121,7 @@ def create_panel(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    story = _verify_story_access(story_id, db, current_user)
+    _verify_story_access(story_id, db, current_user)
     if len(body.character_ids) < 2:
         raise HTTPException(status_code=400, detail="Panel interview requires at least 2 characters")
     # Verify all characters belong to this story

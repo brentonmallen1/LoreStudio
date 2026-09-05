@@ -91,7 +91,7 @@ def add_appearance(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    thread = _verify_thread(thread_id, db, current_user)
+    _verify_thread(thread_id, db, current_user)
     # Prevent duplicate appearances for same node
     existing = (
         db.query(PlotThreadAppearance)

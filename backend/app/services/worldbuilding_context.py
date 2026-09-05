@@ -49,7 +49,7 @@ def build_world_context(story: Story, db: Session) -> dict:
     Returns story metadata plus all world building entities.
     """
     systems = db.query(WorldSystem).filter(WorldSystem.story_id == story.id).all()
-    locations = db.query(Location).filter(Location.story_id == story.id, Location.parent_id == None).all()
+    locations = db.query(Location).filter(Location.story_id == story.id, Location.parent_id.is_(None)).all()
     cultures = db.query(Culture).filter(Culture.story_id == story.id).all()
     eras = db.query(Era).filter(Era.story_id == story.id).order_by(Era.position).all()
     events = db.query(HistoricalEvent).filter(HistoricalEvent.story_id == story.id).all()
@@ -187,7 +187,7 @@ def build_culture_context(culture: Culture, story: Story, db: Session) -> dict:
     """
     systems = db.query(WorldSystem).filter(WorldSystem.story_id == story.id).all()
     locations = db.query(Location).filter(
-        Location.story_id == story.id, Location.parent_id == None
+        Location.story_id == story.id, Location.parent_id.is_(None)
     ).all()
 
     return {

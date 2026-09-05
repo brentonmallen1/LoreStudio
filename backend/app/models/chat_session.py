@@ -3,6 +3,11 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .chat_message import ChatMessage
+    from .story import Story
+
 
 
 class ChatSession(Base):
@@ -27,6 +32,7 @@ class ChatSession(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
+    story: Mapped["Story"] = relationship("Story", back_populates="chat_sessions")
     messages: Mapped[list["ChatMessage"]] = relationship(
         "ChatMessage", back_populates="session", cascade="all, delete-orphan", order_by="ChatMessage.created_at"
     )

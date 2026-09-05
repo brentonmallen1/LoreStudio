@@ -430,6 +430,8 @@ def patch_dialogue_block(
 
     # Verify ownership
     node = db.get(StructureNode, block.scene_id)
+    if not node:
+        raise HTTPException(status_code=404, detail="Dialogue block not found")
     story = db.query(Story).filter(Story.id == node.story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Dialogue block not found")
@@ -633,7 +635,7 @@ def suggest_dialogue_tags_story_wide(
     current_user: User = Depends(get_current_user),
 ):
     """Batch-suggest dialogue tags across all scenes in a story."""
-    story = _get_story(story_id, db, current_user)
+    _get_story(story_id, db, current_user)
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     char_by_name = {c.name.lower(): c for c in characters}
 

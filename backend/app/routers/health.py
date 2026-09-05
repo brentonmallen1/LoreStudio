@@ -14,6 +14,8 @@ the frontend renders as a dashboard:
   - absent_characters: characters with no appearances in the last N scenes
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -124,7 +126,7 @@ def story_health(
     recent_leaves = leaves[-RECENT_SCENE_WINDOW:] if len(leaves) >= RECENT_SCENE_WINDOW else leaves
     recent_leaf_ids = {n.id for n in recent_leaves}
 
-    char_screen_time = []
+    char_screen_time: list[dict[str, Any]] = []
     absent_characters = []
 
     for c in characters:
@@ -241,7 +243,7 @@ def story_health_alerts(
     current_user: User = Depends(get_current_user),
 ):
     """Lightweight endpoint returning only health alert counts for sidebar badge."""
-    story = _get_story(story_id, db, current_user)
+    _get_story(story_id, db, current_user)
 
     all_nodes = (
         db.query(StructureNode)

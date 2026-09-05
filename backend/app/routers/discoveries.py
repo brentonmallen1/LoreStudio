@@ -102,7 +102,7 @@ async def run_discovery(
 
     # Build existing entity lists to avoid re-suggesting known elements
     existing_characters = [c.name for c in db.query(Character).filter(Character.story_id == story_id).all()]
-    existing_settings = [l.name for l in db.query(Location).filter(Location.story_id == story_id).all()]
+    existing_settings = [loc.name for loc in db.query(Location).filter(Location.story_id == story_id).all()]
 
     element_types = story.discovery_element_types or ["character", "setting", "relationship"]
 

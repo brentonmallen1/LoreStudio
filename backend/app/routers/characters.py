@@ -912,7 +912,7 @@ def analyze_character_dialogue_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     """Run NLP prose analysis on this character's dialogue lines only."""
-    character = _verify_character_access(character_id, db, current_user)
+    _verify_character_access(character_id, db, current_user)
     blocks = (
         db.query(DialogueBlock)
         .filter(DialogueBlock.character_id == character_id)
