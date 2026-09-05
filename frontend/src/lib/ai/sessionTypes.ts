@@ -12,7 +12,7 @@ export type ContextScope = "current-scene" | "entire-story" | "lorebook-only";
 export const SCOPE_LABELS: Record<ContextScope, string> = {
   "current-scene": "Scene",
   "entire-story": "Full story",
-  "lorebook-only": "Lorebook",
+  "lorebook-only": "Story Identity",
 };
 
 /**

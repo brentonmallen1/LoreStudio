@@ -42,7 +42,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
   const { stream, cancel, text: streamingText, isStreaming: generating } = useLLMStream({
     requestId,
     label: mode === "structure" ? "Summarizing section" : "Summarizing character arc",
-    tabId: "lorebook",
+    tabId: "story-identity",
     onComplete: (full) => {
       setResult(full);
       lastResult.current = full;

@@ -41,6 +41,17 @@
   border-bottom: 1px solid var(--color-border-light);
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+}
+
 .title {
   font-size: 0.72rem;
   font-weight: 600;

@@ -570,6 +570,19 @@ const FEATURES: Record<string, AIFeatureInfo> = {
     backendFeatureId: "thread-analysis",
   },
 
+  // ── Story Identity Workshop ──────────────────────────────────────────────────
+
+  "identity-workshop": {
+    id: "identity-workshop",
+    label: "Story Identity Workshop",
+    type: "ai",
+    shortDescription: "Conversational guide to help you articulate your story's identity",
+    fullDescription:
+      "A Socratic dialogue tool that asks questions to help you discover and articulate your story's logline, premise, themes, narrative intent, and central conflict. The AI never writes content for you — it asks questions, surfaces observations, and prompts deeper thinking so the words remain entirely yours.",
+    contextSources: ["Story title, genre, tone, and existing identity fields", "Character names, roles, and motivations", "Scene synopses and structure"],
+    backendFeatureId: "identity-workshop",
+  },
+
   // ── Lorebook / Story Summary ─────────────────────────────────────────────────
 
   "story-summary": {
@@ -728,7 +741,8 @@ export const PAGE_FEATURES: Record<string, string[]> = {
   "plot-threads": [
     "thread-analysis",
   ],
-  "lorebook": [
+  "story-identity": [
+    "identity-workshop",
     "story-summary",
     "perspective-summary",
   ],
@@ -754,6 +768,6 @@ export const PAGE_LABELS: Record<string, string> = {
   "discovery-queue": "Discovery Queue",
   "twists": "Twists & Misdirection",
   "plot-threads": "Plot Threads",
-  "lorebook": "Lorebook",
+  "story-identity": "Story Identity",
   "import": "Document Import",
 };

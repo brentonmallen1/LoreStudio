@@ -13,7 +13,7 @@ import styles from "./StoryWorkspace.module.css";
 const SceneEditor        = lazy(() => import("../components/story/SceneEditor"));
 const CharacterSheet     = lazy(() => import("../components/characters/CharacterSheet"));
 const CharacterList      = lazy(() => import("../components/characters/CharacterList"));
-const LorebookPanel      = lazy(() => import("../components/story/LorebookPanel"));
+const StoryIdentityPanel = lazy(() => import("../components/story/StoryIdentityPanel"));
 const CompendiumPanel    = lazy(() => import("../components/compendium/CompendiumPanel"));
 const WorldBuildingHub   = lazy(() => import("../components/worldbuilding/WorldBuildingHub"));
 const PanelInterviewPanel = lazy(() => import("../components/panels/PanelInterviewPanel"));
@@ -180,7 +180,7 @@ export default function StoryWorkspacePage() {
           } />
           <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
           <Route path="/characters/:characterId" element={<CharacterSheet />} />
-          <Route path="/lorebook" element={<LorebookPanel storyId={storyId!} />} />
+          <Route path="/lorebook" element={<StoryIdentityPanel storyId={storyId!} />} />
           <Route path="/compendium" element={<CompendiumPanel storyId={storyId!} />} />
           <Route path="/worldbuilding" element={<WorldBuildingHub />} />
           <Route path="/locations/:locationId" element={<LocationSheet />} />

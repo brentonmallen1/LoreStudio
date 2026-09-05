@@ -574,6 +574,66 @@ def delete_goal(
     return story
 
 
+@router.patch("/{story_id}/goals/reorder", response_model=StoryOut)
+def reorder_goals(
+    story_id: str,
+    body: list[str] = Body(..., description="Ordered list of goal IDs"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    goals_by_id = {g["id"]: g for g in (story.goals or [])}
+    story.goals = [goals_by_id[gid] for gid in body if gid in goals_by_id]
+    db.commit()
+    db.refresh(story)
+    return story
+
+
+class IdentityWorkshopRequest(BaseModel):
+    messages: list[dict]
+    llm_params: dict | None = None
+
+
+@router.post("/{story_id}/identity-workshop")
+async def identity_workshop(
+    story_id: str,
+    body: IdentityWorkshopRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from ..services.llm.prompts.workshop import build_identity_workshop_prompt
+    from ..schemas.llm_params import LLMParams
+
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+
+    prompt = build_identity_workshop_prompt(story, db)
+    llm_params = LLMParams(**body.llm_params) if body.llm_params else None
+
+    ctx = AICallContext(
+        feature="identity-workshop",
+        user_id=current_user.id,
+        story_id=story_id,
+        tags=["story-identity", "workshop", "guide"],
+    )
+
+    async def stream():
+        async for token in ai_gateway.stream(
+            messages=body.messages,
+            feature_prompt=prompt,
+            context=ctx,
+            db=db,
+            user=current_user,
+            llm_params=llm_params,
+        ):
+            yield token
+
+    return StreamingResponse(stream(), media_type="text/plain")
+
+
 @router.get("/{story_id}/settings")
 def list_settings(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     from ..models.setting import Setting

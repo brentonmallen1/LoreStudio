@@ -60,6 +60,20 @@ export const api = {
     }),
   deleteGoal: (storyId: string, goalId: string) =>
     request<import("../types").Story>(`/stories/${storyId}/goals/${goalId}`, { method: "DELETE" }),
+  reorderGoals: (storyId: string, goalIds: string[]) =>
+    request<import("../types").Story>(`/stories/${storyId}/goals/reorder`, {
+      method: "PATCH",
+      body: JSON.stringify(goalIds),
+    }),
+  sendIdentityWorkshopMessage: (storyId: string, messages: import("../types").ChatMessage[], signal?: AbortSignal, llmParams?: import("../types").LLMParams): Promise<Response> => {
+    const token = getToken();
+    return fetch(`${BASE}/stories/${storyId}/identity-workshop`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
+      signal,
+    });
+  },
 
   // Story AI
   summarizeStory: (storyId: string, upToNodeId?: string, style?: string, signal?: AbortSignal): Promise<Response> => {

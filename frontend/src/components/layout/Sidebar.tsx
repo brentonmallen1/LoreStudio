@@ -3,7 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Users,
   SquareLibrary,
-  Scroll,
+  Fingerprint,
   MessageSquareMore,
   GitBranch,
   Clock,
@@ -111,7 +111,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       id: "world",
       label: "World",
       tabs: [
-        { id: "lorebook",      icon: Scroll,   label: "Lorebook",       path: "/lorebook" },
+        { id: "lorebook",      icon: Fingerprint, label: "Story Identity", path: "/lorebook" },
         { id: "compendium",    icon: BookOpen, label: "Compendium",     path: "/compendium" },
         { id: "worldbuilding", icon: Globe,    label: "World Building", path: "/worldbuilding" },
       ],

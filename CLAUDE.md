@@ -133,6 +133,38 @@ All AI tools (interview, what-if, panel, writing coach, etc.) are accessed throu
 
 To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.ts` via `registerSessionType`, (2) add a `case` in `frontend/src/components/ai/SessionView.tsx`, (3) create a mode component using `AIModeWrapper` as the shell.
 
+### AI UI component patterns
+
+**Never use the `Sparkles` icon for AI buttons.** The app has established conventions — use them everywhere, without exception.
+
+| Element | Icon | When to use |
+|---------|------|-------------|
+| Open AI chat / workshop | `Feather` + text label | Open the AI panel to a chat session (conversation, workshop, guide) |
+| AI action button (idle) | `Compass` + text label | Trigger inline generation, analysis, or drafting |
+| AI action button (active) | `Square` + "Cancel" | While streaming, to abort |
+| Attribute generation | `Wand2` + text | Per-field attribute suggestions |
+| Feature info modal trigger | `Cpu` via `AIFeatureInfoTrigger` | In every panel/page header that has AI features |
+| Transparency trigger | `ShieldCheck` via `LLMTransparencyTrigger` | Next to AI-generated results |
+
+**Button style:** `background: var(--color-ai)`, `color: var(--color-ai-fg)`. Match `.generateBtn` in `StorySummaryPanel.module.css` exactly — that is the canonical reference.
+
+**Text labels are required.** An icon alone is never enough. Label examples: "Draft logline", "Suggest themes", "Generate summary", "Identify conflict".
+
+**`AIFeatureInfoTrigger` is mandatory** on any panel or page that exposes AI features. It renders the `Cpu` icon button that opens `AIFeatureInfoModal`. Place it in the panel header next to the title.
+
+**`LLMTransparencyTrigger`** (`ShieldCheck`) must appear next to AI-generated content so the author can inspect what was sent to the model. Use the `useLLMTransparency` hook.
+
+**Register every new AI feature** in `frontend/src/lib/ai/featureRegistry.ts` under the correct `pageId`. This powers the feature info modal. Format:
+```ts
+{
+  id: "page-action-name",
+  label: "Human-readable label",
+  description: "What this does and when to use it",
+  type: "ai",
+  backendFeatureId: "backend-feature-key",
+}
+```
+
 ## Environment Setup
 
 Copy `.env.example` to `.env`. Minimum required:

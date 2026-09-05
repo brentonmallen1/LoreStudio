@@ -120,3 +120,5 @@ def build_relationship_suggestion_prompt(
         "- Prefer relationships with narrative tension, complexity, or hidden depth.\n"
         "- 3-5 suggestions total."
     )
+
+

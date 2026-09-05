@@ -2,7 +2,7 @@
  * Concrete session type registrations.
  * Import this module once at app startup (e.g. main.tsx) to register all types.
  */
-import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass, Wand2 } from "lucide-react";
+import { MessageSquare, Feather, BookOpen, Sparkles, Shuffle, Users, Eye, Images, Compass, Wand2, Map } from "lucide-react";
 import { registerSessionType } from "./sessionTypes";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -611,6 +611,42 @@ registerSessionType({
 
   // Not used — the mode component calls api.analyzeSceneAtmosphere() directly
   sendMessage: () => { throw new Error("Scene Atmosphere uses direct API call, not sendMessage"); },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+});
+
+// ── Story Identity Workshop ───────────────────────────────────────────────────
+
+registerSessionType({
+  id: "story-identity-workshop",
+  label: "Identity Workshop",
+  contextTitle: (_ctx, names) =>
+    names.storyTitle ? `Identity Workshop — ${names.storyTitle}` : "Story Identity Workshop",
+  contextItemLabel: (_, names) => names.storyTitle ?? "Story",
+  icon: Map,
+  accentVar: "--color-ai",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({
+    storyId: currentView.storyId,
+  }),
+
+  getContextItems: () => {
+    const { stories } = useStoryStore.getState();
+    return stories.map((s) => ({ id: s.id, label: s.title }));
+  },
+
+  initSession: async (_ctx) => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId } = session.context;
+    if (!storyId) throw new Error("Story required for Identity Workshop");
+    return api.sendIdentityWorkshopMessage(storyId, session.messages, signal, llmParams);
+  },
 
   persistsInBackend: false,
   allowContextSwitch: false,

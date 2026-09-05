@@ -152,7 +152,7 @@ export default function CommandPalette() {
       { id: "nav-overview",      label: "Go to Overview",      keywords: ["overview", "summary", "dashboard"], icon: Home,             path: "" },
       { id: "nav-write",         label: "Go to Write",         keywords: ["write", "editor", "scene", "prose"], icon: PenLine,          path: "/write" },
       { id: "nav-characters",    label: "Go to Characters",    keywords: ["characters", "cast", "people"],      icon: Users,            path: "/characters" },
-      { id: "nav-lorebook",      label: "Go to Lorebook",      keywords: ["lorebook", "canon", "lore"],         icon: SquareLibrary,    path: "/lorebook" },
+      { id: "nav-lorebook",      label: "Go to Story Identity", keywords: ["story identity", "lorebook", "canon", "lore", "identity"], icon: SquareLibrary, path: "/lorebook" },
       { id: "nav-compendium",    label: "Go to Compendium",    keywords: ["compendium", "research", "notes"],   icon: Scroll,           path: "/compendium" },
       { id: "nav-worldbuilding", label: "Go to Worldbuilding", keywords: ["worldbuilding", "world", "setting"], icon: Globe,            path: "/worldbuilding" },
       { id: "nav-panels",        label: "Go to Panels",        keywords: ["panels", "group", "interview"],      icon: MessageSquareMore,path: "/panels" },
@@ -198,10 +198,10 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-lorebook-entry",
-      label: "New Lorebook Entry",
-      keywords: ["new", "create", "add", "lorebook", "lore", "canon"],
+      label: "Open Story Identity",
+      keywords: ["story identity", "lorebook", "lore", "canon", "open"],
       icon: BookMarked,
-      group: "Create",
+      group: "Navigate",
       when: hasStory,
       action: () => {
         const sid = _useStoryStoreForNav.getState().activeStory?.id;

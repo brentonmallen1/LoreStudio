@@ -15,6 +15,8 @@ interface Props {
   variant?: "default" | "ai" | "intent" | "accent";
   /** Extra class on the outer card element */
   className?: string;
+  /** Optional badge rendered next to the title (e.g. completion dots) */
+  badge?: React.ReactNode;
 }
 
 export default function SectionCard({
@@ -25,6 +27,7 @@ export default function SectionCard({
   collapsible = true,
   variant = "default",
   className,
+  badge,
 }: Props) {
   const [localCollapsed, setLocalCollapsed] = useState(false);
 
@@ -56,7 +59,10 @@ export default function SectionCard({
   return (
     <div className={cardClass}>
       <button className={styles.head} onClick={handleToggle}>
-        <p className={styles.title}>{title}</p>
+        <span className={styles.titleRow}>
+          <p className={styles.title}>{title}</p>
+          {badge && <span className={styles.badge}>{badge}</span>}
+        </span>
         <ChevronDown
           size={13}
           className={`${styles.chevron} ${isCollapsed ? styles.chevronCollapsed : ""}`}
