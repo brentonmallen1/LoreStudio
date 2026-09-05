@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --max-warnings 132",
+    "lint": "eslint . --max-warnings 122",
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
@@ -16,8 +16,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@headless-tree/core": "^1.6.3",
-    "@headless-tree/react": "^1.6.3",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-character-count": "^2.11.5",
     "@tiptap/extension-placeholder": "^2.11.5",

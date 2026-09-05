@@ -336,6 +336,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
 
   const [fields, setFields] = useState({
     logline: "",
+    author_name: "",
     genre: "",
     tone: "",
     intended_length: "",
@@ -352,6 +353,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
     if (!activeStory) return;
     setFields({
       logline: activeStory.logline ?? "",
+      author_name: activeStory.author_name ?? "",
       genre: activeStory.genre ?? "",
       tone: activeStory.tone ?? "",
       intended_length: activeStory.intended_length ?? "",
@@ -452,6 +454,18 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             <div className={styles.fieldMeta}>
               <CharCount value={fields.logline} max={150} />
             </div>
+          </div>
+          <div>
+            <p className={styles.subFieldLabel}>Author byline</p>
+            <p className={styles.fieldHint}>
+              Shown on the title page of exports. Leave blank to export without one.
+            </p>
+            <input
+              value={fields.author_name}
+              onChange={(e) => update("author_name", e.target.value)}
+              placeholder="Pen name or real name"
+              className={styles.input}
+            />
           </div>
           <div>
             <p className={styles.subFieldLabel}>Premise</p>

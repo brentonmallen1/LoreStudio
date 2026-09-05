@@ -203,7 +203,27 @@ class StoryReplaceRequest(BaseModel):
     query: str
     replacement: str
     case_sensitive: bool = False
+    whole_word: bool = False
     node_ids: list[str] | None = None  # None means replace in all nodes
+
+
+def replace_in_text_nodes(html: str, pattern: "re.Pattern[str]", replacement: str) -> tuple[str, int]:
+    """Replace inside the prose only. Tag names, attributes and speaker tags like
+    ``<Maya>`` are never touched, so a rename cannot corrupt the markup."""
+    from bs4 import BeautifulSoup, NavigableString
+
+    soup = BeautifulSoup(html, "html.parser")
+    total = 0
+    for text_node in list(soup.find_all(string=True)):
+        if not isinstance(text_node, NavigableString) or text_node.parent is None:
+            continue
+        if text_node.parent.name in ("script", "style"):
+            continue
+        new_text, n = pattern.subn(replacement, str(text_node))
+        if n:
+            text_node.replace_with(new_text)
+            total += n
+    return (str(soup) if total else html), total
 
 
 def _count_and_excerpt(content: str, query: str, case_sensitive: bool) -> tuple[int, str]:
@@ -276,7 +296,8 @@ async def story_replace(
         return {"replaced_count": 0, "scenes_affected": 0}
 
     flags = 0 if req.case_sensitive else re.IGNORECASE
-    pattern = re.escape(req.query)
+    escaped = re.escape(req.query)
+    pattern = re.compile(rf"\b{escaped}\b" if req.whole_word else escaped, flags)
 
     q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
     if req.node_ids:
@@ -289,7 +310,7 @@ async def story_replace(
     for node in nodes:
         if not node.content:
             continue
-        new_content, n = re.subn(pattern, req.replacement, node.content, flags=flags)
+        new_content, n = replace_in_text_nodes(node.content, pattern, req.replacement)
         if n > 0:
             node.content = new_content
             total_replaced += n

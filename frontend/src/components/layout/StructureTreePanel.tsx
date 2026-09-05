@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { createElement, useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   ChevronRight,
@@ -104,24 +104,76 @@ function flattenPositions(nodes: StructureNode[], parentId: string | null = null
   return ops;
 }
 
+function findNode(nodes: StructureNode[], id: string): StructureNode | undefined {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    const hit = findNode(n.children ?? [], id);
+    if (hit) return hit;
+  }
+  return undefined;
+}
+
 // ── NodeItem ──────────────────────────────────────────────────────────────────
 
-let _draggedId: string | null = null;
+const dragState: { id: string | null } = { id: null };
 
 type DropZone = "above" | "below" | "into" | null;
+
+// ── Expansion state, remembered per story ─────────────────────────────────────
+
+function collapsedKey(storyId: string | undefined) {
+  return `ls_tree_collapsed_${storyId ?? "none"}`;
+}
+
+function loadCollapsed(storyId: string | undefined): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(collapsedKey(storyId)) ?? "[]"));
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCollapsed(storyId: string | undefined, ids: Set<string>) {
+  try {
+    localStorage.setItem(collapsedKey(storyId), JSON.stringify([...ids]));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/** Depth-first list of visible rows, used for arrow-key navigation. */
+function visibleIds(nodes: StructureNode[], collapsed: Set<string>): string[] {
+  const out: string[] = [];
+  const walk = (n: StructureNode) => {
+    out.push(n.id);
+    if (!collapsed.has(n.id)) (n.children ?? []).forEach(walk);
+  };
+  nodes.forEach(walk);
+  return out;
+}
 
 function NodeItem({
   node,
   depth = 0,
   storyId,
   onDrop,
+  collapsed,
+  toggleCollapsed,
+  onRename,
+  onKeyNav,
 }: {
   node: StructureNode;
   depth?: number;
   storyId?: string;
   onDrop: (draggedId: string, targetId: string, zone: "above" | "below" | "into") => void;
+  collapsed: Set<string>;
+  toggleCollapsed: (id: string) => void;
+  onRename: (id: string, title: string) => void;
+  onKeyNav: (e: React.KeyboardEvent, id: string) => void;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const expanded = !collapsed.has(node.id);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(node.title);
   const [addingChild, setAddingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
   const [dropZone, setDropZone] = useState<DropZone>(null);
@@ -153,7 +205,7 @@ function NodeItem({
       );
     }
     setStructure(insertChild(structure));
-    if (!expanded) setExpanded(true);
+    if (!expanded) toggleCollapsed(node.id);
     setChildTitle("");
     setAddingChild(false);
   }
@@ -169,14 +221,14 @@ function NodeItem({
   }
 
   function handleDragStart(e: React.DragEvent) {
-    _draggedId = node.id;
+    dragState.id = node.id;
     e.dataTransfer.setData("text/plain", node.id);
     e.dataTransfer.effectAllowed = "move";
     // Without stopPropagation — let parent know the drag started from a child
   }
 
   function handleDragOver(e: React.DragEvent) {
-    if (!_draggedId || _draggedId === node.id) return;
+    if (!dragState.id || dragState.id === node.id) return;
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = "move";
@@ -192,15 +244,13 @@ function NodeItem({
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const id = e.dataTransfer.getData("text/plain") || _draggedId;
-    _draggedId = null;
+    const id = e.dataTransfer.getData("text/plain") || dragState.id;
+    dragState.id = null;
     const zone = getZone(e);
     setDropZone(null);
     if (!id || id === node.id) return;
     onDrop(id, node.id, zone);
   }
-
-  const Icon = getSegmentIcon(node.level_type);
 
   return (
     <div>
@@ -227,13 +277,29 @@ function NodeItem({
         </span>
 
         <button
+          data-tree-node={node.id}
           onClick={() => {
             api.getNode(node.id).then(setActiveNode);
             if (!location.pathname.endsWith("/write")) {
               navigate(`/stories/${storyId}/write`);
             }
           }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            setRenameValue(node.title);
+            setRenaming(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "F2") {
+              e.preventDefault();
+              setRenameValue(node.title);
+              setRenaming(true);
+              return;
+            }
+            onKeyNav(e, node.id);
+          }}
           className={styles.nodeRow}
+          title="Enter opens · F2 or double-click renames · arrows move"
         >
           <span
             className={styles.chevron}
@@ -241,7 +307,7 @@ function NodeItem({
               hasChildren
                 ? (e) => {
                     e.stopPropagation();
-                    setExpanded((x) => !x);
+                    toggleCollapsed(node.id);
                   }
                 : undefined
             }
@@ -249,16 +315,42 @@ function NodeItem({
           >
             {hasChildren ? expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} /> : null}
           </span>
-          {(() => {
-            return (
-              <Icon
-                size={12}
-                className={styles.nodeTypeIcon}
-                style={isActive ? undefined : { color: segmentColor(node.level_type) }}
-              />
-            );
-          })()}
-          <span className={styles.nodeLabel}>{node.title}</span>
+          {createElement(getSegmentIcon(node.level_type), {
+            size: 12,
+            className: styles.nodeTypeIcon,
+            style: isActive ? undefined : { color: segmentColor(node.level_type) },
+          })}
+          {renaming ? (
+            <input
+              autoFocus
+              className={styles.renameInput}
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  setRenaming(false);
+                  if (renameValue.trim() && renameValue.trim() !== node.title)
+                    onRename(node.id, renameValue.trim());
+                }
+                if (e.key === "Escape") setRenaming(false);
+              }}
+              onBlur={() => {
+                setRenaming(false);
+                if (renameValue.trim() && renameValue.trim() !== node.title)
+                  onRename(node.id, renameValue.trim());
+              }}
+            />
+          ) : (
+            <span className={styles.nodeLabel}>{node.title}</span>
+          )}
+          {!renaming && node.word_count > 0 && (
+            <span className={styles.nodeWordCount} title={`${node.word_count.toLocaleString()} words`}>
+              {node.word_count >= 1000 ? `${(node.word_count / 1000).toFixed(1)}k` : node.word_count}
+            </span>
+          )}
           {node.status !== "draft" && (
             <span
               className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}
@@ -305,7 +397,17 @@ function NodeItem({
       {hasChildren && expanded && (
         <div>
           {node.children.map((child) => (
-            <NodeItem key={child.id} node={child} depth={depth + 1} storyId={storyId} onDrop={onDrop} />
+            <NodeItem
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              storyId={storyId}
+              onDrop={onDrop}
+              collapsed={collapsed}
+              toggleCollapsed={toggleCollapsed}
+              onRename={onRename}
+              onKeyNav={onKeyNav}
+            />
           ))}
         </div>
       )}
@@ -331,12 +433,63 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
   const [newTitle, setNewTitle] = useState("");
   const [showAddMenu, setShowAddMenu] = useState(false);
   const addMenuRef = useRef<HTMLDivElement>(null);
+  const [collapsedState, setCollapsedState] = useState<{ storyId: string | undefined; ids: Set<string> }>(
+    () => ({
+      storyId,
+      ids: loadCollapsed(storyId),
+    }),
+  );
+  const collapsed = collapsedState.storyId === storyId ? collapsedState.ids : loadCollapsed(storyId);
+
+  function toggleCollapsed(id: string) {
+    const next = new Set(collapsed);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    saveCollapsed(storyId, next);
+    setCollapsedState({ storyId, ids: next });
+  }
+
+  async function renameNode(id: string, title: string) {
+    await api.updateNode(id, { title });
+    const patch = (nodes: StructureNode[]): StructureNode[] =>
+      nodes.map((n) => (n.id === id ? { ...n, title } : { ...n, children: patch(n.children ?? []) }));
+    setStructure(patch(structureRef.current));
+    if (activeNode?.id === id) useStoryStore.getState().setActiveNode({ ...activeNode, title });
+  }
+
+  /** Arrow keys move between rows, Left/Right collapse/expand, Enter opens. */
+  function handleKeyNav(e: React.KeyboardEvent, id: string) {
+    const ids = visibleIds(structureRef.current, collapsed);
+    const idx = ids.indexOf(id);
+    const focus = (targetId: string | undefined) => {
+      if (!targetId) return;
+      const el = document.querySelector<HTMLElement>(`[data-tree-node="${targetId}"]`);
+      el?.focus();
+    };
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focus(ids[idx + 1]);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focus(ids[idx - 1]);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      const node = findNode(structureRef.current, id);
+      if (!node?.children?.length) return;
+      const isCollapsed = collapsed.has(id);
+      if ((e.key === "ArrowRight" && isCollapsed) || (e.key === "ArrowLeft" && !isCollapsed)) {
+        e.preventDefault();
+        toggleCollapsed(id);
+      }
+    }
+  }
 
   // Stale-closure-safe refs for onDrop callbacks
   const structureRef = useRef(structure);
-  structureRef.current = structure;
   const storyIdRef = useRef(storyId);
-  storyIdRef.current = storyId;
+  useEffect(() => {
+    structureRef.current = structure;
+    storyIdRef.current = storyId;
+  });
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -574,7 +727,16 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           <p className={styles.emptyHint}>No sections yet</p>
         )}
         {structure.map((node) => (
-          <NodeItem key={node.id} node={node} storyId={storyId} onDrop={handleDrop} />
+          <NodeItem
+            key={node.id}
+            node={node}
+            storyId={storyId}
+            onDrop={handleDrop}
+            collapsed={collapsed}
+            toggleCollapsed={toggleCollapsed}
+            onRename={renameNode}
+            onKeyNav={handleKeyNav}
+          />
         ))}
       </div>
     </div>

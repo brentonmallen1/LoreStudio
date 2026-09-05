@@ -44,6 +44,7 @@ export interface Story {
   narrative_intent: string;
   premise: string;
   logline: string;
+  author_name: string;
   goals: StoryGoal[];
   discovery_enabled: boolean;
   discovery_auto_analyze: boolean;

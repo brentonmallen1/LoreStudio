@@ -135,6 +135,8 @@ def build_manuscript_html(
 
     if title_page:
         parts.append(f'<h1 class="title">{title_text}</h1>\n')
+        if story.author_name:
+            parts.append(f'<p class="author" style="text-align:center">by {escape(story.author_name)}</p>\n')
 
     prev_was_leaf = False
 

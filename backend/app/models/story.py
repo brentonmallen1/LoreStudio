@@ -56,6 +56,8 @@ class Story(Base):
     narrative_intent: Mapped[str] = mapped_column(Text, default="")
     premise: Mapped[str] = mapped_column(Text, default="")
     logline: Mapped[str] = mapped_column(String, default="")
+    # Byline for exports and the title page. Optional; the account name is not assumed.
+    author_name: Mapped[str] = mapped_column(String, default="", server_default="")
 
     # Narrative perspective
     narrative_perspective: Mapped[str] = mapped_column(String, default="")

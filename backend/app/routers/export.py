@@ -91,6 +91,8 @@ def _build_plain_text(
 
     if title_page:
         lines.append((story.title or "Untitled").upper())
+        if story.author_name:
+            lines.append(f"by {story.author_name}")
         lines.append("")
         lines.append("")
 

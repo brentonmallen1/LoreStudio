@@ -31,6 +31,7 @@ class StoryUpdate(BaseModel):
     narrative_intent: str | None = None
     premise: str | None = None
     logline: str | None = None
+    author_name: str | None = None
     discovery_enabled: bool | None = None
     discovery_auto_analyze: bool | None = None
     discovery_element_types: list[str] | None = None
@@ -59,6 +60,7 @@ class StoryOut(BaseModel):
     narrative_intent: str
     premise: str
     logline: str
+    author_name: str = ""
     goals: list[StoryGoal]
     discovery_enabled: bool
     discovery_auto_analyze: bool
