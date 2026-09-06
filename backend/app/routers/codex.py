@@ -19,6 +19,7 @@ from ..models.user import User
 from ..services.codex.embeddings import DEFAULT_EMBED_MODEL, embed_base_url_for, embed_model_for, search_backend
 from ..services.codex.index import build_chunks, embed_pending, index_stats
 from ..services.codex.presence import derive_facts, derive_presence, set_presence
+from ..services.codex.suggest import review, suggest_for_story
 from ..services.codex.sync import sync_story
 from ..services.job_queue import enqueue, handler
 
@@ -82,6 +83,24 @@ async def _run_codex_sync(job, db: Session, user: User, report) -> dict:
     result = sync_story(job.story_id or "", db)
     report(1, 1)
     return {"nodes": result.nodes, "edges": result.edges, **result.by_kind}
+
+
+@handler("codex-suggest")
+async def _run_codex_suggest(job, db: Session, user: User, report) -> dict:
+    """Read the manuscript scene by scene and propose what the derivation cannot see."""
+
+    def should_stop() -> bool:
+        db.refresh(job)
+        return job.cancel_requested
+
+    return await suggest_for_story(
+        job.story_id or "",
+        db,
+        user,
+        node_ids=job.params.get("node_ids") or None,
+        should_stop=should_stop,
+        on_progress=report,
+    )
 
 
 @handler("codex-index")
@@ -292,3 +311,122 @@ def queue_index(story_id: str, db: Session = Depends(get_db), user: User = Depen
         params={"embed_model": embed_model_for(user)},
     )
     return {"job_id": job.id}
+
+
+class ReviewRequest(BaseModel):
+    ids: list[str]
+
+
+class SuggestionOut(BaseModel):
+    id: str
+    #: "presence" | "fact" — what confirming this would write into the Lorebook.
+    kind: str
+    #: What the proposal says, in one line.
+    statement: str
+    #: The words in the scene it was read from. The author checks a quote, not a claim.
+    quote: str
+    confidence: float
+    scene_id: str | None = None
+    scene_title: str = ""
+
+
+def _suggestions(story_id: str, db: Session) -> list[SuggestionOut]:
+    nodes = {n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id)}
+    out: list[SuggestionOut] = []
+
+    for edge in db.query(CodexEdge).filter(
+        CodexEdge.story_id == story_id,
+        CodexEdge.source == "llm",
+        CodexEdge.kind == "present_in",
+        CodexEdge.confirmed_at.is_(None),
+    ):
+        character, scene = nodes.get(edge.src_id), nodes.get(edge.dst_id)
+        if not character or not scene:
+            continue
+        out.append(
+            SuggestionOut(
+                id=edge.id,
+                kind="presence",
+                statement=f"{character.label} is present in this scene",
+                quote=(edge.props or {}).get("quote", ""),
+                confidence=edge.confidence,
+                scene_id=scene.ref_id,
+                scene_title=scene.label,
+            )
+        )
+
+    established = {
+        e.src_id: e
+        for e in db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind == "established_in")
+    }
+    for fact in db.query(CodexNode).filter(
+        CodexNode.story_id == story_id, CodexNode.kind == "fact", CodexNode.source == "llm"
+    ):
+        scene = nodes.get(established[fact.id].dst_id) if fact.id in established else None
+        out.append(
+            SuggestionOut(
+                id=fact.id,
+                kind="fact",
+                statement=fact.label,
+                quote=(fact.props or {}).get("quote", ""),
+                confidence=float((fact.props or {}).get("confidence", 0.5)),
+                scene_id=scene.ref_id if scene else None,
+                scene_title=scene.label if scene else "",
+            )
+        )
+    out.sort(key=lambda s: (s.scene_title, -s.confidence))
+    return out
+
+
+@router.get("/stories/{story_id}/codex/suggestions", response_model=list[SuggestionOut])
+def list_suggestions(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """The review queue: everything the model proposed and the author has not answered."""
+    _story_or_404(story_id, db, user)
+    return _suggestions(story_id, db)
+
+
+@router.post("/stories/{story_id}/codex/suggest", status_code=202)
+def queue_suggest(
+    story_id: str,
+    node_ids: list[str] | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Queue the suggestion pass over the manuscript, or over particular scenes."""
+    story = _story_or_404(story_id, db, user)
+    job = enqueue(
+        db,
+        kind="codex-suggest",
+        user_id=user.id,
+        story_id=story_id,
+        label=f"Codex suggestions — {story.title}",
+        params={"node_ids": node_ids or []},
+    )
+    return {"job_id": job.id}
+
+
+@router.post("/stories/{story_id}/codex/suggestions/confirm")
+def confirm_suggestions(
+    story_id: str,
+    body: ReviewRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    Accept proposals. Each one becomes a real authored row — a "who is here" answer or a
+    reader-knowledge event — so the graph never holds the only copy of it.
+    """
+    _story_or_404(story_id, db, user)
+    return review(story_id, db, body.ids, accept=True)
+
+
+@router.post("/stories/{story_id}/codex/suggestions/reject")
+def reject_suggestions(
+    story_id: str,
+    body: ReviewRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Discard proposals. A no is not a record worth keeping."""
+    _story_or_404(story_id, db, user)
+    return review(story_id, db, body.ids, accept=False)

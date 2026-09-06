@@ -32,6 +32,7 @@ const ManuscriptView = lazy(() => import("../components/manuscript/ManuscriptVie
 const MediaPage = lazy(() => import("./MediaPage"));
 const StoryHealthPage = lazy(() => import("./StoryHealthPage"));
 const ChroniclePage = lazy(() => import("./ChroniclePage"));
+const CodexPage = lazy(() => import("./CodexPage"));
 const DiscoveryQueuePage = lazy(() => import("./DiscoveryQueuePage"));
 const StoryOverviewPage = lazy(() => import("./StoryOverviewPage"));
 const PublishPage = lazy(() => import("./PublishPage"));
@@ -229,6 +230,14 @@ export default function StoryWorkspacePage() {
             />
             <Route path="/media" element={<MediaPage />} />
             <Route path="/health" element={<StoryHealthPage />} />
+            <Route
+              path="/codex"
+              element={
+                <ModeGate route={ROUTE("codex")}>
+                  <CodexPage />
+                </ModeGate>
+              }
+            />
             <Route
               path="/discoveries"
               element={

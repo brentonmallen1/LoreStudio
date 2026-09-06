@@ -16,7 +16,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from ...models.codex import CodexEdge, CodexNode
+from ...models.codex import SYNCED_SOURCES, CodexEdge, CodexNode
 from ...models.location import ScenePresence
 from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
@@ -56,9 +56,13 @@ def derive_presence(story_id: str, db: Session) -> int:
         return 0
 
     authored = _authored_presence([n.ref_id for n in scenes.values()], db)
-    db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind == "present_in").delete(
-        synchronize_session=False
-    )
+    # Only what this pass generated. An `llm` proposal is waiting for the author, and a
+    # rebuild that quietly dropped it would empty the review queue behind their back.
+    db.query(CodexEdge).filter(
+        CodexEdge.story_id == story_id,
+        CodexEdge.kind == "present_in",
+        CodexEdge.source.in_(SYNCED_SOURCES),
+    ).delete(synchronize_session=False)
 
     pov_by_scene = {
         e.src_id: e.dst_id for e in db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind == "pov")
@@ -157,7 +161,10 @@ def derive_facts(story_id: str, db: Session) -> int:
 
     # Facts are regenerated wholesale; the author's own `knows` links are overrides and stay.
     existing = {
-        n.ref_id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id, CodexNode.kind == "fact")
+        n.ref_id: n
+        for n in db.query(CodexNode).filter(
+            CodexNode.story_id == story_id, CodexNode.kind == "fact", CodexNode.source.in_(SYNCED_SOURCES)
+        )
     }
     db.query(CodexEdge).filter(
         CodexEdge.story_id == story_id, CodexEdge.kind.in_(["knows", "established_in"]), CodexEdge.source == "derived"

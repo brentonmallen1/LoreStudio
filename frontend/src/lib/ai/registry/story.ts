@@ -2,6 +2,24 @@ import type { AIFeatureInfo } from "./types";
 
 /** Story mechanics — threads, twists, reader knowledge, discoveries. */
 export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
+  "codex-suggestions": {
+    id: "codex-suggestions",
+    label: "Codex Suggestions",
+    type: "ai",
+    shortDescription: "Propose who was in a scene and what it establishes, quoting the line",
+    fullDescription:
+      "The Codex works out who is in a scene from point of view, dialogue tags and names in the prose. " +
+      'Good writing defeats all three — you write "the keeper", not "Elena". This reads your scenes and ' +
+      "proposes what those signals missed, and what each scene establishes as true, quoting the words it " +
+      "read that from. It never proposes what should happen next and never invents a character. Nothing " +
+      "it finds counts until you confirm it, and confirming writes a real Lorebook row.",
+    contextSources: [
+      "The scene's prose",
+      "Your cast, and who the graph already places in the scene",
+      "Facts already recorded, so it does not repeat them",
+    ],
+    backendFeatureId: "codex-suggest",
+  },
   "twist-analysis": {
     id: "twist-analysis",
     label: "Twist Analysis",

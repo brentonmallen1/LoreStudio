@@ -545,6 +545,22 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         budget=BUDGET_SMALL,
     ),
     AIFeature(
+        id="codex-suggest",
+        label="Codex Suggestions",
+        group="prepare",
+        classification="analyse",
+        description=(
+            "Reads a scene and proposes who was in it and what it establishes, each quoting the line "
+            "it read that from. Nothing counts until you confirm it."
+        ),
+        context=(
+            "The scene's prose",
+            "The cast, and who the graph already places in the scene",
+            "Facts already recorded",
+        ),
+        budget=BUDGET_MEDIUM,
+    ),
+    AIFeature(
         id="relationship-suggest",
         label="Relationship Suggestions",
         group="prepare",
