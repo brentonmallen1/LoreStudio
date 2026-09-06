@@ -127,12 +127,16 @@ def build_character_interview_system_prompt(  # noqa: C901
     character: Character,
     journey_summary: str | None = None,
     previous_session_summary: str | None = None,
+    knowledge_block: str | None = None,
 ) -> str:
     """
     Constructs the system prompt for a character interview.
     The character becomes the LLM's persona — it IS the character.
     If journey_summary is provided, the character responds with awareness of story events.
     If previous_session_summary is provided, the character remembers past conversations.
+    If knowledge_block is provided (services/character_knowledge.describe_scope), it bounds
+    what they know: the scenes they were present for and an instruction to say so when
+    asked about anything else.
     """
     parts = [f"You are {character.name}."]
 
@@ -190,6 +194,9 @@ def build_character_interview_system_prompt(  # noqa: C901
             f"\n\nWhat you have experienced so far in the story:\n{journey_summary}\n"
             "Respond with awareness of these events — they are part of your lived experience."
         )
+
+    if knowledge_block:
+        parts.append(knowledge_block)
 
     if previous_session_summary:
         parts.append(

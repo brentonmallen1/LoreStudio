@@ -20,6 +20,7 @@ from ..schemas.panel_interview import (
     PanelInterviewSummaryOut,
     PanelMessageRequest,
 )
+from ..services.character_knowledge import build_scope, describe_scope
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.panel import (
     build_panel_character_prompt,
@@ -247,6 +248,7 @@ async def send_panel_message(
                     other_characters=other_characters,
                     relationships=relationships,
                     response_length=body.response_length,
+                    knowledge_block=describe_scope(character, build_scope(character, db)),
                 )
 
                 llm_messages = [

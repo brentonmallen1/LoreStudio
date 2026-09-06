@@ -1,0 +1,92 @@
+.drawer {
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 0.6rem 0.7rem;
+  margin: 0.4rem 0.6rem;
+  max-height: 20rem;
+  overflow: auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.icon {
+  color: var(--color-ai);
+}
+
+.title {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.close {
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 0.1rem;
+  line-height: 0;
+}
+
+.close:hover {
+  color: var(--color-text);
+}
+
+.summary,
+.note {
+  margin: 0 0 0.5rem;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.sectionTitle {
+  margin: 0.6rem 0 0.3rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sceneTitle {
+  font-size: 0.78rem;
+  color: var(--color-text);
+}
+
+.reasons {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+}
+
+.sceneSummary {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.false {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}

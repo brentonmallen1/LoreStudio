@@ -26,6 +26,7 @@ from ..services.character_journey import (
     get_scenes_with_character,
     save_journey,
 )
+from ..services.character_knowledge import build_scope, describe_scope
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.interviews import (
     build_character_interview_system_prompt,
@@ -175,7 +176,12 @@ async def send_message(
 
     # Build feature prompt, prepending compacted summary if present
     compacted_summary_text: str | None = interview.compacted_summary or None
-    feature_prompt = build_character_interview_system_prompt(character, journey_summary, previous_session_summary)
+    # What this character was present for, up to the interview's story point. Without this
+    # the persona answered questions about scenes it had never been in (doc 06 §6).
+    scope = build_scope(character, db, interview.context_node_id)
+    feature_prompt = build_character_interview_system_prompt(
+        character, journey_summary, previous_session_summary, describe_scope(character, scope)
+    )
     if compacted_summary_text:
         feature_prompt = (
             f"{feature_prompt}\n\n"

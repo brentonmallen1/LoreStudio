@@ -123,6 +123,7 @@ def build_panel_character_prompt(  # noqa: C901, PLR0912
     relationships: list[CharacterRelationship],
     journey_summary: str | None = None,
     response_length: str | None = None,
+    knowledge_block: str | None = None,
 ) -> str:
     """
     Full character persona prompt (equivalent to single-character interview) plus
@@ -174,6 +175,11 @@ def build_panel_character_prompt(  # noqa: C901, PLR0912
             f"\n\nWhat you have experienced so far in the story:\n{journey_summary}\n"
             "Respond with awareness of these events — they are part of your lived experience."
         )
+
+    # The same knowledge bound the interview uses (doc 06 §6): a panel member should not
+    # answer for scenes they were never in either.
+    if knowledge_block:
+        parts.append(knowledge_block)
 
     # Room context
     if other_characters:

@@ -42,6 +42,7 @@ from ..services.character_journey import (
     get_scenes_with_character,
     save_journey,
 )
+from ..services.character_knowledge import build_scope
 from ..services.linking_service import apply_entity_links, suggest_entity_links_preloaded
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.analysis import build_voice_fidelity_prompt
@@ -201,6 +202,32 @@ def get_character_dialogue(
             )
         )
     return result
+
+
+@router.get("/{character_id}/knowledge")
+def get_character_knowledge(
+    character_id: str,
+    as_of: str | None = Query(None, description="Node id the character's knowledge stops at"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    What this character was present for, and what they were told, up to a point in the
+    story. This is exactly what the interview prompt is given (doc 06 §6) — the "What they
+    know" drawer shows the author the same list the persona receives.
+    """
+    character = _verify_character_access(character_id, db, current_user)
+    scope = build_scope(character, db, as_of)
+    return {
+        "as_of_node_id": scope.as_of_node_id,
+        "as_of_title": scope.as_of_title,
+        "scenes_considered": scope.scenes_considered,
+        "scenes": [
+            {"node_id": s.node_id, "title": s.title, "reasons": list(s.reasons), "summary": s.summary}
+            for s in scope.scenes
+        ],
+        "facts": scope.facts,
+    }
 
 
 @router.get("/{character_id}/journey")

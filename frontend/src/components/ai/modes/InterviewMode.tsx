@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   User2,
   BookOpen,
+  Eye,
   RefreshCw,
   Feather,
   ChevronDown,
@@ -22,6 +23,7 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
 import ChatInput from "../shared/ChatInput";
+import CharacterKnowledgeDrawer from "../CharacterKnowledgeDrawer";
 import styles from "./InterviewMode.module.css";
 
 function flattenNodes(
@@ -61,6 +63,7 @@ export default function InterviewMode({ session }: Props) {
 
   const character = characters.find((c) => c.id === session.context.characterId);
   const contextNodeId = session.context.nodeId ?? null;
+  const [showKnowledge, setShowKnowledge] = useState(false);
   const flatNodes = flattenNodes(structure);
 
   const {
@@ -205,7 +208,7 @@ export default function InterviewMode({ session }: Props) {
                 value={contextNodeId ?? ""}
                 onChange={(e) => updateSessionContext(session.id, { nodeId: e.target.value || undefined })}
               >
-                <option value="">Timeless — no story context</option>
+                <option value="">Knows everything written so far</option>
                 {flatNodes.map((n) => (
                   <option key={n.id} value={n.id}>
                     {"  ".repeat(n.depth)}
@@ -216,8 +219,8 @@ export default function InterviewMode({ session }: Props) {
             ) : (
               <span className={styles.contextLabel}>
                 {contextNodeId
-                  ? (flatNodes.find((n) => n.id === contextNodeId)?.label ?? "story context")
-                  : "Timeless interview"}
+                  ? `Knows up to ${flatNodes.find((n) => n.id === contextNodeId)?.label ?? "this point"}`
+                  : "Knows everything written so far"}
               </span>
             )}
 
@@ -247,7 +250,24 @@ export default function InterviewMode({ session }: Props) {
                 </button>
               </>
             )}
+            {session.context.characterId && (
+              <button
+                className={styles.refreshBtn}
+                onClick={() => setShowKnowledge((v) => !v)}
+                title="The scenes this character was present for — the same list the interview prompt receives"
+              >
+                <Eye size={10} /> What they know
+              </button>
+            )}
           </div>
+          {showKnowledge && session.context.characterId && (
+            <CharacterKnowledgeDrawer
+              characterId={session.context.characterId}
+              characterName={character?.name ?? session.resolvedNames.characterName ?? "They"}
+              asOfNodeId={contextNodeId}
+              onClose={() => setShowKnowledge(false)}
+            />
+          )}
           <LLMContextSources sources={contextSources} loading={sourcesLoading && !contextSources.length} />
         </>
       }
