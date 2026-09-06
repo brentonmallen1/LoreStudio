@@ -31,6 +31,14 @@ export interface AISession {
   /** Abort controller for the current streaming request */
   _abortController?: AbortController;
   createdAt: string;
+  /** Last time the author opened or wrote in this session — the list is recent-first. */
+  lastActiveAt?: string;
+  /** A name the author gave this session, overriding the derived context title. */
+  title?: string;
+  /** Pinned sessions sit at the top of their group and survive the tidy-up. */
+  pinned?: boolean;
+  /** A structured analysis this session was opened to show (doc 06 §2.1, result sessions). */
+  result?: { feature: string; data: unknown; heading?: string };
   /** When set, user is asked Continue/Start Fresh before messages are loaded */
   pendingResume?: {
     chronicleSessionId: string;
@@ -69,6 +77,18 @@ interface AIStore {
 
   closeSession: (id: string) => void;
   setActiveSession: (id: string) => void;
+  renameSession: (id: string, title: string) => void;
+  togglePinned: (id: string) => void;
+  /**
+   * Open an analysis result as a session, so every AI output has one place to be found
+   * (doc 06 §2.1). The conversation underneath asks about the finding.
+   */
+  openResultSession: (args: {
+    feature: string;
+    heading: string;
+    data: unknown;
+    context: SessionContext;
+  }) => AISession;
 
   /** Update a session's context (only allowed before contextLocked) */
   updateSessionContext: (id: string, context: Partial<SessionContext>) => void;
@@ -259,7 +279,48 @@ export const useAIStore = create<AIStore>((set, get) => ({
     });
   },
 
-  setActiveSession: (id) => set({ activeSessionId: id }),
+  setActiveSession: (id) =>
+    set((s) => ({
+      activeSessionId: id,
+      sessions: s.sessions.map((sess) =>
+        sess.id === id ? { ...sess, lastActiveAt: new Date().toISOString() } : sess,
+      ),
+    })),
+
+  renameSession: (id, title) =>
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === id ? { ...sess, title: title.trim() || undefined } : sess,
+      ),
+    })),
+
+  togglePinned: (id) =>
+    set((s) => ({
+      sessions: s.sessions.map((sess) => (sess.id === id ? { ...sess, pinned: !sess.pinned } : sess)),
+    })),
+
+  openResultSession: ({ feature, heading, data, context }) => {
+    const session: AISession = {
+      id: makeSessionId(),
+      type: "analysis-result",
+      context,
+      resolvedNames: {},
+      messages: [],
+      contextLocked: true,
+      isStreaming: false,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
+      title: heading,
+      result: { feature, data, heading },
+    };
+    set((s) => ({
+      sessions: [...s.sessions, session],
+      activeSessionId: session.id,
+      panelOpen: true,
+      panelCollapsed: false,
+    }));
+    return session;
+  },
 
   updateSessionContext: (id, contextUpdate) => {
     set((s) => ({

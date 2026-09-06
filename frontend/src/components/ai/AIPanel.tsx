@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Minus,
   X,
-  MessageSquare,
   Feather,
   Plus,
   ChevronLeft,
@@ -10,12 +9,15 @@ import {
   PanelRight,
   PictureInPicture2,
   ExternalLink,
+  List,
 } from "lucide-react";
 import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
 import PanelFrame from "./PanelFrame";
+import SessionList from "./SessionList";
+import { sessionLabel } from "../../lib/ai/sessionLabel";
 import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import SessionView from "./SessionView";
 import styles from "./AIPanel.module.css";
@@ -31,13 +33,14 @@ export default function AIPanel() {
     closePanel,
     collapsePanel,
     expandPanel,
-    closeSession,
-    setActiveSession,
     createSession,
     panelFloating,
     togglePanelFloating,
     otherWindowOpen,
+    renameSession,
   } = useAIStore();
+  const [showSessions, setShowSessions] = useState(false);
+  const [renaming, setRenaming] = useState(false);
   const inOwnWindow = typeof window !== "undefined" && window.location.pathname === AI_WINDOW_PATH;
 
   function openInNewWindow() {
@@ -161,43 +164,42 @@ export default function AIPanel() {
 
   return (
     <PanelFrame floating={panelFloating}>
-      {/* Tab bar */}
+      {/* Session bar: the open session, and a way into the rest (doc 06 §2.1) */}
       <div className={styles.tabBar}>
-        <div className={styles.tabs} role="tablist" aria-label="AI sessions">
-          {sessions.map((session) => {
-            const type = getSessionType(session.type);
-            const Icon = type?.icon ?? MessageSquare;
-            const label = type?.contextTitle(session.context, session.resolvedNames) ?? session.type;
-            const isActive = session.id === activeSessionId;
-            return (
-              <div
-                key={session.id}
-                role="tab"
-                aria-selected={isActive}
-                className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
-              >
-                <button
-                  className={styles.tabMain}
-                  onClick={() => setActiveSession(session.id)}
-                  aria-label={label}
-                  title={label}
-                >
-                  <Icon size={12} className={styles.tabIcon} />
-                  <span className={styles.tabLabel}>{label}</span>
-                </button>
-                <button
-                  className={styles.tabClose}
-                  onClick={() => closeSession(session.id)}
-                  aria-label={`Close ${label}`}
-                  title="Close tab"
-                >
-                  <X size={10} />
-                </button>
-              </div>
-            );
-          })}
-          {sessions.length === 0 && <span className={styles.tabEmpty}>Assistant</span>}
-        </div>
+        <button
+          className={styles.sessionsBtn}
+          onClick={() => setShowSessions((v) => !v)}
+          aria-expanded={showSessions}
+          title="Open sessions"
+        >
+          <List size={12} />
+          <span className={styles.sessionsCount}>{sessions.length}</span>
+        </button>
+
+        {renaming && activeSession ? (
+          <input
+            className={styles.titleInput}
+            defaultValue={sessionLabel(activeSession)}
+            autoFocus
+            onBlur={(e) => {
+              renameSession(activeSession.id, e.target.value);
+              setRenaming(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") setRenaming(false);
+            }}
+          />
+        ) : (
+          <button
+            className={styles.currentTitle}
+            onClick={() => activeSession && setRenaming(true)}
+            title={activeSession ? "Rename this session" : "Assistant"}
+            disabled={!activeSession}
+          >
+            {activeSession ? sessionLabel(activeSession) : "Assistant"}
+          </button>
+        )}
 
         {/* New session button — between tabs and controls */}
         <div className={styles.newMenuWrapper} ref={newMenuRef}>
@@ -282,6 +284,8 @@ export default function AIPanel() {
           </button>
         </div>
       </div>
+
+      {showSessions && <SessionList onPick={() => setShowSessions(false)} />}
 
       {/* Session content */}
       {activeSession ? (

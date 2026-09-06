@@ -16,6 +16,7 @@ import DiscoveryQuestionsMode from "./modes/DiscoveryQuestionsMode";
 import AttributeGeneratorMode from "./modes/AttributeGeneratorMode";
 import StoryIdentityWorkshopMode from "./modes/StoryIdentityWorkshopMode";
 import styles from "./SessionView.module.css";
+import AnalysisResultMode from "./modes/AnalysisResultMode";
 
 interface Props {
   session: AISession;
@@ -23,6 +24,8 @@ interface Props {
 
 export default function SessionView({ session }: Props) {
   switch (session.type) {
+    case "analysis-result":
+      return <AnalysisResultMode session={session} />;
     case "assistant":
       return <AssistantMode session={session} />;
     case "interview":

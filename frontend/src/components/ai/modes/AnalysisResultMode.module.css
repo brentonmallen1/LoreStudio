@@ -1,0 +1,40 @@
+.result {
+  padding: 0.5rem 0.7rem;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  max-height: 45%;
+  overflow-y: auto;
+}
+
+.object {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.key {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+}
+
+.list {
+  margin: 0;
+  padding-left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.scalar {
+  color: var(--color-text);
+}

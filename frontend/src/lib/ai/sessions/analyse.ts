@@ -4,6 +4,7 @@
  */
 import { Users, Eye, Compass } from "lucide-react";
 import { registerSessionType } from "../sessionTypes";
+import { api } from "../../../api/client";
 import { useStoryStore } from "../../../stores/storyStore";
 
 // ── Show Don't Tell Analysis ──────────────────────────────────────────────────
@@ -106,4 +107,36 @@ registerSessionType({
 
   persistsInBackend: false,
   allowContextSwitch: false,
+});
+
+// ── Analysis result ───────────────────────────────────────────────────────────
+// Not started from the panel's New menu: a page opens one when an analysis returns
+// (aiStore.openResultSession), so every AI output has one place to be found.
+
+registerSessionType({
+  id: "analysis-result",
+  label: "Analysis",
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Analysis — ${names.storyTitle}` : "Analysis"),
+  contextItemLabel: (_, names) => names.storyTitle ?? "Analysis",
+  icon: Compass,
+  accentVar: "--color-ai",
+  backendFeatureId: "scene-chat",
+
+  requiresStory: true,
+  requiresCharacter: false,
+  requiresNode: false,
+
+  getDefaultContext: (currentView) => ({ storyId: currentView.storyId }),
+  getContextItems: () => [],
+  initSession: async () => ({}),
+
+  sendMessage: (session, _content, signal, llmParams) => {
+    const { storyId } = session.context;
+    if (!storyId) return Promise.reject(new Error("This analysis has no story."));
+    return api.sendChatMessage(storyId, "__story__", session.messages, signal, llmParams);
+  },
+
+  persistsInBackend: false,
+  allowContextSwitch: false,
+  hiddenFromNewMenu: true,
 });

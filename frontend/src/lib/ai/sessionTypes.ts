@@ -130,6 +130,12 @@ export interface SessionTypeConfig {
   /** Whether this session type persists messages in the backend (interviews) vs client-only */
   persistsInBackend: boolean;
 
+  /**
+   * Hidden from the panel's New menu: some sessions are opened by a page with a result in
+   * hand (doc 06 §2.1) and make no sense to start empty.
+   */
+  hiddenFromNewMenu?: boolean;
+
   /** Whether the context can be changed in the panel header (before first message) */
   allowContextSwitch: boolean;
 
@@ -159,5 +165,5 @@ export function getSessionType(id: string): SessionTypeConfig | undefined {
 }
 
 export function getAllSessionTypes(): SessionTypeConfig[] {
-  return Array.from(registry.values());
+  return Array.from(registry.values()).filter((t) => !t.hiddenFromNewMenu);
 }

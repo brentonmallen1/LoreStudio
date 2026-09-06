@@ -47,6 +47,7 @@ import type {
   VoiceFidelityFinding,
 } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
+import AskAboutAnalysis from "./AskAboutAnalysis";
 import styles from "./ReportCard.module.css";
 
 // ── Feature metadata ──────────────────────────────────────────────────────────
@@ -1089,6 +1090,7 @@ export default function ReportCard({ log }: Props) {
         </div>
         <span className={styles.timestamp}>{formatTimestamp(log.created_at)}</span>
       </button>
+      {log.metadata_?.result != null && <AskAboutAnalysis log={log} label={meta.label} />}
       {expanded && <div className={styles.body}>{renderBody(log)}</div>}
     </div>
   );

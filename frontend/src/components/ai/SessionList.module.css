@@ -1,0 +1,114 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.empty {
+  margin: 0;
+  padding: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.groupLabel {
+  margin: 0 0 0.15rem 0.3rem;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  border-radius: var(--radius-sm);
+}
+
+.row:hover {
+  background: var(--color-bg);
+}
+
+.rowActive {
+  background: var(--color-bg);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.4rem;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+
+.rowActive .rowMain {
+  color: var(--color-text);
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  color: var(--color-ai);
+}
+
+.rowLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.streaming {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-ai);
+  animation: pulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.rowBtn {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  line-height: 0;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.row:hover .rowBtn,
+.rowActive .rowBtn,
+.pinned {
+  opacity: 1;
+}
+
+.rowBtn:hover {
+  color: var(--color-text);
+}
+
+.pinned {
+  color: var(--color-ai);
+}
