@@ -1,6 +1,6 @@
 .page {
   padding: 1.5rem;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -217,4 +217,48 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 0.45rem 0.8rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.tab[data-on="true"] {
+  color: var(--color-text);
+  border-bottom-color: var(--color-ai);
+  font-weight: 500;
+}
+
+.graphLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .graphLayout:has(.graphSide) {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+.graphMain {
+  min-width: 0;
+}
+
+.graphSide {
+  min-width: 0;
 }

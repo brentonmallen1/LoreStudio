@@ -1,8 +1,9 @@
 """The Codex API: read the graph, correct who is in a scene, queue a rebuild (doc 07)."""
 
+from app.models.activity_log import ActivityLog
 from app.models.ai_job import AIJob
 from app.models.character import Character
-from app.models.codex import CodexChunk
+from app.models.codex import CodexChunk, CodexNode
 from app.models.story import Story
 from app.models.structure import StructureNode
 from app.services.codex.embeddings import DEFAULT_EMBED_MODEL, pack
@@ -155,3 +156,38 @@ def test_clearing_the_model_falls_back_to_the_default(client, db_session, test_u
     body = client.patch("/api/codex/settings", json={"embed_model": None}).json()
     assert body["embed_model"] is None
     assert body["effective_embed_model"] == DEFAULT_EMBED_MODEL
+
+
+def test_a_node_page_shows_what_it_connects_to_and_how_used_it_is(client, db_session, test_user):
+    story, elena, scene = _setup(db_session, test_user)
+    scene.pov_character_id = elena.id
+    scene.content = f"<p>{' '.join(['lamp'] * 120)}</p>"
+    db_session.commit()
+    sync_story(story.id, db_session)
+    build_chunks(story.id, db_session)
+    db_session.add(
+        ActivityLog(
+            user_id=test_user.id,
+            story_id=story.id,
+            event_type="ai_call",
+            category="ai",
+            description="Scene assistant",
+            metadata_={"node_id": scene.id},
+        )
+    )
+    db_session.commit()
+
+    node = db_session.query(CodexNode).filter(CodexNode.ref_id == scene.id).one()
+    body = client.get(f"/api/stories/{story.id}/codex/nodes/{node.id}").json()
+    assert body["node"]["label"] == "The Mainland"
+    assert body["chunks"] == 1 and body["embedded"] == 0
+    assert body["ai_calls"] == 1
+    # The point-of-view edge runs scene -> character, so it reads as outgoing here.
+    pov = [e for e in body["edges"] if e["kind"] == "pov"]
+    assert len(pov) == 1
+    assert (pov[0]["direction"], pov[0]["other_label"]) == ("out", "Elena")
+
+
+def test_a_node_from_another_story_is_not_found(client, db_session, test_user):
+    story, _, _ = _setup(db_session, test_user)
+    assert client.get(f"/api/stories/{story.id}/codex/nodes/nope").status_code == 404

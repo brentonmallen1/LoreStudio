@@ -8,12 +8,14 @@ was actually in a scene.
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.codex import CodexEdge, CodexNode
+from ..models.activity_log import ActivityLog
+from ..models.codex import CodexChunk, CodexEdge, CodexNode
 from ..models.story import Story
 from ..models.user import User
 from ..services.codex.embeddings import DEFAULT_EMBED_MODEL, embed_base_url_for, embed_model_for, search_backend
@@ -430,3 +432,92 @@ def reject_suggestions(
     """Discard proposals. A no is not a record worth keeping."""
     _story_or_404(story_id, db, user)
     return review(story_id, db, body.ids, accept=False)
+
+
+class EdgeDetail(BaseModel):
+    id: str
+    kind: str
+    #: "out" — this node is the subject; "in" — something points at it.
+    direction: str
+    other_id: str
+    other_kind: str
+    other_label: str
+    other_ref_id: str
+    source: str
+    confidence: float
+    props: dict
+
+
+class NodeDetail(BaseModel):
+    node: NodeOut
+    edges: list[EdgeDetail]
+    #: Passages indexed under this node, and how many have vectors.
+    chunks: int
+    embedded: int
+    tokens: int
+    #: How often this thing has actually been sent to a model (from the Chronicle).
+    ai_calls: int
+
+
+@router.get("/stories/{story_id}/codex/nodes/{node_id}", response_model=NodeDetail)
+def get_node(
+    story_id: str,
+    node_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """One node: what it stands for, what it connects to, and how much it has been used."""
+    _story_or_404(story_id, db, user)
+    node = db.query(CodexNode).filter(CodexNode.story_id == story_id, CodexNode.id == node_id).one_or_none()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found")
+
+    others = {n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id)}
+    edges: list[EdgeDetail] = []
+    for edge in db.query(CodexEdge).filter(
+        CodexEdge.story_id == story_id, or_(CodexEdge.src_id == node_id, CodexEdge.dst_id == node_id)
+    ):
+        outgoing = edge.src_id == node_id
+        other = others.get(edge.dst_id if outgoing else edge.src_id)
+        if not other:
+            continue
+        edges.append(
+            EdgeDetail(
+                id=edge.id,
+                kind=edge.kind,
+                direction="out" if outgoing else "in",
+                other_id=other.id,
+                other_kind=other.kind,
+                other_label=other.label,
+                other_ref_id=other.ref_id,
+                source=edge.source,
+                confidence=edge.confidence,
+                props=edge.props or {},
+            )
+        )
+    edges.sort(key=lambda e: (e.kind, e.other_label))
+
+    chunks = db.query(CodexChunk).filter(CodexChunk.node_id == node_id).all()
+    # The Chronicle records what each call was about; a node has "been used" when the row
+    # it stands for was the subject of one.
+    ai_calls = (
+        db.query(func.count(ActivityLog.id))
+        .filter(
+            ActivityLog.story_id == story_id,
+            ActivityLog.category == "ai",
+            or_(
+                ActivityLog.metadata_["node_id"].as_string() == node.ref_id,
+                ActivityLog.metadata_["character_id"].as_string() == node.ref_id,
+            ),
+        )
+        .scalar()
+        or 0
+    )
+    return NodeDetail(
+        node=NodeOut.model_validate(node),
+        edges=edges,
+        chunks=len(chunks),
+        embedded=sum(1 for c in chunks if c.embedding),
+        tokens=sum(c.token_count for c in chunks),
+        ai_calls=ai_calls,
+    )
