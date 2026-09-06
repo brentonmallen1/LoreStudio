@@ -22,6 +22,36 @@ from tests.fixtures.ai_fixtures import MockAIGateway, make_mock_gateway
 from tests.fixtures.db_fixtures import make_test_engine, make_test_session
 
 # ---------------------------------------------------------------------------
+# Isolation from the developer's environment
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _forget_developer_env():
+    """
+    Run the suite as though no .env existed.
+
+    `just` loads the repo's .env into every recipe (`set dotenv-load := true`), so under
+    `just ci` a developer's real SECRET_KEY and ADMIN_PASSWORD reached
+    `Settings(_env_file=None)` — which disables the *file*, not the environment. The
+    insecure-defaults test then found nothing insecure and failed on their machine while
+    passing in GitHub CI, where no .env exists. Tests describe the code, not the box they
+    run on, so the settings environment is cleared for the session.
+    """
+    import os
+
+    from app.config import Settings
+
+    saved = {}
+    for field in Settings.model_fields:
+        for name in (field.upper(), field):
+            if name in os.environ:
+                saved[name] = os.environ.pop(name)
+    yield
+    os.environ.update(saved)
+
+
+# ---------------------------------------------------------------------------
 # Simple factory fixture (existing)
 # ---------------------------------------------------------------------------
 

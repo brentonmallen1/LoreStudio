@@ -123,7 +123,46 @@ def _build_attribute_guidance(attributes: dict) -> str:
     return "\n".join(lines)
 
 
-def build_character_interview_system_prompt(  # noqa: C901
+def _profile_lines(character: Character) -> list[str]:
+    """The character's own profile, in their voice: only the fields the author filled in."""
+    fields = (
+        ("core drive", character.mission_statement),
+        ("personality", character.personality),
+        ("motivation", character.motivation),
+        ("background", character.background),
+        ("appearance", character.appearance),
+    )
+    lines = [f"\nYour {label}: {value}" for label, value in fields if value]
+
+    if character.traits:
+        trait_lines = "\n".join(f"  - {k}: {v}" for k, v in character.traits.items())
+        lines.append(f"\nYour traits:\n{trait_lines}")
+
+    if character.attributes:
+        attr_guidance = _build_attribute_guidance(character.attributes)
+        if attr_guidance:
+            lines.append(f"\n\nHow you speak, think, and carry yourself:\n{attr_guidance}")
+    return lines
+
+
+def _classification_lines(character: Character) -> list[str]:
+    """Guidance drawn from role, character type and the two archetype fields."""
+    tables = (
+        (_ROLE_GUIDANCE, character.role),
+        (_CHARACTER_TYPE_GUIDANCE, getattr(character, "character_type", "")),
+        (_JUNGIAN_GUIDANCE, getattr(character, "jungian_archetype", "")),
+        (_NARRATIVE_GUIDANCE, getattr(character, "narrative_archetype", "")),
+    )
+    lines = []
+    for table, value in tables:
+        key = _normalise(value or "")
+        match = next((v for k, v in table.items() if _normalise(k) == key), None)
+        if match:
+            lines.append(match)
+    return lines
+
+
+def build_character_interview_system_prompt(
     character: Character,
     journey_summary: str | None = None,
     previous_session_summary: str | None = None,
@@ -138,54 +177,9 @@ def build_character_interview_system_prompt(  # noqa: C901
     what they know: the scenes they were present for and an instruction to say so when
     asked about anything else.
     """
-    parts = [f"You are {character.name}."]
+    parts = [f"You are {character.name}.", *_profile_lines(character)]
 
-    if character.mission_statement:
-        parts.append(f"\nYour core drive: {character.mission_statement}")
-
-    if character.personality:
-        parts.append(f"\nYour personality: {character.personality}")
-
-    if character.motivation:
-        parts.append(f"\nYour motivation: {character.motivation}")
-
-    if character.background:
-        parts.append(f"\nYour background: {character.background}")
-
-    if character.appearance:
-        parts.append(f"\nYour appearance: {character.appearance}")
-
-    if character.traits:
-        trait_lines = "\n".join(f"  - {k}: {v}" for k, v in character.traits.items())
-        parts.append(f"\nYour traits:\n{trait_lines}")
-
-    if character.attributes:
-        attr_guidance = _build_attribute_guidance(character.attributes)
-        if attr_guidance:
-            parts.append(f"\n\nHow you speak, think, and carry yourself:\n{attr_guidance}")
-
-    # Classification guidance — role, character type, and archetypes
-    classification_lines: list[str] = []
-    role_key = _normalise(character.role or "")
-    role_match = next((v for k, v in _ROLE_GUIDANCE.items() if _normalise(k) == role_key), None)
-    if role_match:
-        classification_lines.append(role_match)
-
-    char_type_key = _normalise(getattr(character, "character_type", "") or "")
-    char_type_match = next((v for k, v in _CHARACTER_TYPE_GUIDANCE.items() if _normalise(k) == char_type_key), None)
-    if char_type_match:
-        classification_lines.append(char_type_match)
-
-    jungian_key = _normalise(getattr(character, "jungian_archetype", "") or "")
-    jungian_match = next((v for k, v in _JUNGIAN_GUIDANCE.items() if _normalise(k) == jungian_key), None)
-    if jungian_match:
-        classification_lines.append(jungian_match)
-
-    narrative_key = _normalise(getattr(character, "narrative_archetype", "") or "")
-    narrative_match = next((v for k, v in _NARRATIVE_GUIDANCE.items() if _normalise(k) == narrative_key), None)
-    if narrative_match:
-        classification_lines.append(narrative_match)
-
+    classification_lines = _classification_lines(character)
     if classification_lines:
         parts.append("\n\nYour place in the story:\n" + "\n".join(classification_lines))
 
