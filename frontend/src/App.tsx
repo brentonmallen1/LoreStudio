@@ -11,6 +11,7 @@ import GuidePage from "./pages/GuidePage";
 import CommandPalette from "./components/layout/CommandPalette";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
+import AIWindowPage from "./pages/AIWindowPage";
 
 /** Hands the router's navigate to non-React code (palette commands). */
 function NavigatorBridge() {
@@ -43,6 +44,15 @@ export default function App() {
       <ScratchPadDrawer />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {/* The AI panel in its own window: authenticated, but no app chrome (doc 06 §2.2). */}
+        <Route
+          path="/ai-window"
+          element={
+            <RequireAuth>
+              <AIWindowPage />
+            </RequireAuth>
+          }
+        />
         <Route
           element={
             <RequireAuth>

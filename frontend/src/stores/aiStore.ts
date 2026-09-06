@@ -46,6 +46,8 @@ interface AIStore {
   panelCollapsed: boolean;
   /** Floating: the panel detaches from the right rail into a draggable window (doc 06 §2.2). */
   panelFloating: boolean;
+  /** True while the panel is open in its own browser window; the main window shows a strip. */
+  otherWindowOpen: boolean;
 
   openPanel: () => void;
   closePanel: () => void;
@@ -183,6 +185,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
   panelOpen: false,
   panelCollapsed: false,
   panelFloating: readFloating(),
+  otherWindowOpen: false,
 
   openPanel: () => set({ panelOpen: true, panelCollapsed: false }),
   closePanel: () => set({ panelOpen: false }),

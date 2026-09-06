@@ -8,12 +8,16 @@ import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
 import { SHORTCUTS, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useAIStore } from "../../stores/aiStore";
+import { startAISync } from "../../lib/ai/aiSync";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
   const { viewState } = useUIStore();
   const isFocused = viewState !== "normal";
   const aiAvailable = useAIAvailable();
+
+  // Keep this window's panel in step with one opened in its own window (doc 06 §2.2).
+  useEffect(() => startAISync("main"), []);
 
   // Writer mode, or the AI switch off: AI commands never appear in the palette.
   useEffect(() => {

@@ -9,12 +9,14 @@ import {
   User2,
   PanelRight,
   PictureInPicture2,
+  ExternalLink,
 } from "lucide-react";
 import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
 import PanelFrame from "./PanelFrame";
+import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import SessionView from "./SessionView";
 import styles from "./AIPanel.module.css";
 
@@ -34,7 +36,16 @@ export default function AIPanel() {
     createSession,
     panelFloating,
     togglePanelFloating,
+    otherWindowOpen,
   } = useAIStore();
+  const inOwnWindow = typeof window !== "undefined" && window.location.pathname === AI_WINDOW_PATH;
+
+  function openInNewWindow() {
+    const story = activeStory?.id ? `?story=${encodeURIComponent(activeStory.id)}` : "";
+    // A named window means a second click focuses the one that is open, not a third panel.
+    window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-ai", "width=460,height=760");
+    closePanel();
+  }
   const { activeStory, activeNode, characters } = useStoryStore();
 
   // New session menu state
@@ -112,6 +123,19 @@ export default function AIPanel() {
   if (!panelOpen) return null;
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);
+
+  // The panel is open in its own window: say so rather than showing a second copy of it.
+  if (otherWindowOpen && !inOwnWindow) {
+    return (
+      <div className={styles.awayStrip} role="status">
+        <ExternalLink size={12} />
+        <span>AI panel is open in another window</span>
+        <button className={styles.awayBtn} onClick={() => useAIStore.setState({ otherWindowOpen: false })}>
+          Bring it back
+        </button>
+      </div>
+    );
+  }
 
   // Collapsed state: just a thin strip with a button to expand
   if (panelCollapsed) {
@@ -232,6 +256,16 @@ export default function AIPanel() {
 
         <div className={styles.tabControls}>
           <AIFeatureInfoTrigger pageId="ai-panel" size="sm" />
+          {!inOwnWindow && (
+            <button
+              className={styles.controlBtn}
+              onClick={openInNewWindow}
+              title="Open the panel in its own window"
+              aria-label="Open the AI panel in its own window"
+            >
+              <ExternalLink size={13} />
+            </button>
+          )}
           <button
             className={styles.controlBtn}
             onClick={togglePanelFloating}
