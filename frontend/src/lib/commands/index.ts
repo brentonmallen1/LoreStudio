@@ -29,6 +29,7 @@ import { STORY_ROUTES, storyPath } from "../routes";
 import { SETTINGS_SECTIONS, settingsPath } from "../../pages/settings/sections";
 import { navigateTo } from "../navigation";
 import { getMode } from "../mode";
+import { GUIDES } from "../../guides";
 import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -71,6 +72,18 @@ commandRegistry.register({
   group: "Global",
   action: () => useUIStore.getState().toggleScratchPad(),
 });
+
+for (const guide of GUIDES) {
+  commandRegistry.register({
+    id: `guide-${guide.id}`,
+    label: `Guide: ${guide.title}`,
+    keywords: ["guide", "help", "how to", "?", ...guide.keywords],
+    icon: BookOpen,
+    group: "Guides",
+    when: () => guide.modes.includes(getMode()),
+    action: () => navigateTo(`/guides/${guide.id}`),
+  });
+}
 
 // ── Navigation (generated from lib/routes.ts and settings/sections.ts) ─────────
 

@@ -13,6 +13,7 @@ import {
   Feather,
   Database,
   PenLine,
+  BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useMode } from "../../lib/mode";
@@ -282,6 +283,10 @@ export default function GlobalHeader() {
               <span>Assistant</span>
             </button>
           )}
+
+          <button onClick={() => navigate("/guides")} className={styles.iconBtn} title="Guides">
+            <BookOpen size={14} />
+          </button>
 
           {/* Scratch Pad */}
           <button

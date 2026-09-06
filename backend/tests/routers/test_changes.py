@@ -182,3 +182,15 @@ def test_story_relationship_todo_location_undo(client):
     assert client.post(f"/api/stories/{sid}/undo", headers=H1).status_code == 200
     assert client.get(f"/api/locations/{child['id']}").status_code == 200
     assert len(client.get(f"/api/structure/{scene['id']}/scene-settings").json()) == 1
+
+
+def test_prune_keeps_newest(client, db_session):
+    from app.services import change_log
+
+    sid = _story(client)
+    for i in range(6):
+        _scene(client, sid, f"S{i}")
+    removed = change_log.prune(db_session, sid, keep=3)
+    assert removed == 3
+    rows = client.get(f"/api/stories/{sid}/changes").json()
+    assert [r["label"] for r in rows] == ["Add scene “S5”", "Add scene “S4”", "Add scene “S3”"]

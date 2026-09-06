@@ -7,6 +7,7 @@ import DashboardPage from "./pages/Dashboard";
 import StoryWorkspacePage from "./pages/StoryWorkspace";
 import SettingsPage from "./pages/Settings";
 import SettingsAIPage from "./pages/SettingsAI";
+import GuidePage from "./pages/GuidePage";
 import CommandPalette from "./components/layout/CommandPalette";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
@@ -53,6 +54,8 @@ export default function App() {
           <Route path="/stories/:storyId/*" element={<StoryWorkspacePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/settings/ai-prompts" element={<SettingsAIPage />} />
+          <Route path="/guides" element={<GuidePage />} />
+          <Route path="/guides/:guideId" element={<GuidePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

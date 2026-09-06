@@ -525,3 +525,9 @@ def prune(db: Session, story_id: str, keep: int = RETENTION_ROWS_PER_STORY) -> i
     deleted = db.query(Change).filter(Change.story_id == story_id, Change.seq < cutoff).delete()
     db.commit()
     return deleted
+
+
+def prune_all(db: Session, keep: int = RETENTION_ROWS_PER_STORY) -> int:
+    """Startup housekeeping: cap the log per story. Returns rows removed."""
+    story_ids = [row[0] for row in db.query(Change.story_id).filter(Change.story_id.isnot(None)).distinct().all()]
+    return sum(prune(db, sid, keep) for sid in story_ids)

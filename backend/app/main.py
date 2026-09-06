@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from .auth.router import router as auth_router
 from .config import settings
@@ -58,6 +59,7 @@ from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .services.change_log import prune_all
 from .services.db_backup import backup_loop
 from .services.db_migrate import run_migrations
 from .services.seed import (
@@ -107,6 +109,10 @@ async def lifespan(app: FastAPI):
     else:
         Base.metadata.create_all(bind=engine)
     seed_all()
+    with Session(engine) as db:
+        removed = prune_all(db)
+        if removed:
+            logger.info("change log pruned: %d rows", removed)
     backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
     logger.info("startup complete (env=%s)", settings.env)
     yield

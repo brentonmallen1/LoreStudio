@@ -35,7 +35,11 @@ function parseBlocks(css: string): Block[] {
 
 function luminance(hex: string): number {
   let h = hex.replace("#", "");
-  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (h.length === 3)
+    h = h
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
   const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
@@ -80,7 +84,8 @@ describe("theme contrast (WCAG)", () => {
           const b = tokens[bg];
           if (!a || !b) continue; // derived value (rgba/color-mix) or not defined
           const ratio = contrast(a, b);
-          if (ratio < min) failures.push(`${what}: ${fg} ${a} on ${bg} ${b} = ${ratio.toFixed(2)} (< ${min})`);
+          if (ratio < min)
+            failures.push(`${what}: ${fg} ${a} on ${bg} ${b} = ${ratio.toFixed(2)} (< ${min})`);
         }
         expect(failures).toEqual([]);
       });

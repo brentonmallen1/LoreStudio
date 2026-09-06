@@ -4,6 +4,7 @@ import { commandRegistry } from "./registry";
 import { STORY_ROUTES } from "../routes";
 import { SETTINGS_SECTIONS } from "../../pages/settings/sections";
 import { SHORTCUTS, type ShortcutDef } from "../keyboard/shortcuts";
+import { GUIDES } from "../../guides";
 
 /**
  * "Everything from navigation to functionality is accessible in the command palette."
@@ -27,6 +28,11 @@ describe("command palette coverage", () => {
     const missing = Object.entries(SHORTCUTS)
       .filter(([, def]) => (def as ShortcutDef).commandId && !ids.has((def as ShortcutDef).commandId!))
       .map(([id, def]) => `${id} -> ${(def as ShortcutDef).commandId}`);
+    expect(missing).toEqual([]);
+  });
+
+  it("has a command for every guide", () => {
+    const missing = GUIDES.filter((g) => !ids.has(`guide-${g.id}`)).map((g) => g.id);
     expect(missing).toEqual([]);
   });
 
