@@ -264,3 +264,32 @@
   border-radius: var(--radius);
   object-fit: cover;
 }
+
+/* Per-message actions: visible on hover, always reachable by keyboard. */
+.actions {
+  display: flex;
+  gap: 0.1rem;
+  margin-top: 0.25rem;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.bubble:hover .actions,
+.actions:focus-within {
+  opacity: 1;
+}
+
+.action {
+  border: none;
+  background: none;
+  padding: 0.15rem;
+  line-height: 0;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.action:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}

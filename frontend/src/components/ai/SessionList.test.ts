@@ -72,3 +72,36 @@ describe("result sessions", () => {
     expect(sessionLabel(created)).toBe("Pacing Analysis");
   });
 });
+
+describe("asking again", () => {
+  beforeEach(() => useAIStore.setState({ sessions: [], activeSessionId: null }));
+
+  it("drops the answer and re-sends the question", () => {
+    const sent: string[] = [];
+    useAIStore.setState({
+      sessions: [
+        session("a", {
+          messages: [
+            { role: "user", content: "What is she afraid of?" },
+            { role: "assistant", content: "A vague answer." },
+          ],
+        }),
+      ],
+      sendMessage: ((_id: string, content: string) => sent.push(content)) as never,
+    });
+    useAIStore.getState().regenerate("a");
+    // The question goes back in via sendMessage, so the transcript is left before it.
+    expect(useAIStore.getState().sessions[0].messages).toEqual([]);
+    expect(sent).toEqual(["What is she afraid of?"]);
+  });
+
+  it("does nothing while a reply is still streaming", () => {
+    const sent: string[] = [];
+    useAIStore.setState({
+      sessions: [session("a", { isStreaming: true, messages: [{ role: "user", content: "Hi" }] })],
+      sendMessage: ((_id: string, content: string) => sent.push(content)) as never,
+    });
+    useAIStore.getState().regenerate("a");
+    expect(sent).toEqual([]);
+  });
+});

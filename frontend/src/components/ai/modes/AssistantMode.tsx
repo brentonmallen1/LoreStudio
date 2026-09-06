@@ -30,7 +30,7 @@ interface Props {
 
 export default function AssistantMode({ session }: Props) {
   const state = useAIModeState(session);
-  const { sendMessage, cancelStreaming } = useAIStore();
+  const { sendMessage, cancelStreaming, regenerate } = useAIStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
 
   const storyId = session.context.storyId ?? "";
@@ -98,6 +98,14 @@ export default function AssistantMode({ session }: Props) {
           messages={session.messages}
           streamingText={session.streamingText}
           isStreaming={session.isStreaming}
+          onRegenerate={() => regenerate(session.id)}
+          onShowCall={() =>
+            state.transparency.open(
+              { context_type: "scene-chat", story_id: session.context.storyId },
+              state.lastResponse.current,
+              state.callLookup,
+            )
+          }
         />
       )}
 

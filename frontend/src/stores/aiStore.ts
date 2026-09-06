@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { ChatMessage, LLMParams } from "../types";
 import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
 import { getSessionType } from "../lib/ai/sessionTypes";
+import { maybeAutoSummarize } from "../lib/ai/autoSummarize";
 import { useStoryStore } from "./storyStore";
 
 export interface AISession {
@@ -120,6 +121,8 @@ interface AIStore {
   sendMessage: (sessionId: string, content: string, images?: string[], llmParams?: LLMParams) => void;
   /** Cancel an in-progress streaming response */
   cancelStreaming: (sessionId: string) => void;
+  /** Ask the last question again, dropping the answer that came back. */
+  regenerate: (sessionId: string) => void;
 
   /** Internal: update streaming text */
   _setStreamingText: (sessionId: string, text: string) => void;
@@ -474,6 +477,21 @@ export const useAIStore = create<AIStore>((set, get) => ({
       });
   },
 
+  regenerate: (sessionId) => {
+    const session = get().sessions.find((s) => s.id === sessionId);
+    if (!session || session.isStreaming) return;
+    const lastUserIndex = session.messages.map((m) => m.role).lastIndexOf("user");
+    if (lastUserIndex === -1) return;
+    const lastUser = session.messages[lastUserIndex];
+    // Drop the question and everything after it; sendMessage puts the question back.
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, messages: sess.messages.slice(0, lastUserIndex) } : sess,
+      ),
+    }));
+    get().sendMessage(sessionId, lastUser.content, lastUser.images);
+  },
+
   cancelStreaming: (sessionId) => {
     const session = get().sessions.find((s) => s.id === sessionId);
     session?._abortController?.abort();
@@ -486,9 +504,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
   },
 
   _finalizeMessage: (sessionId, content) => {
-    const AUTO_SUMMARIZE_THRESHOLD = 20;
-    const AUTO_SUMMARIZE_KEEP = 4;
-
     set((s) => ({
       sessions: s.sessions.map((sess) => {
         if (sess.id !== sessionId) return sess;
@@ -502,31 +517,10 @@ export const useAIStore = create<AIStore>((set, get) => ({
       }),
     }));
 
-    // Trigger background auto-summarize if enabled and threshold exceeded
+    // A long conversation is compacted in the background so it keeps fitting.
     const sess = get().sessions.find((s) => s.id === sessionId);
-    if (sess?.autoSummarize && sess.messages.length >= AUTO_SUMMARIZE_THRESHOLD) {
-      const toSummarize = sess.messages.slice(0, sess.messages.length - AUTO_SUMMARIZE_KEEP);
-      import("../api/client").then(({ api }) => {
-        api
-          .summarizeConversation(toSummarize, sess.context.storyId)
-          .then(async (res) => {
-            if (!res.ok || !res.body) return;
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let full = "";
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              full += decoder.decode(value, { stream: true });
-            }
-            if (full.trim()) {
-              get().applySummary(sessionId, full.trim(), AUTO_SUMMARIZE_KEEP);
-            }
-          })
-          .catch(() => {
-            /* silent fail */
-          });
-      });
+    if (sess) {
+      maybeAutoSummarize(sess, (summary, keep) => get().applySummary(sessionId, summary, keep));
     }
   },
 

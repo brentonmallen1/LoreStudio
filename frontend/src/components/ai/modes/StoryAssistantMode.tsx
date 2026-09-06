@@ -22,8 +22,14 @@ interface Props {
 }
 
 export default function StoryAssistantMode({ session }: Props) {
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } =
-    useAIStore();
+  const {
+    sendMessage,
+    updateSessionContext,
+    continuePendingResume,
+    discardPendingResume,
+    cancelStreaming,
+    regenerate,
+  } = useAIStore();
   const { stories } = useStoryStore();
 
   const storyId = session.context.storyId ?? "";
@@ -122,6 +128,14 @@ export default function StoryAssistantMode({ session }: Props) {
           messages={session.messages}
           streamingText={session.streamingText}
           isStreaming={session.isStreaming}
+          onRegenerate={() => regenerate(session.id)}
+          onShowCall={() =>
+            state.transparency.open(
+              { context_type: "scene-chat", story_id: session.context.storyId },
+              state.lastResponse.current,
+              state.callLookup,
+            )
+          }
         />
       )}
 

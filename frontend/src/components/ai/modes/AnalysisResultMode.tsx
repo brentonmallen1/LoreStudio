@@ -48,7 +48,7 @@ function Value({ value }: { value: unknown }) {
  * "why did you flag that?" — and Chronicle keeps the permanent record either way.
  */
 export default function AnalysisResultMode({ session }: { session: AISession }) {
-  const { sendMessage, cancelStreaming } = useAIStore();
+  const { sendMessage, cancelStreaming, regenerate } = useAIStore();
   const state = useAIModeState(session);
   const result = session.result;
 
@@ -83,6 +83,14 @@ export default function AnalysisResultMode({ session }: { session: AISession }) 
         messages={session.messages}
         streamingText={session.streamingText}
         isStreaming={session.isStreaming}
+        onRegenerate={() => regenerate(session.id)}
+        onShowCall={() =>
+          state.transparency.open(
+            { context_type: "scene-chat", story_id: session.context.storyId },
+            state.lastResponse.current,
+            state.callLookup,
+          )
+        }
         emptyText="Ask about any of this — why it was flagged, what to do about it, what it missed."
       />
 

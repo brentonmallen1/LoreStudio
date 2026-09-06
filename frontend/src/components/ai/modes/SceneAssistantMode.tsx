@@ -43,8 +43,14 @@ interface Props {
 }
 
 export default function SceneAssistantMode({ session }: Props) {
-  const { sendMessage, updateSessionContext, continuePendingResume, discardPendingResume, cancelStreaming } =
-    useAIStore();
+  const {
+    sendMessage,
+    updateSessionContext,
+    continuePendingResume,
+    discardPendingResume,
+    cancelStreaming,
+    regenerate,
+  } = useAIStore();
   const { structure } = useStoryStore();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
   const [showCtx, setShowCtx] = useState(false);
@@ -194,6 +200,14 @@ export default function SceneAssistantMode({ session }: Props) {
           messages={session.messages}
           streamingText={session.streamingText}
           isStreaming={session.isStreaming}
+          onRegenerate={() => regenerate(session.id)}
+          onShowCall={() =>
+            state.transparency.open(
+              { context_type: "scene-chat", story_id: session.context.storyId },
+              state.lastResponse.current,
+              state.callLookup,
+            )
+          }
         />
       )}
 

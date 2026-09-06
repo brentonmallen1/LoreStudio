@@ -48,7 +48,7 @@ interface Props {
 }
 
 export default function InterviewMode({ session }: Props) {
-  const { sendMessage, setInterviewNotes, updateSessionContext, cancelStreaming } = useAIStore();
+  const { sendMessage, setInterviewNotes, updateSessionContext, cancelStreaming, regenerate } = useAIStore();
   const { structure, characters, upsertCharacter } = useStoryStore();
   const [showNotes, setShowNotes] = useState(!!session.interviewNotes);
   const [showApply, setShowApply] = useState(false);
@@ -326,6 +326,14 @@ export default function InterviewMode({ session }: Props) {
         messages={session.messages}
         streamingText={session.streamingText}
         isStreaming={session.isStreaming}
+        onRegenerate={() => regenerate(session.id)}
+        onShowCall={() =>
+          state.transparency.open(
+            { context_type: "scene-chat", story_id: session.context.storyId },
+            state.lastResponse.current,
+            state.callLookup,
+          )
+        }
         emptyText="Start the interview by saying hello or asking a question."
       />
 
