@@ -15,7 +15,7 @@ dependencies = [
     "httpx>=0.28.0",
     "aiohttp>=3.14.3",
     "beautifulsoup4>=4.15.0",
-    "weasyprint>=68.1",
+    "weasyprint>=69.0",
     "spacy>=3.8.16",
     "en-core-web-sm",
     "sqlite-vec>=0.1.9",
