@@ -218,8 +218,7 @@ function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
   const root = document.documentElement;
 
   // Swap theme class
-  ALL_THEME_NAMES.forEach((t) => root.classList.remove(`theme-${t}`));
-  root.classList.add(`theme-${themeName}`);
+  root.dataset.theme = themeName;
 
   // Dark-only themes always use dark mode
   const effectiveMode = THEME_META[themeName].darkOnly ? "dark" : colorMode;

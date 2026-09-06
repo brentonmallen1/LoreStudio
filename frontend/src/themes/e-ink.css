@@ -1,0 +1,134 @@
+/* ── E-ink theme · light mode ──────────────────── */
+[data-theme="e-ink"] {
+  --color-bg: #ede9de;
+  --color-surface: #f5f1e8;
+  --color-surface-2: #e4e0d4;
+  --color-surface-3: #d8d4c8;
+  --color-surface-raised: #dad6ca;
+  --color-border: #c4bfb0;
+  --color-border-light: #ccc8ba;
+  --color-text: #222222;
+  --color-text-muted: #585450;
+  --color-text-subtle: #827e78;
+  --color-section-title: #464240;
+
+  --segment-act: #b84040;
+  --segment-chapter: #9a7020;
+  --segment-scene: #2858a8;
+  --segment-section: #506070;
+  --segment-beat: #208060;
+  --segment-part: #6040a0;
+  --segment-stage: #9a3868;
+
+  --color-note-highlight: rgba(180, 150, 20, 0.15);
+  --color-note-marker: #9a8020;
+
+  --color-accent: #4a7a58;
+  --color-accent-hover: #3d6848;
+  --color-accent-fg: #ffffff;
+
+  --color-ai: #7a5a98;
+  --color-ai-hover: #6a4a86;
+  --color-ai-fg: #ffffff;
+  --color-ai-subtle: rgba(122, 90, 152, 0.1);
+  --color-ai-border: rgba(122, 90, 152, 0.28);
+
+  --color-ai-coach: #7050b0;
+  --color-ai-coach-hover: #604098;
+  --color-ai-coach-fg: #ffffff;
+  --color-ai-coach-subtle: rgba(112, 80, 176, 0.1);
+  --color-ai-coach-border: rgba(112, 80, 176, 0.25);
+
+  --color-nlp: #287888;
+  --color-nlp-hover: #206878;
+  --color-nlp-fg: #ffffff;
+  --color-nlp-subtle: rgba(40, 120, 136, 0.1);
+  --color-nlp-border: rgba(40, 120, 136, 0.28);
+
+  --color-editorial: #107060;
+  --color-editorial-hover: #0a5e50;
+  --color-editorial-fg: #ffffff;
+  --color-editorial-subtle: rgba(16, 112, 96, 0.1);
+  --color-editorial-border: rgba(16, 112, 96, 0.28);
+  --color-editorial-highlight: rgba(16, 112, 96, 0.14);
+  --color-editorial-marker: #107060;
+  --color-editorial-surface: rgba(16, 112, 96, 0.06);
+
+  --color-danger: #b03030;
+  --color-danger-bg: #f0e8e8;
+  --color-warning: #a87820;
+  --color-success: #3d7856;
+}
+
+/* ── E-ink theme · dark mode ───────────────────── */
+[data-theme="e-ink"].dark {
+  --color-bg: #1a1814;
+  --color-surface: #242018;
+  --color-surface-2: #2c2820;
+  --color-surface-3: #343028;
+  --color-surface-raised: #302c24;
+  --color-border: #3c3830;
+  --color-border-light: #322e26;
+  --color-text: #d4ccc0;
+  --color-text-muted: #9a9280;
+  --color-text-subtle: #6a6460;
+  --color-section-title: #b0a898;
+
+  --segment-act: #d06040;
+  --segment-chapter: #c09030;
+  --segment-scene: #5080c8;
+  --segment-section: #788898;
+  --segment-beat: #30a880;
+  --segment-part: #9870c8;
+  --segment-stage: #c05880;
+
+  --color-note-highlight: rgba(190, 150, 30, 0.12);
+  --color-note-marker: #b09030;
+
+  --color-accent: #6a9078;
+  --color-accent-hover: #7aa088;
+  --color-accent-fg: #0a160e;
+
+  --color-ai: #a880c0;
+  --color-ai-hover: #b890d0;
+  --color-ai-fg: #140c1e;
+  --color-ai-subtle: rgba(168, 128, 192, 0.1);
+  --color-ai-border: rgba(168, 128, 192, 0.25);
+
+  --color-ai-coach: #9870d8;
+  --color-ai-coach-hover: #a880e8;
+  --color-ai-coach-fg: #0e0820;
+  --color-ai-coach-subtle: rgba(152, 112, 216, 0.1);
+  --color-ai-coach-border: rgba(152, 112, 216, 0.25);
+
+  --color-nlp: #48a8c0;
+  --color-nlp-hover: #58b8d0;
+  --color-nlp-fg: #0a1418;
+  --color-nlp-subtle: rgba(72, 168, 192, 0.1);
+  --color-nlp-border: rgba(72, 168, 192, 0.25);
+
+  --color-editorial: #3dbda8;
+  --color-editorial-hover: #2aaa96;
+  --color-editorial-fg: #0a1612;
+  --color-editorial-subtle: rgba(61, 189, 168, 0.1);
+  --color-editorial-border: rgba(61, 189, 168, 0.25);
+  --color-editorial-highlight: rgba(61, 189, 168, 0.12);
+  --color-editorial-marker: #3dbda8;
+  --color-editorial-surface: rgba(61, 189, 168, 0.07);
+
+  --color-danger: #c84848;
+  --color-danger-bg: #1c1010;
+  --color-warning: #c89840;
+  --color-success: #58906a;
+
+  --color-brainstorm: #d4a020;
+  --color-brainstorm-hover: #c49010;
+  --color-brainstorm-fg: #120c00;
+  --color-brainstorm-subtle: rgba(212, 160, 32, 0.1);
+  --color-brainstorm-border: rgba(212, 160, 32, 0.25);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+}

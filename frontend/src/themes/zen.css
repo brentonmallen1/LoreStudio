@@ -1,0 +1,146 @@
+/* ── Zen theme · light mode (also the fallback before JS sets data-theme) ── */
+:root,
+[data-theme="zen"] {
+  --color-bg: #f7f6f3;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0efe9;
+  --color-surface-3: #e8e7e0;
+  --color-border: #e0ded7;
+  --color-border-light: #ebe9e2;
+  --color-text: #1a1916;
+  --color-text-muted: #6b6860;
+  --color-text-subtle: #88867f;
+  --color-section-title: #4a4843;
+  --segment-act: #c94f1e;
+  --segment-chapter: #b07c10;
+  --segment-scene: #2668c4;
+  --segment-section: #5a6a82;
+  --segment-beat: #1a9272;
+  --segment-part: #7040b8;
+  --segment-stage: #b83670;
+  --color-note-highlight: rgba(200, 160, 20, 0.18);
+  --color-note-marker: #b89020;
+  --color-accent: #4a7c59;
+  --color-accent-hover: #3d6a4a;
+  --color-accent-fg: #ffffff;
+  --color-ai: #8566a1;
+  --color-ai-hover: #7a5a96;
+  --color-ai-fg: #ffffff;
+  --color-ai-subtle: rgba(139, 106, 168, 0.12);
+  --color-ai-border: rgba(139, 106, 168, 0.3);
+  --color-ai-coach: #7c54b8;
+  --color-ai-coach-hover: #6b44a4;
+  --color-ai-coach-fg: #ffffff;
+  --color-ai-coach-subtle: rgba(124, 84, 184, 0.1);
+  --color-ai-coach-border: rgba(124, 84, 184, 0.28);
+  --color-nlp: #2a8a9a;
+  --color-nlp-hover: #238090;
+  --color-nlp-fg: #ffffff;
+  --color-nlp-subtle: rgba(42, 138, 154, 0.12);
+  --color-nlp-border: rgba(42, 138, 154, 0.3);
+  --color-editorial: #0f766e;
+  --color-editorial-hover: #0d6660;
+  --color-editorial-fg: #ffffff;
+  --color-editorial-subtle: rgba(15, 118, 110, 0.1);
+  --color-editorial-border: rgba(15, 118, 110, 0.28);
+  --color-editorial-highlight: rgba(15, 118, 110, 0.15);
+  --color-editorial-marker: #0f766e;
+  --color-editorial-surface: rgba(15, 118, 110, 0.06);
+  --color-danger: #b83232;
+  --color-danger-bg: #fdf2f2;
+  --color-warning: #c47a1e;
+  --color-success: #4a9c6e;
+  --color-surface-raised: #eceae2;
+  --color-todo: #6db800;
+  --color-todo-done: #9ab87a;
+  --color-planner: #0d9488;
+  --color-planner-hover: #0b7c72;
+  --color-planner-fg: #ffffff;
+  --color-planner-subtle: rgba(13, 148, 136, 0.1);
+  --color-planner-border: rgba(13, 148, 136, 0.28);
+  --color-brainstorm: #d97706;
+  --color-brainstorm-hover: #b45309;
+  --color-brainstorm-fg: #ffffff;
+  --color-brainstorm-subtle: rgba(217, 119, 6, 0.1);
+  --color-brainstorm-border: rgba(217, 119, 6, 0.28);
+  --color-overlay: rgba(0, 0, 0, 0.4);
+}
+
+/* ── Zen theme · dark mode ─────────────────────── */
+[data-theme="zen"].dark {
+  --color-bg: #111110;
+  --color-surface: #1c1b18;
+  --color-surface-2: #242320;
+  --color-surface-3: #2c2b27;
+  --color-surface-raised: #201f1c;
+  --color-border: #2e2d29;
+  --color-border-light: #272622;
+  --color-text: #f0ede6;
+  --color-text-muted: #a8a6a0;
+  --color-text-subtle: #858379;
+  --color-section-title: #b8b5ae;
+
+  --segment-act: #f07050;
+  --segment-chapter: #e0a830;
+  --segment-scene: #5b9fe0;
+  --segment-section: #8a9ab0;
+  --segment-beat: #35c498;
+  --segment-part: #b07ae0;
+  --segment-stage: #e0608a;
+
+  --color-note-highlight: rgba(220, 180, 40, 0.14);
+  --color-note-marker: #d4b040;
+
+  --color-accent: #6aab7c;
+  --color-accent-hover: #7dbf8e;
+  --color-accent-fg: #0c1f12;
+
+  --color-ai: #b090d0;
+  --color-ai-hover: #c0a0e0;
+  --color-ai-fg: #150d1f;
+  --color-ai-subtle: rgba(176, 144, 208, 0.1);
+  --color-ai-border: rgba(176, 144, 208, 0.25);
+
+  --color-ai-coach: #a080e0;
+  --color-ai-coach-hover: #b090f0;
+  --color-ai-coach-fg: #100820;
+  --color-ai-coach-subtle: rgba(160, 128, 224, 0.1);
+  --color-ai-coach-border: rgba(160, 128, 224, 0.25);
+
+  --color-nlp: #50c0d8;
+  --color-nlp-hover: #60d0e8;
+  --color-nlp-fg: #0c1a1e;
+  --color-nlp-subtle: rgba(80, 192, 216, 0.1);
+  --color-nlp-border: rgba(80, 192, 216, 0.25);
+
+  --color-editorial: #2dd4bf;
+  --color-editorial-hover: #14b8a6;
+  --color-editorial-fg: #0c1a18;
+  --color-editorial-subtle: rgba(45, 212, 191, 0.1);
+  --color-editorial-border: rgba(45, 212, 191, 0.25);
+  --color-editorial-highlight: rgba(45, 212, 191, 0.14);
+  --color-editorial-marker: #2dd4bf;
+  --color-editorial-surface: rgba(45, 212, 191, 0.07);
+
+  --color-danger: #e05454;
+  --color-danger-bg: #1f1212;
+  --color-warning: #d08428;
+  --color-success: #5ab87e;
+
+  --color-brainstorm: #f0a030;
+  --color-brainstorm-hover: #e09020;
+  --color-brainstorm-fg: #1a0e00;
+  --color-brainstorm-subtle: rgba(240, 160, 48, 0.1);
+  --color-brainstorm-border: rgba(240, 160, 48, 0.25);
+
+  --color-planner: #25b5a6;
+  --color-planner-hover: #1da498;
+  --color-planner-fg: #051a18;
+  --color-planner-subtle: rgba(37, 181, 166, 0.1);
+  --color-planner-border: rgba(37, 181, 166, 0.25);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+}

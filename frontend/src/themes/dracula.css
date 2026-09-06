@@ -1,0 +1,66 @@
+/* ── Dracula theme · dark only ─────────────────── */
+[data-theme="dracula"] {
+  --color-bg: #282a36;
+  --color-surface: #313342;
+  --color-surface-2: #3a3c4e;
+  --color-surface-3: #44475a;
+  --color-surface-raised: #424455;
+  --color-border: #44475a;
+  --color-border-light: #3d3f52;
+  --color-text: #f8f8f2;
+  --color-text-muted: #cdd1e6;
+  --color-text-subtle: #6272a4;
+  --color-section-title: #bcbfe8;
+
+  --segment-act: #ff5555;
+  --segment-chapter: #ffb86c;
+  --segment-scene: #8be9fd;
+  --segment-section: #6272a4;
+  --segment-beat: #50fa7b;
+  --segment-part: #bd93f9;
+  --segment-stage: #ff79c6;
+
+  --color-note-highlight: rgba(241, 250, 140, 0.12);
+  --color-note-marker: #f1fa8c;
+
+  --color-accent: #50fa7b;
+  --color-accent-hover: #38e063;
+  --color-accent-fg: #282a36;
+
+  --color-ai: #bd93f9;
+  --color-ai-hover: #ae81f7;
+  --color-ai-fg: #282a36;
+  --color-ai-subtle: rgba(189, 147, 249, 0.12);
+  --color-ai-border: rgba(189, 147, 249, 0.28);
+
+  --color-nlp: #8be9fd;
+  --color-nlp-hover: #6dd8ef;
+  --color-nlp-fg: #282a36;
+  --color-nlp-subtle: rgba(139, 233, 253, 0.1);
+  --color-nlp-border: rgba(139, 233, 253, 0.25);
+
+  --color-editorial: #50d8c8;
+  --color-editorial-hover: #38c8b8;
+  --color-editorial-fg: #282a36;
+  --color-editorial-subtle: rgba(80, 216, 200, 0.1);
+  --color-editorial-border: rgba(80, 216, 200, 0.25);
+  --color-editorial-highlight: rgba(80, 216, 200, 0.12);
+  --color-editorial-marker: #50d8c8;
+  --color-editorial-surface: rgba(80, 216, 200, 0.07);
+
+  --color-danger: #ff5555;
+  --color-danger-bg: #3a2020;
+  --color-warning: #ffb86c;
+  --color-success: #50fa7b;
+
+  --color-brainstorm: #ffb86c;
+  --color-brainstorm-hover: #f0a050;
+  --color-brainstorm-fg: #282a36;
+  --color-brainstorm-subtle: rgba(255, 184, 108, 0.1);
+  --color-brainstorm-border: rgba(255, 184, 108, 0.25);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+}

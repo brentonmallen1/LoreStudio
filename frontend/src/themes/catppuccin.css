@@ -1,0 +1,122 @@
+/* ── Catppuccin theme · Latte (light) ──────────── */
+[data-theme="catppuccin"] {
+  --color-bg: #eff1f5;
+  --color-surface: #e6e9ef;
+  --color-surface-2: #ccd0da;
+  --color-surface-3: #bcc0cc;
+  --color-surface-raised: #c6cad5;
+  --color-border: #c5cad5;
+  --color-border-light: #d1d5de;
+  --color-text: #4c4f69;
+  --color-text-muted: #5c5f77;
+  --color-text-subtle: #7c7f93;
+  --color-section-title: #5c5f77;
+
+  --segment-act: #d20f39;
+  --segment-chapter: #fe640b;
+  --segment-scene: #1e66f5;
+  --segment-section: #8c8fa1;
+  --segment-beat: #40a02b;
+  --segment-part: #8839ef;
+  --segment-stage: #ea76cb;
+
+  --color-note-highlight: rgba(223, 142, 29, 0.15);
+  --color-note-marker: #df8e1d;
+
+  --color-accent: #8839ef;
+  --color-accent-hover: #7527d8;
+  --color-accent-fg: #eff1f5;
+
+  --color-ai: #8839ef;
+  --color-ai-hover: #7527d8;
+  --color-ai-fg: #eff1f5;
+  --color-ai-subtle: rgba(136, 57, 239, 0.1);
+  --color-ai-border: rgba(136, 57, 239, 0.28);
+
+  --color-nlp: #1e93a7;
+  --color-nlp-hover: #1a8fa3;
+  --color-nlp-fg: #eff1f5;
+  --color-nlp-subtle: rgba(32, 159, 181, 0.12);
+  --color-nlp-border: rgba(32, 159, 181, 0.3);
+
+  --color-editorial: #179a88;
+  --color-editorial-hover: #0f8070;
+  --color-editorial-fg: #eff1f5;
+  --color-editorial-subtle: rgba(23, 154, 136, 0.1);
+  --color-editorial-border: rgba(23, 154, 136, 0.28);
+  --color-editorial-highlight: rgba(23, 154, 136, 0.14);
+  --color-editorial-marker: #179a88;
+  --color-editorial-surface: rgba(23, 154, 136, 0.06);
+
+  --color-danger: #d20f39;
+  --color-danger-bg: #f4e8ec;
+  --color-warning: #df8e1d;
+  --color-success: #40a02b;
+}
+
+/* ── Catppuccin theme · Macchiato (dark) ───────── */
+[data-theme="catppuccin"].dark {
+  --color-bg: #24273a;
+  --color-surface: #1e2030;
+  --color-surface-2: #363a4f;
+  --color-surface-3: #494d64;
+  --color-surface-raised: #3f4359;
+  --color-border: #363a4f;
+  --color-border-light: #2d3145;
+  --color-text: #cad3f5;
+  --color-text-muted: #b8c0e0;
+  --color-text-subtle: #8087a2;
+  --color-section-title: #a5adcb;
+
+  --segment-act: #ed8796;
+  --segment-chapter: #f5a97f;
+  --segment-scene: #8aadf4;
+  --segment-section: #8087a2;
+  --segment-beat: #a6da95;
+  --segment-part: #c6a0f6;
+  --segment-stage: #f5bde6;
+
+  --color-note-highlight: rgba(238, 212, 159, 0.12);
+  --color-note-marker: #eed49f;
+
+  --color-accent: #c6a0f6;
+  --color-accent-hover: #b7bdf8;
+  --color-accent-fg: #24273a;
+
+  --color-ai: #c6a0f6;
+  --color-ai-hover: #d0abff;
+  --color-ai-fg: #24273a;
+  --color-ai-subtle: rgba(198, 160, 246, 0.12);
+  --color-ai-border: rgba(198, 160, 246, 0.28);
+
+  --color-nlp: #8bd5ca;
+  --color-nlp-hover: #91d7e3;
+  --color-nlp-fg: #24273a;
+  --color-nlp-subtle: rgba(139, 213, 202, 0.1);
+  --color-nlp-border: rgba(139, 213, 202, 0.25);
+
+  --color-editorial: #40cbb8;
+  --color-editorial-hover: #2db8a5;
+  --color-editorial-fg: #24273a;
+  --color-editorial-subtle: rgba(64, 203, 184, 0.1);
+  --color-editorial-border: rgba(64, 203, 184, 0.25);
+  --color-editorial-highlight: rgba(64, 203, 184, 0.12);
+  --color-editorial-marker: #40cbb8;
+  --color-editorial-surface: rgba(64, 203, 184, 0.07);
+
+  --color-danger: #ed8796;
+  --color-danger-bg: #352030;
+  --color-warning: #eed49f;
+  --color-success: #a6da95;
+
+  --color-brainstorm: #eed49f;
+  --color-brainstorm-hover: #dec28a;
+  --color-brainstorm-fg: #24273a;
+  --color-brainstorm-subtle: rgba(238, 212, 159, 0.1);
+  --color-brainstorm-border: rgba(238, 212, 159, 0.25);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+}

@@ -1,0 +1,49 @@
+/* ── Design tokens shared by every theme (radii, shadows, motion, z-index) ── */
+:root {
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+  /* ease-out gives natural deceleration for UI state changes */
+  --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: 120ms var(--ease-out);
+  --transition-md: 180ms var(--ease-out);
+  --transition-lg: 260ms var(--ease-out);
+  /* ── Zen light defaults (fallback before JS applies theme class) ── */
+  /* ── Semantic status colors ────────────────────── */
+  /* ── MICE type colors (derived from segment vars — theme-aware) ── */
+  --mice-milieu: var(--segment-scene);
+  --mice-idea: var(--segment-chapter);
+  --mice-character: var(--color-ai);
+  --mice-event: var(--segment-act);
+  /* ── Todo gutter marker ── */
+  /* ── Scene Planner panel accent (teal) ── */
+  /* ── Brainstorm panel accent (amber/gold) ── */
+  /* ── Twist accent ── */
+  --twist-accent: var(--color-ai-coach);
+  /* ── Modal overlay ── */
+  /* ── UI & Editor typography ────────────────────── */
+  --font-ui: "DM Sans", system-ui, sans-serif;
+  --font-editor: "Merriweather", Georgia, serif;
+  --font-size-editor: 1rem;
+  --editor-max-width: 640px;
+  /* ── Type scale (base: 15px) ──────────────────── */
+  --text-xs: 0.73rem; /* 11px — metadata, captions         */
+  --text-sm: 0.8rem; /* 12px — secondary labels, badges   */
+  --text-base: 0.875rem; /* 13px — primary UI body            */
+  --text-md: 0.95rem; /* 14px — emphasized labels, titles  */
+  --text-lg: 1.1rem; /* 16.5px — section headings         */
+  --text-xl: 1.35rem; /* 20px — page headings              */
+
+  /* z-index ladder */
+  --z-rail: 10;
+  --z-popover: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-palette: 70;
+}
