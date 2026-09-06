@@ -37,6 +37,7 @@ from app.models import (
     PlotThreadAppearance,
     ReaderKnowledgeEvent,
     SceneLink,
+    ScenePresence,
     SceneSetting,
     Setting,
     Story,
@@ -165,6 +166,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.flush()
     db.add(ChatMessage(id=_uid(), session_id=session.id, role="user", content="hi"))
     db.add(ActivityLog(id=_uid(), user_id=user.id, story_id=sid, event_type="test", category="ai", description="x"))
+    db.add(ScenePresence(id=_uid(), node_id=scene1.id, character_id=hero.id, role="participant"))
     db.add(AIJob(id=_uid(), user_id=user.id, story_id=sid, kind="scene-summaries", label="Scene summaries"))
 
     db.commit()

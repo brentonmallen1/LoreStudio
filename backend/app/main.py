@@ -23,6 +23,7 @@ from .routers.character_relationships import router as character_relationships_r
 from .routers.characters import router as characters_router
 from .routers.chat import router as chat_router
 from .routers.chronicle import router as chronicle_router
+from .routers.codex import router as codex_router
 from .routers.compendium import router as compendium_router
 from .routers.cultures import router as cultures_router
 from .routers.diagrams import router as diagrams_router
@@ -196,6 +197,7 @@ app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(changes_router, prefix="/api", tags=["changes"])
 app.include_router(ai_calls_router, prefix="/api", tags=["ai-calls"])
 app.include_router(jobs_router, prefix="/api", tags=["jobs"])
+app.include_router(codex_router, prefix="/api", tags=["codex"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

@@ -1,9 +1,6 @@
 """Snapshot service: serialize, delta, restore, diff, retention, export, import."""
 
 import copy
-import io
-import json
-import zipfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -26,7 +23,7 @@ from ..models.dialogue import DialogueBlock
 from ..models.discovered_element import DiscoveredElement
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
-from ..models.location import Location, SceneSetting
+from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
 from ..models.media import AssetAttachment, StoryAsset
 from ..models.note import StoryNote
@@ -64,6 +61,10 @@ def _snapshot_file_path(story_id: str, snapshot_id: str) -> Path:
 
 def _write_snapshot_to_disk(snapshot: StorySnapshot, db: Session) -> None:
     """Generate and persist the zip archive for a snapshot."""
+    # Imported here: the export half needs this module's serializer, and this is the one
+    # call going the other way.
+    from .snapshot_export import _build_zip_bytes
+
     zip_bytes = _build_zip_bytes(snapshot, db)
     _snapshot_file_path(snapshot.story_id, snapshot.id).write_bytes(zip_bytes)
 
@@ -87,6 +88,7 @@ _DELTA_ENTITY_KEYS = [
     "twists",
     "locations",
     "scene_settings",
+    "scene_presence",
     "world_systems",
     "cultures",
     "eras",
@@ -151,6 +153,7 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
     "character_journey_summaries": "character_journey_summaries",
     "plot_thread_appearances": "plot_thread_appearances",
     "scene_settings": "scene_settings",
+    "scene_presence": "scene_presence",
     "location_travel": "location_travel",
     "outline_items": "outline_items",
     "asset_attachments": "asset_attachments",
@@ -164,7 +167,10 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
 #: because restoring a snapshot should not resurrect prompts the author had pruned.
 # fmt: off
 SNAPSHOT_EXCLUDED_TABLES = {
+    # The Codex graph is derived from everything above: restoring a snapshot and syncing
+    # rebuilds it exactly, so carrying a copy would only let the two disagree.
     "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs",
+    "codex_nodes", "codex_edges",
 }
 # fmt: on
 
@@ -333,6 +339,15 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     data["scene_settings"] = (
         [_model_to_dict(s) for s in db.query(SceneSetting).filter(SceneSetting.location_id.in_(loc_id_set)).all()]
         if loc_id_set
+        else []
+    )
+
+    # Who the author says is in each scene (doc 07 §3) — authored, so it travels with
+    # the story rather than being rebuilt as a guess.
+    node_ids = [row[0] for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
+    data["scene_presence"] = (
+        [_model_to_dict(p) for p in db.query(ScenePresence).filter(ScenePresence.node_id.in_(node_ids)).all()]
+        if node_ids
         else []
     )
 
@@ -930,6 +945,7 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
     _insert_all(PlotThreadAppearance, state.get("plot_thread_appearances", []))
     _insert_all(Twist, state.get("twists", []))
     _insert_all(SceneSetting, state.get("scene_settings", []))
+    _insert_all(ScenePresence, state.get("scene_presence", []))
     _insert_all(WorldSystem, state.get("world_systems", []))
     _insert_all(Culture, state.get("cultures", []))
     _insert_all(Era, state.get("eras", []))
@@ -964,77 +980,6 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
             db.add(_dict_to_model(ChatMessage, msg))
         if messages:
             db.flush()
-
-
-# ---------------------------------------------------------------------------
-# Export / Import
-# ---------------------------------------------------------------------------
-
-
-def _build_zip_bytes(snapshot: StorySnapshot, db: Session) -> bytes:
-    """Build the raw zip archive bytes for a snapshot (always recomputes)."""
-    state = resolve_snapshot_data(snapshot, db)
-    story_meta = state.get("story", {})
-
-    manifest = {
-        "format_version": FORMAT_VERSION,
-        "exported_at": datetime.now(UTC).isoformat(),
-        "app_version": APP_VERSION,
-        "snapshot_id": snapshot.id,
-        "story_id": snapshot.story_id,
-        "story_title": story_meta.get("title", ""),
-        "snapshot_name": snapshot.name,
-        "snapshot_created_at": snapshot.created_at.isoformat(),
-        "includes": {
-            "diagrams": "diagrams" in state,
-            "interviews": "interviews" in state or "panel_interviews" in state,
-            "chat_sessions": "chat_sessions" in state,
-            "activity_logs": "activity_logs" in state,
-            "media_assets": "media_assets" in state,
-        },
-        "stats": snapshot.summary or {},
-    }
-
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("manifest.json", json.dumps(manifest, indent=2, default=str))
-        zf.writestr("story.json", json.dumps(state, indent=2, default=str))
-
-    return buf.getvalue()
-
-
-def export_snapshot(snapshot: StorySnapshot, db: Session) -> bytes:
-    """Return the .lorestudio.zip bytes for the given snapshot.
-
-    Reads from disk if the archive already exists; otherwise computes and
-    persists it so subsequent downloads are instant.
-    """
-    disk_path = _snapshot_file_path(snapshot.story_id, snapshot.id)
-    if disk_path.exists():
-        return disk_path.read_bytes()
-
-    zip_bytes = _build_zip_bytes(snapshot, db)
-    disk_path.parent.mkdir(parents=True, exist_ok=True)
-    disk_path.write_bytes(zip_bytes)
-    return zip_bytes
-
-
-def import_snapshot_file(file_bytes: bytes) -> dict:
-    """
-    Parse an uploaded .lorestudio.zip file.
-    Returns {"manifest": {...}, "state": {...}}.
-    """
-    try:
-        with zipfile.ZipFile(io.BytesIO(file_bytes)) as zf:
-            manifest = json.loads(zf.read("manifest.json"))
-            state = json.loads(zf.read("story.json"))
-    except (zipfile.BadZipFile, KeyError, json.JSONDecodeError) as exc:
-        raise ValueError(f"Invalid .lorestudio.zip file: {exc}")
-
-    if manifest.get("format_version") != FORMAT_VERSION:
-        raise ValueError(f"Unsupported format version: {manifest.get('format_version')}")
-
-    return {"manifest": manifest, "state": state}
 
 
 # ---------------------------------------------------------------------------

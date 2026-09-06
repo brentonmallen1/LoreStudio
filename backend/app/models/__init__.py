@@ -8,6 +8,7 @@ from .character import Character, CharacterRelationship
 from .character_journey import CharacterJourneySummary
 from .chat_message import ChatMessage
 from .chat_session import ChatSession
+from .codex import CodexEdge, CodexNode
 from .compendium import CompendiumAttachment, CompendiumEntry
 from .culture import Culture
 from .diagram import Diagram
@@ -15,7 +16,7 @@ from .dialogue import DialogueBlock
 from .discovered_element import DiscoveredElement
 from .historical_event import Era, HistoricalEvent
 from .interview import CharacterInterview
-from .location import Location, SceneSetting
+from .location import Location, ScenePresence, SceneSetting
 from .location_travel import LocationTravel
 from .media import AssetAttachment, StoryAsset
 from .note import StoryNote
@@ -49,12 +50,15 @@ __all__ = [
     "CharacterJourneySummary",
     "ChatSession",
     "ChatMessage",
+    "CodexEdge",
+    "CodexNode",
     "ActivityLog",
     "AICallPayload",
     "AIJob",
     "CompendiumEntry",
     "CompendiumAttachment",
     "Location",
+    "ScenePresence",
     "SceneSetting",
     "WorldSystem",
     "Culture",

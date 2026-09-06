@@ -272,3 +272,74 @@ def test_an_interview_can_be_started_omniscient(client, db_session, test_user):
     db_session.commit()
     body = client.post(f"/api/interviews/characters/{elena.id}", json={"knowledge_scope": "omniscient"}).json()
     assert body["knowledge_scope"] == "omniscient"
+
+
+# ── Scoping v2: the same questions, answered from the graph (doc 07 §3) ──────────
+
+
+def test_the_graph_answers_when_the_story_has_been_synced(db_session, test_user):
+    from app.services.codex.sync import sync_story
+
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    _scene(db_session, story, "The Lamp Room", 0, content="Elena climbs", summary="She climbs.")
+    _scene(db_session, story, "The Mainland", 1, content="The inspector files")
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    scope = build_scope(elena, db_session)
+    assert [s.title for s in scope.scenes] == ["The Lamp Room"]
+    assert scope.scenes[0].summary == "She climbs."
+    assert scope.scenes_considered == 2
+
+
+def test_an_author_override_changes_what_the_interview_is_told(db_session, test_user):
+    """The point of "who is here": a name in the prose can be someone being talked about."""
+    from app.services.codex.presence import set_presence
+    from app.services.codex.sync import sync_story
+
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    scene = _scene(db_session, story, "The Mainland", 0, content="They spoke of Elena")
+    db_session.commit()
+    sync_story(story.id, db_session)
+    assert len(build_scope(elena, db_session).scenes) == 1
+
+    set_presence(scene.id, elena.id, "absent", db_session)
+    sync_story(story.id, db_session)
+    assert build_scope(elena, db_session).scenes == []
+
+
+def test_the_graph_carries_facts_learned_offscreen(db_session, test_user):
+    from app.services.codex.sync import sync_story
+
+    story = _story(db_session, test_user)
+    tomas = _character(db_session, story, "Tomas")
+    scene = _scene(db_session, story, "The Reveal", 0, content="The lamp was out")
+    db_session.add(
+        ReaderKnowledgeEvent(
+            story_id=story.id,
+            node_id=scene.id,
+            knowledge_type="truth_revealed",
+            subject="The light was out",
+            characters_who_know=[tomas.id],
+        )
+    )
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    scope = build_scope(tomas, db_session)
+    assert [f["subject"] for f in scope.facts] == ["The light was out"]
+    # He was not in the scene; he was told.
+    assert scope.scenes == []
+
+
+def test_an_unsynced_story_still_answers(db_session, test_user):
+    """Nothing waits on a sync: with no graph, the scope is computed directly."""
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    _scene(db_session, story, "The Lamp Room", 0, content="Elena climbs")
+    db_session.commit()
+
+    scope = build_scope(elena, db_session)
+    assert [s.title for s in scope.scenes] == ["The Lamp Room"]

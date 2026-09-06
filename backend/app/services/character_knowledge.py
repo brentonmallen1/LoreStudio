@@ -7,9 +7,11 @@ would happily discuss a scene they were not in, or events after the point the au
 asking about. This module answers a narrower question: which scenes was this character
 present for, up to a given point in the story, and what were they told there.
 
-v1 derives presence from what the author has already recorded: point of view, attributed
-dialogue, and their name in the prose. v2 (doc 07 §3) replaces this with Codex edges,
-author overrides, and offscreen knowledge links.
+Presence comes from what the author has already recorded: point of view, attributed
+dialogue, and their name in the prose. Once a story has been synced into Codex (doc 07 §3)
+this reads the graph instead, which adds two things the direct computation cannot have:
+the author's own "who is here" corrections, and facts a character was told offscreen. A
+story with no graph yet falls back to computing it here, so nothing waits on a sync.
 """
 
 from dataclasses import dataclass, field
@@ -17,6 +19,7 @@ from dataclasses import dataclass, field
 from sqlalchemy.orm import Session
 
 from ..models.character import Character
+from ..models.codex import CodexEdge, CodexNode
 from ..models.dialogue import DialogueBlock
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.structure import StructureNode
@@ -67,6 +70,88 @@ class KnowledgeScope:
     scenes_considered: int = 0
 
 
+#: How a presence edge's basis reads in the prompt.
+_BASIS_REASONS = {"pov": POV, "dialogue": SPEAKS, "mention": NAMED, "manual": "the author placed you here"}
+
+
+def _scope_from_graph(
+    character: Character, db: Session, scene_order: list[StructureNode], as_of_title: str | None, mode: str
+) -> KnowledgeScope | None:
+    """
+    Build the scope from Codex edges, or return None when this story has no graph yet.
+
+    The graph is the better answer because it carries what a bare re-computation cannot:
+    scenes the author corrected by hand, and facts a character learned offscreen.
+    """
+    char_node = (
+        db.query(CodexNode)
+        .filter(
+            CodexNode.story_id == character.story_id, CodexNode.kind == "character", CodexNode.ref_id == character.id
+        )
+        .one_or_none()
+    )
+    if not char_node:
+        return None
+
+    in_range = {n.id: n for n in scene_order}
+    scene_nodes = {
+        n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == character.story_id, CodexNode.kind == "scene")
+    }
+    order = {node.id: i for i, node in enumerate(scene_order)}
+
+    present: list[ScenePresence] = []
+    for edge in db.query(CodexEdge).filter(
+        CodexEdge.story_id == character.story_id, CodexEdge.kind == "present_in", CodexEdge.src_id == char_node.id
+    ):
+        scene = scene_nodes.get(edge.dst_id)
+        role = (edge.props or {}).get("role")
+        if not scene or scene.ref_id not in in_range or role == "absent":
+            continue
+        if mode == OMNISCIENT:
+            continue  # omniscient is every scene, handled below
+        present.append(
+            ScenePresence(
+                node_id=scene.ref_id,
+                title=scene.label,
+                reasons=(_BASIS_REASONS.get((edge.props or {}).get("basis"), NAMED),),
+                summary=scene.summary or None,
+            )
+        )
+
+    if mode == OMNISCIENT:
+        by_ref = {n.ref_id: n for n in scene_nodes.values()}
+        present = [
+            ScenePresence(
+                node_id=node.id,
+                title=node.title,
+                reasons=(NAMED,),
+                summary=(by_ref[node.id].summary or None) if node.id in by_ref else None,
+            )
+            for node in scene_order
+        ]
+
+    present.sort(key=lambda p: order.get(p.node_id, 0))
+
+    facts = [
+        {"subject": fact.label, "detail": fact.summary, "is_truth": True}
+        for fact in (
+            db.get(CodexNode, edge.dst_id)
+            for edge in db.query(CodexEdge).filter(
+                CodexEdge.story_id == character.story_id,
+                CodexEdge.kind == "knows",
+                CodexEdge.src_id == char_node.id,
+            )
+        )
+        if fact
+    ]
+    return KnowledgeScope(
+        as_of_title=as_of_title,
+        scenes=present,
+        facts=facts,
+        scenes_considered=len(scene_order),
+    )
+
+
 def _leaf_scenes(nodes: list[StructureNode]) -> list[StructureNode]:
     """Scenes only: acts and chapters are containers, not places a character can be."""
     parent_ids = {n.parent_id for n in nodes if n.parent_id}
@@ -109,6 +194,19 @@ def build_scope(
     scenes = _leaf_scenes(nodes)
     scene_ids = {n.id for n in scenes}
 
+    as_of_title = None
+    if as_of_node_id:
+        cutoff = db.get(StructureNode, as_of_node_id)
+        as_of_title = cutoff.title if cutoff else None
+
+    # Prefer the graph: it carries the author's "who is here" corrections and facts a
+    # character was told offscreen, neither of which can be recomputed from the prose.
+    from_graph = _scope_from_graph(character, db, scenes, as_of_title, mode)
+    if from_graph:
+        from_graph.mode = mode if mode == OMNISCIENT else (AS_OF if as_of_node_id else PRESENT)
+        from_graph.as_of_node_id = as_of_node_id
+        return from_graph
+
     speaking_scene_ids = {
         row[0]
         for row in db.query(DialogueBlock.scene_id).filter(DialogueBlock.character_id == character.id).all()
@@ -138,11 +236,6 @@ def build_scope(
                     summary=node.content_summary or None,
                 )
             )
-
-    as_of_title = None
-    if as_of_node_id:
-        node = db.get(StructureNode, as_of_node_id)
-        as_of_title = node.title if node else None
 
     return KnowledgeScope(
         mode=mode if mode == OMNISCIENT else (AS_OF if as_of_node_id else PRESENT),

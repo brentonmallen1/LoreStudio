@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -98,6 +98,33 @@ class Location(Base):
         back_populates="to_location",
         cascade="all, delete-orphan",
     )
+
+
+class ScenePresence(Base):
+    """
+    The author's answer to "who is actually here" for one scene (doc 07 §3).
+
+    Codex derives presence from point of view, attributed dialogue and names in the prose,
+    but only the author knows whether a name in a paragraph is someone in the room or
+    someone being talked about. That answer is authored data, so it lives here in the
+    Lorebook — snapshot, export and undo all reach it — and Codex reads it as the strongest
+    signal rather than storing a second copy of it.
+    """
+
+    __tablename__ = "scene_presence"
+    __table_args__ = (UniqueConstraint("node_id", "character_id", name="uq_scene_presence"),)
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    node_id: Mapped[str] = mapped_column(
+        String, ForeignKey("structure_nodes.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    character_id: Mapped[str] = mapped_column(
+        String, ForeignKey("characters.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    #: pov | participant | mentioned | absent — "absent" is a real answer, and the useful one
+    role: Mapped[str] = mapped_column(String, default="participant")
+    note: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 
 class SceneSetting(Base):
