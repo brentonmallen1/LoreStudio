@@ -1,0 +1,125 @@
+.wrap {
+  border-top: 1px solid var(--color-border-light);
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.headIcon {
+  color: var(--color-ai);
+}
+
+.feature {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.classChip {
+  font-size: 0.68rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-muted);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.copyBtn:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.76rem;
+  color: var(--color-warning, var(--color-text-muted));
+}
+
+.tabs {
+  display: flex;
+  gap: 0.15rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  font-size: 0.74rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.tabActive {
+  background: var(--color-surface);
+  border-color: var(--color-border-light);
+  color: var(--color-text);
+}
+
+.body > p:first-child {
+  margin-top: 0;
+}
+
+.role {
+  margin: 0.5rem 0 0.2rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.pre {
+  margin: 0;
+  padding: 0.5rem 0.6rem;
+  max-height: 22rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+
+.note {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.sources {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.78rem;
+  color: var(--color-text);
+}

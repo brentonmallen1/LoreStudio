@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from .auth.router import router as auth_router
 from .config import settings
 from .database import Base, engine
+from .routers.ai_calls import router as ai_calls_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
 from .routers.beat_sheets import router as beat_sheets_router
@@ -59,6 +60,7 @@ from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
+from .services.ai_call_log import prune_payloads
 from .services.change_log import prune_all
 from .services.db_backup import backup_loop
 from .services.db_migrate import run_migrations
@@ -113,6 +115,9 @@ async def lifespan(app: FastAPI):
         removed = prune_all(db)
         if removed:
             logger.info("change log pruned: %d rows", removed)
+        payloads = prune_payloads(db, settings.ai_payload_retention_days)
+        if payloads:
+            logger.info("AI call payloads pruned: %d rows", payloads)
     backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
     logger.info("startup complete (env=%s)", settings.env)
     yield
@@ -179,6 +184,7 @@ app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowled
 app.include_router(system_router, prefix="/api", tags=["system"])
 app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(changes_router, prefix="/api", tags=["changes"])
+app.include_router(ai_calls_router, prefix="/api", tags=["ai-calls"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

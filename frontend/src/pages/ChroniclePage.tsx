@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { aiFeatureLabel } from "../lib/ai/features.generated";
+import AICallDetail from "../components/chronicle/AICallDetail";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -180,7 +181,11 @@ function LogCard({
   const model = log.metadata_?.model as string | undefined;
   const tokensIn = log.metadata_?.tokens_in as number | undefined;
   const tokensOut = log.metadata_?.tokens_out as number | undefined;
-  const hasContent = !!(prompt || response);
+  const status = log.metadata_?.status as string | undefined;
+  // AI rows carry a full record (prompt, options, raw response) behind /ai/calls/{id};
+  // everything else only ever had its metadata preview.
+  const isAICall = log.category === "ai";
+  const hasContent = isAICall || !!(prompt || response);
 
   // Strip thinking blocks from response preview
   const responsePreview = response?.replace(/<\|channel>thought\n[\s\S]*?<channel\|>/g, "").trim();
@@ -211,6 +216,7 @@ function LogCard({
         {responsePreview && <p className={styles.cardPreview}>{responsePreview}</p>}
         <p className={styles.cardMeta}>
           {model && <span className={styles.badge}>{model}</span>}
+          {status && status !== "ok" && <span className={styles.badge}>{status}</span>}
           {tokensIn != null && (
             <span>
               {tokensIn}↑ {tokensOut}↓ tokens
@@ -231,18 +237,24 @@ function LogCard({
         </button>
       </div>
       {expanded && (
-        <div className={styles.logDetail}>
-          {prompt && (
-            <div className={styles.logMessage}>
-              <span className={styles.logRole}>You</span>
-              <p className={styles.logContent}>{prompt}</p>
-            </div>
-          )}
-          {response && (
-            <div className={styles.logMessage}>
-              <span className={styles.logRole}>AI</span>
-              <p className={styles.logContent}>{responsePreview}</p>
-            </div>
+        <div className={styles.logDetail} onClick={(e) => e.stopPropagation()}>
+          {isAICall ? (
+            <AICallDetail logId={log.id} />
+          ) : (
+            <>
+              {prompt && (
+                <div className={styles.logMessage}>
+                  <span className={styles.logRole}>You</span>
+                  <p className={styles.logContent}>{prompt}</p>
+                </div>
+              )}
+              {response && (
+                <div className={styles.logMessage}>
+                  <span className={styles.logRole}>AI</span>
+                  <p className={styles.logContent}>{responsePreview}</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

@@ -1,4 +1,5 @@
 from .activity_log import ActivityLog
+from .ai_call import AICallPayload
 from .beat_sheet import BeatSheet
 from .calendar import Calendar
 from .change import Change
@@ -48,6 +49,7 @@ __all__ = [
     "ChatSession",
     "ChatMessage",
     "ActivityLog",
+    "AICallPayload",
     "CompendiumEntry",
     "CompendiumAttachment",
     "Location",

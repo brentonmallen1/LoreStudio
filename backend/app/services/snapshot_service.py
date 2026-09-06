@@ -159,9 +159,10 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
     "chat_messages": "chat_sessions",  # nested inside each session
 }
 
-#: Tables with a story_id that are deliberately not part of a snapshot: the
-#: snapshot machinery itself.
-SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings", "changes"}
+#: Tables deliberately not part of a snapshot: the snapshot machinery itself, the undo
+#: change log, and the AI call payloads — an audit trail with its own retention, kept out
+#: because restoring a snapshot should not resurrect prompts the author had pruned.
+SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads"}
 
 
 # ---------------------------------------------------------------------------

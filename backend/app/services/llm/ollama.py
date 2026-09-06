@@ -17,6 +17,9 @@ class StreamMetrics:
     tokens_in: int | None
     tokens_out: int | None
     model: str
+    #: True when the provider rejected the JSON schema and the call was retried in
+    #: generic JSON mode — the output is then unconstrained, which is worth seeing.
+    schema_fallback: bool = False
 
 
 # Matches Gemma 4 thought blocks: <|channel>thought\n...<channel|>
@@ -26,6 +29,18 @@ _THOUGHT_RE = re.compile(r"<\|channel>thought\n.*?<channel\|>", re.DOTALL)
 def strip_thoughts(content: str) -> str:
     """Remove Gemma 4 thought blocks from a message string."""
     return _THOUGHT_RE.sub("", content).strip()
+
+
+def extract_thoughts(content: str) -> str | None:
+    """
+    The model's reasoning for *this* response, joined, or None.
+
+    Thinking is stripped from history before sending (the model must not be fed its own
+    old thoughts), but the current call's reasoning is worth keeping: it is what the
+    transparency view shows under "Thinking".
+    """
+    blocks = _THOUGHT_RE.findall(content)
+    return "\n\n".join(b.strip() for b in blocks) or None
 
 
 def strip_thoughts_from_messages(messages: list[dict]) -> list[dict]:
@@ -275,6 +290,7 @@ class OllamaProvider(LLMProvider):
         """
         effective_model = model or self.model
         effective_url = base_url or self.base_url
+        schema_fallback = False
         payload = {
             "model": effective_model,
             "messages": [{"role": "system", "content": system_prompt}] + messages,
@@ -313,6 +329,7 @@ class OllamaProvider(LLMProvider):
                         resp.status,
                     )
                     payload["format"] = "json"
+                    schema_fallback = True
                     async with http_session.post(
                         f"{effective_url}/api/chat",
                         json=payload,
@@ -343,6 +360,7 @@ class OllamaProvider(LLMProvider):
                         tokens_in=data.get("prompt_eval_count"),
                         tokens_out=data.get("eval_count"),
                         model=effective_model,
+                        schema_fallback=schema_fallback,
                     )
                     if data.get("done")
                     else None

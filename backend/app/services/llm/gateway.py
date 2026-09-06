@@ -29,23 +29,25 @@ Usage:
         yield token
 """
 
+import asyncio
 import json
 import logging
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import Literal, TypeVar
 
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
 from ...config import settings
 from ...models.activity_log import ActivityLog
+from ...models.ai_call import AICallPayload
 from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
 from .features import FEATURES_BY_ID, feature_budget
-from .ollama import StreamMetrics, _strip_json_fencing, ollama_provider
+from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider
 from .prompts.core import CORE_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -70,15 +72,29 @@ class AICallContext:
     extra_metadata: dict = field(default_factory=dict)
 
 
+#: How a call ended. Everything but "ok" used to leave no trace at all.
+CallStatus = Literal["ok", "error", "cancelled", "schema-fallback", "invalid-json", "schema-invalid"]
+
+#: Response text kept on the activity row itself so the Chronicle list can render without
+#: a second query. The full text lives in the payload.
+PREVIEW_CHARS = 240
+
+
 @dataclass
 class AICallResult:
-    """Collected result after a streaming call completes."""
+    """Collected result after a call completes — successfully or not."""
 
     content: str
     tokens_in: int | None = None
     tokens_out: int | None = None
     latency_ms: int = 0
     model: str = ""
+    status: CallStatus = "ok"
+    error: str | None = None
+    #: The response exactly as it arrived, thinking blocks included.
+    raw_response: str = ""
+    #: This call's own reasoning, split out of raw_response.
+    thinking: str | None = None
 
 
 def _default_params() -> LLMParams:
@@ -190,6 +206,8 @@ class AIGateway:
         start_time = time.monotonic()
         full_response: list[str] = []
         metrics: StreamMetrics | None = None
+        status: CallStatus = "ok"
+        error: str | None = None
         _logged = False  # guard against finally running more than once
 
         try:
@@ -209,21 +227,36 @@ class AIGateway:
                 else:
                     full_response.append(chunk)
                     yield chunk
+        except (asyncio.CancelledError, GeneratorExit):
+            # The author hit stop, or the browser went away. Half a response is still a
+            # call that happened, and Chronicle should say so.
+            status = "cancelled"
+            raise
+        except Exception as exc:
+            status = "error"
+            error = str(exc)
+            raise
         finally:
             if not _logged:
                 _logged = True
-                latency_ms = int((time.monotonic() - start_time) * 1000)
+                raw = "".join(full_response)
                 result = AICallResult(
-                    content="".join(full_response),
+                    content=raw,
                     tokens_in=metrics.tokens_in if metrics else None,
                     tokens_out=metrics.tokens_out if metrics else None,
-                    latency_ms=latency_ms,
+                    latency_ms=int((time.monotonic() - start_time) * 1000),
                     model=metrics.model if metrics else ollama_provider.model,
+                    status=status,
+                    error=error,
+                    raw_response=raw,
+                    thinking=extract_thoughts(raw),
                 )
 
-                self._log_call(context, result, db, params, messages)
+                self._log_call(context, result, db, params, messages, system_prompt)
 
-                if on_complete and result.content:
+                # Never awaited while unwinding a cancellation: an async generator may not
+                # await after GeneratorExit.
+                if on_complete and result.content and status == "ok":
                     await on_complete(result)
 
     async def generate_structured(
@@ -254,6 +287,8 @@ class AIGateway:
 
         start_time = time.monotonic()
 
+        schema = response_model.model_json_schema()
+
         try:
             raw_text, metrics = await ollama_provider.generate_structured(
                 messages,
@@ -264,21 +299,32 @@ class AIGateway:
                 num_ctx=params.num_ctx,
                 base_url=user_url,
                 model=user_model,
-                response_schema=response_model.model_json_schema(),
+                response_schema=schema,
             )
         except Exception as e:
             logger.warning("generate_structured Ollama call failed: %s", e)
+            failed = AICallResult(
+                content="",
+                latency_ms=int((time.monotonic() - start_time) * 1000),
+                model=user_model or ollama_provider.model,
+                status="error",
+                error=str(e),
+            )
+            self._log_call(context, failed, db, params, messages, system_prompt, response_format=schema)
             return StructuredResult(success=False, raw_text=f"Error reaching LLM: {e}")
 
-        latency_ms = int((time.monotonic() - start_time) * 1000)
         result_obj = AICallResult(
             content=raw_text,
             tokens_in=metrics.tokens_in if metrics else None,
             tokens_out=metrics.tokens_out if metrics else None,
-            latency_ms=latency_ms,
+            latency_ms=int((time.monotonic() - start_time) * 1000),
             model=metrics.model if metrics else ollama_provider.model,
+            raw_response=raw_text,
+            thinking=extract_thoughts(raw_text),
+            # A provider that rejected the schema answered without constraints; the author
+            # should be able to see that in Chronicle rather than guess at a bad result.
+            status="schema-fallback" if metrics and metrics.schema_fallback else "ok",
         )
-        self._log_call(context, result_obj, db, params, messages)
 
         # Step 1: Parse JSON
         cleaned = _strip_json_fencing(raw_text)
@@ -286,6 +332,9 @@ class AIGateway:
             data = json.loads(cleaned)
         except json.JSONDecodeError:
             logger.warning("generate_structured: JSON parse failed for feature=%s", context.feature)
+            result_obj.status = "invalid-json"
+            result_obj.error = "Response was not JSON"
+            self._log_call(context, result_obj, db, params, messages, system_prompt, response_format=schema)
             return StructuredResult(
                 success=False,
                 raw_text=raw_text,
@@ -297,15 +346,11 @@ class AIGateway:
         # Step 2: Validate against schema
         try:
             validated = response_model.model_validate(data)
-            return StructuredResult(
-                success=True,
-                data=validated.model_dump(),
-                tokens_in=result_obj.tokens_in,
-                tokens_out=result_obj.tokens_out,
-                model=result_obj.model,
-            )
         except ValidationError as e:
             logger.warning("generate_structured: schema validation failed for feature=%s: %s", context.feature, e)
+            result_obj.status = "schema-invalid"
+            result_obj.error = str(e)[:2000]
+            self._log_call(context, result_obj, db, params, messages, system_prompt, response_format=schema)
             return StructuredResult(
                 success=False,
                 raw_data=data,
@@ -315,14 +360,46 @@ class AIGateway:
                 model=result_obj.model,
             )
 
+        self._log_call(context, result_obj, db, params, messages, system_prompt, response_format=schema)
+        return StructuredResult(
+            success=True,
+            data=validated.model_dump(),
+            tokens_in=result_obj.tokens_in,
+            tokens_out=result_obj.tokens_out,
+            model=result_obj.model,
+        )
+
+    def _sent_options(self, params: LLMParams) -> dict:
+        """Exactly what went into the request's `options`, for the record."""
+        return {
+            "temperature": params.temperature,
+            "top_p": params.top_p,
+            "top_k": params.top_k,
+            "num_ctx": params.num_ctx,
+            "think": params.thinking_enabled,
+            "keep_alive": ollama_provider.keep_alive,
+        }
+
     def _log_call(
-        self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]
+        self,
+        context: AICallContext,
+        result: AICallResult,
+        db: Session,
+        params: LLMParams,
+        messages: list[dict],
+        system_prompt: str = "",
+        *,
+        response_format: dict | None = None,
     ) -> None:
-        """Write an ActivityLog entry for this AI call."""
+        """
+        Record the call: a summary row in ActivityLog and the prose in AICallPayload.
+
+        Called for every outcome, including errors and cancellations — a call that failed
+        is exactly the one the author wants to inspect (doc 06 §3).
+        """
         if context.feature not in FEATURES_BY_ID:
             logger.warning("AI call with unregistered feature %r — add it to services/llm/features.py", context.feature)
         try:
-            # Extract the last user message as the prompt
             user_messages = [m for m in messages if m.get("role") == "user"]
             last_prompt = user_messages[-1]["content"] if user_messages else None
 
@@ -350,15 +427,35 @@ class AIGateway:
                     "thinking_enabled": params.thinking_enabled,
                     "temperature": params.temperature,
                     "num_ctx": params.num_ctx,
-                    "prompt": last_prompt,
-                    "response": result.content,
+                    "status": result.status,
+                    "error": result.error,
+                    # Previews only: the full text is in the payload, which has its own
+                    # retention, so the activity list stays cheap to load.
+                    "prompt": (last_prompt or "")[:PREVIEW_CHARS] or None,
+                    "response": result.content[:PREVIEW_CHARS],
+                    "truncated": len(result.content) > PREVIEW_CHARS,
                     **context.extra_metadata,
                 },
             )
             db.add(log)
+            db.flush()
+            db.add(
+                AICallPayload(
+                    activity_log_id=log.id,
+                    system_prompt=system_prompt,
+                    messages=messages,
+                    raw_response=result.raw_response or result.content,
+                    thinking=result.thinking,
+                    options=self._sent_options(params),
+                    response_format=response_format,
+                    context_sources=context.extra_metadata.get("context_sources", []),
+                    error=result.error,
+                )
+            )
             db.commit()
         except Exception:
             # Logging must never break the AI call itself
+            logger.exception("failed to record AI call for feature=%s", context.feature)
             db.rollback()
 
 

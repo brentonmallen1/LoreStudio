@@ -40,6 +40,7 @@ when `ENV=prod` (the backend refuses to start with the defaults).
 | `BACKUPS_PATH` | `./data/backups` | Nightly SQLite backups |
 | `DB_BACKUP_ENABLED` | `true` | Nightly `VACUUM INTO` backup of the database |
 | `DB_BACKUP_KEEP` | `14` | Nightly backups retained |
+| `AI_PAYLOAD_RETENTION_DAYS` | `90` | Days to keep AI prompts and responses. The record that each call happened is kept forever; this prunes only the text. `0` keeps everything. |
 
 ### Demo content
 

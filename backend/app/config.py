@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     backups_path: str = "./data/backups"
     db_backup_enabled: bool = True
     db_backup_keep: int = 14
+    #: Days to keep AI prompts and responses. The summary of every call is kept forever;
+    #: this only prunes the prose. 0 disables pruning.
+    ai_payload_retention_days: int = 90
 
     secret_key: str = "dev-secret-key-change-in-production"
     access_token_expire_minutes: int = 10080  # 7 days
