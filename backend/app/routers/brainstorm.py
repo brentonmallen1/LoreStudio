@@ -16,9 +16,9 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
+from ..services.codex.context import assemble_scene
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.brainstorm import build_brainstorm_system_prompt
-from .chat import _build_context_packet
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ async def brainstorm_whats_next(
     if not node or node.story_id != story_id:
         raise HTTPException(status_code=404, detail="Scene not found")
 
-    ctx = _build_context_packet(story, node, db)
+    ctx = assemble_scene(story, node, db).packet
     feature_prompt = build_brainstorm_system_prompt(ctx, author_intent)
 
     call_ctx = AICallContext(

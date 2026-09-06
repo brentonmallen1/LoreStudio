@@ -17,9 +17,9 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import ScenePlanResponse, StructuredResult
 from ..schemas.llm_params import LLMParamsOverride
+from ..services.codex.context import assemble_scene
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.scene_planner import build_scene_planner_system_prompt
-from .chat import _build_context_packet
 
 router = APIRouter()
 
@@ -53,7 +53,7 @@ async def scene_plan(
     if not node or node.story_id != story_id:
         raise HTTPException(status_code=404, detail="Scene not found")
 
-    ctx = _build_context_packet(story, node, db)
+    ctx = assemble_scene(story, node, db).packet
     feature_prompt = build_scene_planner_system_prompt(ctx, initial_notes)
 
     call_ctx = AICallContext(

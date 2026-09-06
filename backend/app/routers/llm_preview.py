@@ -17,6 +17,13 @@ from ..models.panel_interview import PanelInterview
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..services.codex.context import (
+    AssembledContext,
+    ContextOptions,
+    assemble_scene,
+    attach_passages,
+    retrieve_for,
+)
 from ..services.llm.gateway import ai_gateway
 from ..services.llm.ollama import ollama_provider
 from ..services.llm.prompts.generation import (
@@ -71,6 +78,18 @@ class PromptPreviewResponse(BaseModel):
     token_breakdown: TokenBreakdown | None = None
 
 
+def _sources_from(assembled: AssembledContext) -> list[ContextSource]:
+    """Turn assembled blocks into what the transparency view renders."""
+    return [
+        ContextSource(
+            source=block.key,
+            label=f"{block.label} — {block.why}" if block.why else block.label,
+            included=block.included,
+        )
+        for block in assembled.blocks + assembled.retrieved
+    ]
+
+
 def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]:
     """Extract context sources from a character profile."""
     name = f"{prefix}{char.name}" if prefix else char.name
@@ -86,7 +105,7 @@ def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]
 
 
 @router.post("/llm/prompt-preview", response_model=PromptPreviewResponse)
-def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
+async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
     body: PromptPreviewRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -107,48 +126,30 @@ def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         if not body.story_id or not body.node_id:
             raise HTTPException(status_code=400, detail="story_id and node_id required")
         from ..services.llm.prompts.chat import build_scene_chat_system_prompt
-        from .chat import ContextOptions, _build_context_packet
 
         story = _get_story(body.story_id)
         node = db.get(StructureNode, body.node_id)
         if not node or node.story_id != body.story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
         ctx_opts = ContextOptions(**(body.context_options or {})) if body.context_options is not None else None
-        ctx = _build_context_packet(story, node, db, ctx_opts)
-        system_prompt = build_scene_chat_system_prompt(ctx)
+        assembled = assemble_scene(story, node, db, ctx_opts)
+        # The same retrieval the real call makes, with the same question — otherwise the
+        # preview would show a prompt missing whatever the index would have added.
+        assembled.retrieved = await retrieve_for(
+            db,
+            story.id,
+            body.user_message or "",
+            feature="scene-chat",
+            seed_ref_ids=[node.id],
+            user=current_user,
+        )
+        attach_passages(assembled.packet, assembled.retrieved, db)
+        system_prompt = build_scene_chat_system_prompt(assembled.packet)
         if not user_message:
             user_message = "[your message to the scene assistant]"
-        chars_in_scene = ctx.get("characters_in_scene", [])
-        threads_in_scene = ctx.get("threads_in_scene", [])
-        settings_in_scene = ctx.get("settings_in_scene", [])
-        sources = [
-            ContextSource(source="story_title", label=f"Story: {story.title}", included=True),
-            ContextSource(
-                source="story_intent", label="Story intent", included=bool(story.narrative_intent or story.intent)
-            ),
-            ContextSource(source="story_goals", label="Story goals", included=bool(story.goals)),
-            ContextSource(source="scene_metadata", label=f"Scene: {node.title}", included=True),
-            ContextSource(source="scene_synopsis", label="Scene synopsis", included=bool(node.synopsis)),
-            ContextSource(source="scene_purpose", label="Scene purpose", included=bool(node.purpose)),
-            ContextSource(
-                source="scene_entry_exit", label="Entry/exit state", included=bool(node.entry_state or node.exit_state)
-            ),
-            ContextSource(
-                source="characters_in_scene",
-                label=f"Characters in scene ({len(chars_in_scene)})",
-                included=bool(chars_in_scene),
-            ),
-            ContextSource(
-                source="threads_in_scene",
-                label=f"Plot threads ({len(threads_in_scene)})",
-                included=bool(threads_in_scene),
-            ),
-            ContextSource(
-                source="settings_in_scene",
-                label=f"Settings ({len(settings_in_scene)})",
-                included=bool(settings_in_scene),
-            ),
-        ]
+        # Derived from the packet that was just built, not listed a second time by hand:
+        # the two used to be maintained separately and could disagree (doc 07 §5).
+        sources = _sources_from(assembled)
 
     elif body.context_type == "interview":
         if not body.interview_id:

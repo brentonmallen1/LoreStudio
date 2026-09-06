@@ -16,22 +16,23 @@ A /context endpoint (GET) returns the assembled context packet so the frontend
 can show the author exactly what the AI is seeing.
 """
 
-import re
-
 from fastapi import APIRouter, Body, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.character import Character
-from ..models.plot_thread import PlotThread, PlotThreadAppearance
-from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
+from ..services.codex.context import (
+    VIRTUAL_NODE_IDS,
+    ContextOptions,
+    assemble_scene,
+    attach_passages,
+    retrieve_for,
+)
 from ..services.llm.features import get_feature
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
@@ -39,187 +40,11 @@ from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_wr
 router = APIRouter()
 
 
-class ContextOptions(BaseModel):
-    """Controls which context sections are included in the LLM prompt."""
-
-    include_characters: bool = True
-    include_threads: bool = True
-    include_settings: bool = True
-    include_siblings: bool = True
-
-
-# How many characters of prose to include in context (keep tokens reasonable)
-PROSE_CONTEXT_LIMIT = 2000
-
-
 def _get_story(story_id: str, db: Session, user: User) -> Story:
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
-
-
-def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
-    """Return (character_names, setting_names) mentioned in prose."""
-    char_names = re.findall(r"@([\w\s'-]+?)(?=\s|[,.:;!?@\[\]]|$)", content)
-    setting_names = re.findall(r"\[\[([\w\s'-]+?)\]\]", content)
-    return [n.strip() for n in char_names], [n.strip() for n in setting_names]
-
-
-VIRTUAL_NODE_IDS = {"__global__", "__story__"}
-
-
-def _build_context_packet(  # noqa: C901, PLR0912
-    story: Story, node: StructureNode | None, db: Session, context_options: ContextOptions | None = None
-) -> dict:
-    """Assemble the full context dict — used for both the preview endpoint and chat."""
-
-    # ── Lorebook ──
-    # Resolve POV character name if set
-    pov_char_name: str | None = None
-    if story.pov_character_id:
-        from ..models.character import Character as CharacterModel
-
-        pov_char = db.get(CharacterModel, story.pov_character_id)
-        if pov_char:
-            pov_char_name = pov_char.name
-
-    lorebook = {
-        "title": story.title,
-        "genre": story.genre or None,
-        "tone": story.tone or None,
-        "themes": story.themes or [],
-        "central_conflict": story.central_conflict or None,
-        "narrative_intent": story.narrative_intent or story.intent or None,
-        "logline": story.logline or None,
-        "premise": story.premise or None,
-        "narrative_perspective": story.narrative_perspective or None,
-        "pov_character": pov_char_name,
-        "unresolved_goals": [g["text"] for g in (story.goals or []) if not g.get("completed")],
-    }
-
-    # ── Active scene (None for story-level / global assistant) ──
-    if node is not None:
-        prose_preview = (node.content or "")[:PROSE_CONTEXT_LIMIT]
-        if len(node.content or "") > PROSE_CONTEXT_LIMIT:
-            prose_preview += "…"
-        scene = {
-            "title": node.title,
-            "level_type": node.level_type,
-            "synopsis": node.synopsis or None,
-            "purpose": node.purpose or None,
-            "entry_state": node.entry_state or None,
-            "exit_state": node.exit_state or None,
-            "key_events": node.key_events or None,
-            "word_count": node.word_count,
-            "status": node.status,
-            "prose_preview": prose_preview or None,
-        }
-        node_content = node.content or ""
-        node_id_for_threads = node.id
-        node_parent_id = node.parent_id
-    else:
-        scene = None
-        node_content = ""
-        node_id_for_threads = None
-        node_parent_id = None
-
-    # ── Resolve context option flags (default all True) ──
-    opts = context_options or ContextOptions()
-
-    # ── Characters mentioned in prose ──
-    char_names_mentioned, setting_names_mentioned = _extract_mentions(node_content)
-
-    all_chars = db.query(Character).filter(Character.story_id == story.id).all()
-    # Always include light summary of all characters for context
-    all_char_summaries = [
-        {"name": c.name, "role": c.role, "motivation": c.motivation[:100] if c.motivation else None} for c in all_chars
-    ]
-
-    mentioned_char_profiles = []
-    if opts.include_characters:
-        mentioned_chars = [c for c in all_chars if any(c.name.lower() == n.lower() for n in char_names_mentioned)]
-        for c in mentioned_chars:
-            profile: dict = {"name": c.name, "role": c.role}
-            if c.personality:
-                profile["personality"] = c.personality
-            if c.motivation:
-                profile["motivation"] = c.motivation
-            if c.background:
-                profile["background"] = c.background[:300]
-            if c.arc_notes:
-                profile["arc_notes"] = c.arc_notes
-            if c.narrative_intent and not c.narrative_intent_hidden:
-                profile["narrative_intent"] = c.narrative_intent
-            if c.arc_milestones:
-                profile["arc_milestones_pending"] = [m["text"] for m in c.arc_milestones if not m.get("completed")]
-            mentioned_char_profiles.append(profile)
-
-    # ── Settings mentioned ──
-    mentioned_settings = []
-    if opts.include_settings:
-        all_settings = db.query(Setting).filter(Setting.story_id == story.id).all()
-        mentioned_settings = [
-            {
-                "name": s.name,
-                "description": s.description[:200] if s.description else None,
-                "atmosphere": s.atmosphere[:200] if s.atmosphere else None,
-            }
-            for s in all_settings
-            if any(s.name.lower() == n.lower() for n in setting_names_mentioned)
-        ]
-
-    # ── Plot threads touching this scene ──
-    threads_in_scene: list = []
-    all_open_threads: list = []
-    if opts.include_threads:
-        if node_id_for_threads:
-            thread_appearances = (
-                db.query(PlotThreadAppearance).filter(PlotThreadAppearance.node_id == node_id_for_threads).all()
-            )
-            active_thread_ids = {a.thread_id for a in thread_appearances}
-            active_threads = (
-                db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
-            )
-            threads_in_scene = [
-                {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
-                for t in active_threads
-            ]
-        all_open_threads = [
-            {"name": t.name, "status": t.status}
-            for t in db.query(PlotThread)
-            .filter(PlotThread.story_id == story.id, PlotThread.status.in_(["open", "developing"]))
-            .all()
-        ]
-
-    # ── Sibling context (adjacent scenes) ──
-    sibling_context: list = []
-    if opts.include_siblings and node is not None:
-        siblings = (
-            db.query(StructureNode)
-            .filter(
-                StructureNode.story_id == story.id,
-                StructureNode.parent_id == node_parent_id,
-                StructureNode.id != node.id,
-            )
-            .order_by(StructureNode.position)
-            .all()
-        )
-        sibling_context = [
-            {"title": s.title, "synopsis": s.synopsis[:120] if s.synopsis else None, "position": s.position}
-            for s in siblings[:6]
-        ]
-
-    return {
-        "story": lorebook,
-        "scene": scene,
-        "characters_in_scene": mentioned_char_profiles,
-        "all_characters": all_char_summaries,
-        "settings_in_scene": mentioned_settings,
-        "threads_in_scene": threads_in_scene,
-        "open_threads": all_open_threads,
-        "sibling_scenes": sibling_context,
-    }
 
 
 # ── Endpoints ──
@@ -240,7 +65,7 @@ def get_chat_context(
         node = db.get(StructureNode, node_id)
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
-    ctx = _build_context_packet(story, node, db)
+    ctx = assemble_scene(story, node, db).packet
     return JSONResponse(ctx)
 
 
@@ -264,14 +89,30 @@ async def scene_chat(
         if not node or node.story_id != story_id:
             raise HTTPException(status_code=404, detail="Scene not found")
 
-    ctx = _build_context_packet(story, node, db, context_options)
+    feature = mode if mode and get_feature(mode) else "scene-chat"
+    ctx = assemble_scene(story, node, db, context_options).packet
+    # The author's last message is the query the index is searched with. With no scene to
+    # start from, the walk has no seed and the search is the whole story.
+    ctx = attach_passages(
+        ctx,
+        await retrieve_for(
+            db,
+            story_id,
+            next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), ""),
+            feature=feature,
+            seed_ref_ids=[node.id] if node else [],
+            user=current_user,
+            whole_story=node is None,
+        ),
+        db,
+    )
     if mode == "writing-coach":
         feature_prompt = build_writing_coach_system_prompt(ctx)
     else:
         feature_prompt = build_scene_chat_system_prompt(ctx)
 
     call_ctx = AICallContext(
-        feature=mode if mode and get_feature(mode) else "scene-chat",
+        feature=feature,
         user_id=current_user.id,
         story_id=story_id,
         node_id=node_id,

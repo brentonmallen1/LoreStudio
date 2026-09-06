@@ -164,6 +164,17 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
                 line += f": {sib['synopsis']}"
             lines.append(line)
 
+    if ctx.get("retrieved_passages"):
+        # Each passage says why it is here. A model told that Mara was present in the
+        # scene a passage comes from can weigh it as evidence; one handed unlabelled
+        # prose can only imitate it.
+        lines += ["", "## Passages from elsewhere in the story"]
+        for passage in ctx["retrieved_passages"]:
+            heading = f"\n### {passage['label']}"
+            if passage.get("why"):
+                heading += f" — {passage['why']}"
+            lines += [heading, passage["text"]]
+
     lines += [
         "",
         "---",
