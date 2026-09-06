@@ -4,7 +4,6 @@
  * Dynamic commands (story/character-specific) are registered reactively in CommandPalette.
  */
 import {
-  Settings,
   Sun,
   Moon,
   Maximize2,
@@ -20,10 +19,16 @@ import {
   Search,
   Quote,
   BookMarked,
+  SquareLibrary,
+  PenLine,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { api } from "../../api/client";
 import { toolsApi } from "../../api/tools";
+import { STORY_ROUTES, storyPath } from "../routes";
+import { SETTINGS_SECTIONS, settingsPath } from "../../pages/settings/sections";
+import { navigateTo } from "../navigation";
+import { getMode } from "../mode";
 import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -58,18 +63,57 @@ for (const style of ["curly", "straight"] as const) {
   });
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────────
+commandRegistry.register({
+  id: "scratch-pad",
+  label: "Toggle scratch pad",
+  keywords: ["scratch", "notes", "jot", "pad"],
+  icon: PenLine,
+  group: "Global",
+  action: () => useUIStore.getState().toggleScratchPad(),
+});
+
+// ── Navigation (generated from lib/routes.ts and settings/sections.ts) ─────────
+
+for (const route of STORY_ROUTES) {
+  commandRegistry.register({
+    id: `nav-${route.id}`,
+    label: route.id === "overview" ? "Story overview" : `Go to ${route.label}`,
+    keywords: ["go to", "open", route.label.toLowerCase(), ...(route.keywords ?? [])],
+    icon: route.icon,
+    group: route.ai ? "AI" : "Navigation",
+    when: () => {
+      const story = useStoryStore.getState().activeStory;
+      return Boolean(story) && route.modes.includes(getMode());
+    },
+    action: () => {
+      const story = useStoryStore.getState().activeStory;
+      if (story) navigateTo(storyPath(story.id, route));
+    },
+  });
+}
 
 commandRegistry.register({
-  id: "nav-settings",
-  label: "Settings",
-  keywords: ["settings", "preferences", "config"],
-  icon: Settings,
+  id: "nav-dashboard",
+  label: "All stories",
+  keywords: ["dashboard", "home", "stories", "library"],
+  icon: SquareLibrary,
   group: "Navigation",
-  action: () => {
-    window.location.href = "/settings";
-  },
+  action: () => navigateTo("/"),
 });
+
+for (const section of SETTINGS_SECTIONS) {
+  commandRegistry.register({
+    id: `settings-${section.id}`,
+    label: `Settings › ${section.label}`,
+    keywords: ["settings", "preferences", section.label.toLowerCase(), ...(section.keywords ?? [])],
+    icon: section.icon,
+    group: section.modes.length === 1 ? "AI" : "Settings",
+    when: () => section.modes.includes(getMode()),
+    action: () => navigateTo(settingsPath(section)),
+  });
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
 
 // ── AI sessions ───────────────────────────────────────────────────────────────
 
@@ -239,7 +283,6 @@ commandRegistry.register({
   keywords: ["show", "tell", "show dont tell", "analysis", "prose"],
   icon: Compass,
   group: "Editor",
-  shortcut: "⌘⇧T",
   when: () => !!useStoryStore.getState().activeNode,
   action: async () => {
     const { activeStory, activeNode } = useStoryStore.getState();
@@ -255,7 +298,6 @@ commandRegistry.register({
   keywords: ["audience", "reader", "adherence", "tone"],
   icon: Compass,
   group: "Editor",
-  shortcut: "⌘⇧A",
   when: () => !!useStoryStore.getState().activeNode,
   action: async () => {
     const { activeStory, activeNode } = useStoryStore.getState();
@@ -375,7 +417,7 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeStory,
   action: () => {
     const story = useStoryStore.getState().activeStory;
-    if (story) window.location.href = `/stories/${story.id}/health`;
+    if (story) navigateTo(`/stories/${story.id}/health`);
   },
 });
 
@@ -388,7 +430,7 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeStory,
   action: () => {
     const story = useStoryStore.getState().activeStory;
-    if (story) window.location.href = `/stories/${story.id}/discoveries`;
+    if (story) navigateTo(`/stories/${story.id}/discoveries`);
   },
 });
 

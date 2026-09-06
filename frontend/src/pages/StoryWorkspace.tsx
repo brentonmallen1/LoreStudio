@@ -3,6 +3,11 @@ import { useParams, useNavigate, useLocation, Routes, Route } from "react-router
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
+import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
+import { STORY_ROUTES } from "../lib/routes";
+import ModeGate from "../components/layout/ModeGate";
+
+const ROUTE = (id: string) => STORY_ROUTES.find((r) => r.id === id)!;
 // Always-loaded layout chrome
 import Sidebar from "../components/layout/Sidebar";
 import StructureTreePanel from "../components/layout/StructureTreePanel";
@@ -94,7 +99,7 @@ export default function StoryWorkspacePage() {
   // ⌘⇧F — open story-wide search panel
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "f") {
+      if (matchesCombo(e, SHORTCUTS.storySearch.combo)) {
         e.preventDefault();
         openStorySearch();
       }
@@ -204,17 +209,52 @@ export default function StoryWorkspacePage() {
             <Route path="/compendium" element={<CompendiumPanel storyId={storyId!} />} />
             <Route path="/worldbuilding" element={<WorldBuildingHub />} />
             <Route path="/locations/:locationId" element={<LocationSheet />} />
-            <Route path="/panels" element={<PanelInterviewPanel storyId={storyId!} />} />
+            <Route
+              path="/panels"
+              element={
+                <ModeGate route={ROUTE("panels")}>
+                  <PanelInterviewPanel storyId={storyId!} />
+                </ModeGate>
+              }
+            />
             <Route path="/outline" element={<OutlineManager storyId={storyId!} />} />
             <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
-            <Route path="/twists" element={<TwistManager storyId={storyId!} />} />
+            <Route
+              path="/twists"
+              element={
+                <ModeGate route={ROUTE("twists")}>
+                  <TwistManager storyId={storyId!} />
+                </ModeGate>
+              }
+            />
             <Route path="/media" element={<MediaPage />} />
             <Route path="/health" element={<StoryHealthPage />} />
-            <Route path="/discoveries" element={<DiscoveryQueuePage />} />
+            <Route
+              path="/discoveries"
+              element={
+                <ModeGate route={ROUTE("discoveries")}>
+                  <DiscoveryQueuePage />
+                </ModeGate>
+              }
+            />
             <Route path="/chronicle" element={<ChroniclePage />} />
-            <Route path="/publish" element={<PublishPage />} />
+            <Route
+              path="/publish"
+              element={
+                <ModeGate route={ROUTE("publish")}>
+                  <PublishPage />
+                </ModeGate>
+              }
+            />
             <Route path="/versions" element={<VersionsPage />} />
-            <Route path="/whatif" element={<WhatIfPage />} />
+            <Route
+              path="/whatif"
+              element={
+                <ModeGate route={ROUTE("whatif")}>
+                  <WhatIfPage />
+                </ModeGate>
+              }
+            />
           </Routes>
         </Suspense>
       </main>

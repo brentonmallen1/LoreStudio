@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { setNavigator } from "./lib/navigation";
 import { useAuthStore } from "./stores/authStore";
 import LoginPage from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
@@ -9,6 +10,16 @@ import SettingsAIPage from "./pages/SettingsAI";
 import CommandPalette from "./components/layout/CommandPalette";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
+
+/** Hands the router's navigate to non-React code (palette commands). */
+function NavigatorBridge() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigator((to, opts) => navigate(to, opts));
+    return () => setNavigator(null);
+  }, [navigate]);
+  return null;
+}
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, token } = useAuthStore();
@@ -26,6 +37,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <NavigatorBridge />
       <CommandPalette />
       <ScratchPadDrawer />
       <Routes>

@@ -674,3 +674,15 @@
   background: var(--color-surface-2);
   color: var(--color-text-muted);
 }
+
+.railFooter {
+  margin-top: auto;
+  padding: 0.35rem;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sidebarCollapsed .railFooter {
+  justify-content: center;
+}

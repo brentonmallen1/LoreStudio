@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { X, Keyboard } from "lucide-react";
+import { X } from "lucide-react";
 import { commandRegistry } from "../../lib/commands/registry";
+import { formatCombo, shortcutsFor } from "../../lib/keyboard/shortcuts";
+import { useMode } from "../../lib/mode";
 import styles from "./KeyboardShortcutsModal.module.css";
 
 interface Props {
@@ -8,7 +10,10 @@ interface Props {
   onClose: () => void;
 }
 
+/** The `?` overlay. Rendered from lib/keyboard/shortcuts.ts plus any palette command that declares a shortcut. */
 export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
+  const mode = useMode();
+
   useEffect(() => {
     if (!isOpen) return;
     function onKey(e: KeyboardEvent) {
@@ -20,58 +25,47 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }: Props) {
 
   if (!isOpen) return null;
 
-  // Collect all commands with shortcuts, grouped
-  const all = commandRegistry.getAll().filter((a) => !!a.shortcut);
-  const groups: Record<string, typeof all> = {};
-  for (const action of all) {
-    if (!groups[action.group]) groups[action.group] = [];
-    groups[action.group].push(action);
+  const rows: Record<string, { label: string; keys: string }[]> = {};
+  for (const s of shortcutsFor(mode)) {
+    (rows[s.group] ??= []).push({ label: s.label, keys: formatCombo(s.combo) });
   }
-
-  // Built-in shortcuts not in the registry
-  const builtIn: Array<{ label: string; shortcut: string; group: string }> = [
-    { group: "Navigation", label: "Command palette", shortcut: "⌘K" },
-    { group: "Navigation", label: "Keyboard shortcuts", shortcut: "?" },
-    { group: "Editor", label: "New line", shortcut: "Shift+Enter" },
-  ];
-  const builtInGroups: Record<string, typeof builtIn> = {};
-  for (const item of builtIn) {
-    if (!builtInGroups[item.group]) builtInGroups[item.group] = [];
-    builtInGroups[item.group].push(item);
+  for (const action of commandRegistry.getAll()) {
+    if (!action.shortcut) continue;
+    if (action.when && !action.when()) continue;
+    (rows[action.group] ??= []).push({ label: action.label, keys: action.shortcut });
   }
-
-  const allGroups = new Set([...Object.keys(builtInGroups), ...Object.keys(groups)]);
+  rows["Editor"] = [...(rows["Editor"] ?? []), { label: "New line without paragraph", keys: "Shift+Enter" }];
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="Keyboard shortcuts"
+      >
         <div className={styles.header}>
-          <Keyboard size={15} className={styles.headerIcon} />
-          <span className={styles.title}>Keyboard shortcuts</span>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <h2 className={styles.title}>Keyboard shortcuts</h2>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={14} />
           </button>
         </div>
-
         <div className={styles.body}>
-          {Array.from(allGroups).map((group) => (
+          {Object.entries(rows).map(([group, items]) => (
             <div key={group} className={styles.group}>
               <p className={styles.groupLabel}>{group}</p>
-              {(builtInGroups[group] ?? []).map((item) => (
+              {items.map((item) => (
                 <div key={item.label} className={styles.row}>
                   <span className={styles.rowLabel}>{item.label}</span>
-                  <kbd className={styles.kbd}>{item.shortcut}</kbd>
-                </div>
-              ))}
-              {(groups[group] ?? []).map((action) => (
-                <div key={action.id} className={styles.row}>
-                  <span className={styles.rowLabel}>{action.label}</span>
-                  <kbd className={styles.kbd}>{action.shortcut}</kbd>
+                  <kbd className={styles.kbd}>{item.keys}</kbd>
                 </div>
               ))}
             </div>
           ))}
         </div>
+        <p className={styles.footer}>
+          Everything here is also in the command palette ({formatCombo("mod+k")}).
+        </p>
       </div>
     </div>
   );

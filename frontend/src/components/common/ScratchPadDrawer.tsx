@@ -4,6 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { X, ClipboardCopy, PenLine } from "lucide-react";
 import { useUIStore } from "../../stores/uiStore";
+import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useStoryStore } from "../../stores/storyStore";
 import styles from "./ScratchPadDrawer.module.css";
 
@@ -65,10 +66,10 @@ export default function ScratchPadDrawer() {
     setTab(storyId ? "story" : "global");
   }, [scratchPadOpen, storyId]);
 
-  // ⌘⇧N global shortcut
+  // Scratch pad shortcut (see lib/keyboard/shortcuts.ts)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "n") {
+      if (matchesCombo(e, SHORTCUTS.scratchPad.combo)) {
         e.preventDefault();
         toggleScratchPad();
       }
@@ -130,7 +131,9 @@ export default function ScratchPadDrawer() {
         </div>
 
         <div className={styles.drawerFooter}>
-          <span className={styles.hint}>⌘⇧N to toggle · Esc to close</span>
+          <span className={styles.hint}>
+            {formatCombo(SHORTCUTS.scratchPad.combo)} to toggle · Esc to close
+          </span>
         </div>
       </div>
     </>

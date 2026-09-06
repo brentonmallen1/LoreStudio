@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
+import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { commandRegistry } from "../../lib/commands/registry";
 import type { CommandAction } from "../../lib/commands/registry";
 import type { SearchResult } from "../../types";
@@ -355,7 +356,7 @@ export default function CommandPalette() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if (matchesCombo(e, SHORTCUTS.palette.combo)) {
         e.preventDefault();
         setCommandPaletteOpen(true);
       }

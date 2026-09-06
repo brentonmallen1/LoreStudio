@@ -40,6 +40,7 @@ import MentionHoverCard from "./MentionHoverCard";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
 import { useMode } from "../../lib/mode";
+import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
 import styles from "./SceneEditor.module.css";
@@ -172,23 +173,22 @@ export default function SceneEditor() {
   // ⌘F find · ⌘⇧R writing coach · ⌘⇧D attribute dialogue
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      const mod = e.metaKey || e.ctrlKey;
-      if (mod && !e.shiftKey && e.key === "f") {
+      if (matchesCombo(e, SHORTCUTS.find.combo)) {
         e.preventDefault();
         openSceneSearch();
       }
-      if (mod && e.shiftKey && e.key === "R") {
+      if (mode === "studio" && matchesCombo(e, SHORTCUTS.writingCoach.combo)) {
         e.preventDefault();
         openSelectionSession("writing-coach", true);
       }
-      if (mod && e.shiftKey && e.key === "D") {
+      if (matchesCombo(e, SHORTCUTS.attributeDialogue.combo)) {
         e.preventDefault();
         mention.triggerAttributeDialogue();
       }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [editor, activeNode?.id, activeStory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editor, activeNode?.id, activeStory?.id, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!activeNode) {
     return (

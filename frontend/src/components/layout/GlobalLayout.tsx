@@ -6,6 +6,7 @@ import { useUIStore } from "../../stores/uiStore";
 import AIPanel from "../ai/AIPanel";
 import { useMode } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
+import { SHORTCUTS, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -24,19 +25,17 @@ export default function GlobalLayout() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const tag = (e.target as HTMLElement)?.tagName;
-      const editable = (e.target as HTMLElement)?.isContentEditable;
-      const inTextField = tag === "INPUT" || tag === "TEXTAREA" || editable;
+      const inTextField = isTypingTarget(e);
 
       // Undo/redo (⌘Z / ⌘⇧Z) is handled by the header's useUndoRedo hook.
       // All other shortcuts: skip when typing
       if (inTextField) return;
-      if (e.key === "?") {
+      if (matchesCombo(e, SHORTCUTS.help.combo)) {
         e.preventDefault();
         setShortcutsOpen((v) => !v);
       }
-      // ⌘⇧F: focus mode (hide chrome, hover-reveal sidebar)
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "F" || e.key === "f")) {
+      // Focus mode (hide chrome, hover-reveal sidebar)
+      if (matchesCombo(e, SHORTCUTS.focusMode.combo)) {
         e.preventDefault();
         const { viewState: v, setViewState } = useUIStore.getState();
         setViewState(v === "focus" ? "normal" : "focus");

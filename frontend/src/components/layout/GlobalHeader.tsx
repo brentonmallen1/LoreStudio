@@ -18,6 +18,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useMode } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
+import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type {
   ThemeName,
@@ -131,7 +132,7 @@ export default function GlobalHeader() {
   // Cmd+/ to toggle assistant
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+      if (matchesCombo(e, SHORTCUTS.assistant.combo)) {
         e.preventDefault();
         handleAssistantToggle();
       }
@@ -143,12 +144,12 @@ export default function GlobalHeader() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
-      const t = e.target as HTMLElement | null;
-      const inText = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
-      if (inText) return; // the editor and inputs keep their own history
+      const isUndo = matchesCombo(e, SHORTCUTS.undo.combo);
+      const isRedo = matchesCombo(e, SHORTCUTS.redo.combo);
+      if (!isUndo && !isRedo) return;
+      if (isTypingTarget(e)) return; // the editor and inputs keep their own history
       e.preventDefault();
-      if (e.shiftKey) undoRedo.redo();
+      if (isRedo) undoRedo.redo();
       else undoRedo.undo();
     }
     window.addEventListener("keydown", onKey);
@@ -275,7 +276,7 @@ export default function GlobalHeader() {
             <button
               onClick={handleAssistantToggle}
               className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}
-              title="AI Assistant (⌘/)"
+              title={`AI Assistant (${formatCombo(SHORTCUTS.assistant.combo)})`}
             >
               <Feather size={14} />
               <span>Assistant</span>
@@ -286,7 +287,7 @@ export default function GlobalHeader() {
           <button
             onClick={toggleScratchPad}
             className={`${styles.iconBtn} ${scratchPadOpen ? styles.iconBtnActive : ""}`}
-            title="Scratch pad (⌘⇧N)"
+            title={`Scratch pad (${formatCombo(SHORTCUTS.scratchPad.combo)})`}
             style={{ position: "relative" }}
           >
             <PenLine size={15} />
