@@ -17,12 +17,14 @@ import { useUIStore, THEME_META } from "../stores/uiStore";
 import type { ThemeName, ColorMode } from "../stores/uiStore";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
-import type { LLMSettings, ImageTokenBudget, UserBackupDefaults } from "../types";
+import type { LLMSettings, ImageTokenBudget } from "../types";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
 import ShortcutsSection from "../components/settings/ShortcutsSection";
 import AISwitchCard from "../components/settings/AISwitchCard";
+import BackupDefaultsCard from "../components/settings/BackupDefaultsCard";
+import CodexSection from "../components/settings/CodexSection";
 import PrivacySection from "../components/settings/PrivacySection";
 import SettingsNav from "../components/settings/SettingsNav";
 import { useMode } from "../lib/mode";
@@ -217,21 +219,6 @@ export default function SettingsPage() {
   const [ollamaSaveState, setOllamaSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const ollamaInitialized = useRef(false);
   const [connStatus, setConnStatus] = useState<ConnStatus>(null);
-
-  // Backup defaults
-  const [backupDefaults, setBackupDefaults] = useState<UserBackupDefaults | null>(null);
-
-  useEffect(() => {
-    api
-      .getUserBackupDefaults()
-      .then(setBackupDefaults)
-      .catch(() => {});
-  }, []);
-
-  async function handleBackupDefaultsChange(patch: Partial<UserBackupDefaults>) {
-    const updated = await api.updateUserBackupDefaults(patch);
-    setBackupDefaults(updated);
-  }
 
   // LLM parameter settings
   const [llmSettings, setLlmSettings] = useState<LLMSettings | null>(null);
@@ -624,89 +611,18 @@ export default function SettingsPage() {
                 </div>
               </section>
 
+              <section className={styles.section} id="codex">
+                <h2 className={styles.sectionLabel}>Codex</h2>
+                <CodexSection />
+              </section>
+
               {/* Backups */}
             </>
           )}
 
           <section className={styles.section} id="backups">
             <h2 className={styles.sectionLabel}>Backups</h2>
-            <div className={styles.card}>
-              <p className={styles.sectionHint}>
-                Default settings applied to new stories. Override per-story on the Versions page.
-              </p>
-              {backupDefaults ? (
-                <div className={styles.backupForm}>
-                  <label className={styles.toggleRow}>
-                    <div className={styles.toggleLabel}>
-                      <span className={styles.label}>Enable automatic backups by default</span>
-                    </div>
-                    <label className={styles.toggle}>
-                      <input
-                        type="checkbox"
-                        checked={backupDefaults.auto_enabled}
-                        onChange={(e) => handleBackupDefaultsChange({ auto_enabled: e.target.checked })}
-                      />
-                      <span className={styles.toggleTrack} />
-                    </label>
-                  </label>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>Backup frequency</label>
-                    <select
-                      className={styles.select}
-                      value={backupDefaults.interval_minutes}
-                      onChange={(e) =>
-                        handleBackupDefaultsChange({ interval_minutes: Number(e.target.value) })
-                      }
-                    >
-                      <option value={15}>Every 15 minutes</option>
-                      <option value={30}>Every 30 minutes</option>
-                      <option value={60}>Every hour</option>
-                      <option value={240}>Every 4 hours</option>
-                      <option value={720}>Every 12 hours</option>
-                      <option value={1440}>Every 24 hours</option>
-                    </select>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>Keep at most (auto backups)</label>
-                    <select
-                      className={styles.select}
-                      value={backupDefaults.max_count ?? ""}
-                      onChange={(e) =>
-                        handleBackupDefaultsChange({
-                          max_count: e.target.value ? Number(e.target.value) : null,
-                        })
-                      }
-                    >
-                      <option value={48}>48 backups</option>
-                      <option value={96}>96 backups</option>
-                      <option value={200}>200 backups</option>
-                      <option value={500}>500 backups</option>
-                      <option value="">Unlimited</option>
-                    </select>
-                  </div>
-                  <div className={styles.fieldRow}>
-                    <label className={styles.label}>Delete backups older than</label>
-                    <select
-                      className={styles.select}
-                      value={backupDefaults.max_age_days ?? ""}
-                      onChange={(e) =>
-                        handleBackupDefaultsChange({
-                          max_age_days: e.target.value ? Number(e.target.value) : null,
-                        })
-                      }
-                    >
-                      <option value={7}>7 days</option>
-                      <option value={30}>30 days</option>
-                      <option value={90}>90 days</option>
-                      <option value={365}>1 year</option>
-                      <option value="">Never</option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                <p className={styles.hint}>Loading…</p>
-              )}
-            </div>
+            <BackupDefaultsCard />
             <DatabaseBackupCard isAdmin={!!user?.is_admin} />
           </section>
 

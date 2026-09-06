@@ -1,7 +1,18 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..database import Base
@@ -82,6 +93,51 @@ class CodexEdge(Base):
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     #: Ordering hint for edges that have one (scene order, clue order).
     position: Mapped[int] = mapped_column(Integer, default=0)
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
+
+
+class CodexChunk(Base):
+    """
+    A passage of the story, small enough to embed and specific enough to cite.
+
+    Chunks are the retrieval unit: the graph decides *which* nodes are relevant, and the
+    chunks under those nodes decide which sentences get sent. `node_id` is what makes a
+    retrieved passage explainable — "this came from scene 7, which Mara was present in".
+
+    The vector lives in a BLOB of packed float32, not a `vec0` virtual table. Exact search
+    over a story's worth of chunks is fast either way, and one ordinary table means the
+    index survives on a SQLite build with no extensions loaded (`embeddings.py`).
+    """
+
+    __tablename__ = "codex_chunks"
+    __table_args__ = (
+        UniqueConstraint("node_id", "chunk_index", name="uq_codex_chunk"),
+        Index("ix_codex_chunks_story", "story_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    story_id: Mapped[str] = mapped_column(
+        String, ForeignKey("stories.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    node_id: Mapped[str] = mapped_column(String, ForeignKey("codex_nodes.id", ondelete="CASCADE"), nullable=False)
+
+    chunk_index: Mapped[int] = mapped_column(Integer, default=0)
+    text: Mapped[str] = mapped_column(Text, default="")
+    token_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    #: Packed float32, little-endian. Null until the chunk has been embedded, which is how
+    #: an interrupted reindex knows where to pick up.
+    embedding: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    #: The embedding model and dimension the vector was made with. A vector from one model
+    #: cannot be compared with a vector from another, so both are recorded and a mismatch
+    #: means "re-embed", never "compare anyway".
+    embed_model: Mapped[str] = mapped_column(String, default="")
+    dim: Mapped[int] = mapped_column(Integer, default=0)
+    #: Hash of the source text, so an unchanged passage keeps its vector across a reindex.
+    text_hash: Mapped[str] = mapped_column(String, default="")
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)

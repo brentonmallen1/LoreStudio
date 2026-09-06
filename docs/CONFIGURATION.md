@@ -136,6 +136,27 @@ Any Ollama-compatible model works. Tested alternatives:
 - **Quick analysis:** Smaller models are faster for simple checks
 - **Image features:** Gemma 4 or other vision-capable models required
 
+### Embedding Model (Codex)
+
+The Codex builds a semantic index of your story so AI features can find passages by
+meaning. That needs a separate, much smaller embedding model, chosen in
+**Settings › Codex** rather than in `.env` — it is a per-user choice, and changing it
+does not re-embed anything until you ask for a reindex.
+
+```bash
+ollama pull nomic-embed-text     # default: fast, 768 dimensions
+ollama pull mxbai-embed-large    # slower, 1024 dimensions, a little sharper
+```
+
+Vectors record the model that made them, and a search never compares vectors from two
+different models. So switching models leaves the old index in place and inert until the
+next **Index story** run replaces it.
+
+Similarity search uses [`sqlite-vec`](https://github.com/asg017/sqlite-vec) when the
+extension loads, and the same arithmetic in Python when it does not — a story is
+thousands of passages, not millions, so both are fast and the results are identical.
+Settings › Codex reports which one is actually running.
+
 ---
 
 ## Docker Configuration

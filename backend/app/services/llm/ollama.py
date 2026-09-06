@@ -266,6 +266,37 @@ class OllamaProvider(LLMProvider):
                     except json.JSONDecodeError:
                         continue
 
+    async def embed(
+        self,
+        texts: list[str],
+        *,
+        model: str,
+        base_url: str | None = None,
+        timeout: int = 120,
+    ) -> list[list[float]]:
+        """
+        Embed a batch of passages through Ollama's /api/embed.
+
+        Raises rather than returning empty vectors: an index quietly full of zeros would
+        answer every query with the same wrong passages, and look like it was working.
+        """
+        if not texts:
+            return []
+        url = base_url or self.base_url
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{url}/api/embed",
+                json={"model": model, "input": texts, "keep_alive": self.keep_alive},
+                timeout=aiohttp.ClientTimeout(total=timeout),
+            ) as resp:
+                if resp.status != 200:
+                    raise ValueError(f"Ollama embed failed ({resp.status}): {(await resp.text())[:200]}")
+                data = await resp.json()
+        vectors = data.get("embeddings") or []
+        if len(vectors) != len(texts):
+            raise ValueError(f"Ollama returned {len(vectors)} embeddings for {len(texts)} passages")
+        return vectors
+
     async def generate_structured(
         self,
         messages: list[dict],

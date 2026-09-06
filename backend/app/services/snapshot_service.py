@@ -170,7 +170,7 @@ SNAPSHOT_EXCLUDED_TABLES = {
     # The Codex graph is derived from everything above: restoring a snapshot and syncing
     # rebuilds it exactly, so carrying a copy would only let the two disagree.
     "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs",
-    "codex_nodes", "codex_edges",
+    "codex_nodes", "codex_edges", "codex_chunks",
 }
 # fmt: on
 

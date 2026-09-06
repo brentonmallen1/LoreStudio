@@ -1,8 +1,12 @@
 """The Codex API: read the graph, correct who is in a scene, queue a rebuild (doc 07)."""
 
+from app.models.ai_job import AIJob
 from app.models.character import Character
+from app.models.codex import CodexChunk
 from app.models.story import Story
 from app.models.structure import StructureNode
+from app.services.codex.embeddings import DEFAULT_EMBED_MODEL, pack
+from app.services.codex.index import build_chunks, pending_chunks
 from app.services.codex.sync import sync_story
 
 
@@ -96,3 +100,58 @@ def test_another_authors_story_is_not_readable(client, db_session, test_user):
 
     assert client.get(f"/api/stories/{theirs.id}/codex").status_code == 404
     assert client.post(f"/api/stories/{theirs.id}/codex/sync").status_code == 404
+
+
+def test_the_index_reports_what_it_holds_and_how_search_will_run(client, db_session, test_user):
+    story, _, scene = _setup(db_session, test_user)
+    scene.content = f"<p>{' '.join(['lamp'] * 120)}</p>"
+    db_session.commit()
+    sync_story(story.id, db_session)
+    build_chunks(story.id, db_session)
+
+    body = client.get(f"/api/stories/{story.id}/codex/index").json()
+    assert body["chunks"] == 1
+    assert body["embedded"] == 0 and body["pending"] == 1
+    assert body["backend"] in ("sqlite-vec", "python")
+    assert body["effective_embed_model"] == DEFAULT_EMBED_MODEL
+
+
+def test_queueing_a_reindex_makes_a_job(client, db_session, test_user):
+    story, _, _ = _setup(db_session, test_user)
+    body = client.post(f"/api/stories/{story.id}/codex/index")
+    assert body.status_code == 202
+    job = db_session.query(AIJob).filter(AIJob.id == body.json()["job_id"]).one()
+    assert job.kind == "codex-index"
+    assert job.params["embed_model"] == DEFAULT_EMBED_MODEL
+
+
+def test_choosing_an_embedding_model_does_not_throw_away_the_old_vectors(client, db_session, test_user):
+    """
+    Vectors record the model that made them, so the old ones simply stop matching.
+
+    Re-embedding is minutes of the author's machine; making that happen the instant a
+    dropdown changes would be deciding for them.
+    """
+    story, _, scene = _setup(db_session, test_user)
+    scene.content = f"<p>{' '.join(['lamp'] * 120)}</p>"
+    db_session.commit()
+    sync_story(story.id, db_session)
+    build_chunks(story.id, db_session)
+    chunk = db_session.query(CodexChunk).one()
+    chunk.embedding, chunk.embed_model, chunk.dim = pack([1.0, 0.0]), "nomic-embed-text", 2
+    db_session.commit()
+
+    assert client.get("/api/codex/settings").json()["effective_embed_model"] == DEFAULT_EMBED_MODEL
+    body = client.patch("/api/codex/settings", json={"embed_model": "mxbai-embed-large"}).json()
+    assert body["effective_embed_model"] == "mxbai-embed-large"
+
+    db_session.refresh(chunk)
+    assert chunk.embedding is not None
+    assert len(pending_chunks(story.id, db_session, "mxbai-embed-large")) == 1
+
+
+def test_clearing_the_model_falls_back_to_the_default(client, db_session, test_user):
+    client.patch("/api/codex/settings", json={"embed_model": "mxbai-embed-large"})
+    body = client.patch("/api/codex/settings", json={"embed_model": None}).json()
+    assert body["embed_model"] is None
+    assert body["effective_embed_model"] == DEFAULT_EMBED_MODEL

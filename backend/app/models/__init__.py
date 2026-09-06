@@ -8,7 +8,7 @@ from .character import Character, CharacterRelationship
 from .character_journey import CharacterJourneySummary
 from .chat_message import ChatMessage
 from .chat_session import ChatSession
-from .codex import CodexEdge, CodexNode
+from .codex import CodexChunk, CodexEdge, CodexNode
 from .compendium import CompendiumAttachment, CompendiumEntry
 from .culture import Culture
 from .diagram import Diagram
@@ -50,6 +50,7 @@ __all__ = [
     "CharacterJourneySummary",
     "ChatSession",
     "ChatMessage",
+    "CodexChunk",
     "CodexEdge",
     "CodexNode",
     "ActivityLog",

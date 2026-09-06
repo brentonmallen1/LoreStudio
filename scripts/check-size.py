@@ -62,7 +62,7 @@ OVER_BUDGET: dict[str, int] = {
     "backend/app/services/import_service.py": 878,
     "frontend/src/components/layout/CommandPalette.tsx": 775,
     "frontend/src/components/outline/OutlineManager.tsx": 702,
-    "frontend/src/pages/Settings.tsx": 664,
+    "frontend/src/pages/Settings.tsx": 585,
     "frontend/src/components/worldbuilding/LocationManager.tsx": 651,
     "frontend/src/pages/StoryHealthPage.tsx": 633,
     "frontend/src/components/characters/RelationshipGraph.tsx": 633,

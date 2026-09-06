@@ -2,6 +2,7 @@ import {
   Archive,
   Cpu,
   Keyboard,
+  Network,
   Palette,
   ShieldCheck,
   Sliders,
@@ -52,6 +53,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     modes: ["studio"],
     path: "/settings/ai-prompts",
     keywords: ["system prompt", "feature prompts"],
+  },
+  {
+    id: "codex",
+    label: "Codex",
+    icon: Network,
+    modes: ["studio"],
+    keywords: ["embeddings", "index", "knowledge graph", "retrieval", "semantic"],
   },
   {
     id: "backups",

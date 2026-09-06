@@ -9,12 +9,15 @@ was actually in a scene.
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.codex import CodexEdge, CodexNode
 from ..models.story import Story
 from ..models.user import User
+from ..services.codex.embeddings import DEFAULT_EMBED_MODEL, embed_base_url_for, embed_model_for, search_backend
+from ..services.codex.index import build_chunks, embed_pending, index_stats
 from ..services.codex.presence import derive_facts, derive_presence, set_presence
 from ..services.codex.sync import sync_story
 from ..services.job_queue import enqueue, handler
@@ -54,6 +57,18 @@ class GraphOut(BaseModel):
     counts: dict[str, int]
 
 
+class CodexSettings(BaseModel):
+    """What the author chooses about the index. Everything else is derived."""
+
+    embed_model: str | None = None
+    effective_embed_model: str = DEFAULT_EMBED_MODEL
+    search_backend: str = "python"
+
+
+class CodexSettingsUpdate(BaseModel):
+    embed_model: str | None = None
+
+
 class PresenceUpdate(BaseModel):
     character_id: str
     node_id: str
@@ -67,6 +82,41 @@ async def _run_codex_sync(job, db: Session, user: User, report) -> dict:
     result = sync_story(job.story_id or "", db)
     report(1, 1)
     return {"nodes": result.nodes, "edges": result.edges, **result.by_kind}
+
+
+@handler("codex-index")
+async def _run_codex_index(job, db: Session, user: User, report) -> dict:
+    """
+    Rebuild the passages and embed the ones that changed.
+
+    Chunking first means the index is consistent even if the embedding half is stopped or
+    the model is unreachable: the passages are there, without vectors, and the next run
+    picks up exactly those.
+    """
+
+    def should_stop() -> bool:
+        db.refresh(job)
+        return job.cancel_requested
+
+    story_id = job.story_id or ""
+    built = build_chunks(story_id, db)
+    model = job.params.get("embed_model") or embed_model_for(user)
+    embedded = await embed_pending(
+        story_id,
+        db,
+        model=model,
+        base_url=embed_base_url_for(user),
+        should_stop=should_stop,
+        on_progress=report,
+    )
+    return {
+        "chunks": built.chunks,
+        "reused": built.reused,
+        "removed": built.removed,
+        "embedded": embedded.embedded,
+        "model": model,
+        **({"errors": embedded.errors} if embedded.errors else {}),
+    }
 
 
 def _story_or_404(story_id: str, db: Session, user: User) -> Story:
@@ -151,7 +201,7 @@ def get_scene_presence(
                 "name": node.label,
                 "role": (edges[node_key].props or {}).get("role") if node_key in edges else "absent",
                 "basis": (edges[node_key].props or {}).get("basis") if node_key in edges else None,
-                "overridden": node_key in edges and edges[node_key].source == "override",
+                "overridden": node_key in edges and (edges[node_key].props or {}).get("basis") == "manual",
             }
             for node_key, node in characters.items()
         ],
@@ -179,3 +229,66 @@ def update_scene_presence(
     derive_presence(story_id, db)
     derive_facts(story_id, db)
     return {"role": row.role, "source": "author"}
+
+
+@router.get("/codex/settings", response_model=CodexSettings)
+def get_codex_settings(user: User = Depends(get_current_user)):
+    """The embedding model, and the truth about how search will actually run."""
+    chosen = ((user.settings or {}).get("codex") or {}).get("embed_model")
+    return CodexSettings(
+        embed_model=chosen,
+        effective_embed_model=chosen or DEFAULT_EMBED_MODEL,
+        search_backend=search_backend(),
+    )
+
+
+@router.patch("/codex/settings", response_model=CodexSettings)
+def update_codex_settings(
+    body: CodexSettingsUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    Change the embedding model.
+
+    Nothing is re-embedded here. Vectors record the model that made them and a search only
+    compares like with like, so the old ones simply stop matching and the next index run
+    replaces them — the author decides when to pay for that.
+    """
+    user_settings = dict(user.settings or {})
+    codex = dict(user_settings.get("codex") or {})
+    if body.embed_model:
+        codex["embed_model"] = body.embed_model
+    else:
+        codex.pop("embed_model", None)
+    user_settings["codex"] = codex
+    user.settings = user_settings
+    flag_modified(user, "settings")
+    db.commit()
+    return CodexSettings(
+        embed_model=codex.get("embed_model"),
+        effective_embed_model=codex.get("embed_model") or DEFAULT_EMBED_MODEL,
+        search_backend=search_backend(),
+    )
+
+
+@router.get("/stories/{story_id}/codex/index")
+def get_index_stats(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """How much of the story is indexed, with what, and how much room it takes."""
+    _story_or_404(story_id, db, user)
+    return {**index_stats(story_id, db), "effective_embed_model": embed_model_for(user)}
+
+
+@router.post("/stories/{story_id}/codex/index", status_code=202)
+def queue_index(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Queue a reindex. Unchanged passages keep their vectors, so this is usually quick."""
+    story = _story_or_404(story_id, db, user)
+    job = enqueue(
+        db,
+        kind="codex-index",
+        user_id=user.id,
+        story_id=story_id,
+        label=f"Codex index — {story.title}",
+        params={"embed_model": embed_model_for(user)},
+    )
+    return {"job_id": job.id}
