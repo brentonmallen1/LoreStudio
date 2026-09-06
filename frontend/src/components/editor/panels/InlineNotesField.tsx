@@ -1,8 +1,7 @@
 import { Plus, X } from "lucide-react";
 import type { InlineNotesState } from "../useInlineNotes";
 import styles from "../SceneEditor.module.css";
-
-const isMac = typeof navigator !== "undefined" && navigator.platform.includes("Mac");
+import { SHORTCUTS, formatCombo } from "../../../lib/keyboard/shortcuts";
 
 export default function InlineNotesField({ notes }: { notes: InlineNotesState }) {
   return (
@@ -39,7 +38,7 @@ export default function InlineNotesField({ notes }: { notes: InlineNotesState })
       </div>
       {notes.notes.length === 0 ? (
         <p className={styles.overviewHint}>
-          Select text in the editor and click Add Note (or press {isMac ? "⌘" : "Ctrl"}+Shift+N).
+          Select text in the editor and click Add Note (or press {formatCombo(SHORTCUTS.inlineNote.combo)}).
         </p>
       ) : (
         <div className={styles.inlineNoteList}>

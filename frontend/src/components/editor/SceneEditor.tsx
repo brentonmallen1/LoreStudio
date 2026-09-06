@@ -64,11 +64,12 @@ export default function SceneEditor() {
     writingGuidesTab,
     openWritingGuides,
     closeWritingGuides,
+    storySummaryOpen,
+    closeStorySummary,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
 
-  const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
   const [guidesTab, setGuidesTab] = useState<WritingGuideTab>("dialogue");
   const [showAutoTag, setShowAutoTag] = useState(false);
@@ -214,7 +215,6 @@ export default function SceneEditor() {
         onToggleOverview={() => setShowOverview((s) => !s)}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}
-        onToggleSummary={() => setShowSummary((s) => !s)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
         onOpenAutoTag={() => setShowAutoTag(true)}
         onOpenAutoLink={() => setShowAutoLink(true)}
@@ -237,9 +237,9 @@ export default function SceneEditor() {
             />
           )}
 
-          {showSummary && activeStory && (
+          {storySummaryOpen && activeStory && aiAvailable && (
             <div className={styles.summaryWrap}>
-              <button className={styles.summaryCloseBtn} onClick={() => setShowSummary(false)} title="Close">
+              <button className={styles.summaryCloseBtn} onClick={closeStorySummary} title="Close">
                 <X size={13} />
               </button>
               <StorySummaryPanel storyId={activeStory.id} />

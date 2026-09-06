@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Feather, MessageSquare, Quote, Eye, Users } from "lucide-react";
+import { Compass, Feather, MessageSquare, Quote } from "lucide-react";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
@@ -60,7 +61,7 @@ export default function SelectionToolbar({
           <button
             className={`${styles.btn} ${styles.coachBtn}`}
             onClick={onOpenCoach}
-            title="Writing Coach — get feedback and alternative directions (⌘⇧R)"
+            title={`Writing Coach — feedback and alternative directions (${formatCombo(SHORTCUTS.writingCoach.combo)})`}
           >
             <Feather size={12} />
             Writing Coach
@@ -68,15 +69,19 @@ export default function SelectionToolbar({
           <div className={styles.divider} />
         </>
       )}
-      <button className={styles.btn} onClick={onAddNote} title="Add inline note (⌘⇧N)">
+      <button
+        className={styles.btn}
+        onClick={onAddNote}
+        title={`Add inline note (${formatCombo(SHORTCUTS.inlineNote.combo)})`}
+      >
         <MessageSquare size={12} />
         Note
       </button>
       {showAI && onAnalyzeShowTell && (
         <>
           <div className={styles.divider} />
-          <button className={styles.btn} onClick={onAnalyzeShowTell} title="Show Don't Tell analysis (⌘⇧T)">
-            <Eye size={12} />
+          <button className={styles.btn} onClick={onAnalyzeShowTell} title="Show Don't Tell analysis">
+            <Compass size={12} />
             Show/Tell
           </button>
         </>
@@ -84,8 +89,8 @@ export default function SelectionToolbar({
       {showAI && onAnalyzeAudience && (
         <>
           <div className={styles.divider} />
-          <button className={styles.btn} onClick={onAnalyzeAudience} title="Check target audience fit (⌘⇧A)">
-            <Users size={12} />
+          <button className={styles.btn} onClick={onAnalyzeAudience} title="Check target audience fit">
+            <Compass size={12} />
             Audience
           </button>
         </>
@@ -96,7 +101,7 @@ export default function SelectionToolbar({
           <button
             className={styles.btn}
             onClick={onAttributeDialogue}
-            title="Attribute dialogue to a character (⌘⇧D)"
+            title={`Attribute dialogue to a character (${formatCombo(SHORTCUTS.attributeDialogue.combo)})`}
           >
             <Quote size={12} />
             Attribute

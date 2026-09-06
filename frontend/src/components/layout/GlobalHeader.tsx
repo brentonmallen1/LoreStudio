@@ -303,7 +303,7 @@ export default function GlobalHeader() {
           <button onClick={() => setCommandPaletteOpen(true)} className={styles.searchBtn}>
             <Search size={14} />
             <span>Search</span>
-            <kbd>⌘K</kbd>
+            <kbd>{formatCombo(SHORTCUTS.palette.combo)}</kbd>
           </button>
 
           {/* Quick Settings */}

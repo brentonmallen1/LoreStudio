@@ -102,6 +102,17 @@ export function matchesCombo(e: KeyboardEvent | React.KeyboardEvent, combo: stri
 }
 
 /** "mod+shift+k" → "⌘⇧K" on macOS, "Ctrl+Shift+K" elsewhere. */
+/**
+ * Platform-correct modifier names for local interaction hints — "hold ⌥ to merge" in a
+ * drag handler, say. Those are not app shortcuts and have no row in SHORTCUTS, but the
+ * glyph still belongs in one place (D11).
+ */
+export const MODIFIER = {
+  mod: IS_MAC ? "\u2318" : "Ctrl",
+  alt: IS_MAC ? "\u2325" : "Alt",
+  shift: IS_MAC ? "\u21e7" : "Shift",
+} as const;
+
 export function formatCombo(combo: string): string {
   const parts = combo.split("+");
   const key = parts[parts.length - 1];

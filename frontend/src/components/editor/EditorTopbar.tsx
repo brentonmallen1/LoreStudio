@@ -1,25 +1,14 @@
 import { createElement, useEffect, useRef, useState } from "react";
-import {
-  BookMarked,
-  BookOpen,
-  Compass,
-  FileText,
-  ImageIcon,
-  Layers,
-  Link,
-  Map as MapIcon,
-  Quote,
-  Tag,
-} from "lucide-react";
+import { BookMarked, BookOpen, FileText, ImageIcon, Layers, Link, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "../story/SprintTimer";
 import FontPicker from "../story/FontPicker";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
@@ -34,7 +23,6 @@ interface Props {
   onToggleOverview: () => void;
   dialogueIsolation: boolean;
   onToggleDialogue: () => void;
-  onToggleSummary: () => void;
   onOpenImagePicker: () => void;
   onOpenAutoTag: () => void;
   onOpenAutoLink: () => void;
@@ -80,14 +68,6 @@ function segmentStyle(levelType: string) {
 export default function EditorTopbar(p: Props) {
   const { activeNode } = p;
   const { activeStory, activeTemplate, structure, setStructure, setActiveNode } = useStoryStore();
-  const {
-    brainstormPanelOpen,
-    openBrainstormPanel,
-    closeBrainstormPanel,
-    plannerPanelOpen,
-    openPlannerPanel,
-    closePlannerPanel,
-  } = useUIStore();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
@@ -210,7 +190,7 @@ export default function EditorTopbar(p: Props) {
         <button
           onClick={p.onOpenImagePicker}
           className={styles.topbarBtn}
-          title="Insert image into prose (⌘⇧I)"
+          title={`Insert image into prose (${formatCombo(SHORTCUTS.insertImage.combo)})`}
         >
           <ImageIcon size={13} />
         </button>
@@ -226,54 +206,14 @@ export default function EditorTopbar(p: Props) {
           <div className={styles.guideMenuWrap} ref={guideRef}>
             <button
               onClick={() => setGuideOpen((v) => !v)}
-              className={`${styles.topbarBtn} ${studio ? styles.topbarBtnAI : ""} ${guideOpen || plannerPanelOpen || brainstormPanelOpen ? (studio ? styles.topbarBtnAIActive : styles.topbarBtnActive) : ""}`}
-              title={
-                studio
-                  ? "AI writing guides — Story So Far, Plan Scene, What's Next?"
-                  : "Writing reference guides"
-              }
+              className={`${styles.topbarBtn} ${guideOpen ? styles.topbarBtnActive : ""}`}
+              title="Writing reference guides"
             >
-              {studio ? <Compass size={13} /> : <BookOpen size={13} />}
+              <BookOpen size={13} />
               <span>Guide</span>
             </button>
             {guideOpen && (
               <div className={styles.guideMenu}>
-                {studio &&
-                  [
-                    {
-                      label: "Story So Far",
-                      icon: <BookOpen size={13} />,
-                      title: "AI summary of the story up to this point",
-                      run: p.onToggleSummary,
-                    },
-                    {
-                      label: "Plan Scene",
-                      icon: <MapIcon size={13} />,
-                      title: "Plan this scene before writing",
-                      run: () => (plannerPanelOpen ? closePlannerPanel() : openPlannerPanel()),
-                      active: plannerPanelOpen,
-                    },
-                    {
-                      label: "What's Next?",
-                      icon: <Compass size={13} />,
-                      title: "Brainstorm directions for this scene",
-                      run: () => (brainstormPanelOpen ? closeBrainstormPanel() : openBrainstormPanel()),
-                      active: brainstormPanelOpen,
-                    },
-                  ].map((item) => (
-                    <GuideItem
-                      key={item.label}
-                      label={item.label}
-                      icon={item.icon}
-                      title={item.title}
-                      active={item.active}
-                      onSelect={() => {
-                        item.run();
-                        setGuideOpen(false);
-                      }}
-                    />
-                  ))}
-                {studio && <div className={styles.guideMenuDivider} />}
                 <div className={styles.guideMenuLabel}>Reference</div>
                 {[
                   {

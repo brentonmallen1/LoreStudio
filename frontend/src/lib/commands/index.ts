@@ -23,6 +23,7 @@ import {
   PenLine,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
+import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { api } from "../../api/client";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, storyPath } from "../routes";
@@ -136,7 +137,7 @@ commandRegistry.register({
   keywords: ["assistant", "ai", "chat", "help", "feather"],
   icon: Feather,
   group: "AI",
-  shortcut: "⌘/",
+  shortcut: formatCombo(SHORTCUTS.assistant.combo),
   action: async () => {
     const { sessions, createSession, setActiveSession, openPanel } = useAIStore.getState();
     const { activeStory, activeNode } = useStoryStore.getState();
@@ -159,7 +160,6 @@ commandRegistry.register({
   keywords: ["interview", "int", "talk", "chat", "character", "persona"],
   icon: MessageSquare,
   group: "AI",
-  shortcut: "⌘⇧I",
   when: () => useStoryStore.getState().characters.length > 0,
   getSubItems: () => {
     const { characters } = useStoryStore.getState();
@@ -280,7 +280,7 @@ commandRegistry.register({
   keywords: ["coach", "feedback", "improve", "write", "prose"],
   icon: Feather,
   group: "Editor",
-  shortcut: "⌘⇧R",
+  shortcut: formatCombo(SHORTCUTS.writingCoach.combo),
   when: () => !!useStoryStore.getState().activeNode,
   action: async () => {
     const { activeStory, activeNode } = useStoryStore.getState();
@@ -326,7 +326,7 @@ commandRegistry.register({
   keywords: ["find", "search", "replace", "scene"],
   icon: Search,
   group: "Editor",
-  shortcut: "⌘F",
+  shortcut: formatCombo(SHORTCUTS.find.combo),
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openSceneSearch();
@@ -339,7 +339,7 @@ commandRegistry.register({
   keywords: ["find", "search", "replace", "story", "all scenes"],
   icon: Search,
   group: "Editor",
-  shortcut: "⌘⇧F",
+  shortcut: formatCombo(SHORTCUTS.storySearch.combo),
   when: () => !!useStoryStore.getState().activeStory,
   action: () => {
     useUIStore.getState().openStorySearch();
@@ -350,8 +350,8 @@ commandRegistry.register({
   id: "editor-brainstorm",
   label: "Brainstorm What's Next",
   keywords: ["brainstorm", "next", "idea", "continue"],
-  icon: Feather,
-  group: "Editor",
+  icon: Compass,
+  group: "AI",
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openBrainstormPanel();
@@ -359,11 +359,23 @@ commandRegistry.register({
 });
 
 commandRegistry.register({
+  id: "editor-story-summary",
+  label: "Story So Far",
+  keywords: ["summary", "story", "so far", "recap", "catch up"],
+  icon: Compass,
+  group: "AI",
+  when: () => !!useStoryStore.getState().activeNode,
+  action: () => {
+    useUIStore.getState().toggleStorySummary();
+  },
+});
+
+commandRegistry.register({
   id: "editor-plan-scene",
   label: "Plan Scene",
   keywords: ["plan", "scene", "outline", "structure"],
-  icon: BookOpen,
-  group: "Editor",
+  icon: Compass,
+  group: "AI",
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openPlannerPanel();

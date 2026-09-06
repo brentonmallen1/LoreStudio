@@ -1,9 +1,7 @@
 import { Redo2, Undo2 } from "lucide-react";
 import type { UndoRedoState } from "../../hooks/useUndoRedo";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./GlobalHeader.module.css";
-
-const isMac = typeof navigator !== "undefined" && navigator.platform.includes("Mac");
-const mod = isMac ? "⌘" : "Ctrl+";
 
 export default function UndoRedoButtons({ undoRedo }: { undoRedo: UndoRedoState }) {
   const { canUndo, canRedo, undoLabel, redoLabel, busy, error, clearError } = undoRedo;
@@ -13,7 +11,7 @@ export default function UndoRedoButtons({ undoRedo }: { undoRedo: UndoRedoState 
         className={styles.iconBtn}
         onClick={undoRedo.undo}
         disabled={!canUndo || busy}
-        title={canUndo ? `Undo: ${undoLabel} (${mod}Z)` : "Nothing to undo"}
+        title={canUndo ? `Undo: ${undoLabel} (${formatCombo(SHORTCUTS.undo.combo)})` : "Nothing to undo"}
         aria-label={canUndo ? `Undo ${undoLabel}` : "Undo"}
       >
         <Undo2 size={14} />
@@ -22,7 +20,7 @@ export default function UndoRedoButtons({ undoRedo }: { undoRedo: UndoRedoState 
         className={styles.iconBtn}
         onClick={undoRedo.redo}
         disabled={!canRedo || busy}
-        title={canRedo ? `Redo: ${redoLabel} (${mod}⇧Z)` : "Nothing to redo"}
+        title={canRedo ? `Redo: ${redoLabel} (${formatCombo(SHORTCUTS.redo.combo)})` : "Nothing to redo"}
         aria-label={canRedo ? `Redo ${redoLabel}` : "Redo"}
       >
         <Redo2 size={14} />

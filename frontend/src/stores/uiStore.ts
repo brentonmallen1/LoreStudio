@@ -164,6 +164,11 @@ interface UIState {
   brainstormPanelOpen: boolean;
   openBrainstormPanel: () => void;
   closeBrainstormPanel: () => void;
+  /** "Story so far" summary panel in the editor. Here rather than in the component so the
+   *  palette can open it — the scene topbar no longer carries AI entries (doc 06 §10). */
+  storySummaryOpen: boolean;
+  toggleStorySummary: () => void;
+  closeStorySummary: () => void;
 
   // Scene Planner panel
   plannerPanelOpen: boolean;
@@ -190,12 +195,12 @@ interface UIState {
   openSceneSearch: () => void;
   closeSceneSearch: () => void;
 
-  // Story-wide search (⌘⇧F — slide-out panel)
+  // Story-wide search (slide-out panel; the combo lives in lib/keyboard/shortcuts.ts)
   storySearchOpen: boolean;
   openStorySearch: () => void;
   closeStorySearch: () => void;
 
-  // Scratch pad (⌘⇧N — slide-in drawer)
+  // Scratch pad (slide-in drawer; the combo lives in lib/keyboard/shortcuts.ts)
   scratchPadOpen: boolean;
   toggleScratchPad: () => void;
   closeScratchPad: () => void;
@@ -390,6 +395,9 @@ export const useUIStore = create<UIState>((set) => ({
   brainstormPanelOpen: false,
   openBrainstormPanel: () => set({ brainstormPanelOpen: true }),
   closeBrainstormPanel: () => set({ brainstormPanelOpen: false }),
+  storySummaryOpen: false,
+  toggleStorySummary: () => set((state) => ({ storySummaryOpen: !state.storySummaryOpen })),
+  closeStorySummary: () => set({ storySummaryOpen: false }),
 
   plannerPanelOpen: false,
   openPlannerPanel: () => set({ plannerPanelOpen: true }),

@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Compass, AlertTriangle, ArrowLeft, ArrowRigh
 import { api } from "../../api/client";
 import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from "../../types";
 import styles from "./StructureReviewStep.module.css";
+import { MODIFIER } from "../../lib/keyboard/shortcuts";
 
 interface Props {
   uploadResponse: ImportUploadResponse;
@@ -194,7 +195,7 @@ export default function StructureReviewStep({
               onClick={() => handleMergeUp(node.id)}
               title="Merge into previous section"
             >
-              ⌥
+              {MODIFIER.alt}
             </button>
           </div>
         </div>
@@ -270,7 +271,8 @@ export default function StructureReviewStep({
       </div>
 
       <p className={styles.editHint}>
-        Double-click any title to rename. Use ↑↓ to change level. ⌥ merges a section into the one above.
+        Double-click any title to rename. Use ↑↓ to change level. {MODIFIER.alt} merges a section into the one
+        above.
       </p>
 
       {/* Navigation */}

@@ -1,5 +1,6 @@
 import { Quote, MessageCircle, AtSign, AlertCircle, Keyboard } from "lucide-react";
 import { Modal } from "../common";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./DialogueSyntaxGuide.module.css";
 
 interface Props {
@@ -138,7 +139,7 @@ export function DialogueSyntaxContent() {
             </span>
           </div>
           <div className={styles.shortcutRow}>
-            <kbd>⌘⇧D</kbd>
+            <kbd>{formatCombo(SHORTCUTS.attributeDialogue.combo)}</kbd>
             <span>
               Select quoted text first, then wrap it: <code>"selected"&lt;Name&gt;</code>
             </span>

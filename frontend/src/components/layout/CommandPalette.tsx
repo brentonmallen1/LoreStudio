@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
-import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
+import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { commandRegistry } from "../../lib/commands/registry";
 import type { CommandAction } from "../../lib/commands/registry";
 import type { SearchResult } from "../../types";
@@ -647,7 +647,7 @@ export default function CommandPalette() {
               />
               {searching && <Loader2 size={14} className={styles.spinner} aria-hidden="true" />}
               <span className={styles.kbdHint} aria-hidden="true">
-                ⌘K
+                {formatCombo(SHORTCUTS.palette.combo)}
               </span>
             </div>
 
