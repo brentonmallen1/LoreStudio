@@ -3,7 +3,7 @@ import type { Editor } from "@tiptap/react";
 import { Compass, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -40,7 +40,7 @@ export default function DialogueIsolationView({
   onExit,
   onOpenAutoTag,
 }: Props) {
-  const studio = useMode() === "studio";
+  const studio = useAIAvailable();
   const [blocks, setBlocks] = useState<DialogueBlock[]>([]);
   const [suggestions, setSuggestions] = useState<ProposedDialogueTag[]>([]);
   const [loading, setLoading] = useState(false);

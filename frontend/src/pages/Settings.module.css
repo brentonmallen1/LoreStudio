@@ -384,6 +384,29 @@
   color: var(--color-text-muted);
 }
 
+/* Destructive, deliberate: deleting stored prompts cannot be undone. */
+.dangerBtn {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+
+.dangerBtn:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.dangerBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ── Model picker ── */
 .modelPicker {
   position: relative;

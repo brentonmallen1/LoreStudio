@@ -72,6 +72,15 @@ class AICallContext:
     extra_metadata: dict = field(default_factory=dict)
 
 
+class AIDisabledError(RuntimeError):
+    """
+    Raised when a call is attempted while the author has AI switched off.
+
+    The switch hides every AI surface, but hiding a button is a UI decision and this is a
+    promise: with AI off, nothing in LoreStudio talks to a model (doc 06 §7).
+    """
+
+
 #: How a call ended. Everything but "ok" used to leave no trace at all.
 CallStatus = Literal["ok", "error", "cancelled", "schema-fallback", "invalid-json", "schema-invalid"]
 
@@ -113,6 +122,10 @@ class AIGateway:
     Composes prompts, captures metrics, logs every call, and
     invokes optional callbacks — so individual features don't have to.
     """
+
+    def _refuse_if_disabled(self, user: User) -> None:
+        if (user.settings or {}).get("ai", {}).get("enabled") is False:
+            raise AIDisabledError("AI is switched off in Settings › AI.")
 
     def _get_ollama_config(self, user: User) -> tuple[str | None, str | None]:
         """Return (base_url, model) overrides from user settings, or (None, None) to use server defaults."""
@@ -205,6 +218,7 @@ class AIGateway:
           2. Writes an ActivityLog entry
           3. Calls on_complete(result) if provided
         """
+        self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)
@@ -287,6 +301,7 @@ class AIGateway:
         - success=True:  result.data contains the validated model as a dict
         - success=False: result.raw_data has the parsed JSON (if any), result.raw_text has raw response
         """
+        self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)

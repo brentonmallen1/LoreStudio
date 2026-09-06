@@ -22,6 +22,7 @@ import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
 import ShortcutsSection from "../components/settings/ShortcutsSection";
+import AISwitchCard from "../components/settings/AISwitchCard";
 import PrivacySection from "../components/settings/PrivacySection";
 import SettingsNav from "../components/settings/SettingsNav";
 import { useMode } from "../lib/mode";
@@ -451,6 +452,7 @@ export default function SettingsPage() {
             <>
               <section className={styles.section} id="ai">
                 <h2 className={styles.sectionLabel}>AI / LLM</h2>
+                <AISwitchCard />
                 <div className={styles.card}>
                   <div className={styles.field}>
                     <label className={styles.label}>Ollama URL</label>

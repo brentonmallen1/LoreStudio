@@ -14,6 +14,7 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.user import User
 from ..schemas.ai_settings import AISettingsDefaults, AISettingsRead, AISettingsUpdate
+from ..services.llm.features import AI_FEATURES
 from ..services.llm.prompts import FEATURE_DEFAULT_INSTRUCTIONS, FEATURE_LABELS
 from ..services.llm.prompts.core import CORE_SYSTEM_PROMPT
 
@@ -33,6 +34,7 @@ def get_ai_settings(
     ai = _get_ai_settings(current_user)
     core_custom = ai.get("core_prompt")
     return AISettingsRead(
+        enabled=ai.get("enabled", True),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=ai.get("feature_prompts", {}),
@@ -48,6 +50,7 @@ def get_ai_settings_defaults(
         core_prompt=CORE_SYSTEM_PROMPT,
         feature_labels=FEATURE_LABELS,
         feature_defaults=FEATURE_DEFAULT_INSTRUCTIONS,
+        feature_classes={f.id: f.classification for f in AI_FEATURES},
     )
 
 
@@ -63,6 +66,9 @@ def update_ai_settings(
     """
     settings = dict(current_user.settings or {})
     ai = dict(settings.get("ai", {}))
+
+    if body.enabled is not None:
+        ai["enabled"] = body.enabled
 
     if body.core_prompt is not None:
         ai["core_prompt"] = body.core_prompt
@@ -85,6 +91,7 @@ def update_ai_settings(
 
     core_custom = ai.get("core_prompt")
     return AISettingsRead(
+        enabled=ai.get("enabled", True),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=ai.get("feature_prompts", {}),
@@ -105,6 +112,7 @@ def reset_core_prompt(
     db.commit()
 
     return AISettingsRead(
+        enabled=ai.get("enabled", True),
         core_prompt=CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=False,
         feature_prompts=ai.get("feature_prompts", {}),
@@ -129,6 +137,7 @@ def reset_feature_prompt(
 
     core_custom = ai.get("core_prompt")
     return AISettingsRead(
+        enabled=ai.get("enabled", True),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=fp,

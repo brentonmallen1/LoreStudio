@@ -3,8 +3,9 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from .auth.router import router as auth_router
@@ -64,6 +65,7 @@ from .services.ai_call_log import prune_payloads
 from .services.change_log import prune_all
 from .services.db_backup import backup_loop
 from .services.db_migrate import run_migrations
+from .services.llm.gateway import AIDisabledError
 from .services.seed import (
     seed_admin,
     seed_beat_sheets,
@@ -186,6 +188,12 @@ app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(changes_router, prefix="/api", tags=["changes"])
 app.include_router(ai_calls_router, prefix="/api", tags=["ai-calls"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
+
+
+@app.exception_handler(AIDisabledError)
+def ai_disabled_handler(request: Request, exc: AIDisabledError) -> JSONResponse:
+    """A call made with AI switched off is refused, not silently allowed through."""
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
 
 
 @app.get("/health")

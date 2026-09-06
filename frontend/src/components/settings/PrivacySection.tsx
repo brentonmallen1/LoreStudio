@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
+import { aiCallsApi } from "../../api/aiCalls";
 import styles from "../../pages/Settings.module.css";
 
 /**
@@ -8,8 +9,26 @@ import styles from "../../pages/Settings.module.css";
  * The statement about telemetry must stay true: if a telemetry endpoint is ever added, it goes here first.
  */
 export default function PrivacySection() {
-  const mode = useMode();
+  const aiAvailable = useAIAvailable();
   const [ollamaUrl, setOllamaUrl] = useState<string | null>(null);
+  const [purged, setPurged] = useState<number | null>(null);
+  const [purging, setPurging] = useState(false);
+
+  async function purge() {
+    if (
+      !window.confirm(
+        "Delete every stored AI prompt and response? The record that each call happened is kept.",
+      )
+    ) {
+      return;
+    }
+    setPurging(true);
+    try {
+      setPurged((await aiCallsApi.purgePayloads()).removed);
+    } finally {
+      setPurging(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -35,8 +54,8 @@ export default function PrivacySection() {
       <ul className={styles.plainList}>
         <li>
           <strong>Ollama</strong> —{" "}
-          {mode === "studio" ? (ollamaUrl ?? "not configured") : "not used in Writer mode"}.
-          {mode === "studio" && (
+          {aiAvailable ? (ollamaUrl ?? "not configured") : "not contacted — AI is off"}.
+          {aiAvailable && (
             <>
               {" "}
               Receives the text each AI feature shows in its “What the AI sees” view. Nothing is sent unless
@@ -50,9 +69,23 @@ export default function PrivacySection() {
         </li>
       </ul>
       <p className={styles.sectionHint}>
-        Every AI call is recorded in Chronicle › AI activity with its prompt and response. Every data change
-        is recorded in Chronicle › Changes.
+        Every AI call is recorded in Chronicle › AI activity: the prompt, the messages, the options sent and
+        the raw response — including calls that failed or that you stopped. Every data change is recorded in
+        Chronicle › Changes.
       </p>
+      <p className={styles.sectionHint}>
+        Prompts and responses are kept for the number of days set by <code>AI_PAYLOAD_RETENTION_DAYS</code>{" "}
+        (90 by default), then pruned automatically. The summary of each call — feature, model, tokens, status
+        — is kept, so the history of what ran stays complete either way.
+      </p>
+      <button className={styles.dangerBtn} onClick={purge} disabled={purging}>
+        {purging ? "Deleting…" : "Delete stored prompts and responses now"}
+      </button>
+      {purged !== null && (
+        <p className={styles.sectionHint}>
+          Deleted {purged} stored {purged === 1 ? "payload" : "payloads"}.
+        </p>
+      )}
     </div>
   );
 }

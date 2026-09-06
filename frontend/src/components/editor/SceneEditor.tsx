@@ -39,7 +39,7 @@ import InlineNotePopover from "./InlineNotePopover";
 import MentionHoverCard from "./MentionHoverCard";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
@@ -66,7 +66,7 @@ export default function SceneEditor() {
     closeWritingGuides,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
-  const mode = useMode();
+  const aiAvailable = useAIAvailable();
 
   const [showSummary, setShowSummary] = useState(false);
   const [showOverview, setShowOverview] = useState(false);
@@ -177,7 +177,7 @@ export default function SceneEditor() {
         e.preventDefault();
         openSceneSearch();
       }
-      if (mode === "studio" && matchesCombo(e, SHORTCUTS.writingCoach.combo)) {
+      if (aiAvailable && matchesCombo(e, SHORTCUTS.writingCoach.combo)) {
         e.preventDefault();
         openSelectionSession("writing-coach", true);
       }
@@ -188,7 +188,7 @@ export default function SceneEditor() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [editor, activeNode?.id, activeStory?.id, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editor, activeNode?.id, activeStory?.id, aiAvailable]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!activeNode) {
     return (
@@ -316,7 +316,7 @@ export default function SceneEditor() {
         onAnalyzeShowTell={() => openSelectionSession("show-dont-tell")}
         onAnalyzeAudience={() => openSelectionSession("audience-adherence")}
         onClicheCoach={() => openSelectionSession("cliche-coach")}
-        showAI={mode === "studio"}
+        showAI={aiAvailable}
       />
 
       <InlineNotePopover notes={notes} popoverRef={notePopoverRef} />

@@ -4,6 +4,8 @@ from pydantic import BaseModel
 class AISettingsRead(BaseModel):
     """Current AI settings — user overrides merged with defaults."""
 
+    #: The master switch. Off means no AI surface renders and the gateway refuses calls.
+    enabled: bool = True
     core_prompt: str
     core_prompt_is_custom: bool
     feature_prompts: dict[str, str | None]  # feature_id -> current prompt (None means no override)
@@ -12,6 +14,7 @@ class AISettingsRead(BaseModel):
 class AISettingsUpdate(BaseModel):
     """Partial update for AI settings stored in User.settings["ai"]."""
 
+    enabled: bool | None = None
     core_prompt: str | None = None
     feature_prompts: dict[str, str | None] | None = None
 
@@ -22,3 +25,5 @@ class AISettingsDefaults(BaseModel):
     core_prompt: str
     feature_labels: dict[str, str]  # feature_id -> human label
     feature_defaults: dict[str, str]  # feature_id -> default behavioral instruction
+    #: feature_id -> co-author class, so a prompt card can say what the feature may return.
+    feature_classes: dict[str, str] = {}

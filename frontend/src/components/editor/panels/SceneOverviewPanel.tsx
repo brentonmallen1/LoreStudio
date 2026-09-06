@@ -16,7 +16,7 @@ import SceneLinksField from "./SceneLinksField";
 import LinkedTwistsField from "./LinkedTwistsField";
 import ChecksField from "./ChecksField";
 import QuotesField from "./QuotesField";
-import { useMode } from "../../../lib/mode";
+import { useAIAvailable } from "../../../lib/mode";
 import styles from "../SceneEditor.module.css";
 
 interface Props {
@@ -65,7 +65,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
   const { setActiveNode, structure, beatSheets, activeTemplate: _t } = useStoryStore();
   const { runDiscovery, isAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
-  const studio = useMode() === "studio";
+  const studio = useAIAvailable();
   // Seeded once per node: the parent renders this panel with key={activeNode.id}.
   const [synopsis, setSynopsis] = useState(activeNode.synopsis ?? "");
   const [purpose, setPurpose] = useState(activeNode.purpose ?? "");

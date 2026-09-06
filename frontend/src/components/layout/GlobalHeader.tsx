@@ -16,7 +16,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
 import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
@@ -77,7 +77,7 @@ export default function GlobalHeader() {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const { user, logout } = useAuthStore();
-  const mode = useMode();
+  const aiAvailable = useAIAvailable();
   const undoRedo = useUndoRedo();
   const {
     themeName,
@@ -158,7 +158,7 @@ export default function GlobalHeader() {
   }, [undoRedo]);
 
   function handleAssistantToggle() {
-    if (mode === "writer") return;
+    if (!aiAvailable) return;
     togglePanel();
   }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -273,7 +273,7 @@ export default function GlobalHeader() {
         <div className={styles.right}>
           <UndoRedoButtons undoRedo={undoRedo} />
           {/* AI Assistant — absent in Writer mode */}
-          {mode === "studio" && (
+          {aiAvailable && (
             <button
               onClick={handleAssistantToggle}
               className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}

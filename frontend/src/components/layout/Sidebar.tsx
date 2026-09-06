@@ -13,7 +13,7 @@ import { useHealthStore } from "../../stores/healthStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useLLMStore } from "../../stores/llmStore";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable, useMode } from "../../lib/mode";
 import { DOMAIN_LABELS, routesFor, storyPath, type Domain, type StoryRoute } from "../../lib/routes";
 import { TabActivityIndicator } from "./TabActivityIndicator";
 import AIActivityIndicator from "./AIActivityIndicator";
@@ -64,6 +64,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const getTabStatus = useLLMStore((s) => s.getTabStatus);
   const markViewed = useLLMStore((s) => s.markViewed);
   const mode = useMode();
+  const aiAvailable = useAIAvailable();
 
   const isCollapsed = collapsedProp ?? sidebarCollapsed;
   const routes = routesFor(mode).filter((r) => r.id !== "discoveries" || activeStory?.discovery_enabled);
@@ -230,7 +231,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         </>
       )}
 
-      {!isCollapsed && mode === "studio" && <AIActivityIndicator />}
+      {!isCollapsed && aiAvailable && <AIActivityIndicator />}
 
       {/* Collapse / expand lives at the bottom of the rail (todo.md feedback). */}
       {collapsedProp === undefined && (

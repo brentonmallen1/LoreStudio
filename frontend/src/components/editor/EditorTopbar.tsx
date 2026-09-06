@@ -23,7 +23,7 @@ import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -91,7 +91,7 @@ export default function EditorTopbar(p: Props) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
-  const studio = useMode() === "studio";
+  const studio = useAIAvailable();
   const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

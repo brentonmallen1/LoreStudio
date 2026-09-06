@@ -4,7 +4,7 @@ import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import { useUIStore } from "../../stores/uiStore";
 import AIPanel from "../ai/AIPanel";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
 import { SHORTCUTS, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./GlobalLayout.module.css";
@@ -12,13 +12,13 @@ import styles from "./GlobalLayout.module.css";
 export default function GlobalLayout() {
   const { viewState } = useUIStore();
   const isFocused = viewState !== "normal";
-  const mode = useMode();
+  const aiAvailable = useAIAvailable();
 
-  // Writer mode: AI commands never appear in the palette.
+  // Writer mode, or the AI switch off: AI commands never appear in the palette.
   useEffect(() => {
-    commandRegistry.setGlobalFilter(mode === "writer" ? (a) => a.group !== "AI" : null);
+    commandRegistry.setGlobalFilter(aiAvailable ? null : (a) => a.group !== "AI");
     return () => commandRegistry.setGlobalFilter(null);
-  }, [mode]);
+  }, [aiAvailable]);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const closeShortcuts = useCallback(() => setShortcutsOpen(false), []);
@@ -51,7 +51,7 @@ export default function GlobalLayout() {
       <div className={`${styles.content} ${isFocused ? styles.contentFocused : styles.contentNormal}`}>
         <Outlet />
       </div>
-      {mode === "studio" && <AIPanel />}
+      {aiAvailable && <AIPanel />}
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   );

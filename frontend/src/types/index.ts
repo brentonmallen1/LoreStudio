@@ -698,6 +698,8 @@ export type ImageTokenBudget = 70 | 140 | 280 | 560 | 1120;
 
 export interface LLMParams {
   temperature?: number;
+  /** Only meaningful when saving settings: the user's ceiling on the context window. */
+  num_ctx_max?: number | null;
   top_p?: number;
   top_k?: number;
   thinking_enabled?: boolean;
@@ -712,6 +714,8 @@ export interface LLMSettings {
   top_k: number;
   thinking_enabled: boolean;
   image_token_budget: ImageTokenBudget | null;
+  /** Ceiling on the context window, whatever a feature's budget asks for. null = no ceiling. */
+  num_ctx_max: number | null;
   is_default: boolean;
   ollama_url: string | null;
   ollama_model: string | null;
@@ -1406,6 +1410,8 @@ export interface ChronicleStats {
 }
 
 export interface AISettings {
+  /** The master switch: off hides every AI surface and the backend refuses calls. */
+  enabled: boolean;
   core_prompt: string;
   core_prompt_is_custom: boolean;
   feature_prompts: Record<string, string | null>;
@@ -1415,9 +1421,12 @@ export interface AISettingsDefaults {
   core_prompt: string;
   feature_labels: Record<string, string>;
   feature_defaults: Record<string, string>;
+  /** feature id -> co-author class, so a prompt card can say what it may return. */
+  feature_classes: Record<string, string>;
 }
 
 export interface AISettingsUpdate {
+  enabled?: boolean;
   core_prompt?: string | null;
   feature_prompts?: Record<string, string | null> | null;
 }
