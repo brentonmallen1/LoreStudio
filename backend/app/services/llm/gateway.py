@@ -43,14 +43,17 @@ from ...config import settings
 from ...models.activity_log import ActivityLog
 from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
-from ...schemas.llm_params import LLMParams
-from .features import FEATURES_BY_ID
+from ...schemas.llm_params import LLMParams, LLMParamsOverride
+from .features import FEATURES_BY_ID, feature_budget
 from .ollama import StreamMetrics, _strip_json_fencing, ollama_provider
 from .prompts.core import CORE_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=BaseModel)
+
+#: Never ask for less than this, whatever the caps say — a tiny window fails outright.
+MIN_NUM_CTX = 2048
 
 
 @dataclass
@@ -100,10 +103,13 @@ class AIGateway:
         user_llm = (user.settings or {}).get("llm", {})
         return user_llm.get("ollama_url") or None, user_llm.get("ollama_model") or None
 
-    def _get_effective_params(self, user: User, request_params: LLMParams | None) -> LLMParams:
+    def _get_effective_params(self, user: User, request_params: LLMParamsOverride | None) -> LLMParams:
         """
         Resolve effective LLM params with three-layer priority:
           request_params (highest) > user saved settings > config defaults (lowest)
+
+        A request field counts as provided when it is not None — never by comparing it
+        against the default value, which used to drop a deliberate "temperature 1.0".
         """
         defaults = _default_params()
         user_llm = (user.settings or {}).get("llm", {})
@@ -119,16 +125,23 @@ class AIGateway:
         if request_params is None:
             return merged
 
-        # Request-level fields override only when explicitly provided
-        return LLMParams(
-            temperature=request_params.temperature if request_params.temperature != 1.0 else merged.temperature,
-            top_p=request_params.top_p if request_params.top_p != 0.95 else merged.top_p,
-            top_k=request_params.top_k if request_params.top_k != 64 else merged.top_k,
-            thinking_enabled=request_params.thinking_enabled
-            if request_params.thinking_enabled
-            else merged.thinking_enabled,
-            image_token_budget=request_params.image_token_budget or merged.image_token_budget,
-        )
+        provided = request_params.model_dump(exclude_none=True)
+        return merged.model_copy(update=provided)
+
+    async def _resolve_num_ctx(self, feature: str, params: LLMParams, user: User, model: str, url: str | None) -> int:
+        """
+        Context window for this call: the feature's budget, capped by what the model can
+        actually take and by the user's ceiling (doc 06 §4). Sent on every call — without
+        it Ollama falls back to its own default and truncates the oldest context silently.
+        """
+        wanted = params.num_ctx or feature_budget(feature)
+        ceiling = (user.settings or {}).get("llm", {}).get("num_ctx_max")
+        if ceiling:
+            wanted = min(wanted, int(ceiling))
+        model_limit = await ollama_provider.get_context_length(model, url)
+        if model_limit:
+            wanted = min(wanted, int(model_limit))
+        return max(wanted, MIN_NUM_CTX)
 
     def compose_prompt(
         self,
@@ -155,7 +168,7 @@ class AIGateway:
         db: Session,
         user: User,
         *,
-        llm_params: LLMParams | None = None,
+        llm_params: LLMParamsOverride | None = None,
         include_core_prompt: bool = True,
         on_complete: Callable[[AICallResult], Awaitable[None]] | None = None,
     ) -> AsyncIterator[str]:
@@ -170,6 +183,9 @@ class AIGateway:
         params = self._get_effective_params(user, llm_params)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
         user_url, user_model = self._get_ollama_config(user)
+        params.num_ctx = await self._resolve_num_ctx(
+            context.feature, params, user, user_model or ollama_provider.model, user_url
+        )
 
         start_time = time.monotonic()
         full_response: list[str] = []
@@ -184,6 +200,7 @@ class AIGateway:
                 top_p=params.top_p,
                 top_k=params.top_k,
                 thinking_enabled=params.thinking_enabled,
+                num_ctx=params.num_ctx,
                 base_url=user_url,
                 model=user_model,
             ):
@@ -218,7 +235,7 @@ class AIGateway:
         db: Session,
         user: "User",
         *,
-        llm_params: LLMParams | None = None,
+        llm_params: LLMParamsOverride | None = None,
         include_core_prompt: bool = True,
     ) -> StructuredResult:
         """
@@ -231,6 +248,9 @@ class AIGateway:
         params = self._get_effective_params(user, llm_params)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
         user_url, user_model = self._get_ollama_config(user)
+        params.num_ctx = await self._resolve_num_ctx(
+            context.feature, params, user, user_model or ollama_provider.model, user_url
+        )
 
         start_time = time.monotonic()
 
@@ -241,6 +261,7 @@ class AIGateway:
                 temperature=params.temperature,
                 top_p=params.top_p,
                 top_k=params.top_k,
+                num_ctx=params.num_ctx,
                 base_url=user_url,
                 model=user_model,
                 response_schema=response_model.model_json_schema(),
@@ -328,6 +349,7 @@ class AIGateway:
                     "session_id": context.session_id,
                     "thinking_enabled": params.thinking_enabled,
                     "temperature": params.temperature,
+                    "num_ctx": params.num_ctx,
                     "prompt": last_prompt,
                     "response": result.content,
                     **context.extra_metadata,

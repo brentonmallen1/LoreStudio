@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from .llm_params import LLMParams
+from .llm_params import LLMParamsOverride
 
 
 class InterviewCreate(BaseModel):
@@ -12,7 +12,7 @@ class InterviewCreate(BaseModel):
 
 class InterviewMessageRequest(BaseModel):
     content: str
-    llm_params: LLMParams | None = None
+    llm_params: LLMParamsOverride | None = None
 
 
 class MessageOut(BaseModel):

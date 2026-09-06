@@ -43,6 +43,7 @@ def _build_response(user_llm: dict) -> LLMSettingsRead:
         top_k=user_llm.get("top_k", _DEFAULTS["top_k"]),
         thinking_enabled=user_llm.get("thinking_enabled", _DEFAULTS["thinking_enabled"]),
         image_token_budget=user_llm.get("image_token_budget"),
+        num_ctx_max=user_llm.get("num_ctx_max"),
         is_default=is_default,
         ollama_url=user_llm.get("ollama_url"),
         ollama_model=user_llm.get("ollama_model"),
@@ -75,6 +76,7 @@ def update_llm_settings(
         "top_k",
         "thinking_enabled",
         "image_token_budget",
+        "num_ctx_max",
         "ollama_url",
         "ollama_model",
     ):

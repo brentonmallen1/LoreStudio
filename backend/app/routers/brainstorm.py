@@ -15,7 +15,7 @@ from ..database import get_db
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
-from ..schemas.llm_params import LLMParams
+from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.brainstorm import build_brainstorm_system_prompt
 from .chat import _build_context_packet
@@ -36,7 +36,7 @@ async def brainstorm_whats_next(
     node_id: str = Body(...),
     messages: list[dict] = Body(...),
     author_intent: dict | None = Body(None),
-    llm_params: LLMParams | None = Body(None),
+    llm_params: LLMParamsOverride | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

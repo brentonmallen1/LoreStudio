@@ -17,7 +17,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import CompTitlesResponse, StructuredResult
-from ..schemas.llm_params import LLMParams
+from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.publication import (
     build_book_description_system_prompt,
@@ -75,7 +75,7 @@ def _build_publication_context(story: Story, db: Session) -> dict:
 async def book_description_chat(
     story_id: str,
     messages: list[dict] = Body(...),
-    llm_params: LLMParams | None = Body(None),
+    llm_params: LLMParamsOverride | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -112,7 +112,7 @@ async def book_description_chat(
 async def query_letter_chat(
     story_id: str,
     messages: list[dict] = Body(...),
-    llm_params: LLMParams | None = Body(None),
+    llm_params: LLMParamsOverride | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

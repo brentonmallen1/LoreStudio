@@ -64,6 +64,8 @@ class OllamaProvider(LLMProvider):
         self.top_p = settings.ollama_top_p
         self.top_k = settings.ollama_top_k
         self.keep_alive = settings.ollama_keep_alive
+        # /api/show is stable for the life of a model tag; one lookup per (host, model).
+        self._context_lengths: dict[tuple[str, str], int | None] = {}
 
     async def is_available(self, base_url: str | None = None) -> bool:
         url = base_url or self.base_url
@@ -95,6 +97,14 @@ class OllamaProvider(LLMProvider):
         Returns None if unavailable or Ollama is unreachable.
         """
         url = base_url or self.base_url
+        cache_key = (url, model_name)
+        if cache_key in self._context_lengths:
+            return self._context_lengths[cache_key]
+        length = await self._fetch_context_length(url, model_name)
+        self._context_lengths[cache_key] = length
+        return length
+
+    async def _fetch_context_length(self, url: str, model_name: str) -> int | None:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
@@ -182,6 +192,7 @@ class OllamaProvider(LLMProvider):
         top_p: float | None = None,
         top_k: int | None = None,
         thinking_enabled: bool = False,
+        num_ctx: int | None = None,
         base_url: str | None = None,
         model: str | None = None,
     ) -> AsyncIterator[str | StreamMetrics]:
@@ -209,6 +220,9 @@ class OllamaProvider(LLMProvider):
                 "temperature": temperature if temperature is not None else self.temperature,
                 "top_p": top_p if top_p is not None else self.top_p,
                 "top_k": top_k if top_k is not None else self.top_k,
+                # Without num_ctx Ollama silently truncates to its own default (often 4096),
+                # which is why long contexts used to lose their oldest messages unannounced.
+                **({"num_ctx": num_ctx} if num_ctx else {}),
             },
         }
         async with aiohttp.ClientSession() as session:
@@ -245,6 +259,7 @@ class OllamaProvider(LLMProvider):
         temperature: float | None = None,
         top_p: float | None = None,
         top_k: int | None = None,
+        num_ctx: int | None = None,
         base_url: str | None = None,
         model: str | None = None,
         response_schema: dict | None = None,
@@ -270,6 +285,9 @@ class OllamaProvider(LLMProvider):
                 "temperature": temperature if temperature is not None else self.temperature,
                 "top_p": top_p if top_p is not None else self.top_p,
                 "top_k": top_k if top_k is not None else self.top_k,
+                # Without num_ctx Ollama silently truncates to its own default (often 4096),
+                # which is why long contexts used to lose their oldest messages unannounced.
+                **({"num_ctx": num_ctx} if num_ctx else {}),
             },
         }
         async with aiohttp.ClientSession() as http_session:

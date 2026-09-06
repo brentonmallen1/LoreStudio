@@ -27,6 +27,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Assistant",
   icon: Feather,
   accentVar: "--color-ai",
+  backendFeatureId: "scene-chat",
 
   requiresStory: false,
   requiresCharacter: false,
@@ -80,6 +81,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.characterName ?? "Character",
   icon: MessageSquare,
   accentVar: "--color-accent",
+  backendFeatureId: "interview",
 
   requiresStory: false,
   requiresCharacter: true,
@@ -142,6 +144,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-accent-secondary",
+  backendFeatureId: "scene-chat",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -225,6 +228,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: BookOpen,
   accentVar: "--color-accent-tertiary",
+  backendFeatureId: "scene-chat",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -299,6 +303,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-ai-coach",
+  backendFeatureId: "writing-coach",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -335,6 +340,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-ai",
+  backendFeatureId: "cliche-coach",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -372,6 +378,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Compass,
   accentVar: "--color-ai",
+  backendFeatureId: "discovery-questions",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -406,6 +413,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Shuffle,
   accentVar: "--color-accent-secondary",
+  backendFeatureId: "whatif",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -441,6 +449,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Users,
   accentVar: "--color-accent",
+  backendFeatureId: "panel-character",
 
   requiresStory: true,
   requiresCharacter: false, // Multi-character selection is handled within PanelMode
@@ -481,6 +490,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Eye,
   accentVar: "--color-ai",
+  backendFeatureId: "show-dont-tell",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -513,6 +523,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Users,
   accentVar: "--color-ai",
+  backendFeatureId: "audience-adherence",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -546,6 +557,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Feather,
   accentVar: "--color-ai",
+  backendFeatureId: "book-description",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -581,6 +593,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Feather,
   accentVar: "--color-ai",
+  backendFeatureId: "query-letter",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -616,6 +629,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Images,
   accentVar: "--color-ai",
+  backendFeatureId: "scene-atmosphere",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -652,6 +666,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Map,
   accentVar: "--color-ai",
+  backendFeatureId: "identity-workshop",
 
   requiresStory: true,
   requiresCharacter: false,
@@ -688,6 +703,7 @@ registerSessionType({
   contextItemLabel: (_, names) => names.characterName ?? "Character",
   icon: Wand2,
   accentVar: "--color-ai",
+  backendFeatureId: "character-attributes",
 
   requiresStory: false,
   requiresCharacter: true,

@@ -31,7 +31,7 @@ from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
-from ..schemas.llm_params import LLMParams
+from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.features import get_feature
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
@@ -249,7 +249,7 @@ async def scene_chat(
     story_id: str,
     node_id: str = Body(...),
     messages: list[dict] = Body(...),
-    llm_params: LLMParams | None = Body(None),
+    llm_params: LLMParamsOverride | None = Body(None),
     mode: str | None = Body(None),
     context_options: ContextOptions | None = Body(None),
     db: Session = Depends(get_db),

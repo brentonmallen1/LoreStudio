@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from .llm_params import LLMParams
+from .llm_params import LLMParamsOverride
 
 
 class PanelSettings(BaseModel):
@@ -23,7 +23,7 @@ class PanelInterviewUpdate(BaseModel):
 
 class PanelMessageRequest(BaseModel):
     content: str
-    llm_params: LLMParams | None = None
+    llm_params: LLMParamsOverride | None = None
     response_length: Literal["brief", "normal", "detailed"] | None = None
 
 

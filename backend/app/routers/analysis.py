@@ -1520,10 +1520,10 @@ async def cliche_coach_chat(
     current_user: User = Depends(get_current_user),
 ):
     """Stream a cliche coaching response for selected prose."""
-    from ..schemas.llm_params import LLMParams
+    from ..schemas.llm_params import LLMParamsOverride
 
-    if llm_params and not isinstance(llm_params, LLMParams):
-        llm_params = LLMParams(**llm_params)
+    if llm_params and not isinstance(llm_params, LLMParamsOverride):
+        llm_params = LLMParamsOverride(**llm_params)
 
     story = _get_story(story_id, db, current_user)
     node = db.get(StructureNode, node_id) if node_id not in {"__global__", "__story__"} else None

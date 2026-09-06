@@ -659,7 +659,7 @@ async def identity_workshop(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    from ..schemas.llm_params import LLMParams
+    from ..schemas.llm_params import LLMParamsOverride
     from ..services.llm.prompts.workshop import build_identity_workshop_prompt
 
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
@@ -667,7 +667,7 @@ async def identity_workshop(
         raise HTTPException(status_code=404, detail="Story not found")
 
     prompt = build_identity_workshop_prompt(story, db)
-    llm_params = LLMParams(**body.llm_params) if body.llm_params else None
+    llm_params = LLMParamsOverride(**body.llm_params) if body.llm_params else None
 
     ctx = AICallContext(
         feature="identity-workshop",

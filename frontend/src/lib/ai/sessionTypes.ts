@@ -51,6 +51,12 @@ export interface SessionTypeConfig {
   icon: ComponentType<{ size?: number; className?: string }>;
   /** CSS variable name for the accent color, e.g. "--color-accent" */
   accentVar: string;
+  /**
+   * The gateway feature this session calls (see lib/ai/features.generated.ts). Drives the
+   * context meter's denominator — the call is capped at the feature's budget, not at the
+   * model's maximum — and the transparency link.
+   */
+  backendFeatureId: string;
 
   // ── Context requirements ──
   /** If true, a story must be selected before starting */

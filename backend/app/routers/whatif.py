@@ -16,7 +16,7 @@ from ..models.plot_thread import PlotThread
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
-from ..schemas.llm_params import LLMParams
+from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.whatif import build_whatif_system_prompt
 
@@ -96,7 +96,7 @@ def _build_whatif_context(story: Story, db: Session) -> dict:
 async def whatif_simulator(
     story_id: str,
     messages: list[dict] = Body(...),
-    llm_params: LLMParams | None = Body(None),
+    llm_params: LLMParamsOverride | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
