@@ -7,6 +7,7 @@ import AIPanel from "../ai/AIPanel";
 import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
 import { SHORTCUTS, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
+import { useAIStore } from "../../stores/aiStore";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -40,10 +41,20 @@ export default function GlobalLayout() {
         const { viewState: v, setViewState } = useUIStore.getState();
         setViewState(v === "focus" ? "normal" : "focus");
       }
+      // The AI panel: show/hide, and float/dock (doc 06 §2.2). Both are no-ops when AI
+      // is unavailable, so the keys stay inert in Writer mode and with the switch off.
+      if (aiAvailable && matchesCombo(e, SHORTCUTS.toggleAIPanel.combo)) {
+        e.preventDefault();
+        useAIStore.getState().togglePanel();
+      }
+      if (aiAvailable && matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
+        e.preventDefault();
+        useAIStore.getState().togglePanelFloating();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [aiAvailable]);
 
   return (
     <div className={styles.shell}>

@@ -359,6 +359,30 @@ commandRegistry.register({
 });
 
 commandRegistry.register({
+  id: "toggle-ai-panel",
+  label: "Show or Hide AI Panel",
+  keywords: ["ai", "panel", "assistant", "toggle", "hide", "show"],
+  icon: Feather,
+  group: "AI",
+  shortcut: formatCombo(SHORTCUTS.toggleAIPanel.combo),
+  action: () => {
+    useAIStore.getState().togglePanel();
+  },
+});
+
+commandRegistry.register({
+  id: "float-ai-panel",
+  label: "Float or Dock AI Panel",
+  keywords: ["ai", "panel", "float", "dock", "undock", "window", "detach"],
+  icon: Feather,
+  group: "AI",
+  shortcut: formatCombo(SHORTCUTS.floatAIPanel.combo),
+  action: () => {
+    useAIStore.getState().togglePanelFloating();
+  },
+});
+
+commandRegistry.register({
   id: "editor-story-summary",
   label: "Story So Far",
   keywords: ["summary", "story", "so far", "recap", "catch up"],

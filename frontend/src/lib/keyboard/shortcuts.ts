@@ -49,6 +49,22 @@ export const SHORTCUTS = {
     modes: BOTH,
     commandId: "scratch-pad",
   },
+  toggleAIPanel: {
+    combo: "mod+j",
+    label: "Show or hide the AI panel",
+    group: "AI",
+    scope: "global",
+    modes: ["studio"],
+    commandId: "toggle-ai-panel",
+  },
+  floatAIPanel: {
+    combo: "mod+shift+j",
+    label: "Float or dock the AI panel",
+    group: "AI",
+    scope: "global",
+    modes: ["studio"],
+    commandId: "float-ai-panel",
+  },
   assistant: {
     combo: "mod+/",
     label: "AI assistant panel",

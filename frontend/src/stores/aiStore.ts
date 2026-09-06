@@ -44,12 +44,16 @@ interface AIStore {
   // ── Panel state ──────────────────────────────────────────────────────────
   panelOpen: boolean;
   panelCollapsed: boolean;
+  /** Floating: the panel detaches from the right rail into a draggable window (doc 06 §2.2). */
+  panelFloating: boolean;
 
   openPanel: () => void;
   closePanel: () => void;
   collapsePanel: () => void;
   expandPanel: () => void;
   togglePanel: () => void;
+  setPanelFloating: (floating: boolean) => void;
+  togglePanelFloating: () => void;
 
   // ── Session management ───────────────────────────────────────────────────
   sessions: AISession[];
@@ -164,14 +168,36 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
   return { characterName, storyTitle, nodeName };
 }
 
+/** Docked or floating survives a reload; it is a per-browser preference, not story data. */
+const FLOATING_KEY = "ls_ai_panel_floating";
+
+function readFloating(): boolean {
+  try {
+    return localStorage.getItem(FLOATING_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export const useAIStore = create<AIStore>((set, get) => ({
   panelOpen: false,
   panelCollapsed: false,
+  panelFloating: readFloating(),
 
   openPanel: () => set({ panelOpen: true, panelCollapsed: false }),
   closePanel: () => set({ panelOpen: false }),
   collapsePanel: () => set({ panelCollapsed: true }),
   expandPanel: () => set({ panelCollapsed: false, panelOpen: true }),
+  setPanelFloating: (floating) => {
+    try {
+      localStorage.setItem(FLOATING_KEY, floating ? "1" : "0");
+    } catch {
+      // A browser with site data blocked still gets the panel, just not the memory of it.
+    }
+    set({ panelFloating: floating, panelCollapsed: false, panelOpen: true });
+  },
+  togglePanelFloating: () => get().setPanelFloating(!get().panelFloating),
+
   togglePanel: () => {
     const { panelOpen, panelCollapsed } = get();
     if (panelCollapsed) {

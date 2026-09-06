@@ -1,48 +1,26 @@
 import { useEffect, useRef, useState } from "react";
-import { Minus, X, MessageSquare, Feather, Plus, ChevronLeft, User2 } from "lucide-react";
+import {
+  Minus,
+  X,
+  MessageSquare,
+  Feather,
+  Plus,
+  ChevronLeft,
+  User2,
+  PanelRight,
+  PictureInPicture2,
+} from "lucide-react";
 import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
+import PanelFrame from "./PanelFrame";
 import SessionView from "./SessionView";
 import styles from "./AIPanel.module.css";
 
 type MenuStep = { kind: "types" } | { kind: "pick-character"; forType: string };
 
 export default function AIPanel() {
-  const [panelWidth, setPanelWidth] = useState(340);
-  const isResizing = useRef(false);
-  const resizeStartX = useRef(0);
-  const resizeStartWidth = useRef(340);
-
-  useEffect(() => {
-    function onMouseMove(e: MouseEvent) {
-      if (!isResizing.current) return;
-      const dx = resizeStartX.current - e.clientX;
-      setPanelWidth(Math.max(280, Math.min(600, resizeStartWidth.current + dx)));
-    }
-    function onMouseUp() {
-      if (isResizing.current) {
-        document.documentElement.removeAttribute("data-ai-resizing");
-      }
-      isResizing.current = false;
-    }
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, []);
-
-  function startResize(e: React.MouseEvent) {
-    isResizing.current = true;
-    resizeStartX.current = e.clientX;
-    resizeStartWidth.current = panelWidth;
-    document.documentElement.setAttribute("data-ai-resizing", "");
-    e.preventDefault();
-  }
-
   const {
     panelOpen,
     panelCollapsed,
@@ -54,6 +32,8 @@ export default function AIPanel() {
     closeSession,
     setActiveSession,
     createSession,
+    panelFloating,
+    togglePanelFloating,
   } = useAIStore();
   const { activeStory, activeNode, characters } = useStoryStore();
 
@@ -77,14 +57,13 @@ export default function AIPanel() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNewMenu]);
 
-  // Keep content area from being obscured by the fixed panel
+  // Keep the content area clear of the panel. A docked panel's own width is set by
+  // PanelFrame, which owns it; the cases here are the ones where nothing is docked.
   useEffect(() => {
-    const offset = !panelOpen ? 0 : panelCollapsed ? 32 : panelWidth;
+    if (panelOpen && !panelCollapsed && !panelFloating) return;
+    const offset = panelOpen && panelCollapsed ? 32 : 0;
     document.documentElement.style.setProperty("--ai-panel-offset", `${offset}px`);
-    return () => {
-      document.documentElement.style.setProperty("--ai-panel-offset", "0px");
-    };
-  }, [panelOpen, panelCollapsed, panelWidth]);
+  }, [panelOpen, panelCollapsed, panelFloating]);
 
   function launchSession(typeId: string, fromDropdown = false) {
     const type = getSessionType(typeId);
@@ -157,8 +136,7 @@ export default function AIPanel() {
   }
 
   return (
-    <aside className={styles.panel} style={{ width: panelWidth }}>
-      <div className={styles.resizeHandle} onMouseDown={startResize} />
+    <PanelFrame floating={panelFloating}>
       {/* Tab bar */}
       <div className={styles.tabBar}>
         <div className={styles.tabs} role="tablist" aria-label="AI sessions">
@@ -254,6 +232,14 @@ export default function AIPanel() {
 
         <div className={styles.tabControls}>
           <AIFeatureInfoTrigger pageId="ai-panel" size="sm" />
+          <button
+            className={styles.controlBtn}
+            onClick={togglePanelFloating}
+            title={panelFloating ? "Dock to the side" : "Float over the page"}
+            aria-label={panelFloating ? "Dock the AI panel" : "Float the AI panel"}
+          >
+            {panelFloating ? <PanelRight size={13} /> : <PictureInPicture2 size={13} />}
+          </button>
           <button className={styles.controlBtn} onClick={collapsePanel} title="Minimize">
             <Minus size={13} />
           </button>
@@ -310,6 +296,6 @@ export default function AIPanel() {
           </div>
         </div>
       )}
-    </aside>
+    </PanelFrame>
   );
 }

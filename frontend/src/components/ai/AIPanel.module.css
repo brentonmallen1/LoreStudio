@@ -1,4 +1,48 @@
 /* ── Main panel ── */
+/* Floating: a window over the manuscript rather than a rail beside it. */
+.panelFloating {
+  top: auto;
+  right: auto;
+  bottom: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-popover);
+  animation: none;
+}
+
+.dragStrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  cursor: grab;
+  color: var(--color-text-subtle);
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.dragStrip:active {
+  cursor: grabbing;
+}
+
+.cornerHandle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(
+    135deg,
+    transparent 0 50%,
+    var(--color-border) 50% 60%,
+    transparent 60% 75%,
+    var(--color-border) 75% 85%,
+    transparent 85%
+  );
+}
+
 .panel {
   position: fixed;
   top: 40px; /* below global header */
