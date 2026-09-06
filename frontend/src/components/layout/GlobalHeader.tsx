@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useMode } from "../../lib/mode";
+import { useUndoRedo } from "../../hooks/useUndoRedo";
+import UndoRedoButtons from "./UndoRedoButtons";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type {
   ThemeName,
@@ -74,6 +76,7 @@ export default function GlobalHeader() {
   const { storyId } = useParams<{ storyId: string }>();
   const { user, logout } = useAuthStore();
   const mode = useMode();
+  const undoRedo = useUndoRedo();
   const {
     themeName,
     colorMode,
@@ -137,6 +140,20 @@ export default function GlobalHeader() {
     return () => document.removeEventListener("keydown", handleKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panelOpen]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
+      const t = e.target as HTMLElement | null;
+      const inText = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
+      if (inText) return; // the editor and inputs keep their own history
+      e.preventDefault();
+      if (e.shiftKey) undoRedo.redo();
+      else undoRedo.undo();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [undoRedo]);
 
   function handleAssistantToggle() {
     if (mode === "writer") return;
@@ -252,6 +269,7 @@ export default function GlobalHeader() {
         )}
 
         <div className={styles.right}>
+          <UndoRedoButtons undoRedo={undoRedo} />
           {/* AI Assistant — absent in Writer mode */}
           {mode === "studio" && (
             <button

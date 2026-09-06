@@ -1,6 +1,9 @@
 # LoreStudio — Task Runner
 # Requires: just (https://github.com/casey/just)
 
+# Load PORT/FRONTEND_PORT/etc. from .env so `just dev` matches docker-compose.yml's ports.
+set dotenv-load := true
+
 # Default: list all recipes
 default:
     @just --list
@@ -25,10 +28,32 @@ dev:
     wait
 
 backend:
-    cd backend && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run uvicorn app.main:app --reload --reload-exclude '.venv' --host 0.0.0.0 --port 8000
+    # `python -m uvicorn` rather than `uv run uvicorn`: robust to a moved venv (see justfile test recipes).
+    cd backend && DYLD_LIBRARY_PATH=/opt/homebrew/lib uv run python -m uvicorn app.main:app --reload --reload-exclude '.venv' --host 0.0.0.0 --port "${PORT:-8000}"
 
 frontend:
     cd frontend && npm run dev
+
+# Force-free the dev ports if `just dev` left something running (`down` only stops Docker)
+dev-stop:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for port in "${PORT:-8000}" "${FRONTEND_PORT:-5173}"; do
+      pids="$(lsof -ti tcp:"$port" 2>/dev/null || true)"
+      if [ -z "$pids" ]; then
+        echo "port $port: already free"
+        continue
+      fi
+      for pid in $pids; do
+        owner="$(ps -o comm= -p "$pid" 2>/dev/null || echo unknown)"
+        if [[ "$owner" == *docker* ]]; then
+          echo "port $port: held by Docker ($owner, pid $pid) — probably a different project's container; run 'docker ps' to find it, then 'docker stop <name>'"
+        else
+          echo "port $port: killing $owner (pid $pid)"
+          kill -9 "$pid"
+        fi
+      done
+    done
 
 # ── Database ───────────────────────────────────
 # Run all pending migrations

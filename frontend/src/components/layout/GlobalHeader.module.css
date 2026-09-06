@@ -512,3 +512,28 @@
     display: none;
   }
 }
+
+.undoGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-right: 0.35rem;
+}
+.undoGroup .iconBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.undoError {
+  font: inherit;
+  font-size: 0.7rem;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  color: var(--color-text);
+  cursor: pointer;
+}

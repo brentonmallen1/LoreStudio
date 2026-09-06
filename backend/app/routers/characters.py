@@ -22,7 +22,6 @@ from ..schemas.ai_responses import (
     VoiceFidelityResponse,
 )
 from ..schemas.character import (
-    ArcMilestone,
     CharacterOut,
     CharacterUpdate,
     DiscoveryNoteCreate,
@@ -39,6 +38,7 @@ from ..schemas.refactoring import (
     PronounRewriteProposal,
     RenamePreviewResponse,
 )
+from ..services import change_log
 from ..services.character_journey import (
     build_journey_prompt,
     get_cached_journey,
@@ -81,9 +81,25 @@ def update_character(
     body: CharacterUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     character = _verify_character_access(character_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    before, after = change_log.diff_fields(character, data)
+    if before:
+        change_log.record(
+            db,
+            story_id=character.story_id,
+            entity_type="character",
+            entity_id=character.id,
+            action="update",
+            before=before,
+            after=after,
+            label=f"Edit {', '.join(sorted(after))} on {character.name}",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
+    for key, value in data.items():
         setattr(character, key, value)
     db.commit()
     db.refresh(character)
@@ -91,8 +107,25 @@ def update_character(
 
 
 @router.delete("/{character_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_character(character_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_character(
+    character_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
     character = _verify_character_access(character_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=character.story_id,
+        entity_type="character",
+        entity_id=character.id,
+        action="delete",
+        before=change_log.capture_character(character, db),
+        after=None,
+        label=f"Delete character {character.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(character)
     db.commit()
 
@@ -248,61 +281,6 @@ async def generate_attributes(
         db=db,
         user=current_user,
     )
-
-
-@router.post("/{character_id}/milestones", response_model=CharacterOut)
-def add_milestone(
-    character_id: str,
-    body: ArcMilestone,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    character = _verify_character_access(character_id, db, current_user)
-    milestones = list(character.arc_milestones or [])
-    milestones.append({"id": str(uuid.uuid4()), "text": body.text, "completed": False})
-    character.arc_milestones = milestones
-    db.commit()
-    db.refresh(character)
-    return character
-
-
-@router.patch("/{character_id}/milestones/{milestone_id}", response_model=CharacterOut)
-def update_milestone(
-    character_id: str,
-    milestone_id: str,
-    body: ArcMilestone,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    character = _verify_character_access(character_id, db, current_user)
-    milestones = list(character.arc_milestones or [])
-    for m in milestones:
-        if m["id"] == milestone_id:
-            if body.text:
-                m["text"] = body.text
-            m["completed"] = body.completed
-            if body.scene_id is not None:
-                m["scene_id"] = body.scene_id
-            if body.scene_title is not None:
-                m["scene_title"] = body.scene_title
-    character.arc_milestones = milestones
-    db.commit()
-    db.refresh(character)
-    return character
-
-
-@router.delete("/{character_id}/milestones/{milestone_id}", response_model=CharacterOut)
-def delete_milestone(
-    character_id: str,
-    milestone_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    character = _verify_character_access(character_id, db, current_user)
-    character.arc_milestones = [m for m in (character.arc_milestones or []) if m["id"] != milestone_id]
-    db.commit()
-    db.refresh(character)
-    return character
 
 
 @router.delete("/relationships/{relationship_id}", status_code=status.HTTP_204_NO_CONTENT)

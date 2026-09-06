@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Compass, CheckSquare } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
-import { useHistoryStore } from "../../stores/historyStore";
+import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import type { Outline, OutlineItem, StructureNode } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
 import SnowflakeView from "./SnowflakeView";
@@ -129,15 +129,24 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
 
   const itemsRef = useRef(items);
   itemsRef.current = items;
-  const pushHistory = useHistoryStore((s) => s.push);
   const pendingUpdates = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
-    setLoading(true);
-    api
-      .getOutlineWithItems(outline.id)
-      .then((data) => setItems(data.items))
-      .finally(() => setLoading(false));
+    const load = () => {
+      setLoading(true);
+      api
+        .getOutlineWithItems(outline.id)
+        .then((data) => setItems(data.items))
+        .finally(() => setLoading(false));
+    };
+    load();
+    // An undo/redo may have changed items server-side; reload rather than guess.
+    const onUndo = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { entity_type?: string } | undefined;
+      if (!detail || detail.entity_type === "outline_item" || detail.entity_type === "outline") load();
+    };
+    window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
+    return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
   }, [outline.id]);
 
   useEffect(() => {
@@ -163,17 +172,6 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     const prev = itemsRef.current;
     const next = reorderInTree(prev, draggedId, targetId, zone);
     if (next === prev) return;
-    pushHistory({
-      description: "Reorder outline",
-      undo: () => {
-        setItems(prev);
-        api.bulkReorderOutline(outline.id, flattenPositions(prev));
-      },
-      redo: () => {
-        setItems(next);
-        api.bulkReorderOutline(outline.id, flattenPositions(next));
-      },
-    });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
@@ -284,17 +282,6 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     const prev = itemsRef.current;
     const next = reorderInTree(prev, id, ctx.prevSiblingId, "into");
     if (next === prev) return;
-    pushHistory({
-      description: "Indent outline item",
-      undo: () => {
-        setItems(prev);
-        api.bulkReorderOutline(outline.id, flattenPositions(prev));
-      },
-      redo: () => {
-        setItems(next);
-        api.bulkReorderOutline(outline.id, flattenPositions(next));
-      },
-    });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }
@@ -305,17 +292,6 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     const prev = itemsRef.current;
     const next = reorderInTree(prev, id, ctx.parentId, "below");
     if (next === prev) return;
-    pushHistory({
-      description: "Dedent outline item",
-      undo: () => {
-        setItems(prev);
-        api.bulkReorderOutline(outline.id, flattenPositions(prev));
-      },
-      redo: () => {
-        setItems(next);
-        api.bulkReorderOutline(outline.id, flattenPositions(next));
-      },
-    });
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
   }

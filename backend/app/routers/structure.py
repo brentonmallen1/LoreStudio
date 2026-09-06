@@ -11,6 +11,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.structure import StructureNodeOut, StructureNodeUpdate
+from ..services import change_log
 from ..services.dialogue_service import sync_dialogue_blocks
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
@@ -24,6 +25,17 @@ def _differs(expected: datetime, actual: datetime) -> bool:
     e = expected.replace(tzinfo=None)
     a = actual.replace(tzinfo=None)
     return abs((e - a).total_seconds()) > 1
+
+
+def _update_label(node: StructureNode, after: dict) -> str:
+    if "title" in after:
+        return f"Rename “{node.title}” to “{after['title']}”"
+    if "status" in after:
+        return f"Mark “{node.title}” {after['status']}"
+    if set(after) <= {"content", "word_count"}:
+        return f"Edit “{node.title}”"
+    fields = ", ".join(sorted(k for k in after if k != "word_count"))
+    return f"Edit {fields} on “{node.title}”"
 
 
 def _verify_node_access(node_id: str, db: Session, user: User) -> StructureNode:
@@ -47,6 +59,7 @@ def update_node(
     body: StructureNodeUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     node = _verify_node_access(node_id, db, current_user)
     data = body.model_dump(exclude_none=True)
@@ -77,6 +90,24 @@ def update_node(
     # If author manually edits content_summary, treat it as fresh
     if "content_summary" in data and "summary_stale" not in data:
         data["summary_stale"] = False
+    before, after = change_log.diff_fields(node, data)
+    if before:
+        # Prose edits are logged for the Activity page but not undoable here: the editor's own
+        # history handles keystrokes. Everything else (title, status, purpose, notes...) is.
+        prose_only = set(after) <= {"content", "word_count"}
+        change_log.record(
+            db,
+            story_id=node.story_id,
+            entity_type="structure_node",
+            entity_id=node.id,
+            action="content" if prose_only else "update",
+            before=before,
+            after=after,
+            label=_update_label(node, after),
+            actor_id=current_user.id,
+            client_id=client_id,
+            undoable=not prose_only,
+        )
     for key, value in data.items():
         setattr(node, key, value)
     db.commit()
@@ -192,8 +223,25 @@ def _invalidate_journey_summaries(node_id: str, db: Session) -> None:
 
 
 @router.delete("/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_node(node_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_node(
+    node_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
     node = _verify_node_access(node_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=node.story_id,
+        entity_type="structure_node",
+        entity_id=node.id,
+        action="delete",
+        before=change_log.capture_node_tree(node, db),
+        after=None,
+        label=f"Delete {node.level_type} “{node.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(node)
     db.commit()
 

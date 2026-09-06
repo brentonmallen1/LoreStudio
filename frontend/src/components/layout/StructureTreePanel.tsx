@@ -4,7 +4,6 @@ import { Plus, PanelRightOpen, List, Share2, FileText, BookOpen, CheckSquare } f
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
-import { useHistoryStore } from "../../stores/historyStore";
 import type { StructureNode } from "../../types";
 import NodeItem from "./StructureTreeNode";
 import {
@@ -31,7 +30,6 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
   const { storyId } = useParams<{ storyId: string }>();
   const { structure, setStructure, activeTemplate, activeNode } = useStoryStore();
   const { treePanelWidth, setTreePanelWidth, setTreeDetached, viewMode, setViewMode } = useUIStore();
-  const pushHistory = useHistoryStore((s) => s.push);
 
   const [addingLevel, setAddingLevel] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState("");
@@ -152,14 +150,6 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
     if (next === prev) return; // dragged not found, no-op
 
     const ops = flattenPositions(next);
-
-    pushHistory({
-      description: "Reorder sections",
-      undo: async () => {
-        setStructure(prev);
-        await api.reorderStructure(storyIdRef.current!, flattenPositions(prev));
-      },
-    });
 
     setStructure(next);
 

@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import { useUIStore } from "../../stores/uiStore";
-import { useHistoryStore } from "../../stores/historyStore";
 import AIPanel from "../ai/AIPanel";
 import { useMode } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
@@ -29,27 +28,7 @@ export default function GlobalLayout() {
       const editable = (e.target as HTMLElement)?.isContentEditable;
       const inTextField = tag === "INPUT" || tag === "TEXTAREA" || editable;
 
-      // Ctrl/Cmd+Z: custom undo outside text fields; let browser handle inside them
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
-        if (!inTextField) {
-          const entry = useHistoryStore.getState().pop();
-          if (entry) {
-            e.preventDefault();
-            entry.undo();
-          }
-        }
-        return;
-      }
-
-      // Ctrl/Cmd+Shift+Z: redo
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
-        if (!inTextField) {
-          e.preventDefault();
-          useHistoryStore.getState().redo();
-        }
-        return;
-      }
-
+      // Undo/redo (⌘Z / ⌘⇧Z) is handled by the header's useUndoRedo hook.
       // All other shortcuts: skip when typing
       if (inTextField) return;
       if (e.key === "?") {

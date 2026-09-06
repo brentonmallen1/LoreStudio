@@ -3,7 +3,45 @@ import type { User } from "../types";
 import type { ConsistencyFinding, QuoteStyleReport } from "../types/tools";
 
 /** Non-AI manuscript tools and per-user settings. Kept out of client.ts (size budget). */
+export interface UndoState {
+  can_undo: boolean;
+  undo_label: string | null;
+  can_redo: boolean;
+  redo_label: string | null;
+}
+
+export interface UndoResult {
+  label: string;
+  entity_type: string;
+  entity_ids: string[];
+  batch_id: string;
+}
+
+export interface ChangeRow {
+  seq: number;
+  batch_id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  label: string;
+  actor_id: string | null;
+  client_id: string | null;
+  undoable: boolean;
+  undo_of: string | null;
+  redo_of: string | null;
+  created_at: string | null;
+}
+
 export const toolsApi = {
+  undoState: (storyId: string) => request<UndoState>(`/stories/${storyId}/undo/state`),
+  undo: (storyId: string, anyClient = false) =>
+    request<UndoResult>(`/stories/${storyId}/undo${anyClient ? "?any_client=true" : ""}`, { method: "POST" }),
+  redo: (storyId: string, anyClient = false) =>
+    request<UndoResult>(`/stories/${storyId}/redo${anyClient ? "?any_client=true" : ""}`, { method: "POST" }),
+  listChanges: (storyId: string, limit = 100, beforeSeq?: number) =>
+    request<ChangeRow[]>(
+      `/stories/${storyId}/changes?limit=${limit}${beforeSeq ? `&before_seq=${beforeSeq}` : ""}`,
+    ),
   updateMe: (body: { display_name?: string; settings?: Record<string, unknown> }) =>
     request<User>("/auth/me", { method: "PATCH", body: JSON.stringify(body) }),
   consistencyChecks: (storyId: string, nodeId?: string) =>

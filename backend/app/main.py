@@ -14,6 +14,8 @@ from .routers.analysis import router as analysis_router
 from .routers.beat_sheets import router as beat_sheets_router
 from .routers.brainstorm import router as brainstorm_router
 from .routers.calendars import router as calendars_router
+from .routers.changes import router as changes_router
+from .routers.character_milestones import router as character_milestones_router
 from .routers.characters import router as characters_router
 from .routers.chat import router as chat_router
 from .routers.chronicle import router as chronicle_router
@@ -126,6 +128,7 @@ app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(stories_router, prefix="/api/stories", tags=["stories"])
 app.include_router(structure_router, prefix="/api/structure", tags=["structure"])
 app.include_router(characters_router, prefix="/api/characters", tags=["characters"])
+app.include_router(character_milestones_router, prefix="/api/characters", tags=["characters"])
 app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
 app.include_router(interviews_router, prefix="/api/interviews", tags=["interviews"])
 app.include_router(templates_router, prefix="/api/templates", tags=["templates"])
@@ -167,6 +170,7 @@ app.include_router(publication_router, prefix="/api", tags=["publication"])
 app.include_router(reader_knowledge_router, prefix="/api", tags=["reader-knowledge"])
 app.include_router(system_router, prefix="/api", tags=["system"])
 app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
+app.include_router(changes_router, prefix="/api", tags=["changes"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

@@ -161,7 +161,7 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
 
 #: Tables with a story_id that are deliberately not part of a snapshot: the
 #: snapshot machinery itself.
-SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings"}
+SNAPSHOT_EXCLUDED_TABLES = {"stories", "story_snapshots", "story_backup_settings", "changes"}
 
 
 # ---------------------------------------------------------------------------

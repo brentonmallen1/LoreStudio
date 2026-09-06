@@ -19,6 +19,7 @@ from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredRe
 from ..schemas.character import CharacterCreate, RelationshipOut
 from ..schemas.story import StoryCreate, StoryGoalCreate, StoryGoalUpdate, StoryOut, StoryOverview, StoryUpdate
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
+from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
@@ -444,12 +445,26 @@ def create_structure_node(
     body: StructureNodeCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     node = StructureNode(story_id=story_id, **body.model_dump())
     db.add(node)
+    db.flush()
+    change_log.record(
+        db,
+        story_id=story_id,
+        entity_type="structure_node",
+        entity_id=node.id,
+        action="create",
+        before=None,
+        after=change_log.capture_node_tree(node, db),
+        label=f"Add {node.level_type} “{node.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(node)
     return node
@@ -461,11 +476,14 @@ def reorder_structure(
     body: ReorderStructurePayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Batch reorder structure nodes. Supports reordering within a parent and reparenting."""
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
+    ids = [op.node_id for op in body.operations]
+    before = change_log.reorder_snapshot(StructureNode, ids, db)
     for op in body.operations:
         node = db.get(StructureNode, op.node_id)
         if node and node.story_id == story_id:
@@ -477,6 +495,21 @@ def reorder_structure(
                 else:
                     node.level = 0
             node.position = op.position
+    db.flush()
+    after = change_log.reorder_snapshot(StructureNode, ids, db)
+    if before != after:
+        change_log.record(
+            db,
+            story_id=story_id,
+            entity_type="structure_node",
+            entity_id=story_id,
+            action="reorder",
+            before=before,
+            after=after,
+            label="Reorder sections",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
     db.commit()
 
 

@@ -1,6 +1,7 @@
 from .activity_log import ActivityLog
 from .beat_sheet import BeatSheet
 from .calendar import Calendar
+from .change import Change
 from .character import Character, CharacterRelationship
 from .character_journey import CharacterJourneySummary
 from .chat_message import ChatMessage
@@ -57,6 +58,7 @@ __all__ = [
     "HistoricalEvent",
     "LocationTravel",
     "Calendar",
+    "Change",
     "DialogueBlock",
     "Twist",
     "OutlineItem",
