@@ -110,6 +110,7 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
               transparency.open(
                 { context_type: "attributes", character_id: character.id, attribute_type: type },
                 lastResultText.current,
+                { feature: "character-attributes", character_id: character.id },
               )
             }
           />

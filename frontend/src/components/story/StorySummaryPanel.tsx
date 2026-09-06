@@ -66,7 +66,10 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}
             onClick={() =>
-              transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current)
+              transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current, {
+                feature: "story-summary",
+                story_id: storyId,
+              })
             }
           />
         </div>

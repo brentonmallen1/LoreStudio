@@ -14,8 +14,10 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.activity_log import ActivityLog
+from ..models.ai_call import AICallPayload
 from ..models.user import User
-from ..services.ai_call_log import get_call, purge_payloads
+from ..services.ai_call_log import get_call, latest_call, purge_payloads
 from ..services.llm.features import get_feature
 
 router = APIRouter()
@@ -50,13 +52,48 @@ class AICallOut(BaseModel):
     payload: AICallPayloadOut | None
 
 
+@router.get("/ai/calls/latest", response_model=AICallOut | None)
+def get_latest_ai_call(
+    feature: str,
+    story_id: str | None = None,
+    node_id: str | None = None,
+    character_id: str | None = None,
+    session_id: str | None = None,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    The call behind a result on screen, so "show me what was sent" shows what was sent.
+
+    Returns null when the feature has not been run here yet — the caller then falls back
+    to the pre-call preview of what *would* be sent.
+    """
+    log = latest_call(
+        db,
+        user.id,
+        feature,
+        story_id=story_id,
+        node_id=node_id,
+        character_id=character_id,
+        session_id=session_id,
+    )
+    return _to_out(db, log, user) if log else None
+
+
 @router.get("/ai/calls/{log_id}", response_model=AICallOut)
 def get_ai_call(log_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """Everything recorded about one AI call."""
     found = get_call(db, log_id, user.id)
     if not found:
         raise HTTPException(status_code=404, detail="AI call not found")
-    log, payload = found
+    return _to_out(db, found[0], user, found[1])
+
+
+def _to_out(db: Session, log: ActivityLog, user: User, payload: AICallPayload | None = None) -> AICallOut:
+    """One call, as the transparency view reads it."""
+    if payload is None:
+        found = get_call(db, log.id, user.id)
+        payload = found[1] if found else None
     meta = log.metadata_ or {}
     feature_id = meta.get("feature", "")
     feature = get_feature(feature_id)

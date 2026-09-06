@@ -4,6 +4,7 @@ import type { LLMParams, TokenBreakdown } from "../types";
 import { useLLMTransparency } from "./useLLMTransparency";
 import { api } from "../api/client";
 import { contextWindowFor } from "../lib/ai/contextWindow";
+import { getSessionType } from "../lib/ai/sessionTypes";
 
 const CTX_LIMIT_FALLBACK = 128_000;
 
@@ -43,6 +44,15 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
       });
   }, []);
 
+  // How a result on screen finds the call behind it (doc 06 §3).
+  const callLookup = {
+    feature: getSessionType(session.type)?.backendFeatureId ?? "",
+    story_id: session.context.storyId,
+    node_id: session.context.nodeId,
+    character_id: session.context.characterId,
+    session_id: session.backendSessionId,
+  };
+
   // Measure against the window the call will actually get, not the model maximum.
   const window = contextWindowFor(session.type, ctxLimit);
 
@@ -65,6 +75,7 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
     : `~${historyTokens.toLocaleString()} / ${window.toLocaleString()} tokens (history only)`;
 
   return {
+    callLookup,
     input,
     setInput,
     sessionParams,

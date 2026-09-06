@@ -27,6 +27,36 @@ def get_call(db: Session, log_id: str, user_id: str) -> tuple[ActivityLog, AICal
     return log, payload
 
 
+def latest_call(
+    db: Session,
+    user_id: str,
+    feature: str,
+    *,
+    story_id: str | None = None,
+    node_id: str | None = None,
+    character_id: str | None = None,
+    session_id: str | None = None,
+) -> ActivityLog | None:
+    """
+    The most recent call this user made for a feature, in a given context.
+
+    This is how "show me what was sent" finds the call behind a result on screen. Matching
+    on feature plus context is enough: the alternative — threading a call id back through
+    every streaming route — buys precision the author would never notice.
+    """
+    q = db.query(ActivityLog).filter(
+        ActivityLog.user_id == user_id,
+        ActivityLog.category == "ai",
+        ActivityLog.metadata_["feature"].as_string() == feature,
+    )
+    if story_id:
+        q = q.filter(ActivityLog.story_id == story_id)
+    for key, value in (("node_id", node_id), ("character_id", character_id), ("session_id", session_id)):
+        if value:
+            q = q.filter(ActivityLog.metadata_[key].as_string() == value)
+    return q.order_by(ActivityLog.created_at.desc()).first()
+
+
 def prune_payloads(db: Session, days: int) -> int:
     """
     Drop payloads older than `days`; the summary rows stay. 0 or less keeps everything.

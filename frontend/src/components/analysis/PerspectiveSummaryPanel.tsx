@@ -105,6 +105,9 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
                       character_id: lastSelectedId.current,
                     },
                 lastResult.current,
+                lastMode.current === "structure"
+                  ? { feature: "structure-summary", story_id: storyId, node_id: lastSelectedId.current }
+                  : { feature: "character-arc", story_id: storyId, character_id: lastSelectedId.current },
               )
             }
           />

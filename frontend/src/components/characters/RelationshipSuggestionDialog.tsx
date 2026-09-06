@@ -56,7 +56,10 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
       <LLMTransparencyTrigger
         disabled={!transparency.hasData}
         onClick={() =>
-          transparency.open({ context_type: "relationships", story_id: storyId }, lastResultText.current)
+          transparency.open({ context_type: "relationships", story_id: storyId }, lastResultText.current, {
+            feature: "relationship-suggest",
+            story_id: storyId,
+          })
         }
         size="md"
       />

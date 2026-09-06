@@ -300,7 +300,12 @@ export default function PanelInterviewPanel({ storyId }: Props) {
                 </div>
                 <LLMTransparencyTrigger
                   disabled={!transparency.hasData}
-                  onClick={() => transparency.open({ context_type: "panel", panel_id: activePanel.id }, "")}
+                  onClick={() =>
+                    transparency.open({ context_type: "panel", panel_id: activePanel.id }, "", {
+                      feature: "panel-character",
+                      story_id: activePanel.story_id,
+                    })
+                  }
                 />
                 <button
                   className={`${styles.chatHeaderBtn} ${sessionParams ? styles.chatHeaderBtnActive : ""}`}

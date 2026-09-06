@@ -214,6 +214,7 @@ export default function InterviewMode({ session }: Props) {
             user_message: state.lastUserMsg.current,
           },
           state.lastResponse.current,
+          state.callLookup,
         )
       }
       headerExtra={

@@ -348,6 +348,7 @@ def list_activity(
     event_type: str | None = Query(None),
     starred: bool | None = Query(None),
     features: str | None = Query(None),  # comma-separated feature names to filter by
+    problems: bool = Query(False, description="Only calls that failed, were stopped, or fell back"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
@@ -365,7 +366,12 @@ def list_activity(
     if features:
         feature_list = [f.strip() for f in features.split(",") if f.strip()]
         if feature_list:
-            q = q.filter(ActivityLog.metadata_["feature"].astext.in_(feature_list))
+            # .astext is PostgreSQL-only and raised on SQLite; nothing sent `features` yet,
+            # so the filter had never actually run.
+            q = q.filter(ActivityLog.metadata_["feature"].as_string().in_(feature_list))
+    if problems:
+        # A row with no status predates statuses and succeeded; NULL is correctly excluded.
+        q = q.filter(ActivityLog.metadata_["status"].as_string().notin_(["ok"]))
 
     total = q.count()
     logs = q.order_by(ActivityLog.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()

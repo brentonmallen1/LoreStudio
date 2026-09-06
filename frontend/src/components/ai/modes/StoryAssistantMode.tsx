@@ -56,6 +56,7 @@ export default function StoryAssistantMode({ session }: Props) {
             user_message: state.lastUserMsg.current,
           },
           state.lastResponse.current,
+          state.callLookup,
         )
       }
       headerExtra={

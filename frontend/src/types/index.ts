@@ -1050,7 +1050,10 @@ export interface PromptPreview {
 }
 
 export interface LLMInteractionData {
-  preview: PromptPreview;
+  /** The call that ran, when one was found (doc 06 §3). */
+  callId?: string;
+  /** What *would* be sent — the fallback when the feature has not run here yet. */
+  preview?: PromptPreview;
   response: string;
 }
 

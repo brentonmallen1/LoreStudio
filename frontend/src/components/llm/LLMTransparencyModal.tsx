@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import { Modal, CollapsibleSection, CodeBlock } from "../common";
+import AICallDetail from "../chronicle/AICallDetail";
 import type { LLMInteractionData } from "../../types";
 import styles from "./LLMTransparencyModal.module.css";
 
@@ -11,7 +12,7 @@ interface Props {
 
 export default function LLMTransparencyModal({ isOpen, onClose, data }: Props) {
   async function copyAll() {
-    if (!data) return;
+    if (!data?.preview) return;
     const text = [
       "=== CONTEXT SENT TO AI ===",
       data.preview.system_prompt,
@@ -27,9 +28,11 @@ export default function LLMTransparencyModal({ isOpen, onClose, data }: Props) {
 
   const footer = (
     <>
-      <button className={styles.copyAllBtn} onClick={copyAll} disabled={!data}>
-        Copy all
-      </button>
+      {!data?.callId && (
+        <button className={styles.copyAllBtn} onClick={copyAll} disabled={!data?.preview}>
+          Copy all
+        </button>
+      )}
       <button className={styles.closeBtn} onClick={onClose}>
         Close
       </button>
@@ -40,13 +43,18 @@ export default function LLMTransparencyModal({ isOpen, onClose, data }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="What the AI Sees"
+      title={data?.callId ? "What was sent to the AI" : "What the AI would be sent"}
       icon={<ShieldCheck size={15} />}
       size="lg"
       footer={footer}
     >
       {!data ? (
         <p className={styles.empty}>No interaction yet. Use an AI feature first.</p>
+      ) : data.callId ? (
+        // The call that ran: its messages, its options, its raw response.
+        <AICallDetail logId={data.callId} />
+      ) : !data.preview ? (
+        <p className={styles.empty}>The context for this interaction could not be loaded.</p>
       ) : (
         <div className={styles.content}>
           <CollapsibleSection title="Context sent to AI" defaultOpen>
@@ -70,7 +78,8 @@ export default function LLMTransparencyModal({ isOpen, onClose, data }: Props) {
           </p>
 
           <p className={styles.notice}>
-            This shows exactly what data was shared with the AI model for this interaction.
+            This feature has not run here yet, so this is what would be sent. Once it runs, this view shows
+            the call itself.
           </p>
         </div>
       )}

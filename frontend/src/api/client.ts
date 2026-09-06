@@ -1298,6 +1298,8 @@ export const api = {
     event_type?: string;
     starred?: boolean;
     features?: string;
+    /** Only calls that failed, were stopped, or fell back off their schema. */
+    problems?: boolean;
     page?: number;
     page_size?: number;
   }) => {

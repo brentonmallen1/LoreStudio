@@ -33,8 +33,26 @@ export interface AICall {
   payload: AICallPayload | null;
 }
 
+/** How a result on screen finds the call behind it. */
+export interface CallLookup {
+  feature: string;
+  story_id?: string | null;
+  node_id?: string | null;
+  character_id?: string | null;
+  session_id?: string | null;
+}
+
 export const aiCallsApi = {
   get: (logId: string) => request<AICall>(`/ai/calls/${logId}`),
+  /** The most recent call for this feature in this context, or null if it has not run. */
+  latest: (lookup: CallLookup) => {
+    const params = new URLSearchParams({ feature: lookup.feature });
+    for (const key of ["story_id", "node_id", "character_id", "session_id"] as const) {
+      const value = lookup[key];
+      if (value) params.set(key, value);
+    }
+    return request<AICall | null>(`/ai/calls/latest?${params}`);
+  },
   /** Delete every stored prompt and response; the record that calls happened stays. */
   purgePayloads: () => request<{ removed: number }>("/ai/payloads", { method: "DELETE" }),
 };

@@ -62,6 +62,7 @@ export default function AssistantMode({ session }: Props) {
             user_message: state.lastUserMsg.current,
           },
           state.lastResponse.current,
+          state.callLookup,
         )
       }
     >

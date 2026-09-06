@@ -102,6 +102,7 @@ export default function SceneAssistantMode({ session }: Props) {
             context_options: contextOptions,
           },
           state.lastResponse.current,
+          state.callLookup,
         )
       }
       headerExtra={

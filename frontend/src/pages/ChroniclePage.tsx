@@ -1,11 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { aiFeatureLabel } from "../lib/ai/features.generated";
-import AICallDetail from "../components/chronicle/AICallDetail";
+import ActivityLogCard from "../components/chronicle/ActivityLogCard";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
   MessageSquare,
-  Activity,
   ChevronLeft,
   Trash2,
   Archive,
@@ -18,7 +16,6 @@ import {
   CheckSquare,
   Square,
   X,
-  Star,
   Feather,
 } from "lucide-react";
 import { api } from "../api/client";
@@ -37,6 +34,7 @@ import styles from "./ChroniclePage.module.css";
 // ── Helpers ────────────────────────────────────────────────────────────
 
 import type { ViewTab } from "../components/chronicle/ChronicleTabs";
+import { relativeTime } from "../utils/relativeTime";
 
 // Features that surface in the Summaries tab
 const SUMMARY_FEATURES = [
@@ -64,18 +62,6 @@ const CONTEXT_LABELS: Record<string, string> = {
   story: "Story",
   panel: "Group Interview",
 };
-
-function relativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 function sessionTitle(s: ChronicleSession): string {
   if (s.title) return s.title;
@@ -145,119 +131,6 @@ function SessionCard({
           <Trash2 size={13} />
         </button>
       </div>
-    </div>
-  );
-}
-
-// ── Activity log card ──────────────────────────────────────────────────
-
-function featureLabel(log: ActivityLog): string {
-  const feature = log.metadata_?.feature as string | undefined;
-  // Labels come from the backend feature table (lib/ai/features.generated.ts). Rows
-  // written before a feature was renamed fall back to the event type.
-  if (feature) return aiFeatureLabel(feature);
-  return log.event_type
-    .replace(/^ai_/, "")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function LogCard({
-  log,
-  onStarToggle,
-}: {
-  log: ActivityLog;
-  onStarToggle?: (id: string, starred: boolean) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const [starring, setStarring] = useState(false);
-  const categoryColor: Record<string, string> = {
-    ai: "var(--color-accent)",
-    system: "var(--color-text-subtle)",
-    task: "var(--segment-chapter)",
-  };
-  const prompt = log.metadata_?.prompt as string | undefined;
-  const response = log.metadata_?.response as string | undefined;
-  const model = log.metadata_?.model as string | undefined;
-  const tokensIn = log.metadata_?.tokens_in as number | undefined;
-  const tokensOut = log.metadata_?.tokens_out as number | undefined;
-  const status = log.metadata_?.status as string | undefined;
-  // AI rows carry a full record (prompt, options, raw response) behind /ai/calls/{id};
-  // everything else only ever had its metadata preview.
-  const isAICall = log.category === "ai";
-  const hasContent = isAICall || !!(prompt || response);
-
-  // Strip thinking blocks from response preview
-  const responsePreview = response?.replace(/<\|channel>thought\n[\s\S]*?<channel\|>/g, "").trim();
-
-  async function toggleStar(e: React.MouseEvent) {
-    e.stopPropagation();
-    if (starring) return;
-    setStarring(true);
-    try {
-      await api.updateActivityLog(log.id, { starred: !log.starred });
-      onStarToggle?.(log.id, !log.starred);
-    } finally {
-      setStarring(false);
-    }
-  }
-
-  return (
-    <div
-      className={`${styles.card} ${styles.logCard} ${hasContent ? styles.logCardExpandable : ""}`}
-      onClick={() => hasContent && setExpanded((v) => !v)}
-    >
-      <div className={styles.cardIcon}>
-        <Activity size={12} style={{ color: categoryColor[log.category] ?? "var(--color-text-subtle)" }} />
-      </div>
-      <div className={styles.cardBody}>
-        <p className={styles.cardTitle}>{featureLabel(log)}</p>
-        {prompt && <p className={`${styles.cardPreview} ${styles.logPromptPreview}`}>{prompt}</p>}
-        {responsePreview && <p className={styles.cardPreview}>{responsePreview}</p>}
-        <p className={styles.cardMeta}>
-          {model && <span className={styles.badge}>{model}</span>}
-          {status && status !== "ok" && <span className={styles.badge}>{status}</span>}
-          {tokensIn != null && (
-            <span>
-              {tokensIn}↑ {tokensOut}↓ tokens
-            </span>
-          )}
-          {" · "}
-          {relativeTime(log.created_at)}
-        </p>
-      </div>
-      <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
-        <button
-          className={`${styles.iconBtn} ${log.starred ? styles.starActive : ""}`}
-          title={log.starred ? "Unstar" : "Star this summary"}
-          onClick={toggleStar}
-          disabled={starring}
-        >
-          <Star size={13} />
-        </button>
-      </div>
-      {expanded && (
-        <div className={styles.logDetail} onClick={(e) => e.stopPropagation()}>
-          {isAICall ? (
-            <AICallDetail logId={log.id} />
-          ) : (
-            <>
-              {prompt && (
-                <div className={styles.logMessage}>
-                  <span className={styles.logRole}>You</span>
-                  <p className={styles.logContent}>{prompt}</p>
-                </div>
-              )}
-              {response && (
-                <div className={styles.logMessage}>
-                  <span className={styles.logRole}>AI</span>
-                  <p className={styles.logContent}>{responsePreview}</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -340,6 +213,8 @@ export default function ChroniclePage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("");
+  // The two calls worth finding fast are the one that broke and the one you stopped.
+  const [problemsOnly, setProblemsOnly] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
@@ -370,14 +245,19 @@ export default function ChroniclePage() {
     async (p = 1) => {
       setLoading(true);
       try {
-        const res = await api.listActivityLogs({ story_id: storyId, page: p, page_size: 50 });
+        const res = await api.listActivityLogs({
+          story_id: storyId,
+          problems: problemsOnly || undefined,
+          page: p,
+          page_size: 50,
+        });
         setLogs(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
         setTotalLogs(res.total);
       } finally {
         setLoading(false);
       }
     },
-    [storyId],
+    [storyId, problemsOnly],
   );
 
   const loadSummaries = useCallback(
@@ -424,7 +304,7 @@ export default function ChroniclePage() {
     if (tab === "chats") loadSessions(1);
     else if (tab === "activity") loadLogs(1);
     else if (tab === "summaries") loadSummaries(1);
-  }, [tab, filterType, showArchived, starredOnly, loadSessions, loadLogs, loadSummaries]);
+  }, [tab, filterType, showArchived, starredOnly, problemsOnly, loadSessions, loadLogs, loadSummaries]);
 
   // Debounced search
   useEffect(() => {
@@ -582,6 +462,22 @@ export default function ChroniclePage() {
             </>
           )}
 
+          {tab === "activity" && (
+            <>
+              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
+                Filter
+              </p>
+              <label className={styles.archiveToggle}>
+                <input
+                  type="checkbox"
+                  checked={problemsOnly}
+                  onChange={(e) => setProblemsOnly(e.target.checked)}
+                />
+                Problems only
+              </label>
+            </>
+          )}
+
           {tab === "chats" && (
             <>
               <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
@@ -682,7 +578,7 @@ export default function ChroniclePage() {
             <>
               {logs.length === 0 && !loading && <p className={styles.empty}>No activity logged yet.</p>}
               {logs.map((log) => (
-                <LogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
+                <ActivityLogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
               ))}
             </>
           )}
@@ -703,7 +599,7 @@ export default function ChroniclePage() {
                 </p>
               )}
               {summaries.map((log) => (
-                <LogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
+                <ActivityLogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
               ))}
             </>
           )}
@@ -733,7 +629,7 @@ export default function ChroniclePage() {
                     {r.excerpt && <p className={styles.excerpt}>…{r.excerpt}…</p>}
                   </div>
                 ) : r.log ? (
-                  <LogCard key={i} log={r.log} />
+                  <ActivityLogCard key={i} log={r.log} />
                 ) : null,
               )}
             </>

@@ -1,10 +1,16 @@
 import { useState, useCallback } from "react";
 import { api } from "../api/client";
+import { aiCallsApi, type CallLookup } from "../api/aiCalls";
 import type { LLMInteractionData, PromptPreviewRequest } from "../types";
 
 /**
- * Tracks the response for an LLM interaction and provides a way to open a
- * transparency modal showing exactly what was sent to and received from the AI.
+ * Tracks the response for an LLM interaction and opens the transparency view.
+ *
+ * When the feature is named, this shows the *call that ran* — its messages, its options,
+ * its raw response, straight from the AI call log (doc 06 §3). It used to rebuild a
+ * preview after the fact, which could differ from what actually went out. The preview
+ * remains the fallback for a feature that has not run here yet: then it honestly answers
+ * "what would be sent", not "what was sent".
  *
  * Usage:
  *   const t = useLLMTransparency();
@@ -29,7 +35,19 @@ export function useLLMTransparency() {
    * Open the transparency modal. Fetches the prompt preview from the backend
    * and combines it with the stored response text.
    */
-  const open = useCallback(async (request: PromptPreviewRequest, response: string) => {
+  const open = useCallback(async (request: PromptPreviewRequest, response: string, call?: CallLookup) => {
+    if (call?.feature) {
+      try {
+        const found = await aiCallsApi.latest(call);
+        if (found) {
+          setData({ callId: found.id, response });
+          setIsOpen(true);
+          return;
+        }
+      } catch {
+        // Fall through to the preview: better a "what would be sent" than nothing.
+      }
+    }
     try {
       const preview = await api.getPromptPreview(request);
       setData({ preview, response });
