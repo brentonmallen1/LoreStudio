@@ -94,7 +94,8 @@ ci:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "── file-length budget ──"     && python3 scripts/check-size.py
-    echo "── backend: ruff ──"          && (cd backend && uv run ruff check app/ tests/ && uv run ruff format --check app/ tests/)
+    echo "── generated files ──"        && (cd backend && uv run python scripts/gen_ai_features.py --check)
+    echo "── backend: ruff ──"          && (cd backend && uv run ruff check app/ tests/ scripts/ && uv run ruff format --check app/ tests/ scripts/)
     echo "── backend: ty ──"            && (cd backend && uv run ty check app/)
     echo "── backend: pytest ──"        && (cd backend && uv run python -m pytest -q --cov)
     echo "── backend: migrations ──"    && (cd backend && uv run python -m pytest -q tests/test_migrations.py)
@@ -105,14 +106,18 @@ ci:
     echo "── frontend: build ──"        && (cd frontend && npm run build)
     echo "✓ ci green"
 
+# Regenerate files derived from backend tables (AI feature table -> TypeScript)
+gen:
+    cd backend && uv run python scripts/gen_ai_features.py
+
 # Lint everything (no tests)
 lint:
-    cd backend && uv run ruff check app/ tests/ && uv run ruff format --check app/ tests/
+    cd backend && uv run ruff check app/ tests/ scripts/ && uv run ruff format --check app/ tests/ scripts/
     cd frontend && npm run lint && npm run format:check
 
 # Auto-fix what can be fixed, then format
 fix:
-    cd backend && uv run ruff check --fix app/ tests/ && uv run ruff format app/ tests/
+    cd backend && uv run ruff check --fix app/ tests/ scripts/ && uv run ruff format app/ tests/ scripts/
     cd frontend && npx eslint . --fix; npm run format
 
 typecheck:

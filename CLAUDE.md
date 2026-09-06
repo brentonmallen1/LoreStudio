@@ -145,6 +145,10 @@ JWT token stored in `localStorage` as `ls_token`. Sent as `Authorization: Bearer
 The character's full profile becomes the LLM system prompt — the character IS the persona, not injected as context. This keeps interviews feeling like talking to the character rather than about them.
 
 ### Single-source lists (decision D11)
+- AI features: `backend/app/services/llm/features.py` (`AI_FEATURES`: id, label, group, class,
+  description, context, context budget). `just gen` renders it into
+  `frontend/src/lib/ai/features.generated.ts`; CI fails when that file is stale. A router may
+  only pass a `feature=` id that is in the table (`tests/services/test_ai_features.py`).
 - Keyboard shortcuts: `frontend/src/lib/keyboard/shortcuts.ts` (`matchesCombo`, `formatCombo`). Never
   hard-code a key combo in a component or a title string.
 - Story pages: `frontend/src/lib/routes.ts` (sidebar, palette nav commands, ModeGate).
@@ -203,7 +207,11 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 **`LLMTransparencyTrigger`** (`ShieldCheck`) must appear next to AI-generated content so the author can inspect what was sent to the model. Use the `useLLMTransparency` hook.
 
-**Register every new AI feature** in `frontend/src/lib/ai/featureRegistry.ts` under the correct `pageId`. This powers the feature info modal. Format:
+**Register every new AI feature twice**: first as a row in `backend/app/services/llm/features.py`
+(the gateway rejects nothing, but the tests do), then as a surface in
+`frontend/src/lib/ai/registry/<page>.ts` listed under the right `pageId` in `featureRegistry.ts`.
+One backend feature can have several surfaces — "Suggest Location Elements" and "Suggest Cultural
+Elements" are both `element-suggest` — which is why the surface copy is hand-written. Format:
 ```ts
 {
   id: "page-action-name",

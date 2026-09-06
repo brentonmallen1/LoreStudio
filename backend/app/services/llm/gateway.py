@@ -44,6 +44,7 @@ from ...models.activity_log import ActivityLog
 from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams
+from .features import FEATURES_BY_ID
 from .ollama import StreamMetrics, _strip_json_fencing, ollama_provider
 from .prompts.core import CORE_SYSTEM_PROMPT
 
@@ -297,6 +298,8 @@ class AIGateway:
         self, context: AICallContext, result: AICallResult, db: Session, params: LLMParams, messages: list[dict]
     ) -> None:
         """Write an ActivityLog entry for this AI call."""
+        if context.feature not in FEATURES_BY_ID:
+            logger.warning("AI call with unregistered feature %r — add it to services/llm/features.py", context.feature)
         try:
             # Extract the last user message as the prompt
             user_messages = [m for m in messages if m.get("role") == "user"]

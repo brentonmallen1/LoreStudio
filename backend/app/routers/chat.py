@@ -32,6 +32,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParams
+from ..services.llm.features import get_feature
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
 
@@ -270,7 +271,7 @@ async def scene_chat(
         feature_prompt = build_scene_chat_system_prompt(ctx)
 
     call_ctx = AICallContext(
-        feature=mode if mode else "scene-chat",
+        feature=mode if mode and get_feature(mode) else "scene-chat",
         user_id=current_user.id,
         story_id=story_id,
         node_id=node_id,

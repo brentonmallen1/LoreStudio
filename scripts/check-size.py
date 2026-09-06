@@ -44,7 +44,7 @@ SLACK = 10
 #: pure data.
 ROOTS = ("backend/app", "frontend/src")
 SKIP_DIRS = ("backend/app/services/seed", "backend/alembic")
-SKIP_SUFFIXES = (".test.ts", ".test.tsx", ".d.ts")
+SKIP_SUFFIXES = (".test.ts", ".test.tsx", ".d.ts", ".generated.ts")
 SKIP_FILES = ("backend/app/services/seed.py",)
 
 #: Files over budget when this gate went in (Stage 0 of the 2026-09 refactor),
@@ -52,30 +52,27 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: list is the work. Lower a number when the file shrinks; delete the line when
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
-    "backend/app/routers/analysis.py": 1755,
+    "backend/app/routers/analysis.py": 1754,
     "frontend/src/types/index.ts": 1664,
-    "frontend/src/api/client.ts": 1636,
+    "frontend/src/api/client.ts": 1620,
     "backend/app/services/llm/prompts/analysis.py": 1249,
     "frontend/src/pages/VersionsPage.tsx": 1030,
     "frontend/src/components/health/ReportCard.tsx": 1025,
     "frontend/src/components/characters/CharacterSheet.tsx": 881,
     "backend/app/services/import_service.py": 878,
-    "backend/app/routers/characters.py": 835,
     "backend/app/services/snapshot_service.py": 801,
     "frontend/src/components/layout/CommandPalette.tsx": 775,
-    "frontend/src/lib/ai/featureRegistry.ts": 766,
-    "frontend/src/components/outline/OutlineManager.tsx": 727,
-    "frontend/src/pages/Settings.tsx": 709,
-    "frontend/src/pages/ChroniclePage.tsx": 705,
+    "frontend/src/components/outline/OutlineManager.tsx": 702,
+    "frontend/src/pages/ChroniclePage.tsx": 674,
+    "frontend/src/pages/Settings.tsx": 664,
     "frontend/src/components/worldbuilding/LocationManager.tsx": 651,
     "frontend/src/pages/StoryHealthPage.tsx": 633,
     "frontend/src/components/characters/RelationshipGraph.tsx": 633,
-    "frontend/src/components/story/StoryIdentityPanel.tsx": 622,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 621,
+    "frontend/src/components/story/StoryIdentityPanel.tsx": 556,
     "frontend/src/lib/ai/sessions.ts": 554,
     "frontend/src/components/story/TodoListView.tsx": 545,
     "frontend/src/components/health/StoryProgressionGraph.tsx": 538,
-    "frontend/src/components/layout/StructureTreePanel.tsx": 521,
     "frontend/src/components/characters/CharacterDialogueTab.tsx": 519,
     "frontend/src/components/twists/TwistManager.tsx": 518,
     "frontend/src/components/story/StoryboardView.tsx": 516,

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { aiFeatureLabel } from "../lib/ai/features.generated";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -149,29 +150,11 @@ function SessionCard({
 
 // ── Activity log card ──────────────────────────────────────────────────
 
-const FEATURE_LABELS: Record<string, string> = {
-  "scene-chat": "Scene Assistant",
-  interview: "Character Interview",
-  "interview-summary": "Interview Summary",
-  "panel-interview": "Group Interview",
-  "story-summary": "Story Summary",
-  "scene-summary": "Scene Summary",
-  "structure-summary": "Section Summary",
-  "attribute-generation": "Attribute Generation",
-  "relationship-suggestion": "Relationship Suggestion",
-  "perspective-summary": "Perspective Summary",
-  "economy-analysis": "Economy Analysis",
-  "story-recap": "Story Recap",
-  "character-journey": "Character Journey",
-  discovery: "Element Discovery",
-  "media-analysis": "Media Analysis",
-  brainstorm: "What's Next? (Brainstorm)",
-};
-
 function featureLabel(log: ActivityLog): string {
   const feature = log.metadata_?.feature as string | undefined;
-  if (feature && FEATURE_LABELS[feature]) return FEATURE_LABELS[feature];
-  // Fall back to humanising the event_type
+  // Labels come from the backend feature table (lib/ai/features.generated.ts). Rows
+  // written before a feature was renamed fall back to the event type.
+  if (feature) return aiFeatureLabel(feature);
   return log.event_type
     .replace(/^ai_/, "")
     .replace(/_/g, " ")

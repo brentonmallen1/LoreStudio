@@ -42,14 +42,16 @@ jobs:
         run: uv sync --frozen --all-groups
       - name: Lint (ruff)
         run: |
-          uv run ruff check app/ tests/
-          uv run ruff format --check app/ tests/
+          uv run ruff check app/ tests/ scripts/
+          uv run ruff format --check app/ tests/ scripts/
       - name: Type check (ty)
         run: uv run ty check app/
       - name: Tests (pytest + coverage ratchet)
         run: uv run python -m pytest -q --cov
       - name: Migrations match models
         run: uv run python -m pytest -q tests/test_migrations.py
+      - name: Generated files are current
+        run: uv run python scripts/gen_ai_features.py --check
 
   frontend:
     name: frontend

@@ -6,6 +6,7 @@ Usage:
     from ..services.llm.prompts.interviews import build_character_interview_system_prompt
 """
 
+from ..features import FEATURE_LABELS as _FEATURE_LABELS
 from .analysis import (
     TARGET_AUDIENCES,
     build_audience_adherence_prompt,
@@ -38,30 +39,9 @@ from .worldbuilding import (
     build_location_existence_prompt,
 )
 
-# Feature identifier → human-readable label
-FEATURE_LABELS: dict[str, str] = {
-    "interview": "Character Interview",
-    "interview-summary": "Interview Summary",
-    "panel-interview": "Panel Interview",
-    "scene-chat": "Scene Chat",
-    "scene-summary": "Scene Summary",
-    "structure-summary": "Section Summary",
-    "story-summary": "Story Summary",
-    "character-arc": "Character Arc Analysis",
-    "economy-analysis": "Story Economy Analysis",
-    "session-recap": "Session Recap",
-    "character-attributes": "Attribute Generation",
-    "relationship-suggest": "Relationship Suggestions",
-    "character-journey": "Character Journey",
-    "image-analysis": "Image Analysis",
-    "brainstorm": "What's Next? (Brainstorm)",
-    "scene-plan": "Scene Planner",
-    "what-exists": "Location Existence Analysis",
-    "element-suggest": "World Element Suggestions",
-    "historical-implications": "Historical Implication Analysis",
-    "show-dont-tell": "Show Don't Tell Analysis",
-    "audience-adherence": "Target Audience Adherence",
-}
+# Feature identifier → human-readable label. The table in ..features is the source;
+# re-exported here because the settings prompt cards key off this name.
+FEATURE_LABELS = _FEATURE_LABELS
 
 
 # Feature identifier → static behavioral instruction (the non-dynamic portion shown in settings)
