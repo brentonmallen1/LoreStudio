@@ -44,6 +44,17 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
       });
   }, []);
 
+  /**
+   * Keep a reply as reference material (doc 06 §2.1). The Compendium is where research
+   * and notes live; an AI answer worth keeping is that, not manuscript.
+   */
+  async function saveToNotes(content: string): Promise<void> {
+    const storyId = session.context.storyId;
+    if (!storyId) return;
+    const title = `${getSessionType(session.type)?.label ?? "AI"} — ${new Date().toLocaleDateString()}`;
+    await api.createCompendiumNote(storyId, { title, content, category: "AI note" });
+  }
+
   // How a result on screen finds the call behind it (doc 06 §3).
   const callLookup = {
     feature: getSessionType(session.type)?.backendFeatureId ?? "",
@@ -75,6 +86,7 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
     : `~${historyTokens.toLocaleString()} / ${window.toLocaleString()} tokens (history only)`;
 
   return {
+    saveToNotes,
     callLookup,
     input,
     setInput,

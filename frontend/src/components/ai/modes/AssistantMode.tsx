@@ -99,6 +99,7 @@ export default function AssistantMode({ session }: Props) {
           streamingText={session.streamingText}
           isStreaming={session.isStreaming}
           onRegenerate={() => regenerate(session.id)}
+          onSaveNote={state.saveToNotes}
           onShowCall={() =>
             state.transparency.open(
               { context_type: "scene-chat", story_id: session.context.storyId },

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Brain, Check, Copy, Layers, RotateCw, ShieldCheck } from "lucide-react";
+import { BookmarkPlus, Brain, Check, Copy, Layers, RotateCw, ShieldCheck } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../../../types";
@@ -61,6 +61,8 @@ interface Props {
   onRegenerate?: () => void;
   /** Open the call behind a reply — what was actually sent (doc 06 §9). */
   onShowCall?: () => void;
+  /** Keep a reply as a Compendium note. */
+  onSaveNote?: (content: string) => Promise<void> | void;
 }
 
 /** Per-message actions: an answer you can copy, question, or ask again (doc 06 §2.1). */
@@ -68,12 +70,15 @@ function MessageActions({
   content,
   onRegenerate,
   onShowCall,
+  onSaveNote,
 }: {
   content: string;
   onRegenerate?: () => void;
   onShowCall?: () => void;
+  onSaveNote?: (content: string) => Promise<void> | void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
   return (
     <div className={styles.actions}>
       <button
@@ -89,6 +94,18 @@ function MessageActions({
       {onShowCall && (
         <button className={styles.action} title="Show what was sent for this reply" onClick={onShowCall}>
           <ShieldCheck size={11} />
+        </button>
+      )}
+      {onSaveNote && (
+        <button
+          className={styles.action}
+          title={saved ? "Saved to the Compendium" : "Save to the Compendium"}
+          onClick={async () => {
+            await onSaveNote(content);
+            setSaved(true);
+          }}
+        >
+          {saved ? <Check size={11} /> : <BookmarkPlus size={11} />}
         </button>
       )}
       {onRegenerate && (
@@ -107,6 +124,7 @@ export default function MessageList({
   emptyText,
   onRegenerate,
   onShowCall,
+  onSaveNote,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -191,6 +209,7 @@ export default function MessageList({
                 <MessageActions
                   content={msg.content}
                   onShowCall={onShowCall}
+                  onSaveNote={onSaveNote}
                   onRegenerate={isLastAssistant ? onRegenerate : undefined}
                 />
               )}
