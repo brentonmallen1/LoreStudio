@@ -1,13 +1,18 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
 from .llm_params import LLMParamsOverride
 
+KnowledgeScopeValue = Literal["profile", "story", "as_of"]
+
 
 class InterviewCreate(BaseModel):
     title: str = ""
     context_node_id: str | None = None
+    #: "profile" (outside the story), "story" (everything written), "as_of" (up to the node).
+    knowledge_scope: KnowledgeScopeValue = "profile"
 
 
 class InterviewMessageRequest(BaseModel):
@@ -24,6 +29,10 @@ class MessageOut(BaseModel):
 class InterviewUpdate(BaseModel):
     interview_notes: str | None = None
     title: str | None = None
+    #: Changing the scope re-points what the character may draw on. "as_of" needs a node;
+    #: the other two clear it.
+    knowledge_scope: KnowledgeScopeValue | None = None
+    context_node_id: str | None = None
 
 
 class InterviewApplyRequest(BaseModel):
@@ -36,6 +45,7 @@ class InterviewOut(BaseModel):
     character_id: str
     title: str
     context_node_id: str | None = None
+    knowledge_scope: str = "profile"
     messages: list[MessageOut]
     interview_notes: str
     compacted_summary: str | None = None

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Eye, X } from "lucide-react";
 import { knowledgeApi, type CharacterKnowledge } from "../../api/knowledge";
+import type { KnowledgeScope } from "../../types";
 import styles from "./CharacterKnowledgeDrawer.module.css";
 
 /**
@@ -12,11 +13,13 @@ export default function CharacterKnowledgeDrawer({
   characterId,
   characterName,
   asOfNodeId,
+  scope,
   onClose,
 }: {
   characterId: string;
   characterName: string;
   asOfNodeId: string | null;
+  scope: KnowledgeScope;
   onClose: () => void;
 }) {
   const [data, setData] = useState<CharacterKnowledge | null>(null);
@@ -25,13 +28,13 @@ export default function CharacterKnowledgeDrawer({
   useEffect(() => {
     let live = true;
     knowledgeApi
-      .forCharacter(characterId, asOfNodeId)
+      .forCharacter(characterId, asOfNodeId, scope)
       .then((d) => live && setData(d))
       .catch(() => live && setFailed(true));
     return () => {
       live = false;
     };
-  }, [characterId, asOfNodeId]);
+  }, [characterId, asOfNodeId, scope]);
 
   return (
     <div className={styles.drawer} role="dialog" aria-label={`What ${characterName} knows`}>
@@ -46,7 +49,14 @@ export default function CharacterKnowledgeDrawer({
       {failed && <p className={styles.note}>Could not load what this character knows.</p>}
       {!failed && !data && <p className={styles.note}>Loading…</p>}
 
-      {data && (
+      {data?.mode === "profile" && (
+        <p className={styles.summary}>
+          This interview happens outside the story. {characterName} is themselves — history, voice, what they
+          want — but knows none of the plot, and will say so if you ask about it.
+        </p>
+      )}
+
+      {data && data.mode !== "profile" && (
         <>
           <p className={styles.summary}>
             Present for {data.scenes.length} of {data.scenes_considered} scene

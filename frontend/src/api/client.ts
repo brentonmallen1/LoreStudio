@@ -454,10 +454,19 @@ export const api = {
   // Interviews
   listInterviews: (characterId: string) =>
     request<import("../types").InterviewSummary[]>(`/interviews/characters/${characterId}`),
-  startInterview: (characterId: string, title?: string, contextNodeId?: string) =>
+  startInterview: (
+    characterId: string,
+    title?: string,
+    node?: string,
+    scope?: import("../types").KnowledgeScope,
+  ) =>
     request<import("../types").Interview>(`/interviews/characters/${characterId}`, {
       method: "POST",
-      body: JSON.stringify({ title: title ?? "", context_node_id: contextNodeId ?? null }),
+      body: JSON.stringify({
+        title: title ?? "",
+        context_node_id: node ?? null,
+        knowledge_scope: scope ?? "profile",
+      }),
     }),
   getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
   deleteInterview: (id: string) => request<void>(`/interviews/${id}`, { method: "DELETE" }),
@@ -465,7 +474,7 @@ export const api = {
     request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
 
   // Interview notes
-  updateInterview: (id: string, data: { interview_notes?: string; title?: string }) =>
+  updateInterview: (id: string, data: import("../types").InterviewUpdate) =>
     request<import("../types").Interview>(`/interviews/${id}`, {
       method: "PATCH",
       body: JSON.stringify(data),

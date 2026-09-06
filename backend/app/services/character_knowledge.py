@@ -36,10 +36,18 @@ class ScenePresence:
     summary: str | None = None
 
 
+#: How much of the story a character may draw on.
+PROFILE_ONLY = "profile"
+WHOLE_STORY = "story"
+AS_OF = "as_of"
+
+
 @dataclass
 class KnowledgeScope:
     """The scenes a character was present for and what they learned, up to a point."""
 
+    #: "profile" | "story" | "as_of"
+    mode: str = WHOLE_STORY
     as_of_node_id: str | None = None
     as_of_title: str | None = None
     scenes: list[ScenePresence] = field(default_factory=list)
@@ -56,14 +64,25 @@ def _leaf_scenes(nodes: list[StructureNode]) -> list[StructureNode]:
     return [n for n in nodes if n.id not in parent_ids]
 
 
-def build_scope(character: Character, db: Session, as_of_node_id: str | None = None) -> KnowledgeScope:
+def build_scope(
+    character: Character,
+    db: Session,
+    as_of_node_id: str | None = None,
+    mode: str = WHOLE_STORY,
+) -> KnowledgeScope:
     """
-    Presence up to `as_of_node_id` (inclusive), or the whole story when it is None.
+    Presence up to `as_of_node_id` (inclusive), or across the whole story.
 
-    Union of three signals the author has already given us. Nothing here guesses at
-    offscreen knowledge: if the author has not recorded it, the character does not know it,
-    and the interview prompt says so out loud.
+    `mode="profile"` is the deliberate empty case: an interview held outside the story, where
+    the character is only their profile. It is not the same as having appeared in no scenes,
+    and the prompt says so differently.
+
+    Otherwise this is the union of three signals the author has already given us. Nothing
+    here guesses at offscreen knowledge: if the author has not recorded it, the character
+    does not know it, and the interview prompt says so out loud.
     """
+    if mode == PROFILE_ONLY:
+        return KnowledgeScope(mode=PROFILE_ONLY)
     if as_of_node_id:
         nodes = get_nodes_up_to(character.story_id, as_of_node_id, db)
     else:
@@ -108,6 +127,7 @@ def build_scope(character: Character, db: Session, as_of_node_id: str | None = N
         as_of_title = node.title if node else None
 
     return KnowledgeScope(
+        mode=AS_OF if as_of_node_id else WHOLE_STORY,
         as_of_node_id=as_of_node_id,
         as_of_title=as_of_title,
         scenes=present,
@@ -137,6 +157,16 @@ def describe_scope(character: Character, scope: KnowledgeScope) -> str:
     The knowledge block for the interview prompt: what they were there for, what they were
     told, and — the part that was missing — that everything else is outside their reach.
     """
+    if scope.mode == PROFILE_ONLY:
+        # Not "you have been in no scenes" — this is a conversation held outside the book.
+        return (
+            "\n\nThis conversation happens outside the story. You are yourself — your history, "
+            "your voice, what you want — but you are not being asked about the plot, and you have "
+            "not lived any of it here. If the author asks what happens in the story, or what you "
+            "did in a particular scene, say that you could not tell them: this is not that "
+            "conversation. Talk about who you are instead."
+        )
+
     lines = [f"\n\nWhat you have been present for{f' (up to {scope.as_of_title})' if scope.as_of_title else ''}:"]
     if scope.scenes:
         for s in scope.scenes:

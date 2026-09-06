@@ -458,40 +458,14 @@ export interface Setting {
   updated_at: string;
 }
 
-export interface InterviewMessage {
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-}
-
-export interface Interview {
-  id: string;
-  character_id: string;
-  title: string;
-  context_node_id: string | null;
-  messages: InterviewMessage[];
-  interview_notes: string;
-  compacted_summary: string | null;
-  compaction_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CharacterJourney {
-  summary: string;
-  is_stale: boolean;
-  scene_count: number;
-  generated_at: string | null;
-}
-
-export interface InterviewSummary {
-  id: string;
-  character_id: string;
-  title: string;
-  message_count: number;
-  created_at: string;
-  updated_at: string;
-}
+export type {
+  CharacterJourney,
+  Interview,
+  InterviewMessage,
+  InterviewSummary,
+  InterviewUpdate,
+  KnowledgeScope,
+} from "./interviews";
 
 export interface PanelMessage {
   role: "user" | "character";

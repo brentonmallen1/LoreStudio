@@ -41,7 +41,13 @@ registerSessionType({
 
   initSession: async (ctx) => {
     if (!ctx.characterId) throw new Error("Character required for interview");
-    const interview = await api.startInterview(ctx.characterId, `Interview`, ctx.nodeId ?? undefined);
+    const scope = ctx.knowledgeScope ?? (ctx.nodeId ? "as_of" : "profile");
+    const interview = await api.startInterview(
+      ctx.characterId,
+      `Interview`,
+      scope === "as_of" ? (ctx.nodeId ?? undefined) : undefined,
+      scope,
+    );
     return {
       backendSessionId: interview.id,
       messages: (interview.messages ?? []).map((m) => ({

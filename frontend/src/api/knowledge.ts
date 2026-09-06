@@ -14,6 +14,8 @@ export interface KnownScene {
 }
 
 export interface CharacterKnowledge {
+  /** "profile" (outside the story), "story" (everything written), "as_of" (up to a scene). */
+  mode: string;
   as_of_node_id: string | null;
   as_of_title: string | null;
   /** Scenes up to the cutoff, present or not — the denominator behind "3 of 18". */
@@ -23,8 +25,8 @@ export interface CharacterKnowledge {
 }
 
 export const knowledgeApi = {
-  forCharacter: (characterId: string, asOf?: string | null) =>
+  forCharacter: (characterId: string, asOf?: string | null, scope: string = "story") =>
     request<CharacterKnowledge>(
-      `/characters/${characterId}/knowledge${asOf ? `?as_of=${encodeURIComponent(asOf)}` : ""}`,
+      `/characters/${characterId}/knowledge?scope=${scope}${asOf ? `&as_of=${encodeURIComponent(asOf)}` : ""}`,
     ),
 };

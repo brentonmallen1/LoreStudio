@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MessageSquare, RefreshCw, Square, Feather, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import type { Character, CharacterJourney, StructureNode, Interview } from "../../types";
+import type { Character, CharacterJourney, KnowledgeScope, StructureNode, Interview } from "../../types";
 import { Modal } from "../common";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./StartInterviewDialog.module.css";
@@ -21,7 +21,8 @@ function flattenNodes(nodes: StructureNode[]): StructureNode[] {
 export default function StartInterviewDialog({ character, onStarted, onClose }: Props) {
   const { structure, activeStory } = useStoryStore();
   const navigate = useNavigate();
-  const [contextNodeId, setContextNodeId] = useState<string>("");
+  // "profile" | "story" | a node id — the three scopes an interview can be held in.
+  const [contextNodeId, setContextNodeId] = useState<string>("profile");
   const [journey, setJourney] = useState<CharacterJourney | null>(null);
   const [loadingJourney, setLoadingJourney] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -38,7 +39,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
     tabId: "characters",
     onComplete: () => {
       // Reload the journey after refresh
-      if (contextNodeId) loadJourney(contextNodeId);
+      if (contextNodeId !== "profile" && contextNodeId !== "story") loadJourney(contextNodeId);
     },
   });
 
@@ -52,7 +53,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   }
 
   useEffect(() => {
-    if (!contextNodeId) {
+    if (contextNodeId === "profile" || contextNodeId === "story") {
       setJourney(null);
       return;
     }
@@ -62,10 +63,13 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   async function handleStart() {
     setStarting(true);
     try {
+      const scope: KnowledgeScope =
+        contextNodeId === "profile" || contextNodeId === "story" ? contextNodeId : "as_of";
       const interview = await api.startInterview(
         character.id,
         `Interview with ${character.name}`,
-        contextNodeId || undefined,
+        scope === "as_of" ? contextNodeId : undefined,
+        scope,
       );
       onStarted(interview);
     } finally {
@@ -74,7 +78,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
   }
 
   function handleRefresh() {
-    if (!contextNodeId) return;
+    if (contextNodeId === "profile" || contextNodeId === "story") return;
     streamRefresh((signal) => api.refreshCharacterJourney(character.id, contextNodeId, signal));
   }
 
@@ -108,17 +112,19 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
     >
       <div className={styles.body}>
         <div className={styles.field}>
-          <label className={styles.label}>Story point (optional)</label>
+          <label className={styles.label}>What they know</label>
           <p className={styles.hint}>
-            Interview this character at a specific moment in the story — they'll respond with awareness of
-            everything they've experienced up to that point.
+            A character answers from what they have been present for. Pin the interview to a moment and they
+            know the story up to there and no further — or hold it outside the story, where they are only
+            themselves.
           </p>
           <select
             value={contextNodeId}
             onChange={(e) => setContextNodeId(e.target.value)}
             className={styles.select}
           >
-            <option value="">No story context — timeless interview</option>
+            <option value="profile">Profile only — outside the story</option>
+            <option value="story">Knows everything written so far</option>
             {flatNodes.map((n) => (
               <option key={n.id} value={n.id}>
                 {"  ".repeat(n.level)}
@@ -128,7 +134,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
           </select>
         </div>
 
-        {contextNodeId && (
+        {contextNodeId !== "profile" && contextNodeId !== "story" && (
           <div className={styles.journeyPreview}>
             {loadingJourney ? (
               <p className={styles.journeyHint}>Loading context…</p>

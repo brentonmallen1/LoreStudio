@@ -89,7 +89,8 @@ def start_interview(
     interview = CharacterInterview(
         character_id=character_id,
         title=title,
-        context_node_id=body.context_node_id,
+        context_node_id=body.context_node_id if body.knowledge_scope == "as_of" else None,
+        knowledge_scope=body.knowledge_scope,
         messages=[],
     )
     db.add(interview)
@@ -178,7 +179,7 @@ async def send_message(
     compacted_summary_text: str | None = interview.compacted_summary or None
     # What this character was present for, up to the interview's story point. Without this
     # the persona answered questions about scenes it had never been in (doc 06 §6).
-    scope = build_scope(character, db, interview.context_node_id)
+    scope = build_scope(character, db, interview.context_node_id, interview.knowledge_scope)
     feature_prompt = build_character_interview_system_prompt(
         character, journey_summary, previous_session_summary, describe_scope(character, scope)
     )
@@ -234,6 +235,10 @@ def update_interview(
     interview = _verify_interview_access(interview_id, db, current_user)
     for key, value in body.model_dump(exclude_none=True).items():
         setattr(interview, key, value)
+    # Only an "as_of" interview is pinned to a scene; the other scopes let it go, or the
+    # character would keep the knowledge of a story point the author moved away from.
+    if body.knowledge_scope and body.knowledge_scope != "as_of":
+        interview.context_node_id = None
     db.commit()
     db.refresh(interview)
     return interview

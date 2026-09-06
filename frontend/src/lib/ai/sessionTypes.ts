@@ -27,6 +27,11 @@ export interface SessionContext {
   selectedText?: string; // For writing-coach sessions: the highlighted text
   tonePrefs?: string[]; // For writing-coach sessions: e.g. ["darker", "direct"]
   contextScope?: ContextScope; // How much story context to include
+  /**
+   * For interviews: how much of the story the character may draw on (doc 06 §6).
+   * "profile" is a conversation outside the story; "as_of" pins them to `nodeId`.
+   */
+  knowledgeScope?: "profile" | "story" | "as_of";
   contextOptions?: import("../../types").ContextOptions; // Selective context toggles
   attributeType?: string; // For attribute-generator sessions
 }

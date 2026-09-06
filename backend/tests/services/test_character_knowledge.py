@@ -11,7 +11,14 @@ from app.models.dialogue import DialogueBlock
 from app.models.reader_knowledge import ReaderKnowledgeEvent
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.services.character_knowledge import NAMED, POV, SPEAKS, build_scope, describe_scope
+from app.services.character_knowledge import (
+    NAMED,
+    POV,
+    PROFILE_ONLY,
+    SPEAKS,
+    build_scope,
+    describe_scope,
+)
 
 
 def _story(db, user):
@@ -140,3 +147,57 @@ def test_the_endpoint_returns_what_the_prompt_is_given(client, db_session, test_
     assert body["scenes"][0]["title"] == "Arrival"
     assert body["scenes"][0]["reasons"] == [NAMED]
     assert body["scenes_considered"] == 1
+
+
+def test_an_interview_outside_the_story_gets_no_scenes_at_all(db_session, test_user):
+    """Profile-only is a deliberate choice, not "they happen to be in nothing"."""
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    _scene(db_session, story, "Arrival", 0, content="Elena arrives", summary="She reaches the island.")
+    db_session.commit()
+
+    scope = build_scope(elena, db_session, mode=PROFILE_ONLY)
+    assert scope.scenes == [] and scope.facts == []
+
+    block = describe_scope(elena, scope)
+    assert "outside the story" in block
+    assert "Arrival" not in block
+    # It must not read as amnesia — the character exists, the plot is simply not the subject.
+    assert "You have not appeared in any scene" not in block
+
+
+def test_the_endpoint_can_ask_for_the_profile_only_scope(client, db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    _scene(db_session, story, "Arrival", 0, content="Elena arrives")
+    db_session.commit()
+
+    body = client.get(f"/api/characters/{elena.id}/knowledge?scope=profile").json()
+    assert body["mode"] == "profile"
+    assert body["scenes"] == []
+
+
+def test_an_interview_records_which_scope_it_was_started_in(client, db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    scene = _scene(db_session, story, "Arrival", 0, content="Elena arrives")
+    db_session.commit()
+
+    pinned = client.post(
+        f"/api/interviews/characters/{elena.id}",
+        json={"knowledge_scope": "as_of", "context_node_id": scene.id},
+    ).json()
+    assert pinned["knowledge_scope"] == "as_of" and pinned["context_node_id"] == scene.id
+
+    # Moving to another scope releases the pin, or the character would keep knowing a
+    # point in the story the author has moved away from.
+    freed = client.patch(f"/api/interviews/{pinned['id']}", json={"knowledge_scope": "profile"}).json()
+    assert freed["knowledge_scope"] == "profile" and freed["context_node_id"] is None
+
+
+def test_an_interview_defaults_to_the_profile_only_scope(client, db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    db_session.commit()
+    body = client.post(f"/api/interviews/characters/{elena.id}", json={}).json()
+    assert body["knowledge_scope"] == "profile"

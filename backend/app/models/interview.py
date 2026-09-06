@@ -20,6 +20,11 @@ class CharacterInterview(Base):
     context_node_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("structure_nodes.id", ondelete="SET NULL"), nullable=True, default=None
     )
+    #: How much of the story this character may draw on (doc 06 §6):
+    #:   "profile" — outside the story: they know themselves, not the plot
+    #:   "story"   — everything written so far
+    #:   "as_of"   — up to context_node_id, and no further
+    knowledge_scope: Mapped[str] = mapped_column(String, default="profile", server_default="profile")
     messages: Mapped[list] = mapped_column(JSON, default=list)
     # messages format: [{"role": "user"|"assistant", "content": str, "timestamp": str}]
     interview_notes: Mapped[str] = mapped_column(Text, default="")  # Captured insights summary

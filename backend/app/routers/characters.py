@@ -208,6 +208,7 @@ def get_character_dialogue(
 def get_character_knowledge(
     character_id: str,
     as_of: str | None = Query(None, description="Node id the character's knowledge stops at"),
+    scope: str = Query("story", description="profile | story | as_of"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -217,16 +218,17 @@ def get_character_knowledge(
     know" drawer shows the author the same list the persona receives.
     """
     character = _verify_character_access(character_id, db, current_user)
-    scope = build_scope(character, db, as_of)
+    knowledge = build_scope(character, db, as_of, scope)
     return {
-        "as_of_node_id": scope.as_of_node_id,
-        "as_of_title": scope.as_of_title,
-        "scenes_considered": scope.scenes_considered,
+        "mode": knowledge.mode,
+        "as_of_node_id": knowledge.as_of_node_id,
+        "as_of_title": knowledge.as_of_title,
+        "scenes_considered": knowledge.scenes_considered,
         "scenes": [
             {"node_id": s.node_id, "title": s.title, "reasons": list(s.reasons), "summary": s.summary}
-            for s in scope.scenes
+            for s in knowledge.scenes
         ],
-        "facts": scope.facts,
+        "facts": knowledge.facts,
     }
 
 
