@@ -16,6 +16,13 @@ import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
 import type { CharacterJourney, KnowledgeScope } from "../../../types";
+import {
+  FIXED_SCOPES,
+  pickerValue,
+  readPickerValue,
+  scopeHint,
+  scopeLabel,
+} from "../../../lib/ai/knowledgeScope";
 import { useLLMStream } from "../../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../../hooks/useLLMContextSources";
 import { LLMContextSources } from "../../llm";
@@ -69,20 +76,14 @@ export default function InterviewMode({ session }: Props) {
 
   const flatNodes = flattenNodes(structure);
 
-  const scopeLabel =
-    knowledgeScope === "profile"
-      ? "Profile only — outside the story"
-      : knowledgeScope === "story"
-        ? "Knows everything written so far"
-        : `Knows up to ${flatNodes.find((n) => n.id === contextNodeId)?.label ?? "this point"}`;
+  const currentScopeLabel = scopeLabel(knowledgeScope, flatNodes.find((n) => n.id === contextNodeId)?.label);
 
   /**
    * Change what the character may draw on. The backend builds the persona from the
    * interview row, not from this session, so the change has to be saved there too.
    */
   function changeScope(value: string) {
-    const scope: KnowledgeScope = value === "profile" || value === "story" ? value : "as_of";
-    const nodeId = scope === "as_of" ? value : undefined;
+    const { scope, nodeId } = readPickerValue(value);
     updateSessionContext(session.id, { knowledgeScope: scope, nodeId });
     if (session.backendSessionId) {
       api
@@ -235,12 +236,15 @@ export default function InterviewMode({ session }: Props) {
             {!session.contextLocked ? (
               <select
                 className={styles.contextSelect}
-                value={knowledgeScope === "as_of" ? (contextNodeId ?? "") : knowledgeScope}
+                value={pickerValue(knowledgeScope, contextNodeId)}
                 onChange={(e) => changeScope(e.target.value)}
-                title="How much of the story this character may draw on"
+                title={scopeHint(knowledgeScope)}
               >
-                <option value="profile">Profile only — outside the story</option>
-                <option value="story">Knows everything written so far</option>
+                {FIXED_SCOPES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
                 {flatNodes.map((n) => (
                   <option key={n.id} value={n.id}>
                     {"  ".repeat(n.depth)}
@@ -249,7 +253,7 @@ export default function InterviewMode({ session }: Props) {
                 ))}
               </select>
             ) : (
-              <span className={styles.contextLabel}>{scopeLabel}</span>
+              <span className={styles.contextLabel}>{currentScopeLabel}</span>
             )}
 
             {contextNodeId && (

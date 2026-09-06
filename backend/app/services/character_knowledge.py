@@ -26,6 +26,9 @@ from .character_journey import get_nodes_up_to
 POV = "point of view"
 SPEAKS = "speaks in the scene"
 NAMED = "named in the prose"
+#: Marks a scene the character was *not* in, included only because the author asked to
+#: show them the whole manuscript (omniscient mode).
+UNLIVED = "not present — shown to you"
 
 
 @dataclass(frozen=True)
@@ -37,17 +40,23 @@ class ScenePresence:
 
 
 #: How much of the story a character may draw on.
+#:   profile    — outside the story: themselves, not the plot
+#:   present    — every scene they were present for, across the whole manuscript
+#:   as_of      — the same, but stopping at one scene
+#:   omniscient — the whole manuscript including scenes they were never in, which is a
+#:                hypothetical the author is posing, not something the character lived
 PROFILE_ONLY = "profile"
-WHOLE_STORY = "story"
+PRESENT = "present"
 AS_OF = "as_of"
+OMNISCIENT = "omniscient"
 
 
 @dataclass
 class KnowledgeScope:
     """The scenes a character was present for and what they learned, up to a point."""
 
-    #: "profile" | "story" | "as_of"
-    mode: str = WHOLE_STORY
+    #: "profile" | "present" | "as_of" | "omniscient"
+    mode: str = PRESENT
     as_of_node_id: str | None = None
     as_of_title: str | None = None
     scenes: list[ScenePresence] = field(default_factory=list)
@@ -68,18 +77,23 @@ def build_scope(
     character: Character,
     db: Session,
     as_of_node_id: str | None = None,
-    mode: str = WHOLE_STORY,
+    mode: str = PRESENT,
 ) -> KnowledgeScope:
     """
-    Presence up to `as_of_node_id` (inclusive), or across the whole story.
+    What this character may draw on, in one of four modes.
 
-    `mode="profile"` is the deliberate empty case: an interview held outside the story, where
-    the character is only their profile. It is not the same as having appeared in no scenes,
+    `profile` is the deliberate empty case: an interview held outside the story, where the
+    character is only their profile. It is not the same as having appeared in no scenes,
     and the prompt says so differently.
 
-    Otherwise this is the union of three signals the author has already given us. Nothing
-    here guesses at offscreen knowledge: if the author has not recorded it, the character
-    does not know it, and the interview prompt says so out loud.
+    `present` and `as_of` are the union of three signals the author has already given us —
+    point of view, attributed dialogue, their name in the prose — with `as_of` stopping at
+    a scene. Nothing here guesses at offscreen knowledge: if the author has not recorded
+    it, the character does not know it, and the prompt says so out loud.
+
+    `omniscient` hands over the whole manuscript, scenes they were never in included. That
+    is not a claim about the character; it is the author asking a hypothetical, and the
+    prompt frames it as one.
     """
     if mode == PROFILE_ONLY:
         return KnowledgeScope(mode=PROFILE_ONLY)
@@ -111,6 +125,10 @@ def build_scope(
             reasons.append(SPEAKS)
         if name and name in (node.content or "").lower():
             reasons.append(NAMED)
+        # Omniscient keeps the scenes they were absent from, labelled as such, so the
+        # drawer and the prompt can both tell lived experience from what was shown.
+        if not reasons and mode == OMNISCIENT:
+            reasons.append(UNLIVED)
         if reasons:
             present.append(
                 ScenePresence(
@@ -127,27 +145,30 @@ def build_scope(
         as_of_title = node.title if node else None
 
     return KnowledgeScope(
-        mode=AS_OF if as_of_node_id else WHOLE_STORY,
+        mode=mode if mode == OMNISCIENT else (AS_OF if as_of_node_id else PRESENT),
         as_of_node_id=as_of_node_id,
         as_of_title=as_of_title,
         scenes=present,
-        facts=_facts_known(character, {p.node_id for p in present}, db),
+        facts=_facts_known(character, {p.node_id for p in present}, db, mode),
         scenes_considered=len(scenes),
     )
 
 
-def _facts_known(character: Character, present_node_ids: set[str], db: Session) -> list[dict]:
+def _facts_known(character: Character, present_node_ids: set[str], db: Session, mode: str = PRESENT) -> list[dict]:
     """
     Reader-knowledge events this character knows: the ones the author listed them on, plus
     what happened in scenes they narrate. Being in the room is not knowing — a clue planted
     for the reader stays the reader's.
+
+    Omniscient is the exception, and deliberately so: the author is asking the character to
+    look at what the *reader* knows.
     """
     events = db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == character.story_id).all()
     known = []
     for event in events:
         listed = character.id in (event.characters_who_know or [])
         in_their_scene = event.node_id in present_node_ids and event.knowledge_type == "character_learns"
-        if listed or in_their_scene:
+        if mode == OMNISCIENT or listed or in_their_scene:
             known.append({"subject": event.subject, "detail": event.detail, "is_truth": event.is_truth})
     return known
 
@@ -167,7 +188,16 @@ def describe_scope(character: Character, scope: KnowledgeScope) -> str:
             "conversation. Talk about who you are instead."
         )
 
-    lines = [f"\n\nWhat you have been present for{f' (up to {scope.as_of_title})' if scope.as_of_title else ''}:"]
+    if scope.mode == OMNISCIENT:
+        heading = (
+            "\n\nYour author is showing you the whole manuscript, including scenes you were "
+            "not in. This is a hypothetical: you did not live the scenes marked as shown to "
+            "you, and you would not know them inside the story."
+        )
+    else:
+        heading = f"\n\nWhat you have been present for{f' (up to {scope.as_of_title})' if scope.as_of_title else ''}:"
+
+    lines = [heading]
     if scope.scenes:
         for s in scope.scenes:
             why = ", ".join(s.reasons)
@@ -182,11 +212,19 @@ def describe_scope(character: Character, scope: KnowledgeScope) -> str:
             detail = f": {fact['detail']}" if fact.get("detail") else ""
             lines.append(f"- {fact['subject']}{hedge}{detail}")
 
-    lines.append(
-        "\nYou do not know anything outside these scenes"
-        + (f", and nothing that happens after {scope.as_of_title}" if scope.as_of_title else "")
-        + ". If the author asks about something you were not present for, say you were not "
-        "there or do not know — do not reconstruct it, and do not pretend to remember. "
-        "You may of course say what you would guess, as long as you name it as a guess."
-    )
+    if scope.mode == OMNISCIENT:
+        lines.append(
+            "\nAnswer as yourself about all of it — that is what your author is asking for. "
+            "When you speak about something you did not live through, say so: 'I wasn't there, "
+            "but if I had been…'. Never claim to remember what you were shown, and never "
+            "invent events that are not above."
+        )
+    else:
+        lines.append(
+            "\nYou do not know anything outside these scenes"
+            + (f", and nothing that happens after {scope.as_of_title}" if scope.as_of_title else "")
+            + ". If the author asks about something you were not present for, say you were not "
+            "there or do not know — do not reconstruct it, and do not pretend to remember. "
+            "You may of course say what you would guess, as long as you name it as a guess."
+        )
     return "\n".join(lines)

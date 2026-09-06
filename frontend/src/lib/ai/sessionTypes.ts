@@ -31,7 +31,7 @@ export interface SessionContext {
    * For interviews: how much of the story the character may draw on (doc 06 §6).
    * "profile" is a conversation outside the story; "as_of" pins them to `nodeId`.
    */
-  knowledgeScope?: "profile" | "story" | "as_of";
+  knowledgeScope?: import("../../types").KnowledgeScope;
   contextOptions?: import("../../types").ContextOptions; // Selective context toggles
   attributeType?: string; // For attribute-generator sessions
 }

@@ -21,9 +21,11 @@ class CharacterInterview(Base):
         String, ForeignKey("structure_nodes.id", ondelete="SET NULL"), nullable=True, default=None
     )
     #: How much of the story this character may draw on (doc 06 §6):
-    #:   "profile" — outside the story: they know themselves, not the plot
-    #:   "story"   — everything written so far
-    #:   "as_of"   — up to context_node_id, and no further
+    #:   "profile"    — outside the story: they know themselves, not the plot
+    #:   "present"    — every scene they were present for, across the manuscript
+    #:   "as_of"      — the same, stopping at context_node_id
+    #:   "omniscient" — the whole manuscript, scenes they were not in included, as a
+    #:                  hypothetical the author is posing
     knowledge_scope: Mapped[str] = mapped_column(String, default="profile", server_default="profile")
     messages: Mapped[list] = mapped_column(JSON, default=list)
     # messages format: [{"role": "user"|"assistant", "content": str, "timestamp": str}]

@@ -5,13 +5,14 @@ from pydantic import BaseModel
 
 from .llm_params import LLMParamsOverride
 
-KnowledgeScopeValue = Literal["profile", "story", "as_of"]
+KnowledgeScopeValue = Literal["profile", "present", "as_of", "omniscient"]
 
 
 class InterviewCreate(BaseModel):
     title: str = ""
     context_node_id: str | None = None
-    #: "profile" (outside the story), "story" (everything written), "as_of" (up to the node).
+    #: "profile" (outside the story), "present" (scenes they are in), "as_of" (up to the
+    #: node), "omniscient" (the whole manuscript as a hypothetical).
     knowledge_scope: KnowledgeScopeValue = "profile"
 
 

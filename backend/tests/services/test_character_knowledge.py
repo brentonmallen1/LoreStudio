@@ -13,9 +13,11 @@ from app.models.story import Story
 from app.models.structure import StructureNode
 from app.services.character_knowledge import (
     NAMED,
+    OMNISCIENT,
     POV,
     PROFILE_ONLY,
     SPEAKS,
+    UNLIVED,
     build_scope,
     describe_scope,
 )
@@ -201,3 +203,72 @@ def test_an_interview_defaults_to_the_profile_only_scope(client, db_session, tes
     db_session.commit()
     body = client.post(f"/api/interviews/characters/{elena.id}", json={}).json()
     assert body["knowledge_scope"] == "profile"
+
+
+def test_presence_mode_is_not_omniscience(db_session, test_user):
+    """ "Knows the scenes they appear in" must mean exactly that, whole manuscript or not."""
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    hers = _scene(db_session, story, "The Lamp Room", 0, content="Elena climbs")
+    _scene(db_session, story, "The Mainland", 1, content="The inspector files his report")
+    db_session.commit()
+
+    scope = build_scope(elena, db_session)
+    assert [s.node_id for s in scope.scenes] == [hers.id]
+    assert scope.scenes_considered == 2
+
+
+def test_omniscient_shows_the_whole_manuscript_and_marks_what_they_did_not_live(db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    hers = _scene(db_session, story, "The Lamp Room", 0, content="Elena climbs", summary="She climbs.")
+    theirs = _scene(db_session, story, "The Mainland", 1, content="The inspector files", summary="He files.")
+    db_session.commit()
+
+    scope = build_scope(elena, db_session, mode=OMNISCIENT)
+    by_id = {s.node_id: s for s in scope.scenes}
+    assert set(by_id) == {hers.id, theirs.id}
+    assert by_id[hers.id].reasons == (NAMED,)
+    assert by_id[theirs.id].reasons == (UNLIVED,)
+
+
+def test_the_omniscient_prompt_says_it_is_a_hypothetical(db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    _scene(db_session, story, "The Mainland", 0, content="The inspector files", summary="He files.")
+    db_session.commit()
+
+    block = describe_scope(elena, build_scope(elena, db_session, mode=OMNISCIENT))
+    assert "This is a hypothetical" in block
+    assert "I wasn't there, but if I had been" in block
+    # It must not tell them they lived it, and must not license invention.
+    assert "never invent events" in block.lower()
+
+
+def test_omniscient_hands_over_what_the_reader_knows(db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    scene = _scene(db_session, story, "The Mainland", 0, content="The inspector files")
+    db_session.add(
+        ReaderKnowledgeEvent(
+            story_id=story.id,
+            node_id=scene.id,
+            knowledge_type="clue_planted",
+            subject="The logbook page is missing",
+            characters_who_know=[],
+        )
+    )
+    db_session.commit()
+
+    assert build_scope(elena, db_session).facts == []
+    assert [f["subject"] for f in build_scope(elena, db_session, mode=OMNISCIENT).facts] == [
+        "The logbook page is missing"
+    ]
+
+
+def test_an_interview_can_be_started_omniscient(client, db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    db_session.commit()
+    body = client.post(f"/api/interviews/characters/{elena.id}", json={"knowledge_scope": "omniscient"}).json()
+    assert body["knowledge_scope"] == "omniscient"

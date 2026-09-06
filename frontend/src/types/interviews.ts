@@ -10,10 +10,13 @@ export interface InterviewMessage {
 }
 
 /**
- * How much of the story a character may draw on in an interview (doc 06 §6):
- * outside the story, everything written so far, or up to one scene.
+ * How much of the story a character may draw on in an interview (doc 06 §6).
+ *
+ * `present` is not omniscience: it is every scene they were in, across the manuscript.
+ * `omniscient` is the author's hypothetical — the whole book, scenes they were never in
+ * included, with the character told plainly that they did not live them.
  */
-export type KnowledgeScope = "profile" | "story" | "as_of";
+export type KnowledgeScope = "profile" | "present" | "as_of" | "omniscient";
 
 /** Fields an interview can be re-pointed at after it is created. */
 export interface InterviewUpdate {

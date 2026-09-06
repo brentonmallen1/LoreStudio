@@ -208,7 +208,7 @@ def get_character_dialogue(
 def get_character_knowledge(
     character_id: str,
     as_of: str | None = Query(None, description="Node id the character's knowledge stops at"),
-    scope: str = Query("story", description="profile | story | as_of"),
+    scope: str = Query("present", description="profile | present | as_of | omniscient"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
