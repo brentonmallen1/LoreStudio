@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { Location, LocationTravel } from "../../types";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -297,14 +298,16 @@ function TravelEntry({
             {travel.notes && <span> · {travel.notes}</span>}
           </div>
         </div>
-        <button
-          className={styles.aiBtn}
-          title="Analyzes this route: Journey Considerations, Hazards & Challenges, Narrative Possibilities, and Questions to Consider"
-          onClick={() => openWorldBuildingAIPanel({ feature: "travel", entityId: travel.id, storyId })}
-        >
-          <Compass size={11} />
-          Analyze Route
-        </button>
+        <AIOnly>
+          <button
+            className={styles.aiBtn}
+            title="Analyzes this route: Journey Considerations, Hazards & Challenges, Narrative Possibilities, and Questions to Consider"
+            onClick={() => openWorldBuildingAIPanel({ feature: "travel", entityId: travel.id, storyId })}
+          >
+            <Compass size={11} />
+            Analyze Route
+          </button>
+        </AIOnly>
         <button className={styles.ghostBtn} onClick={onStartEdit}>
           Edit
         </button>

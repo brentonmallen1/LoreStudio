@@ -6,6 +6,7 @@ import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import type { StoryOverview } from "../types";
 import styles from "./StoryOverviewPage.module.css";
+import { useAIAvailable } from "../lib/mode";
 
 const LENGTH_LABELS: Record<string, string> = {
   flash_fiction: "Flash Fiction",
@@ -71,6 +72,7 @@ export default function StoryOverviewPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { activeStory, structure, setActiveNode } = useStoryStore();
+  const aiAvailable = useAIAvailable();
   const { setViewMode } = useUIStore();
   const [overview, setOverview] = useState<StoryOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -331,7 +333,7 @@ export default function StoryOverviewPage() {
         </div>
 
         {/* ── Session recap ── */}
-        {hasContent && (
+        {hasContent && aiAvailable && (
           <div className={styles.recapSection}>
             {!recapText && !recapLoading && (
               <button className={styles.recapTrigger} onClick={fetchRecap}>

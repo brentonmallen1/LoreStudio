@@ -3,6 +3,7 @@ import { X, Compass, CheckSquare, Square, Loader2, BookOpen, AlertTriangle } fro
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./ExtractOutlinePanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface ExtractedItem {
   text: string;
@@ -37,6 +38,9 @@ function ConfidenceDots({ value }: { value: number }) {
 }
 
 export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<ExtractedItem[]>([]);
@@ -108,6 +112,8 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
       setCreating(false);
     }
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.overlay}>

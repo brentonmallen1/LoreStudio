@@ -26,6 +26,7 @@ import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./WorldBuildingAIPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface FeatureConfig {
   title: string;
@@ -284,6 +285,9 @@ const FEATURE_CONFIGS: Record<WorldBuildingAIContext["feature"], FeatureConfig> 
 };
 
 export default function WorldBuildingAIPanel() {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const { worldBuildingAIContext, closeWorldBuildingAIPanel } = useUIStore();
   const [panelWidth, setPanelWidth] = useState(380);
   const [result, setResult] = useState<StructuredResult | null>(null);
@@ -344,6 +348,8 @@ export default function WorldBuildingAIPanel() {
   }
 
   if (!ctx || !config) return null;
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.panel} style={{ width: panelWidth }}>

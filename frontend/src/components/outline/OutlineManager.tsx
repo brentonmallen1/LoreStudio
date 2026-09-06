@@ -12,6 +12,7 @@ import ExtractOutlinePanel from "./ExtractOutlinePanel";
 import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./OutlineManager.module.css";
+import AIOnly from "../ai/AIOnly";
 
 // ── Tree helpers ───────────────────────────────────────────────────────────────
 
@@ -404,14 +405,16 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
               <CheckSquare size={13} />
               {selectionActive ? "Done" : "Select"}
             </button>
-            <button
-              className={styles.alignmentBtn}
-              onClick={() => setShowAlignment((v) => !v)}
-              title="Analyze alignment against manuscript"
-            >
-              <Compass size={13} />
-              Alignment
-            </button>
+            <AIOnly>
+              <button
+                className={styles.alignmentBtn}
+                onClick={() => setShowAlignment((v) => !v)}
+                title="Analyze alignment against manuscript"
+              >
+                <Compass size={13} />
+                Alignment
+              </button>
+            </AIOnly>
             <button
               className={styles.addBeatBtnPrimary}
               onClick={() => {
@@ -697,14 +700,16 @@ export default function OutlineManager({ storyId }: Props) {
 
         <div className={styles.tabBarActions}>
           {/* Extract from prose */}
-          <button
-            className={styles.extractBtn}
-            onClick={() => setShowExtractPanel(true)}
-            title="AI: Extract outline from manuscript prose"
-          >
-            <Compass size={13} />
-            Extract
-          </button>
+          <AIOnly>
+            <button
+              className={styles.extractBtn}
+              onClick={() => setShowExtractPanel(true)}
+              title="AI: Extract outline from manuscript prose"
+            >
+              <Compass size={13} />
+              Extract
+            </button>
+          </AIOnly>
 
           {/* Info button */}
           <button

@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Modal } from "../common";
 import { api } from "../../api/client";
 import type { AISettings } from "../../types";
-import FEATURES, { PAGE_FEATURES, PAGE_LABELS } from "../../lib/ai/featureRegistry";
+import { PAGE_LABELS, visibleFeatures } from "../../lib/ai/featureRegistry";
+import { useMode } from "../../lib/mode";
 import type { AIFeatureInfo } from "../../lib/ai/featureRegistry";
 import styles from "./AIFeatureInfoModal.module.css";
 
@@ -27,8 +28,8 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
       .catch(() => {});
   }, [isOpen]);
 
-  const featureIds = PAGE_FEATURES[pageId] ?? [];
-  const allFeatures = featureIds.map((id) => FEATURES[id]).filter(Boolean) as AIFeatureInfo[];
+  // Writer mode sees the NLP tools it can actually run, and nothing about the AI ones.
+  const allFeatures = visibleFeatures(pageId, useMode());
 
   const nlpFeatures = allFeatures.filter((f) => f.type === "nlp");
   const aiFeatures = allFeatures.filter((f) => f.type === "ai");
@@ -75,7 +76,7 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
       footer={footer}
     >
       <div className={styles.content}>
-        {featureIds.length === 0 && (
+        {allFeatures.length === 0 && (
           <p className={styles.empty}>No AI or NLP features registered for this page.</p>
         )}
 

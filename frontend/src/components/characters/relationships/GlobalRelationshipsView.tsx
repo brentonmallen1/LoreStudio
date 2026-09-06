@@ -7,6 +7,7 @@ import RelationshipMatrixView from "./RelationshipMatrixView";
 import RelationshipSuggestionDialog from "../RelationshipSuggestionDialog";
 import type { CharacterRelationship, Character } from "../../../types";
 import styles from "./GlobalRelationshipsView.module.css";
+import AIOnly from "../../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -217,10 +218,12 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
           </div>
 
           {characters.length >= 2 && (
-            <button className={styles.suggestBtn} onClick={() => setShowSuggestDialog(true)}>
-              <Compass size={13} />
-              Suggest relationships
-            </button>
+            <AIOnly>
+              <button className={styles.suggestBtn} onClick={() => setShowSuggestDialog(true)}>
+                <Compass size={13} />
+                Suggest relationships
+              </button>
+            </AIOnly>
           )}
         </div>
       </div>

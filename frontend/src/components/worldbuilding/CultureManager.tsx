@@ -5,6 +5,7 @@ import type { Culture } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -99,16 +100,18 @@ export default function CultureManager({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
-                <button
-                  className={styles.aiBtn}
-                  title="Generates creative directions for: Naming Patterns, Rituals & Customs, Aesthetics & Materials, and Questions to Consider"
-                  onClick={() =>
-                    openWorldBuildingAIPanel({ feature: "culture-suggest", entityId: selected.id, storyId })
-                  }
-                >
-                  <Compass size={11} />
-                  Suggest Cultural Elements
-                </button>
+                <AIOnly>
+                  <button
+                    className={styles.aiBtn}
+                    title="Generates creative directions for: Naming Patterns, Rituals & Customs, Aesthetics & Materials, and Questions to Consider"
+                    onClick={() =>
+                      openWorldBuildingAIPanel({ feature: "culture-suggest", entityId: selected.id, storyId })
+                    }
+                  >
+                    <Compass size={11} />
+                    Suggest Cultural Elements
+                  </button>
+                </AIOnly>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   title="Delete culture"

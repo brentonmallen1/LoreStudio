@@ -7,12 +7,14 @@ import { ContextLevelSelector, type ContextLevel } from "./ContextLevelSelector"
 import { ScopeSelector, type ScopeSelection } from "./ScopeSelector";
 import { EditorialReportCard } from "./EditorialReportCard";
 import styles from "./EditorView.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   storyId: string;
 }
 
 export function EditorView({ storyId }: Props) {
+  const aiAvailable = useAIAvailable();
   const structure = useStoryStore((s) => s.structure);
 
   const [contextLevel, setContextLevel] = useState<ContextLevel>("summaries");
@@ -89,6 +91,8 @@ export function EditorView({ storyId }: Props) {
     await api.clearAllEditorialNotes(storyId);
     setConfirmClearNotes(false);
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.root}>

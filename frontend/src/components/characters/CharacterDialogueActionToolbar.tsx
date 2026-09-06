@@ -9,6 +9,7 @@ import type {
   StructuredResult,
 } from "../../types";
 import styles from "./CharacterDialogueActionToolbar.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface AnalysisDef {
   id: string;
@@ -97,6 +98,7 @@ export default function CharacterDialogueActionToolbar({
   onFidelityResult,
   onError,
 }: Props) {
+  const aiAvailable = useAIAvailable();
   const [running, setRunning] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
@@ -220,7 +222,7 @@ export default function CharacterDialogueActionToolbar({
       {!collapsed && (
         <div className={styles.toolbarBody}>
           <div className={styles.actions}>
-            {ANALYSES.map((analysis) => {
+            {ANALYSES.filter((a) => aiAvailable || a.type !== "ai").map((analysis) => {
               const isRunning = running.has(analysis.id);
               const hasError = errors.has(analysis.id);
               const log = latest[analysis.id] ?? null;

@@ -9,6 +9,7 @@ import type {
 import { api } from "../../../api/client";
 import { STRENGTH_DIMS } from "./StrengthSliders";
 import styles from "./RelationshipSuggestionsModal.module.css";
+import { useAIAvailable } from "../../../lib/mode";
 
 // Which AI-suggested fields to accept when updating an existing relationship
 interface FieldAccept {
@@ -83,6 +84,9 @@ export default function RelationshipSuggestionsModal({
   onClose,
   onSaved,
 }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [rows, setRows] = useState<Row[]>(() =>
     suggestions.map((s) => {
       const existing = findExisting(s, existingRelationships);
@@ -192,6 +196,8 @@ export default function RelationshipSuggestionsModal({
       setSaving(false);
     }
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>

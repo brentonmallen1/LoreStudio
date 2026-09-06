@@ -8,6 +8,7 @@ import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
+import AIActionButton from "./AIActionButton";
 
 interface Props {
   storyId: string;
@@ -327,26 +328,20 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
-                <button
-                  className={styles.aiBtn}
+                <AIActionButton
+                  label="Brainstorm What Exists"
                   title="Analyzes this location's properties and generates ideas for: Built Environment, Natural Environment, Cultural Presence, and Questions to Consider"
                   onClick={() =>
                     openWorldBuildingAIPanel({ feature: "what-exists", entityId: selected.id, storyId })
                   }
-                >
-                  <Compass size={11} />
-                  Brainstorm What Exists
-                </button>
-                <button
-                  className={styles.aiBtn}
+                />
+                <AIActionButton
+                  label="Suggest Elements"
                   title="Generates creative directions for: Creatures & Wildlife, Flora & Environment, Naming Patterns, and Questions to Consider"
                   onClick={() =>
                     openWorldBuildingAIPanel({ feature: "location-suggest", entityId: selected.id, storyId })
                   }
-                >
-                  <Compass size={11} />
-                  Suggest Elements
-                </button>
+                />
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   title="Delete location"

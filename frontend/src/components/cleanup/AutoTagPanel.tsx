@@ -15,6 +15,7 @@ import {
 import { api } from "../../api/client";
 import type { BatchSuggestResponse, ProposedDialogueTag, SceneWithDialogueProposals } from "../../types";
 import styles from "./AutoTagPanel.module.css";
+import AIOnly from "../ai/AIOnly";
 
 const AUTO_CONFIDENCE_THRESHOLD = 0.7;
 
@@ -314,15 +315,17 @@ export default function AutoTagPanel({
             >
               <ChevronRight size={13} />
             </button>
-            <button
-              onClick={handleAiRefine}
-              disabled={aiRefining || applying}
-              className={styles.aiBtn}
-              title="Use AI to re-analyze this scene's dialogue speakers"
-            >
-              {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
-              {aiRefining ? "Refining…" : "AI"}
-            </button>
+            <AIOnly>
+              <button
+                onClick={handleAiRefine}
+                disabled={aiRefining || applying}
+                className={styles.aiBtn}
+                title="Use AI to re-analyze this scene's dialogue speakers"
+              >
+                {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
+                {aiRefining ? "Refining…" : "AI"}
+              </button>
+            </AIOnly>
           </div>
 
           <div className={styles.proposalHeader}>

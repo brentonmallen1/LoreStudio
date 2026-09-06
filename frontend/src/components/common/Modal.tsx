@@ -1,4 +1,5 @@
 import { useEffect, useRef, useId } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import styles from "./Modal.module.css";
 
@@ -80,7 +81,11 @@ export default function Modal({
 
   if (!isOpen) return null;
 
-  return (
+  // Portalled to the body. A modal opened from inside the AI panel used to render into
+  // the panel's stacking context, which sits below the rest of the app — so the chat
+  // settings appeared *under* the window that opened them. z-index cannot climb out of
+  // an ancestor's stacking context; only leaving the subtree can.
+  return createPortal(
     <div
       className={styles.overlay}
       style={zIndex !== undefined ? { zIndex } : undefined}
@@ -108,6 +113,7 @@ export default function Modal({
 
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

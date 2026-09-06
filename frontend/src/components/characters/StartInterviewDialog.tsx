@@ -8,6 +8,7 @@ import { FIXED_SCOPES, readPickerValue, scopeHint } from "../../lib/ai/knowledge
 import { Modal } from "../common";
 import { useLLMStream } from "../../hooks/useLLMStream";
 import styles from "./StartInterviewDialog.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   character: Character;
@@ -20,6 +21,9 @@ function flattenNodes(nodes: StructureNode[]): StructureNode[] {
 }
 
 export default function StartInterviewDialog({ character, onStarted, onClose }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const { structure, activeStory } = useStoryStore();
   const navigate = useNavigate();
   // A fixed scope ("profile", "present", "omniscient") or a node id meaning "up to here".
@@ -100,6 +104,8 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
       </button>
     </>
   );
+
+  if (!aiAvailable) return null;
 
   return (
     <Modal

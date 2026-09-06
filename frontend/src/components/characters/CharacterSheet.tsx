@@ -18,6 +18,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import AIOnly from "../ai/AIOnly";
 import { SectionCard } from "../common";
 import CharacterDialogueTab from "./CharacterDialogueTab";
 import ArcTimelineView from "./ArcTimelineView";
@@ -401,14 +402,16 @@ export default function CharacterSheet() {
               )}
             </div>
             <div className={styles.actions}>
-              <button
-                onClick={() => setShowStartInterview(true)}
-                className={styles.interviewBtn}
-                title="Interview this character"
-              >
-                <MessageSquare size={14} />
-                Interview
-              </button>
+              <AIOnly>
+                <button
+                  onClick={() => setShowStartInterview(true)}
+                  className={styles.interviewBtn}
+                  title="Interview this character"
+                >
+                  <MessageSquare size={14} />
+                  Interview
+                </button>
+              </AIOnly>
               <button onClick={() => setEditing(true)} className={styles.editBtn} title="Edit character">
                 <Edit2 size={14} />
               </button>
@@ -499,45 +502,47 @@ export default function CharacterSheet() {
         {activeTab === "overview" && (
           <div className={styles.overview}>
             {/* ── Character Tools ── */}
-            <div className={styles.toolsStrip}>
-              <button
-                className={styles.toolCard}
-                onClick={() => setShowAttributeDialog(true)}
-                title="Use AI to suggest traits, backstory, quirks, or appearance"
-              >
-                <div className={styles.toolCardIcon}>
-                  <Wand2 size={14} />
-                </div>
-                <div className={styles.toolCardBody}>
-                  <span className={styles.toolCardLabel}>Suggest Attributes</span>
-                  <span className={styles.toolCardDesc}>
-                    Suggest traits, backstory, quirks, or appearance
-                  </span>
-                </div>
-                <Compass size={14} className={styles.toolCardCompass} />
-              </button>
-              <button
-                className={`${styles.toolCard} ${showDimensionality ? styles.toolCardActive : ""}`}
-                onClick={() => setShowDimensionality((v) => !v)}
-                title="AI assessment of dimensionality, contradictions, and development"
-              >
-                <div className={styles.toolCardIcon}>
-                  <Users size={14} />
-                </div>
-                <div className={styles.toolCardBody}>
-                  <span className={styles.toolCardLabel}>Character Depth</span>
-                  <span className={styles.toolCardDesc}>
-                    Assess dimensionality, contradictions, development
-                  </span>
-                </div>
-                <Compass size={14} className={styles.toolCardCompass} />
-              </button>
-            </div>
-            {showDimensionality && (
-              <div className={styles.toolPanelWrapper}>
-                <CharacterDimensionalityPanel characterId={character.id} />
+            <AIOnly>
+              <div className={styles.toolsStrip}>
+                <button
+                  className={styles.toolCard}
+                  onClick={() => setShowAttributeDialog(true)}
+                  title="Use AI to suggest traits, backstory, quirks, or appearance"
+                >
+                  <div className={styles.toolCardIcon}>
+                    <Wand2 size={14} />
+                  </div>
+                  <div className={styles.toolCardBody}>
+                    <span className={styles.toolCardLabel}>Suggest Attributes</span>
+                    <span className={styles.toolCardDesc}>
+                      Suggest traits, backstory, quirks, or appearance
+                    </span>
+                  </div>
+                  <Compass size={14} className={styles.toolCardCompass} />
+                </button>
+                <button
+                  className={`${styles.toolCard} ${showDimensionality ? styles.toolCardActive : ""}`}
+                  onClick={() => setShowDimensionality((v) => !v)}
+                  title="AI assessment of dimensionality, contradictions, and development"
+                >
+                  <div className={styles.toolCardIcon}>
+                    <Users size={14} />
+                  </div>
+                  <div className={styles.toolCardBody}>
+                    <span className={styles.toolCardLabel}>Character Depth</span>
+                    <span className={styles.toolCardDesc}>
+                      Assess dimensionality, contradictions, development
+                    </span>
+                  </div>
+                  <Compass size={14} className={styles.toolCardCompass} />
+                </button>
               </div>
-            )}
+              {showDimensionality && (
+                <div className={styles.toolPanelWrapper}>
+                  <CharacterDimensionalityPanel characterId={character.id} />
+                </div>
+              )}
+            </AIOnly>
 
             {/* ── Profile ── */}
             <SectionCard title="Profile" collapsed={!!collapsed.profile} onToggle={() => toggle("profile")}>
@@ -818,49 +823,51 @@ export default function CharacterSheet() {
             </SectionCard>
 
             {/* ── Interview Prompts ── */}
-            <SectionCard
-              title="Interview Prompts"
-              collapsed={!!collapsed.prompts}
-              onToggle={() => toggle("prompts")}
-              variant="ai"
-            >
-              <p className={styles.intentHint}>
-                Starting questions for character interviews. Click a prompt to begin.
-              </p>
-              <div className={styles.promptList}>
-                {(character.interview_prompts ?? []).map((prompt, i) => (
-                  <div key={i} className={styles.promptRow}>
-                    <button onClick={() => setShowStartInterview(true)} className={styles.promptCard}>
-                      <span>{prompt}</span>
-                      <ChevronRight size={13} className={styles.promptArrow} />
-                    </button>
-                    <button
-                      className={styles.promptDeleteBtn}
-                      onClick={() => removeInterviewPrompt(i)}
-                      title="Remove prompt"
-                    >
-                      <Trash2 size={11} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.milestoneAdd}>
-                <input
-                  className={styles.milestoneInput}
-                  value={newPrompt}
-                  onChange={(e) => setNewPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addInterviewPrompt()}
-                  placeholder="Add a prompt…"
-                />
-                <button
-                  className={styles.milestoneAddBtn}
-                  onClick={addInterviewPrompt}
-                  disabled={!newPrompt.trim()}
-                >
-                  <Plus size={13} />
-                </button>
-              </div>
-            </SectionCard>
+            <AIOnly>
+              <SectionCard
+                title="Interview Prompts"
+                collapsed={!!collapsed.prompts}
+                onToggle={() => toggle("prompts")}
+                variant="ai"
+              >
+                <p className={styles.intentHint}>
+                  Starting questions for character interviews. Click a prompt to begin.
+                </p>
+                <div className={styles.promptList}>
+                  {(character.interview_prompts ?? []).map((prompt, i) => (
+                    <div key={i} className={styles.promptRow}>
+                      <button onClick={() => setShowStartInterview(true)} className={styles.promptCard}>
+                        <span>{prompt}</span>
+                        <ChevronRight size={13} className={styles.promptArrow} />
+                      </button>
+                      <button
+                        className={styles.promptDeleteBtn}
+                        onClick={() => removeInterviewPrompt(i)}
+                        title="Remove prompt"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className={styles.milestoneAdd}>
+                  <input
+                    className={styles.milestoneInput}
+                    value={newPrompt}
+                    onChange={(e) => setNewPrompt(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addInterviewPrompt()}
+                    placeholder="Add a prompt…"
+                  />
+                  <button
+                    className={styles.milestoneAddBtn}
+                    onClick={addInterviewPrompt}
+                    disabled={!newPrompt.trim()}
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+              </SectionCard>
+            </AIOnly>
 
             {/* ── Traits ── */}
             <SectionCard title="Traits" collapsed={!!collapsed.traits} onToggle={() => toggle("traits")}>

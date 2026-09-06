@@ -23,6 +23,7 @@ import ThreadAnalysisPanel from "./ThreadAnalysisPanel";
 import { SectionCard } from "../common";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import styles from "./PlotThreadManager.module.css";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -432,14 +433,16 @@ export default function PlotThreadManager({ storyId }: Props) {
                       </div>
                     </div>
                     <div className={styles.threadActions}>
-                      <button
-                        onClick={() => setAnalyzingId(analyzingId === t.id ? null : t.id)}
-                        className={`${styles.iconBtn} ${analyzingId === t.id ? styles.iconBtnActive : ""}`}
-                        title="Analyze thread"
-                        aria-label="Analyze thread"
-                      >
-                        <Compass size={12} />
-                      </button>
+                      <AIOnly>
+                        <button
+                          onClick={() => setAnalyzingId(analyzingId === t.id ? null : t.id)}
+                          className={`${styles.iconBtn} ${analyzingId === t.id ? styles.iconBtnActive : ""}`}
+                          title="Analyze thread"
+                          aria-label="Analyze thread"
+                        >
+                          <Compass size={12} />
+                        </button>
+                      </AIOnly>
                       <button onClick={() => startEdit(t)} className={styles.iconBtn} aria-label="Edit">
                         <Edit2 size={12} />
                       </button>

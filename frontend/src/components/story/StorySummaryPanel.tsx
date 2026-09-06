@@ -7,8 +7,12 @@ import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
 import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./StorySummaryPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 export default function StorySummaryPanel({ storyId }: { storyId: string }) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const { activeNode } = useStoryStore();
   const [style, setStyle] = useState<"brief" | "detailed">("brief");
   const [upToCurrentScene, setUpToCurrentScene] = useState(false);
@@ -55,6 +59,8 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <>

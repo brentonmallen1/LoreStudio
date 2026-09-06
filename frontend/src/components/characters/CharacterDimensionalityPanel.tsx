@@ -3,6 +3,7 @@ import { Compass, CheckCircle, AlertCircle, GitBranch, Users, Lightbulb } from "
 import { api } from "../../api/client";
 import type { StructuredResult, CharacterDimensionEntry } from "../../types";
 import styles from "./CharacterDimensionalityPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   characterId: string;
@@ -35,6 +36,9 @@ const DIMENSION_META: Record<string, { label: string; className: string }> = {
 };
 
 export default function CharacterDimensionalityPanel({ characterId }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [result, setResult] = useState<StructuredResult | null>(null);
   const [generating, setGenerating] = useState(false);
 
@@ -55,6 +59,8 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
   // The response always wraps in a "characters" array; grab the first entry
   const chars = asList(data?.characters) as AnyRecord[];
   const entry = chars[0] as unknown as CharacterDimensionEntry | undefined;
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.panel}>

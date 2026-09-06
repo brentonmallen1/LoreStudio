@@ -7,10 +7,14 @@ import { useLLMStream } from "../../hooks/useLLMStream";
 import { useLLMContextSources } from "../../hooks/useLLMContextSources";
 import { LLMTransparencyModal, LLMTransparencyTrigger, LLMContextSources } from "../llm";
 import styles from "./PerspectiveSummaryPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 type PerspectiveMode = "structure" | "character";
 
 export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const { structure, characters } = useStoryStore();
   const [mode, setMode] = useState<PerspectiveMode>("structure");
   const [selectedId, setSelectedId] = useState("");
@@ -81,6 +85,8 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
     setSelectedId("");
     setResult("");
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <>

@@ -3,6 +3,7 @@ import { Camera, X, Upload, FileText, Feather } from "lucide-react";
 import { api } from "../../api/client";
 import type { StoryAsset, AssetAttachment } from "../../types";
 import styles from "./PortraitEditor.module.css";
+import AIOnly from "../ai/AIOnly";
 
 export interface CharacterImageDescription {
   /** Short phrases naming what is actually visible in the image. */
@@ -187,15 +188,17 @@ export default function PortraitEditor({
                 Browse library
               </button>
               {portraitUrl && onAnalyzeForCharacter && (
-                <button
-                  className={`${styles.actionBtn} ${styles.analyzeBtn}`}
-                  onClick={analyzeForCharacter}
-                  disabled={analyzing}
-                  title="Use AI to generate character appearance/personality hints from this portrait"
-                >
-                  <Feather size={13} />
-                  {analyzing ? "Analyzing…" : "Generate description"}
-                </button>
+                <AIOnly>
+                  <button
+                    className={`${styles.actionBtn} ${styles.analyzeBtn}`}
+                    onClick={analyzeForCharacter}
+                    disabled={analyzing}
+                    title="Use AI to generate character appearance/personality hints from this portrait"
+                  >
+                    <Feather size={13} />
+                    {analyzing ? "Analyzing…" : "Generate description"}
+                  </button>
+                </AIOnly>
               )}
               {portraitUrl && (
                 <button className={`${styles.actionBtn} ${styles.removeBtn}`} onClick={removePortrait}>

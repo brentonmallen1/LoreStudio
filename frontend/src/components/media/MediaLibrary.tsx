@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { StoryAsset } from "../../types";
 import Lightbox from "./Lightbox";
 import styles from "./MediaLibrary.module.css";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -135,14 +136,16 @@ function AssetCard({
             <Edit2 size={12} />
           </button>
           {isImage && (
-            <button
-              onClick={runAnalysis}
-              className={styles.actionBtn}
-              title="AI: analyze mood & atmosphere"
-              disabled={analyzing}
-            >
-              <Compass size={12} />
-            </button>
+            <AIOnly>
+              <button
+                onClick={runAnalysis}
+                className={styles.actionBtn}
+                title="AI: analyze mood & atmosphere"
+                disabled={analyzing}
+              >
+                <Compass size={12} />
+              </button>
+            </AIOnly>
           )}
           <button
             onClick={() => navigator.clipboard.writeText(fileUrl)}

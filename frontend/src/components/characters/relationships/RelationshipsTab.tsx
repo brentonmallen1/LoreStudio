@@ -10,6 +10,7 @@ import RelationshipRadarChart from "./RelationshipRadarChart";
 import RelationshipSuggestionsModal from "./RelationshipSuggestionsModal";
 import ValidationWarnings from "./ValidationWarnings";
 import styles from "./RelationshipsTab.module.css";
+import AIOnly from "../../ai/AIOnly";
 
 type ViewMode = "focus" | "matrix" | "radar";
 
@@ -147,15 +148,17 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
         </label>
 
         <div className={styles.actions}>
-          <button
-            className={styles.discoverBtn}
-            onClick={handleDiscoverProfile}
-            disabled={discovering}
-            title="Use AI to suggest relationships based on character profiles"
-          >
-            <Compass size={13} />
-            {discovering ? "Discovering…" : "Discover Relationships"}
-          </button>
+          <AIOnly>
+            <button
+              className={styles.discoverBtn}
+              onClick={handleDiscoverProfile}
+              disabled={discovering}
+              title="Use AI to suggest relationships based on character profiles"
+            >
+              <Compass size={13} />
+              {discovering ? "Discovering…" : "Discover Relationships"}
+            </button>
+          </AIOnly>
           {discoverError && <span className={styles.discoverError}>{discoverError}</span>}
           <button className={styles.addBtn} onClick={() => openCreate()}>
             <Plus size={14} />

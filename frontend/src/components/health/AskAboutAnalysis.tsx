@@ -1,5 +1,6 @@
 import { Compass } from "lucide-react";
 import { useAIStore } from "../../stores/aiStore";
+import { useAIAvailable } from "../../lib/mode";
 import type { ActivityLog } from "../../types";
 import styles from "./ReportCard.module.css";
 
@@ -10,6 +11,10 @@ import styles from "./ReportCard.module.css";
  */
 export default function AskAboutAnalysis({ log, label }: { log: ActivityLog; label: string }) {
   const { openResultSession } = useAIStore();
+  const aiAvailable = useAIAvailable();
+
+  if (!aiAvailable) return null;
+
   return (
     <button
       className={styles.openInPanel}

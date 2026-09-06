@@ -23,6 +23,7 @@ import {
 import { api } from "../../api/client";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface AnalysisDef {
   id: string;
@@ -276,6 +277,7 @@ interface Props {
 }
 
 export default function ActionToolbar({ storyId, onAnalysisComplete, onViewReports }: Props) {
+  const aiAvailable = useAIAvailable();
   const [running, setRunning] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Set<string>>(new Set());
   const [latest, setLatest] = useState<Record<string, ActivityLog | null>>({});
@@ -391,7 +393,11 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
   const anyRunning = running.size > 0;
 
   const activeCategory = CATEGORIES.find((c) => c.id === activeTab) ?? CATEGORIES[0];
-  const visibleAnalyses = ANALYSES.filter((a) => activeCategory.analysisIds.includes(a.id));
+  // Story Health is half deterministic: the NLP analyses stay in writer mode and with the
+  // AI switch off, and the AI ones are not rendered as disabled — they are not rendered.
+  const visibleAnalyses = ANALYSES.filter(
+    (a) => activeCategory.analysisIds.includes(a.id) && (aiAvailable || a.type !== "ai"),
+  );
 
   // Count tools with results per category for tab badges
   const resultCountByCategory = CATEGORIES.reduce<Record<string, number>>((acc, cat) => {
@@ -474,13 +480,15 @@ export default function ActionToolbar({ storyId, onAnalysisComplete, onViewRepor
               <span className={styles.legendDot} />
               Local NLP
             </span>
-            <span
-              className={styles.legendItem}
-              style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}
-            >
-              <span className={styles.legendDot} />
-              AI
-            </span>
+            {aiAvailable && (
+              <span
+                className={styles.legendItem}
+                style={{ "--type-color": "var(--color-ai)" } as React.CSSProperties}
+              >
+                <span className={styles.legendDot} />
+                AI
+              </span>
+            )}
           </div>
 
           {/* Analysis buttons for active category */}

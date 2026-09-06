@@ -6,6 +6,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import { formatRelative, formatDate } from "../../lib/utils";
 import styles from "./SummaryOverviewView.module.css";
+import AIOnly from "../ai/AIOnly";
 
 function flattenNodes(nodes: StructureNode[]): StructureNode[] {
   const result: StructureNode[] = [];
@@ -182,14 +183,16 @@ export default function SummaryOverviewView() {
                     Cancel
                   </button>
                 ) : (
-                  <button
-                    className={styles.generateBtn}
-                    onClick={() => generate(node)}
-                    disabled={!!generatingId || !canGenerate}
-                  >
-                    <Compass size={10} />
-                    {hasSummary ? "Regenerate" : "Generate"}
-                  </button>
+                  <AIOnly>
+                    <button
+                      className={styles.generateBtn}
+                      onClick={() => generate(node)}
+                      disabled={!!generatingId || !canGenerate}
+                    >
+                      <Compass size={10} />
+                      {hasSummary ? "Regenerate" : "Generate"}
+                    </button>
+                  </AIOnly>
                 )}
               </div>
             </div>
@@ -223,14 +226,16 @@ export default function SummaryOverviewView() {
           <button className={styles.toolbarBtn} onClick={collapseAll}>
             Collapse All
           </button>
-          <button
-            className={`${styles.toolbarBtn} ${styles.toolbarBtnAi}`}
-            onClick={generateAllMissing}
-            disabled={batchRunning}
-          >
-            <Compass size={11} />
-            {batchRunning ? "Generating…" : "Generate All Missing"}
-          </button>
+          <AIOnly>
+            <button
+              className={`${styles.toolbarBtn} ${styles.toolbarBtnAi}`}
+              onClick={generateAllMissing}
+              disabled={batchRunning}
+            >
+              <Compass size={11} />
+              {batchRunning ? "Generating…" : "Generate All Missing"}
+            </button>
+          </AIOnly>
         </div>
       </div>
 

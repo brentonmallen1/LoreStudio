@@ -3,6 +3,7 @@ import { Compass, TrendingUp, Map, AlertTriangle, Heart, Lightbulb, XCircle } fr
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./ArcAnalysisPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   characterId: string;
@@ -31,6 +32,9 @@ function asStringList(v: unknown): string[] {
 }
 
 export default function ArcAnalysisPanel({ characterId }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [result, setResult] = useState<StructuredResult | null>(null);
   const [generating, setGenerating] = useState(false);
 
@@ -48,6 +52,8 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
   }
 
   const data = result?.success ? (result.data as AnyRecord) : null;
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.panel}>

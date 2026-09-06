@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { api } from "../api/client";
 import { useAIStore } from "../stores/aiStore";
+import AIOnly from "../components/ai/AIOnly";
 import type {
   ChronicleSession,
   ChronicleSessionDetail,
@@ -122,9 +123,11 @@ function SessionCard({
         </p>
       </div>
       <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
-        <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}>
-          <Feather size={13} />
-        </button>
+        <AIOnly>
+          <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}>
+            <Feather size={13} />
+          </button>
+        </AIOnly>
         <button className={styles.iconBtn} title="Archive" onClick={onArchive}>
           <Archive size={13} />
         </button>

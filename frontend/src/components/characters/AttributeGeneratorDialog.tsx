@@ -4,6 +4,7 @@ import { Modal } from "../common";
 import { useAIStore } from "../../stores/aiStore";
 import type { Character } from "../../types";
 import styles from "./AttributeGeneratorDialog.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 const ATTRIBUTE_TYPES = [
   {
@@ -34,6 +35,9 @@ interface Props {
 }
 
 export default function AttributeGeneratorDialog({ character, onClose }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const { createSession } = useAIStore();
   const [type, setType] = useState("traits");
   const [starting, setStarting] = useState(false);
@@ -62,6 +66,8 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
       </button>
     </>
   );
+
+  if (!aiAvailable) return null;
 
   return (
     <Modal

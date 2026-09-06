@@ -3,6 +3,7 @@ import { X, Compass, Loader2, AlertTriangle, CheckCircle, XCircle, MinusCircle }
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./OutlineAlignmentPanel.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface AlignmentItem {
   outline_text: string;
@@ -68,6 +69,9 @@ function ScoreBar({ score }: { score: number }) {
 }
 
 export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AlignmentResult | null>(null);
@@ -87,6 +91,8 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
       .catch((e: Error) => setError(e.message ?? "Analysis failed."))
       .finally(() => setLoading(false));
   }, [outlineId]);
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.panel}>

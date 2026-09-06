@@ -7,6 +7,7 @@ import { LLMTransparencyModal, LLMTransparencyTrigger } from "../llm";
 import type { StructuredResult } from "../../types";
 import StructuredResponseRenderer, { type SectionConfig } from "../ai/StructuredResponseRenderer";
 import styles from "./RelationshipSuggestionDialog.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 const REL_SCHEMA: SectionConfig[] = [
   {
@@ -27,6 +28,9 @@ interface Props {
 }
 
 export default function RelationshipSuggestionDialog({ storyId, onClose }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [result, setResult] = useState<StructuredResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const lastResultText = useRef("");
@@ -71,6 +75,8 @@ export default function RelationshipSuggestionDialog({ storyId, onClose }: Props
       </button>
     </>
   );
+
+  if (!aiAvailable) return null;
 
   return (
     <>

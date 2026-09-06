@@ -5,6 +5,7 @@ import type { WorldSystem } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -131,16 +132,18 @@ export default function WorldSystemManager({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
-                <button
-                  className={styles.aiBtn}
-                  title="Surfaces issues with this system: Edge Cases, Story Implications, Consistency Questions, and Questions to Consider"
-                  onClick={() =>
-                    openWorldBuildingAIPanel({ feature: "system", entityId: selected.id, storyId })
-                  }
-                >
-                  <Compass size={11} />
-                  Analyze Edge Cases
-                </button>
+                <AIOnly>
+                  <button
+                    className={styles.aiBtn}
+                    title="Surfaces issues with this system: Edge Cases, Story Implications, Consistency Questions, and Questions to Consider"
+                    onClick={() =>
+                      openWorldBuildingAIPanel({ feature: "system", entityId: selected.id, storyId })
+                    }
+                  >
+                    <Compass size={11} />
+                    Analyze Edge Cases
+                  </button>
+                </AIOnly>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   title="Delete system"

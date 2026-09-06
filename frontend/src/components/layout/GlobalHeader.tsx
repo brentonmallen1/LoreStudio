@@ -34,6 +34,7 @@ import { api } from "../../api/client";
 import type { BackupStatus } from "../../types";
 import styles from "./GlobalHeader.module.css";
 import { relativeTime } from "../../utils/relativeTime";
+import ModeIndicator from "./ModeIndicator";
 
 const THEME_SWATCHES: Record<ThemeName, string[]> = {
   zen: ["#f7f6f3", "#4a7c59", "#8b6aa8"],
@@ -295,6 +296,8 @@ export default function GlobalHeader() {
             <span>Search</span>
             <kbd>{formatCombo(SHORTCUTS.palette.combo)}</kbd>
           </button>
+
+          <ModeIndicator />
 
           {/* Quick Settings */}
           <div className={styles.dropdownWrap} ref={settingsRef}>

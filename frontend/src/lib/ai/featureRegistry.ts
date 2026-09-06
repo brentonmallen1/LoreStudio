@@ -14,6 +14,7 @@ import { SCENES_FEATURES } from "./registry/scenes";
 import { STORY_FEATURES } from "./registry/story";
 import { IMPORTING_FEATURES } from "./registry/importing";
 import type { AIFeatureInfo } from "./registry/types";
+import type { UIMode } from "../mode";
 
 export type { AIFeatureInfo, FeatureType } from "./registry/types";
 
@@ -122,6 +123,19 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "import-structure",
   ],
 };
+
+/**
+ * The features on a page that this mode may see.
+ *
+ * Writer mode renders no AI affordance, but NLP tools stay in both modes — so a page with
+ * both keeps its NLP half rather than going dark. Used by the info trigger, which hides
+ * itself only when nothing is left to describe, and by the modal that lists them.
+ */
+export function visibleFeatures(pageId: string, mode: UIMode): AIFeatureInfo[] {
+  return (PAGE_FEATURES[pageId] ?? [])
+    .map((id) => FEATURES[id])
+    .filter((f): f is AIFeatureInfo => !!f && (mode === "studio" || f.type !== "ai"));
+}
 
 /**
  * Human-readable page labels shown in the modal title.

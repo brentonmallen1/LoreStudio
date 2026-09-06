@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Compass, X, Loader } from "lucide-react";
 import { api } from "../../api/client";
 import styles from "./SnowflakeGuidance.module.css";
+import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
   storyId: string;
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function SnowflakeGuidance({ storyId, layer, content, characterId, onClose }: Props) {
+  // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
+  // preference. This whole component is one, so it renders nothing rather than something dead.
+  const aiAvailable = useAIAvailable();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +70,8 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
       setLoading(false);
     }
   }
+
+  if (!aiAvailable) return null;
 
   return (
     <div className={styles.panel}>

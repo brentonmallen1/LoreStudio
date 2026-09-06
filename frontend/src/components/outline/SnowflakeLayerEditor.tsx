@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Compass } from "lucide-react";
 import type { Character } from "../../types";
 import SnowflakeGuidance from "./SnowflakeGuidance";
 import styles from "./SnowflakeLayerEditor.module.css";
+import AIOnly from "../ai/AIOnly";
 
 // Layer metadata for UI hints
 const LAYER_META: Record<string, { goal: string; placeholder: string; prevLabel?: string }> = {
@@ -103,14 +104,16 @@ export default function SnowflakeLayerEditor({
           {wordCount} {wordCount === 1 ? "word" : "words"}
         </span>
         <div className={styles.footerActions}>
-          <button
-            className={styles.guidanceBtn}
-            onClick={() => setShowGuidance((v) => !v)}
-            title="Get AI guidance"
-          >
-            <Compass size={13} />
-            {showGuidance ? "Hide guidance" : "Get guidance"}
-          </button>
+          <AIOnly>
+            <button
+              className={styles.guidanceBtn}
+              onClick={() => setShowGuidance((v) => !v)}
+              title="Get AI guidance"
+            >
+              <Compass size={13} />
+              {showGuidance ? "Hide guidance" : "Get guidance"}
+            </button>
+          </AIOnly>
           <button
             className={styles.doneBtn}
             onClick={() => {

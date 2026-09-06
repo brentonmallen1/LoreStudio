@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { Era, HistoricalEvent } from "../../types";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -222,16 +223,22 @@ export default function HistoryTab({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selectedEvent.name}</h2>
               <div className={styles.detailActions}>
-                <button
-                  className={styles.aiBtn}
-                  title="Traces this event's ripple effects into: Physical Remnants, Cultural Legacy, Political Effects, and Questions to Consider"
-                  onClick={() =>
-                    openWorldBuildingAIPanel({ feature: "implications", entityId: selectedEvent.id, storyId })
-                  }
-                >
-                  <Compass size={11} />
-                  Trace Present-Day Effects
-                </button>
+                <AIOnly>
+                  <button
+                    className={styles.aiBtn}
+                    title="Traces this event's ripple effects into: Physical Remnants, Cultural Legacy, Political Effects, and Questions to Consider"
+                    onClick={() =>
+                      openWorldBuildingAIPanel({
+                        feature: "implications",
+                        entityId: selectedEvent.id,
+                        storyId,
+                      })
+                    }
+                  >
+                    <Compass size={11} />
+                    Trace Present-Day Effects
+                  </button>
+                </AIOnly>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   onClick={() => setShowDeleteConfirm("event")}

@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { Calendar } from "../../types";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
+import AIOnly from "../ai/AIOnly";
 
 interface Props {
   storyId: string;
@@ -138,16 +139,18 @@ export default function CalendarEditor({ storyId }: Props) {
             <div className={styles.detailHeader}>
               <h2 className={styles.detailName}>{selected.name}</h2>
               <div className={styles.detailActions}>
-                <button
-                  className={styles.aiBtn}
-                  title="Suggests calendar entries: Festivals & Celebrations, Seasonal Events, Historical Observances, and Questions to Consider"
-                  onClick={() =>
-                    openWorldBuildingAIPanel({ feature: "calendar", entityId: selected.id, storyId })
-                  }
-                >
-                  <Compass size={11} />
-                  Suggest Special Days
-                </button>
+                <AIOnly>
+                  <button
+                    className={styles.aiBtn}
+                    title="Suggests calendar entries: Festivals & Celebrations, Seasonal Events, Historical Observances, and Questions to Consider"
+                    onClick={() =>
+                      openWorldBuildingAIPanel({ feature: "calendar", entityId: selected.id, storyId })
+                    }
+                  >
+                    <Compass size={11} />
+                    Suggest Special Days
+                  </button>
+                </AIOnly>
                 <button
                   className={`${styles.iconBtn} ${styles.danger}`}
                   onClick={() => setShowDeleteConfirm(true)}
