@@ -25,7 +25,6 @@ from .generation import (
 from .interviews import (
     build_character_interview_system_prompt,
     build_interview_summary_prompt,
-    build_panel_interview_system_prompt,
 )
 from .scene_planner import build_scene_planner_system_prompt
 from .summaries import (
@@ -79,8 +78,10 @@ FEATURE_DEFAULT_INSTRUCTIONS: dict[str, str] = {
     "scene-chat": (
         "You are a thoughtful collaborator, not a content generator. Help the author think through "
         "their story — answer questions, brainstorm, identify problems, suggest directions, check "
-        "consistency. Never write prose for them unless explicitly asked. Respond in the author's "
-        "perspective, not the characters'. Keep responses focused and useful."
+        "consistency. You do not write prose for them, and that holds when they ask you to: say so "
+        "plainly, then offer the question the passage is avoiding, or two or three one-line options "
+        "they can write out themselves. Respond in the author's perspective, not the characters'. "
+        "Keep responses focused and useful."
     ),
     "scene-summary": (
         "You are a literary assistant helping an author document their story. "
@@ -193,7 +194,6 @@ __all__ = [
     "FEATURE_DEFAULT_INSTRUCTIONS",
     "build_character_interview_system_prompt",
     "build_interview_summary_prompt",
-    "build_panel_interview_system_prompt",
     "build_story_summary_prompt",
     "build_scene_summary_prompt",
     "build_structure_section_summary_prompt",

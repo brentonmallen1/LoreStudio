@@ -45,8 +45,8 @@ function InstanceCard({ instance }: { instance: ShowDontTellInstance }) {
             <p className={styles.cardText}>{instance.explanation}</p>
           </div>
           <div className={styles.cardSection}>
-            <p className={styles.cardLabel}>Showing alternative</p>
-            <p className={`${styles.cardText} ${styles.suggestion}`}>{instance.suggestion}</p>
+            <p className={styles.cardLabel}>Ask yourself</p>
+            <p className={`${styles.cardText} ${styles.suggestion}`}>{instance.question}</p>
           </div>
         </div>
       )}

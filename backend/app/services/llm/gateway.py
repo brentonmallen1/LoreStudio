@@ -48,7 +48,7 @@ from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
 from .features import FEATURES_BY_ID, feature_budget
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider
-from .prompts.core import CORE_SYSTEM_PROMPT
+from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
 
 logger = logging.getLogger(__name__)
 
@@ -164,17 +164,26 @@ class AIGateway:
         feature_prompt: str,
         user: User,
         include_core: bool = True,
+        feature_id: str = "",
     ) -> str:
         """
-        Merge the core prompt with a feature-specific prompt.
-        User customizations in User.settings["ai"] take precedence over defaults.
+        Merge the core prompt, the feature's co-author contract and the feature prompt.
+
+        The contract comes from the feature's class in the AI feature table, so it is
+        attached by the gateway rather than remembered by each builder. It survives a user
+        override of the core prompt: the core prompt is a matter of taste, the contract is
+        the product's promise that the author writes the book (doc 06 §5).
         """
         user_ai = (user.settings or {}).get("ai", {})
         core = user_ai.get("core_prompt") or CORE_SYSTEM_PROMPT
+        feature = FEATURES_BY_ID.get(feature_id)
+        contract = class_contract(feature.classification if feature else None)
 
-        if include_core:
-            return f"{core}\n\n---\n\n{feature_prompt}"
-        return feature_prompt
+        parts = [core] if include_core else []
+        if contract:
+            parts.append(contract)
+        parts.append(feature_prompt)
+        return "\n\n---\n\n".join(parts)
 
     async def stream(
         self,
@@ -197,7 +206,7 @@ class AIGateway:
           3. Calls on_complete(result) if provided
         """
         params = self._get_effective_params(user, llm_params)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
+        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or ollama_provider.model, user_url
@@ -279,7 +288,7 @@ class AIGateway:
         - success=False: result.raw_data has the parsed JSON (if any), result.raw_text has raw response
         """
         params = self._get_effective_params(user, llm_params)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt)
+        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or ollama_provider.model, user_url

@@ -1119,6 +1119,8 @@ export interface ScenePlanResponse {
   key_events: string[];
   characters_to_feature: { name: string; reason: string }[];
   threads_to_advance: { name: string; how: string }[];
+  /** What only the author can decide about this scene (doc 06 §5). */
+  questions?: string[];
 }
 
 export interface AnalysisSection {
@@ -1248,7 +1250,8 @@ export interface ShowDontTellInstance {
   severity: "strong" | "moderate" | "subtle";
   issue_type: "emotion" | "state" | "quality" | "exposition";
   explanation: string;
-  suggestion: string;
+  /** The question that points at the gap. Never a replacement sentence (doc 06 §5). */
+  question: string;
 }
 
 export interface ShowDontTellAnalysisResponse {

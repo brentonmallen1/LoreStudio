@@ -127,13 +127,13 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
             ))}
           </select>
           <button onClick={generate} disabled={generating} className={styles.generateBtn}>
-            {generating ? "Generating…" : "Generate"}
+            {generating ? "Suggesting…" : "Suggest"}
           </button>
         </div>
 
         <LLMContextSources sources={contextSources} />
 
-        {generating && <p className={styles.hint}>Generating suggestions…</p>}
+        {generating && <p className={styles.hint}>Looking at the profile…</p>}
 
         {!generating && result && (
           <div className={styles.result}>
@@ -150,14 +150,16 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
                       : "personality"}
               </button>
               <button onClick={generate} className={styles.regenerateBtn}>
-                Regenerate
+                Suggest again
               </button>
             </div>
           </div>
         )}
 
         {!generating && !result && (
-          <p className={styles.hint}>Select what to generate, then click Generate.</p>
+          <p className={styles.hint}>
+            Pick a field, then Suggest. Nothing is written to the profile until you apply it.
+          </p>
         )}
       </div>
     </>

@@ -98,7 +98,7 @@ Respond with a JSON object matching this exact schema:
       "severity": "strong | moderate | subtle",
       "issue_type": "emotion | state | quality | exposition",
       "explanation": "1 sentence explaining why this is telling and what it flattens",
-      "suggestion": "a concrete showing alternative (1-3 sentences) that maintains the author's intent"
+      "question": "one short question that would lead the author to show it instead (e.g. 'what do her hands do while she says this?')"
     }}
   ],
   "summary": "2-3 sentence overall assessment of the prose's showing vs telling balance",
@@ -112,7 +112,8 @@ Rules:
 - Output ONLY valid JSON. No markdown, no extra text.
 - instances: only flag passages worth revising — skip intentional stylistic telling
 - passage: must be a verbatim excerpt from the text above (keep it short — 10 words max)
-- suggestion: write it in the style and voice of the original prose
+- question: a question only. Never a replacement sentence, never "try something like…", never
+  a rewritten version of the passage. The author writes the prose; you point at the gap
 - strengths: 1-3 items, specific to this text
 - overall_rating: needs_work = many strong instances, fair = several moderate, good = mostly showing with minor lapses, excellent = exemplary showing throughout"""
 

@@ -1,11 +1,20 @@
+"""
+Sensory cues from reference images (doc 06 §5: was prose, now prompts).
+
+This feature used to ask for "atmospheric description… like a seasoned author's
+scene-setting paragraphs" and a "suggested opening sentence a writer could adapt" — a
+ghostwriter with extra steps. It now returns short cues per sense: enough to write from,
+never anything to paste.
+"""
+
 SCENE_ATMOSPHERE_SYSTEM = (
-    "You are a literary atmosphere consultant helping a fiction author. "
-    "You analyze reference images to synthesize evocative prose descriptions of atmosphere, mood, and setting. "
-    "Your descriptions should read like a seasoned author's scene-setting paragraphs, "
-    "not like an image caption or a photography report. "
-    "Draw on sensory detail: light, sound, texture, temperature, smell, emotional resonance. "
-    "The author will use your output as raw material — write generously and evocatively."
+    "You help a fiction author notice what is in their reference images. "
+    "You return short sensory cues — words and fragments, never sentences — that the author "
+    "will turn into their own prose. "
+    "You do not write description, opening lines, or anything that could be pasted into a manuscript."
 )
+
+_SENSES = ("Sight", "Sound", "Texture and temperature", "Smell and taste", "Movement")
 
 
 def build_scene_atmosphere_prompt(
@@ -19,15 +28,18 @@ def build_scene_atmosphere_prompt(
         parts.append(f"Scene title: {scene_title}")
     if scene_synopsis:
         parts.append(f"Scene synopsis: {scene_synopsis}")
+    senses = "\n".join(f"### {s}" for s in _SENSES)
     parts.append(
-        f"I'm providing {num_images} reference image{'s' if num_images != 1 else ''} for a scene I'm writing. "
-        "Please synthesize an atmospheric description that captures the mood, setting, and sensory qualities "
-        "these images evoke. Focus on:\n"
-        "- Light quality and how it feels (harsh, golden, oppressive, clean, mysterious)\n"
-        "- Textures and physical sensations the environment suggests\n"
-        "- Emotional tone — what does this place feel like to inhabit?\n"
-        "- Any specific details worth weaving into prose\n"
-        "- A short suggested opening sentence that a writer could adapt"
+        f"Here {'are' if num_images != 1 else 'is'} {num_images} reference "
+        f"image{'s' if num_images != 1 else ''} for a scene I am writing.\n\n"
+        "Give me sensory cues to write from, under these headings:\n\n"
+        f"{senses}\n\n"
+        "Rules:\n"
+        "- 5 to 8 cues per heading, each two to four words. Fragments, not sentences.\n"
+        "- Only what the images actually show or imply — no invented history, no story.\n"
+        "- Finish with one question about what this place should feel like to the "
+        "point-of-view character.\n"
+        "- Do not write description, an opening line, or any sentence I could paste."
     )
     if user_query:
         parts.append(f"\nAdditional request: {user_query}")

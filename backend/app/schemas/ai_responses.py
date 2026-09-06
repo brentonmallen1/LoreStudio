@@ -38,6 +38,8 @@ class ScenePlanResponse(BaseModel):
     key_events: list[str] = []
     characters_to_feature: list[CharacterFeatureSuggestion] = []
     threads_to_advance: list[ThreadAdvanceSuggestion] = []
+    #: What only the author can decide — the planner asks rather than assuming (doc 06 §5).
+    questions: list[str] = []
 
 
 # ── Economy Analysis ──────────────────────────────────────────────────────────
@@ -283,7 +285,7 @@ class ShowDontTellInstance(BaseModel):
     severity: str = "moderate"  # strong | moderate | subtle
     issue_type: str = ""  # emotion | state | quality | exposition
     explanation: str = ""  # Why this is telling
-    suggestion: str = ""  # A "showing" alternative
+    question: str = ""  # The question that leads the author to show it (never a rewrite)
 
 
 class ShowDontTellAnalysisResponse(BaseModel):

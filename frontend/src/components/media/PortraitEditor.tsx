@@ -5,11 +5,14 @@ import type { StoryAsset, AssetAttachment } from "../../types";
 import styles from "./PortraitEditor.module.css";
 
 export interface CharacterImageDescription {
+  /** Short phrases naming what is actually visible in the image. */
+  observations?: string[] | string;
   appearance: string;
   personality: string;
   voice: string;
   age_estimate: string;
-  backstory_hints: string;
+  /** Questions the image raises that only the author can answer. */
+  questions?: string[] | string;
 }
 
 interface Props {

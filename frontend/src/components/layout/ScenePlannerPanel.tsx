@@ -6,6 +6,7 @@
  */
 import { useState, useRef, useEffect } from "react";
 import {
+  HelpCircle,
   X,
   Map,
   User2,
@@ -89,6 +90,13 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
     type: "sublist",
     labelField: "name",
     descField: "how",
+  },
+  {
+    key: "questions",
+    label: "Worth Deciding",
+    icon: HelpCircle,
+    color: "var(--color-text-muted)",
+    type: "list",
   },
 ];
 

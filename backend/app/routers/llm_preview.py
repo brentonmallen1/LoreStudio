@@ -26,8 +26,8 @@ from ..services.llm.prompts.generation import (
 from ..services.llm.prompts.interviews import (
     build_character_interview_system_prompt,
     build_interview_summary_prompt,
-    build_panel_interview_system_prompt,
 )
+from ..services.llm.prompts.panel import build_panel_character_prompt
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 
 router = APIRouter()
@@ -198,7 +198,21 @@ def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
             raise HTTPException(status_code=404, detail="Panel not found")
         _get_story(panel.story_id)  # ownership check
         characters = [c for c in (db.get(Character, cid) for cid in panel.character_ids) if c]
-        system_prompt = build_panel_interview_system_prompt(characters)
+        if not characters:
+            raise HTTPException(status_code=400, detail="Panel has no characters")
+        # A panel is not one prompt: each member is asked separately, with their own
+        # persona and the room around them. Preview the first speaker's prompt — the
+        # shape every member gets — rather than a combined prompt nothing sends.
+        relationships = (
+            db.query(CharacterRelationship)
+            .filter(
+                CharacterRelationship.character_id.in_([c.id for c in characters])
+                | CharacterRelationship.related_character_id.in_([c.id for c in characters])
+            )
+            .all()
+        )
+        speaker, others = characters[0], characters[1:]
+        system_prompt = build_panel_character_prompt(speaker, others, relationships)
         if not user_message:
             user_message = "[your message to the panel]"
         for char in characters:

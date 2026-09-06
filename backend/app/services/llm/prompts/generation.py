@@ -23,11 +23,13 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
 
     profile = "\n".join(existing) if existing else "No profile information yet."
 
+    # Three short options per field, never a finished paragraph: the author picks one and
+    # writes it in their own words (doc 06 §5).
     type_prompts = {
-        "traits": "Suggest 5 distinctive character traits as key: value pairs (e.g. 'stubbornness: refuses to back down even when wrong'). Make them specific and narratively interesting.",
-        "backstory": "Suggest 3-5 specific backstory elements: formative events, relationships, or experiences that shaped this character. Be concrete and evocative.",
-        "quirks": "Suggest 4-6 behavioral quirks, habits, or mannerisms that make this character distinctive and memorable in scenes.",
-        "appearance": "Suggest a vivid, specific physical description that reflects the character's personality and life experiences. 2-3 paragraphs.",
+        "traits": "Suggest 3 distinctive traits as key: value pairs (e.g. 'stubbornness: refuses to back down even when wrong'). One line each.",
+        "backstory": "Suggest 3 formative events or relationships that could have shaped this character. One line each — the event, not the telling of it.",
+        "quirks": "Suggest 3 behavioural quirks, habits or mannerisms that would show up in a scene. One line each.",
+        "appearance": "Suggest 3 physical details that reflect this character's life so far. One or two sentences each — details, not a portrait.",
     }
 
     type_instruction = type_prompts.get(attribute_type, f"Suggest attributes for: {attribute_type}")
@@ -36,8 +38,7 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
         f"You are helping an author develop the character {character.name} (role: {character.role}).\n\n"
         f"Existing profile:\n{profile}\n\n"
         f"Task: {type_instruction}\n\n"
-        "Be specific and vivid. Avoid generic descriptions. "
-        "Suggestions should feel organic given the character's existing profile.\n\n"
+        "Be specific. Avoid generic descriptions. Suggestions should follow from the profile above.\n\n"
         "Respond with a JSON object matching this exact schema:\n"
         "{\n"
         '  "suggestions": [\n'
@@ -48,7 +49,9 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
         "Rules:\n"
         "- Output ONLY valid JSON. No markdown, no extra text before or after.\n"
         "- Each suggestion: text is the concrete suggestion, rationale is 1 sentence explaining why it fits.\n"
-        "- Include the number of suggestions specified in the task above."
+        "- Exactly 3 suggestions. Keep each to two sentences at most — the author will rewrite\n"
+        "  whichever they keep, so a finished paragraph is wasted work.\n"
+        "- Do not write prose the author could paste into a scene."
     )
 
 

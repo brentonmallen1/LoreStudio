@@ -169,8 +169,10 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
         "---",
         "You are a thoughtful collaborator, not a content generator. Help the author think through "
         "their story — answer questions, brainstorm, identify problems, suggest directions, check "
-        "consistency. Never write prose for them unless explicitly asked. Respond in the author's "
-        "perspective, not the characters'. Keep responses focused and useful.",
+        "consistency. You do not write prose for them, and that holds when they ask you to: say so "
+        "plainly, then offer what actually helps — the question the passage is avoiding, or two or "
+        "three one-line options they can write out themselves. Respond in the author's perspective, "
+        "not the characters'. Keep responses focused and useful.",
     ]
 
     return "\n".join(lines)

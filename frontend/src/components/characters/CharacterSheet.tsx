@@ -428,15 +428,18 @@ export default function CharacterSheet() {
               </div>
               <div className={styles.portraitDescBody}>
                 {[
+                  { label: "Visible in the image", value: portraitDesc.observations },
                   { label: "Appearance", value: portraitDesc.appearance },
                   { label: "Personality", value: portraitDesc.personality },
                   { label: "Voice", value: portraitDesc.voice },
                   { label: "Age", value: portraitDesc.age_estimate },
-                  { label: "Backstory Hints", value: portraitDesc.backstory_hints },
+                  { label: "Worth deciding", value: portraitDesc.questions },
                 ].map(({ label, value }) => (
                   <div key={label} className={styles.portraitDescField}>
                     <span className={styles.portraitDescLabel}>{label}</span>
-                    <span className={styles.portraitDescValue}>{value}</span>
+                    <span className={styles.portraitDescValue}>
+                      {Array.isArray(value) ? value.join(" · ") : value}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -508,7 +511,7 @@ export default function CharacterSheet() {
                 <div className={styles.toolCardBody}>
                   <span className={styles.toolCardLabel}>Suggest Attributes</span>
                   <span className={styles.toolCardDesc}>
-                    Generate traits, backstory, quirks, or appearance
+                    Suggest traits, backstory, quirks, or appearance
                   </span>
                 </div>
                 <Compass size={14} className={styles.toolCardCompass} />

@@ -44,11 +44,11 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "character-attributes": {
     id: "character-attributes",
-    label: "Attribute Generation",
+    label: "Attribute Suggestions",
     type: "ai",
-    shortDescription: "Generate traits, backstory, quirks, or appearance",
+    shortDescription: "Three short options for traits, backstory, quirks or appearance",
     fullDescription:
-      "Suggests specific traits, backstory details, quirks, or appearance notes grounded in the character's existing profile.",
+      "Offers three short options for one profile field, each with the reason it fits, grounded in what the profile already says. Nothing is written to the character until you apply it.",
     contextSources: ["Character name, role, personality", "Existing traits & background", "Story context"],
     backendFeatureId: "character-attributes",
   },

@@ -58,7 +58,7 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
       </button>
       <button onClick={handleGenerate} disabled={starting} className={styles.generateBtn}>
         <Wand2 size={13} />
-        {starting ? "Opening…" : "Generate Suggestions"}
+        {starting ? "Opening…" : "Suggest attributes"}
       </button>
     </>
   );
