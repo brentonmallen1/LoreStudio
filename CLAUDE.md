@@ -117,7 +117,10 @@ types/index.ts    — All shared TypeScript interfaces
 ## Key Patterns
 
 ### CSS design tokens
-All colors use CSS custom properties defined in `frontend/src/index.css`. Dark mode adds a `.dark` class to `<html>`. Never hardcode colors — always use `var(--color-*)`. Segment type colors use `var(--segment-act)`, `var(--segment-chapter)`, etc. Both light and dark variants are defined.
+All colors use CSS custom properties. Shared tokens live in `frontend/src/themes/base.css`; each
+palette is `frontend/src/themes/<name>.css` with `[data-theme="<name>"]` and `[data-theme="<name>"].dark`
+blocks (`uiStore` sets `data-theme` on `<html>`; dark mode adds `.dark`). `src/themes/contrast.test.ts`
+holds every palette to WCAG AA and runs in CI: change a token, run the test. Never hardcode colors — always use `var(--color-*)`. Segment type colors use `var(--segment-act)`, `var(--segment-chapter)`, etc. Both light and dark variants are defined.
 
 **AI color:** Use `var(--color-ai)` (purple) for all AI-related UI elements — icons, buttons, highlights, borders. Never use `var(--color-accent)` (warm orange) for anything AI-related.
 
@@ -140,6 +143,21 @@ JWT token stored in `localStorage` as `ls_token`. Sent as `Authorization: Bearer
 
 ### Character interviews
 The character's full profile becomes the LLM system prompt — the character IS the persona, not injected as context. This keeps interviews feeling like talking to the character rather than about them.
+
+### Single-source lists (decision D11)
+- Keyboard shortcuts: `frontend/src/lib/keyboard/shortcuts.ts` (`matchesCombo`, `formatCombo`). Never
+  hard-code a key combo in a component or a title string.
+- Story pages: `frontend/src/lib/routes.ts` (sidebar, palette nav commands, ModeGate).
+- Settings sections: `frontend/src/pages/settings/sections.ts` (side nav, deep links, palette).
+- Guides: `frontend/src/guides/index.ts` (+ one `.md` per guide).
+`lib/commands/coverage.test.ts` fails when a route, section, shortcut or guide has no palette command.
+Navigate from non-React code with `lib/navigation.ts` (`navigateTo`), never `window.location`.
+
+### Undo / redo
+Server-side change log (`backend/app/services/change_log.py`, table `changes`). Any route that mutates
+story data records a change in the same transaction (`record`, `record_update`, `record_row_create`,
+`record_row_delete`, `capture_*`). Prose content edits are logged but not undoable (TipTap history).
+Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`.
 
 ### Writer and Studio modes
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,
