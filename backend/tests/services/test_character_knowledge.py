@@ -343,3 +343,52 @@ def test_an_unsynced_story_still_answers(db_session, test_user):
 
     scope = build_scope(elena, db_session)
     assert [s.title for s in scope.scenes] == ["The Lamp Room"]
+
+
+def test_an_unconfirmed_suggestion_is_not_something_a_character_knows(db_session, test_user):
+    """
+    A model's proposal is a question for the author (doc 07 §2). Until it is confirmed it
+    must not put a character in a room or a fact in their head — which is the whole reason
+    `llm` is a separate source.
+    """
+    from datetime import UTC, datetime
+
+    from app.models.codex import CodexEdge, CodexNode
+    from app.services.codex.sync import sync_story
+
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    scene = _scene(db_session, story, "The Mainland", 0, content="The keeper watched the water")
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    def node(ref_id):
+        return db_session.query(CodexNode).filter(CodexNode.ref_id == ref_id).one()
+
+    fact = CodexNode(story_id=story.id, kind="fact", ref_id="proposed", label="The lamp had been out for three nights")
+    db_session.add(fact)
+    db_session.flush()
+    suggestion = CodexEdge(
+        story_id=story.id,
+        src_id=node(elena.id).id,
+        dst_id=node(scene.id).id,
+        kind="present_in",
+        props={"basis": "llm", "role": "participant"},
+        source="llm",
+    )
+    knows = CodexEdge(story_id=story.id, src_id=node(elena.id).id, dst_id=fact.id, kind="knows", source="llm")
+    db_session.add_all([suggestion, knows])
+    db_session.commit()
+
+    scope = build_scope(elena, db_session)
+    assert scope.scenes == []
+    assert scope.facts == []
+
+    # Confirming it in the review queue is what makes it count.
+    suggestion.confirmed_at = datetime.now(UTC).replace(tzinfo=None)
+    knows.confirmed_at = datetime.now(UTC).replace(tzinfo=None)
+    db_session.commit()
+
+    confirmed = build_scope(elena, db_session)
+    assert [s.title for s in confirmed.scenes] == ["The Mainland"]
+    assert [f["subject"] for f in confirmed.facts] == ["The lamp had been out for three nights"]
