@@ -25,3 +25,8 @@ updates:
     directories: [/backend, /frontend]
     schedule:
       interval: weekly
+    ignore:
+      # Python minor bumps change the interpreter the lockfile was resolved for and often
+      # precede wheel availability (spaCy, numpy). Take them deliberately, not automatically.
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]

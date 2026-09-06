@@ -1,4 +1,6 @@
-FROM python:3.14-slim
+# Pinned to the Python the lockfile and CI run on. spaCy and friends publish wheels for new
+# CPython releases months later; a base-image bump must be tested locally first (see dependabot.yml).
+FROM python:3.13-slim
 
 WORKDIR /app
 
