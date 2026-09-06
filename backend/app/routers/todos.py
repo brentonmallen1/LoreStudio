@@ -8,6 +8,7 @@ from ..models.structure import StructureNode
 from ..models.todo import StoryTodo
 from ..models.user import User
 from ..schemas.todo import ReorderPayload, TodoCreate, TodoOut, TodoUpdate
+from ..services import change_log
 
 router = APIRouter()
 
@@ -72,6 +73,7 @@ def create_todo(
     body: TodoCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
 
@@ -87,6 +89,17 @@ def create_todo(
         **body.model_dump(exclude={"position"}),
     )
     db.add(todo)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        todo,
+        "story_todos",
+        entity_type="todo",
+        story_id=story_id,
+        label=f"Add TODO “{(todo.content or '')[:40]}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(todo)
     return _serialize(todo)
@@ -133,9 +146,21 @@ def update_todo(
     body: TodoUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     todo = _verify_todo(todo_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        todo,
+        data,
+        entity_type="todo",
+        story_id=todo.story_id,
+        label=f"Edit TODO “{(todo.content or '')[:40]}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(todo, key, value)
     db.commit()
     db.refresh(todo)
@@ -147,8 +172,19 @@ def delete_todo(
     todo_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     todo = _verify_todo(todo_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        todo,
+        "story_todos",
+        entity_type="todo",
+        story_id=todo.story_id,
+        label=f"Delete TODO “{(todo.content or '')[:40]}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(todo)
     db.commit()
 
@@ -162,12 +198,29 @@ def reorder_todos(
     body: ReorderPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
+    before = change_log.reorder_snapshot(StoryTodo, list(body.todo_ids), db)
     for idx, todo_id in enumerate(body.todo_ids):
         todo = db.get(StoryTodo, todo_id)
         if todo and todo.story_id == story_id:
             todo.position = idx
+    db.flush()
+    after = change_log.reorder_snapshot(StoryTodo, list(body.todo_ids), db)
+    if before != after:
+        change_log.record(
+            db,
+            story_id=story_id,
+            entity_type="todo",
+            entity_id=story_id,
+            action="reorder",
+            before=before,
+            after=after,
+            label="Reorder TODOs",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
     db.commit()
     todos = (
         db.query(StoryTodo)

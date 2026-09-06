@@ -17,7 +17,6 @@ import {
   Square,
   X,
   Star,
-  Library,
   Feather,
 } from "lucide-react";
 import { api } from "../api/client";
@@ -29,11 +28,13 @@ import type {
   ChronicleSearchResult,
   ChronicleMessage,
 } from "../types";
+import ChangesView from "../components/chronicle/ChangesView";
+import ChronicleTabs from "../components/chronicle/ChronicleTabs";
 import styles from "./ChroniclePage.module.css";
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-type ViewTab = "chats" | "activity" | "summaries" | "search";
+import type { ViewTab } from "../components/chronicle/ChronicleTabs";
 
 // Features that surface in the Summaries tab
 const SUMMARY_FEATURES = [
@@ -561,30 +562,14 @@ export default function ChroniclePage() {
         {/* ── Filters sidebar ── */}
         <aside className={styles.filters}>
           <p className={styles.filterLabel}>View</p>
-          {(["chats", "activity", "summaries"] as ViewTab[]).map((t) => (
-            <button
-              key={t}
-              className={`${styles.filterBtn} ${tab === t ? styles.activeFilter : ""}`}
-              onClick={() => {
-                setTab(t);
-                setSearchQuery("");
-              }}
-            >
-              {t === "chats" ? (
-                <MessageSquare size={12} />
-              ) : t === "summaries" ? (
-                <Library size={12} />
-              ) : (
-                <Activity size={12} />
-              )}
-              <span style={{ flex: 1 }}>
-                {t === "chats" ? "Conversations" : t === "summaries" ? "Summaries" : "Activity"}
-              </span>
-              <span className={styles.tabCount}>
-                {t === "chats" ? totalSessions : t === "summaries" ? totalSummaries : totalLogs}
-              </span>
-            </button>
-          ))}
+          <ChronicleTabs
+            tab={tab}
+            counts={{ chats: totalSessions, activity: totalLogs, summaries: totalSummaries }}
+            onSelect={(t) => {
+              setTab(t);
+              setSearchQuery("");
+            }}
+          />
 
           {tab === "summaries" && (
             <>
@@ -638,6 +623,7 @@ export default function ChroniclePage() {
               interviews, and group panels. Each session is tied to a specific context and can be resumed.
             </p>
           )}
+          {tab === "changes" && storyId && <ChangesView storyId={storyId} />}
           {tab === "activity" && (
             <p className={styles.tabBlurb}>
               Activity logs every task the AI executes on your behalf — generating suggestions, summarizing

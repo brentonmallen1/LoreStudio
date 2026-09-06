@@ -140,3 +140,45 @@ def test_outline_item_undo(client):
     client.delete(f"/api/outline-items/{item['id']}", headers=H1)
     client.post(f"/api/stories/{sid}/undo", headers=H1)
     assert len(client.get(f"/api/outlines/{outline['id']}").json()["items"]) == 1
+
+
+def test_story_relationship_todo_location_undo(client):
+    sid = _story(client)
+    # story identity
+    client.patch(f"/api/stories/{sid}", json={"logline": "A keeper hides a letter."}, headers=H1)
+    assert "logline" in client.get(f"/api/stories/{sid}/undo/state", headers=H1).json()["undo_label"]
+    client.post(f"/api/stories/{sid}/undo", headers=H1)
+    assert client.get(f"/api/stories/{sid}").json()["logline"] == ""
+    # relationship
+    a = client.post(f"/api/stories/{sid}/characters", json={"name": "Mara"}).json()
+    b = client.post(f"/api/stories/{sid}/characters", json={"name": "Tomas"}).json()
+    rel = client.post(
+        f"/api/characters/{a['id']}/relationships",
+        json={"related_character_id": b["id"], "relationship_type": "rival"},
+        headers=H1,
+    ).json()
+    client.delete(f"/api/characters/relationships/{rel['id']}", headers=H1)
+    assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"].startswith("Delete relationship")
+    assert len(client.get(f"/api/characters/{a['id']}/relationships").json()) == 1
+    # todos: create, edit, reorder
+    t1 = client.post(f"/api/stories/{sid}/todos", json={"content": "one"}, headers=H1).json()
+    t2 = client.post(f"/api/stories/{sid}/todos", json={"content": "two"}, headers=H1).json()
+    client.post(f"/api/stories/{sid}/todos/reorder", json={"todo_ids": [t2["id"], t1["id"]]}, headers=H1)
+    assert client.get(f"/api/todos/{t1['id']}").json()["position"] == 1
+    assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"] == "Reorder TODOs"
+    assert client.get(f"/api/todos/{t1['id']}").json()["position"] == 0
+    client.patch(f"/api/todos/{t1['id']}", json={"done": True}, headers=H1)
+    client.post(f"/api/stories/{sid}/undo", headers=H1)
+    assert client.get(f"/api/todos/{t1['id']}").json()["done"] is False
+    # location with a child and a scene setting
+    scene = _scene(client, sid, "S")
+    parent = client.post(f"/api/stories/{sid}/locations", json={"name": "Island"}, headers=H1).json()
+    child = client.post(
+        f"/api/stories/{sid}/locations", json={"name": "Tower", "parent_id": parent["id"]}, headers=H1
+    ).json()
+    client.post("/api/scene-settings", json={"location_id": child["id"], "node_id": scene["id"], "role": "primary"})
+    assert client.delete(f"/api/locations/{parent['id']}", headers=H1).status_code == 204
+    assert client.get(f"/api/locations/{child['id']}").status_code == 404
+    assert client.post(f"/api/stories/{sid}/undo", headers=H1).status_code == 200
+    assert client.get(f"/api/locations/{child['id']}").status_code == 200
+    assert len(client.get(f"/api/structure/{scene['id']}/scene-settings").json()) == 1

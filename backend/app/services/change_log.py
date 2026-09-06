@@ -24,11 +24,13 @@ from ..models.change import Change
 from ..models.character import Character, CharacterRelationship
 from ..models.dialogue import DialogueBlock
 from ..models.interview import CharacterInterview
-from ..models.location import SceneSetting
+from ..models.location import Location, SceneSetting
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThreadAppearance
 from ..models.scene_link import SceneLink
+from ..models.story import Story
 from ..models.structure import StructureNode
+from ..models.todo import StoryTodo
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
 ENTITY_MODELS: dict[str, type] = {
@@ -37,10 +39,14 @@ ENTITY_MODELS: dict[str, type] = {
     "character_relationship": CharacterRelationship,
     "outline": Outline,
     "outline_item": OutlineItem,
+    "story": Story,
+    "location": Location,
+    "todo": StoryTodo,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
 BUNDLE_MODELS: dict[str, type] = {
+    "locations": Location,
     "structure_nodes": StructureNode,
     "scene_settings": SceneSetting,
     "scene_links": SceneLink,
@@ -51,6 +57,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "character_interviews": CharacterInterview,
     "outlines": Outline,
     "outline_items": OutlineItem,
+    "story_todos": StoryTodo,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000
@@ -205,6 +212,76 @@ def capture_character(character: Character, db: Session) -> dict[str, list[dict]
     }
 
 
+def capture_location(location: Location, db: Session) -> dict[str, list[dict]]:
+    rows: list[Location] = []
+
+    def walk(loc: Location) -> None:
+        rows.append(loc)
+        for c in loc.children or []:
+            walk(c)
+
+    walk(location)
+    ids = [r.id for r in rows]
+    return {
+        "locations": [_row(r) for r in rows],
+        "scene_settings": [_row(s) for s in db.query(SceneSetting).filter(SceneSetting.location_id.in_(ids)).all()],
+    }
+
+
+def record_update(db: Session, obj, data: dict, *, entity_type: str, story_id: str, label: str, actor_id, client_id):
+    """Diff ``data`` against ``obj`` and record an update if anything changes. Returns the after-dict."""
+    before, after = diff_fields(obj, data)
+    if before:
+        record(
+            db,
+            story_id=story_id,
+            entity_type=entity_type,
+            entity_id=obj.id,
+            action="update",
+            before=before,
+            after=after,
+            label=label.format(fields=", ".join(sorted(after))),
+            actor_id=actor_id,
+            client_id=client_id,
+        )
+    return after
+
+
+def record_row_delete(
+    db: Session, obj, table: str, *, entity_type: str, story_id: str, label: str, actor_id, client_id
+):
+    """Record the deletion of one row that has no dependants."""
+    record(
+        db,
+        story_id=story_id,
+        entity_type=entity_type,
+        entity_id=obj.id,
+        action="delete",
+        before={table: [_row(obj)]},
+        after=None,
+        label=label,
+        actor_id=actor_id,
+        client_id=client_id,
+    )
+
+
+def record_row_create(
+    db: Session, obj, table: str, *, entity_type: str, story_id: str, label: str, actor_id, client_id
+):
+    record(
+        db,
+        story_id=story_id,
+        entity_type=entity_type,
+        entity_id=obj.id,
+        action="create",
+        before=None,
+        after={table: [_row(obj)]},
+        label=label,
+        actor_id=actor_id,
+        client_id=client_id,
+    )
+
+
 def capture_outline(outline: Outline, db: Session) -> dict[str, list[dict]]:
     items = db.query(OutlineItem).filter(OutlineItem.outline_id == outline.id).all()
     return {"outlines": [_row(outline)], "outline_items": [_row(i) for i in items]}
@@ -257,8 +334,11 @@ def _apply_fields(model, entity_id: str, expected: dict | None, values: dict, db
 
 def reorder_snapshot(model, ids: list[str], db: Session) -> list[dict]:
     """Current parent/position/level of the given rows (for before/after of a reorder)."""
-    rows = db.query(model).filter(model.id.in_(ids)).all() if ids else []
-    return [{"id": r.id, "parent_id": r.parent_id, "position": r.position, "level": r.level} for r in rows]
+    rows = db.query(model).filter(getattr(model, "id").in_(ids)).all() if ids else []
+    return [
+        {k: getattr(r, k) for k in ("id", "parent_id", "position", "level") if hasattr(r, k)}
+        for r in sorted(rows, key=lambda r: ids.index(r.id))
+    ]
 
 
 def _apply_reorder(model, ops: list[dict], db: Session) -> None:
@@ -266,10 +346,9 @@ def _apply_reorder(model, ops: list[dict], db: Session) -> None:
         row = db.get(model, op["id"])
         if not row:
             continue
-        row.parent_id = op["parent_id"]
-        row.position = op["position"]
-        if "level" in op:
-            row.level = op["level"]
+        for key in ("parent_id", "position", "level"):
+            if key in op and hasattr(row, key):
+                setattr(row, key, op[key])
     db.flush()
 
 
@@ -284,6 +363,8 @@ def _capture_current(model, entity_id: str, db: Session) -> dict[str, list[dict]
         return capture_character(obj, db)
     if model is Outline:
         return capture_outline(obj, db)
+    if model is Location:
+        return capture_location(obj, db)
     table = next((t for t, m in BUNDLE_MODELS.items() if m is model), None)
     return {table: [_row(obj)]} if table else None
 

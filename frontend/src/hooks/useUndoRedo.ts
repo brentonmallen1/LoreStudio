@@ -16,21 +16,23 @@ const EMPTY: UndoState = { can_undo: false, undo_label: null, can_redo: false, r
  */
 export function useUndoRedo() {
   const storyId = useStoryStore((s) => s.activeStory?.id ?? null);
-  const [state, setState] = useState<UndoState>(EMPTY);
+  const [rawState, setState] = useState<UndoState>(EMPTY);
+  const state = storyId ? rawState : EMPTY;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!storyId) return setState(EMPTY);
+    if (!storyId) return;
     try {
-      setState(await toolsApi.undoState(storyId));
+      const next = await toolsApi.undoState(storyId);
+      setState(next);
     } catch {
       setState(EMPTY);
     }
   }, [storyId]);
 
   useEffect(() => {
-    refresh();
+    if (storyId) toolsApi.undoState(storyId).then(setState, () => setState(EMPTY));
     let timer: ReturnType<typeof setTimeout> | null = null;
     const onMutation = () => {
       if (timer) clearTimeout(timer);
@@ -43,7 +45,7 @@ export function useUndoRedo() {
       window.removeEventListener("focus", refresh);
       if (timer) clearTimeout(timer);
     };
-  }, [refresh]);
+  }, [refresh, storyId]);
 
   async function applyResult(result: UndoResult) {
     if (!storyId) return;
@@ -58,8 +60,10 @@ export function useUndoRedo() {
           if (e instanceof ApiError && e.status === 404) store.setActiveNode(null);
         }
       }
-    } else if (result.entity_type === "character") {
+    } else if (result.entity_type === "character" || result.entity_type === "character_relationship") {
       store.setCharacters(await api.listCharacters(storyId));
+    } else if (result.entity_type === "story") {
+      store.setActiveStory(await api.getStory(storyId));
     }
     window.dispatchEvent(new CustomEvent(UNDO_APPLIED_EVENT, { detail: result }));
   }

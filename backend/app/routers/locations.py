@@ -18,6 +18,7 @@ from ..schemas.location import (
     SceneSettingCreate,
     SceneSettingOut,
 )
+from ..services import change_log
 
 router = APIRouter()
 
@@ -100,10 +101,22 @@ def create_location(
     body: LocationCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     location = Location(story_id=story_id, **body.model_dump())
     db.add(location)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        location,
+        "locations",
+        entity_type="location",
+        story_id=story_id,
+        label=f"Add location {location.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(location)
     return location
@@ -124,9 +137,21 @@ def update_location(
     body: LocationUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     location = _verify_location_access(location_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        location,
+        data,
+        entity_type="location",
+        story_id=location.story_id,
+        label=f"Edit {{fields}} on location {location.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(location, key, value)
     db.commit()
     db.refresh(location)
@@ -138,8 +163,21 @@ def delete_location(
     location_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     location = _verify_location_access(location_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=location.story_id,
+        entity_type="location",
+        entity_id=location.id,
+        action="delete",
+        before=change_log.capture_location(location, db),
+        after=None,
+        label=f"Delete location {location.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(location)
     db.commit()
 

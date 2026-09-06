@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, ChevronRight, ChevronDown, Trash2, MapPin, Compass, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
+import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import type { Location, SceneSetting } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
@@ -185,6 +186,13 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
 
   useEffect(() => {
     load();
+    // Undo/redo may have re-created or removed locations server-side.
+    const onUndo = (e: Event) => {
+      const d = (e as CustomEvent).detail as { entity_type?: string } | undefined;
+      if (!d || d.entity_type === "location") load();
+    };
+    window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
+    return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
   }, [load]);
 
   useEffect(() => {

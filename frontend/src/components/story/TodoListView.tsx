@@ -13,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import type { StoryTodo, StructureNode } from "../../types";
@@ -344,6 +345,15 @@ export default function TodoListView() {
       setLoading(false);
     }
   }, [storyId]);
+
+  useEffect(() => {
+    const onUndo = (e: Event) => {
+      const d = (e as CustomEvent).detail as { entity_type?: string } | undefined;
+      if (!d || d.entity_type === "todo") loadTodos();
+    };
+    window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
+    return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
+  }, [loadTodos]);
 
   useEffect(() => {
     loadTodos();

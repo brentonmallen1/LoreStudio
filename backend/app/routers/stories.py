@@ -57,11 +57,23 @@ def update_story(
     body: StoryUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
-    for key, value in body.model_dump(exclude_unset=True).items():
+    data = body.model_dump(exclude_unset=True)
+    change_log.record_update(
+        db,
+        story,
+        data,
+        entity_type="story",
+        story_id=story.id,
+        label="Edit story {fields}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(story, key, value)
     db.commit()
     db.refresh(story)
