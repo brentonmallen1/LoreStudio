@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import ActivityLogCard from "../components/chronicle/ActivityLogCard";
+import JobsView from "../components/chronicle/JobsView";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
@@ -514,6 +515,8 @@ export default function ChroniclePage() {
               interviews, and group panels. Each session is tied to a specific context and can be resumed.
             </p>
           )}
+          {tab === "jobs" && <JobsView storyId={storyId} />}
+
           {tab === "changes" && storyId && <ChangesView storyId={storyId} />}
           {tab === "activity" && (
             <p className={styles.tabBlurb}>

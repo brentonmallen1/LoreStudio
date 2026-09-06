@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from ..database import Base
 
 if TYPE_CHECKING:
+    from .ai_job import AIJob
     from .calendar import Calendar
     from .character import Character
     from .chat_session import ChatSession
@@ -156,3 +157,4 @@ class Story(Base):
     assets: Mapped[list["StoryAsset"]] = relationship(
         "StoryAsset", back_populates="story", cascade="all, delete-orphan"
     )
+    ai_jobs: Mapped[list["AIJob"]] = relationship("AIJob", back_populates="story", cascade="all, delete-orphan")

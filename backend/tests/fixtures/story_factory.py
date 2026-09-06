@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     ActivityLog,
+    AIJob,
     AssetAttachment,
     Calendar,
     Character,
@@ -164,6 +165,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.flush()
     db.add(ChatMessage(id=_uid(), session_id=session.id, role="user", content="hi"))
     db.add(ActivityLog(id=_uid(), user_id=user.id, story_id=sid, event_type="test", category="ai", description="x"))
+    db.add(AIJob(id=_uid(), user_id=user.id, story_id=sid, kind="scene-summaries", label="Scene summaries"))
 
     db.commit()
     db.refresh(story)

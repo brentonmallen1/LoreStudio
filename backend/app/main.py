@@ -34,6 +34,7 @@ from .routers.health import router as health_router
 from .routers.history import router as history_router
 from .routers.import_router import router as import_router
 from .routers.interviews import router as interviews_router
+from .routers.jobs import router as jobs_router
 from .routers.llm_preview import router as llm_preview_router
 from .routers.llm_settings import router as llm_settings_router
 from .routers.location_travel import router as location_travel_router
@@ -65,6 +66,7 @@ from .services.ai_call_log import prune_payloads
 from .services.change_log import prune_all
 from .services.db_backup import backup_loop
 from .services.db_migrate import run_migrations
+from .services.job_queue import recover_interrupted, worker_loop
 from .services.llm.gateway import AIDisabledError
 from .services.seed import (
     seed_admin,
@@ -120,9 +122,15 @@ async def lifespan(app: FastAPI):
         payloads = prune_payloads(db, settings.ai_payload_retention_days)
         if payloads:
             logger.info("AI call payloads pruned: %d rows", payloads)
+        interrupted = recover_interrupted(db)
+        if interrupted:
+            logger.info("AI jobs interrupted by the last shutdown: %d", interrupted)
     backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
+    # One worker, in this process: a single container stays a single container.
+    job_task = asyncio.create_task(worker_loop(engine))
     logger.info("startup complete (env=%s)", settings.env)
     yield
+    job_task.cancel()
     if backup_task:
         backup_task.cancel()
 
@@ -187,6 +195,7 @@ app.include_router(system_router, prefix="/api", tags=["system"])
 app.include_router(prose_tools_router, prefix="/api", tags=["prose-tools"])
 app.include_router(changes_router, prefix="/api", tags=["changes"])
 app.include_router(ai_calls_router, prefix="/api", tags=["ai-calls"])
+app.include_router(jobs_router, prefix="/api", tags=["jobs"])
 app.include_router(editorial_router, prefix="/api", tags=["editorial"])
 
 

@@ -1,0 +1,90 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.empty {
+  margin: 1.5rem auto;
+  max-width: 44ch;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.card {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.icon {
+  color: var(--color-ai);
+  padding-top: 0.15rem;
+}
+
+.spin {
+  animation: spin 1.4s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--color-text);
+}
+
+.meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.74rem;
+  color: var(--color-text-subtle);
+}
+
+.status {
+  color: var(--color-text-muted);
+}
+
+.running,
+.queued {
+  color: var(--color-ai);
+}
+
+.error {
+  margin: 0.25rem 0 0;
+  font-size: 0.76rem;
+  color: var(--color-danger);
+}
+
+.result {
+  margin: 0.25rem 0 0;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+}
+
+.cancelBtn {
+  border: none;
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: 0.15rem;
+  line-height: 0;
+}
+
+.cancelBtn:hover {
+  color: var(--color-text);
+}

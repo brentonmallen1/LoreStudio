@@ -1,5 +1,3 @@
-from datetime import UTC
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -68,6 +66,7 @@ from ..services.nlp_analysis_service import (
     analyze_scene_editorial,
     extract_unknown_entities,
 )
+from ..services.scene_summaries import refresh_scene_summaries
 from ..services.word_count import WORD_COUNT_RANGES
 
 router = APIRouter()
@@ -1904,137 +1903,26 @@ async def summarize_scenes_batch(
     """
     Generate AI summaries for all scenes with stale or missing summaries.
 
-    Skips scenes without prose content. Optionally restricted to scenes
-    up to a specific node (useful when preparing context for a character interview).
+    Runs inline and holds the request open. For a whole manuscript, queue it instead
+    (POST /stories/{id}/jobs/scene-summaries), which reports progress and can be stopped.
     """
-    from datetime import datetime
-
-    from ..services.llm.prompts.summaries import build_scene_summary_prompt
-
     _get_story(story_id, db, current_user)
-
-    # Gather all leaf nodes (scenes) for the story
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-
-    # Build position-ordered leaf list
-    children_map: dict[str, list[StructureNode]] = {}
-    roots: list[StructureNode] = []
-    for n in all_nodes:
-        if n.parent_id:
-            children_map.setdefault(n.parent_id, []).append(n)
-        else:
-            roots.append(n)
-
-    def _flatten_leaves(nodes: list[StructureNode]) -> list[StructureNode]:
-        out: list[StructureNode] = []
-        for n in sorted(nodes, key=lambda x: x.position):
-            kids = children_map.get(n.id, [])
-            if not kids:
-                out.append(n)
-            else:
-                out.extend(_flatten_leaves(kids))
-        return out
-
-    leaves = _flatten_leaves(roots)
-
-    # Optionally restrict to scenes up to (and including) up_to_node_id
-    if body.up_to_node_id:
-        cutoff_idx = next((i for i, n in enumerate(leaves) if n.id == body.up_to_node_id), None)
-        if cutoff_idx is not None:
-            leaves = leaves[: cutoff_idx + 1]
-
-    # Filter to scenes that need work
-    to_summarize = [
-        n
-        for n in leaves
-        if n.content and n.content.strip() and (body.force_refresh or not n.content_summary or n.summary_stale)
-    ]
-    total_scenes = len(leaves)
-    skipped = total_scenes - len(to_summarize)
-    summarized = 0
-    failed = 0
-
-    for node in to_summarize:
-        try:
-            feature_prompt = build_scene_summary_prompt(node.title, node.content)
-            llm_messages = [{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}]
-            ctx = AICallContext(
-                feature="scene-summary-batch",
-                user_id=current_user.id,
-                story_id=story_id,
-                node_id=node.id,
-                tags=["manuscript", "summarization", "batch"],
-            )
-            full_response: list[str] = []
-            async for token in ai_gateway.stream(
-                messages=llm_messages,
-                feature_prompt=feature_prompt,
-                context=ctx,
-                db=db,
-                user=current_user,
-            ):
-                full_response.append(token)
-
-            summary = "".join(full_response).strip()
-            # Strip any thinking blocks the model may have emitted
-            import re
-
-            summary = re.sub(r"<\|channel>thought\n[\s\S]*?<channel\|>", "", summary).strip()
-
-            if summary:
-                node.content_summary = summary
-                node.summary_stale = False
-                node.summary_updated_at = datetime.now(UTC)
-                db.commit()
-                # Invalidate stale character journey summaries for this node
-                try:
-                    from ..models.character_journey import CharacterJourneySummary
-
-                    affected = (
-                        db.query(CharacterJourneySummary)
-                        .filter(CharacterJourneySummary.source_node_ids.contains(node.id))
-                        .all()
-                    )
-                    for j in affected:
-                        j.is_stale = True
-                    if affected:
-                        db.commit()
-                except Exception:
-                    pass
-                summarized += 1
-            else:
-                failed += 1
-        except Exception:
-            failed += 1
-
-    # Log the batch run
-    log = ActivityLog(
-        user_id=current_user.id,
-        story_id=story_id,
-        event_type="analysis_run",
-        category="health",
-        description=f"Scene summaries generated: {summarized} summarized, {skipped} skipped, {failed} failed",
-        metadata_={
-            "feature": "scene-summary-batch",
-            "total_scenes": total_scenes,
-            "summarized_count": summarized,
-            "skipped_count": skipped,
-            "failed_count": failed,
-        },
+    counts = await refresh_scene_summaries(
+        story_id,
+        db,
+        current_user,
+        force_refresh=body.force_refresh,
+        up_to_node_id=body.up_to_node_id,
     )
-    db.add(log)
-    db.commit()
-
     return BatchSummarizeResponse(
-        total_scenes=total_scenes,
-        summarized_count=summarized,
-        skipped_count=skipped,
-        failed_count=failed,
+        total_scenes=counts["total_scenes"],
+        summarized_count=counts["summarized_count"],
+        skipped_count=counts["skipped_count"],
+        failed_count=counts["failed_count"],
     )
 
 
-# ── Analysis History Endpoints ────────────────────────────────────────────────
-
+#: Features whose activity rows are shown on the Story Health page.
 HEALTH_FEATURES = {
     "prose-analysis",
     "entity-suggestions",
