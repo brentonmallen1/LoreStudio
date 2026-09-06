@@ -22,11 +22,15 @@ from sqlalchemy.orm import Session
 
 from ...models.character import Character
 from ...models.codex import CodexChunk, CodexEdge, CodexNode
+from ...models.interview import CharacterInterview
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
 from ...models.setting import Setting
 from ...models.story import Story
 from ...models.structure import StructureNode
 from ...models.user import User
+from ..character_journey import get_cached_journey
+from ..character_knowledge import build_scope, describe_scope
+from ..llm.prompts.interviews import build_character_interview_system_prompt
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 
@@ -233,6 +237,8 @@ class AssembledContext:
     """What was assembled, and an account of it the author can read."""
 
     packet: dict
+    #: The finished system prompt, for features that assemble one rather than a packet.
+    prompt: str = ""
     blocks: list[Block] = field(default_factory=list)
     #: Passages the semantic index contributed, in rank order.
     retrieved: list[Block] = field(default_factory=list)
@@ -367,6 +373,14 @@ DEFAULT_EDGE_KINDS = ("present_in", "at", "advances")
 #: whole story, which is what the vector search is for.
 DEFAULT_HOPS = 1
 
+#: Why an interview's scope is what it is, said the way the picker says it.
+SCOPE_REASONS = {
+    "profile": "no story context — themselves, not the plot",
+    "present": "every scene they were present for",
+    "as_of": "every scene they were present for, up to this point",
+    "omniscient": "the whole manuscript, as a hypothetical",
+}
+
 
 def edge_kinds_for(feature_id: str) -> tuple[str, ...]:
     return EDGE_KINDS_BY_FEATURE.get(feature_id, DEFAULT_EDGE_KINDS)
@@ -442,15 +456,28 @@ def retrieve_with_vector(
     limit: int = 8,
     model: str,
     whole_story: bool = False,
+    restrict_ref_ids: list[str] | None = None,
+    why: str = "",
 ) -> list[Block]:
     """
     Rank passages from the nodes the graph reached, keeping the reason with each one.
+
+    `restrict_ref_ids` replaces the walk with an exact set, for callers that have already
+    worked out what may be seen — an interview's scope is a bound, not a starting point,
+    and a walk from it could reach a scene the character was deliberately kept out of.
 
     `whole_story=True` drops the restriction, for open story chat where the question does
     not start anywhere in particular. Everything else searches only what the walk found:
     retrieval ranks what the graph already decided was relevant.
     """
-    reached = walk(db, story_id, seed_ref_ids, kinds=kinds, hops=hops)
+    if restrict_ref_ids is not None:
+        by_ref = {
+            n.ref_id: n.id
+            for n in db.query(CodexNode).filter(CodexNode.story_id == story_id, CodexNode.ref_id.in_(restrict_ref_ids))
+        }
+        reached = dict.fromkeys(by_ref.values(), why or "you were there")
+    else:
+        reached = walk(db, story_id, seed_ref_ids, kinds=kinds, hops=hops)
     hits = search(
         db,
         story_id,
@@ -525,3 +552,129 @@ def attach_passages(packet: dict, blocks: list[Block], db: Session) -> dict:
         if b.chunk_id and texts.get(b.chunk_id)
     ]
     return packet
+
+
+def _prior_interview_notes(character_id: str, interview_id: str, db: Session) -> str | None:
+    """The last thing this character said in a different session, for continuity."""
+    prior = (
+        db.query(CharacterInterview)
+        .filter(
+            CharacterInterview.character_id == character_id,
+            CharacterInterview.id != interview_id,
+            CharacterInterview.interview_notes.isnot(None),
+        )
+        .order_by(CharacterInterview.updated_at.desc())
+        .first()
+    )
+    return prior.interview_notes if prior and prior.interview_notes else None
+
+
+async def _remembered_passages(
+    character: Character,
+    scope,
+    question: str,
+    db: Session,
+    user: User | None,
+) -> list[Block]:
+    """
+    Prose from the scenes this character was actually present for.
+
+    The restriction is the scope itself, not a walk from it: the scope is already the
+    answer to "what may this character draw on", and expanding from it could reach a scene
+    they were deliberately kept out of. Profile-only interviews have no scenes, so they
+    get nothing — which is the point of that mode.
+    """
+    if not question.strip() or not scope.scenes:
+        return []
+    model = embed_model_for(user)
+    try:
+        vectors = await embed_texts([question], model=model, base_url=embed_base_url_for(user))
+    except Exception as exc:
+        logger.info("Interview retrieval skipped (%s)", exc)
+        return []
+    if not vectors:
+        return []
+    return retrieve_with_vector(
+        db,
+        character.story_id,
+        vectors[0],
+        seed_ref_ids=[],
+        restrict_ref_ids=[s.node_id for s in scope.scenes],
+        limit=4,
+        model=model,
+        why="you were there",
+    )
+
+
+def _passage_lines(blocks: list[Block], db: Session) -> list[str]:
+    """The remembered passages, framed as narration rather than as the character's words."""
+    if not blocks:
+        return []
+    ids = [b.chunk_id for b in blocks if b.chunk_id]
+    texts = {c.id: c.text for c in db.query(CodexChunk).filter(CodexChunk.id.in_(ids))}
+    lines = [
+        "\n\nThe narration of scenes you were present for, for your memory of what happened. "
+        "These are the author's words about you, not yours: draw on what they describe, and "
+        "never quote or paraphrase them back."
+    ]
+    for block in blocks:
+        text = texts.get(block.chunk_id or "")
+        if text:
+            lines.append(f"\n[{block.label}]\n{text}")
+    return lines
+
+
+async def assemble_interview(
+    interview: CharacterInterview,
+    character: Character,
+    db: Session,
+    *,
+    journey_summary: str | None = None,
+    question: str = "",
+    user: User | None = None,
+) -> AssembledContext:
+    """
+    Everything an interview tells the character, and an account of it.
+
+    The preview used to build this prompt from the character alone — no journey, no prior
+    session, no knowledge bound — so the author inspected a persona that knew nothing
+    about the story while the real call sent one that knew what it had lived through.
+
+    `journey_summary` is passed in rather than generated: the caller that is already
+    making an AI call may generate one, but inspecting a prompt must never cost a
+    generation, so the preview gets whatever is cached and nothing more.
+    """
+    if journey_summary is None and interview.context_node_id:
+        cached = get_cached_journey(character.id, interview.context_node_id, db)
+        journey_summary = cached.summary if cached and cached.summary else None
+    previous = _prior_interview_notes(character.id, interview.id, db)
+    scope = build_scope(character, db, interview.context_node_id, interview.knowledge_scope)
+
+    passages = await _remembered_passages(character, scope, question, db, user)
+    prompt = build_character_interview_system_prompt(
+        character, journey_summary, previous, describe_scope(character, scope) + "".join(_passage_lines(passages, db))
+    )
+    if interview.compacted_summary:
+        prompt = (
+            f"{prompt}\n\n"
+            f"--- Earlier conversation summary (before history was compacted) ---\n"
+            f"{interview.compacted_summary}\n"
+            f"--- End of earlier summary ---"
+        )
+
+    messages = len(interview.messages) if interview.messages else 0
+    blocks = [
+        Block("character.profile", f"{character.name}'s profile", True, estimate_tokens(prompt)),
+        Block(
+            "interview.scope",
+            f"Scenes they were present for ({len(scope.scenes)} of {scope.scenes_considered})",
+            bool(scope.scenes),
+            why=SCOPE_REASONS.get(scope.mode, ""),
+        ),
+        Block("interview.facts", f"Facts they know ({len(scope.facts)})", bool(scope.facts)),
+        Block("interview.journey", "Journey summary", bool(journey_summary), estimate_tokens(journey_summary or "")),
+        Block("interview.previous", "Notes from an earlier session", bool(previous), estimate_tokens(previous or "")),
+        Block("interview.compacted", "Compacted earlier conversation", bool(interview.compacted_summary)),
+        Block("interview.history", f"Prior messages ({messages})", messages > 0),
+    ]
+    return AssembledContext(packet={}, blocks=blocks, retrieved=passages, prompt=prompt)

@@ -20,6 +20,7 @@ from ..models.user import User
 from ..services.codex.context import (
     AssembledContext,
     ContextOptions,
+    assemble_interview,
     assemble_scene,
     attach_passages,
     retrieve_for,
@@ -31,7 +32,6 @@ from ..services.llm.prompts.generation import (
     build_relationship_suggestion_prompt,
 )
 from ..services.llm.prompts.interviews import (
-    build_character_interview_system_prompt,
     build_interview_summary_prompt,
 )
 from ..services.llm.prompts.panel import build_panel_character_prompt
@@ -161,13 +161,15 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         if not character:
             raise HTTPException(status_code=404, detail="Character not found")
         _get_story(character.story_id)  # ownership check
-        system_prompt = build_character_interview_system_prompt(character)
+        # The same assembly the interview itself does, so what is inspected is what is
+        # sent: the journey so far, prior sessions, and the bound on what they know.
+        assembled = await assemble_interview(
+            interview, character, db, question=body.user_message or "", user=current_user
+        )
+        system_prompt = assembled.prompt
         if not user_message:
             user_message = "[your message to the character]"
-        msg_count = len(interview.messages) if interview.messages else 0
-        sources = _character_sources(character) + [
-            ContextSource(source="interview_history", label=f"Prior messages ({msg_count})", included=msg_count > 0),
-        ]
+        sources = _character_sources(character) + _sources_from(assembled)
 
     elif body.context_type == "interview-summary":
         if not body.interview_id:

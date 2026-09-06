@@ -26,10 +26,9 @@ from ..services.character_journey import (
     get_scenes_with_character,
     save_journey,
 )
-from ..services.character_knowledge import build_scope, describe_scope
+from ..services.codex.context import assemble_interview
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.interviews import (
-    build_character_interview_system_prompt,
     build_compaction_prompt,
     build_interview_summary_prompt,
 )
@@ -160,36 +159,17 @@ async def send_message(
                         journey_summary = "".join(full_tokens)
                         save_journey(character.id, interview.context_node_id, journey_summary, source_ids, db)
 
-    # Fetch most recent prior interview notes for session continuity
-    previous_session_summary: str | None = None
-    prior_interview = (
-        db.query(CharacterInterview)
-        .filter(
-            CharacterInterview.character_id == character.id,
-            CharacterInterview.id != interview_id,
-            CharacterInterview.interview_notes.isnot(None),
-        )
-        .order_by(CharacterInterview.updated_at.desc())
-        .first()
+    # Prior sessions, the journey so far, and what this character was present for — all
+    # assembled in one place so the transparency view shows this exact prompt (doc 07 §5).
+    assembled = await assemble_interview(
+        interview,
+        character,
+        db,
+        journey_summary=journey_summary,
+        question=next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), ""),
+        user=current_user,
     )
-    if prior_interview and prior_interview.interview_notes:
-        previous_session_summary = prior_interview.interview_notes
-
-    # Build feature prompt, prepending compacted summary if present
-    compacted_summary_text: str | None = interview.compacted_summary or None
-    # What this character was present for, up to the interview's story point. Without this
-    # the persona answered questions about scenes it had never been in (doc 06 §6).
-    scope = build_scope(character, db, interview.context_node_id, interview.knowledge_scope)
-    feature_prompt = build_character_interview_system_prompt(
-        character, journey_summary, previous_session_summary, describe_scope(character, scope)
-    )
-    if compacted_summary_text:
-        feature_prompt = (
-            f"{feature_prompt}\n\n"
-            f"--- Earlier conversation summary (before history was compacted) ---\n"
-            f"{compacted_summary_text}\n"
-            f"--- End of earlier summary ---"
-        )
+    feature_prompt = assembled.prompt
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]
 
     ctx = AICallContext(

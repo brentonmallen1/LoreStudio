@@ -187,3 +187,33 @@ def test_open_story_chat_may_search_the_whole_story(db_session, test_user):
     )
     assert [b.node_id for b in everywhere] == [far_node.id]
     assert everywhere[0].why == "found by meaning"
+
+
+def test_an_exact_restriction_does_not_walk(db_session, test_user):
+    """
+    An interview's scope is a bound, not a starting point.
+
+    Walking from it would reach the scene next door; the character was kept out of that
+    one on purpose, and retrieval must not put them back in it.
+    """
+    story, elena, lighthouse, here, elsewhere = _graph_story(db_session, test_user)
+    nodes = {n.ref_id: n for n in db_session.query(CodexNode).filter(CodexNode.story_id == story.id)}
+    for ref in (here.id, elsewhere.id):
+        _chunk(db_session, story, nodes[ref], "prose", [1.0, 0.0])
+
+    allowed = retrieve_with_vector(
+        db_session,
+        story.id,
+        [1.0, 0.0],
+        seed_ref_ids=[],
+        restrict_ref_ids=[here.id],
+        model="test-embed",
+        why="you were there",
+    )
+    assert [b.node_id for b in allowed] == [nodes[here.id].id]
+    assert allowed[0].why == "you were there"
+
+    assert (
+        retrieve_with_vector(db_session, story.id, [1.0, 0.0], seed_ref_ids=[], restrict_ref_ids=[], model="test-embed")
+        == []
+    )
