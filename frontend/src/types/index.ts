@@ -1019,6 +1019,8 @@ export interface PromptPreviewRequest {
   attribute_type?: string;
   user_message?: string;
   context_options?: ContextOptions;
+  /** Summary style, so previewing a detailed summary does not show the brief one. */
+  style?: string;
 }
 
 export interface ContextSource {

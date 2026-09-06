@@ -83,6 +83,21 @@ export interface CodexNodeDetail {
   ai_calls: number;
 }
 
+export interface ScenePresenceRow {
+  character_id: string;
+  name: string;
+  /** pov | participant | mentioned | absent */
+  role: string | null;
+  /** pov | dialogue | mention | manual — how the Codex worked it out. */
+  basis: string | null;
+  overridden: boolean;
+}
+
+export interface ScenePresenceRead {
+  synced: boolean;
+  characters: ScenePresenceRow[];
+}
+
 export const codexApi = {
   settings: () => request<CodexSettings>("/codex/settings"),
   updateSettings: (embedModel: string | null) =>
@@ -98,6 +113,13 @@ export const codexApi = {
   graph: (storyId: string) => request<CodexGraph>(`/stories/${storyId}/codex`),
   node: (storyId: string, nodeId: string) =>
     request<CodexNodeDetail>(`/stories/${storyId}/codex/nodes/${nodeId}`),
+  presence: (storyId: string, nodeId: string) =>
+    request<ScenePresenceRead>(`/stories/${storyId}/codex/presence/${nodeId}`),
+  setPresence: (storyId: string, nodeId: string, characterId: string, role: string) =>
+    request<{ role: string; source: string }>(`/stories/${storyId}/codex/presence`, {
+      method: "POST",
+      body: JSON.stringify({ node_id: nodeId, character_id: characterId, role }),
+    }),
   suggestions: (storyId: string) => request<CodexSuggestion[]>(`/stories/${storyId}/codex/suggestions`),
   suggest: (storyId: string) =>
     request<{ job_id: string }>(`/stories/${storyId}/codex/suggest`, { method: "POST" }),

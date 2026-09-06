@@ -17,9 +17,13 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
   const lastSummary = useRef("");
   const transparency = useLLMTransparency();
 
-  const { sources: contextSources } = useLLMContextSources(
-    storyId ? { context_type: "story-summary", story_id: storyId } : null,
-  );
+  const previewRequest = {
+    context_type: "story-summary",
+    story_id: storyId,
+    node_id: upToCurrentScene && activeNode ? activeNode.id : undefined,
+    style,
+  };
+  const { sources: contextSources } = useLLMContextSources(storyId ? previewRequest : null);
 
   const {
     stream,
@@ -66,7 +70,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}
             onClick={() =>
-              transparency.open({ context_type: "story-summary", story_id: storyId }, lastSummary.current, {
+              transparency.open(previewRequest, lastSummary.current, {
                 feature: "story-summary",
                 story_id: storyId,
               })

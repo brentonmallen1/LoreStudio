@@ -20,7 +20,7 @@ from typing import Any
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from ...models.character import Character
+from ...models.character import Character, CharacterRelationship
 from ...models.codex import CodexChunk, CodexEdge, CodexNode
 from ...models.interview import CharacterInterview
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
@@ -31,6 +31,7 @@ from ...models.user import User
 from ..character_journey import get_cached_journey
 from ..character_knowledge import build_scope, describe_scope
 from ..llm.prompts.interviews import build_character_interview_system_prompt
+from ..llm.prompts.panel import build_panel_character_prompt
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 
@@ -678,3 +679,47 @@ async def assemble_interview(
         Block("interview.history", f"Prior messages ({messages})", messages > 0),
     ]
     return AssembledContext(packet={}, blocks=blocks, retrieved=passages, prompt=prompt)
+
+
+def assemble_panel_member(
+    speaker: Character,
+    others: list[Character],
+    db: Session,
+    *,
+    response_length: str | None = None,
+) -> AssembledContext:
+    """
+    One member of a panel: their persona, the room around them, and what they know.
+
+    A panel is not one prompt — each member is asked separately — so this assembles one
+    speaker's, and the preview shows the first speaker's as the shape every member gets.
+    The knowledge bound is the same one an interview uses: a character in a group answers
+    from what they lived through, not from what the room collectively knows.
+    """
+    ids = [c.id for c in [speaker, *others]]
+    relationships = (
+        db.query(CharacterRelationship)
+        .filter(CharacterRelationship.character_id.in_(ids) | CharacterRelationship.related_character_id.in_(ids))
+        .all()
+    )
+    scope = build_scope(speaker, db)
+    prompt = build_panel_character_prompt(
+        character=speaker,
+        other_characters=others,
+        relationships=relationships,
+        response_length=response_length,
+        knowledge_block=describe_scope(speaker, scope),
+    )
+    blocks = [
+        Block("character.profile", f"{speaker.name}'s profile", True, estimate_tokens(prompt)),
+        Block("panel.others", f"Others in the room ({len(others)})", bool(others)),
+        Block("panel.relationships", f"Relationships between them ({len(relationships)})", bool(relationships)),
+        Block(
+            "interview.scope",
+            f"Scenes they were present for ({len(scope.scenes)} of {scope.scenes_considered})",
+            bool(scope.scenes),
+            why=SCOPE_REASONS.get(scope.mode, ""),
+        ),
+        Block("interview.facts", f"Facts they know ({len(scope.facts)})", bool(scope.facts)),
+    ]
+    return AssembledContext(packet={}, blocks=blocks, prompt=prompt)

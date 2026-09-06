@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
-from ..models.character import Character, CharacterRelationship
+from ..models.character import Character
 from ..models.chat_message import ChatMessage
 from ..models.chat_session import ChatSession
 from ..models.panel_interview import PanelInterview
@@ -20,10 +20,9 @@ from ..schemas.panel_interview import (
     PanelInterviewSummaryOut,
     PanelMessageRequest,
 )
-from ..services.character_knowledge import build_scope, describe_scope
+from ..services.codex.context import assemble_panel_member
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.panel import (
-    build_panel_character_prompt,
     build_panel_orchestrator_prompt,
     format_history_with_labels,
 )
@@ -171,16 +170,6 @@ async def send_panel_message(
             characters.append(c)
 
     char_by_name = {c.name: c for c in characters}
-    all_char_ids = [c.id for c in characters]
-
-    relationships = (
-        db.query(CharacterRelationship)
-        .filter(
-            CharacterRelationship.character_id.in_(all_char_ids)
-            | CharacterRelationship.related_character_id.in_(all_char_ids)
-        )
-        .all()
-    )
 
     settings = panel.settings or {}
     max_rounds = min(int(settings.get("max_rounds", 2)), 4)
@@ -243,13 +232,11 @@ async def send_panel_message(
 
                 other_characters = [c for c in characters if c.id != character.id]
 
-                char_prompt = build_panel_character_prompt(
-                    character=character,
-                    other_characters=other_characters,
-                    relationships=relationships,
-                    response_length=body.response_length,
-                    knowledge_block=describe_scope(character, build_scope(character, db)),
-                )
+                # Assembled in one place, so the transparency view shows this prompt and
+                # not a persona with no idea what it lived through (doc 07 §5).
+                char_prompt = assemble_panel_member(
+                    character, other_characters, db, response_length=body.response_length
+                ).prompt
 
                 llm_messages = [
                     {

@@ -21,6 +21,7 @@ from ..services.codex.context import (
     AssembledContext,
     ContextOptions,
     assemble_interview,
+    assemble_panel_member,
     assemble_scene,
     attach_passages,
     retrieve_for,
@@ -34,7 +35,6 @@ from ..services.llm.prompts.generation import (
 from ..services.llm.prompts.interviews import (
     build_interview_summary_prompt,
 )
-from ..services.llm.prompts.panel import build_panel_character_prompt
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 
 router = APIRouter()
@@ -49,7 +49,9 @@ class PromptPreviewRequest(BaseModel):
     character_id: str | None = None
     attribute_type: str | None = None
     user_message: str | None = None
-    context_options: dict | None = None  # Forwarded to _build_context_packet as ContextOptions
+    context_options: dict | None = None  # Forwarded to the assembler as ContextOptions
+    #: Summary style, so previewing a detailed summary does not show the brief one.
+    style: str | None = None
 
 
 class ContextSource(BaseModel):
@@ -206,20 +208,11 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         # A panel is not one prompt: each member is asked separately, with their own
         # persona and the room around them. Preview the first speaker's prompt — the
         # shape every member gets — rather than a combined prompt nothing sends.
-        relationships = (
-            db.query(CharacterRelationship)
-            .filter(
-                CharacterRelationship.character_id.in_([c.id for c in characters])
-                | CharacterRelationship.related_character_id.in_([c.id for c in characters])
-            )
-            .all()
-        )
-        speaker, others = characters[0], characters[1:]
-        system_prompt = build_panel_character_prompt(speaker, others, relationships)
+        assembled = assemble_panel_member(characters[0], characters[1:], db)
+        system_prompt = assembled.prompt
         if not user_message:
             user_message = "[your message to the panel]"
-        for char in characters:
-            sources.extend(_character_sources(char))
+        sources = _character_sources(characters[0]) + _sources_from(assembled)
 
     elif body.context_type == "attributes":
         if not body.character_id or not body.attribute_type:
@@ -243,12 +236,22 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
             .all()
         )
         nodes_content = [{"title": n.title, "content": n.content} for n in all_nodes if n.content and n.content.strip()]
+        up_to_title = None
+        if body.node_id:
+            target_idx = next((i for i, n in enumerate(all_nodes) if n.id == body.node_id), None)
+            if target_idx is not None:
+                up_to_title = all_nodes[target_idx].title
+                nodes_content = [
+                    {"title": n.title, "content": n.content}
+                    for n in all_nodes[: target_idx + 1]
+                    if n.content and n.content.strip()
+                ]
         system_prompt = build_story_summary_prompt(
             title=story.title,
             intent=story.narrative_intent or story.intent,
             nodes_content=nodes_content,
-            up_to_title=None,
-            style="brief",
+            up_to_title=up_to_title,
+            style=body.style or "brief",
         )
         user_message = "Please provide the summary."
         sources = [
@@ -280,7 +283,8 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
             }
             for r in existing_rels
         ]
-        system_prompt = build_relationship_suggestion_prompt(characters, existing)
+        focus_char = next((c for c in characters if c.id == body.character_id), None) if body.character_id else None
+        system_prompt = build_relationship_suggestion_prompt(characters, existing, focus_char)
         user_message = "Please suggest relationships."
         sources = [
             ContextSource(source="characters", label=f"Characters ({len(characters)})", included=bool(characters)),

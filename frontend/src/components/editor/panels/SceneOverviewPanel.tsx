@@ -10,6 +10,7 @@ import AssetPicker from "../../media/AssetPicker";
 import type { InlineNotesState } from "../useInlineNotes";
 import { flattenStructure } from "../segmentMeta";
 import SceneSettingsField from "./SceneSettingsField";
+import WhoIsHereField from "./WhoIsHereField";
 import SceneSummaryField from "./SceneSummaryField";
 import InlineNotesField from "./InlineNotesField";
 import SceneLinksField from "./SceneLinksField";
@@ -195,6 +196,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
       )}
 
       <SceneSettingsField activeNode={activeNode} locations={locations} />
+      {studio && activeStory && <WhoIsHereField activeNode={activeNode} storyId={activeStory.id} />}
       {studio && <SceneSummaryField activeNode={activeNode} setActiveNode={setActiveNode} />}
       <InlineNotesField notes={notes} />
       <ChecksField activeNode={activeNode} />
