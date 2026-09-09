@@ -16,8 +16,11 @@ A /context endpoint (GET) returns the assembled context packet so the frontend
 can show the author exactly what the AI is seeing.
 """
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -26,6 +29,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
+from ..services.chronicle_log import add_message, get_or_create_session
 from ..services.codex.context import (
     VIRTUAL_NODE_IDS,
     ContextOptions,
@@ -36,8 +40,37 @@ from ..services.codex.context import (
 from ..services.llm.features import get_feature
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
+from ..services.llm.stream_errors import stream_error
 
 router = APIRouter()
+
+
+class ChatMessageIn(BaseModel):
+    """
+    One turn of the conversation.
+
+    The endpoint used to take `list[dict]`, so a malformed history reached the provider and
+    failed somewhere less obvious than the boundary it came in at (review §1.4).
+    """
+
+    role: Literal["user", "assistant", "system"]
+    content: str = ""
+    images: list[str] | None = None
+
+
+class ChatRequest(BaseModel):
+    node_id: str
+    messages: list[ChatMessageIn]
+    llm_params: LLMParamsOverride | None = None
+    mode: str | None = None
+    context_options: ContextOptions | None = None
+    #: The Chronicle session this continues. Absent on the first message of a conversation.
+    chronicle_session_id: str | None = None
+
+
+class SummarizeRequest(BaseModel):
+    messages: list[ChatMessageIn]
+    story_id: str | None = None
 
 
 def _get_story(story_id: str, db: Session, user: User) -> Story:
@@ -71,16 +104,14 @@ def get_chat_context(
 
 @router.post("/stories/{story_id}/chat")
 async def scene_chat(
+    body: ChatRequest,
     story_id: str,
-    node_id: str = Body(...),
-    messages: list[dict] = Body(...),
-    llm_params: LLMParamsOverride | None = Body(None),
-    mode: str | None = Body(None),
-    context_options: ContextOptions | None = Body(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Stream a chat response grounded in the current scene's full context."""
+    node_id, messages = body.node_id, [m.model_dump() for m in body.messages]
+    llm_params, mode, context_options = body.llm_params, body.mode, body.context_options
     story = _get_story(story_id, db, current_user)
     if node_id in VIRTUAL_NODE_IDS:
         node = None
@@ -119,7 +150,22 @@ async def scene_chat(
         tags=["manuscript", "chat", "conversation", "user-initiated"],
     )
 
+    # The conversation goes in the Chronicle, which is what makes it resumable. The client
+    # sends back the id it was given, so a reload continues the same thread.
+    chronicle = get_or_create_session(
+        db,
+        current_user,
+        story_id=story_id,
+        context_type="story" if node is None else "scene",
+        context_id=node_id,
+        context_label=node.title if node else story.title,
+        session_id=body.chronicle_session_id,
+    )
+    last_user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
+    add_message(db, chronicle, "user", last_user)
+
     async def stream():
+        answer: list[str] = []
         try:
             async for token in ai_gateway.stream(
                 messages=messages,
@@ -129,21 +175,34 @@ async def scene_chat(
                 user=current_user,
                 llm_params=llm_params,
             ):
+                answer.append(token)
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="scene-chat")
+        finally:
+            # Synchronous, and in `finally`, for the same reason the call log is: a closed
+            # tab mid-answer still leaves what was written in the Chronicle.
+            add_message(db, chronicle, "assistant", "".join(answer))
 
-    return StreamingResponse(stream(), media_type="text/plain")
+    return StreamingResponse(
+        stream(),
+        media_type="text/plain",
+        headers={
+            "X-Chronicle-Session": chronicle.id,
+            "Access-Control-Expose-Headers": "X-Chronicle-Session",
+        },
+    )
 
 
 @router.post("/chat/summarize")
 async def summarize_conversation(
-    messages: list[dict] = Body(...),
-    story_id: str | None = Body(None),
+    body: SummarizeRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Stream a compact summary of the provided conversation messages."""
+    messages = [m.model_dump() for m in body.messages]
+    story_id = body.story_id
     if not messages:
         from fastapi.responses import Response as FR
 
@@ -174,7 +233,7 @@ async def summarize_conversation(
                 user=current_user,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="conversation-summarize")
 
     return StreamingResponse(stream(), media_type="text/plain")

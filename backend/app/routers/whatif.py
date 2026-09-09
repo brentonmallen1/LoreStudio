@@ -19,6 +19,7 @@ from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.whatif import build_whatif_system_prompt
+from ..services.llm.stream_errors import stream_error
 
 router = APIRouter()
 
@@ -128,7 +129,7 @@ async def whatif_simulator(
                 llm_params=llm_params,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="what-if")
 
     return StreamingResponse(stream(), media_type="text/plain")

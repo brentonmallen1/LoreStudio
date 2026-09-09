@@ -60,6 +60,7 @@ from ..services.llm.prompts.analysis import (
     build_thread_analysis_prompt,
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
+from ..services.llm.stream_errors import stream_error
 from ..services.nlp_analysis_service import (
     ALL_CHECKS,
     analyze_scene,
@@ -1558,8 +1559,8 @@ async def cliche_coach_chat(
                 llm_params=llm_params,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="analysis")
 
     return StreamingResponse(stream(), media_type="text/plain")
 

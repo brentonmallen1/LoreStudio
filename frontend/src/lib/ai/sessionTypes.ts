@@ -119,6 +119,8 @@ export interface SessionTypeConfig {
   sendMessage: (
     session: {
       backendSessionId?: string;
+      /** The Chronicle conversation this continues, once the server has named one. */
+      chronicleSessionId?: string;
       context: SessionContext;
       messages: import("../../types").ChatMessage[];
     },

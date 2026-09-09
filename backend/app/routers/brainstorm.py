@@ -19,6 +19,7 @@ from ..schemas.llm_params import LLMParamsOverride
 from ..services.codex.context import assemble_scene
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.brainstorm import build_brainstorm_system_prompt
+from ..services.llm.stream_errors import stream_error
 
 router = APIRouter()
 
@@ -75,7 +76,7 @@ async def brainstorm_whats_next(
                 llm_params=llm_params,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="brainstorm")
 
     return StreamingResponse(stream(), media_type="text/plain")

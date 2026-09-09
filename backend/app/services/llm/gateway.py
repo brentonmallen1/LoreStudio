@@ -46,6 +46,7 @@ from ...models.ai_call import AICallPayload
 from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
+from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
@@ -96,6 +97,8 @@ class AICallResult:
     content: str
     tokens_in: int | None = None
     tokens_out: int | None = None
+    #: Null for a local model. A hosted provider fills this in (review §1.6).
+    cost_usd: float | None = None
     latency_ms: int = 0
     model: str = ""
     status: CallStatus = "ok"
@@ -122,6 +125,16 @@ class AIGateway:
     Composes prompts, captures metrics, logs every call, and
     invokes optional callbacks — so individual features don't have to.
     """
+
+    def __init__(self, provider: LLMProvider | None = None) -> None:
+        """
+        The provider is injected so `LLMProvider` is load-bearing rather than decorative.
+
+        It used to import the Ollama singleton directly, which meant the ABC documented an
+        intention the code did not follow and swapping providers meant editing the gateway
+        (review §1.5). Tests can now hand in a fake without patching a module global.
+        """
+        self.provider = provider or ollama_provider
 
     def _refuse_if_disabled(self, user: User) -> None:
         if (user.settings or {}).get("ai", {}).get("enabled") is False:
@@ -167,7 +180,7 @@ class AIGateway:
         ceiling = (user.settings or {}).get("llm", {}).get("num_ctx_max")
         if ceiling:
             wanted = min(wanted, int(ceiling))
-        model_limit = await ollama_provider.get_context_length(model, url)
+        model_limit = await self.provider.get_context_length(model, url)
         if model_limit:
             wanted = min(wanted, int(model_limit))
         return max(wanted, MIN_NUM_CTX)
@@ -223,7 +236,7 @@ class AIGateway:
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
-            context.feature, params, user, user_model or ollama_provider.model, user_url
+            context.feature, params, user, user_model or self.provider.model, user_url
         )
 
         start_time = time.monotonic()
@@ -234,7 +247,7 @@ class AIGateway:
         _logged = False  # guard against finally running more than once
 
         try:
-            async for chunk in ollama_provider.chat_stream_with_metrics(
+            async for chunk in self.provider.chat_stream_with_metrics(
                 messages,
                 system_prompt,
                 temperature=params.temperature,
@@ -268,7 +281,7 @@ class AIGateway:
                     tokens_in=metrics.tokens_in if metrics else None,
                     tokens_out=metrics.tokens_out if metrics else None,
                     latency_ms=int((time.monotonic() - start_time) * 1000),
-                    model=metrics.model if metrics else ollama_provider.model,
+                    model=metrics.model if metrics else self.provider.model,
                     status=status,
                     error=error,
                     raw_response=raw,
@@ -306,7 +319,7 @@ class AIGateway:
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
-            context.feature, params, user, user_model or ollama_provider.model, user_url
+            context.feature, params, user, user_model or self.provider.model, user_url
         )
 
         start_time = time.monotonic()
@@ -314,7 +327,7 @@ class AIGateway:
         schema = response_model.model_json_schema()
 
         try:
-            raw_text, metrics = await ollama_provider.generate_structured(
+            raw_text, metrics = await self.provider.generate_structured(
                 messages,
                 system_prompt,
                 temperature=params.temperature,
@@ -330,7 +343,7 @@ class AIGateway:
             failed = AICallResult(
                 content="",
                 latency_ms=int((time.monotonic() - start_time) * 1000),
-                model=user_model or ollama_provider.model,
+                model=user_model or self.provider.model,
                 status="error",
                 error=str(e),
             )
@@ -342,7 +355,7 @@ class AIGateway:
             tokens_in=metrics.tokens_in if metrics else None,
             tokens_out=metrics.tokens_out if metrics else None,
             latency_ms=int((time.monotonic() - start_time) * 1000),
-            model=metrics.model if metrics else ollama_provider.model,
+            model=metrics.model if metrics else self.provider.model,
             raw_response=raw_text,
             thinking=extract_thoughts(raw_text),
             # A provider that rejected the schema answered without constraints; the author
@@ -401,7 +414,7 @@ class AIGateway:
             "top_k": params.top_k,
             "num_ctx": params.num_ctx,
             "think": params.thinking_enabled,
-            "keep_alive": ollama_provider.keep_alive,
+            "keep_alive": self.provider.keep_alive,
         }
 
     def _log_call(
@@ -438,6 +451,7 @@ class AIGateway:
                 event_type=f"ai_{context.feature.replace('-', '_')}",
                 category="ai",
                 description=description,
+                cost_usd=result.cost_usd,
                 metadata_={
                     "model": result.model,
                     "tokens_in": result.tokens_in,

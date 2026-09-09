@@ -24,6 +24,7 @@ from ..services.llm.prompts.publication import (
     build_comp_titles_prompt,
     build_query_letter_system_prompt,
 )
+from ..services.llm.stream_errors import stream_error
 
 router = APIRouter()
 
@@ -102,8 +103,8 @@ async def book_description_chat(
                 llm_params=llm_params,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="publication")
 
     return StreamingResponse(stream(), media_type="text/plain")
 
@@ -139,8 +140,8 @@ async def query_letter_chat(
                 llm_params=llm_params,
             ):
                 yield token
-        except Exception as e:
-            yield f"\n\n[Error: {e}]"
+        except Exception as exc:
+            yield stream_error(exc, where="publication")
 
     return StreamingResponse(stream(), media_type="text/plain")
 

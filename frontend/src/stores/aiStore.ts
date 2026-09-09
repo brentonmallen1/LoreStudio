@@ -4,6 +4,7 @@ import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
 import { getSessionType } from "../lib/ai/sessionTypes";
 import { maybeAutoSummarize } from "../lib/ai/autoSummarize";
 import { useStoryStore } from "./storyStore";
+import { splitStreamError } from "../lib/ai/streamError";
 
 export interface AISession {
   /** Client-generated unique ID for this tab */
@@ -440,6 +441,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       .sendMessage(
         {
           backendSessionId: updatedSession.backendSessionId,
+          chronicleSessionId: updatedSession.chronicleSessionId,
           context: updatedSession.context,
           messages: updatedSession.messages,
         },
@@ -453,6 +455,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
           return;
         }
 
+        // The server names the Chronicle conversation on the first message; holding on to
+        // the id is what makes the next reload able to continue this thread.
+        const chronicleId = res.headers.get("X-Chronicle-Session");
+        if (chronicleId) get()._setChronicleSessionId(sessionId, chronicleId);
+
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let full = "";
@@ -461,10 +468,11 @@ export const useAIStore = create<AIStore>((set, get) => ({
           const { done, value } = await reader.read();
           if (done) break;
           full += decoder.decode(value, { stream: true });
-          get()._setStreamingText(sessionId, full);
+          get()._setStreamingText(sessionId, splitStreamError(full).text);
         }
 
-        get()._finalizeMessage(sessionId, full);
+        const { text, error } = splitStreamError(full);
+        get()._finalizeMessage(sessionId, error ? `⚠ ${error}` : text);
       })
       .catch((err) => {
         if (err?.name !== "AbortError") {

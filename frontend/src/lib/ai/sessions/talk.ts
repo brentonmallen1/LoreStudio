@@ -51,6 +51,7 @@ registerSessionType({
       llmParams,
       undefined,
       contextOptions,
+      session.chronicleSessionId,
     );
   },
 
@@ -145,6 +146,7 @@ registerSessionType({
       llmParams,
       undefined,
       contextOptions,
+      session.chronicleSessionId,
     );
   },
 
