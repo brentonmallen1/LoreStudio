@@ -109,6 +109,7 @@ export default function ClicheCoachMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
         />
       )}

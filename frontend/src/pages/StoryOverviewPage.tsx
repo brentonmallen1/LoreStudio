@@ -1,3 +1,4 @@
+import { streamAnswer } from "../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen, Users, ListTree } from "lucide-react";
@@ -104,13 +105,8 @@ export default function StoryOverviewPage() {
     try {
       const res = await api.recapLastSession(storyId, ctrl.signal);
       if (!res.body) throw new Error("No stream");
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        setRecapText((t) => t + decoder.decode(value));
-      }
+      const { error } = await streamAnswer(res, setRecapText);
+      if (error) setRecapText(error);
       setRecapDone(true);
     } catch {
       // silently ignore abort

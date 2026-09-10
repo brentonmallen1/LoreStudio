@@ -62,6 +62,7 @@ export default function BookDescriptionMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
           emptyText="Tell me what tone you want for the description."
         />

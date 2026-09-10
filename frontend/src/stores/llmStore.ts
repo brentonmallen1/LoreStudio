@@ -8,6 +8,8 @@ export interface LLMRequest {
   label: string;
   status: LLMRequestStatus;
   streamedText: string;
+  /** Reasoning for this answer, delivered apart from it. */
+  streamedThinking: string;
   startedAt: number;
   abortController: AbortController;
   tabId?: string;
@@ -19,6 +21,7 @@ interface LLMStore {
 
   startRequest(id: string, label: string, tabId?: string): AbortController;
   updateStream(id: string, text: string): void;
+  updateThinking(id: string, thinking: string): void;
   completeRequest(id: string): void;
   errorRequest(id: string): void;
   cancelRequest(id: string): void;
@@ -53,6 +56,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
           label,
           status: "streaming",
           streamedText: "",
+          streamedThinking: "",
           startedAt: Date.now(),
           abortController,
           tabId,
@@ -71,6 +75,19 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
         requests: {
           ...state.requests,
           [id]: { ...req, streamedText: text },
+        },
+      };
+    });
+  },
+
+  updateThinking(id, thinking) {
+    set((state) => {
+      const req = state.requests[id];
+      if (!req) return state;
+      return {
+        requests: {
+          ...state.requests,
+          [id]: { ...req, streamedThinking: thinking },
         },
       };
     });

@@ -1,3 +1,4 @@
+import { readEventStream } from "../../../lib/ai/eventStream";
 import { useState, useEffect, useRef } from "react";
 import { Feather, RefreshCw, Copy, Check, Images, X } from "lucide-react";
 import type { AISession } from "../../../stores/aiStore";
@@ -58,20 +59,11 @@ export default function SceneAtmosphereMode({ session }: Props) {
       const res = await api.analyzeSceneAtmosphere(storyId, selected, nodeId, userQuery.trim() || undefined);
       if (!res.body) throw new Error("No response body");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = "";
-
-      while (true) {
-        if (abortRef.current) {
-          reader.cancel();
-          break;
-        }
-        const { done, value } = await reader.read();
-        if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
-        setStreamText(accumulated);
-      }
+      const { error } = await readEventStream(res, {
+        onToken: setStreamText,
+        stop: () => abortRef.current,
+      });
+      if (error) throw new Error(error);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Generation failed — try again.");
     } finally {

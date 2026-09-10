@@ -19,7 +19,6 @@ Endpoints:
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -45,6 +44,7 @@ from ..schemas.chronicle import (
     SessionListResponse,
 )
 from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.sse import sse_stream
 
 router = APIRouter()
 
@@ -281,26 +281,21 @@ async def generate_session_title(
         tags=["chronicle", "title", "user-initiated"],
     )
 
-    collected = []
+    def _save_title(answer: str) -> None:
+        title = answer.strip().strip('"').strip("'")
+        if title:
+            s.title = title[:80]
+            db.commit()
 
-    async def stream_and_save():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=call_ctx,
-                db=db,
-                user=user,
-            ):
-                collected.append(token)
-                yield token
-        finally:
-            title = "".join(collected).strip().strip('"').strip("'")
-            if title:
-                s.title = title[:80]
-                db.commit()
-
-    return StreamingResponse(stream_and_save(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=user,
+        on_text=_save_title,
+    )
 
 
 @router.delete("/chronicle/sessions/{session_id}", status_code=204)

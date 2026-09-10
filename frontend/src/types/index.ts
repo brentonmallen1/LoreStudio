@@ -479,11 +479,12 @@ export interface PanelSettings {
   max_rounds: number;
 }
 
+/** One frame of a panel stream. `thinking` carries reasoning and is not part of the reply. */
 export interface PanelStreamEvent {
-  type: "start" | "token" | "end" | "pass" | "done";
+  event: "start" | "token" | "thinking" | "end" | "pass" | "done";
   character?: string;
   character_id?: string;
-  token?: string;
+  delta?: string;
 }
 
 export interface PanelInterview {
@@ -704,6 +705,8 @@ export interface ChatMessage {
   content: string;
   images?: string[]; // base64-encoded image data for multimodal messages
   isSummary?: boolean; // true when this message is a conversation summary replacement
+  /** The model's reasoning for this answer, delivered on its own event and never part of content. */
+  thinking?: string;
 }
 
 export interface ChatContextPreview {

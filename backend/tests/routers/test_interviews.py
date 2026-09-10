@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.models.character import Character
 from app.models.interview import CharacterInterview
 from app.models.story import Story
+from tests.fixtures.sse import answer_of
 
 
 def _story(user_id: str) -> Story:
@@ -116,7 +117,7 @@ class TestSendMessage:
             json={"content": "What is your name?"},
         )
         assert response.status_code == 200
-        assert "Hello from the character!" in response.text
+        assert answer_of(response) == "Hello from the character!"
 
     def test_persists_user_message(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway()
@@ -202,7 +203,7 @@ class TestSummarizeInterview:
 
         response = client.post(f"/api/interviews/{interview.id}/summarize")
         assert response.status_code == 200
-        assert "Maya" in response.text
+        assert "Maya" in answer_of(response)
 
     def test_persists_notes(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(stream_text="Character notes: brave.")

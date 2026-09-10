@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useCallback } from "react";
 import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy, ZoomIn } from "lucide-react";
 import { api } from "../../api/client";
@@ -52,13 +53,8 @@ function AssetCard({
     try {
       const res = await api.analyzeImage(asset.id);
       if (!res.body) return;
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        setAnalysis((prev) => prev + decoder.decode(value, { stream: true }));
-      }
+      const { error } = await streamAnswer(res, setAnalysis);
+      if (error) setAnalysis(error);
     } finally {
       setAnalyzing(false);
     }

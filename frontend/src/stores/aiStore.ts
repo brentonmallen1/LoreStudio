@@ -4,7 +4,7 @@ import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
 import { getSessionType } from "../lib/ai/sessionTypes";
 import { maybeAutoSummarize } from "../lib/ai/autoSummarize";
 import { useStoryStore } from "./storyStore";
-import { splitStreamError } from "../lib/ai/streamError";
+import { readEventStream } from "../lib/ai/eventStream";
 
 export interface AISession {
   /** Client-generated unique ID for this tab */
@@ -29,6 +29,8 @@ export interface AISession {
   interviewNotes?: string;
   /** Currently streaming text (displayed live, not yet in messages) */
   streamingText?: string;
+  /** Reasoning arriving on this turn, kept apart from the answer. */
+  streamingThinking?: string;
   isStreaming: boolean;
   /** Abort controller for the current streaming request */
   _abortController?: AbortController;
@@ -127,8 +129,9 @@ interface AIStore {
 
   /** Internal: update streaming text */
   _setStreamingText: (sessionId: string, text: string) => void;
+  _setStreamingThinking: (sessionId: string, thinking: string) => void;
   /** Internal: finalize a streamed message */
-  _finalizeMessage: (sessionId: string, content: string) => void;
+  _finalizeMessage: (sessionId: string, content: string, thinking?: string) => void;
   /** Internal: record a chronicle session ID */
   _setChronicleSessionId: (sessionId: string, chronicleId: string) => void;
   /** Internal: set backend session ID after deferred initialization (e.g. PanelMode character selection) */
@@ -460,19 +463,12 @@ export const useAIStore = create<AIStore>((set, get) => ({
         const chronicleId = res.headers.get("X-Chronicle-Session");
         if (chronicleId) get()._setChronicleSessionId(sessionId, chronicleId);
 
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let full = "";
+        const { text, thinking, error } = await readEventStream(res, {
+          onToken: (answer) => get()._setStreamingText(sessionId, answer),
+          onThinking: (reasoning) => get()._setStreamingThinking(sessionId, reasoning),
+        });
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          full += decoder.decode(value, { stream: true });
-          get()._setStreamingText(sessionId, splitStreamError(full).text);
-        }
-
-        const { text, error } = splitStreamError(full);
-        get()._finalizeMessage(sessionId, error ? `⚠ ${error}` : text);
+        get()._finalizeMessage(sessionId, error ? `⚠ ${error}` : text, thinking);
       })
       .catch((err) => {
         if (err?.name !== "AbortError") {
@@ -511,14 +507,26 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
   },
 
-  _finalizeMessage: (sessionId, content) => {
+  _setStreamingThinking: (sessionId, thinking) => {
+    set((s) => ({
+      sessions: s.sessions.map((sess) =>
+        sess.id === sessionId ? { ...sess, streamingThinking: thinking } : sess,
+      ),
+    }));
+  },
+
+  _finalizeMessage: (sessionId, content, thinking) => {
     set((s) => ({
       sessions: s.sessions.map((sess) => {
         if (sess.id !== sessionId) return sess;
         return {
           ...sess,
-          messages: [...sess.messages, { role: "assistant" as const, content }],
+          messages: [
+            ...sess.messages,
+            { role: "assistant" as const, content, thinking: thinking || undefined },
+          ],
           streamingText: undefined,
+          streamingThinking: undefined,
           isStreaming: false,
           _abortController: undefined,
         };

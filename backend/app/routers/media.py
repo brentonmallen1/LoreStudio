@@ -3,7 +3,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel as PydanticBase
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,7 @@ from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentO
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.character_from_image import CHARACTER_FROM_IMAGE_SYSTEM, CHARACTER_FROM_IMAGE_USER
 from ..services.llm.prompts.scene_atmosphere import SCENE_ATMOSPHERE_SYSTEM, build_scene_atmosphere_prompt
+from ..services.llm.sse import sse_stream
 
 router = APIRouter()
 
@@ -282,20 +283,14 @@ async def analyze_image(
         extra_metadata={"asset_id": asset_id},
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=llm_messages,
-                feature_prompt=feature_prompt,
-                context=ctx,
-                db=db,
-                user=current_user,
-            ):
-                yield token
-        except Exception as e:
-            yield f"\n\n[Analysis unavailable: {e}]"
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/media/{asset_id}/analyze/character")
@@ -332,20 +327,14 @@ async def analyze_image_for_character(
         extra_metadata={"asset_id": asset_id},
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=llm_messages,
-                feature_prompt=CHARACTER_FROM_IMAGE_SYSTEM,
-                context=ctx,
-                db=db,
-                user=current_user,
-            ):
-                yield token
-        except Exception as e:
-            yield f"\n\n[Analysis unavailable: {e}]"
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=CHARACTER_FROM_IMAGE_SYSTEM,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 # --- Scene Atmosphere Analysis ---
@@ -418,17 +407,11 @@ async def analyze_scene_atmosphere(
         extra_metadata={"asset_ids": body.asset_ids, "node_id": body.node_id},
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=llm_messages,
-                feature_prompt=SCENE_ATMOSPHERE_SYSTEM,
-                context=ctx,
-                db=db,
-                user=current_user,
-            ):
-                yield token
-        except Exception as e:
-            yield f"\n\n[Atmosphere analysis unavailable: {e}]"
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=SCENE_ATMOSPHERE_SYSTEM,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )

@@ -6,6 +6,12 @@ that look like defects, and things worth keeping exactly as they are.
 
 Paths are relative to `/Users/euclid/repos/LoreStudio`.
 
+**Resolved since this was written.** 1.1 (persisted server-side, not from the client),
+1.3, 1.4, 1.5, 1.6, and 1.7 + 2.1 together — the stream is typed SSE, and the thinking
+regex is gone from the view layer. 1.2 dissolved with 1.1: sessions are recoverable from
+the Chronicle on reload. Outstanding: 2.2 (only if async SQLAlchemy is ever adopted) and
+2.3 (deferred — the motivating case was an image model, which Ollama does not serve).
+
 ---
 
 ## 1. Defects and half-wired code

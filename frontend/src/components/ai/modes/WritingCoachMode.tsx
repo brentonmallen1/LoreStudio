@@ -128,6 +128,7 @@ export default function WritingCoachMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
         />
       )}

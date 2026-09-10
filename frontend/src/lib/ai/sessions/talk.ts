@@ -1,3 +1,4 @@
+import { stripStoredThoughts } from "../thoughts";
 /**
  * Talk — sessions that reflect the author's work back at them.
  * Registered on import; see ./index.ts.
@@ -111,7 +112,8 @@ registerSessionType({
           if (detail.messages.length > 0) {
             const messages = detail.messages.map((m) => ({
               role: m.role as "user" | "assistant",
-              content: m.content,
+              // Conversations recorded before reasoning had its own event.
+              content: stripStoredThoughts(m.content),
             }));
             const firstUser = messages.find((m) => m.role === "user");
             const preview = firstUser
@@ -195,7 +197,8 @@ registerSessionType({
           if (detail.messages.length > 0) {
             const messages = detail.messages.map((m) => ({
               role: m.role as "user" | "assistant",
-              content: m.content,
+              // Conversations recorded before reasoning had its own event.
+              content: stripStoredThoughts(m.content),
             }));
             const firstUser = messages.find((m) => m.role === "user");
             const preview = firstUser

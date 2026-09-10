@@ -14,19 +14,9 @@ const EXAMPLE_PROMPTS = [
   "What if a supporting character was the real villain?",
 ];
 
-const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
-const PARTIAL_THINKING_RE = /<\|channel>thought\n[\s\S]*$/;
-
-function stripThinking(content: string): { mainContent: string; hasThinking: boolean; isThinking: boolean } {
-  let processed = content.replace(THINKING_RE, () => "");
-  const isThinking = PARTIAL_THINKING_RE.test(processed);
-  if (isThinking) processed = processed.replace(PARTIAL_THINKING_RE, "");
-  return { mainContent: processed.trim(), hasThinking: processed !== content, isThinking };
-}
-
 function MessageBubble({ msg }: { msg: ChatMessage }) {
   const isUser = msg.role === "user";
-  const { mainContent } = isUser ? { mainContent: msg.content } : stripThinking(msg.content);
+  const mainContent = msg.content.trim();
   return (
     <div className={`${styles.bubble} ${isUser ? styles.bubbleUser : styles.bubbleAssistant}`}>
       <div className={styles.bubbleLabel}>{isUser ? "You" : "Analyst"}</div>
@@ -46,13 +36,14 @@ export default function WhatIfPage() {
     stream,
     cancel,
     text: streamText,
+    thinking: streamThinking,
     isStreaming,
   } = useLLMStream({
     requestId: `whatif:${storyId}`,
     label: "What If?",
     tabId: "story",
-    onComplete: (full) => {
-      setMessages((prev) => [...prev, { role: "assistant", content: full }]);
+    onComplete: (full, thinking) => {
+      setMessages((prev) => [...prev, { role: "assistant", content: full, thinking }]);
       inputRef.current?.focus();
     },
     onError: () => {
@@ -137,24 +128,19 @@ export default function WhatIfPage() {
             {messages.map((m, i) => (
               <MessageBubble key={i} msg={m} />
             ))}
-            {isStreaming &&
-              streamText &&
-              (() => {
-                const { mainContent, isThinking } = stripThinking(streamText);
-                return (
-                  <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
-                    <div className={styles.bubbleLabel}>Analyst</div>
-                    {isThinking && (
-                      <div className={styles.thinkingIndicator}>
-                        <Brain size={11} />
-                        Thinking…
-                      </div>
-                    )}
-                    {mainContent && <div className={styles.bubbleText}>{mainContent}</div>}
+            {isStreaming && (streamText || streamThinking) && (
+              <div className={`${styles.bubble} ${styles.bubbleAssistant} ${styles.bubbleStreaming}`}>
+                <div className={styles.bubbleLabel}>Analyst</div>
+                {streamThinking && !streamText && (
+                  <div className={styles.thinkingIndicator}>
+                    <Brain size={11} />
+                    Thinking…
                   </div>
-                );
-              })()}
-            {isStreaming && !streamText && (
+                )}
+                {streamText && <div className={styles.bubbleText}>{streamText.trim()}</div>}
+              </div>
+            )}
+            {isStreaming && !streamText && !streamThinking && (
               <div className={styles.thinking}>
                 <span className={styles.dot} />
                 <span className={styles.dot} />

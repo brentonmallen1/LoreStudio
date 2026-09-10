@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -60,7 +59,7 @@ from ..services.llm.prompts.analysis import (
     build_thread_analysis_prompt,
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
-from ..services.llm.stream_errors import stream_error
+from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_analysis_service import (
     ALL_CHECKS,
     analyze_scene,
@@ -111,11 +110,7 @@ async def summarize_structure_section(
 
     content_pieces = gather_content(node)
     if not content_pieces:
-
-        async def no_content():
-            yield f"'{node.title}' has no written content yet."
-
-        return StreamingResponse(no_content(), media_type="text/plain")
+        return sse_message(f"'{node.title}' has no written content yet.")
 
     content_text = "\n\n".join(content_pieces)
     feature_prompt = build_structure_section_summary_prompt(
@@ -134,17 +129,14 @@ async def summarize_structure_section(
         tags=["manuscript", "summarization", "analysis", "user-initiated"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/stories/{story_id}/summarize/character")
@@ -205,17 +197,14 @@ async def summarize_character_arc(
         tags=["character", "analysis", "user-initiated"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/stories/{story_id}/analyze/economy", response_model=StructuredResult)
@@ -400,11 +389,7 @@ async def recap_last_session(
 
     # ── Nothing to recap ──
     if not recent_scenes and not recent_logs and not recent_interviews:
-
-        async def empty_stream():
-            yield "Nothing to recap yet — no scenes, activity, or interviews recorded for this story."
-
-        return StreamingResponse(empty_stream(), media_type="text/plain")
+        return sse_message("Nothing to recap yet — no scenes, activity, or interviews recorded for this story.")
 
     feature_prompt = build_session_recap_prompt(
         story_title=story.title,
@@ -422,17 +407,14 @@ async def recap_last_session(
         tags=["story", "analysis", "user-initiated"],
     )
 
-    async def recap_stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(recap_stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/threads/{thread_id}/analyze", response_model=StructuredResult)
@@ -1548,21 +1530,15 @@ async def cliche_coach_chat(
         tags=["manuscript", "chat", "craft", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="analysis")
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )
 
 
 @router.post("/stories/{story_id}/discovery-questions", response_model=StructuredResult)

@@ -110,6 +110,7 @@ class MockAIGateway:
         llm_params: Any = None,
         include_core_prompt: bool = True,
         on_complete: Any = None,
+        on_result: Any = None,
     ) -> AsyncIterator[str]:
         self.stream_calls.append(
             {
@@ -119,24 +120,33 @@ class MockAIGateway:
             }
         )
 
-        if self.response.should_fail:
-            raise RuntimeError(self.response.error_message)
+        from app.services.llm.gateway import AICallResult
+        from app.services.llm.ollama import strip_thoughts
 
         full_tokens: list[str] = []
-        for char in self.response.stream_text:
-            full_tokens.append(char)
-            yield char
+        try:
+            if self.response.should_fail:
+                raise RuntimeError(self.response.error_message)
 
-        if on_complete:
-            from app.services.llm.gateway import AICallResult
-
+            for char in self.response.stream_text:
+                full_tokens.append(char)
+                yield char
+        finally:
+            raw = "".join(full_tokens)
             result = AICallResult(
-                content="".join(full_tokens),
+                # Stripped, as the real gateway does: `content` is the answer, not the
+                # reasoning that preceded it.
+                content=strip_thoughts(raw),
                 tokens_in=10,
                 tokens_out=len(full_tokens),
                 latency_ms=50,
                 model="mock-model",
+                raw_response=raw,
             )
+            if on_result:
+                on_result(result)
+
+        if on_complete and result.content:
             await on_complete(result)
 
     async def generate_structured(

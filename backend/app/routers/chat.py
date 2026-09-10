@@ -19,7 +19,7 @@ can show the author exactly what the AI is seeing.
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -40,7 +40,7 @@ from ..services.codex.context import (
 from ..services.llm.features import get_feature
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
-from ..services.llm.stream_errors import stream_error
+from ..services.llm.sse import sse_message, sse_stream
 
 router = APIRouter()
 
@@ -164,29 +164,21 @@ async def scene_chat(
     last_user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
     add_message(db, chronicle, "user", last_user)
 
-    async def stream():
-        answer: list[str] = []
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                answer.append(token)
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="scene-chat")
-        finally:
-            # Synchronous, and in `finally`, for the same reason the call log is: a closed
-            # tab mid-answer still leaves what was written in the Chronicle.
-            add_message(db, chronicle, "assistant", "".join(answer))
+    def _save_answer(answer: str) -> None:
+        # Synchronous, and in `finally`, for the same reason the call log is: a closed tab
+        # mid-answer still leaves what was written in the Chronicle. What is stored is the
+        # prose alone — the reasoning went out on its own event and was never part of it.
+        add_message(db, chronicle, "assistant", answer)
 
-    return StreamingResponse(
-        stream(),
-        media_type="text/plain",
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+        on_text=_save_answer,
         headers={
             "X-Chronicle-Session": chronicle.id,
             "Access-Control-Expose-Headers": "X-Chronicle-Session",
@@ -204,9 +196,7 @@ async def summarize_conversation(
     messages = [m.model_dump() for m in body.messages]
     story_id = body.story_id
     if not messages:
-        from fastapi.responses import Response as FR
-
-        return FR("No messages to summarize.", media_type="text/plain")
+        return sse_message("No messages to summarize.")
 
     feature_prompt = (
         "You are a conversation summarizer. "
@@ -223,17 +213,11 @@ async def summarize_conversation(
         tags=["chat", "summarization", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-            ):
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="conversation-summarize")
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+    )

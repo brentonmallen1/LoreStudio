@@ -62,6 +62,7 @@ export default function WhatIfMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
           emptyText="Ask a 'What if?' question to explore scenario ripples."
         />

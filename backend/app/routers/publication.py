@@ -7,7 +7,6 @@ Publication preparation endpoints.
 """
 
 from fastapi import APIRouter, Body, Depends, HTTPException
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -24,7 +23,7 @@ from ..services.llm.prompts.publication import (
     build_comp_titles_prompt,
     build_query_letter_system_prompt,
 )
-from ..services.llm.stream_errors import stream_error
+from ..services.llm.sse import sse_stream
 
 router = APIRouter()
 
@@ -92,21 +91,15 @@ async def book_description_chat(
         tags=["publication", "book-description", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=system_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="publication")
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=system_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )
 
 
 @router.post("/stories/{story_id}/chat/query-letter")
@@ -129,21 +122,15 @@ async def query_letter_chat(
         tags=["publication", "query-letter", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=system_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="publication")
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=system_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )
 
 
 @router.post("/stories/{story_id}/publication/comp-titles", response_model=StructuredResult)

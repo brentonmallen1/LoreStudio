@@ -97,6 +97,7 @@ export default function AssistantMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
           onRegenerate={() => regenerate(session.id)}
           onSaveNote={state.saveToNotes}

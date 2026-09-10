@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -32,6 +31,7 @@ from ..services.llm.prompts.interviews import (
     build_compaction_prompt,
     build_interview_summary_prompt,
 )
+from ..services.llm.sse import sse_message, sse_stream
 
 router = APIRouter()
 
@@ -189,20 +189,17 @@ async def send_message(
         interview.messages = list(interview.messages) + [assistant_msg]
         db.commit()
 
-    async def stream_and_persist():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            llm_params=body.llm_params,
-            include_core_prompt=False,
-            on_complete=on_complete,
-        ):
-            yield token
-
-    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        llm_params=body.llm_params,
+        include_core_prompt=False,
+        on_complete=on_complete,
+    )
 
 
 @router.patch("/{interview_id}", response_model=InterviewOut)
@@ -236,9 +233,7 @@ async def summarize_interview(
         raise HTTPException(status_code=404, detail="Character not found")
 
     if not interview.messages:
-        from fastapi.responses import Response
-
-        return Response("No messages to summarize.", media_type="text/plain")
+        return sse_message("No messages to summarize.")
 
     feature_prompt = build_interview_summary_prompt(character, list(interview.messages))
     llm_messages = [{"role": "user", "content": "Please provide your analysis."}]
@@ -255,18 +250,15 @@ async def summarize_interview(
         interview.interview_notes = result.content
         db.commit()
 
-    async def stream_and_persist():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            on_complete=on_complete,
-        ):
-            yield token
-
-    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        on_complete=on_complete,
+    )
 
 
 @router.post("/{interview_id}/apply-to-character", response_model=None)

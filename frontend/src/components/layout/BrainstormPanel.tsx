@@ -32,36 +32,31 @@ const FOLLOW_UP_PROMPTS = [
   "What if the reader needs to feel hopeful here?",
 ];
 
-const THINKING_RE = /<\|channel>thought\n([\s\S]*?)<channel\|>/g;
-const PARTIAL_THINKING_RE = /<\|channel>thought\n[\s\S]*$/;
-
-function MessageContent({ content, s }: { content: string; s: Record<string, string> }) {
-  const thinkingBlocks: string[] = [];
-
-  let processed = content.replace(THINKING_RE, (_, thought) => {
-    thinkingBlocks.push(thought.trim());
-    return "";
-  });
-
-  const isThinking = PARTIAL_THINKING_RE.test(processed);
-  if (isThinking) {
-    processed = processed.replace(PARTIAL_THINKING_RE, "");
-  }
-
-  const mainContent = processed.trim();
+/** Reasoning arrives on its own event; nothing here has to dig it out of the prose. */
+function MessageContent({
+  content,
+  thinking,
+  s,
+}: {
+  content: string;
+  thinking?: string;
+  s: Record<string, string>;
+}) {
+  const mainContent = content.trim();
+  const reasoning = thinking?.trim();
 
   return (
     <>
-      {thinkingBlocks.length > 0 && (
+      {reasoning && (
         <details className={s.thinkingBlock}>
           <summary className={s.thinkingSummary}>
             <Brain size={11} />
             Thinking
           </summary>
-          <div className={s.thinkingContent}>{thinkingBlocks.join("\n\n")}</div>
+          <div className={s.thinkingContent}>{reasoning}</div>
         </details>
       )}
-      {isThinking && (
+      {reasoning && !mainContent && (
         <div className={s.thinkingIndicator}>
           <Brain size={11} />
           Thinking…
@@ -191,13 +186,14 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
     stream,
     cancel,
     text: streamText,
+    thinking: streamThinking,
     isStreaming: streaming,
   } = useLLMStream({
     requestId: `brainstorm:${storyId}:${nodeId}`,
     label: "What's Next?",
     tabId: "story",
-    onComplete: (full) => {
-      setMessages((prev) => [...prev, { role: "assistant", content: full }]);
+    onComplete: (full, thinking) => {
+      setMessages((prev) => [...prev, { role: "assistant", content: full, thinking }]);
       setShowFollowUps(true);
       inputRef.current?.focus();
     },
@@ -319,7 +315,11 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
                     ))}
                   </div>
                 )}
-                {msg.role === "assistant" ? <MessageContent content={msg.content} s={styles} /> : msg.content}
+                {msg.role === "assistant" ? (
+                  <MessageContent content={msg.content} thinking={msg.thinking} s={styles} />
+                ) : (
+                  msg.content
+                )}
               </div>
             </div>
           ))}
@@ -330,7 +330,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
                 <Compass size={13} />
               </div>
               <div className={styles.messageContent}>
-                <MessageContent content={streamText} s={styles} />
+                <MessageContent content={streamText} thinking={streamThinking} s={styles} />
               </div>
             </div>
           )}

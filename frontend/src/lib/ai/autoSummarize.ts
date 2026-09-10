@@ -1,3 +1,4 @@
+import { streamAnswer } from "./eventStream";
 import { api } from "../../api/client";
 import type { AISession } from "../../stores/aiStore";
 
@@ -19,15 +20,8 @@ export function maybeAutoSummarize(session: AISession, apply: (summary: string, 
     .summarizeConversation(toSummarize, session.context.storyId)
     .then(async (res) => {
       if (!res.ok || !res.body) return;
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-      }
-      if (full.trim()) apply(full.trim(), KEEP);
+      const { text, error } = await streamAnswer(res);
+      if (!error && text.trim()) apply(text.trim(), KEEP);
     })
     .catch(() => {
       /* see above */

@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useEffect } from "react";
 import { Compass, X, Loader } from "lucide-react";
 import { api } from "../../api/client";
@@ -53,17 +54,8 @@ export default function SnowflakeGuidance({ storyId, layer, content, characterId
         setLoading(false);
         return;
       }
-      const reader = res.body?.getReader();
-      if (!reader) {
-        setLoading(false);
-        return;
-      }
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        setText((prev) => prev + decoder.decode(value, { stream: true }));
-      }
+      const { error: streamError } = await streamAnswer(res, setText);
+      if (streamError) setError(streamError);
     } catch (e) {
       if ((e as Error).name !== "AbortError") setError("Connection error.");
     } finally {

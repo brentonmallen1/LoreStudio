@@ -12,6 +12,7 @@ from app.models.chat_session import ChatSession
 from app.models.story import Story
 from app.models.structure import StructureNode
 from app.models.user import User
+from tests.fixtures.sse import answer_of, error_of, kinds_of, thinking_of
 
 
 def _scene(db, user):
@@ -105,3 +106,50 @@ def test_a_rejected_message_shape_never_reaches_the_provider(client, db_session,
     )
     assert response.status_code == 422
     assert db_session.query(ChatSession).count() == 0
+
+
+def test_reasoning_never_reaches_the_answer_or_the_chronicle(client, db_session, test_user, mock_ai_gateway):
+    """
+    Gemma delimits its reasoning inside the token stream. It used to travel all the way
+    into the stored message, and four React components each stripped it back out on the
+    way to the screen. Now it has its own event and never joins the prose.
+    """
+    story, node = _scene(db_session, test_user)
+    mock_ai_gateway(stream_text="<|channel>thought\nthe lamp matters<channel|>The lamp is out.")
+
+    response = _send(client, story, node.id, "What is wrong?")
+    assert answer_of(response) == "The lamp is out."
+    assert thinking_of(response) == "the lamp matters"
+
+    session_id = response.headers["X-Chronicle-Session"]
+    stored = (
+        db_session.query(ChatMessage)
+        .filter(ChatMessage.session_id == session_id, ChatMessage.role == "assistant")
+        .one()
+    )
+    assert stored.content == "The lamp is out."
+
+
+def test_a_failed_call_arrives_as_an_error_event_and_is_not_stored_as_an_answer(
+    client, db_session, test_user, mock_ai_gateway
+):
+    """
+    The transport has already committed to 200 by the time the model fails. The failure
+    used to be appended as prose, indistinguishable from something the model said.
+    """
+    story, node = _scene(db_session, test_user)
+    mock_ai_gateway(should_fail=True, error_message="ollama refused the connection")
+
+    response = _send(client, story, node.id, "Why?")
+    assert response.status_code == 200
+    assert kinds_of(response) == ["error", "done"]
+    assert answer_of(response) == ""
+
+    message = error_of(response)
+    assert message and "went wrong" in message
+    # The exception text stays in the log rather than being rendered into the manuscript.
+    assert "ollama refused" not in message
+
+    session_id = response.headers["X-Chronicle-Session"]
+    roles = [m.role for m in db_session.query(ChatMessage).filter(ChatMessage.session_id == session_id).all()]
+    assert roles == ["user"]

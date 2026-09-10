@@ -1,3 +1,4 @@
+import { readFrames } from "../../../lib/ai/eventStream";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Users } from "lucide-react";
 import { api } from "../../../api/client";
@@ -113,72 +114,53 @@ export default function PanelMode({ session }: Props) {
         return;
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
       let activeCharName = "";
       let activeCharId = "";
       let accumText = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-
-        const lines = buf.split("\n");
-        buf = lines.pop() ?? "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          let event: PanelStreamEvent;
-          try {
-            event = JSON.parse(line.slice(6));
-          } catch {
-            continue;
+      await readFrames(res, async (frame) => {
+        const event = { event: frame.event, ...frame.data } as unknown as PanelStreamEvent;
+        if (event.event === "start") {
+          activeCharName = event.character ?? "";
+          activeCharId = event.character_id ?? "";
+          accumText = "";
+          setCurrentSpeaker(activeCharName);
+          setStreamingText("");
+        } else if (event.event === "token") {
+          accumText += event.delta ?? "";
+          setStreamingText((prev) => prev + (event.delta ?? ""));
+        } else if (event.event === "end") {
+          const finished = accumText.trim();
+          if (finished && activeCharName) {
+            const charMsg: PanelMessage = {
+              role: "character",
+              character_name: activeCharName,
+              character_id: activeCharId || undefined,
+              content: finished,
+              timestamp: new Date().toISOString(),
+            };
+            setLocalMessages((prev) => [...prev, charMsg]);
           }
-
-          if (event.type === "start") {
-            activeCharName = event.character ?? "";
-            activeCharId = event.character_id ?? "";
-            accumText = "";
-            setCurrentSpeaker(activeCharName);
-            setStreamingText("");
-          } else if (event.type === "token") {
-            accumText += event.token ?? "";
-            setStreamingText((prev) => prev + (event.token ?? ""));
-          } else if (event.type === "end") {
-            const finished = accumText.trim();
-            if (finished && activeCharName) {
-              const charMsg: PanelMessage = {
-                role: "character",
-                character_name: activeCharName,
-                character_id: activeCharId || undefined,
-                content: finished,
-                timestamp: new Date().toISOString(),
-              };
-              setLocalMessages((prev) => [...prev, charMsg]);
-            }
-            activeCharName = "";
-            activeCharId = "";
-            accumText = "";
-            setCurrentSpeaker(null);
-            setStreamingText("");
-          } else if (event.type === "pass") {
-            activeCharName = "";
-            activeCharId = "";
-            accumText = "";
-            setCurrentSpeaker(null);
-            setStreamingText("");
-          } else if (event.type === "done") {
-            try {
-              const updated = await api.getPanel(panelId);
-              setLocalMessages(updated.messages);
-            } catch {
-              /* ignore */
-            }
+          activeCharName = "";
+          activeCharId = "";
+          accumText = "";
+          setCurrentSpeaker(null);
+          setStreamingText("");
+        } else if (event.event === "pass") {
+          activeCharName = "";
+          activeCharId = "";
+          accumText = "";
+          setCurrentSpeaker(null);
+          setStreamingText("");
+        } else if (event.event === "done") {
+          try {
+            const updated = await api.getPanel(panelId);
+            setLocalMessages(updated.messages);
+          } catch {
+            /* ignore */
           }
         }
-      }
+      });
     } catch (err: unknown) {
       if ((err as Error)?.name !== "AbortError") {
         // Error handled silently

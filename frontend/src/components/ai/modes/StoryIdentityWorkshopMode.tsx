@@ -62,6 +62,7 @@ export default function StoryIdentityWorkshopMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
           emptyText="Tell me about your story and I'll ask questions to help you think it through."
         />

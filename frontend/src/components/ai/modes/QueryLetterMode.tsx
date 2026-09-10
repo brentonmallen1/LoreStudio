@@ -62,6 +62,7 @@ export default function QueryLetterMode({ session }: Props) {
         <MessageList
           messages={session.messages}
           streamingText={session.streamingText}
+          streamingThinking={session.streamingThinking}
           isStreaming={session.isStreaming}
           emptyText="Ask for a full letter, or start with the hook."
         />

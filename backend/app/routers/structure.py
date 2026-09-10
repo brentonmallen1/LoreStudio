@@ -1,7 +1,6 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -16,6 +15,7 @@ from ..services.dialogue_service import sync_dialogue_blocks
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
+from ..services.llm.sse import sse_message, sse_stream
 
 router = APIRouter()
 
@@ -137,7 +137,6 @@ async def summarize_node(
     current_user: User = Depends(get_current_user),
 ):
     """Stream an AI-generated summary of a scene or section, then persist it."""
-    from fastapi.responses import Response
 
     node = _verify_node_access(node_id, db, current_user)
     story = db.query(Story).filter(Story.id == node.story_id).first()
@@ -166,7 +165,7 @@ async def summarize_node(
 
         content_pieces = gather_content(node)
         if not content_pieces:
-            return Response("No content to summarize in this section.", media_type="text/plain")
+            return sse_message("No content to summarize in this section.")
 
         feature_prompt = build_structure_section_summary_prompt(
             story_title=story.title,
@@ -192,18 +191,15 @@ async def summarize_node(
         db.commit()
         _invalidate_journey_summaries(node_id, db)
 
-    async def stream_and_persist():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            on_complete=on_complete,
-        ):
-            yield token
-
-    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        on_complete=on_complete,
+    )
 
 
 def _invalidate_journey_summaries(node_id: str, db: Session) -> None:

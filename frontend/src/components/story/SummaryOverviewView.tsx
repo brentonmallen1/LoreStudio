@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../lib/ai/eventStream";
 import React, { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ChevronDown, ChevronRight, Compass, Square } from "lucide-react";
@@ -61,16 +62,8 @@ export default function SummaryOverviewView() {
       const res = await api.summarizeNode(node.id, controller.signal);
       if (!res.ok || !res.body) throw new Error("Stream failed");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        setStreamText(full);
-      }
+      const { text: full, error } = await streamAnswer(res, setStreamText);
+      if (error) throw new Error(error);
 
       if (full && !full.startsWith("No content to summarize")) {
         setLocalUpdates((prev) => ({

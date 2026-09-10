@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../../lib/ai/eventStream";
 import { useState, useEffect, useRef } from "react";
 import { FoldVertical, Layers } from "lucide-react";
 import { api } from "../../../api/client";
@@ -43,15 +44,8 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
           setStreaming(false);
           return;
         }
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let full = "";
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          full += decoder.decode(value, { stream: true });
-          setSummary(full);
-        }
+        const { error } = await streamAnswer(res, setSummary);
+        if (error) setError(error);
         setStreaming(false);
       })
       .catch((err) => {

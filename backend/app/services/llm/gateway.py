@@ -48,7 +48,7 @@ from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
 from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget
-from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider
+from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,7 @@ PREVIEW_CHARS = 240
 class AICallResult:
     """Collected result after a call completes — successfully or not."""
 
+    #: The answer, with reasoning removed. What a caller persists and shows.
     content: str
     tokens_in: int | None = None
     tokens_out: int | None = None
@@ -222,6 +223,7 @@ class AIGateway:
         llm_params: LLMParamsOverride | None = None,
         include_core_prompt: bool = True,
         on_complete: Callable[[AICallResult], Awaitable[None]] | None = None,
+        on_result: Callable[[AICallResult], None] | None = None,
     ) -> AsyncIterator[str]:
         """
         Stream an LLM response through the gateway.
@@ -277,7 +279,7 @@ class AIGateway:
                 _logged = True
                 raw = "".join(full_response)
                 result = AICallResult(
-                    content=raw,
+                    content=strip_thoughts(raw),
                     tokens_in=metrics.tokens_in if metrics else None,
                     tokens_out=metrics.tokens_out if metrics else None,
                     latency_ms=int((time.monotonic() - start_time) * 1000),
@@ -289,6 +291,14 @@ class AIGateway:
                 )
 
                 self._log_call(context, result, db, params, messages, system_prompt)
+
+                # Synchronous, for the same reason _log_call is: this runs while a
+                # cancellation unwinds, and an awaited call there would never complete.
+                if on_result:
+                    try:
+                        on_result(result)
+                    except Exception:
+                        logger.exception("on_result hook failed for %s", context.feature)
 
                 # Never awaited while unwinding a cancellation: an async generator may not
                 # await after GeneratorExit.
@@ -351,7 +361,7 @@ class AIGateway:
             return StructuredResult(success=False, raw_text=f"Error reaching LLM: {e}")
 
         result_obj = AICallResult(
-            content=raw_text,
+            content=strip_thoughts(raw_text),
             tokens_in=metrics.tokens_in if metrics else None,
             tokens_out=metrics.tokens_out if metrics else None,
             latency_ms=int((time.monotonic() - start_time) * 1000),

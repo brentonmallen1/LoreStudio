@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
@@ -24,6 +23,7 @@ from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
 from ..services.llm.prompts.summaries import build_story_summary_prompt
+from ..services.llm.sse import sse_stream
 from ..services.word_count import get_word_count_status
 
 router = APIRouter()
@@ -268,17 +268,14 @@ async def summarize_story(
         tags=["story", "summarization", "user-initiated"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 @router.post("/{story_id}/snowflake/guidance")
@@ -330,17 +327,14 @@ async def snowflake_guidance(
         tags=["snowflake", "guidance", "user-initiated"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )
 
 
 class SuggestRelationshipsRequest(BaseModel):
@@ -676,18 +670,15 @@ async def identity_workshop(
         tags=["story-identity", "workshop", "guide"],
     )
 
-    async def stream():
-        async for token in ai_gateway.stream(
-            messages=body.messages,
-            feature_prompt=prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            llm_params=llm_params,
-        ):
-            yield token
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=body.messages,
+        feature_prompt=prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )
 
 
 @router.get("/{story_id}/settings")

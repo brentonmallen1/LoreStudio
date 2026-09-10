@@ -2,7 +2,6 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
@@ -48,6 +47,7 @@ from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.analysis import build_voice_fidelity_prompt
 from ..services.llm.prompts.generation import build_attribute_generation_prompt
 from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
+from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_analysis_service import analyze_character_dialogue_prose, analyze_voice_distinctness
 from ..services.pronoun_service import apply_proposals_to_html, build_pronoun_proposals
 from ..services.refactoring_service import apply_entity_rename, preview_entity_rename
@@ -287,13 +287,11 @@ async def refresh_character_journey(
     relevant_scenes = get_scenes_with_character(nodes_up_to, character)
 
     if not relevant_scenes:
-        from fastapi.responses import Response
-
         # Still cache a placeholder so the UI can show "0 scenes found"
         cached = get_cached_journey(character_id, up_to_node, db)
         placeholder = "I don't appear to have experienced anything notable in the story up to this point."
         save_journey(character_id, up_to_node, placeholder, [], db, existing=cached)
-        return Response(placeholder, media_type="text/plain")
+        return sse_message(placeholder)
 
     scene_summaries = [(n.title, n.content_summary) for n in relevant_scenes]
     source_ids = [n.id for n in relevant_scenes]
@@ -314,19 +312,16 @@ async def refresh_character_journey(
     async def on_complete(result: AICallResult) -> None:
         save_journey(character_id, up_to_node, result.content, source_ids, db, existing=cached)
 
-    async def stream_and_persist():
-        async for token in ai_gateway.stream(
-            messages=llm_messages,
-            feature_prompt=feature_prompt,
-            context=ctx,
-            db=db,
-            user=current_user,
-            include_core_prompt=False,
-            on_complete=on_complete,
-        ):
-            yield token
-
-    return StreamingResponse(stream_and_persist(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=llm_messages,
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+        include_core_prompt=False,
+        on_complete=on_complete,
+    )
 
 
 @router.get("/{character_id}/arc-timeline")

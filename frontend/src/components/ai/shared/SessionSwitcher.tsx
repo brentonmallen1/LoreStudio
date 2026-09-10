@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
 import { Archive, ChevronDown, GitFork, Compass, Loader } from "lucide-react";
 import { api } from "../../../api/client";
@@ -119,15 +120,8 @@ export default function SessionSwitcher({ session, onClose }: Props) {
     try {
       const res = await api.generateSessionTitle(cs.id);
       if (!res.ok || !res.body) return;
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let title = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        title += decoder.decode(value, { stream: true });
-      }
-      if (title.trim()) {
+      const { text: title, error } = await streamAnswer(res);
+      if (!error && title.trim()) {
         setSessions((prev) => prev.map((s) => (s.id === cs.id ? { ...s, title: title.trim() } : s)));
       }
     } catch {

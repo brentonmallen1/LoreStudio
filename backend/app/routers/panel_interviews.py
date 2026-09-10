@@ -1,8 +1,6 @@
-import json
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -26,6 +24,7 @@ from ..services.llm.prompts.panel import (
     build_panel_orchestrator_prompt,
     format_history_with_labels,
 )
+from ..services.llm.sse import format_event, split_events, sse_response
 
 router = APIRouter()
 
@@ -193,9 +192,6 @@ async def send_panel_message(
         tags=["panel", "orchestrator"],
     )
 
-    def _sse(event: dict) -> str:
-        return f"data: {json.dumps(event)}\n\n"
-
     async def stream_panel():
         current_messages = list(panel.messages)
         round_num = 1
@@ -214,14 +210,14 @@ async def send_panel_message(
             )
 
             if not orch_result.success or not orch_result.data:
-                yield _sse({"type": "done"})
+                yield format_event("done")
                 return
 
             speakers: list[str] = orch_result.data.get("speakers", [])
             round_complete: bool = orch_result.data.get("round_complete", True)
 
             if not speakers:
-                yield _sse({"type": "done"})
+                yield format_event("done")
                 return
 
             # Stream each character in order
@@ -246,7 +242,7 @@ async def send_panel_message(
                     for m in current_messages
                 ]
 
-                yield _sse({"type": "start", "character": char_name, "character_id": character.id})
+                yield format_event("start", {"character": char_name, "character_id": character.id})
 
                 char_tokens: list[str] = []
 
@@ -257,23 +253,29 @@ async def send_panel_message(
                     tags=["panel", "character", "interview", "persisted"],
                 )
 
-                async for token in ai_gateway.stream(
-                    messages=llm_messages,
-                    feature_prompt=char_prompt,
-                    context=char_ctx,
-                    db=db,
-                    user=current_user,
-                    llm_params=body.llm_params,
-                    include_core_prompt=False,
+                # Reasoning is split off as it arrives, so what reaches the panel — and
+                # what is stored as the character's line — is only what they said aloud.
+                # It also keeps "[pass]" recognisable when the model thinks first.
+                async for frame in split_events(
+                    ai_gateway.stream(
+                        messages=llm_messages,
+                        feature_prompt=char_prompt,
+                        context=char_ctx,
+                        db=db,
+                        user=current_user,
+                        llm_params=body.llm_params,
+                        include_core_prompt=False,
+                    ),
+                    extra={"character": char_name},
+                    prose=char_tokens,
                 ):
-                    char_tokens.append(token)
-                    yield _sse({"type": "token", "character": char_name, "token": token})
+                    yield frame
 
                 full_content = "".join(char_tokens).strip()
 
                 # Strip [pass] responses — character chose not to speak
                 if full_content == "[pass]":
-                    yield _sse({"type": "pass", "character": char_name})
+                    yield format_event("pass", {"character": char_name})
                 else:
                     char_msg = {
                         "role": "character",
@@ -287,16 +289,16 @@ async def send_panel_message(
                     _add_chronicle_message(chronicle_session, "assistant", f"[{char_name}]: {full_content}", db)
                     db.commit()
 
-                yield _sse({"type": "end", "character": char_name})
+                yield format_event("end", {"character": char_name})
 
             if round_complete or round_num >= max_rounds:
                 break
 
             round_num += 1
 
-        yield _sse({"type": "done"})
+        yield format_event("done")
 
-    return StreamingResponse(stream_panel(), media_type="text/event-stream")
+    return sse_response(stream_panel())
 
 
 @router.delete("/panels/{panel_id}", status_code=status.HTTP_204_NO_CONTENT)

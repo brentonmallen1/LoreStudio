@@ -1,3 +1,4 @@
+import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useEffect, useRef } from "react";
 import { Camera, X, Upload, FileText, Feather } from "lucide-react";
 import { api } from "../../api/client";
@@ -114,14 +115,8 @@ export default function PortraitEditor({
     try {
       const res = await api.analyzeImageForCharacter(portraitAttachment.asset_id);
       if (!res.body) return;
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let raw = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        raw += decoder.decode(value, { stream: true });
-      }
+      const { text: raw, error } = await streamAnswer(res);
+      if (error) throw new Error(error);
       // Strip any markdown fencing the model may have added
       const json = raw.replace(/```(?:json)?\n?/g, "").trim();
       const parsed = JSON.parse(json) as CharacterImageDescription;

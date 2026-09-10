@@ -1,3 +1,4 @@
+import { stripStoredThoughts } from "../../lib/ai/thoughts";
 import { useState } from "react";
 import { Activity, Star } from "lucide-react";
 import { api } from "../../api/client";
@@ -44,8 +45,7 @@ export default function ActivityLogCard({
   const isAICall = log.category === "ai";
   const hasContent = isAICall || !!(prompt || response);
 
-  // Strip thinking blocks from response preview
-  const responsePreview = response?.replace(/<\|channel>thought\n[\s\S]*?<channel\|>/g, "").trim();
+  const responsePreview = response ? stripStoredThoughts(response) : response;
 
   async function toggleStar(e: React.MouseEvent) {
     e.stopPropagation();

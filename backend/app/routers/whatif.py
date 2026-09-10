@@ -6,7 +6,6 @@ ripple-effect analysis covering threads, arcs, pacing, and theme — without any
 """
 
 from fastapi import APIRouter, Body, Depends, HTTPException
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -19,7 +18,7 @@ from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.whatif import build_whatif_system_prompt
-from ..services.llm.stream_errors import stream_error
+from ..services.llm.sse import sse_stream
 
 router = APIRouter()
 
@@ -118,18 +117,12 @@ async def whatif_simulator(
         tags=["lorebook", "whatif", "scenario", "user-initiated"],
     )
 
-    async def stream():
-        try:
-            async for token in ai_gateway.stream(
-                messages=messages,
-                feature_prompt=system_prompt,
-                context=call_ctx,
-                db=db,
-                user=current_user,
-                llm_params=llm_params,
-            ):
-                yield token
-        except Exception as exc:
-            yield stream_error(exc, where="what-if")
-
-    return StreamingResponse(stream(), media_type="text/plain")
+    return sse_stream(
+        ai_gateway,
+        messages=messages,
+        feature_prompt=system_prompt,
+        context=call_ctx,
+        db=db,
+        user=current_user,
+        llm_params=llm_params,
+    )
