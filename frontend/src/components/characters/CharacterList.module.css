@@ -127,7 +127,7 @@
 }
 
 .viewBtn:hover:not(:disabled) {
-  background: var(--color-surface-3, var(--color-surface-2));
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 

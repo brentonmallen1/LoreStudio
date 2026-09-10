@@ -6,7 +6,7 @@
 }
 
 .streaming {
-  background-color: var(--color-warning, #f59e0b);
+  background-color: var(--color-warning);
   animation: pulse 1.2s ease-in-out infinite;
 }
 

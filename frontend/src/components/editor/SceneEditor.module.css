@@ -2147,7 +2147,7 @@
 }
 
 .aiSuggestionAccept {
-  color: var(--color-success, var(--color-accent));
+  color: var(--color-success);
   font-weight: 700;
 }
 

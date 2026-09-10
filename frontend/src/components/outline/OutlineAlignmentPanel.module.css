@@ -90,7 +90,7 @@
 }
 
 .errorIcon {
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   flex-shrink: 0;
   margin-top: 1px;
 }
@@ -180,15 +180,15 @@
 }
 
 .beat_covered {
-  background: color-mix(in srgb, var(--color-success, #22c55e) 8%, transparent);
+  background: color-mix(in srgb, var(--color-success) 8%, transparent);
 }
 
 .beat_partial {
-  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
 }
 
 .beat_missing {
-  background: color-mix(in srgb, var(--color-error, #ef4444) 8%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
 }
 
 .beatHeader {
@@ -219,19 +219,19 @@
 
 /* ── Status icons ── */
 .iconCovered {
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .iconPartial {
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .iconMissing {
-  color: var(--color-error, #ef4444);
+  color: var(--color-danger);
   flex-shrink: 0;
   margin-top: 1px;
 }

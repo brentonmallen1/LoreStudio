@@ -152,11 +152,11 @@
 }
 
 .applyBtnDone {
-  background: var(--color-success, #16a34a);
+  background: var(--color-success);
 }
 
 .applyBtnDone:hover:not(:disabled) {
-  background: var(--color-success, #16a34a);
+  background: var(--color-success);
 }
 
 /* Empty state */

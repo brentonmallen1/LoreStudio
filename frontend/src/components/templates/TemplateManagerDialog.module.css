@@ -109,7 +109,7 @@
   font-size: 0.65rem;
   padding: 0.1rem 0.4rem;
   border-radius: 99px;
-  background: var(--color-surface-3, var(--color-surface));
+  background: var(--color-surface-3);
   border: 1px solid var(--color-border);
   color: var(--color-text-subtle);
   flex-shrink: 0;
@@ -246,7 +246,7 @@
 }
 
 .iconBtn:hover {
-  background: var(--color-surface-3, var(--color-surface));
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 

@@ -190,7 +190,7 @@
 }
 
 .actionBtnError {
-  border-left-color: var(--color-error, #ef4444) !important;
+  border-left-color: var(--color-danger) !important;
 }
 
 /* Left side: feature icon + text */
@@ -282,7 +282,7 @@
   border-radius: var(--radius);
   border: none;
   background: var(--color-accent);
-  color: var(--color-accent-fg, #fff);
+  color: var(--color-accent-fg);
   font-size: 0.72rem;
   font-family: inherit;
   font-weight: 600;
@@ -309,9 +309,9 @@
   gap: 0.3rem;
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--color-error, #ef4444) 40%, var(--color-border));
-  background: color-mix(in srgb, var(--color-error, #ef4444) 10%, var(--color-bg));
-  color: var(--color-error, #ef4444);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  color: var(--color-danger);
   font-size: 0.72rem;
   font-family: inherit;
   font-weight: 600;
@@ -324,8 +324,8 @@
 }
 
 .stopBtn:hover {
-  background: color-mix(in srgb, var(--color-error, #ef4444) 18%, var(--color-bg));
-  border-color: var(--color-error, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 18%, var(--color-bg));
+  border-color: var(--color-danger);
 }
 
 .reportsLink {

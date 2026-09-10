@@ -313,7 +313,7 @@
 }
 
 .noteDeleteBtn:hover {
-  background: var(--color-danger, #e55);
+  background: var(--color-danger);
   color: #fff;
   border-color: transparent;
 }

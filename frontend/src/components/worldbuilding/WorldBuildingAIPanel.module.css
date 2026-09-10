@@ -33,7 +33,7 @@
 }
 
 .resizeHandle:hover::after {
-  background: var(--color-ai, #a78bfa);
+  background: var(--color-ai);
   opacity: 0.5;
 }
 
@@ -60,7 +60,7 @@
 }
 
 .headerIcon {
-  color: var(--color-ai, #a78bfa);
+  color: var(--color-ai);
   flex-shrink: 0;
 }
 
@@ -94,7 +94,7 @@
 .rerunBtn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-ai) 8%, transparent);
   border-color: color-mix(in srgb, var(--color-ai) 40%, transparent);
-  color: var(--color-ai, #a78bfa);
+  color: var(--color-ai);
 }
 
 .rerunBtn:disabled {
@@ -148,7 +148,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-ai, #a78bfa);
+  background: var(--color-ai);
   animation: pulse 1.2s ease-in-out infinite;
 }
 

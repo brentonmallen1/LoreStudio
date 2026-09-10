@@ -12,8 +12,8 @@
 .modal {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg, var(--radius));
-  box-shadow: var(--shadow-lg, var(--shadow));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
@@ -485,7 +485,7 @@
 /* ── Footer ── */
 .error {
   font-size: 0.75rem;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
   padding: 0 1.25rem;
   margin: 0;
   flex-shrink: 0;

@@ -99,7 +99,7 @@
 
 .discoverError {
   font-size: 0.72rem;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
   max-width: 220px;
 }
 

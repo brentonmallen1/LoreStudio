@@ -51,7 +51,6 @@ from .routers.reader_knowledge import router as reader_knowledge_router
 from .routers.scene_links import router as scene_links_router
 from .routers.scene_planner import router as scene_planner_router
 from .routers.search import router as search_router
-from .routers.settings_router import router as settings_router
 from .routers.snapshots import router as snapshots_router
 from .routers.stories import router as stories_router
 from .routers.structure import router as structure_router
@@ -153,7 +152,6 @@ app.include_router(structure_router, prefix="/api/structure", tags=["structure"]
 app.include_router(characters_router, prefix="/api/characters", tags=["characters"])
 app.include_router(character_milestones_router, prefix="/api/characters", tags=["characters"])
 app.include_router(character_relationships_router, prefix="/api/characters", tags=["characters"])
-app.include_router(settings_router, prefix="/api/settings", tags=["settings"])
 app.include_router(interviews_router, prefix="/api/interviews", tags=["interviews"])
 app.include_router(templates_router, prefix="/api/templates", tags=["templates"])
 app.include_router(analysis_router, prefix="/api", tags=["analysis"])

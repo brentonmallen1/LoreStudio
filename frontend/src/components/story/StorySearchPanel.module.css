@@ -161,7 +161,7 @@
 
 .replaceResult {
   font-size: 0.75rem;
-  color: var(--color-success, var(--color-accent));
+  color: var(--color-success);
   margin: 0;
   padding: 2px 0;
 }

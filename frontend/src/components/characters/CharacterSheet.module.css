@@ -210,9 +210,9 @@
 }
 
 .roleBadge.foil {
-  color: var(--color-warning, #c9a227);
-  border-color: color-mix(in srgb, var(--color-warning, #c9a227) 30%, transparent);
-  background: color-mix(in srgb, var(--color-warning, #c9a227) 6%, transparent);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
 }
 
 .roleBadge.tertiary {
@@ -857,7 +857,7 @@
 }
 
 .milestoneDelete:hover {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 
 .milestoneNavBtn {

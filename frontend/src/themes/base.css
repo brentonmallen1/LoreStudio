@@ -23,9 +23,14 @@
   --mice-event: var(--segment-act);
   /* ── Todo gutter marker ── */
   /* ── Scene Planner panel accent (teal) ── */
+  /* Was undefined, so 40 rules fell through to a hardcoded #0d9488 that ignored the
+     theme. Riding on --color-nlp keeps the teal and makes it follow the palette. */
+  --color-accent-secondary: var(--color-nlp);
   /* ── Brainstorm panel accent (amber/gold) ── */
   /* ── Twist accent ── */
   --twist-accent: var(--color-ai-coach);
+  /* ── Border under the pointer ── */
+  --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
   /* ── Modal overlay ── */
   /* ── UI & Editor typography ────────────────────── */
   --font-ui: "DM Sans", system-ui, sans-serif;

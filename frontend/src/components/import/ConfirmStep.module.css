@@ -16,7 +16,7 @@
 }
 
 .checkIcon {
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
   flex-shrink: 0;
   margin-top: 0.05rem;
 }

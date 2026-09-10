@@ -40,7 +40,7 @@
   height: 16px;
   padding: 0 4px;
   border-radius: 99px;
-  background: var(--twist-accent, #7c3aed);
+  background: var(--twist-accent);
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
@@ -94,7 +94,7 @@
 
 .textInput:focus {
   outline: none;
-  border-color: var(--twist-accent, #7c3aed);
+  border-color: var(--twist-accent);
 }
 
 .bottomRow {
@@ -130,14 +130,14 @@
 }
 
 .dirBtnTruth {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 15%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 15%, transparent);
+  color: var(--color-accent-secondary);
   font-weight: 600;
 }
 
 .dirBtnMisdirect {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
   font-weight: 600;
 }
 
@@ -184,7 +184,7 @@
   gap: 0.3rem;
   font-size: 0.75rem;
   font-family: inherit;
-  color: var(--twist-accent, #7c3aed);
+  color: var(--twist-accent);
   background: none;
   border: none;
   cursor: pointer;

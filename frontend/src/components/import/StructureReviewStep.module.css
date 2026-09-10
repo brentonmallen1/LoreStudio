@@ -16,7 +16,7 @@
   align-items: flex-start;
   gap: 0.4rem;
   font-size: 0.75rem;
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   background: var(--color-warning-bg, rgba(217, 119, 6, 0.08));
   padding: 0.4rem 0.6rem;
   border-radius: var(--radius);
@@ -60,8 +60,8 @@
   font-weight: 500;
   font-family: inherit;
   background: transparent;
-  border: 1px solid var(--color-ai, #7c3aed);
-  color: var(--color-ai, #7c3aed);
+  border: 1px solid var(--color-ai);
+  color: var(--color-ai);
   cursor: pointer;
   transition:
     background var(--transition),
@@ -71,7 +71,7 @@
 }
 
 .aiBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-ai, #7c3aed) 10%, transparent);
+  background: color-mix(in srgb, var(--color-ai) 10%, transparent);
 }
 
 .aiBtn:disabled {
@@ -119,7 +119,7 @@
 }
 
 .nodeLine.needsReview {
-  border-left: 2px solid var(--color-warning, #d97706);
+  border-left: 2px solid var(--color-warning);
 }
 
 .expandBtn {
@@ -218,11 +218,11 @@
 }
 
 .aiTag {
-  color: var(--color-ai, #7c3aed);
+  color: var(--color-ai);
 }
 
 .reviewIcon {
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   flex-shrink: 0;
 }
 

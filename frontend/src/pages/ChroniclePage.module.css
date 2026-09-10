@@ -226,9 +226,9 @@
 }
 
 .bulkDanger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 10%, transparent);
-  color: var(--color-danger, #ef4444);
-  border-color: color-mix(in srgb, var(--color-danger, #ef4444) 30%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
 }
 
 .bulkClear {
@@ -385,7 +385,7 @@
 
 .cardPreview {
   font-size: 0.78rem;
-  color: var(--color-text-muted, var(--color-text-subtle));
+  color: var(--color-text-muted);
   margin: 0 0 0.2rem;
   overflow: hidden;
   display: -webkit-box;
@@ -453,8 +453,8 @@
 }
 
 .iconBtn.danger:hover {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 12%, transparent);
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
 }
 
 .iconBtn.ai {

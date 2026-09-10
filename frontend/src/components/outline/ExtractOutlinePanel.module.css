@@ -132,7 +132,7 @@
 }
 
 .errorIcon {
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   opacity: 0.7;
 }
 

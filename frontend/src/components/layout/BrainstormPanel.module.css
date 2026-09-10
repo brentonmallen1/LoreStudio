@@ -319,7 +319,7 @@
 .thinkingContent {
   margin-top: 0.35rem;
   padding: 0.4rem 0.6rem;
-  background: var(--color-surface-2, var(--color-bg));
+  background: var(--color-surface-2);
   border-left: 2px solid var(--color-border);
   border-radius: 0 var(--radius, 4px) var(--radius, 4px) 0;
   color: var(--color-text-muted);

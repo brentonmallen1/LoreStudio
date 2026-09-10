@@ -196,7 +196,7 @@
 
 .errorText {
   font-size: 0.78rem;
-  color: var(--color-error, #e05252);
+  color: var(--color-danger);
   margin: 0;
 }
 

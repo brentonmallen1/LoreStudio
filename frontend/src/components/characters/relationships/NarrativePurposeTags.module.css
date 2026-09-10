@@ -18,7 +18,7 @@
 }
 
 .root.error .chips {
-  border-color: var(--color-danger, #c0392b);
+  border-color: var(--color-danger);
 }
 
 .chip {
@@ -47,7 +47,7 @@
 
 .chipRemove:hover {
   opacity: 1;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
 }
 
 .addWrapper {
@@ -140,5 +140,5 @@
 
 .errorMsg {
   font-size: 0.72rem;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
 }

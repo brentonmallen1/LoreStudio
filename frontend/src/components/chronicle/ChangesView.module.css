@@ -51,7 +51,7 @@
 .error {
   margin: 0;
   font-size: 0.78rem;
-  color: var(--color-danger, var(--color-warning));
+  color: var(--color-danger);
 }
 
 .empty {

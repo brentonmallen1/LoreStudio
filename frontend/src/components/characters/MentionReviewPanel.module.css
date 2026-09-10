@@ -15,16 +15,16 @@
   gap: 0.35rem;
   padding: 0.3rem 0.7rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-nlp, #0891b2);
-  background: color-mix(in srgb, var(--color-nlp, #0891b2) 8%, transparent);
-  color: var(--color-nlp, #0891b2);
+  border: 1px solid var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 8%, transparent);
+  color: var(--color-nlp);
   font-size: 0.78rem;
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .checkBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-nlp, #0891b2) 16%, transparent);
+  background: color-mix(in srgb, var(--color-nlp) 16%, transparent);
 }
 
 .checkBtn:disabled {
@@ -117,7 +117,7 @@
   border: none;
   cursor: pointer;
   font-size: 0.72rem;
-  color: var(--color-nlp, #0891b2);
+  color: var(--color-nlp);
   padding: 0;
   text-decoration: underline;
 }
@@ -140,13 +140,13 @@
 }
 
 .proposalSelected {
-  border-color: var(--color-nlp, #0891b2);
-  background: color-mix(in srgb, var(--color-nlp, #0891b2) 6%, transparent);
+  border-color: var(--color-nlp);
+  background: color-mix(in srgb, var(--color-nlp) 6%, transparent);
 }
 
 .checkbox {
   flex-shrink: 0;
-  accent-color: var(--color-nlp, #0891b2);
+  accent-color: var(--color-nlp);
 }
 
 .matchedText {
@@ -162,7 +162,7 @@
 
 .tagPreview {
   font-size: 0.78rem;
-  color: var(--color-nlp, #0891b2);
+  color: var(--color-nlp);
   font-weight: 500;
 }
 
@@ -192,7 +192,7 @@
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius);
   border: none;
-  background: var(--color-nlp, #0891b2);
+  background: var(--color-nlp);
   color: white;
   font-size: 0.78rem;
   cursor: pointer;

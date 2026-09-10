@@ -180,7 +180,7 @@
   align-items: center;
   gap: 0.25rem;
   font-size: 0.7rem;
-  color: var(--color-success, #4a9c6d);
+  color: var(--color-success);
 }
 
 .input {
@@ -549,7 +549,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.78rem;
-  color: var(--color-success, #4a9c6d);
+  color: var(--color-success);
 }
 
 .connWarn {
@@ -557,7 +557,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.78rem;
-  color: var(--color-warning, #b07d2a);
+  color: var(--color-warning);
 }
 
 .connFail {
@@ -565,7 +565,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.78rem;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
 }
 
 @keyframes spin {
@@ -682,13 +682,13 @@
 }
 
 .navLink:hover {
-  background: var(--color-surface-2, var(--color-surface));
+  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
 .navLinkActive {
   color: var(--color-text);
-  background: var(--color-surface-2, var(--color-surface));
+  background: var(--color-surface-2);
 }
 
 .kbd {

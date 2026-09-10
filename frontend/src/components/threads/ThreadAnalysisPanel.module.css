@@ -1,5 +1,5 @@
 :root {
-  --thread-analysis-accent: var(--color-accent, #6366f1);
+  --thread-analysis-accent: var(--color-accent);
 }
 
 .panel {
@@ -110,18 +110,18 @@
 }
 
 .ratingNeedsWork {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 15%, transparent);
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
 }
 
 .ratingFair {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
 }
 
 .ratingGood {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 15%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 15%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 .ratingExcellent {
@@ -225,7 +225,7 @@
   align-items: center;
   gap: 0.2rem;
   font-size: 0.68rem;
-  color: var(--color-accent-secondary, #0d9488);
+  color: var(--color-accent-secondary);
   margin-left: auto;
 }
 
@@ -241,7 +241,7 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.77rem;
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
   margin: 0;
 }
 

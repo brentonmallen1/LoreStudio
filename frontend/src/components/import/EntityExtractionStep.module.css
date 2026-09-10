@@ -102,13 +102,13 @@
 
 .phaseDone {
   font-size: 0.7rem;
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
   font-weight: 600;
 }
 
 .unavailableTag {
   font-size: 0.65rem;
-  color: var(--color-warning, #d97706);
+  color: var(--color-warning);
   background: var(--color-warning-bg, rgba(217, 119, 6, 0.1));
   border-radius: 3px;
   padding: 0.1rem 0.3rem;
@@ -165,7 +165,7 @@
 
 .nlpBtn {
   background: var(--color-nlp);
-  color: var(--color-nlp-fg, #fff);
+  color: var(--color-nlp-fg);
 }
 
 .nlpBtn:hover:not(:disabled) {
@@ -174,7 +174,7 @@
 
 .aiBtn {
   background: var(--color-ai);
-  color: var(--color-ai-fg, #fff);
+  color: var(--color-ai-fg);
 }
 
 .aiBtn:hover:not(:disabled) {
@@ -193,8 +193,8 @@
 
 .errorMsg {
   font-size: 0.75rem;
-  color: var(--color-danger, #dc2626);
-  background: color-mix(in srgb, var(--color-danger, #dc2626) 10%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
   border-radius: var(--radius);
   padding: 0.4rem 0.6rem;
 }
@@ -217,8 +217,8 @@
 
 .removedBadge {
   font-size: 0.66rem;
-  color: var(--color-danger, #dc2626);
-  background: color-mix(in srgb, var(--color-danger, #dc2626) 12%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
   border-radius: 3px;
   padding: 0.1rem 0.35rem;
   font-weight: 600;

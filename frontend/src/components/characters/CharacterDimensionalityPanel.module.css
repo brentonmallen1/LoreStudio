@@ -120,13 +120,13 @@
 }
 
 .scoreDeveloping {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
 }
 
 .scoreDimensional {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 15%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 15%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 .scoreComplex {
@@ -136,18 +136,18 @@
 
 /* Overall rating badge colors */
 .ratingNeedsWork {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 15%, transparent);
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
 }
 
 .ratingFair {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
 }
 
 .ratingGood {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 15%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 15%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 .ratingExcellent {

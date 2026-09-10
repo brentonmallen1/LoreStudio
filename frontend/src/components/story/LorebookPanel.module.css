@@ -301,7 +301,7 @@
 }
 
 .goalDelete:hover {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 
 .goalAdd {

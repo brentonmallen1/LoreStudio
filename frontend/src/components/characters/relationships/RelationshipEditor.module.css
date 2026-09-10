@@ -195,7 +195,7 @@
 
 .saveError {
   font-size: 0.75rem;
-  color: var(--color-danger, #c0392b);
+  color: var(--color-danger);
   padding: 0.4rem 1rem 0;
   margin: 0;
 }
@@ -219,8 +219,8 @@
   font-size: 0.78rem;
   padding: 0.35rem 0.7rem;
   background: none;
-  border: 1px solid var(--color-danger, #c0392b);
-  color: var(--color-danger, #c0392b);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
   border-radius: var(--radius);
   cursor: pointer;
   transition:
@@ -291,7 +291,7 @@
 }
 
 .saveBtn:hover:not(:disabled) {
-  background: var(--color-accent-hover, var(--color-accent));
+  background: var(--color-accent-hover);
   opacity: 0.9;
 }
 

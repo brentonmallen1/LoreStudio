@@ -94,6 +94,7 @@ ci:
     #!/usr/bin/env bash
     set -euo pipefail
     echo "── file-length budget ──"     && python3 scripts/check-size.py
+    echo "── design tokens ──"         && python3 scripts/check-tokens.py
     echo "── generated files ──"        && (cd backend && uv run python scripts/gen_ai_features.py --check)
     echo "── backend: ruff ──"          && (cd backend && uv run ruff check app/ tests/ scripts/ && uv run ruff format --check app/ tests/ scripts/)
     echo "── backend: ty ──"            && (cd backend && uv run ty check app/)
@@ -127,6 +128,10 @@ typecheck:
 # File-length budget (`just check-size --update` reprints the debt list)
 check-size *ARGS:
     python3 scripts/check-size.py {{ARGS}}
+
+# Design-token budget (`just check-tokens --update` reprints the debt blocks)
+check-tokens *ARGS:
+    python3 scripts/check-tokens.py {{ARGS}}
 
 # Install the git pre-commit hook (scripts/pre-commit)
 hooks:

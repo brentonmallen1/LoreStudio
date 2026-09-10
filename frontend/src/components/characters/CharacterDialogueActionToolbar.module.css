@@ -110,7 +110,7 @@
 }
 
 .actionBtnError {
-  border-left-color: var(--color-error, #ef4444) !important;
+  border-left-color: var(--color-danger) !important;
 }
 
 /* Left: icon + text */

@@ -22,7 +22,7 @@
 }
 
 .icon {
-  color: var(--twist-accent, #7c3aed);
+  color: var(--twist-accent);
   flex-shrink: 0;
   margin-top: 0.15rem;
 }
@@ -106,23 +106,23 @@
 }
 
 .ratingNeedsWork {
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 15%, transparent);
-  color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  color: var(--color-danger);
 }
 
 .ratingFair {
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 15%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
 }
 
 .ratingGood {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 15%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 15%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 .ratingExcellent {
-  background: color-mix(in srgb, var(--twist-accent, #7c3aed) 15%, transparent);
-  color: var(--twist-accent, #7c3aed);
+  background: color-mix(in srgb, var(--twist-accent) 15%, transparent);
+  color: var(--twist-accent);
 }
 
 /* Section cards */
@@ -185,13 +185,13 @@
 }
 
 .iconFound {
-  color: var(--color-accent-secondary, #0d9488);
+  color: var(--color-accent-secondary);
 }
 .iconMissing {
-  color: var(--color-danger, #ef4444);
+  color: var(--color-danger);
 }
 .iconWarning {
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
 }
 
 .clueVerifyText {
@@ -231,15 +231,15 @@
   font-weight: 600;
   padding: 0.1rem 0.45rem;
   border-radius: 99px;
-  border: 1px solid color-mix(in srgb, var(--color-accent-secondary, #0d9488) 40%, transparent);
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 10%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  border: 1px solid color-mix(in srgb, var(--color-accent-secondary) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent-secondary) 10%, transparent);
+  color: var(--color-accent-secondary);
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .linkBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 20%, transparent);
+  background: color-mix(in srgb, var(--color-accent-secondary) 20%, transparent);
 }
 
 .linkBtn:disabled {
@@ -258,8 +258,8 @@
   border-radius: 99px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 12%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 12%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 .countMisdirect {
@@ -267,13 +267,13 @@
   border-radius: 99px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
 }
 
 .gapItem {
   font-size: 0.75rem;
-  color: var(--color-warning, #f59e0b);
+  color: var(--color-warning);
   margin: 0;
 }
 
@@ -295,16 +295,16 @@
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
-  background: color-mix(in srgb, var(--color-warning, #f59e0b) 12%, transparent);
-  color: var(--color-warning, #f59e0b);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
 }
 
 .strengthTag {
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   font-size: 0.7rem;
-  background: color-mix(in srgb, var(--color-accent-secondary, #0d9488) 12%, transparent);
-  color: var(--color-accent-secondary, #0d9488);
+  background: color-mix(in srgb, var(--color-accent-secondary) 12%, transparent);
+  color: var(--color-accent-secondary);
 }
 
 /* Misdirection / suggestions */

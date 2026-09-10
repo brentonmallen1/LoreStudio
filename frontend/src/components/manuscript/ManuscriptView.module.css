@@ -325,7 +325,7 @@ h3.structureHeading {
   font-size: 1rem;
   line-height: 1.8;
   color: var(--color-text);
-  font-family: var(--font-editor, var(--font-serif, Georgia, serif));
+  font-family: var(--font-editor);
 }
 
 .prose p {

@@ -51,19 +51,19 @@
 }
 
 .ctxMeter[data-warning="approaching"] .ctxMeterFill {
-  background: var(--color-warning, #f0a050);
+  background: var(--color-warning);
 }
 
 .ctxMeter[data-warning="approaching"] {
-  color: var(--color-warning, #f0a050);
+  color: var(--color-warning);
 }
 
 .ctxMeter[data-warning="exceeded"] .ctxMeterFill {
-  background: var(--color-danger, #e05050);
+  background: var(--color-danger);
 }
 
 .ctxMeter[data-warning="exceeded"] {
-  color: var(--color-danger, #e05050);
+  color: var(--color-danger);
 }
 
 /* ── Header buttons ── */
@@ -135,16 +135,16 @@
   gap: 0.5rem;
   padding: 0.35rem 0.75rem;
   font-size: 0.75rem;
-  color: var(--color-warning, #d97706);
-  background: color-mix(in srgb, var(--color-warning, #d97706) 8%, var(--color-surface));
-  border-bottom: 1px solid color-mix(in srgb, var(--color-warning, #d97706) 25%, transparent);
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface));
+  border-bottom: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
   flex-shrink: 0;
 }
 
 .contextWarning[data-level="critical"] {
-  color: var(--color-danger, #ef4444);
-  background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, var(--color-surface));
-  border-bottom-color: color-mix(in srgb, var(--color-danger, #ef4444) 25%, transparent);
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface));
+  border-bottom-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
 .contextWarning > span {

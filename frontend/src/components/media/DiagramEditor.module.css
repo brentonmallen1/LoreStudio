@@ -77,8 +77,8 @@
 }
 
 .toolBtnDanger:hover {
-  border-color: var(--color-error, #e05c5c);
-  color: var(--color-error, #e05c5c) !important;
+  border-color: var(--color-danger);
+  color: var(--color-danger) !important;
 }
 
 .toolBtnSave {
