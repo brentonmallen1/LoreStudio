@@ -52,7 +52,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Home,
     domain: "home",
     modes: BOTH,
-    keywords: ["home", "dashboard"],
+    keywords: ["home", "dashboard", "summary"],
   },
   {
     id: "write",
@@ -61,7 +61,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: PenLine,
     domain: "manuscript",
     modes: BOTH,
-    keywords: ["editor", "scene", "manuscript"],
+    keywords: ["editor", "scene", "manuscript", "prose"],
   },
   {
     id: "outline",
@@ -70,7 +70,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: ListTree,
     domain: "manuscript",
     modes: BOTH,
-    keywords: ["beats", "plan"],
+    keywords: ["beats", "plan", "structure"],
   },
   {
     id: "threads",
@@ -79,7 +79,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: GitBranch,
     domain: "manuscript",
     modes: BOTH,
-    keywords: ["mice", "arcs"],
+    keywords: ["mice", "arcs", "plot", "subplot"],
   },
   {
     id: "lorebook",
@@ -88,7 +88,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Fingerprint,
     domain: "lorebook",
     modes: BOTH,
-    keywords: ["logline", "premise", "goals", "themes"],
+    keywords: ["logline", "premise", "goals", "themes", "canon", "lore", "identity"],
   },
   {
     id: "characters",
@@ -97,7 +97,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Users,
     domain: "lorebook",
     modes: BOTH,
-    keywords: ["cast", "relationships"],
+    keywords: ["cast", "relationships", "people"],
   },
   {
     id: "worldbuilding",
@@ -106,7 +106,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Globe,
     domain: "lorebook",
     modes: BOTH,
-    keywords: ["locations", "settings", "cultures", "calendars"],
+    keywords: ["locations", "settings", "cultures", "calendars", "world", "setting"],
   },
   {
     id: "twists",
@@ -115,7 +115,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Eye,
     domain: "lorebook",
     modes: STUDIO,
-    keywords: ["reveal", "clues", "reader knowledge"],
+    keywords: ["reveal", "clues", "reader knowledge", "surprise"],
   },
   {
     id: "compendium",
@@ -133,7 +133,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Images,
     domain: "compendium",
     modes: BOTH,
-    keywords: ["images", "diagrams", "assets"],
+    keywords: ["images", "diagrams", "assets", "attachments"],
   },
   {
     id: "whatif",
@@ -143,7 +143,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     domain: "codex",
     modes: STUDIO,
     ai: true,
-    keywords: ["alternate", "explore"],
+    keywords: ["alternate", "explore", "what-if", "simulate"],
   },
   {
     id: "panels",
@@ -153,7 +153,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     domain: "codex",
     modes: STUDIO,
     ai: true,
-    keywords: ["panel", "interview"],
+    keywords: ["panel", "interview", "group"],
   },
   {
     id: "codex",
@@ -173,7 +173,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     domain: "codex",
     modes: STUDIO,
     ai: true,
-    keywords: ["extracted", "suggestions"],
+    keywords: ["extracted", "suggestions", "nlp", "entities"],
   },
   {
     id: "health",
@@ -182,7 +182,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: HeartPulse,
     domain: "system",
     modes: BOTH,
-    keywords: ["report", "analysis", "checks"],
+    keywords: ["report", "analysis", "checks", "check"],
   },
   {
     id: "chronicle",
@@ -191,7 +191,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Clock,
     domain: "chronicle",
     modes: BOTH,
-    keywords: ["history", "activity", "changes", "sessions"],
+    keywords: ["history", "activity", "changes", "sessions", "log", "ai log"],
   },
   {
     id: "versions",
@@ -200,7 +200,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: History,
     domain: "chronicle",
     modes: BOTH,
-    keywords: ["snapshots", "backups", "restore"],
+    keywords: ["snapshots", "backups", "restore", "backup"],
   },
   {
     id: "publish",
@@ -209,7 +209,7 @@ export const STORY_ROUTES: StoryRoute[] = [
     icon: Send,
     domain: "system",
     modes: STUDIO,
-    keywords: ["export", "query letter", "synopsis"],
+    keywords: ["export", "query letter", "synopsis", "share"],
   },
 ];
 

@@ -17,20 +17,7 @@ import {
   Search,
   ChevronRight,
   RotateCcw,
-  Home,
-  PenLine,
-  SquareLibrary,
   Scroll,
-  Globe,
-  MessageSquareMore,
-  ListTree,
-  Shuffle,
-  Images,
-  Activity,
-  Telescope,
-  History,
-  Send,
-  Eye,
   UserPlus,
   Plus,
   BookMarked,
@@ -151,147 +138,12 @@ export default function CommandPalette() {
     forceUpdate((n) => n + 1);
   }, [structure, activeStory?.id, navigate, setActiveNode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Register story section navigation commands whenever the active story changes
+  // Register creation commands whenever the active story changes
   useEffect(() => {
     const hasStory = () => !!_useStoryStoreForNav.getState().activeStory;
-    type NavIcon = import("../../lib/commands/registry").CommandAction["icon"];
-
-    const sections: Array<{ id: string; label: string; keywords: string[]; icon: NavIcon; path: string }> = [
-      {
-        id: "nav-overview",
-        label: "Go to Overview",
-        keywords: ["overview", "summary", "dashboard"],
-        icon: Home,
-        path: "",
-      },
-      {
-        id: "nav-write",
-        label: "Go to Write",
-        keywords: ["write", "editor", "scene", "prose"],
-        icon: PenLine,
-        path: "/write",
-      },
-      {
-        id: "nav-characters",
-        label: "Go to Characters",
-        keywords: ["characters", "cast", "people"],
-        icon: Users,
-        path: "/characters",
-      },
-      {
-        id: "nav-lorebook",
-        label: "Go to Story Identity",
-        keywords: ["story identity", "lorebook", "canon", "lore", "identity"],
-        icon: SquareLibrary,
-        path: "/lorebook",
-      },
-      {
-        id: "nav-compendium",
-        label: "Go to Compendium",
-        keywords: ["compendium", "research", "notes"],
-        icon: Scroll,
-        path: "/compendium",
-      },
-      {
-        id: "nav-worldbuilding",
-        label: "Go to Worldbuilding",
-        keywords: ["worldbuilding", "world", "setting"],
-        icon: Globe,
-        path: "/worldbuilding",
-      },
-      {
-        id: "nav-panels",
-        label: "Go to Panels",
-        keywords: ["panels", "group", "interview"],
-        icon: MessageSquareMore,
-        path: "/panels",
-      },
-      {
-        id: "nav-outline",
-        label: "Go to Outline",
-        keywords: ["outline", "structure", "beats"],
-        icon: ListTree,
-        path: "/outline",
-      },
-      {
-        id: "nav-threads",
-        label: "Go to Threads",
-        keywords: ["threads", "plot", "subplot"],
-        icon: GitBranch,
-        path: "/threads",
-      },
-      {
-        id: "nav-twists",
-        label: "Go to Twists",
-        keywords: ["twists", "reveal", "surprise"],
-        icon: Shuffle,
-        path: "/twists",
-      },
-      {
-        id: "nav-media",
-        label: "Go to Media",
-        keywords: ["media", "images", "attachments"],
-        icon: Images,
-        path: "/media",
-      },
-      {
-        id: "nav-health",
-        label: "Go to Story Health",
-        keywords: ["health", "analysis", "check"],
-        icon: Activity,
-        path: "/health",
-      },
-      {
-        id: "nav-discoveries",
-        label: "Go to Discoveries",
-        keywords: ["discoveries", "nlp", "entities"],
-        icon: Telescope,
-        path: "/discoveries",
-      },
-      {
-        id: "nav-chronicle",
-        label: "Go to Chronicle",
-        keywords: ["chronicle", "history", "log", "ai log"],
-        icon: History,
-        path: "/chronicle",
-      },
-      {
-        id: "nav-publish",
-        label: "Go to Publish",
-        keywords: ["publish", "export", "share"],
-        icon: Send,
-        path: "/publish",
-      },
-      {
-        id: "nav-versions",
-        label: "Go to Versions",
-        keywords: ["versions", "backup", "snapshots"],
-        icon: Eye,
-        path: "/versions",
-      },
-      {
-        id: "nav-whatif",
-        label: "Go to What-If",
-        keywords: ["whatif", "what-if", "simulate"],
-        icon: Shuffle,
-        path: "/whatif",
-      },
-    ];
-
-    sections.forEach(({ id, label, keywords, icon, path }) => {
-      commandRegistry.update({
-        id,
-        label,
-        keywords: [...keywords, "go to", "navigate"],
-        icon,
-        group: "Navigation",
-        when: hasStory,
-        action: () => {
-          const sid = _useStoryStoreForNav.getState().activeStory?.id;
-          if (sid) navigate(`/stories/${sid}${path}`);
-        },
-      });
-    });
+    // Page navigation ("Go to …") is generated from lib/routes.ts in lib/commands, with the
+    // mode filter. A second, hand-written copy here used to overwrite those commands by id
+    // and dropped the filter, so Writer mode offered What-If, Panels and Discoveries.
 
     // Creation commands
     commandRegistry.update({

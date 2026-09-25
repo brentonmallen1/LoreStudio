@@ -43,7 +43,13 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
   return (
     <div className={styles.wrap}>
       {activeThreads.map((t) => (
-        <span key={t.id} className={styles.badge} style={{ borderColor: t.color, color: t.color }}>
+        <span
+          key={t.id}
+          className={styles.badge}
+          // The thread's colour is the author's choice and can be anything; the CSS derives a
+          // readable text colour from it rather than printing it straight onto the surface.
+          style={{ borderColor: t.color, "--thread-color": t.color } as React.CSSProperties}
+        >
           {t.name}
           <button
             onClick={() => removeThread(t.id)}

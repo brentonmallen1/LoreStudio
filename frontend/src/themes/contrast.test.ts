@@ -58,6 +58,11 @@ const PAIRS: [string, string, number, string][] = [
   ["--color-text-muted", "--color-bg", 4.5, "muted text on page"],
   ["--color-text-muted", "--color-surface", 4.5, "muted text on cards"],
   ["--color-text-subtle", "--color-bg", 3, "subtle text on page"],
+  // Where subtle text actually renders: sidebar group headings, tree word counts and card
+  // meta sit on the surfaces, not the page. Checked against the page alone, six palettes
+  // passed here while ~116 labels per screen measured under 3:1 in the browser.
+  ["--color-text-subtle", "--color-surface", 3, "subtle text on cards and the sidebar"],
+  ["--color-text-subtle", "--color-surface-2", 3, "subtle text on raised surfaces"],
   ["--color-section-title", "--color-bg", 4.5, "section titles"],
   ["--color-accent-fg", "--color-accent", 4.5, "text on accent buttons"],
   ["--color-ai-fg", "--color-ai", 4.5, "text on AI buttons"],

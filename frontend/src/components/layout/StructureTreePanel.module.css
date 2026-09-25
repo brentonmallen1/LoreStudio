@@ -203,6 +203,11 @@
   display: flex;
 }
 
+.nodeAddChildBtn.nodeDeleteBtn:hover {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
 .nodeAddChildBtn:hover {
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   color: var(--color-accent);
@@ -257,7 +262,9 @@
 
 .statusRevised {
   background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  color: var(--color-warning);
+  /* Amber alone measured under 3:1 on the light palettes; pulled toward the text colour
+     it darkens on light themes and lightens on dark ones, and keeps its hue. */
+  color: color-mix(in srgb, var(--color-warning) 65%, var(--color-text));
 }
 
 /* Header right group */
@@ -435,6 +442,12 @@
   color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
   opacity: 0.8;
+}
+
+/* On the highlighted row the count sat in subtle grey on the accent: under 2:1. */
+.nodeRowWrapActive .nodeWordCount {
+  color: var(--color-accent-fg);
+  opacity: 0.85;
 }
 
 .renameInput {

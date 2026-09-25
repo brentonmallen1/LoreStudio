@@ -1,10 +1,11 @@
 import { createElement, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronRight, ChevronDown, Plus, GripVertical } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus, GripVertical, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import { getSegmentIcon, segmentColor } from "./structureTreeMeta";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import styles from "./StructureTreePanel.module.css";
 
 // Shared across every row so a drop knows what was picked up.
@@ -68,6 +69,30 @@ export default function NodeItem({
     if (!expanded) toggleCollapsed(node.id);
     setChildTitle("");
     setAddingChild(false);
+  }
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  // The API and its undo have existed since the start — capture_node_tree saves
+  // everything a node takes with it — but nothing in the UI ever called them, so a scene
+  // could be created and never removed.
+
+  async function remove() {
+    if (!storyId) return;
+    const inside: StructureNode[] = [];
+    const walk = (n: StructureNode) => (n.children ?? []).forEach((c) => (inside.push(c), walk(c)));
+    walk(node);
+    const words = [node, ...inside].reduce((sum, n) => sum + (n.word_count ?? 0), 0);
+    const contents = inside.length
+      ? ` and the ${inside.length} ${inside.length === 1 ? "section" : "sections"} inside it`
+      : "";
+    const ok = window.confirm(
+      `Delete “${node.title}”${contents} (${words.toLocaleString()} words)? ${formatCombo(SHORTCUTS.undo.combo)} brings it back.`,
+    );
+    if (!ok) return;
+    await api.deleteNode(node.id);
+    setStructure(await api.getStructure(storyId));
+    if (activeNode && (activeNode.id === node.id || inside.some((n) => n.id === activeNode.id)))
+      setActiveNode(null);
   }
 
   // ── Drag ──────────────────────────────────────────────────────────────────
@@ -156,10 +181,15 @@ export default function NodeItem({
               setRenaming(true);
               return;
             }
+            if (e.key === "Delete" || e.key === "Backspace") {
+              e.preventDefault();
+              remove();
+              return;
+            }
             onKeyNav(e, node.id);
           }}
           className={styles.nodeRow}
-          title="Enter opens · F2 or double-click renames · arrows move"
+          title="Enter opens · F2 or double-click renames · Delete removes · arrows move"
         >
           <span
             className={styles.chevron}
@@ -231,6 +261,19 @@ export default function NodeItem({
             title={`Add ${childLevelDef.name}`}
           >
             <Plus size={11} />
+          </button>
+        )}
+        {storyId && (
+          <button
+            className={`${styles.nodeAddChildBtn} ${styles.nodeDeleteBtn}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              remove();
+            }}
+            title={`Delete “${node.title}”`}
+            aria-label={`Delete ${node.title}`}
+          >
+            <Trash2 size={11} />
           </button>
         )}
       </div>
