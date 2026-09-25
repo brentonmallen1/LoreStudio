@@ -6,7 +6,7 @@ import { useUIStore } from "../../stores/uiStore";
 import AIPanel from "../ai/AIPanel";
 import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
-import { SHORTCUTS, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
+import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useAIStore } from "../../stores/aiStore";
 import { startAISync } from "../../lib/ai/aiSync";
 import styles from "./GlobalLayout.module.css";
@@ -30,11 +30,9 @@ export default function GlobalLayout() {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const inTextField = isTypingTarget(e);
-
-      // Undo/redo (⌘Z / ⌘⇧Z) is handled by the header's useUndoRedo hook.
-      // All other shortcuts: skip when typing
-      if (inTextField) return;
+      // Undo/redo (⌘Z / ⌘⇧Z) is handled by the header's useUndoRedo hook. A bare key
+      // stands aside while the author types; a ⌘/⌥ combination never types anything.
+      if (yieldsToTyping(e)) return;
       if (matchesCombo(e, SHORTCUTS.help.combo)) {
         e.preventDefault();
         setShortcutsOpen((v) => !v);

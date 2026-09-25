@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SHORTCUTS, formatCombo, matchesCombo, type ShortcutDef } from "./shortcuts";
+import { SHORTCUTS, formatCombo, matchesCombo, yieldsToTyping, type ShortcutDef } from "./shortcuts";
 
 describe("SHORTCUTS", () => {
   it("has no duplicate combos within overlapping scopes", () => {
@@ -28,5 +28,42 @@ describe("SHORTCUTS", () => {
   it("formats combos for display", () => {
     const s = formatCombo("mod+shift+k");
     expect(s === "⌘⇧K" || s === "Ctrl+Shift+K").toBe(true);
+  });
+});
+
+describe("yieldsToTyping", () => {
+  const typing = (init: Partial<KeyboardEvent>) => {
+    const target = document.createElement("div");
+    target.contentEditable = "true";
+    Object.defineProperty(target, "isContentEditable", { value: true });
+    return {
+      metaKey: false,
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      key: "",
+      target,
+      ...init,
+    } as unknown as KeyboardEvent;
+  };
+
+  it("lets a bare key through to the prose: ? is a question mark while writing", () => {
+    expect(yieldsToTyping(typing({ key: "?" }))).toBe(true);
+  });
+
+  it("does not swallow a ⌘ combination: ⌘\\ is focus mode even in the editor", () => {
+    expect(yieldsToTyping(typing({ key: "\\", metaKey: true }))).toBe(false);
+    expect(yieldsToTyping(typing({ key: "/", ctrlKey: true }))).toBe(false);
+  });
+
+  it("ignores typing state entirely outside a text field", () => {
+    const ev = {
+      metaKey: false,
+      ctrlKey: false,
+      altKey: false,
+      key: "?",
+      target: document.body,
+    } as unknown as KeyboardEvent;
+    expect(yieldsToTyping(ev)).toBe(false);
   });
 });

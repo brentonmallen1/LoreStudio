@@ -161,3 +161,15 @@ export function isTypingTarget(e: KeyboardEvent | React.KeyboardEvent): boolean 
   if (!t) return false;
   return t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
 }
+
+/**
+ * Whether a global shortcut should stand aside for the author's typing.
+ *
+ * Only a bare key does: `?` in the editor is a question mark, not the help overlay. A
+ * combination with ⌘/Ctrl or ⌥ types nothing, and skipping those too meant ⌘\ (focus
+ * mode) and ⌘/ (the assistant) did nothing in the prose editor — the one place anyone
+ * reaches for them.
+ */
+export function yieldsToTyping(e: KeyboardEvent | React.KeyboardEvent): boolean {
+  return isTypingTarget(e) && !(e.metaKey || e.ctrlKey || e.altKey);
+}
