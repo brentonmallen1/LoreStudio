@@ -1170,7 +1170,7 @@
   position: absolute;
   left: 1.2rem;
   top: -0.6rem;
-  background: var(--color-surface-elevated, var(--color-surface));
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
@@ -1592,7 +1592,7 @@
 }
 
 .dialogueIsolationBtn:hover {
-  background: var(--color-bg-hover);
+  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
@@ -1640,7 +1640,7 @@
 }
 
 .dialogueIsolationEmpty code {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--color-text);
   background: var(--color-surface-raised);

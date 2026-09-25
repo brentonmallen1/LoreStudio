@@ -19,8 +19,8 @@ Two things fail here.
    the rule stops following the palette — `--color-error` hid 23 unthemed reds that
    way. Without one, the declaration is invalid at computed-value time and the
    browser drops it, so the rule does nothing at all: `--color-text-secondary` is a
-   near-miss for `--color-text-muted`, and 48 rules using it are dead. Also a
-   ratchet, because 161 references are already in the tree.
+   near-miss for `--color-text-muted`, and 48 rules using it were dead. The 161
+   references in the tree when this went in are all resolved; the lock is empty.
 
 Usage:
     python3 scripts/check-tokens.py            # check
@@ -45,51 +45,11 @@ REFERENCE = re.compile(r"var\(\s*(--[a-z0-9-]+)")
 #: Custom properties are also set from TSX style props (`--beat-color`, and friends).
 TSX_DEFINITION = re.compile(r"""["'](--[a-z0-9-]+)["']\s*:""")
 
-#: References to a token nothing defines, locked per file. Most are near-misses on a
-#: real name — --color-text-secondary for --color-text-muted, --color-surface-elevated
-#: for --color-surface-raised — so the rules are dead rather than merely off-palette.
-#: Fixing one means choosing the token it meant, which is a design call, not a rename.
-UNDEFINED: dict[str, int] = {
-    "frontend/src/components/twists/ReaderKnowledgeTimeline.module.css": 22,
-    "frontend/src/components/ai/modes/AudienceAdherenceMode.module.css": 14,
-    "frontend/src/components/ai/modes/ShowDontTellMode.module.css": 13,
-    "frontend/src/components/ai/modes/SceneAtmosphereMode.module.css": 12,
-    "frontend/src/pages/CodexPage.module.css": 9,
-    "frontend/src/components/settings/CodexSection.module.css": 6,
-    "frontend/src/components/twists/TwistImpactPanel.module.css": 6,
-    "frontend/src/components/characters/CharacterSheet.module.css": 6,
-    "frontend/src/components/characters/CharacterDialogueTab.module.css": 6,
-    "frontend/src/components/story/StorySearchPanel.module.css": 6,
-    "frontend/src/components/story/EditorSearchBar.module.css": 6,
-    "frontend/src/components/help/DialogueSyntaxGuide.module.css": 6,
-    "frontend/src/pages/LocationSheet.module.css": 5,
-    "frontend/src/components/codex/CodexNodePanel.module.css": 5,
-    "frontend/src/components/story/BeatSheetManagerDialog.module.css": 4,
-    "frontend/src/components/codex/CodexGraphView.module.css": 3,
-    "frontend/src/components/common/ScratchPadDrawer.module.css": 3,
-    "frontend/src/components/editor/SceneEditor.module.css": 3,
-    "frontend/src/components/twists/TwistManager.module.css": 2,
-    "frontend/src/components/layout/GlobalHeader.module.css": 2,
-    "frontend/src/components/story/AutoTagDialoguePanel.module.css": 2,
-    "frontend/src/components/help/WritingGuidesModal.module.css": 2,
-    "frontend/src/components/media/PortraitEditor.module.css": 2,
-    "frontend/src/components/manuscript/ManuscriptView.module.css": 1,
-    "frontend/src/components/worldbuilding/WorldBuilding.module.css": 1,
-    "frontend/src/components/layout/GlobalLayout.module.css": 1,
-    "frontend/src/components/health/ReportsView.module.css": 1,
-    "frontend/src/components/outline/OutlineInfoModal.module.css": 1,
-    "frontend/src/components/threads/SceneThreadBadges.module.css": 1,
-    "frontend/src/components/ai/CharacterKnowledgeDrawer.module.css": 1,
-    "frontend/src/components/chronicle/ChangesView.module.css": 1,
-    "frontend/src/components/chronicle/JobsView.module.css": 1,
-    "frontend/src/components/import/EntityExtractionStep.module.css": 1,
-    "frontend/src/components/import/StructureReviewStep.module.css": 1,
-    "frontend/src/components/story/AutoLinkEntitiesPanel.module.css": 1,
-    "frontend/src/components/story/SceneCard.module.css": 1,
-    "frontend/src/components/story/TodoListView.module.css": 1,
-    "frontend/src/components/ai/modes/PanelMode.module.css": 1,
-    "frontend/src/components/ai/modes/DiscoveryQuestionsMode.module.css": 1,
-}
+#: References to a token nothing defines, locked per file. There were 161 when this gate
+#: went in — near-misses like --color-text-secondary for --color-text-muted, so the rules
+#: were dead rather than merely off-palette — and all were mapped to the token they meant.
+#: Empty now: a new one fails at once.
+UNDEFINED: dict[str, int] = {}
 
 #: Component stylesheets carrying hex literals when this gate went in, locked at the
 #: count they had. Sorted worst first: the top of this list is the work. Lower a

@@ -25,7 +25,7 @@
   gap: 0.5rem;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--color-heading);
+  color: var(--color-text);
 }
 
 .headerTitle svg {

@@ -29,12 +29,15 @@
   /* ── Brainstorm panel accent (amber/gold) ── */
   /* ── Twist accent ── */
   --twist-accent: var(--color-ai-coach);
+  /* ── Width the docked AI panel takes; PanelFrame sets it at runtime ── */
+  --ai-panel-offset: 0px;
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
   /* ── Modal overlay ── */
   /* ── UI & Editor typography ────────────────────── */
   --font-ui: "DM Sans", system-ui, sans-serif;
   --font-editor: "Merriweather", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-size-editor: 1rem;
   --editor-max-width: 640px;
   /* ── Type scale (base: 15px) ──────────────────── */

@@ -18,7 +18,7 @@
 .emptyTitle {
   font-weight: 600;
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -66,7 +66,7 @@
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -74,7 +74,7 @@
 
 .errorText {
   font-size: 0.82rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -85,12 +85,12 @@
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-surface);
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
 .retryBtn:hover {
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
 }
 
 .results {
@@ -176,7 +176,7 @@
 .summaryText {
   font-size: 0.82rem;
   line-height: 1.5;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -255,7 +255,7 @@
 }
 
 .cardHeader:hover {
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
 }
 
 .severityBadge {
@@ -277,7 +277,7 @@
 }
 
 .badge_subtle {
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
   color: var(--color-text-muted);
 }
 
@@ -286,7 +286,7 @@
   font-size: 0.68rem;
   padding: 2px 6px;
   border-radius: 100px;
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
 }
@@ -295,7 +295,7 @@
   flex: 1;
   font-size: 0.8rem;
   font-style: italic;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -333,15 +333,15 @@
 .cardText {
   font-size: 0.82rem;
   line-height: 1.5;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
 .suggestion {
-  color: var(--color-text-primary);
+  color: var(--color-text);
   font-style: italic;
   padding: 6px 10px;
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
   border-radius: 4px;
   border-left: 2px solid var(--color-ai-border);
 }

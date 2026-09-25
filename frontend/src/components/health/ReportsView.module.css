@@ -37,7 +37,7 @@
 .filterBtnActive {
   background: var(--color-surface-raised);
   color: var(--color-text);
-  border-color: var(--color-border-focus);
+  border-color: var(--color-accent);
   font-weight: 500;
 }
 

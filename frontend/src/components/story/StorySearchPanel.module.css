@@ -64,7 +64,7 @@
 }
 
 .closeBtn:hover {
-  background: var(--color-hover);
+  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
@@ -91,7 +91,7 @@
   width: 100%;
   padding: 5px 8px;
   font-size: 0.8125rem;
-  background: var(--color-input-bg, var(--color-bg));
+  background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   color: var(--color-text);
@@ -122,12 +122,12 @@
 }
 
 .iconBtn:hover {
-  background: var(--color-hover);
+  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
 .iconBtnActive {
-  background: var(--color-accent-alpha, rgba(210, 140, 80, 0.15));
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
@@ -151,7 +151,7 @@
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: var(--color-hover);
+  background: var(--color-surface-2);
 }
 
 .actionBtn:disabled {
@@ -184,7 +184,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 6px 12px;
-  border-bottom: 1px solid var(--color-border-subtle, var(--color-border));
+  border-bottom: 1px solid var(--color-border-light);
 }
 
 .matchItem:last-child {

@@ -25,7 +25,7 @@ function formatBytes(bytes: number): string {
  * answer the next query rather than what was configured.
  */
 export default function CodexSection() {
-  const { stories } = useStoryStore();
+  const { stories, setStories } = useStoryStore();
   const [settings, setSettings] = useState<CodexSettings | null>(null);
   const [model, setModel] = useState("");
   const [chosenStoryId, setChosenStoryId] = useState("");
@@ -35,6 +35,21 @@ export default function CodexSection() {
   // story list, and "the first story until you pick another" needs no keeping in step.
   const storyId = chosenStoryId || stories[0]?.id || "";
   const { jobs, refresh: refreshJobs } = useJobs(storyId || undefined, !!storyId);
+
+  // The story list is loaded by the dashboard. Opened straight to Settings — a new tab, a
+  // reload, a deep link — it was empty, and this section said "No stories yet" and could
+  // index nothing.
+  useEffect(() => {
+    if (stories.length) return;
+    let live = true;
+    api
+      .listStories()
+      .then((list) => live && setStories(list))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [stories.length, setStories]);
 
   const running = jobs.filter(
     (j) => CODEX_JOB_KINDS.includes(j.kind) && (j.status === "queued" || j.status === "running"),

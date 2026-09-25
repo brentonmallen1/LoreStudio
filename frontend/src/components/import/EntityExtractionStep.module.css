@@ -109,7 +109,7 @@
 .unavailableTag {
   font-size: 0.65rem;
   color: var(--color-warning);
-  background: var(--color-warning-bg, rgba(217, 119, 6, 0.1));
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
   border-radius: 3px;
   padding: 0.1rem 0.3rem;
   font-weight: 500;

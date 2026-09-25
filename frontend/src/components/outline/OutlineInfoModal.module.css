@@ -13,7 +13,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl, 12px);
-  box-shadow: var(--shadow-xl, 0 20px 60px rgba(0, 0, 0, 0.2));
+  box-shadow: var(--shadow-lg);
   max-width: 520px;
   width: 100%;
   overflow: hidden;

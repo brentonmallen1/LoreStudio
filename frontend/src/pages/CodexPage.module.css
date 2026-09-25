@@ -21,7 +21,7 @@
 
 .intro {
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   line-height: 1.55;
   margin: 0 0 1.1rem;
   max-width: 62ch;
@@ -62,7 +62,7 @@
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-size: 0.78rem;
   cursor: pointer;
 }
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.78rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .sceneGroup {
@@ -93,7 +93,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0 0 0.5rem;
 }
 
@@ -145,13 +145,13 @@
 
 .confidence {
   font-size: 0.7rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .quote {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-style: italic;
   border-left: 2px solid var(--color-border);
   padding-left: 0.6rem;
@@ -174,7 +174,7 @@
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   cursor: pointer;
 }
@@ -187,7 +187,7 @@
 .empty {
   text-align: center;
   padding: 3rem 1rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .emptyIcon {
@@ -231,7 +231,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   font-size: 0.85rem;
   cursor: pointer;
 }

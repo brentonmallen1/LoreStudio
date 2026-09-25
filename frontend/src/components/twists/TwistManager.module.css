@@ -39,8 +39,8 @@
 }
 
 .tabBtn:hover {
-  color: var(--color-text-primary);
-  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  background: var(--color-surface-raised);
 }
 
 .tabBtnActive {

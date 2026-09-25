@@ -29,7 +29,7 @@
 .title {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--color-text);
   margin: 0 0 2px;
 }
 
@@ -101,7 +101,7 @@
 .assessmentText {
   font-size: 0.82rem;
   line-height: 1.6;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -152,19 +152,19 @@
   gap: 2px;
   padding: 6px 8px;
   border-radius: 5px;
-  background: var(--color-surface-elevated);
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
 }
 
 .impactName {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text);
 }
 
 .impactDetail {
   font-size: 0.78rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   line-height: 1.5;
   margin: 0;
 }
@@ -181,6 +181,6 @@
 
 .looseEndItem {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   line-height: 1.4;
 }

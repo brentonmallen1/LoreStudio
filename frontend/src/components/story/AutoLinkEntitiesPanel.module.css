@@ -234,7 +234,7 @@
 }
 
 .linkCode {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 1px 5px;
   border-radius: 3px;
