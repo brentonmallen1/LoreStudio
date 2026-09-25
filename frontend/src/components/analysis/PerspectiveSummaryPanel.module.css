@@ -3,6 +3,8 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  /* Same trap as StorySummaryPanel: overflow hidden in a flex column shrinks to zero. */
+  flex-shrink: 0;
 }
 
 .header {
