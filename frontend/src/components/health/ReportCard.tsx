@@ -1,3 +1,4 @@
+import { parseServerDate } from "../../lib/serverDate";
 import { useState } from "react";
 import {
   AlignLeft,
@@ -1011,7 +1012,7 @@ function VoiceFidelityDisplay({ result }: { result: StructuredResult }) {
 // ── ReportCard ────────────────────────────────────────────────────────────────
 
 function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
+  const d = parseServerDate(iso);
   const diffMs = Math.max(0, Date.now() - d.getTime());
   const diffH = diffMs / (1000 * 60 * 60);
   if (diffH < 1) {

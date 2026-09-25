@@ -2,7 +2,7 @@
 
 ## Inline notes
 
-Select text in the editor and press **⌘⇧N** (or *Note* in the selection toolbar). The passage is marked; the note lives in the Notes panel and opens on click. Editorial notes created by an AI editorial pass (Studio) show as diamonds and can be hidden with one toggle.
+Select text in the editor and press **⌘⇧N** (or _Note_ in the selection toolbar). The passage is marked; the note lives in the Notes panel and opens on click. Editorial notes created by an AI editorial pass (Studio) show as diamonds and can be hidden with one toggle.
 
 ## TODOs
 
@@ -14,4 +14,4 @@ Type `/todo` in the editor to drop a TODO at the cursor; it appears as a gutter 
 
 ## Purpose vs. notes
 
-*Purpose* is what a segment is for; inline notes are what you want to remember about specific passages. Revision goes faster when purpose is filled in first.
+_Purpose_ is what a segment is for; inline notes are what you want to remember about specific passages. Revision goes faster when purpose is filled in first.

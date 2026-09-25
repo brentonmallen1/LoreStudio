@@ -1,3 +1,4 @@
+import { parseServerDate } from "../lib/serverDate";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Plus, GitBranch, ImageIcon, Trash2, Network } from "lucide-react";
@@ -179,7 +180,7 @@ export default function MediaPage() {
                         <span className={styles.diagramTitle}>{d.title}</span>
                         {d.description && <span className={styles.diagramDesc}>{d.description}</span>}
                         <span className={styles.diagramMeta}>
-                          {d.diagram_type} · {new Date(d.updated_at).toLocaleDateString()}
+                          {d.diagram_type} · {parseServerDate(d.updated_at).toLocaleDateString()}
                         </span>
                       </div>
                     </button>

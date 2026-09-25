@@ -1,3 +1,4 @@
+import { serverTime } from "../../lib/serverDate";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -58,8 +59,8 @@ function findNode(nodes: StructureNode[], id: string): StructureNode | null {
 function sortTodos(todos: StoryTodo[], sort: SortMode): StoryTodo[] {
   return [...todos].sort((a, b) => {
     if (sort === "position") return a.position - b.position;
-    if (sort === "newest") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    if (sort === "newest") return serverTime(b.created_at) - serverTime(a.created_at);
+    return serverTime(a.created_at) - serverTime(b.created_at);
   });
 }
 

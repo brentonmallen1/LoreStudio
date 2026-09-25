@@ -1,3 +1,4 @@
+import { parseServerDate } from "../../lib/serverDate";
 import { useState } from "react";
 import {
   ArrowLeft,
@@ -127,7 +128,7 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
             {entry.url_description && <p className={styles.urlDesc}>{entry.url_description}</p>}
             {entry.url_fetched_at && (
               <span className={styles.urlFetched}>
-                Fetched {new Date(entry.url_fetched_at).toLocaleDateString()}
+                Fetched {parseServerDate(entry.url_fetched_at).toLocaleDateString()}
               </span>
             )}
           </div>

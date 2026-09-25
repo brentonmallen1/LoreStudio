@@ -6,13 +6,13 @@
 
 ## Export
 
-**Publish › Export** (Studio) or the *Export* palette command produces:
+**Publish › Export** (Studio) or the _Export_ palette command produces:
 
-| Format | Notes |
-|--------|-------|
-| DOCX / DOCX manuscript | Standard manuscript format uses the reference document in `assets/` |
-| EPUB | Title and language metadata from the story |
-| PDF | Layouts: default, novel, manuscript, compact, dark |
-| Markdown, HTML, ODT, TXT | TXT is submission-friendly plain text with scene breaks |
+| Format                   | Notes                                                               |
+| ------------------------ | ------------------------------------------------------------------- |
+| DOCX / DOCX manuscript   | Standard manuscript format uses the reference document in `assets/` |
+| EPUB                     | Title and language metadata from the story                          |
+| PDF                      | Layouts: default, novel, manuscript, compact, dark                  |
+| Markdown, HTML, ODT, TXT | TXT is submission-friendly plain text with scene breaks             |
 
-Options: include chapter headers, include scene titles, title page (with the **author byline** from Story Identity), scene break text, and a status filter (for example export only *final* scenes).
+Options: include chapter headers, include scene titles, title page (with the **author byline** from Story Identity), scene break text, and a status filter (for example export only _final_ scenes).

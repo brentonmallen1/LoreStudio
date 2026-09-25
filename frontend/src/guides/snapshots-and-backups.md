@@ -16,4 +16,4 @@ The server copies its whole database every night into the backups folder (Settin
 
 ## Local drafts
 
-Every edit is also kept in the browser. If a save fails (server down, network gone) the pill says *Offline · retrying* and the text is not lost; when you reopen a scene with a newer local draft, a banner offers to restore it.
+Every edit is also kept in the browser. If a save fails (server down, network gone) the pill says _Offline · retrying_ and the text is not lost; when you reopen a scene with a newer local draft, a banner offers to restore it.

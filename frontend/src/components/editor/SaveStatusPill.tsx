@@ -56,11 +56,13 @@ export default function SaveStatusPill({ autosave }: { autosave: AutosaveState }
 export function DraftBanner({ autosave }: { autosave: AutosaveState }) {
   const draft = autosave.pendingDraft;
   if (!draft) return null;
+  // eslint-disable-next-line no-restricted-syntax -- savedAt is Date.now() from this browser, not the API
+  const savedAt = new Date(draft.savedAt).toLocaleString();
   return (
     <div className={styles.draftBanner} role="status">
       <span>
-        An unsaved draft from {new Date(draft.savedAt).toLocaleString()} was found for this segment (a tab
-        closed before saving, or the server was unreachable).
+        An unsaved draft from {savedAt} was found for this segment (a tab closed before saving, or the server
+        was unreachable).
       </span>
       <button className={styles.conflictBtn} onClick={autosave.restoreDraft}>
         Restore draft

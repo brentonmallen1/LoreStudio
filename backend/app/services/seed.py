@@ -25,6 +25,7 @@ from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.user import User
 from ..models.world_system import WorldSystem
+from .word_count import recount_story
 
 STRUCTURE_TEMPLATES = [
     {
@@ -2235,6 +2236,8 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
 
+        # Counted from the prose, as the editor counts, not written in by hand.
+        recount_story(story.id, db)
         db.commit()
 
 
@@ -3781,6 +3784,8 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             )
         )
 
+        # Counted from the prose, as the editor counts, not written in by hand.
+        recount_story(story.id, db)
         db.commit()
 
 
@@ -4008,6 +4013,8 @@ def seed_flash_fiction_demo():
         thread.closes_at_node_id = resolution.id
         thread.status = "resolved"
 
+        # Counted from the prose, as the editor counts, not written in by hand.
+        recount_story(story.id, db)
         db.commit()
 
 
@@ -4616,6 +4623,8 @@ def seed_short_story_demo():  # noqa: PLR0915
             )
         )
 
+        # Counted from the prose, as the editor counts, not written in by hand.
+        recount_story(story.id, db)
         db.commit()
 
 
@@ -4913,4 +4922,6 @@ def seed_first_person_demo():
         thread.closes_at_node_id = resolution.id
         thread.status = "resolved"
 
+        # Counted from the prose, as the editor counts, not written in by hand.
+        recount_story(story.id, db)
         db.commit()

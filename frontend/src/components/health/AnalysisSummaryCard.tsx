@@ -1,3 +1,4 @@
+import { serverTime } from "../../lib/serverDate";
 import { useEffect, useState } from "react";
 import { AlignLeft, Compass, HelpCircle, Search } from "lucide-react";
 import { api } from "../../api/client";
@@ -58,7 +59,7 @@ const FEATURES: FeatureDef[] = [
 ];
 
 function formatAge(iso: string): string {
-  const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
+  const diffMs = Math.max(0, Date.now() - serverTime(iso));
   const diffH = diffMs / (1000 * 60 * 60);
   if (diffH < 1) {
     const mins = Math.round(diffMs / 60000);

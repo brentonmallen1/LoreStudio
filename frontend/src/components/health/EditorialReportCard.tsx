@@ -1,3 +1,4 @@
+import { parseServerDate } from "../../lib/serverDate";
 import { useState } from "react";
 import {
   ChevronDown,
@@ -262,7 +263,7 @@ export function EditorialReportCard({ log, onDelete }: Props) {
         ? "With Summaries"
         : "Section Only";
 
-  const timestamp = new Date(log.created_at).toLocaleString(undefined, {
+  const timestamp = parseServerDate(log.created_at).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",

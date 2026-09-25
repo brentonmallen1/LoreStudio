@@ -1,3 +1,4 @@
+import { serverTime } from "../lib/serverDate";
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -42,7 +43,7 @@ function WordBar({ label, value, max, color }: { label: string; value: number; m
 }
 
 function _formatAge(iso: string): string {
-  const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
+  const diffMs = Math.max(0, Date.now() - serverTime(iso));
   const diffH = diffMs / (1000 * 60 * 60);
   if (diffH < 1) {
     const mins = Math.round(diffMs / 60000);

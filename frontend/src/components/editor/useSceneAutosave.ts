@@ -1,3 +1,4 @@
+import { serverTime } from "../../lib/serverDate";
 import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { api, ApiError } from "../../api/client";
@@ -40,11 +41,13 @@ export function useSceneAutosave(editor: Editor | null) {
     if (!activeNode) return;
     const nodeId = activeNode.id;
     const serverContent = activeNode.content ?? "";
-    const serverTime = new Date(activeNode.updated_at).getTime();
+    // Compared as instants: read as local time, the server copy looked hours newer than
+    // any draft west of Greenwich, and the draft was cleared instead of offered.
+    const serverSavedAt = serverTime(activeNode.updated_at);
     let cancelled = false;
     loadDraft(nodeId).then((draft) => {
       if (cancelled) return;
-      if (draft && draft.content !== serverContent && draft.savedAt > serverTime) setPendingDraft(draft);
+      if (draft && draft.content !== serverContent && draft.savedAt > serverSavedAt) setPendingDraft(draft);
       else if (draft) clearDraft(nodeId);
     });
     return () => {

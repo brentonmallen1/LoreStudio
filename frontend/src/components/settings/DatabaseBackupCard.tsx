@@ -1,3 +1,4 @@
+import { parseServerDate } from "../../lib/serverDate";
 import { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import type { SystemStatus } from "../../types/system";
@@ -52,7 +53,7 @@ export default function DatabaseBackupCard({ isAdmin }: Props) {
             <span className={styles.label}>Latest</span>
             <span>
               {status.backups.latest
-                ? `${new Date(status.backups.latest.created_at).toLocaleString()} · ${(
+                ? `${parseServerDate(status.backups.latest.created_at).toLocaleString()} · ${(
                     status.backups.latest.size_bytes /
                     (1024 * 1024)
                   ).toFixed(1)} MB`

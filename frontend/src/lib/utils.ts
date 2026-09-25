@@ -1,3 +1,4 @@
+import { parseServerDate, serverTime } from "./serverDate";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -10,11 +11,11 @@ export function formatDate(dateStr: string) {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(dateStr));
+  }).format(parseServerDate(dateStr));
 }
 
 export function formatRelative(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const diff = Date.now() - serverTime(dateStr);
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;

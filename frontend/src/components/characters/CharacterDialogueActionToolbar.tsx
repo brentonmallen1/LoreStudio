@@ -1,3 +1,4 @@
+import { serverTime } from "../../lib/serverDate";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Compass, Loader2, ChevronDown, ChevronRight, Waves, AlignLeft, UserCheck } from "lucide-react";
 import { api } from "../../api/client";
@@ -69,7 +70,7 @@ const ANALYSES: AnalysisDef[] = [
 ];
 
 function formatAge(iso: string): string {
-  const diffMs = Math.max(0, Date.now() - new Date(iso).getTime());
+  const diffMs = Math.max(0, Date.now() - serverTime(iso));
   const diffH = diffMs / (1000 * 60 * 60);
   if (diffH < 1) {
     const mins = Math.round(diffMs / 60000);

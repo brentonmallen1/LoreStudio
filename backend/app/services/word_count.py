@@ -1,4 +1,30 @@
-"""Word count target ranges by intended story length."""
+"""Counting a scene's words, and the target ranges by intended story length."""
+
+import html
+import re
+
+#: Block-level tags end a word even with no space around them: "<p>end</p><p>Start"
+#: is two words, not "endStart".
+_BLOCK_TAG = re.compile(r"</?(?:p|h[1-6]|li|ul|ol|blockquote|pre|div|br|hr)\b[^>]*>", re.IGNORECASE)
+_TAG = re.compile(r"<[^>]+>")
+
+
+def count_words(content_html: str | None) -> int:
+    """
+    Words in a scene's stored HTML, by the rule the editor counts with as you type
+    (`countWordsClean` in the frontend): tags out, dialogue speaker tags such as
+    `<Calder>` out, then whitespace-separated runs.
+
+    The two have to agree. The tree shows the stored number and the editor shows its
+    own, so a stored count made any other way jumps the first time the author types —
+    the demo's hand-written counts were off by up to 49 words a scene.
+    """
+    text = _BLOCK_TAG.sub(" ", content_html or "")
+    text = _TAG.sub("", text)
+    # Speaker tags are stored escaped (&lt;Calder&gt;), so they only look like tags now.
+    text = _TAG.sub("", html.unescape(text))
+    return len(text.split())
+
 
 # Maps intended_length values to {min, max, soft_warning_at} in words.
 # soft_warning_at = 85% of max (None for unbounded forms).
@@ -41,3 +67,16 @@ def get_word_count_status(intended_length: str, current_words: int) -> dict | No
         "pct": pct,
         "warning_level": warning_level,
     }
+
+
+def recount_story(story_id: str, db) -> int:
+    """Set every node's stored count from its content. Returns how many changed."""
+    from ..models.structure import StructureNode
+
+    changed = 0
+    for node in db.query(StructureNode).filter(StructureNode.story_id == story_id):
+        n = count_words(node.content)
+        if node.word_count != n:
+            node.word_count = n
+            changed += 1
+    return changed

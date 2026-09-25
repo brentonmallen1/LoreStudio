@@ -44,6 +44,16 @@ const NO_LOCATION_ASSIGN = {
   message: "Navigate with react-router (useNavigate / the command context) instead of window.location.href.",
 };
 
+/**
+ * The API sends UTC with no offset, and `new Date(string)` reads that as local time —
+ * hours in the future west of Greenwich. Parse API timestamps with parseServerDate.
+ * Held by the warning cap: a new one raises the count and fails CI.
+ */
+const NO_BARE_DATE_PARSE = {
+  selector: "NewExpression[callee.name='Date'][arguments.length>0]",
+  message: "API timestamps are UTC without an offset — use parseServerDate / serverTime from lib/serverDate.",
+};
+
 export default defineConfig([
   globalIgnores(["dist", "coverage", "node_modules"]),
   {
@@ -65,7 +75,7 @@ export default defineConfig([
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
       "no-restricted-imports": ["error", { paths: [NO_SPARKLES] }],
-      "no-restricted-syntax": ["warn", NO_LOCATION_ASSIGN],
+      "no-restricted-syntax": ["warn", NO_LOCATION_ASSIGN, NO_BARE_DATE_PARSE],
     },
   },
   {

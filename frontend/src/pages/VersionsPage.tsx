@@ -1,3 +1,4 @@
+import { parseServerDate, serverTime } from "../lib/serverDate";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -29,7 +30,7 @@ import { relativeTime } from "../utils/relativeTime";
 // ---------------------------------------------------------------------------
 
 function formatAbsoluteDate(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  return parseServerDate(iso).toLocaleString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -507,14 +508,14 @@ function groupSnapshots(snapshots: StorySnapshot[]): SnapshotGroup[] {
     anchor,
     autoBackups: autos
       .filter((a) => a.base_snapshot_id === anchor.id)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+      .sort((a, b) => serverTime(b.created_at) - serverTime(a.created_at)),
   }));
 
   // Any auto backups whose anchor isn't in the current list (e.g., anchor deleted, or full-type auto)
   const groupedAutoIds = new Set(groups.flatMap((g) => g.autoBackups.map((a) => a.id)));
   const ungrouped = autos
     .filter((a) => !groupedAutoIds.has(a.id))
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    .sort((a, b) => serverTime(b.created_at) - serverTime(a.created_at));
 
   if (ungrouped.length > 0) {
     groups.push({ anchor: null, autoBackups: ungrouped });
@@ -524,7 +525,7 @@ function groupSnapshots(snapshots: StorySnapshot[]): SnapshotGroup[] {
   groups.sort((a, b) => {
     if (!a.anchor) return 1;
     if (!b.anchor) return -1;
-    return new Date(b.anchor.created_at).getTime() - new Date(a.anchor.created_at).getTime();
+    return serverTime(b.anchor.created_at) - serverTime(a.anchor.created_at);
   });
 
   return groups;
@@ -881,7 +882,7 @@ export default function VersionsPage() {
     const b = target;
     try {
       // Ensure a is older than b
-      const [older, newer] = new Date(a.created_at) < new Date(b.created_at) ? [a, b] : [b, a];
+      const [older, newer] = parseServerDate(a.created_at) < parseServerDate(b.created_at) ? [a, b] : [b, a];
       const diff = await api.diffSnapshots(storyId, older.id, newer.id);
       setDialog({ type: "compare-result", a: older, b: newer, diff });
     } catch (e: unknown) {
