@@ -7,16 +7,17 @@ point of view, a line of dialogue attributed to them, or their name in the prose
 answers "did they learn this", which is presence plus what the author recorded about who
 knows what.
 
-The substring match that used to *be* the model is now the weakest of three signals, and
-labelled as such — "mentioned" is not "present", and a character mentioned in absentia
+Name matching is the weakest of the three signals, and labelled as such — "mentioned" is not "present", and a character mentioned in absentia
 should not be told they were in the room.
 """
 
 import logging
+import re
+from collections import Counter
 
 from sqlalchemy.orm import Session
 
-from ...models.codex import SYNCED_SOURCES, CodexEdge, CodexNode
+from ...models.codex import SYNCED_SOURCES, CodexEdge, CodexNode, settled_edges
 from ...models.location import ScenePresence
 from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
@@ -31,6 +32,60 @@ WITNESSING_ROLES = ("pov", "participant")
 POV = "pov"
 DIALOGUE = "dialogue"
 MENTION = "mention"
+
+
+_TAG = re.compile(r"<[^>]+>")
+_PARENTHETICAL = re.compile(r"^(?P<outer>.*?)\s*\((?P<inner>[^)]+)\)\s*$")
+_ARTICLES = {"the", "a", "an"}
+
+
+def name_forms(label: str) -> set[str]:
+    """
+    The ways prose refers to a character by name.
+
+    A label is how the Lorebook files someone, not how a sentence says them: "Eleanor
+    Vance" is "Eleanor" on the page, and "The Visitor (Calder)" is either half. Matching
+    the whole label found almost nobody, so protagonists came out absent from their own
+    scenes. Same rule as the entity linker: full name, and a multi-word name's first word
+    — unless that word is an article, because "The" is not anybody.
+    """
+    label = " ".join(label.split())
+    if not label:
+        return set()
+    forms = {label}
+    parts = [label]
+    if m := _PARENTHETICAL.match(label):
+        parts = [m.group("outer"), m.group("inner")]
+        forms |= {p for p in parts if p}
+    for part in parts:
+        words = part.split()
+        if len(words) > 1 and words[0].lower() not in _ARTICLES:
+            forms.add(words[0])
+    return forms
+
+
+def _pattern(form: str) -> re.Pattern[str]:
+    # A one-word form must be capitalised as written, or "will" is Will and "grace" is
+    # Grace. A longer form is distinctive enough to match however it is cased.
+    flags = 0 if " " not in form else re.IGNORECASE
+    return re.compile(rf"(?<![\w@])@?{re.escape(form)}(?!\w)", flags)
+
+
+def name_patterns(labels: dict[str, str]) -> dict[str, list[re.Pattern[str]]]:
+    """
+    Patterns per character id. A form that belongs to two characters is evidence for
+    neither — two Vances share a surname, and a shared first name is no better.
+    """
+    forms = {key: name_forms(label) for key, label in labels.items()}
+    owners = Counter(form.lower() for fs in forms.values() for form in fs)
+    return {
+        key: [_pattern(form) for form in sorted(fs, key=len, reverse=True) if owners[form.lower()] == 1]
+        for key, fs in forms.items()
+    }
+
+
+def plain_text(html: str) -> str:
+    return _TAG.sub(" ", html or "")
 
 
 def _nodes_by_kind(story_id: str, db: Session, kind: str) -> dict[str, CodexNode]:
@@ -73,9 +128,9 @@ def derive_presence(story_id: str, db: Session) -> int:
     }
 
     prose = {
-        node.id: (node.content or "").lower()
-        for node in db.query(StructureNode).filter(StructureNode.story_id == story_id)
+        node.id: plain_text(node.content) for node in db.query(StructureNode).filter(StructureNode.story_id == story_id)
     }
+    patterns = name_patterns({key: node.label or "" for key, node in characters.items()})
 
     made = 0
     for scene_ref, scene_node in scenes.items():
@@ -90,7 +145,7 @@ def derive_presence(story_id: str, db: Session) -> int:
                 basis, role = POV, "pov"
             elif (char_node.id, scene_node.id) in speakers:
                 basis, role = DIALOGUE, "participant"
-            elif char_node.label and char_node.label.lower() in text:
+            elif any(p.search(text) for p in patterns[char_ref]):
                 basis, role = MENTION, "mentioned"
             if not basis:
                 continue
@@ -146,7 +201,11 @@ def derive_facts(story_id: str, db: Session) -> int:
     char_by_ref = _nodes_by_kind(story_id, db, "character")
 
     witnessed: dict[str, set[str]] = {}  # scene node id -> character node ids
-    for edge in db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind == "present_in"):
+    # Settled only: an unconfirmed proposal that someone was in the room must not hand
+    # them everything that happened there.
+    for edge in db.query(CodexEdge).filter(
+        CodexEdge.story_id == story_id, CodexEdge.kind == "present_in", settled_edges()
+    ):
         if (edge.props or {}).get("role") in WITNESSING_ROLES:
             witnessed.setdefault(edge.dst_id, set()).add(edge.src_id)
 

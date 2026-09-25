@@ -22,6 +22,9 @@ class StreamMetrics:
     schema_fallback: bool = False
 
 
+THOUGHT_OPEN = "<|channel>thought\n"
+THOUGHT_CLOSE = "<channel|>"
+
 # Matches Gemma 4 thought blocks: <|channel>thought\n...<channel|>
 _THOUGHT_RE = re.compile(r"<\|channel>thought\n.*?<channel\|>", re.DOTALL)
 
@@ -247,13 +250,31 @@ class OllamaProvider(LLMProvider):
                 timeout=aiohttp.ClientTimeout(total=300),
             ) as resp:
                 resp.raise_for_status()
+                in_thought = False
                 async for line in resp.content:
                     line = line.strip()
                     if not line:
                         continue
                     try:
                         data = json.loads(line)
-                        token = data.get("message", {}).get("content", "")
+                        message = data.get("message", {})
+                        # With `think` on, Ollama parses the reasoning out itself and sends it
+                        # in `message.thinking`; only older builds leave it inline. Reading
+                        # `content` alone threw the reasoning away before anything saw it.
+                        # Re-framing it in the model's own sentinels gives the rest of the
+                        # backend one representation — the gateway logs it, and the SSE
+                        # layer splits it into `thinking` events before it leaves the server.
+                        thought = message.get("thinking", "")
+                        if thought:
+                            if not in_thought:
+                                in_thought = True
+                                yield THOUGHT_OPEN
+                            yield thought
+                        token = message.get("content", "")
+                        if token or data.get("done"):
+                            if in_thought:
+                                in_thought = False
+                                yield THOUGHT_CLOSE
                         if token:
                             yield token
                         if data.get("done"):
@@ -309,6 +330,7 @@ class OllamaProvider(LLMProvider):
         base_url: str | None = None,
         model: str | None = None,
         response_schema: dict | None = None,
+        thinking_enabled: bool = False,
     ) -> tuple[str, StreamMetrics | None]:
         """
         Call Ollama for structured output.
@@ -327,6 +349,10 @@ class OllamaProvider(LLMProvider):
             "messages": [{"role": "system", "content": system_prompt}] + messages,
             "stream": False,
             "format": response_schema if response_schema is not None else "json",
+            # Always sent. Left out, gemma4 on current Ollama reasons by default — a
+            # thousand hidden tokens per structured call, twenty times slower on a small
+            # one, thrown away unread and ignoring the author's setting.
+            "think": thinking_enabled,
             "keep_alive": self.keep_alive,
             "options": {
                 "temperature": temperature if temperature is not None else self.temperature,
@@ -385,7 +411,11 @@ class OllamaProvider(LLMProvider):
                         raise ValueError(f"Ollama model error: {err_msg}")
                     resp.raise_for_status()
                     data = await resp.json()
-                content = data.get("message", {}).get("content", "")
+                message = data.get("message", {})
+                content = message.get("content", "")
+                # Framed as the stream frames it, so the gateway logs it and parses past it.
+                if thought := message.get("thinking"):
+                    content = f"{THOUGHT_OPEN}{thought}{THOUGHT_CLOSE}{content}"
                 metrics = (
                     StreamMetrics(
                         tokens_in=data.get("prompt_eval_count"),

@@ -58,6 +58,15 @@ declarative statement about the story, in your own words, short enough to fit on
 "the lamp has not been lit since the storm". Not a theme, not an interpretation, not a
 summary of the scene. If the scene establishes nothing new, return nothing.
 
+State the fact itself, with its particulars: "three of the eleven houses are still
+occupied", never "the village has a number of occupied houses". A statement that says a
+fact exists without saying what it is tells the author nothing.
+
+Only what a later scene could rely on or contradict: a revelation, an event and when it
+happened, what someone did in the past, a relationship, the lasting state of a person,
+place or object. Not what a character does in the moment ("she took the key from the
+hook") — that is the scene, not a fact about the story.
+
 For every item:
 - quote: the exact words from the scene that show it, one sentence or less, copied
   verbatim. If you cannot quote it, do not report it.

@@ -15,7 +15,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.activity_log import ActivityLog
-from ..models.codex import CodexChunk, CodexEdge, CodexNode
+from ..models.codex import CodexChunk, CodexEdge, CodexNode, is_settled
 from ..models.story import Story
 from ..models.user import User
 from ..services.codex.embeddings import DEFAULT_EMBED_MODEL, embed_base_url_for, embed_model_for, search_backend
@@ -208,11 +208,15 @@ def get_scene_presence(
     characters = {
         n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id, CodexNode.kind == "character")
     }
+    # Settled edges only, by the same rule the context assembler walks: an unconfirmed
+    # proposal is a question in the review queue, and showing it here as "participant"
+    # would present the model's guess as the author's fact.
     edges = {
         e.src_id: e
         for e in db.query(CodexEdge).filter(
             CodexEdge.story_id == story_id, CodexEdge.kind == "present_in", CodexEdge.dst_id == scene.id
         )
+        if is_settled(e)
     }
     return {
         "synced": True,

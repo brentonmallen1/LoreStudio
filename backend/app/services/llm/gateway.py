@@ -30,6 +30,7 @@ Usage:
 """
 
 import asyncio
+import copy
 import json
 import logging
 import time
@@ -108,6 +109,33 @@ class AICallResult:
     raw_response: str = ""
     #: This call's own reasoning, split out of raw_response.
     thinking: str | None = None
+
+
+def decoding_schema(response_model: type[BaseModel]) -> dict:
+    """
+    The JSON schema Ollama constrains decoding to, with every property required.
+
+    This is a grammar, not a validator, and the two want different things. A response
+    model defaults its fields so a sparse answer still parses; but a grammar with no
+    required keys admits `{}`, and a model will take that as the shortest valid answer —
+    a continuity check that reports no problems because it did not look. Requiring every
+    key makes "nothing found" an explicit empty list. Validation still runs against the
+    model itself, defaults and all.
+    """
+    schema = copy.deepcopy(response_model.model_json_schema())
+
+    def require_all(node: object) -> None:
+        if isinstance(node, dict):
+            if node.get("type") == "object" and isinstance(node.get("properties"), dict):
+                node["required"] = list(node["properties"])
+            for value in node.values():
+                require_all(value)
+        elif isinstance(node, list):
+            for value in node:
+                require_all(value)
+
+    require_all(schema)
+    return schema
 
 
 def _default_params() -> LLMParams:
@@ -334,7 +362,7 @@ class AIGateway:
 
         start_time = time.monotonic()
 
-        schema = response_model.model_json_schema()
+        schema = decoding_schema(response_model)
 
         try:
             raw_text, metrics = await self.provider.generate_structured(
@@ -347,6 +375,7 @@ class AIGateway:
                 base_url=user_url,
                 model=user_model,
                 response_schema=schema,
+                thinking_enabled=params.thinking_enabled,
             )
         except Exception as e:
             logger.warning("generate_structured Ollama call failed: %s", e)
@@ -374,7 +403,7 @@ class AIGateway:
         )
 
         # Step 1: Parse JSON
-        cleaned = _strip_json_fencing(raw_text)
+        cleaned = _strip_json_fencing(strip_thoughts(raw_text))
         try:
             data = json.loads(cleaned)
         except json.JSONDecodeError:

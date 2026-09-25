@@ -42,19 +42,23 @@ PROSE_LIMIT = 12000
 
 class _PresentItem(BaseModel):
     name: str
-    quote: str = ""
-    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+    quote: str
+    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class _FactItem(BaseModel):
     statement: str
-    quote: str = ""
-    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+    quote: str
+    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class SuggestionResponse(BaseModel):
-    present: list[_PresentItem] = Field(default_factory=list)
-    establishes: list[_FactItem] = Field(default_factory=list)
+    # Required, not defaulted. The schema is the grammar Ollama decodes against, and a
+    # schema with no required keys admits `{}` — which a model will take as the shortest
+    # valid answer, reporting success having read nothing. Empty lists are a finding;
+    # an empty object is not.
+    present: list[_PresentItem]
+    establishes: list[_FactItem]
 
 
 @dataclass

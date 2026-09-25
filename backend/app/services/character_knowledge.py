@@ -16,11 +16,10 @@ story with no graph yet falls back to computing it here, so nothing waits on a s
 
 from dataclasses import dataclass, field
 
-from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..models.character import Character
-from ..models.codex import CodexEdge, CodexNode
+from ..models.codex import CodexEdge, CodexNode, settled_edges
 from ..models.dialogue import DialogueBlock
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.structure import StructureNode
@@ -71,17 +70,6 @@ class KnowledgeScope:
     scenes_considered: int = 0
 
 
-def _settled():
-    """
-    Only settled edges may bound what a character knows.
-
-    A model's proposal is a question for the author, not a fact about the story — so an
-    unconfirmed `llm` edge must never put a character in a room or a fact in their head.
-    Confirming one in the review queue is what makes it count (doc 07 §2).
-    """
-    return or_(CodexEdge.source != "llm", CodexEdge.confirmed_at.isnot(None))
-
-
 #: How a presence edge's basis reads in the prompt.
 _BASIS_REASONS = {"pov": POV, "dialogue": SPEAKS, "mention": NAMED, "manual": "the author placed you here"}
 
@@ -116,7 +104,7 @@ def _scope_from_graph(
         CodexEdge.story_id == character.story_id,
         CodexEdge.kind == "present_in",
         CodexEdge.src_id == char_node.id,
-        _settled(),
+        settled_edges(),
     ):
         scene = scene_nodes.get(edge.dst_id)
         role = (edge.props or {}).get("role")
@@ -155,7 +143,7 @@ def _scope_from_graph(
                 CodexEdge.story_id == character.story_id,
                 CodexEdge.kind == "knows",
                 CodexEdge.src_id == char_node.id,
-                _settled(),
+                settled_edges(),
             )
         )
         if fact

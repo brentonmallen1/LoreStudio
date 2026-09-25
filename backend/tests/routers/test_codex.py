@@ -191,3 +191,41 @@ def test_a_node_page_shows_what_it_connects_to_and_how_used_it_is(client, db_ses
 def test_a_node_from_another_story_is_not_found(client, db_session, test_user):
     story, _, _ = _setup(db_session, test_user)
     assert client.get(f"/api/stories/{story.id}/codex/nodes/nope").status_code == 404
+
+
+def test_who_is_here_does_not_present_an_unconfirmed_proposal_as_fact(client, db_session, test_user):
+    """
+    The suggestion pass writes its guesses as unconfirmed `llm` edges for the review queue.
+    The panel used to read every edge, so a guess showed up as "participant" before the
+    author had said yes to it.
+    """
+    from app.models.codex import CodexEdge
+
+    story = Story(title="Lighthouse", user_id=test_user.id)
+    db_session.add(story)
+    db_session.flush()
+    mara = Character(story_id=story.id, name="Mara")
+    db_session.add(mara)
+    db_session.flush()
+    scene = StructureNode(
+        story_id=story.id, title="Fog", level=0, level_type="scene", position=0, content="<p>Fog.</p>"
+    )
+    db_session.add(scene)
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    nodes = {n.ref_id: n for n in db_session.query(CodexNode).filter(CodexNode.story_id == story.id)}
+    db_session.add(
+        CodexEdge(
+            story_id=story.id,
+            src_id=nodes[mara.id].id,
+            dst_id=nodes[scene.id].id,
+            kind="present_in",
+            source="llm",
+            props={"role": "participant", "basis": "inferred"},
+        )
+    )
+    db_session.commit()
+
+    body = client.get(f"/api/stories/{story.id}/codex/presence/{scene.id}").json()
+    assert body["characters"][0]["role"] == "absent"

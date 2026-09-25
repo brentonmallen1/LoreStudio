@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    or_,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -71,7 +72,10 @@ class CodexEdge(Base):
 
     __tablename__ = "codex_edges"
     __table_args__ = (
-        UniqueConstraint("story_id", "src_id", "dst_id", "kind", name="uq_codex_edge"),
+        # Per source. A derived "mentioned" edge and the model's proposal that the same
+        # character was actually in the room are two different claims, and the review
+        # queue needs both — one edge per pair made the proposal collide with the fact.
+        UniqueConstraint("story_id", "src_id", "dst_id", "kind", "source", name="uq_codex_edge"),
         Index("ix_codex_edges_src", "src_id", "kind"),
         Index("ix_codex_edges_dst", "dst_id", "kind"),
     )
@@ -142,3 +146,18 @@ class CodexChunk(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
     )
+
+
+def is_settled(edge: CodexEdge) -> bool:
+    """
+    Whether an edge may count. A model's proposal is a question for the author, not a fact
+    about the story: an unconfirmed `llm` edge must never put a character in a room, a fact
+    in their head, or a path in a walk. Confirming it in the review queue is what makes it
+    count (doc 07 §2).
+    """
+    return edge.source != "llm" or edge.confirmed_at is not None
+
+
+def settled_edges():
+    """`is_settled` as a query filter."""
+    return or_(CodexEdge.source != "llm", CodexEdge.confirmed_at.is_not(None))

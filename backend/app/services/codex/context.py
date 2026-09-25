@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ...models.character import Character, CharacterRelationship
-from ...models.codex import CodexChunk, CodexEdge, CodexNode
+from ...models.codex import CodexChunk, CodexEdge, CodexNode, is_settled
 from ...models.interview import CharacterInterview
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
 from ...models.setting import Setting
@@ -387,11 +387,6 @@ def edge_kinds_for(feature_id: str) -> tuple[str, ...]:
     return EDGE_KINDS_BY_FEATURE.get(feature_id, DEFAULT_EDGE_KINDS)
 
 
-def _settled(edge: CodexEdge) -> bool:
-    """An unconfirmed model proposal is a question for the author, not a path to walk."""
-    return edge.source != "llm" or edge.confirmed_at is not None
-
-
 def walk(
     db: Session,
     story_id: str,
@@ -414,7 +409,9 @@ def walk(
         return reached
 
     edges = [
-        e for e in db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind.in_(kinds)) if _settled(e)
+        e
+        for e in db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.kind.in_(kinds))
+        if is_settled(e)
     ]
     for _ in range(max(hops, 0)):
         next_frontier: set[str] = set()

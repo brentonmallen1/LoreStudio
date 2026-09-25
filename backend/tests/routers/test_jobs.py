@@ -45,6 +45,12 @@ def fake_handlers():
     async def _explodes(job, db, user, report):
         raise RuntimeError("the model was not there")
 
+    @handler("test-breaks-the-session")
+    async def _breaks_the_session(job, db, user, report):
+        report(1, 2)  # a commit: every attribute on `job` is now expired
+        db.add(Story(title="Orphan", user_id="nobody"))
+        db.flush()  # a foreign-key failure leaves the session holding a failed flush
+
     yield
     JOB_HANDLERS.clear()
     JOB_HANDLERS.update(original)
@@ -71,6 +77,22 @@ def test_a_failed_job_says_why(db_session, test_user, story):
     anyio.run(run_job, job, db_session)
     assert job.status == "error"
     assert "the model was not there" in job.error
+
+
+def test_a_job_that_breaks_the_session_still_ends_as_an_error(db_session, test_user, story):
+    """
+    The Codex suggestion pass hit a unique constraint mid-job. The failure handler read
+    `job.id` before rolling back, which reloaded it through the broken session, raised a
+    second error out of run_job, and left the job "running" until the server restarted.
+    """
+    job = enqueue(db_session, kind="test-breaks-the-session", user_id=test_user.id, story_id=story.id, label="Break")
+
+    import anyio
+
+    anyio.run(run_job, job, db_session)
+    assert job.status == "error"
+    assert "FOREIGN KEY" in job.error
+    assert job.finished_at is not None
 
 
 def test_cancelling_a_queued_job_stops_it_immediately(db_session, test_user, story):

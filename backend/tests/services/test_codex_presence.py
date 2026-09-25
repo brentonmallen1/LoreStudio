@@ -163,3 +163,90 @@ def test_facts_track_their_scene_and_disappear_with_it(db_session, test_user):
     db_session.commit()
     sync_story(story.id, db_session)
     assert db_session.query(CodexNode).filter(CodexNode.kind == "fact").count() == 0
+
+
+def test_a_character_is_found_by_the_name_the_prose_uses(db_session, test_user):
+    """
+    A label is how the Lorebook files someone, not how a sentence says them. Matching the
+    whole label found almost nobody: Eleanor Vance was absent from her own opening scene
+    because the prose calls her Eleanor.
+    """
+    story = _story(db_session, test_user)
+    eleanor = _character(db_session, story, "Eleanor Vance")
+    calder = _character(db_session, story, "The Visitor (Calder)")
+    scene = _scene(
+        db_session, story, "The Light", 0, content="<p>Eleanor noted it in the log.</p><p>Calder did not answer.</p>"
+    )
+    sync_story(story.id, db_session)
+
+    assert _presence(db_session, eleanor, scene).props["basis"] == "mention"
+    assert _presence(db_session, calder, scene).props["basis"] == "mention"
+
+
+def test_a_name_is_not_found_inside_another_word_or_in_lowercase(db_session, test_user):
+    story = _story(db_session, test_user)
+    tom = _character(db_session, story, "Tom Reyes")
+    will = _character(db_session, story, "Will Turner")
+    scene = _scene(db_session, story, "Morning", 0, content="<p>Tomorrow she will go to the atom lab.</p>")
+    sync_story(story.id, db_session)
+
+    assert _presence(db_session, tom, scene) is None
+    assert _presence(db_session, will, scene) is None
+
+
+def test_a_first_name_two_characters_share_is_evidence_for_neither(db_session, test_user):
+    story = _story(db_session, test_user)
+    thomas_v = _character(db_session, story, "Thomas Vance")
+    thomas_h = _character(db_session, story, "Thomas Holt")
+    scene = _scene(db_session, story, "The Quay", 0, content="<p>Thomas waited on the quay.</p>")
+    sync_story(story.id, db_session)
+
+    assert _presence(db_session, thomas_v, scene) is None
+    assert _presence(db_session, thomas_h, scene) is None
+
+
+def test_name_forms_never_treat_an_article_as_a_name():
+    from app.services.codex.presence import name_forms
+
+    assert name_forms("Eleanor Vance") == {"Eleanor Vance", "Eleanor"}
+    assert name_forms("The Visitor (Calder)") == {"The Visitor (Calder)", "The Visitor", "Calder"}
+    assert "The" not in name_forms("The Visitor (Calder)")
+
+
+def test_an_unconfirmed_proposal_does_not_teach_anyone_anything(db_session, test_user):
+    """
+    The suggestion pass proposes "Tomas was here" as an unconfirmed `llm` edge. Deriving
+    who knows what read every presence edge, so the proposal alone handed Tomas the fact —
+    before the author had said yes to him being in the room.
+    """
+    story = _story(db_session, test_user)
+    elena = _character(db_session, story, "Elena")
+    tomas = _character(db_session, story, "Tomas")
+    scene = _scene(db_session, story, "The Reveal", 0, pov_character_id=elena.id, content="<p>The lamp was out.</p>")
+    db_session.add(
+        ReaderKnowledgeEvent(
+            story_id=story.id, node_id=scene.id, knowledge_type="truth_revealed", subject="The light was out"
+        )
+    )
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    db_session.add(
+        CodexEdge(
+            story_id=story.id,
+            src_id=_node(db_session, tomas.id).id,
+            dst_id=_node(db_session, scene.id).id,
+            kind="present_in",
+            source="llm",
+            props={"role": "participant", "basis": "inferred"},
+        )
+    )
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    fact = db_session.query(CodexNode).filter(CodexNode.kind == "fact").one()
+    knowers = {
+        db_session.get(CodexNode, e.src_id).label
+        for e in db_session.query(CodexEdge).filter(CodexEdge.kind == "knows", CodexEdge.dst_id == fact.id)
+    }
+    assert knowers == {"Elena"}

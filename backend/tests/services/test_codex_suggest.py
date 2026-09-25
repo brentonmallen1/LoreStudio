@@ -160,3 +160,55 @@ def test_a_rebuild_does_not_empty_the_review_queue(db_session, test_user):
 
     assert db_session.query(CodexEdge).filter(CodexEdge.source == "llm").count() == 2
     assert db_session.query(CodexNode).filter(CodexNode.source == "llm").count() == 1
+
+
+def test_an_empty_object_is_not_a_valid_answer():
+    """
+    The response model is the grammar Ollama decodes against. With both lists defaulted,
+    `{}` was valid, and gemma4 took it for a whole scene — reporting success having read
+    nothing. Required keys make "found nothing" an explicit pair of empty lists.
+    """
+    import pytest
+    from pydantic import ValidationError
+
+    from app.services.codex.suggest import SuggestionResponse
+
+    assert SuggestionResponse.model_json_schema()["required"] == ["present", "establishes"]
+    with pytest.raises(ValidationError):
+        SuggestionResponse.model_validate({})
+    assert SuggestionResponse.model_validate({"present": [], "establishes": []}).present == []
+
+
+def test_a_proposal_can_upgrade_a_character_the_prose_only_names(db_session, test_user):
+    """
+    Name matching marks Elena "mentioned". The model reads the scene and proposes she was
+    actually there. With one edge per pair the proposal collided with the derived edge
+    and failed the whole suggestion job; now the two claims sit side by side until the
+    author answers, and confirming it makes her a participant.
+    """
+    story = Story(title="Lighthouse", user_id=test_user.id)
+    db_session.add(story)
+    db_session.flush()
+    elena = Character(story_id=story.id, name="Elena Marsh")
+    db_session.add(elena)
+    scene = StructureNode(
+        story_id=story.id,
+        title="The Lamp Room",
+        level=0,
+        level_type="scene",
+        position=0,
+        content="<p>Elena set down the lamp and did not look back.</p>",
+    )
+    db_session.add(scene)
+    db_session.commit()
+    sync_story(story.id, db_session)
+
+    derived = db_session.query(CodexEdge).filter(CodexEdge.kind == "present_in", CodexEdge.source == "derived").one()
+    assert derived.props["role"] == "mentioned"
+
+    proposal = _propose_presence(db_session, story, elena, scene)  # would raise IntegrityError before
+    review(story.id, db_session, [proposal.id], accept=True)
+
+    row = db_session.query(ScenePresence).filter(ScenePresence.character_id == elena.id).one()
+    assert row.role == "participant"
+    assert db_session.query(CodexEdge).filter(CodexEdge.source == "llm").count() == 0

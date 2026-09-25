@@ -26,6 +26,8 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi.responses import StreamingResponse
 
+from .ollama import THOUGHT_CLOSE, THOUGHT_OPEN
+
 if TYPE_CHECKING:  # pragma: no cover - import cycle: the gateway is resolved at call time
     from sqlalchemy.orm import Session
 
@@ -43,9 +45,6 @@ SSE_HEADERS = {
     "Connection": "keep-alive",
     "X-Accel-Buffering": "no",
 }
-
-THOUGHT_OPEN = "<|channel>thought\n"
-THOUGHT_CLOSE = "<channel|>"
 
 
 def format_event(event: str, data: dict[str, Any] | None = None) -> str:

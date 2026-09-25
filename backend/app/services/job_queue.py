@@ -104,8 +104,12 @@ async def run_job(job: AIJob, db: Session) -> None:
         job.status = "cancelled" if job.cancel_requested else "done"
         job.result = result
     except Exception as exc:  # a failed job is a result too
-        logger.exception("job %s (%s) failed", job.id, job.kind)
+        # Roll back before touching `job`: its attributes expired at the last commit, so
+        # reading `job.id` reloads it, and a session still holding a failed flush refuses.
+        # Logging first raised a second error out of here and left the job "running"
+        # for good.
         db.rollback()
+        logger.exception("job %s (%s) failed", job.id, job.kind)
         db.refresh(job)
         job.status = "error"
         job.error = str(exc)[:2000]
