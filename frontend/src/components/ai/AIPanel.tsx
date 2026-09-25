@@ -46,8 +46,11 @@ export default function AIPanel() {
   function openInNewWindow() {
     const story = activeStory?.id ? `?story=${encodeURIComponent(activeStory.id)}` : "";
     // A named window means a second click focuses the one that is open, not a third panel.
-    window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-ai", "width=460,height=760");
-    closePanel();
+    const opened = window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-ai", "width=460,height=760");
+    // Leave the strip saying where the panel went, with a way back. Closing the panel here
+    // meant the strip — which only renders while the panel is open — could never appear,
+    // and the panel simply vanished. The new window's hello confirms it; its goodbye clears it.
+    if (opened) useAIStore.setState({ otherWindowOpen: true });
   }
   const { activeStory, activeNode, characters } = useStoryStore();
 
@@ -163,7 +166,7 @@ export default function AIPanel() {
   }
 
   return (
-    <PanelFrame floating={panelFloating}>
+    <PanelFrame floating={panelFloating && !inOwnWindow} fill={inOwnWindow}>
       {/* Session bar: the open session, and a way into the rest (doc 06 §2.1) */}
       <div className={styles.tabBar}>
         <button

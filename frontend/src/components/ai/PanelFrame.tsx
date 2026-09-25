@@ -12,19 +12,28 @@ import styles from "./AIPanel.module.css";
  * so the assistant can sit beside the paragraph it is talking about instead of pushing
  * the manuscript aside.
  */
-export default function PanelFrame({ floating, children }: { floating: boolean; children: React.ReactNode }) {
+export default function PanelFrame({
+  floating,
+  fill = false,
+  children,
+}: {
+  floating: boolean;
+  /** In its own window the panel is the whole page, not a 340px rail inside it. */
+  fill?: boolean;
+  children: React.ReactNode;
+}) {
   const { width, rect, startRailResize, startMove, startResize } = usePanelFrame(floating);
 
   // Docked, the panel takes space from the page; floating, it sits over it.
   useEffect(() => {
-    document.documentElement.style.setProperty("--ai-panel-offset", floating ? "0px" : `${width}px`);
+    document.documentElement.style.setProperty("--ai-panel-offset", floating || fill ? "0px" : `${width}px`);
     return () => document.documentElement.style.setProperty("--ai-panel-offset", "0px");
-  }, [floating, width]);
+  }, [floating, fill, width]);
 
   if (!floating) {
     return (
-      <aside className={styles.panel} style={{ width }}>
-        <div className={styles.resizeHandle} onMouseDown={startRailResize} />
+      <aside className={styles.panel} style={{ width: fill ? "100%" : width }}>
+        {!fill && <div className={styles.resizeHandle} onMouseDown={startRailResize} />}
         {children}
       </aside>
     );

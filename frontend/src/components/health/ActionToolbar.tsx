@@ -22,6 +22,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { jobsApi, waitForJob } from "../../api/jobs";
 import type { ActivityLog } from "../../types";
 import styles from "./ActionToolbar.module.css";
 import { useAIAvailable } from "../../lib/mode";
@@ -43,7 +44,10 @@ const ANALYSES: AnalysisDef[] = [
     description: "Generate AI summaries for all scenes · powers context-aware character interviews",
     type: "ai",
     Icon: ScrollText,
-    run: (id, signal) => api.summarizeScenesBatch(id, undefined, undefined, signal),
+    // Through the job queue, not the old one-request batch: it shows in the sidebar and
+    // Chronicle › Jobs with progress, stops between scenes, and says so if the server
+    // restarts under it. The report it writes is the same one this card reads.
+    run: async (id, signal) => waitForJob((await jobsApi.sceneSummaries(id)).id, signal),
     summarize: (log) => {
       const s = log.metadata_?.summarized_count as number | undefined;
       const k = log.metadata_?.skipped_count as number | undefined;

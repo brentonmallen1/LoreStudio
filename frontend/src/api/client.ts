@@ -284,26 +284,6 @@ export const api = {
     });
   },
 
-  summarizeScenesBatch: (
-    storyId: string,
-    upToNodeId?: string,
-    forceRefresh?: boolean,
-    signal?: AbortSignal,
-  ) =>
-    request<{ total_scenes: number; summarized_count: number; skipped_count: number; failed_count: number }>(
-      `/stories/${storyId}/summarize-batch`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          up_to_node_id: upToNodeId ?? null,
-          force_refresh: forceRefresh ?? false,
-        }),
-        signal,
-      },
-    ),
-
-  // Characters
   listCharacters: (storyId: string) =>
     request<import("../types").Character[]>(`/stories/${storyId}/characters`),
   createCharacter: (storyId: string, data: Partial<import("../types").Character>) =>

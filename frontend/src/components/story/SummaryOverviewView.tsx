@@ -1,3 +1,4 @@
+import { jobsApi, waitForJob } from "../../api/jobs";
 import { streamAnswer } from "../../lib/ai/eventStream";
 import React, { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -89,8 +90,10 @@ export default function SummaryOverviewView() {
     setBatchRunning(true);
     setBatchResult(null);
     try {
-      const result = await api.summarizeScenesBatch(storyId);
-      setBatchResult(`Generated ${result.summarized_count} of ${result.total_scenes} scenes.`);
+      // The job queue rather than one long request: progress in the sidebar and Chronicle.
+      const job = await waitForJob((await jobsApi.sceneSummaries(storyId)).id);
+      const result = (job.result ?? {}) as { summarized_count?: number; total_scenes?: number };
+      setBatchResult(`Generated ${result.summarized_count ?? 0} of ${result.total_scenes ?? 0} scenes.`);
       const updated = await api.getStructure(storyId);
       setStructure(updated);
     } catch {
