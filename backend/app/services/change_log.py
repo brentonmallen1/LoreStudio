@@ -168,6 +168,40 @@ def record(
     return change
 
 
+def rewrite_prose(
+    db: Session,
+    node: StructureNode,
+    content: str,
+    *,
+    label: str,
+    batch_id: str,
+    actor_id: str | None,
+    client_id: str | None,
+) -> None:
+    """
+    Replace a scene's prose on the author's behalf, and say so.
+
+    For the bulk tools — quote conversion, story-wide replace — that rewrite many scenes
+    in one go. Logged as prose edits are: visible under Chronicle › Changes, one batch per
+    operation, and not undoable here, because the editor's own history owns prose.
+    """
+    record(
+        db,
+        story_id=node.story_id,
+        entity_type="structure_node",
+        entity_id=node.id,
+        action="content",
+        before={"content": node.content},
+        after={"content": content},
+        label=label,
+        actor_id=actor_id,
+        client_id=client_id,
+        batch_id=batch_id,
+        undoable=False,
+    )
+    node.content = content
+
+
 def capture_node_tree(node: StructureNode, db: Session) -> dict[str, list[dict]]:
     """Everything a deleted node takes with it, as plain rows keyed by table."""
     nodes: list[StructureNode] = []

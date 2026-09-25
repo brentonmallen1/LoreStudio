@@ -1,15 +1,13 @@
+import { announceScenesRewritten } from "../../../lib/sceneEvents";
 import { useEffect, useState } from "react";
 import { Quote } from "lucide-react";
-import { api } from "../../../api/client";
 import { toolsApi } from "../../../api/tools";
 import type { StructureNode } from "../../../types";
 import type { QuoteStyleReport } from "../../../types/tools";
-import { useStoryStore } from "../../../stores/storyStore";
 import styles from "../SceneEditor.module.css";
 
 /** Straight vs curly quote usage across the story, with one-click normalisation. */
 export default function QuotesField({ activeNode }: { activeNode: StructureNode }) {
-  const { setActiveNode } = useStoryStore();
   const [report, setReport] = useState<QuoteStyleReport | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -36,9 +34,10 @@ export default function QuotesField({ activeNode }: { activeNode: StructureNode 
     if (!ok) return;
     setBusy(true);
     try {
-      await toolsApi.normalizeQuotes(activeNode.story_id, { style });
-      const fresh = await api.getNode(activeNode.id);
-      setActiveNode(fresh);
+      const done = await toolsApi.normalizeQuotes(activeNode.story_id, { style });
+      // Not setActiveNode(fresh): that refreshed updated_at under an editor still holding
+      // the old text, and its next autosave wrote the straight quotes back unopposed.
+      announceScenesRewritten(done.scenes.map((scene) => scene.node_id));
       setReport(await toolsApi.quoteStyles(activeNode.story_id));
     } finally {
       setBusy(false);

@@ -7,6 +7,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { clearDraft, loadDraft, saveDraft, type Draft } from "../../lib/draftBuffer";
 import { countWordsClean } from "./segmentMeta";
+import { SCENES_REWRITTEN_EVENT } from "../../lib/sceneEvents";
 
 export type SaveState = "idle" | "unsaved" | "saving" | "saved" | "offline" | "conflict";
 
@@ -54,6 +55,33 @@ export function useSceneAutosave(editor: Editor | null) {
       cancelled = true;
     };
   }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A scene rewritten from outside the editor (quote conversion, replace, undo). With
+  // nothing unsaved here, load the new text. With unsaved typing, leave both alone: its
+  // save meets the server's newer copy and asks Keep mine / Take theirs, so neither the
+  // typing nor the rewrite is dropped without the author choosing.
+  useEffect(() => {
+    function onRewritten(event: Event) {
+      const { nodeIds } = (event as CustomEvent<{ nodeIds: string[] }>).detail;
+      const node = useStoryStore.getState().activeNode;
+      if (!editor || !node || !nodeIds.includes(node.id)) return;
+      if (
+        saveState === "unsaved" ||
+        saveState === "saving" ||
+        saveState === "offline" ||
+        saveState === "conflict"
+      )
+        return;
+      api.getNode(node.id).then((fresh) => {
+        if (useStoryStore.getState().activeNode?.id !== fresh.id) return;
+        setActiveNode(fresh);
+        editor.commands.setContent(fresh.content ?? "", false);
+        clearDraft(fresh.id);
+      });
+    }
+    window.addEventListener(SCENES_REWRITTEN_EVENT, onRewritten);
+    return () => window.removeEventListener(SCENES_REWRITTEN_EVENT, onRewritten);
+  }, [editor, saveState, setActiveNode]);
 
   async function persist(nodeId: string, content: string, force: boolean) {
     const node = useStoryStore.getState().activeNode;

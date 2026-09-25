@@ -1,3 +1,4 @@
+import { announceScenesRewritten } from "../sceneEvents";
 /**
  * Command registry initialization.
  * Import this once at app startup to register all static commands.
@@ -24,7 +25,6 @@ import {
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
-import { api } from "../../api/client";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, storyPath } from "../routes";
 import { SETTINGS_SECTIONS, settingsPath } from "../../pages/settings/sections";
@@ -58,9 +58,8 @@ for (const style of ["curly", "straight"] as const) {
         )
       )
         return;
-      await toolsApi.normalizeQuotes(story.id, { style });
-      const node = useStoryStore.getState().activeNode;
-      if (node) useStoryStore.getState().setActiveNode(await api.getNode(node.id));
+      const done = await toolsApi.normalizeQuotes(story.id, { style });
+      announceScenesRewritten(done.scenes.map((scene) => scene.node_id));
     },
   });
 }

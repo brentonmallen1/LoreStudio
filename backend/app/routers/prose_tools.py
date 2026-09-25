@@ -1,5 +1,7 @@
 """Non-AI manuscript tools: quote normalisation and consistency checks."""
 
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -9,6 +11,7 @@ from ..database import get_db
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..services import change_log
 from ..services.consistency import run_checks
 from ..services.text_utils import count_quote_styles, normalize_quotes_html
 
@@ -52,6 +55,7 @@ def normalize_quotes(
     req: NormalizeQuotesRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Convert quotes in the prose to one style. Markup and speaker tags are untouched."""
     if req.style not in ("curly", "straight"):
@@ -62,6 +66,7 @@ def normalize_quotes(
         q = q.filter(StructureNode.id.in_(req.node_ids))
     changed_chars = 0
     scenes: list[dict] = []
+    batch_id = str(uuid.uuid4())
     for node in q.all():
         if not node.content:
             continue
@@ -70,7 +75,15 @@ def normalize_quotes(
             scenes.append({"node_id": node.id, "title": node.title, "changed": n})
             changed_chars += n
             if not req.dry_run:
-                node.content = new_html
+                change_log.rewrite_prose(
+                    db,
+                    node,
+                    new_html,
+                    label=f"{req.style.capitalize()} quotes in “{node.title}”",
+                    batch_id=batch_id,
+                    actor_id=user.id,
+                    client_id=client_id,
+                )
     if scenes and not req.dry_run:
         db.commit()
     return {"style": req.style, "dry_run": req.dry_run, "changed_chars": changed_chars, "scenes": scenes}

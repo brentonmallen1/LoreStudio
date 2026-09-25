@@ -822,10 +822,18 @@ export const api = {
     caseSensitive = false,
     nodeIds?: string[],
   ) =>
-    request<{ replaced_count: number; scenes_affected: number }>(`/stories/${storyId}/replace`, {
-      method: "POST",
-      body: JSON.stringify({ query, replacement, case_sensitive: caseSensitive, node_ids: nodeIds ?? null }),
-    }),
+    request<{ replaced_count: number; scenes_affected: number; node_ids: string[] }>(
+      `/stories/${storyId}/replace`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          query,
+          replacement,
+          case_sensitive: caseSensitive,
+          node_ids: nodeIds ?? null,
+        }),
+      },
+    ),
 
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>

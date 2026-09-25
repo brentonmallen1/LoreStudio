@@ -1,4 +1,5 @@
 import re
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -13,6 +14,7 @@ from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..services import change_log
 
 router = APIRouter()
 
@@ -287,13 +289,14 @@ async def story_replace(
     req: StoryReplaceRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     story = db.get(Story, story_id)
     if not story or story.user_id != user.id:
         raise HTTPException(status_code=404, detail="Story not found")
 
     if not req.query:
-        return {"replaced_count": 0, "scenes_affected": 0}
+        return {"replaced_count": 0, "scenes_affected": 0, "node_ids": []}
 
     flags = 0 if req.case_sensitive else re.IGNORECASE
     escaped = re.escape(req.query)
@@ -305,18 +308,29 @@ async def story_replace(
 
     nodes = q.all()
     total_replaced = 0
-    scenes_affected = 0
+    changed: list[str] = []
+    batch_id = str(uuid.uuid4())
 
     for node in nodes:
         if not node.content:
             continue
         new_content, n = replace_in_text_nodes(node.content, pattern, req.replacement)
         if n > 0:
-            node.content = new_content
+            change_log.rewrite_prose(
+                db,
+                node,
+                new_content,
+                label=f"Replace “{req.query}” with “{req.replacement}” in “{node.title}”",
+                batch_id=batch_id,
+                actor_id=user.id,
+                client_id=client_id,
+            )
             total_replaced += n
-            scenes_affected += 1
+            changed.append(node.id)
 
-    if scenes_affected > 0:
+    if changed:
         db.commit()
 
-    return {"replaced_count": total_replaced, "scenes_affected": scenes_affected}
+    # Which scenes changed, so an editor holding one of them can reload it instead of
+    # saving its stale copy back over the replacement.
+    return {"replaced_count": total_replaced, "scenes_affected": len(changed), "node_ids": changed}

@@ -21,10 +21,15 @@ router = APIRouter()
 
 
 def _differs(expected: datetime, actual: datetime) -> bool:
-    """Compare ignoring timezone awareness and sub-second noise from JSON round-trips."""
+    """
+    Compare ignoring timezone awareness. The client sends back the exact string it was
+    given, so the only slack needed is a millisecond, for a value that went through a
+    JavaScript Date. It used to be a whole second, which let a second tab's save — or a
+    bulk rewrite — land unopposed if it came within a second of the load.
+    """
     e = expected.replace(tzinfo=None)
     a = actual.replace(tzinfo=None)
-    return abs((e - a).total_seconds()) > 1
+    return abs((e - a).total_seconds()) > 0.001
 
 
 def _update_label(node: StructureNode, after: dict) -> str:

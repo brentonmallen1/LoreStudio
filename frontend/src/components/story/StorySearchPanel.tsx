@@ -1,3 +1,4 @@
+import { announceScenesRewritten } from "../../lib/sceneEvents";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   X,
@@ -95,6 +96,7 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
     try {
       const res = await api.storyReplace(storyId, query, replacement, caseSensitive, nodeIds);
       setReplaceResult(res);
+      announceScenesRewritten(res.node_ids ?? []);
       // Re-run search to update matches
       await runSearch(query, caseSensitive);
     } finally {
