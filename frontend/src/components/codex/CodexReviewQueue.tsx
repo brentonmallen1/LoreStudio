@@ -123,8 +123,8 @@ export default function CodexReviewQueue({ storyId }: { storyId: string }) {
           <Network size={28} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Nothing waiting on you</p>
           <p className={styles.emptyHint}>
-            Run the pass after you have written a few scenes. It only proposes indexing — who was present,
-            what a scene establishes — never what should happen next.
+            Press Read the manuscript once you have written a few scenes. It only proposes indexing — who was
+            present, what a scene establishes — never what should happen next.
           </p>
         </div>
       ) : (

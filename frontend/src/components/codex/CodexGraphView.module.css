@@ -119,3 +119,9 @@
   color: var(--color-text);
   margin: 0 0 0.35rem;
 }
+
+.emptyAction {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}

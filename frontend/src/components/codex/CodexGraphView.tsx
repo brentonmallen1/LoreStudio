@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { CodexGraph } from "../../api/codex";
 import { forceLayout, withinHops } from "../../lib/graph/forceLayout";
 import { edgeLabel, isProposal, nodeColor, nodeLabel } from "../../lib/graph/codexVocabulary";
@@ -12,6 +12,8 @@ interface Props {
   graph: CodexGraph;
   selectedId: string | null;
   onSelect: (nodeId: string) => void;
+  /** What the author can do about an empty graph — the page owns the build job. */
+  emptyAction?: ReactNode;
 }
 
 /**
@@ -22,7 +24,7 @@ interface Props {
  * And the default view is the whole story with everything on — a filter you have to
  * discover is a filter that hides things from you.
  */
-export default function CodexGraphView({ graph, selectedId, onSelect }: Props) {
+export default function CodexGraphView({ graph, selectedId, onSelect, emptyAction }: Props) {
   const kinds = useMemo(() => [...new Set(graph.nodes.map((n) => n.kind))].sort(), [graph.nodes]);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [focus, setFocus] = useState("");
@@ -63,9 +65,10 @@ export default function CodexGraphView({ graph, selectedId, onSelect }: Props) {
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>No graph yet</p>
         <p>
-          The Codex is built from what you have already written. Build it from Settings › Codex, or from the
-          button above, and it will appear here.
+          The graph is built from what you have already written: characters, locations, relationships and who
+          appears in which scene. Nothing is invented and no AI is involved.
         </p>
+        {emptyAction && <div className={styles.emptyAction}>{emptyAction}</div>}
       </div>
     );
   }

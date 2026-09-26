@@ -262,3 +262,42 @@
 .graphSide {
   min-width: 0;
 }
+
+.loading {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.emptyBuild {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The graph build is deterministic, so it wears the accent, not the AI colour. */
+.buildBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.buildBtn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.buildError {
+  font-size: 0.78rem;
+  color: var(--color-danger);
+}
