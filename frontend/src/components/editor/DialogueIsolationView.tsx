@@ -30,7 +30,7 @@ function assignSides(blocks: DialogueBlock[]): Map<string, "left" | "right"> {
   return sides;
 }
 
-/** "Dialogue only" view: attributed lines as chat bubbles, with AI speaker suggestions for the untagged ones. */
+/** "Dialogue only" view: every quoted line as a chat bubble, with AI speaker suggestions for the untagged ones. */
 export default function DialogueIsolationView({
   activeNode,
   activeStory,
@@ -47,16 +47,26 @@ export default function DialogueIsolationView({
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
 
+  // The server reads the lines from the saved prose, so read again after every save: the
+  // view can open while the editor's last keystrokes are still on their way.
   useEffect(() => {
+    let current = true;
     api
       .listDialogue(activeNode.id)
-      .then(setBlocks)
-      .catch(() => setBlocks([]));
+      .then((b) => current && setBlocks(b))
+      .catch(() => current && setBlocks([]));
     return () => {
+      current = false;
+    };
+  }, [activeNode.id, activeNode.updated_at]);
+
+  useEffect(
+    () => () => {
       setSuggestions([]);
       setDismissed(new Set());
-    };
-  }, [activeNode.id]);
+    },
+    [activeNode.id],
+  );
 
   async function suggest() {
     if (loading) {
@@ -85,10 +95,6 @@ export default function DialogueIsolationView({
       ]);
       setActiveNode({ ...activeNode, ...updated });
       if (editor && updated.content) editor.commands.setContent(updated.content, false);
-      api
-        .listDialogue(activeNode.id)
-        .then(setBlocks)
-        .catch(() => {});
       setDismissed((prev) => new Set([...prev, suggestion.id]));
     } catch {
       /* ignore */
@@ -134,8 +140,8 @@ export default function DialogueIsolationView({
       </div>
       {blocks.length === 0 ? (
         <p className={styles.dialogueIsolationEmpty}>
-          No attributed dialogue found. Use <code>"text"&lt;Name&gt;</code> syntax or <code>^</code> to
-          attribute dialogue.
+          No dialogue in this scene. Quoted lines appear here; attribute one with{" "}
+          <code>"text"&lt;Name&gt;</code> or <code>^</code>.
         </p>
       ) : (
         <div className={styles.dialogueBubbles}>

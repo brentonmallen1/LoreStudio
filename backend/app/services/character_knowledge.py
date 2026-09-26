@@ -24,6 +24,7 @@ from ..models.dialogue import DialogueBlock
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.structure import StructureNode
 from .character_journey import get_nodes_up_to
+from .dialogue_service import sync_story_dialogue
 
 #: Why we believe the character was in a scene, most authoritative first.
 POV = "point of view"
@@ -211,6 +212,7 @@ def build_scope(
         from_graph.as_of_node_id = as_of_node_id
         return from_graph
 
+    sync_story_dialogue(character.story_id, db)
     speaking_scene_ids = {
         row[0]
         for row in db.query(DialogueBlock.scene_id).filter(DialogueBlock.character_id == character.id).all()

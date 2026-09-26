@@ -30,7 +30,8 @@ from ..services.dialogue_service import (
     _html_to_paragraphs,
     get_dialogue_stats,
     get_interaction_matrix,
-    sync_dialogue_blocks,
+    sync_scene_dialogue,
+    sync_story_dialogue,
 )
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
@@ -137,14 +138,8 @@ def list_dialogue(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Return all dialogue blocks for a scene, ordered by position."""
-    _get_scene(scene_id, db, current_user)
-    return (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.scene_id == scene_id)
-        .order_by(DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph)
-        .all()
-    )
+    """Return all dialogue blocks for a scene, ordered by position, as the prose has them now."""
+    return sync_scene_dialogue(_get_scene(scene_id, db, current_user), db)
 
 
 @router.post("/scenes/{scene_id}/dialogue/refresh", response_model=list[DialogueBlockOut])
@@ -154,20 +149,7 @@ def refresh_dialogue(
     current_user: User = Depends(get_current_user),
 ):
     """Re-extract dialogue blocks from the scene's current content."""
-    node = _get_scene(scene_id, db, current_user)
-    if not node.content:
-        return []
-    story = db.get(Story, node.story_id)
-    pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
-    narrative_perspective = story.narrative_perspective if story else ""
-    return sync_dialogue_blocks(
-        scene_id,
-        node.content,
-        node.story_id,
-        db,
-        pov_character_id=pov_char_id,
-        narrative_perspective=narrative_perspective,
-    )
+    return sync_scene_dialogue(_get_scene(scene_id, db, current_user), db)
 
 
 @router.post("/scenes/{scene_id}/dialogue/suggest-tags", response_model=list[ProposedDialogueTag])
@@ -416,19 +398,7 @@ def apply_dialogue_tags(
 
     node.content = content
     db.commit()
-
-    # Re-sync dialogue blocks after content change
-    story = db.get(Story, node.story_id)
-    pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
-    narrative_perspective = story.narrative_perspective if story else ""
-    sync_dialogue_blocks(
-        scene_id,
-        content,
-        node.story_id,
-        db,
-        pov_character_id=pov_char_id,
-        narrative_perspective=narrative_perspective,
-    )
+    sync_scene_dialogue(node, db)
 
     from ..schemas.structure import StructureNodeOut
 
@@ -515,6 +485,7 @@ def get_subtext_notes(
     if not story:
         raise HTTPException(status_code=404, detail="Character not found")
 
+    sync_story_dialogue(char.story_id, db)
     blocks = (
         db.query(DialogueBlock)
         .filter(
@@ -751,7 +722,7 @@ def apply_dialogue_tags_batch(
     current_user: User = Depends(get_current_user),
 ):
     """Apply dialogue tags across multiple scenes at once."""
-    story = _get_story(story_id, db, current_user)
+    _get_story(story_id, db, current_user)
     updated_count = 0
 
     for scene_entry in body.scenes:
@@ -770,17 +741,7 @@ def apply_dialogue_tags_batch(
 
         node.content = content
         db.commit()
-
-        pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
-        narrative_perspective = story.narrative_perspective if story else ""
-        sync_dialogue_blocks(
-            scene_entry.scene_id,
-            content,
-            story_id,
-            db,
-            pov_character_id=pov_char_id,
-            narrative_perspective=narrative_perspective,
-        )
+        sync_scene_dialogue(node, db)
         updated_count += 1
 
     return {"updated_count": updated_count}

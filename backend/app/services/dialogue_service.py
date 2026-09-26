@@ -12,12 +12,18 @@ The HTML is stripped to plain text per paragraph before regex parsing.
 
 import re
 import uuid
+from collections import defaultdict
+from collections.abc import Callable
 from datetime import UTC, datetime
 
+from sqlalchemy import delete, false
 from sqlalchemy.orm import Session
 
 from ..models.character import Character
 from ..models.dialogue import DialogueBlock
+from ..models.story import Story
+from ..models.structure import StructureNode
+from .codex.presence import name_forms
 from .text_utils import extract_em_blocks as _extract_em_blocks
 from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
@@ -133,30 +139,23 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
     try alternating between the last two established speakers.
     """
     last_two: list[str] = []  # most recent speakers (up to 2)
+    prev = ""  # who spoke the line before this one
     for block in raw_blocks:
         method = block["attribution_method"]
         if method in ("explicit", "inferred") and block["speaker_name"]:
             name = block["speaker_name"]
-            if not last_two or last_two[-1] != name:
-                if len(last_two) == 2:
-                    last_two.pop(0)
-                last_two.append(name)
-        elif method == "unattributed" and len(last_two) == 2:
-            # Assign the "other" speaker
-            prev = block.get("_prev_speaker")
-            if prev and prev in last_two:
-                other = last_two[0] if last_two[1] == prev else last_two[1]
-                block["speaker_name"] = other
-                block["attribution_method"] = "alternating"
-                block["confidence"] = 0.6
-
-        # Track previous speaker for next iteration
-        if block["speaker_name"]:
-            block["_prev_speaker"] = block["speaker_name"]
-
-    # Clean internal key
-    for block in raw_blocks:
-        block.pop("_prev_speaker", None)
+            if name in last_two:
+                last_two.remove(name)
+            elif len(last_two) == 2:
+                last_two.pop(0)
+            last_two.append(name)
+        elif method == "unattributed" and len(last_two) == 2 and prev in last_two:
+            # Assign the "other" speaker. (The previous speaker used to be read off this
+            # block before anything had written it, so no line was ever alternated.)
+            block["speaker_name"] = last_two[0] if last_two[1] == prev else last_two[1]
+            block["attribution_method"] = "alternating"
+            block["confidence"] = 0.6
+        prev = block["speaker_name"]
 
     return raw_blocks
 
@@ -185,128 +184,192 @@ def extract_thoughts(scene_content: str, para_index_offset: int = 0) -> list[dic
     return results
 
 
-def extract_dialogue(scene_content: str, para_index_offset: int = 0) -> list[dict]:
+def extract_dialogue(
+    scene_content: str,
+    para_index_offset: int = 0,
+    speaker: Callable[[str], str] | None = None,
+) -> list[dict]:
     """Parse TipTap HTML and return raw dialogue block dicts (unsaved).
 
     Returns spoken dialogue blocks only. Call extract_thoughts() separately for
     inner-monologue blocks.
+
+    `speaker` maps a name as written to the one it means. It runs before alternation,
+    which otherwise takes "@Victor" and "<Victor Harlan>" for two people and hands the
+    next unattributed line to one of them.
     """
     paragraphs = _html_to_paragraphs(scene_content)
     all_blocks = []
     for i, para in enumerate(paragraphs):
         blocks = _extract_from_paragraph(para, i + para_index_offset, known_names=set())
         all_blocks.extend(blocks)
+    if speaker:
+        for b in all_blocks:
+            if b["speaker_name"]:
+                b["speaker_name"] = speaker(b["speaker_name"])
     _apply_alternation(all_blocks)
     for b in all_blocks:
         b.setdefault("dialogue_type", "speech")
     return all_blocks
 
 
-def sync_dialogue_blocks(
-    scene_id: str,
-    scene_content: str,
-    story_id: str,
-    db: Session,
-    pov_character_id: str | None = None,
-    narrative_perspective: str = "",
-) -> list[DialogueBlock]:
-    """Re-extract dialogue from scene content and sync to the database.
+#: What extraction decides about a line.
+_EXTRACTED = (
+    "raw_text",
+    "paragraph_index",
+    "position_in_paragraph",
+    "attribution_method",
+    "confidence",
+    "speaker_name",
+    "character_id",
+    "dialogue_type",
+)
+#: All a hand-corrected line (attribution_method="manual") takes from extraction: where
+#: it now sits. Its speaker is the author's.
+_PLACE = ("raw_text", "paragraph_index", "position_in_paragraph")
 
-    Deletes existing auto-extracted blocks (explicit/inferred/alternating/unattributed/pov_default)
-    and recreates them. Manually corrected blocks (attribution_method='manual') are
-    preserved and merged with the new extraction by content match.
+_FIRST_PERSON_PERSPECTIVES = {"first_person", "multiple_pov"}
 
-    When pov_character_id is provided and narrative_perspective indicates first-person,
-    unattributed spoken dialogue is attributed to the POV character with method='pov_default'.
-    Inner-monologue blocks (<em> spans) are also extracted as dialogue_type='thought'.
+
+def _speaker_resolver(characters: list[Character]) -> Callable[[str], Character | None]:
+    """A speaker as the prose names them ("<Victor Harlan>", "@Victor") to the character.
+
+    A full name matches however it is cased. Otherwise the forms the Codex matches
+    presence by — a first name, either half of "The Visitor (Calder)" — when exactly one
+    character answers to it: a shared first name names nobody.
     """
-    _FIRST_PERSON_PERSPECTIVES = {"first_person", "multiple_pov"}
+    by_name = {c.name.lower(): c for c in characters if c.name}
+    by_form: dict[str, list[Character]] = defaultdict(list)
+    for c in characters:
+        for form in name_forms(c.name or ""):
+            by_form[form.lower()].append(c)
 
-    # Load manual blocks before wiping
-    manual_blocks: list[DialogueBlock] = (
-        db.query(DialogueBlock)
-        .filter(
-            DialogueBlock.scene_id == scene_id,
-            DialogueBlock.attribution_method == "manual",
-        )
-        .all()
-    )
-    manual_by_content = {b.content: b for b in manual_blocks}
+    def resolve(written: str) -> Character | None:
+        key = " ".join(written.split()).lower()
+        if key in by_name:
+            return by_name[key]
+        found = by_form.get(key, [])
+        return found[0] if len(found) == 1 else None
 
-    # Delete all auto-extracted blocks
-    db.query(DialogueBlock).filter(
-        DialogueBlock.scene_id == scene_id,
-        DialogueBlock.attribution_method != "manual",
-    ).delete(synchronize_session=False)
+    return resolve
 
-    raw_blocks = extract_dialogue(scene_content)
-    thought_blocks = extract_thoughts(scene_content)
 
-    # POV character resolution
-    pov_char = None
-    use_pov_default = pov_character_id and narrative_perspective in _FIRST_PERSON_PERSPECTIVES
-    if use_pov_default:
-        pov_char = db.query(Character).filter(Character.id == pov_character_id).first()
+def _plan(content: str, characters: list[Character], pov_char: Character | None) -> list[dict]:
+    """Every line of dialogue and thought in the prose, attributed, in reading order."""
+    resolve = _speaker_resolver(characters)
 
-    # Apply pov_default to unattributed spoken dialogue
-    if use_pov_default and pov_char:
-        for raw in raw_blocks:
+    def canonical(written: str) -> str:
+        char = resolve(written)
+        return char.name if char else written
+
+    speech = extract_dialogue(content, speaker=canonical)
+    thoughts = extract_thoughts(content)
+    if pov_char:
+        # First person: a line nobody is tagged for is the narrator's, and so is every thought.
+        for raw in speech:
             if raw["attribution_method"] == "unattributed" and not raw["speaker_name"]:
-                raw["speaker_name"] = pov_char.name
-                raw["attribution_method"] = "pov_default"
-                raw["confidence"] = 0.7
+                raw.update(speaker_name=pov_char.name, attribution_method="pov_default", confidence=0.7)
+        for raw in thoughts:
+            raw.update(speaker_name=pov_char.name, attribution_method="pov_default", confidence=0.8)
+    lines = speech + thoughts
+    for raw in lines:
+        char = resolve(raw["speaker_name"]) if raw["speaker_name"] else None
+        raw["character_id"] = char.id if char else None
+    return sorted(lines, key=lambda r: (r["paragraph_index"], r["position_in_paragraph"]))
 
-        # Also assign thoughts to POV character
-        for raw in thought_blocks:
-            raw["speaker_name"] = pov_char.name
-            raw["attribution_method"] = "pov_default"
-            raw["confidence"] = 0.8
 
-    all_raw = raw_blocks + thought_blocks
+def _reconcile(
+    rows: list[DialogueBlock], planned: list[dict]
+) -> tuple[list[tuple[DialogueBlock, dict]], list[dict], list[DialogueBlock]]:
+    """What it takes for `rows` to say what `planned` says: updates, creations, deletions.
 
-    # Resolve character_ids from speaker names
-    speaker_names = {b["speaker_name"] for b in all_raw if b["speaker_name"]}
-    characters = (
-        db.query(Character).filter(Character.story_id == story_id, Character.name.in_(speaker_names)).all()
-        if speaker_names
-        else []
-    )
-    char_by_name = {c.name.lower(): c for c in characters}
-
-    now = datetime.now(UTC)
-    saved: list[DialogueBlock] = []
-
-    for raw in all_raw:
-        content = raw["content"]
-
-        # If a manual override exists for this content, keep it
-        if content in manual_by_content:
-            saved.append(manual_by_content[content])
+    A row is matched to a line by its words, in reading order when a line repeats, so a
+    line that moved or was re-attributed keeps its row — and its subtext note, which
+    nothing in the prose could rebuild.
+    """
+    unclaimed: dict[str, list[DialogueBlock]] = defaultdict(list)
+    for row in rows:
+        unclaimed[row.content].append(row)
+    updates: list[tuple[DialogueBlock, dict]] = []
+    creates: list[dict] = []
+    for line in planned:
+        if not unclaimed[line["content"]]:
+            creates.append(line)
             continue
+        row = unclaimed[line["content"]].pop(0)
+        fields = _PLACE if row.attribution_method == "manual" else _EXTRACTED
+        changed = {f: line[f] for f in fields if getattr(row, f) != line[f]}
+        if changed:
+            updates.append((row, changed))
+    return updates, creates, [row for left in unclaimed.values() for row in left]
 
-        speaker_name = raw["speaker_name"]
-        char = char_by_name.get(speaker_name.lower()) if speaker_name else None
 
-        block = DialogueBlock(
-            id=str(uuid.uuid4()),
-            scene_id=scene_id,
-            character_id=char.id if char else None,
-            content=content,
-            raw_text=raw["raw_text"],
-            paragraph_index=raw["paragraph_index"],
-            position_in_paragraph=raw["position_in_paragraph"],
-            attribution_method=raw["attribution_method"],
-            confidence=raw["confidence"],
-            speaker_name=speaker_name,
-            dialogue_type=raw.get("dialogue_type", "speech"),
-            created_at=now,
-            updated_at=now,
+def _rows(db: Session, scene_id: str, *, fresh: bool = False) -> list[DialogueBlock]:
+    q = db.query(DialogueBlock).filter(DialogueBlock.scene_id == scene_id)
+    if fresh:
+        q = q.populate_existing()
+    return q.order_by(DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph).all()
+
+
+def _sync(node: StructureNode, story: Story | None, characters: list[Character], db: Session) -> list[DialogueBlock]:
+    pov_id = node.pov_character_id or (story.pov_character_id if story else None)
+    first_person = bool(story and story.narrative_perspective in _FIRST_PERSON_PERSPECTIVES)
+    pov_char = next((c for c in characters if c.id == pov_id), None) if first_person else None
+    planned = _plan(node.content or "", characters, pov_char)
+
+    rows = _rows(db, node.id)
+    if not any(_reconcile(rows, planned)):
+        return rows
+
+    # Two readers can find a scene stale at once — the Dialogue view opening, a story-wide
+    # check running. Take the write lock (pysqlite opens its transaction at the first write,
+    # so a DELETE that matches nothing is the way to take it) and look again: the second
+    # one in finds what the first one wrote, and has nothing left to do.
+    db.execute(delete(DialogueBlock).where(false()))
+    updates, creates, deletes = _reconcile(_rows(db, node.id, fresh=True), planned)
+    now = datetime.now(UTC)
+    for row, changed in updates:
+        for field, value in changed.items():
+            setattr(row, field, value)
+        row.updated_at = now
+    for line in creates:
+        db.add(
+            DialogueBlock(
+                id=str(uuid.uuid4()),
+                scene_id=node.id,
+                content=line["content"],
+                created_at=now,
+                updated_at=now,
+                **{f: line[f] for f in _EXTRACTED},
+            )
         )
-        db.add(block)
-        saved.append(block)
-
+    for row in deletes:
+        db.delete(row)
     db.commit()
-    return saved
+    return _rows(db, node.id)
+
+
+def sync_scene_dialogue(node: StructureNode, db: Session) -> list[DialogueBlock]:
+    """Bring a scene's dialogue rows in line with its prose, and return them in reading order.
+
+    The rows are derived data, and anything that rewrites prose (a save, a rename, quote
+    normalisation, find-and-replace, the seed) can leave them behind. So every reader calls
+    this first rather than trusting every writer to: when nothing differs, nothing is written.
+
+    A hand correction keeps its speaker, a subtext note stays with its line, and a row whose
+    line is gone from the prose is deleted.
+    """
+    story = db.get(Story, node.story_id)
+    characters = db.query(Character).filter(Character.story_id == node.story_id).all()
+    return _sync(node, story, characters, db)
+
+
+def sync_story_dialogue(story_id: str, db: Session) -> None:
+    """`sync_scene_dialogue` for every scene, before reading a story's dialogue as a whole."""
+    story = db.get(Story, story_id)
+    characters = db.query(Character).filter(Character.story_id == story_id).all()
+    for node in db.query(StructureNode).filter(StructureNode.story_id == story_id).all():
+        _sync(node, story, characters, db)
 
 
 def _gini(values: list[int]) -> float:
@@ -325,8 +388,7 @@ def _gini(values: list[int]) -> float:
 
 def get_dialogue_stats(story_id: str, db: Session) -> dict:
     """Aggregate dialogue stats across a story for the Health dashboard."""
-    from ..models.structure import StructureNode
-
+    sync_story_dialogue(story_id, db)
     # Get all leaf scene IDs for this story
     scene_ids = [row.id for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
     if not scene_ids:
@@ -384,10 +446,7 @@ def get_dialogue_stats(story_id: str, db: Session) -> dict:
 
 def get_interaction_matrix(story_id: str, db: Session) -> list[dict]:
     """Return pairwise character interaction data (co-presence in scenes)."""
-    from collections import defaultdict
-
-    from ..models.structure import StructureNode
-
+    sync_story_dialogue(story_id, db)
     scene_ids = [row.id for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
     if not scene_ids:
         return []

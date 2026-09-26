@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, PanelRightOpen, List, Share2, FileText, BookOpen, CheckSquare } from "lucide-react";
+import { Plus, PanelLeftClose, List, Share2, FileText, BookOpen, CheckSquare } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -246,9 +246,9 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
           <button
             className={styles.dockBtn}
             onClick={() => setTreeDetached(false)}
-            title="Close structure tree"
+            title="Hide the structure tree"
           >
-            <PanelRightOpen size={13} />
+            <PanelLeftClose size={13} />
           </button>
         </div>
       </div>

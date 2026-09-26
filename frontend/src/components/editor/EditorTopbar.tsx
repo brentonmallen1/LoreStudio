@@ -265,7 +265,7 @@ export default function EditorTopbar(p: Props) {
         <button
           onClick={p.onToggleDialogue}
           className={`${styles.topbarBtn} ${p.dialogueIsolation ? styles.topbarBtnActive : ""}`}
-          title="Dialogue view — show only attributed dialogue (toggle)"
+          title="Dialogue view — show only the dialogue (toggle)"
         >
           <Quote size={13} />
           <span>Dialogue</span>

@@ -1956,16 +1956,20 @@ def seed_demo_story():  # noqa: PLR0915
 
         # ── Dialogue Blocks (with subtext) ───────────────────────────────────
         # Seed representative dialogue blocks from Act 2 scenes so the
-        # Character Dialogue tab demonstrates Subtext Tracking.
+        # Character Dialogue tab demonstrates Subtext Tracking. Scene 4 names its speakers
+        # in prose ("Eleanor said"), which extraction does not read, so its two lines are
+        # attributed by hand, as an author would in the Dialogue tab: a manual row keeps its
+        # speaker when the scene is re-read. Each row's content is the line as extracted,
+        # or the re-read would find nothing to attach it to. The rest are created on first read.
         db.add(
             DialogueBlock(
                 scene_id=scene4.id,
                 character_id=eleanor.id,
-                content="You knew. You came here knowing this.",
-                raw_text='"You knew," Eleanor said. "You came here knowing this."',
+                content="You came here knowing this.",
+                raw_text='"You came here knowing this."',
                 paragraph_index=5,
                 position_in_paragraph=0,
-                attribution_method="explicit",
+                attribution_method="manual",
                 confidence=1.0,
                 speaker_name="Eleanor Vance",
                 dialogue_type="speech",
@@ -1980,7 +1984,7 @@ def seed_demo_story():  # noqa: PLR0915
                 raw_text='"I came here hoping I was wrong."',
                 paragraph_index=5,
                 position_in_paragraph=1,
-                attribution_method="explicit",
+                attribution_method="manual",
                 confidence=1.0,
                 speaker_name="Calder",
                 dialogue_type="speech",

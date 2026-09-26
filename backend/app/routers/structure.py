@@ -11,7 +11,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.structure import StructureNodeOut, StructureNodeUpdate
 from ..services import change_log
-from ..services.dialogue_service import sync_dialogue_blocks
+from ..services.dialogue_service import sync_scene_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.summaries import build_scene_summary_prompt, build_structure_section_summary_prompt
@@ -118,19 +118,9 @@ def update_node(
     db.commit()
     db.refresh(node)
 
-    # Re-extract dialogue whenever content changes
-    if "content" in data and node.content:
-        story = db.get(Story, node.story_id)
-        pov_char_id = node.pov_character_id or (story.pov_character_id if story else None)
-        narrative_perspective = story.narrative_perspective if story else ""
-        sync_dialogue_blocks(
-            node.id,
-            node.content,
-            node.story_id,
-            db,
-            pov_character_id=pov_char_id,
-            narrative_perspective=narrative_perspective,
-        )
+    # Re-extract dialogue whenever content changes (an emptied scene has none left)
+    if "content" in data:
+        sync_scene_dialogue(node, db)
 
     return node
 

@@ -2099,6 +2099,22 @@
   color: var(--color-text-subtle);
 }
 
+.emptyAction {
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.emptyAction:hover {
+  border-color: var(--color-accent);
+}
+
 /* ── AI Dialogue Attribution Suggestions ── */
 .aiSuggestionRow {
   display: flex;

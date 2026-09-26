@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from ..models.character import Character
 from ..models.dialogue import DialogueBlock
 from ..models.structure import StructureNode
+from .dialogue_service import sync_story_dialogue
 from .text_utils import html_to_text
 
 _WORD = re.compile(r"\b[A-Z][a-z]{3,}\b")
@@ -221,6 +222,7 @@ def run_checks(story_id: str, db: Session, node_id: str | None = None, include_p
     q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
     if node_id:
         q = q.filter(StructureNode.id == node_id)
+    sync_story_dialogue(story_id, db)
     nodes = [n for n in q.all() if n.content and n.content.strip()]
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     findings = name_drift(nodes, characters) + unknown_speakers(nodes, characters, db)

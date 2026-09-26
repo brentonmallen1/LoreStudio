@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import {
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeftOpen,
-  PanelRightOpen,
-  SquareLibrary,
-  UserCircle2,
-} from "lucide-react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, SquareLibrary, UserCircle2 } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { useHealthStore } from "../../stores/healthStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -52,6 +45,11 @@ function activeRouteId(pathname: string, routes: StoryRoute[]): string {
  * Story navigation rail. Reads lib/routes.ts (one list for sidebar + palette), groups by the
  * five CLAUDE.md domains, hides Studio-only pages in Writer mode, and keeps the collapse
  * control at the bottom of the rail where the todo.md feedback asked for it.
+ *
+ * On the Write page it is always the icon rail, whatever the collapse preference: the
+ * structure tree is that page's panel, and a column of page links beside a column of
+ * scenes was two sidebars. There the Write icon shows and hides the tree, as the active
+ * icon of an activity bar does.
  */
 export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMouseEnter }: SidebarProps) {
   const navigate = useNavigate();
@@ -66,9 +64,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const mode = useMode();
   const aiAvailable = useAIAvailable();
 
-  const isCollapsed = collapsedProp ?? sidebarCollapsed;
   const routes = routesFor(mode).filter((r) => r.id !== "discoveries" || activeStory?.discovery_enabled);
   const active = activeRouteId(location.pathname, routes);
+  const writing = active === "write";
+  const isCollapsed = collapsedProp ?? (writing || sidebarCollapsed);
   const badges: Record<string, number | undefined> = {
     health: alertCount || undefined,
     discoveries: pendingCount || undefined,
@@ -110,18 +109,25 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     markViewed(route.id === "write" ? "story" : route.id);
   }
 
+  function railTitle(r: StoryRoute, badge: number | undefined): string {
+    if (r.id === "write" && writing)
+      return treeDetached ? "Write — hide the structure tree" : "Write — show the structure tree";
+    return badge ? `${r.label} (${badge})` : r.label;
+  }
+
   function renderRoute(r: StoryRoute) {
     const Icon = r.icon;
     const isActive = active === r.id;
     const badge = badges[r.id];
     const status = getTabStatus(r.id === "write" ? "story" : r.id);
-    const button = (
+    return (
       <button
         key={r.id}
-        onClick={() => go(r)}
-        className={`${styles.railBtn} ${isActive ? styles.railBtnActive : ""} ${r.id === "write" && !isCollapsed ? styles.writeTabBtn : ""}`}
-        title={isCollapsed ? (badge ? `${r.label} (${badge})` : r.label) : undefined}
+        onClick={() => (r.id === "write" && writing ? setTreeDetached(!treeDetached) : go(r))}
+        className={`${styles.railBtn} ${isActive ? styles.railBtnActive : ""}`}
+        title={isCollapsed ? railTitle(r, badge) : undefined}
         aria-current={isActive ? "page" : undefined}
+        aria-expanded={r.id === "write" && writing ? treeDetached : undefined}
       >
         <Icon size={16} />
         {!isCollapsed && <span className={styles.railLabel}>{r.label}</span>}
@@ -132,21 +138,6 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
         )}
       </button>
     );
-    if (r.id === "write" && !isCollapsed) {
-      return (
-        <div key={r.id} className={styles.writeTabRow}>
-          {button}
-          <button
-            className={`${styles.treeToggleBtn} ${treeDetached ? styles.treeToggleBtnActive : ""}`}
-            onClick={() => setTreeDetached(!treeDetached)}
-            title={treeDetached ? "Close structure tree" : "Open structure tree"}
-          >
-            <PanelRightOpen size={13} />
-          </button>
-        </div>
-      );
-    }
-    return button;
   }
 
   const groups = DOMAIN_ORDER.map((d) => ({
@@ -233,8 +224,9 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
 
       {!isCollapsed && aiAvailable && <AIActivityIndicator />}
 
-      {/* Collapse / expand lives at the bottom of the rail (todo.md feedback). */}
-      {collapsedProp === undefined && (
+      {/* Collapse / expand lives at the bottom of the rail (todo.md feedback). Not on the
+          Write page, which is always the rail. */}
+      {collapsedProp === undefined && !writing && (
         <div className={styles.railFooter}>
           <button
             className={styles.collapseToggle}

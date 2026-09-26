@@ -7,7 +7,6 @@ scenes it was never in, and events after the point the author was asking about.
 """
 
 from app.models.character import Character
-from app.models.dialogue import DialogueBlock
 from app.models.reader_knowledge import ReaderKnowledgeEvent
 from app.models.story import Story
 from app.models.structure import StructureNode
@@ -21,6 +20,7 @@ from app.services.character_knowledge import (
     build_scope,
     describe_scope,
 )
+from tests.fixtures.dialogue import attributed
 
 
 def _story(db, user):
@@ -58,9 +58,9 @@ def test_presence_is_the_union_of_pov_dialogue_and_name(db_session, test_user):
     elena = _character(db_session, story, "Elena")
     _scene(db_session, story, "Arrival", 0, content="<p>The keeper waited.</p>")
     pov_scene = _scene(db_session, story, "The Lamp Room", 1, pov=elena)
-    spoken = _scene(db_session, story, "Knock at the Door", 2)
+    spoken = _scene(db_session, story, "Knock at the Door", 2, content='<p>Someone knocked. "Who\'s there?"</p>')
     named = _scene(db_session, story, "Storm", 3, content="<p>Elena climbed the stairs.</p>")
-    db_session.add(DialogueBlock(scene_id=spoken.id, character_id=elena.id, content="Who's there?"))
+    db_session.add(attributed(spoken, elena, "Who's there?"))
     db_session.commit()
 
     scope = build_scope(elena, db_session)

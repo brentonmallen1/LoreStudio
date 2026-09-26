@@ -66,6 +66,8 @@ export default function SceneEditor() {
     closeWritingGuides,
     storySummaryOpen,
     closeStorySummary,
+    treeDetached,
+    setTreeDetached,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
@@ -194,7 +196,13 @@ export default function SceneEditor() {
   if (!activeNode) {
     return (
       <div className={styles.empty}>
-        <p className={styles.emptyText}>Select a section from the sidebar to begin writing.</p>
+        {treeDetached ? (
+          <p className={styles.emptyText}>Pick a section in the structure tree to begin writing.</p>
+        ) : (
+          <button className={styles.emptyAction} onClick={() => setTreeDetached(true)}>
+            Show the structure tree to pick a section
+          </button>
+        )}
       </div>
     );
   }

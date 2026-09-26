@@ -8,7 +8,6 @@ any time — it may replace only what it generated.
 
 from app.models.character import Character, CharacterRelationship
 from app.models.codex import CodexEdge, CodexNode
-from app.models.dialogue import DialogueBlock
 from app.models.location import Location, SceneSetting
 from app.models.plot_thread import PlotThread, PlotThreadAppearance
 from app.models.scene_link import SceneLink
@@ -16,6 +15,7 @@ from app.models.story import Story
 from app.models.structure import StructureNode
 from app.models.twist import Twist
 from app.services.codex.sync import sync_story
+from tests.fixtures.dialogue import attributed
 
 
 def _story(db, user, title="Lighthouse"):
@@ -93,8 +93,8 @@ def test_reading_order_and_speakers_are_derived_not_authored(db_session, test_us
     story = _story(db_session, test_user)
     elena = _character(db_session, story, "Elena")
     first = _scene(db_session, story, "Arrival", 0)
-    second = _scene(db_session, story, "The Lamp Room", 1)
-    db_session.add(DialogueBlock(scene_id=second.id, character_id=elena.id, content="Who's there?"))
+    second = _scene(db_session, story, "The Lamp Room", 1, content='<p>"Who\'s there?"</p>')
+    db_session.add(attributed(second, elena, "Who's there?"))
     db_session.commit()
 
     sync_story(story.id, db_session)

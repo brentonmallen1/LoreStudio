@@ -23,6 +23,7 @@ from ...models.plot_thread import PlotThread, PlotThreadAppearance
 from ...models.scene_link import SceneLink
 from ...models.structure import StructureNode
 from ...models.twist import Twist
+from ..dialogue_service import sync_story_dialogue
 from .presence import derive_facts, derive_presence
 
 logger = logging.getLogger(__name__)
@@ -108,6 +109,7 @@ def _leaves_in_order(nodes: list[StructureNode]) -> list[StructureNode]:
 
 def sync_story(story_id: str, db: Session) -> SyncReport:
     """Rebuild the deterministic layer of the graph for one story."""
+    sync_story_dialogue(story_id, db)  # "speaks_in" edges come from these rows
     graph = _Graph(story_id)
 
     characters = db.query(Character).filter(Character.story_id == story_id).all()

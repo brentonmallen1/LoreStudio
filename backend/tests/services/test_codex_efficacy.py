@@ -8,7 +8,6 @@ knew nothing, and would not catch one that knew slightly too much.
 
 from app.models.character import Character
 from app.models.codex import CodexChunk, CodexEdge, CodexNode
-from app.models.dialogue import DialogueBlock
 from app.models.interview import CharacterInterview
 from app.models.location import Location, SceneSetting
 from app.models.reader_knowledge import ReaderKnowledgeEvent
@@ -18,6 +17,7 @@ from app.services.codex.context import assemble_interview, retrieve_with_vector
 from app.services.codex.embeddings import pack
 from app.services.codex.presence import derive_facts, derive_presence
 from app.services.codex.sync import sync_story
+from tests.fixtures.dialogue import attributed
 
 THE_SECRET = "The keeper drowned three winters ago"
 
@@ -53,14 +53,14 @@ def _lighthouse(db, user):
         level_type="scene",
         position=6,
         pov_character_id=elena.id,
-        content="<p>The logbook lay open. Tomas was spoken of, but not there.</p>",
+        content='<p>The logbook lay open. Tomas was spoken of, but not there. "Then who lit the lamp?"</p>',
     )
     db.add(reveal)
     db.flush()
     scenes.append(reveal)
 
     # Mara is in the room because she speaks; Tomas is only named in the prose.
-    db.add(DialogueBlock(scene_id=reveal.id, character_id=mara.id, content="Then who lit the lamp?"))
+    db.add(attributed(reveal, mara, "Then who lit the lamp?"))
     db.add(
         ReaderKnowledgeEvent(
             story_id=story.id,

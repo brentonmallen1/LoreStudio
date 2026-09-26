@@ -42,6 +42,7 @@ from ..services.character_journey import (
     save_journey,
 )
 from ..services.character_knowledge import build_scope
+from ..services.dialogue_service import sync_story_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links_preloaded
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
 from ..services.llm.prompts.analysis import build_voice_fidelity_prompt
@@ -178,7 +179,8 @@ def get_character_dialogue(
     current_user: User = Depends(get_current_user),
 ):
     """Return all dialogue blocks for a character across all scenes, ordered by story position."""
-    _verify_character_access(character_id, db, current_user)
+    character = _verify_character_access(character_id, db, current_user)
+    sync_story_dialogue(character.story_id, db)
     rows = (
         db.query(DialogueBlock, StructureNode.title, StructureNode.position)
         .join(StructureNode, DialogueBlock.scene_id == StructureNode.id)
@@ -689,6 +691,7 @@ def analyze_character_voice(
     all_characters = db.query(Character).filter(Character.story_id == character.story_id).all()
 
     # Fetch all dialogue blocks in one query, then group in Python
+    sync_story_dialogue(character.story_id, db)
     char_ids = [c.id for c in all_characters]
     all_blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id.in_(char_ids)).all()
     blocks_by_char: dict[str, list[DialogueBlock]] = {}
@@ -802,7 +805,8 @@ def analyze_character_dialogue_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     """Run NLP prose analysis on this character's dialogue lines only."""
-    _verify_character_access(character_id, db, current_user)
+    character = _verify_character_access(character_id, db, current_user)
+    sync_story_dialogue(character.story_id, db)
     blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id == character_id).all()
     if not blocks:
         return {"word_count": 0, "line_count": 0}
@@ -819,7 +823,7 @@ async def analyze_voice_fidelity(
 ):
     """AI analysis of whether character dialogue is authentic to their defined attributes."""
     character = _verify_character_access(character_id, db, current_user)
-
+    sync_story_dialogue(character.story_id, db)
     blocks = db.query(DialogueBlock).filter(DialogueBlock.character_id == character_id).all()
     if not blocks:
         return StructuredResult(

@@ -7,12 +7,12 @@ characters must produce `knows` edges for exactly those two.
 
 from app.models.character import Character
 from app.models.codex import CodexEdge, CodexNode
-from app.models.dialogue import DialogueBlock
 from app.models.reader_knowledge import ReaderKnowledgeEvent
 from app.models.story import Story
 from app.models.structure import StructureNode
 from app.services.codex.presence import set_presence
 from app.services.codex.sync import sync_story
+from tests.fixtures.dialogue import attributed
 
 
 def _story(db, user):
@@ -56,9 +56,9 @@ def test_the_strongest_signal_decides_how_present_someone_is(db_session, test_us
     story = _story(db_session, test_user)
     elena = _character(db_session, story, "Elena")
     pov = _scene(db_session, story, "The Lamp Room", 0, pov_character_id=elena.id, content="<p>She climbed.</p>")
-    spoken = _scene(db_session, story, "Knock at the Door", 1, content="<p>Someone knocked.</p>")
+    spoken = _scene(db_session, story, "Knock at the Door", 1, content='<p>Someone knocked. "Who\'s there?"</p>')
     named = _scene(db_session, story, "The Mainland", 2, content="<p>They spoke of Elena.</p>")
-    db_session.add(DialogueBlock(scene_id=spoken.id, character_id=elena.id, content="Who's there?"))
+    db_session.add(attributed(spoken, elena, "Who's there?"))
     db_session.commit()
 
     sync_story(story.id, db_session)
@@ -92,8 +92,15 @@ def test_only_the_characters_who_were_there_know_what_happened(db_session, test_
     elena = _character(db_session, story, "Elena")
     mara = _character(db_session, story, "Mara")
     _character(db_session, story, "Tomas")
-    scene = _scene(db_session, story, "The Reveal", 0, pov_character_id=elena.id, content="<p>The lamp was out.</p>")
-    db_session.add(DialogueBlock(scene_id=scene.id, character_id=mara.id, content="It was never lit."))
+    scene = _scene(
+        db_session,
+        story,
+        "The Reveal",
+        0,
+        pov_character_id=elena.id,
+        content='<p>The lamp was out. "It was never lit."</p>',
+    )
+    db_session.add(attributed(scene, mara, "It was never lit."))
     db_session.add(
         ReaderKnowledgeEvent(
             story_id=story.id, node_id=scene.id, knowledge_type="truth_revealed", subject="The light was out"

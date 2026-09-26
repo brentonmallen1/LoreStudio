@@ -362,7 +362,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ treeExpanded: expanded });
   },
 
-  treeDetached: localStorage.getItem("ls_tree_detached") === "true",
+  // Open unless the author closed it: without it the Write page has no way to pick a scene.
+  treeDetached: localStorage.getItem("ls_tree_detached") !== "false",
   setTreeDetached: (detached) => {
     localStorage.setItem("ls_tree_detached", String(detached));
     set({ treeDetached: detached });
