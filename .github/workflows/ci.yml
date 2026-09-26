@@ -40,7 +40,14 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: backend/uv.lock
+      - name: Install pandoc
+        # Export's docx/epub/odt round-trip tests skip without it — five tests, and the
+        # export path they cover, silently untested here while they ran locally.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq pandoc
       - name: Install dependencies
+        # Python comes from backend/.python-version (3.13, the Docker base). Unpinned, uv
+        # took the newest the lockfile allowed — 3.14 — and CI measured coverage on an
+        # interpreter nothing ships on.
         run: uv sync --frozen --all-groups
       - name: Lint (ruff)
         run: |
@@ -85,7 +92,10 @@ jobs:
   dependency-review:
     name: dependency-review
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # Needs GitHub Advanced Security on a private repository; without it the action fails
+    # every pull request, which turned every Dependabot PR red for a reason unrelated to
+    # the code. Skipped while private, and back on its own if the repository goes public.
+    if: github.event_name == 'pull_request' && !github.event.repository.private
     permissions:
       contents: read
       pull-requests: write
