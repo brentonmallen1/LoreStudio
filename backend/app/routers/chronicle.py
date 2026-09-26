@@ -42,7 +42,11 @@ from ..schemas.chronicle import (
     SearchResponse,
     SearchResult,
     SessionListResponse,
+    TimelineEntryOut,
+    TimelineResponse,
 )
+from ..schemas.jobs import JobOut
+from ..services.chronicle_timeline import TimelineFilters, timeline
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.sse import sse_stream
 
@@ -390,6 +394,55 @@ def list_activity(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get("/chronicle/timeline", response_model=TimelineResponse)
+def list_timeline(
+    story_id: str | None = Query(None),
+    problems: bool = Query(False, description="Failed or stopped calls and jobs"),
+    starred: bool = Query(False),
+    results: bool = Query(False, description="Summaries, analyses and brainstorms"),
+    exclude_ai: bool = Query(False, description="Writer mode: no AI calls or jobs"),
+    q: str | None = Query(None, description="Text in a row's description or a job's label"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=500),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Chronicle › Activity: activity rows and jobs in one list, newest first."""
+    filters = TimelineFilters(
+        story_id=story_id,
+        problems=problems,
+        starred=starred,
+        results=results,
+        exclude_ai=exclude_ai,
+        text=(q or "").strip() or None,
+    )
+    entries, total = timeline(db, user.id, filters, page=page, page_size=page_size)
+    return TimelineResponse(
+        entries=[
+            TimelineEntryOut(
+                type="job" if e.job else "log",
+                at=e.at,
+                log=ActivityLogOut.model_validate(e.log) if e.log else None,
+                job=JobOut.model_validate(e.job) if e.job else None,
+                call_count=e.call_count,
+            )
+            for e in entries
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/chronicle/activity/{log_id}", response_model=ActivityLogOut)
+def get_activity(log_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """One activity row: what a Chronicle link to it opens."""
+    log = db.get(ActivityLog, log_id)
+    if not log or log.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    return ActivityLogOut.model_validate(log)
 
 
 @router.patch("/chronicle/activity/{log_id}", response_model=ActivityLogOut)

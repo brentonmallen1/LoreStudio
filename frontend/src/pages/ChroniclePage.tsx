@@ -1,656 +1,149 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import ActivityLogCard from "../components/chronicle/ActivityLogCard";
-import JobsView from "../components/chronicle/JobsView";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Search,
-  MessageSquare,
-  ChevronLeft,
-  Trash2,
-  Archive,
-  BookOpen,
-  Users,
-  GitBranch,
-  Layers,
-  Clock,
-  RotateCcw,
-  CheckSquare,
-  Square,
-  X,
-  Feather,
-} from "lucide-react";
-import { api } from "../api/client";
-import { useAIStore } from "../stores/aiStore";
-import AIOnly from "../components/ai/AIOnly";
-import type {
-  ChronicleSession,
-  ChronicleSessionDetail,
-  ActivityLog,
-  ChronicleSearchResult,
-  ChronicleMessage,
-} from "../types";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Search, X } from "lucide-react";
+import ActivityView from "../components/chronicle/ActivityView";
 import ChangesView from "../components/chronicle/ChangesView";
-import ChronicleTabs from "../components/chronicle/ChronicleTabs";
+import ConversationsView from "../components/chronicle/ConversationsView";
+import JobDetail from "../components/chronicle/JobDetail";
+import LogDetail from "../components/chronicle/LogDetail";
+import SessionDetail from "../components/chronicle/SessionDetail";
+import {
+  itemParam,
+  useChronicleParams,
+  type ChronicleView,
+} from "../components/chronicle/useChronicleParams";
+import { useAIAvailable } from "../lib/mode";
 import styles from "./ChroniclePage.module.css";
 
-// ── Helpers ────────────────────────────────────────────────────────────
+const VIEWS: { id: ChronicleView; label: string; ai?: boolean; searchable: boolean }[] = [
+  { id: "activity", label: "Activity", searchable: true },
+  { id: "conversations", label: "Conversations", ai: true, searchable: true },
+  { id: "changes", label: "Changes", searchable: false },
+];
 
-import type { ViewTab } from "../components/chronicle/ChronicleTabs";
-import { relativeTime } from "../utils/relativeTime";
-
-// Features that surface in the Summaries tab
-const SUMMARY_FEATURES = [
-  "story-summary",
-  "scene-summary",
-  "structure-summary",
-  "interview-summary",
-  "character-journey",
-  "perspective-summary",
-  "economy-analysis",
-  "story-recap",
-  "brainstorm",
-].join(",");
-
-const CONTEXT_ICONS: Record<string, React.ReactNode> = {
-  scene: <BookOpen size={12} />,
-  character: <Users size={12} />,
-  story: <Layers size={12} />,
-  panel: <GitBranch size={12} />,
+const BLURBS: Record<ChronicleView, string> = {
+  activity:
+    "Everything the system did for this story: AI calls, background jobs and analyses. Open a row to see exactly what was sent and what came back.",
+  conversations:
+    "Your chats with the AI: scene assistants, character interviews and group panels. Open one to read it back, or resume it.",
+  changes:
+    "Every change to this story's data, newest first. Undo here reverses the latest change from any tab; the header buttons reverse only this tab's changes.",
 };
 
-const CONTEXT_LABELS: Record<string, string> = {
-  scene: "Scene",
-  character: "Character",
-  story: "Story",
-  panel: "Group Interview",
-};
+const WRITER_ACTIVITY_BLURB = "Analyses and checks run on this story. Open a row for the detail.";
 
-function sessionTitle(s: ChronicleSession): string {
-  if (s.title) return s.title;
-  const label = CONTEXT_LABELS[s.context_type] ?? s.context_type;
-  return s.context_label ? `${label}: ${s.context_label}` : label;
-}
-
-// ── Session card ───────────────────────────────────────────────────────
-
-function SessionCard({
-  session,
-  onClick,
-  onArchive,
-  onDelete,
-  onResume,
-  selected,
-  onToggle,
-  selectionActive,
-}: {
-  session: ChronicleSession;
-  onClick: () => void;
-  onArchive: () => void;
-  onDelete: () => void;
-  onResume: () => void;
-  selected: boolean;
-  onToggle: () => void;
-  selectionActive: boolean;
-}) {
-  return (
-    <div
-      className={`${styles.card} ${selected ? styles.selectedCard : ""}`}
-      onClick={selectionActive ? onToggle : onClick}
-    >
-      <div
-        className={`${styles.checkboxWrap} ${selectionActive ? styles.checkboxVisible : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
-        }}
-      >
-        {selected ? (
-          <CheckSquare size={15} className={styles.checkboxOn} />
-        ) : (
-          <Square size={15} className={styles.checkboxOff} />
-        )}
-      </div>
-      <div className={styles.cardIcon}>
-        {CONTEXT_ICONS[session.context_type] ?? <MessageSquare size={12} />}
-      </div>
-      <div className={styles.cardBody}>
-        <p className={styles.cardTitle}>{sessionTitle(session)}</p>
-        {session.last_message_preview && <p className={styles.cardPreview}>{session.last_message_preview}</p>}
-        <p className={styles.cardMeta}>
-          {session.message_count} {session.message_count === 1 ? "message" : "messages"}
-          {" · "}
-          {relativeTime(session.updated_at)}
-        </p>
-      </div>
-      <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
-        <AIOnly>
-          <button className={`${styles.iconBtn} ${styles.ai}`} title="Resume in AI panel" onClick={onResume}>
-            <Feather size={13} />
-          </button>
-        </AIOnly>
-        <button className={styles.iconBtn} title="Archive" onClick={onArchive}>
-          <Archive size={13} />
-        </button>
-        <button className={`${styles.iconBtn} ${styles.danger}`} title="Delete" onClick={onDelete}>
-          <Trash2 size={13} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Session detail view ────────────────────────────────────────────────
-
-function SessionDetail({ sessionId, onBack }: { sessionId: string; onBack: () => void }) {
-  const [detail, setDetail] = useState<ChronicleSessionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    api
-      .getChronicleSession(sessionId)
-      .then(setDetail)
-      .finally(() => setLoading(false));
-  }, [sessionId]);
-
-  if (loading) return <div className={styles.empty}>Loading…</div>;
-  if (!detail) return <div className={styles.empty}>Session not found.</div>;
-
-  return (
-    <div className={styles.detail}>
-      <div className={styles.detailHeader}>
-        <button className={styles.backBtn} onClick={onBack}>
-          <ChevronLeft size={14} /> Back
-        </button>
-        <div className={styles.detailMeta}>
-          <span className={styles.detailTitle}>{sessionTitle(detail)}</span>
-          <span className={styles.cardMeta}>
-            {detail.message_count} messages · {relativeTime(detail.updated_at)}
-          </span>
-        </div>
-      </div>
-
-      <div className={styles.messages}>
-        {detail.messages.length === 0 && <p className={styles.empty}>No messages in this session.</p>}
-        {detail.messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`${styles.message} ${msg.role === "user" ? styles.userMsg : styles.assistantMsg}`}
-          >
-            <p className={styles.msgRole}>{msg.role === "user" ? "You" : "Assistant"}</p>
-            <p className={styles.msgContent}>{msg.content}</p>
-            <div className={styles.msgFooter}>
-              <span className={styles.msgTime}>{relativeTime(msg.created_at)}</span>
-              {msg.model && <span className={styles.msgModel}>{msg.model}</span>}
-              {msg.tokens_in != null && (
-                <span className={styles.msgTokens}>
-                  {msg.tokens_in}↑ {msg.tokens_out}↓ tokens
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ──────────────────────────────────────────────────────────
-
+/**
+ * Chronicle (doc 06 §3, doc 05 §2.5): what happened in this story, and why.
+ *
+ * Three views instead of five tabs in a side column: Jobs moved into Activity, where a job
+ * is a row that opens onto its calls, and Summaries became a filter. What is open lives in
+ * the URL, so Back closes it and anything can link straight to a job or a call.
+ */
 export default function ChroniclePage() {
   const { storyId } = useParams<{ storyId: string }>();
-  const navigate = useNavigate();
-  const { resumeFromChronicle } = useAIStore();
+  const aiAvailable = useAIAvailable();
+  const { view: requested, item, filter, q, update } = useChronicleParams();
+  const views = VIEWS.filter((v) => aiAvailable || !v.ai);
+  const view = views.some((v) => v.id === requested) ? requested : "activity";
+  const searchable = views.find((v) => v.id === view)?.searchable ?? false;
 
-  const [tab, setTab] = useState<ViewTab>("chats");
-  const [sessions, setSessions] = useState<ChronicleSession[]>([]);
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [summaries, setSummaries] = useState<ActivityLog[]>([]);
-  const [searchResults, setSearchResults] = useState<ChronicleSearchResult[]>([]);
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [totalSessions, setTotalSessions] = useState(0);
-  const [totalLogs, setTotalLogs] = useState(0);
-  const [totalSummaries, setTotalSummaries] = useState(0);
-  const [starredOnly, setStarredOnly] = useState(false);
-  const [page, setPage] = useState(1);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState<string>("");
-  // The two calls worth finding fast are the one that broke and the one you stopped.
-  const [problemsOnly, setProblemsOnly] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkWorking, setBulkWorking] = useState(false);
-
-  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const loadSessions = useCallback(
-    async (p = 1) => {
-      setLoading(true);
-      try {
-        const res = await api.listChronicleSessions({
-          story_id: storyId,
-          context_type: filterType || undefined,
-          archived: showArchived,
-          page: p,
-          page_size: 20,
-        });
-        setSessions(p === 1 ? res.sessions : (prev) => [...prev, ...res.sessions]);
-        setTotalSessions(res.total);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [storyId, filterType, showArchived],
-  );
-
-  const loadLogs = useCallback(
-    async (p = 1) => {
-      setLoading(true);
-      try {
-        const res = await api.listActivityLogs({
-          story_id: storyId,
-          problems: problemsOnly || undefined,
-          page: p,
-          page_size: 50,
-        });
-        setLogs(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
-        setTotalLogs(res.total);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [storyId, problemsOnly],
-  );
-
-  const loadSummaries = useCallback(
-    async (p = 1) => {
-      setLoading(true);
-      try {
-        const res = await api.listActivityLogs({
-          story_id: storyId,
-          features: SUMMARY_FEATURES,
-          starred: starredOnly ? true : undefined,
-          page: p,
-          page_size: 50,
-        });
-        setSummaries(p === 1 ? res.logs : (prev) => [...prev, ...res.logs]);
-        setTotalSummaries(res.total);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [storyId, starredOnly],
-  );
-
-  const runSearch = useCallback(
-    async (q: string) => {
-      if (!q.trim()) {
-        setSearchResults([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        const res = await api.searchChronicle({ q, story_id: storyId });
-        setSearchResults(res.results);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [storyId],
-  );
-
-  // Initial + filter-change loads; clear selection on context change
+  // The box updates as you type; the URL (and the query) a moment later.
+  const [draft, setDraft] = useState(q);
+  const [lastQ, setLastQ] = useState(q);
+  if (q !== lastQ) {
+    setLastQ(q);
+    setDraft(q);
+  }
   useEffect(() => {
-    setPage(1);
-    clearSelection();
-    if (tab === "chats") loadSessions(1);
-    else if (tab === "activity") loadLogs(1);
-    else if (tab === "summaries") loadSummaries(1);
-  }, [tab, filterType, showArchived, starredOnly, problemsOnly, loadSessions, loadLogs, loadSummaries]);
+    if (draft === q) return;
+    const t = setTimeout(() => update({ q: draft || null, item: null }, { replace: true }), 300);
+    return () => clearTimeout(t);
+  }, [draft, q, update]);
 
-  // Debounced search
-  useEffect(() => {
-    if (tab !== "search") return;
-    if (searchRef.current) clearTimeout(searchRef.current);
-    searchRef.current = setTimeout(() => runSearch(searchQuery), 350);
-    return () => {
-      if (searchRef.current) clearTimeout(searchRef.current);
-    };
-  }, [searchQuery, tab, runSearch]);
+  if (!storyId) return null;
 
-  async function archiveSession(id: string) {
-    await api.updateChronicleSession(id, { archived: true });
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-    setTotalSessions((n) => n - 1);
-  }
-
-  async function handleResume(s: ChronicleSession) {
-    try {
-      const detail = await api.getChronicleSession(s.id);
-      const messages = detail.messages.map((m: ChronicleMessage) => ({
-        role: m.role,
-        content: m.content,
-      }));
-      await resumeFromChronicle(s.id, s.context_type, s.context_id, s.story_id, s.context_label, messages);
-      navigate(`/stories/${s.story_id}`);
-    } catch {
-      // ignore errors
-    }
-  }
-
-  async function deleteSession(id: string) {
-    await api.deleteChronicleSession(id);
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-    setTotalSessions((n) => n - 1);
-  }
-
-  function toggleSelect(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function selectAll() {
-    setSelectedIds(new Set(sessions.map((s) => s.id)));
-  }
-
-  function clearSelection() {
-    setSelectedIds(new Set());
-  }
-
-  async function bulkArchive() {
-    setBulkWorking(true);
-    await Promise.all([...selectedIds].map((id) => api.updateChronicleSession(id, { archived: true })));
-    setSessions((prev) => prev.filter((s) => !selectedIds.has(s.id)));
-    setTotalSessions((n) => n - selectedIds.size);
-    clearSelection();
-    setBulkWorking(false);
-  }
-
-  async function bulkDelete() {
-    setBulkWorking(true);
-    await Promise.all([...selectedIds].map((id) => api.deleteChronicleSession(id)));
-    setSessions((prev) => prev.filter((s) => !selectedIds.has(s.id)));
-    setTotalSessions((n) => n - selectedIds.size);
-    clearSelection();
-    setBulkWorking(false);
-  }
-
-  function handleStarToggle(id: string, starred: boolean) {
-    const update = (item: ActivityLog) => (item.id === id ? { ...item, starred } : item);
-    setLogs((prev) => prev.map(update));
-    setSummaries((prev) => {
-      const updated = prev.map(update);
-      // If showing starred only and we just unstarred, remove from list
-      return starredOnly ? updated.filter((l) => l.starred) : updated;
-    });
-  }
-
-  function loadMore() {
-    const next = page + 1;
-    setPage(next);
-    if (tab === "chats") loadSessions(next);
-    else if (tab === "activity") loadLogs(next);
-    else if (tab === "summaries") loadSummaries(next);
-  }
-
-  const hasMore =
-    tab === "chats"
-      ? sessions.length < totalSessions
-      : tab === "summaries"
-        ? summaries.length < totalSummaries
-        : logs.length < totalLogs;
-
-  if (selectedSessionId) {
-    return (
-      <div className={styles.page}>
-        <SessionDetail sessionId={selectedSessionId} onBack={() => setSelectedSessionId(null)} />
-      </div>
-    );
-  }
+  const open = (kind: "job" | "log" | "session", id: string) => update({ item: itemParam(kind, id) });
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h2 className={styles.title}>Chronicle</h2>
-          <p className={styles.subtitle}>AI conversation history, activity logs, and system audit trail</p>
+      <header className={styles.header}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>Chronicle</h1>
+          {searchable && (
+            <label className={styles.search}>
+              <Search size={13} className={styles.searchIcon} aria-hidden />
+              <input
+                type="search"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder={view === "activity" ? "Search activity…" : "Search conversations…"}
+                aria-label={view === "activity" ? "Search activity" : "Search conversations"}
+              />
+            </label>
+          )}
         </div>
-        <div className={styles.searchWrap}>
-          <Search size={13} className={styles.searchIcon} />
-          <input
-            className={styles.searchInput}
-            placeholder="Search conversations and logs…"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              if (e.target.value) setTab("search");
-              else setTab("chats");
-            }}
-          />
-        </div>
-      </div>
-
-      <div className={styles.body}>
-        {/* ── Filters sidebar ── */}
-        <aside className={styles.filters}>
-          <p className={styles.filterLabel}>View</p>
-          <ChronicleTabs
-            tab={tab}
-            counts={{ chats: totalSessions, activity: totalLogs, summaries: totalSummaries }}
-            onSelect={(t) => {
-              setTab(t);
-              setSearchQuery("");
-            }}
-          />
-
-          {tab === "summaries" && (
-            <>
-              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
-                Filter
-              </p>
-              <label className={styles.archiveToggle}>
-                <input
-                  type="checkbox"
-                  checked={starredOnly}
-                  onChange={(e) => setStarredOnly(e.target.checked)}
-                />
-                Starred only
-              </label>
-            </>
-          )}
-
-          {tab === "activity" && (
-            <>
-              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
-                Filter
-              </p>
-              <label className={styles.archiveToggle}>
-                <input
-                  type="checkbox"
-                  checked={problemsOnly}
-                  onChange={(e) => setProblemsOnly(e.target.checked)}
-                />
-                Problems only
-              </label>
-            </>
-          )}
-
-          {tab === "chats" && (
-            <>
-              <p className={styles.filterLabel} style={{ marginTop: "1rem" }}>
-                Type
-              </p>
-              {["", "scene", "character", "story", "panel"].map((type) => (
-                <button
-                  key={type}
-                  className={`${styles.filterBtn} ${filterType === type ? styles.activeFilter : ""}`}
-                  onClick={() => setFilterType(type)}
-                >
-                  {type === "" ? "All" : CONTEXT_LABELS[type]}
-                </button>
-              ))}
-
-              <label className={styles.archiveToggle}>
-                <input
-                  type="checkbox"
-                  checked={showArchived}
-                  onChange={(e) => setShowArchived(e.target.checked)}
-                />
-                Show archived
-              </label>
-            </>
-          )}
-        </aside>
-
-        {/* ── Results ── */}
-        <div className={styles.results}>
-          {/* Tab blurbs */}
-          {tab === "chats" && (
-            <p className={styles.tabBlurb}>
-              Conversations are direct back-and-forth chats with the AI — scene assistants, character
-              interviews, and group panels. Each session is tied to a specific context and can be resumed.
-            </p>
-          )}
-          {tab === "jobs" && <JobsView storyId={storyId} />}
-
-          {tab === "changes" && storyId && <ChangesView storyId={storyId} />}
-          {tab === "activity" && (
-            <p className={styles.tabBlurb}>
-              Activity logs every task the AI executes on your behalf — generating suggestions, summarizing
-              scenes, analyzing perspectives, and other background operations. Click any entry to see the full
-              prompt and response.
-            </p>
-          )}
-
-          {/* Chats tab */}
-          {tab === "chats" && (
-            <>
-              {selectedIds.size > 0 && (
-                <div className={styles.bulkBar}>
-                  <span className={styles.bulkCount}>{selectedIds.size} selected</span>
-                  <button className={styles.bulkBtn} onClick={selectAll} disabled={bulkWorking}>
-                    <CheckSquare size={13} /> Select all ({sessions.length})
-                  </button>
-                  <button className={styles.bulkBtn} onClick={bulkArchive} disabled={bulkWorking}>
-                    <Archive size={13} /> Archive
-                  </button>
-                  <button
-                    className={`${styles.bulkBtn} ${styles.bulkDanger}`}
-                    onClick={bulkDelete}
-                    disabled={bulkWorking}
-                  >
-                    <Trash2 size={13} /> Delete
-                  </button>
-                  <button
-                    className={styles.bulkClear}
-                    onClick={clearSelection}
-                    disabled={bulkWorking}
-                    title="Clear selection"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              )}
-              {sessions.length === 0 && !loading && (
-                <p className={styles.empty}>
-                  No conversations yet. Start a scene or character chat to see history here.
-                </p>
-              )}
-              {sessions.map((s) => (
-                <SessionCard
-                  key={s.id}
-                  session={s}
-                  onClick={() => setSelectedSessionId(s.id)}
-                  onArchive={() => archiveSession(s.id)}
-                  onDelete={() => deleteSession(s.id)}
-                  onResume={() => handleResume(s)}
-                  selected={selectedIds.has(s.id)}
-                  onToggle={() => toggleSelect(s.id)}
-                  selectionActive={selectedIds.size > 0}
-                />
-              ))}
-            </>
-          )}
-
-          {/* Activity tab */}
-          {tab === "activity" && (
-            <>
-              {logs.length === 0 && !loading && <p className={styles.empty}>No activity logged yet.</p>}
-              {logs.map((log) => (
-                <ActivityLogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
-              ))}
-            </>
-          )}
-
-          {/* Summaries tab */}
-          {tab === "summaries" && (
-            <>
-              <p className={styles.tabBlurb}>
-                All AI-generated summaries, analyses, and brainstorms — scene summaries, story recaps,
-                character journeys, perspective summaries, and more. Star important ones to pin them for quick
-                access.
-              </p>
-              {summaries.length === 0 && !loading && (
-                <p className={styles.empty}>
-                  {starredOnly
-                    ? "No starred summaries yet. Star a summary from the Activity log or here to pin it."
-                    : "No summaries yet. Generate a scene summary, story recap, or perspective summary to see it here."}
-                </p>
-              )}
-              {summaries.map((log) => (
-                <ActivityLogCard key={log.id} log={log} onStarToggle={handleStarToggle} />
-              ))}
-            </>
-          )}
-
-          {/* Search tab */}
-          {tab === "search" && (
-            <>
-              {!searchQuery && (
-                <p className={styles.empty}>Type to search across conversations and activity.</p>
-              )}
-              {searchQuery && !loading && searchResults.length === 0 && (
-                <p className={styles.empty}>No results for "{searchQuery}".</p>
-              )}
-              {searchResults.map((r, i) =>
-                r.type === "session" && r.session ? (
-                  <div key={i}>
-                    <SessionCard
-                      session={r.session}
-                      onClick={() => setSelectedSessionId(r.session!.id)}
-                      onArchive={() => archiveSession(r.session!.id)}
-                      onDelete={() => deleteSession(r.session!.id)}
-                      onResume={() => handleResume(r.session!)}
-                      selected={false}
-                      onToggle={() => {}}
-                      selectionActive={false}
-                    />
-                    {r.excerpt && <p className={styles.excerpt}>…{r.excerpt}…</p>}
-                  </div>
-                ) : r.log ? (
-                  <ActivityLogCard key={i} log={r.log} />
-                ) : null,
-              )}
-            </>
-          )}
-
-          {/* Load more */}
-          {(tab === "chats" || tab === "activity" || tab === "summaries") && hasMore && (
-            <button className={styles.loadMore} onClick={loadMore} disabled={loading}>
-              {loading ? <RotateCcw size={13} className={styles.spin} /> : <Clock size={13} />}
-              Load more
+        <p className={styles.blurb}>
+          {view === "activity" && !aiAvailable ? WRITER_ACTIVITY_BLURB : BLURBS[view]}
+        </p>
+        <nav className={styles.tabs} role="tablist" aria-label="Chronicle views">
+          {views.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              role="tab"
+              aria-selected={view === v.id}
+              className={styles.tab}
+              data-on={view === v.id}
+              onClick={() => update({ view: v.id, item: null, filter: null, q: null })}
+            >
+              {v.label}
             </button>
-          )}
+          ))}
+        </nav>
+      </header>
 
-          {loading && sessions.length === 0 && logs.length === 0 && <p className={styles.empty}>Loading…</p>}
-        </div>
+      <div className={styles.body} data-detail={item ? "open" : undefined}>
+        <section className={styles.list}>
+          {view === "activity" && (
+            <ActivityView
+              storyId={storyId}
+              filter={filter}
+              q={q}
+              aiAvailable={aiAvailable}
+              selected={item}
+              onSelect={open}
+              onFilter={(f) => update({ filter: f, item: null }, { replace: true })}
+            />
+          )}
+          {view === "conversations" && (
+            <ConversationsView
+              storyId={storyId}
+              q={q}
+              selectedId={item?.kind === "session" ? item.id : null}
+              onSelect={(id) => open("session", id)}
+            />
+          )}
+          {view === "changes" && <ChangesView storyId={storyId} />}
+        </section>
+
+        {item && (
+          <aside className={styles.detail} aria-label="Detail">
+            <button
+              type="button"
+              className={styles.closeDetail}
+              onClick={() => update({ item: null })}
+              aria-label="Close detail"
+              title="Close"
+            >
+              <X size={14} />
+            </button>
+            {item.kind === "job" && <JobDetail key={item.id} jobId={item.id} />}
+            {item.kind === "log" && (
+              <LogDetail key={item.id} logId={item.id} onOpenJob={(id) => open("job", id)} />
+            )}
+            {item.kind === "session" && <SessionDetail key={item.id} sessionId={item.id} />}
+          </aside>
+        )}
       </div>
     </div>
   );

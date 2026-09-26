@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from .jobs import JobOut
+
 # ── Chat Messages ──────────────────────────────────────────────────────
 
 
@@ -96,6 +98,23 @@ class SessionListResponse(BaseModel):
 
 class ActivityListResponse(BaseModel):
     logs: list[ActivityLogOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class TimelineEntryOut(BaseModel):
+    """A row of Chronicle › Activity: an activity log entry, or a job and its call count."""
+
+    type: str  # "log" | "job"
+    at: datetime
+    log: ActivityLogOut | None = None
+    job: JobOut | None = None
+    call_count: int = 0
+
+
+class TimelineResponse(BaseModel):
+    entries: list[TimelineEntryOut]
     total: int
     page: int
     page_size: int

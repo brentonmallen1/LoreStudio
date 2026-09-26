@@ -120,10 +120,8 @@ export default function ChangesView({ storyId }: { storyId: string }) {
   return (
     <div className={styles.wrap}>
       <div className={styles.toolbar}>
-        <p className={styles.hint}>
-          Every change to this story's data, newest first. Undo here reverses the latest change from any tab;
-          the header buttons reverse only this tab's changes.
-        </p>
+        {/* The page header explains this view (ChroniclePage BLURBS). */}
+        <span />
         <div className={styles.actions}>
           <button
             className={styles.btn}

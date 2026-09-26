@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import { useJobs } from "../../hooks/useJobs";
 import { useStoryStore } from "../../stores/storyStore";
@@ -40,7 +41,12 @@ export default function AIActivityIndicator() {
       ))}
       {activeJobs.map((job) => (
         <div key={job.id} className={styles.item}>
-          <span className={styles.itemLabel}>
+          {/* Opens the job in the Chronicle: what it was asked, how far it is, its calls. */}
+          <Link
+            to={`/stories/${job.story_id ?? storyId}/chronicle?item=job:${job.id}`}
+            className={styles.itemLabel}
+            title="Open in the Chronicle"
+          >
             {job.label}
             {job.total > 0 && (
               <span className={styles.progress}>
@@ -48,7 +54,7 @@ export default function AIActivityIndicator() {
                 {job.progress}/{job.total}
               </span>
             )}
-          </span>
+          </Link>
           <button
             className={styles.cancelBtn}
             onClick={() => cancelJob(job.id)}

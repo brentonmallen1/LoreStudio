@@ -1,0 +1,233 @@
+/* Chronicle › Conversations: selection, bulk actions, and a conversation read back. */
+
+.archivedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.check {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition:
+    width var(--transition),
+    opacity var(--transition);
+}
+
+.check[aria-pressed="true"] {
+  color: var(--color-accent);
+}
+
+.checkVisible,
+[role="button"]:hover > .check,
+.check:focus-visible {
+  width: 18px;
+  opacity: 1;
+}
+
+.ai {
+  color: var(--color-ai);
+}
+
+.danger:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* ── Bulk bar ── */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.bulkCount {
+  margin-right: 0.25rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.bulkBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.bulkBtn:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.bulkBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bulkDanger:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.bulkClear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.bulkClear:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── A conversation, read back ── */
+.detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.1rem 3rem 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.detailMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.cardMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+.resumeBtn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.resumeBtn:hover {
+  background: var(--color-ai-hover);
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 2rem;
+}
+
+.message {
+  max-width: 88%;
+  padding: 0.6rem 0.875rem;
+  border-radius: var(--radius);
+  line-height: 1.6;
+}
+
+.userMsg {
+  align-self: flex-end;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.assistantMsg {
+  align-self: flex-start;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg);
+}
+
+.msgRole {
+  margin: 0 0 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.msgContent {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.msgFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+}
+
+.msgModel {
+  font-family: monospace;
+}
+
+.empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--color-text-subtle);
+}

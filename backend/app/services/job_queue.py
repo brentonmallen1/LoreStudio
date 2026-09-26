@@ -14,11 +14,13 @@ between steps: cancelling is a request, not a kill.
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from contextvars import ContextVar
 from datetime import UTC, datetime
 
-from sqlalchemy import Engine
+from sqlalchemy import Engine, event
 from sqlalchemy.orm import Session
 
+from ..models.activity_log import ActivityLog
 from ..models.ai_job import AIJob
 from ..models.user import User
 
@@ -31,6 +33,23 @@ JobHandler = Callable[[AIJob, Session, User, "ProgressFn"], Awaitable[dict]]
 ProgressFn = Callable[[int, int], None]
 
 JOB_HANDLERS: dict[str, JobHandler] = {}
+
+#: The job the current task is running, if any. Set by `run_job` around the handler.
+current_job_id: ContextVar[str | None] = ContextVar("current_job_id", default=None)
+
+
+@event.listens_for(ActivityLog, "before_insert")
+def _stamp_job(_mapper, _connection, log: ActivityLog) -> None:
+    """
+    Tag every activity row written while a job runs with that job's id.
+
+    This is what lets a finished job open onto the calls it made. Doing it here rather
+    than in the gateway catches every row a handler writes — AI calls, and the summary
+    rows handlers add themselves — without each one having to remember.
+    """
+    job_id = current_job_id.get()
+    if job_id and not (log.metadata_ or {}).get("job_id"):
+        log.metadata_ = {**(log.metadata_ or {}), "job_id": job_id}
 
 
 def handler(kind: str) -> Callable[[JobHandler], JobHandler]:
@@ -98,6 +117,7 @@ async def run_job(job: AIJob, db: Session) -> None:
         job.total = total
         db.commit()
 
+    token = current_job_id.set(job.id)
     try:
         result = await job_handler(job, db, user, report)
         db.refresh(job)
@@ -113,6 +133,8 @@ async def run_job(job: AIJob, db: Session) -> None:
         db.refresh(job)
         job.status = "error"
         job.error = str(exc)[:2000]
+    finally:
+        current_job_id.reset(token)
     job.finished_at = datetime.now(UTC).replace(tzinfo=None)
     db.commit()
 

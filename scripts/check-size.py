@@ -67,7 +67,6 @@ OVER_BUDGET: dict[str, int] = {
     "frontend/src/pages/StoryHealthPage.tsx": 633,
     "frontend/src/components/characters/RelationshipGraph.tsx": 633,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 621,
-    "frontend/src/pages/ChroniclePage.tsx": 591,
     "frontend/src/components/story/StoryIdentityPanel.tsx": 556,
     "frontend/src/components/story/TodoListView.tsx": 545,
     "frontend/src/components/health/StoryProgressionGraph.tsx": 538,

@@ -1,0 +1,478 @@
+/* Chronicle rows and detail panes. Shared by Activity, Conversations and the details. */
+
+/* ── Filter bar ── */
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.filter {
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.filter:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: var(--color-text-subtle);
+}
+
+.filter:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.filterOn,
+.filterOn:hover:not(:disabled) {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-bg);
+}
+
+.count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-text-subtle);
+}
+
+/* ── Days ── */
+.day + .day {
+  margin-top: 1.25rem;
+}
+
+.dayLabel {
+  position: sticky;
+  top: -1rem;
+  z-index: 1;
+  margin: 0 0 0.35rem;
+  padding: 0.35rem 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  background: var(--color-bg);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+/* ── A row ── */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 44px;
+  padding: 0.45rem 0.6rem 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  outline: none;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: var(--color-surface-2);
+}
+
+.row:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+}
+
+.rowSelected,
+.rowSelected:hover {
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  color: var(--color-text-subtle);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.rowTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSummary {
+  font-size: 0.77rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowSummary:empty {
+  display: none;
+}
+
+.kindTag {
+  flex-shrink: 0;
+  padding: 0 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.rowMeta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+}
+
+.metaQuiet {
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.time {
+  min-width: 3.2rem;
+  text-align: right;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.problem {
+  padding: 0.05rem 0.4rem;
+  border-radius: 99px;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.rowActions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.15rem;
+  min-width: 26px;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.revealOnHover {
+  opacity: 0;
+}
+
+.row:hover .revealOnHover,
+.row:focus-within .revealOnHover,
+.revealOnHover:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .revealOnHover {
+    opacity: 1;
+  }
+}
+
+.starred {
+  color: var(--color-warning);
+}
+
+/* Status colours: AI purple, NLP teal, trouble red. */
+.iconAi {
+  color: var(--color-ai);
+}
+
+.iconNlp {
+  color: var(--color-nlp);
+}
+
+.iconDanger {
+  color: var(--color-danger);
+}
+
+.iconOk {
+  color: var(--color-success);
+}
+
+.iconMuted {
+  color: var(--color-text-subtle);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+.empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--color-text-subtle);
+}
+
+.loadMore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.55rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.loadMore:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* ── Detail panes ── */
+.detailBody {
+  padding: 1.1rem 1.25rem 2rem;
+}
+
+.detailTitle {
+  margin: 0 2.25rem 0.35rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.35;
+}
+
+.detailStatus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 2.25rem 1rem 0;
+  font-size: 0.8rem;
+  color: var(--color-text);
+}
+
+.stopBtn,
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.stopBtn:hover,
+.linkBtn:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-subtle);
+}
+
+.progress {
+  height: 4px;
+  margin: -0.25rem 0 1rem;
+  border-radius: 99px;
+  background: var(--color-surface-3);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--color-ai);
+  transition: width 300ms ease;
+}
+
+.errorBox {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.detailSection + .detailSection {
+  margin-top: 1.25rem;
+}
+
+.sectionLabel {
+  margin: 0 0 0.45rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.sentence {
+  margin: 0 0 0.5rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.35rem 1rem;
+  margin: 0;
+}
+
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px dotted var(--color-border);
+  font-size: 0.78rem;
+}
+
+.facts dt {
+  color: var(--color-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.followUp {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.followUp:hover {
+  text-decoration: underline;
+}
+
+.note {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.callList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.call {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.call:last-child {
+  border-bottom: none;
+}
+
+.call > :not(.callHead) {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.callHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.callHead:hover {
+  background: var(--color-surface-2);
+}
+
+.callTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

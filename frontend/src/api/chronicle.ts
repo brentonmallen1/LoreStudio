@@ -1,4 +1,23 @@
 import { BASE, getToken, request } from "./request";
+import type { AIJob } from "./jobs";
+import type { ActivityLog } from "../types";
+
+export type TimelineFilter = "all" | "problems" | "results" | "starred";
+
+export interface TimelineQuery {
+  story_id?: string;
+  filter?: TimelineFilter;
+  /** Writer mode: no AI calls, no jobs. */
+  exclude_ai?: boolean;
+  q?: string;
+  /** Rows to fetch from the top; "load more" raises it. */
+  limit?: number;
+}
+
+/** A row of Chronicle › Activity: an activity log entry, or a job with its call count. */
+export type TimelineEntry =
+  | { type: "log"; at: string; log: ActivityLog; job: null; call_count: number }
+  | { type: "job"; at: string; log: null; job: AIJob; call_count: number };
 
 /**
  * Chronicle: conversation history, activity logs, search and stats.
@@ -94,6 +113,7 @@ export const chronicleApi = {
     if (params.event_type) q.set("event_type", params.event_type);
     if (params.starred !== undefined) q.set("starred", String(params.starred));
     if (params.features) q.set("features", params.features);
+    if (params.problems) q.set("problems", "true");
     if (params.page) q.set("page", String(params.page));
     if (params.page_size) q.set("page_size", String(params.page_size));
     return request<{
@@ -103,6 +123,17 @@ export const chronicleApi = {
       page_size: number;
     }>(`/chronicle/activity?${q}`);
   },
+  /** Chronicle › Activity: activity rows and jobs in one list, newest first. */
+  chronicleTimeline: (params: TimelineQuery) => {
+    const q = new URLSearchParams();
+    if (params.story_id) q.set("story_id", params.story_id);
+    if (params.filter && params.filter !== "all") q.set(params.filter, "true");
+    if (params.exclude_ai) q.set("exclude_ai", "true");
+    if (params.q) q.set("q", params.q);
+    q.set("page_size", String(params.limit ?? 50));
+    return request<{ entries: TimelineEntry[]; total: number }>(`/chronicle/timeline?${q}`);
+  },
+  getActivityLog: (logId: string) => request<ActivityLog>(`/chronicle/activity/${logId}`),
   updateActivityLog: (logId: string, data: { starred?: boolean }) =>
     request<import("../types").ActivityLog>(`/chronicle/activity/${logId}`, {
       method: "PATCH",

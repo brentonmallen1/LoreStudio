@@ -1,4 +1,5 @@
 import { request } from "./request";
+import type { ActivityLog } from "../types";
 
 /**
  * Long-running AI work (doc 06 §8). Kept out of client.ts (size budget).
@@ -10,6 +11,8 @@ export interface AIJob {
   /** queued | running | done | error | cancelled */
   status: string;
   story_id: string | null;
+  /** What the job was asked to do, as given at enqueue time. */
+  params: Record<string, unknown>;
   progress: number;
   total: number;
   result: Record<string, unknown> | null;
@@ -29,6 +32,8 @@ export const jobsApi = {
     return request<AIJob[]>(`/jobs${query.toString() ? `?${query}` : ""}`);
   },
   get: (jobId: string) => request<AIJob>(`/jobs/${jobId}`),
+  /** Every AI call and log row the job wrote, oldest first. */
+  activity: (jobId: string) => request<ActivityLog[]>(`/jobs/${jobId}/activity`),
   cancel: (jobId: string) => request<AIJob>(`/jobs/${jobId}/cancel`, { method: "POST" }),
   /** Queue a summary refresh for a whole manuscript. */
   sceneSummaries: (storyId: string, forceRefresh = false) =>

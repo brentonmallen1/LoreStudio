@@ -25,6 +25,7 @@ from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.user import User
 from ..models.world_system import WorldSystem
+from .seed_chronicle import seed_lighthouse_chronicle
 from .word_count import recount_story
 
 STRUCTURE_TEMPLATES = [
@@ -2238,6 +2239,17 @@ def seed_demo_story():  # noqa: PLR0915
                 done=True,
                 position=5,
             )
+        )
+
+        # Chronicle: a finished summary job and a failed Codex pass, so a new install has a
+        # job to open (seed_chronicle.py).
+        db.flush()
+        seed_lighthouse_chronicle(
+            db,
+            user=admin,
+            story=story,
+            scenes=[scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8, scene9, scene10],
+            cast=[eleanor.name, visitor.name, thomas.name],
         )
 
         # Counted from the prose, as the editor counts, not written in by hand.

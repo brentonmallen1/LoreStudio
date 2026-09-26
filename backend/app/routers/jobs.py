@@ -6,10 +6,7 @@ place in a list, a progress count and a stop button — and if the server restar
 the job says so rather than disappearing.
 """
 
-from datetime import datetime
-
 from fastapi import APIRouter, Body, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -17,27 +14,13 @@ from ..database import get_db
 from ..models.ai_job import AIJob
 from ..models.story import Story
 from ..models.user import User
+from ..schemas.chronicle import ActivityLogOut
+from ..schemas.jobs import JobOut
+from ..services.chronicle_timeline import job_activity
 from ..services.job_queue import enqueue, handler, request_cancel
 from ..services.scene_summaries import refresh_scene_summaries
 
 router = APIRouter()
-
-
-class JobOut(BaseModel):
-    id: str
-    kind: str
-    label: str
-    status: str
-    story_id: str | None
-    progress: int
-    total: int
-    result: dict | None
-    error: str | None
-    created_at: datetime
-    started_at: datetime | None
-    finished_at: datetime | None
-
-    model_config = {"from_attributes": True}
 
 
 @handler("scene-summaries")
@@ -89,6 +72,15 @@ def get_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(get
     if not job or job.user_id != user.id:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
+
+
+@router.get("/jobs/{job_id}/activity", response_model=list[ActivityLogOut])
+def get_job_activity(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """What the job did: every AI call and log row it wrote, in order."""
+    job = db.get(AIJob, job_id)
+    if not job or job.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job_activity(db, job_id)
 
 
 @router.post("/jobs/{job_id}/cancel", response_model=JobOut)
