@@ -120,6 +120,9 @@ interface UIState {
   setEditorFontFamily: (font: EditorFontFamily) => void;
   setEditorFontSize: (size: EditorFontSize) => void;
   setEditorLineWidth: (width: EditorLineWidth) => void;
+  /** Tint dialogue in the prose editor. Off by default: it is noise while drafting. */
+  highlightDialogue: boolean;
+  setHighlightDialogue: (on: boolean) => void;
 
   // Command palette
   commandPaletteOpen: boolean;
@@ -294,8 +297,15 @@ const savedEditorSize: EditorFontSize = VALID_FONT_SIZES.includes(rawEditorSize)
 const rawLineWidth = localStorage.getItem("ls_editor_line_width") as EditorLineWidth;
 const savedLineWidth: EditorLineWidth = VALID_LINE_WIDTHS.includes(rawLineWidth) ? rawLineWidth : "medium";
 
+// The editor's dialogue tints read this attribute (SceneEditor.module.css).
+function applyHighlightDialogue(on: boolean) {
+  document.documentElement.dataset.dialogueHighlight = on ? "on" : "off";
+}
+const savedHighlightDialogue = localStorage.getItem("ls_highlight_dialogue") === "on";
+
 applyEditorFont(savedEditorFont, savedEditorSize);
 applyEditorLineWidth(savedLineWidth);
+applyHighlightDialogue(savedHighlightDialogue);
 
 export const useUIStore = create<UIState>((set) => ({
   themeName: savedThemeName,
@@ -337,6 +347,12 @@ export const useUIStore = create<UIState>((set) => ({
     applyEditorLineWidth(editorLineWidth);
     set({ editorLineWidth });
   },
+  highlightDialogue: savedHighlightDialogue,
+  setHighlightDialogue: (highlightDialogue) => {
+    localStorage.setItem("ls_highlight_dialogue", highlightDialogue ? "on" : "off");
+    applyHighlightDialogue(highlightDialogue);
+    set({ highlightDialogue });
+  },
 
   commandPaletteOpen: false,
   setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
@@ -369,7 +385,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ treeDetached: detached });
   },
 
-  treePanelWidth: Number(localStorage.getItem("ls_tree_panel_width") ?? 200),
+  // 260 fits most scene titles; at 200 they were cut to "Knock at th…". Drag to change.
+  treePanelWidth: Number(localStorage.getItem("ls_tree_panel_width") ?? 260),
   setTreePanelWidth: (width) => {
     localStorage.setItem("ls_tree_panel_width", String(width));
     set({ treePanelWidth: width });

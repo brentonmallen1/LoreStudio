@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Telescope } from "lucide-react";
 import { api } from "../../../api/client";
@@ -45,10 +45,19 @@ function TextField({
   placeholder: string;
   hint?: string;
 }) {
+  // Grow with the text: in the side column a fixed two rows cut most answers off.
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [value]);
   return (
     <div className={styles.overviewField}>
       <label className={styles.overviewLabel}>{label}</label>
       <textarea
+        ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
@@ -63,6 +72,9 @@ function TextField({
 
 /** The "Notes" side panel: synopsis, purpose, states, beat, POV, settings, summary, notes, links. */
 export default function SceneOverviewPanel({ activeNode, activeStory, characters, locations, notes }: Props) {
+  // The scene's point of view, or the story's default: the person entry and exit states are about.
+  const povId = activeNode.pov_character_id ?? activeStory?.pov_character_id;
+  const povName = characters.find((c) => c.id === povId)?.name;
   const { setActiveNode, structure, beatSheets, activeTemplate: _t } = useStoryStore();
   const { runDiscovery, isAnalyzing } = useDiscoveryStore();
   const navigate = useNavigate();
@@ -129,7 +141,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         value={entryState}
         onChange={setEntryState}
         onBlur={() => patch({ entry_state: entryState })}
-        placeholder="Who is Maya before this scene begins? What does she believe?"
+        placeholder={`Who is ${povName ?? "your point-of-view character"} before this scene begins? What do they believe?`}
       />
       <TextField
         label="Exit State"

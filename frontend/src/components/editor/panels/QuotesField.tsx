@@ -5,6 +5,7 @@ import { toolsApi } from "../../../api/tools";
 import type { StructureNode } from "../../../types";
 import type { QuoteStyleReport } from "../../../types/tools";
 import styles from "../SceneEditor.module.css";
+import actions from "../SaveStatus.module.css";
 
 /** Straight vs curly quote usage across the story, with one-click normalisation. */
 export default function QuotesField({ activeNode }: { activeNode: StructureNode }) {
@@ -58,16 +59,16 @@ export default function QuotesField({ activeNode }: { activeNode: StructureNode 
         the story
         {report.mixed ? " — mixed styles; pick one:" : ""}
       </p>
-      <div className={styles.conflictActions}>
+      <div className={actions.actions}>
         <button
-          className={styles.conflictBtn}
+          className={actions.btn}
           disabled={busy || report.total.straight === 0}
           onClick={() => normalize("curly")}
         >
           Make all curly “ ”
         </button>
         <button
-          className={styles.conflictBtn}
+          className={actions.btn}
           disabled={busy || report.total.curly === 0}
           onClick={() => normalize("straight")}
         >

@@ -26,6 +26,8 @@ export default function SprintTimer({ currentWordCount }: Props) {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const setupRef = useRef<HTMLDivElement>(null);
 
+  // A duration of 0 is an open-ended sprint: it counts up and never ends by itself.
+  const openEnded = sprintDuration === 0;
   const totalSeconds = sprintDuration * 60;
   const wordsWritten = sprintActive || completed ? Math.max(0, currentWordCount - sprintStartWordCount) : 0;
   const remaining = Math.max(0, totalSeconds - elapsed);
@@ -39,7 +41,7 @@ export default function SprintTimer({ currentWordCount }: Props) {
     timerRef.current = setInterval(() => {
       const newElapsed = Math.floor((Date.now() - (sprintStartTime ?? Date.now())) / 1000);
       setElapsed(newElapsed);
-      if (newElapsed >= totalSeconds) {
+      if (!openEnded && newElapsed >= totalSeconds) {
         clearInterval(timerRef.current!);
         timerRef.current = null;
         setCompleted(true);
@@ -53,7 +55,7 @@ export default function SprintTimer({ currentWordCount }: Props) {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [sprintActive, sprintStartTime, totalSeconds]);
+  }, [sprintActive, sprintStartTime, totalSeconds, openEnded, endSprint]);
 
   // Close setup popover on outside click
   useEffect(() => {
@@ -94,7 +96,9 @@ export default function SprintTimer({ currentWordCount }: Props) {
         className={`${styles.sprintActive} ${goalMet ? styles.goalMet : ""} ${completed ? styles.completed : ""}`}
       >
         <Timer size={12} className={styles.icon} />
-        <span className={styles.timer}>{completed ? "Done!" : formatTime(remaining)}</span>
+        <span className={styles.timer}>
+          {completed ? "Done!" : formatTime(openEnded ? elapsed : remaining)}
+        </span>
         <span className={styles.separator}>·</span>
         <span className={styles.words}>+{wordsWritten.toLocaleString()}</span>
         {sprintGoalWords > 0 && <span className={styles.goal}>/{sprintGoalWords.toLocaleString()}</span>}
@@ -123,13 +127,14 @@ export default function SprintTimer({ currentWordCount }: Props) {
           <div className={styles.setupSection}>
             <span className={styles.setupLabel}>Duration</span>
             <div className={styles.durationRow}>
-              {[5, 10, 15, 25, 30].map((d) => (
+              {[5, 10, 15, 25, 30, 0].map((d) => (
                 <button
                   key={d}
                   className={`${styles.durationBtn} ${duration === d ? styles.durationBtnActive : ""}`}
                   onClick={() => setDuration(d)}
+                  title={d === 0 ? "No time limit: count up until you stop" : undefined}
                 >
-                  {d}m
+                  {d === 0 ? "Open" : `${d}m`}
                 </button>
               ))}
             </div>

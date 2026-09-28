@@ -1,0 +1,12 @@
+.today {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  .today {
+    display: none;
+  }
+}

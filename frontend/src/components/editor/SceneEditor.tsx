@@ -6,6 +6,7 @@ import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
 import { X } from "lucide-react";
 import { api } from "../../api/client";
+import { noteWritingActivity } from "../../lib/writingToday";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
@@ -112,7 +113,10 @@ export default function SceneEditor() {
         setSelectionRect(rect && rect.width > 0 ? rect : null);
       }, SELECTION_DEBOUNCE_MS);
     },
-    onUpdate: ({ editor }) => autosaveRef.current?.handleUpdate(editor),
+    onUpdate: ({ editor }) => {
+      noteWritingActivity();
+      autosaveRef.current?.handleUpdate(editor);
+    },
   });
   const autosave = useSceneAutosave(editor);
   const autosaveRef = useRef(autosave);
@@ -242,17 +246,6 @@ export default function SceneEditor() {
 
       <div className={styles.contentRow}>
         <div className={styles.editorColumn}>
-          {showOverview && (
-            <SceneOverviewPanel
-              key={activeNode.id}
-              activeNode={activeNode}
-              activeStory={activeStory}
-              characters={characters}
-              locations={mention.flatLocations}
-              notes={notes}
-            />
-          )}
-
           {storySummaryOpen && activeStory && aiAvailable && (
             <div className={styles.summaryWrap}>
               <button className={styles.summaryCloseBtn} onClick={closeStorySummary} title="Close">
@@ -293,6 +286,30 @@ export default function SceneEditor() {
             )}
           </div>
         </div>
+        {/* Scene notes beside the prose, not over it: planning a scene you cannot see
+            meant scrolling back and forth between the two. */}
+        {showOverview && (
+          <aside className={styles.notesSide} aria-label="Scene notes">
+            <div className={styles.notesSideHead}>
+              <span>Scene notes</span>
+              <button
+                onClick={() => setShowOverview(false)}
+                title="Close scene notes"
+                aria-label="Close scene notes"
+              >
+                <X size={13} />
+              </button>
+            </div>
+            <SceneOverviewPanel
+              key={activeNode.id}
+              activeNode={activeNode}
+              activeStory={activeStory}
+              characters={characters}
+              locations={mention.flatLocations}
+              notes={notes}
+            />
+          </aside>
+        )}
         {plannerPanelOpen && activeStory && (
           <ScenePlannerPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}

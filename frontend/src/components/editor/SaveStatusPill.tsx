@@ -1,5 +1,5 @@
 import type { AutosaveState } from "./useSceneAutosave";
-import styles from "./SceneEditor.module.css";
+import styles from "./SaveStatus.module.css";
 
 const LABELS: Record<AutosaveState["saveState"], string> = {
   idle: "Saved",
@@ -24,23 +24,23 @@ export default function SaveStatusPill({ autosave }: { autosave: AutosaveState }
   const { saveState } = autosave;
   return (
     <span
-      className={`${styles.savePill} ${styles[`savePill_${saveState}`]}`}
+      className={`${styles.pill} ${styles[`pill_${saveState}`] ?? ""}`}
       title={TITLES[saveState]}
       role="status"
     >
-      <span className={`${styles.saveIndicator} ${styles[`saveIndicator_${saveState}`]}`} />
-      <span className={styles.savePillText}>{LABELS[saveState]}</span>
+      <span className={`${styles.dot} ${styles[`dot_${saveState}`] ?? ""}`} />
+      <span>{LABELS[saveState]}</span>
       {saveState === "conflict" && (
-        <span className={styles.conflictActions}>
+        <span className={styles.actions}>
           <button
-            className={styles.conflictBtn}
+            className={styles.btn}
             onClick={autosave.keepMine}
             title="Overwrite the server with this editor's text"
           >
             Keep mine
           </button>
           <button
-            className={styles.conflictBtn}
+            className={styles.btn}
             onClick={autosave.takeTheirs}
             title="Load the other version and drop these edits"
           >
@@ -59,15 +59,15 @@ export function DraftBanner({ autosave }: { autosave: AutosaveState }) {
   // eslint-disable-next-line no-restricted-syntax -- savedAt is Date.now() from this browser, not the API
   const savedAt = new Date(draft.savedAt).toLocaleString();
   return (
-    <div className={styles.draftBanner} role="status">
+    <div className={styles.banner} role="status">
       <span>
         An unsaved draft from {savedAt} was found for this segment (a tab closed before saving, or the server
         was unreachable).
       </span>
-      <button className={styles.conflictBtn} onClick={autosave.restoreDraft}>
+      <button className={styles.btn} onClick={autosave.restoreDraft}>
         Restore draft
       </button>
-      <button className={styles.conflictBtn} onClick={autosave.discardDraft}>
+      <button className={styles.btn} onClick={autosave.discardDraft}>
         Discard
       </button>
     </div>

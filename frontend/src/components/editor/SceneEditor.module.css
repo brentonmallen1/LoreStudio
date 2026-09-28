@@ -156,48 +156,6 @@
   padding: 0 0.375rem;
 }
 
-.saveIndicator {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition:
-    background var(--transition),
-    opacity var(--transition);
-}
-
-.saveIndicator_idle {
-  background: color-mix(in srgb, #4a8c4a 20%, transparent);
-  border: 1.5px solid #4a8c4a;
-  opacity: 0.55;
-}
-
-.saveIndicator_unsaved {
-  background: var(--color-warning);
-  opacity: 0.7;
-}
-
-.saveIndicator_saving {
-  background: var(--color-text-muted);
-  opacity: 0.6;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-.saveIndicator_saved {
-  background: var(--color-success);
-  opacity: 0.9;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
 /* Labeled action buttons */
 .topbarBtn {
   display: flex;
@@ -985,6 +943,54 @@
   overflow-y: auto;
 }
 
+/* Scene notes: a column beside the prose (SceneOverviewPanel). */
+.notesSide {
+  flex: 0 0 clamp(300px, 32%, 420px);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.notesSideHead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem 0.6rem 1.1rem;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.notesSideHead button {
+  display: flex;
+  padding: 0.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.notesSideHead button:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.notesSide .overviewPanel {
+  border-bottom: none;
+  padding: 0.9rem 1.1rem 1.5rem;
+}
+
 /* ── Editor content ── */
 .editorWrap {
   max-width: var(--editor-max-width);
@@ -1474,18 +1480,26 @@
 }
 
 /* ── @mention inline decorations (applied via ProseMirror DecorationSet) ── */
+/* A name reads as a name: a faint dotted underline, no fill. Hover still opens the card. */
 .editorWrap :global(.ProseMirror .mention-char) {
-  background: color-mix(in srgb, var(--segment-scene) 12%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--segment-scene) 40%, transparent);
-  border-radius: 2px;
+  border-bottom: 1px dotted color-mix(in srgb, var(--segment-scene) 55%, transparent);
   cursor: pointer;
 }
 
 .editorWrap :global(.ProseMirror .mention-setting) {
-  background: color-mix(in srgb, var(--segment-chapter) 10%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--segment-chapter) 38%, transparent);
-  border-radius: 2px;
+  border-bottom: 1px dotted color-mix(in srgb, var(--segment-chapter) 55%, transparent);
   cursor: pointer;
+}
+
+/* The mention's own syntax — the @ and the [[ ]] — is hidden while you write, and shown
+   again when the cursor is on that mention (mention-editing), so editing one never means
+   working around characters you cannot see. */
+.editorWrap :global(.ProseMirror .mention-syntax:not(.mention-editing)) {
+  font-size: 0;
+}
+
+.editorWrap :global(.ProseMirror .mention-syntax.mention-editing) {
+  color: var(--color-text-subtle);
 }
 
 /* Unknown / deleted mention — warning highlight */
@@ -1496,7 +1510,16 @@
   cursor: pointer;
 }
 
-/* ── Dialogue inline decorations ── */
+/* ── Dialogue inline decorations ──
+   Off while drafting: every quote tinted is noise when you are writing, not checking.
+   The editor's display menu turns them on (uiStore.highlightDialogue); the Dialogue view
+   is where attribution is reviewed. */
+:global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-explicit),
+:global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-inferred),
+:global(html[data-dialogue-highlight="off"]) .editorWrap :global(.ProseMirror .dialogue-unattributed) {
+  background: none !important;
+  border-bottom: none !important;
+}
 
 /* Explicit: @Name: "dialogue" — quoted portion */
 .editorWrap :global(.ProseMirror .dialogue-explicit) {

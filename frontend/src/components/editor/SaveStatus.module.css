@@ -1,0 +1,117 @@
+/* Autosave status, conflict actions and the draft-recovery banner (SaveStatusPill.tsx).
+   These classes were referenced but never defined, so the status rendered as bare text
+   at the wrong size, and Keep mine / Take theirs as unstyled buttons. */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.pill_unsaved,
+.pill_saving {
+  color: var(--color-text-muted);
+}
+
+.pill_offline {
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-text);
+}
+
+.pill_conflict {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-success);
+  opacity: 0.8;
+}
+
+.dot_unsaved {
+  background: var(--color-warning);
+}
+
+.dot_saving {
+  background: var(--color-text-muted);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.dot_offline {
+  background: var(--color-warning);
+  opacity: 1;
+}
+
+.dot_conflict {
+  background: var(--color-danger);
+  opacity: 1;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot_saving {
+    animation: none;
+  }
+}
+
+.actions {
+  display: inline-flex;
+  gap: 0.3rem;
+  margin-left: 0.25rem;
+}
+
+.btn {
+  padding: 0.15rem 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--color-surface-2);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0.75rem auto 0;
+  max-width: 44rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+  color: var(--color-text);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.banner span {
+  flex: 1 1 18rem;
+}
+
+.banner .btn {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}

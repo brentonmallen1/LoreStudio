@@ -31,6 +31,8 @@ export default function FontPicker() {
     setEditorFontFamily,
     setEditorFontSize,
     setEditorLineWidth,
+    highlightDialogue,
+    setHighlightDialogue,
   } = useUIStore();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -114,6 +116,20 @@ export default function FontPicker() {
               ))}
             </div>
           </div>
+
+          <div className={styles.divider} />
+
+          <label className={styles.toggleRow}>
+            <input
+              type="checkbox"
+              checked={highlightDialogue}
+              onChange={(e) => setHighlightDialogue(e.target.checked)}
+            />
+            <span>
+              Highlight dialogue
+              <span className={styles.toggleHint}>Tint quotes by attribution while you write</span>
+            </span>
+          </label>
         </div>
       )}
     </div>

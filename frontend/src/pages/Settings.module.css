@@ -723,3 +723,11 @@
     padding: 1rem 2rem 0;
   }
 }
+
+/* Loading and unavailable states inside settings cards (BackupDefaultsCard, DatabaseBackupCard). */
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}

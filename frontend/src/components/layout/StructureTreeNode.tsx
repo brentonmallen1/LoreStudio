@@ -189,7 +189,7 @@ export default function NodeItem({
             onKeyNav(e, node.id);
           }}
           className={styles.nodeRow}
-          title="Enter opens · F2 or double-click renames · Delete removes · arrows move"
+          title={`${node.title}\nEnter opens · F2 or double-click renames · Delete removes · arrows move`}
         >
           <span
             className={styles.chevron}

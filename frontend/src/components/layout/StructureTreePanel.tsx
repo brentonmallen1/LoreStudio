@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, PanelLeftClose, List, Share2, FileText, BookOpen, CheckSquare } from "lucide-react";
+import { Plus, PanelLeftClose } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -267,45 +267,22 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
         </div>
       </div>
 
-      {/* View mode toggle */}
-      <div className={styles.viewToggle}>
-        <button
-          className={`${styles.viewBtn} ${viewMode === "tree" ? styles.viewActive : ""}`}
-          onClick={() => setViewMode("tree")}
-          title="Tree view"
+      {/* What the main area shows. Five unlabelled icons used to do this; a named
+          choice is easier to find, and "Manuscript & export" is where export lives. */}
+      <label className={styles.viewPicker}>
+        <span className={styles.viewPickerLabel}>View</span>
+        <select
+          className={styles.viewSelect}
+          value={viewMode}
+          onChange={(e) => setViewMode(e.target.value as typeof viewMode)}
         >
-          <List size={12} />
-        </button>
-        <button
-          className={`${styles.viewBtn} ${viewMode === "storyboard" ? styles.viewActive : ""}`}
-          onClick={() => setViewMode("storyboard")}
-          title="Storyboard view"
-        >
-          <Share2 size={12} />
-        </button>
-        <button
-          className={`${styles.viewBtn} ${viewMode === "summary" ? styles.viewActive : ""}`}
-          onClick={() => setViewMode("summary")}
-          title="Summary overview"
-        >
-          <FileText size={12} />
-        </button>
-        <button
-          className={`${styles.viewBtn} ${viewMode === "manuscript" ? styles.viewActive : ""}`}
-          onClick={() => setViewMode("manuscript")}
-          title="Manuscript view"
-        >
-          <BookOpen size={12} />
-        </button>
-        <button
-          className={`${styles.viewBtn} ${viewMode === "todos" ? styles.viewActive : ""}`}
-          onClick={() => setViewMode("todos")}
-          title="TODOs"
-          style={viewMode === "todos" ? {} : { color: "var(--color-todo)" }}
-        >
-          <CheckSquare size={12} />
-        </button>
-      </div>
+          <option value="tree">Write</option>
+          <option value="storyboard">Storyboard</option>
+          <option value="summary">Summaries</option>
+          <option value="manuscript">Manuscript &amp; export</option>
+          <option value="todos">TODOs</option>
+        </select>
+      </label>
 
       {/* Tree */}
       <div className={styles.tree}>

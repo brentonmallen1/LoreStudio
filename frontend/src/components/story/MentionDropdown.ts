@@ -77,6 +77,21 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/** Spec on every mention decoration, so the reveal plugin can find the one at the cursor. */
+const MENTION_SPEC = { mention: true };
+
+/**
+ * The syntax around a mention — the @ of a character, the [[ ]] of a setting — marked so
+ * the editor can hide it while you write (SceneEditor.module.css, mention-syntax).
+ */
+function syntaxDecos(from: number, to: number, kind: "character" | "setting"): Decoration[] {
+  if (kind === "character") return [Decoration.inline(from, from + 1, { class: "mention-syntax" })];
+  return [
+    Decoration.inline(from, from + 2, { class: "mention-syntax" }),
+    Decoration.inline(to - 2, to, { class: "mention-syntax" }),
+  ];
+}
+
 function buildMentionDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
   const chars = _items.filter((i) => i.type === "character");
@@ -96,11 +111,17 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
         const to = from + m[0].length;
         claimedRanges.push([from, to]);
         decos.push(
-          Decoration.inline(from, to, {
-            class: "mention-char",
-            "data-mention-name": char.name,
-            "data-mention-type": "character",
-          }),
+          Decoration.inline(
+            from,
+            to,
+            {
+              class: "mention-char",
+              "data-mention-name": char.name,
+              "data-mention-type": "character",
+            },
+            MENTION_SPEC,
+          ),
+          ...syntaxDecos(from, to, "character"),
         );
       }
     }
@@ -114,11 +135,17 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
         const to = from + m[0].length;
         claimedRanges.push([from, to]);
         decos.push(
-          Decoration.inline(from, to, {
-            class: "mention-setting",
-            "data-mention-name": setting.name,
-            "data-mention-type": "setting",
-          }),
+          Decoration.inline(
+            from,
+            to,
+            {
+              class: "mention-setting",
+              "data-mention-name": setting.name,
+              "data-mention-type": "setting",
+            },
+            MENTION_SPEC,
+          ),
+          ...syntaxDecos(from, to, "setting"),
         );
       }
     }
@@ -135,11 +162,17 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
       const to = from + mu[0].length;
       if (!isClaimed(from, to)) {
         decos.push(
-          Decoration.inline(from, to, {
-            class: "mention-missing",
-            "data-mention-name": mu[1],
-            "data-mention-type": "character",
-          }),
+          Decoration.inline(
+            from,
+            to,
+            {
+              class: "mention-missing",
+              "data-mention-name": mu[1],
+              "data-mention-type": "character",
+            },
+            MENTION_SPEC,
+          ),
+          ...syntaxDecos(from, to, "character"),
         );
       }
     }
@@ -152,11 +185,17 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
       const to = from + ms[0].length;
       if (!isClaimed(from, to)) {
         decos.push(
-          Decoration.inline(from, to, {
-            class: "mention-missing",
-            "data-mention-name": ms[1],
-            "data-mention-type": "setting",
-          }),
+          Decoration.inline(
+            from,
+            to,
+            {
+              class: "mention-missing",
+              "data-mention-name": ms[1],
+              "data-mention-type": "setting",
+            },
+            MENTION_SPEC,
+          ),
+          ...syntaxDecos(from, to, "setting"),
         );
       }
     }
@@ -166,6 +205,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
 }
 
 const mentionDecoKey = new PluginKey<DecorationSet>("mentionDecos");
+const mentionRevealKey = new PluginKey("mentionReveal");
 const mentionTriggerKey = new PluginKey("mentionTrigger");
 
 export const MentionDropdownExtension = Extension.create({
@@ -215,6 +255,25 @@ export const MentionDropdownExtension = Extension.create({
         },
       }),
 
+      // Reveal — the mention under the cursor shows its syntax, so it can be edited.
+      // Cheap: it looks up the mentions already found at the cursor, nothing more.
+      new Plugin({
+        key: mentionRevealKey,
+        props: {
+          decorations: (state) => {
+            const { from, to } = state.selection;
+            const found = mentionDecoKey
+              .getState(state)
+              ?.find(from, to, (spec) => (spec as typeof MENTION_SPEC).mention === true);
+            if (!found?.length) return null;
+            return DecorationSet.create(
+              state.doc,
+              found.map((d) => Decoration.inline(d.from, d.to, { class: "mention-editing" })),
+            );
+          },
+        },
+      }),
+
       // Trigger detection — watches text before cursor for @query pattern
       new Plugin({
         key: mentionTriggerKey,
@@ -224,6 +283,12 @@ export const MentionDropdownExtension = Extension.create({
               const { state } = view;
               // Only react to actual selection or document changes
               if (state.selection === prevState.selection && state.doc === prevState.doc) {
+                return;
+              }
+              // Moving the cursor is not asking for a name. Clicking into "@Eleanor Vance"
+              // used to open the picker as if "@Eleanor" were being typed.
+              if (state.doc === prevState.doc) {
+                _cb.onClose();
                 return;
               }
 

@@ -12,6 +12,7 @@ import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
+import TodayCounter from "./TodayCounter";
 import { useAIAvailable } from "../../lib/mode";
 import styles from "./SceneEditor.module.css";
 
@@ -185,6 +186,11 @@ export default function EditorTopbar(p: Props) {
             <SceneThreadBadges storyId={activeStory.id} nodeId={activeNode.id} />
           </div>
         )}
+        <TodayCounter
+          storyId={p.activeNode.story_id}
+          nodeId={p.activeNode.id}
+          savedWords={p.activeNode.word_count ?? 0}
+        />
         <span className={styles.wordCount}>{p.wordCount.toLocaleString()} words</span>
         <SaveStatusPill autosave={p.autosave} />
         <button
@@ -207,56 +213,72 @@ export default function EditorTopbar(p: Props) {
             <button
               onClick={() => setGuideOpen((v) => !v)}
               className={`${styles.topbarBtn} ${guideOpen ? styles.topbarBtnActive : ""}`}
-              title="Writing reference guides"
+              title="Writing guides and scene tools"
             >
               <BookOpen size={13} />
               <span>Guide</span>
             </button>
             {guideOpen && (
               <div className={styles.guideMenu}>
-                <div className={styles.guideMenuLabel}>Reference</div>
+                {/* Guides to read, then tools that scan this scene: they were one list
+                    headed "Reference", which the tools are not. */}
                 {[
                   {
-                    label: "Dialogue Guide",
-                    icon: <Quote size={13} />,
-                    title: "Learn how to attribute dialogue to characters",
-                    run: () => p.onOpenGuides("dialogue"),
+                    heading: "Guides",
+                    items: [
+                      {
+                        label: "Dialogue Guide",
+                        icon: <Quote size={13} />,
+                        title: "Learn how to attribute dialogue to characters",
+                        run: () => p.onOpenGuides("dialogue"),
+                      },
+                      {
+                        label: "MICE Guide",
+                        icon: <Layers size={13} />,
+                        title: "Understand the MICE Quotient — Milieu, Idea, Character, Event",
+                        run: () => p.onOpenGuides("mice"),
+                      },
+                      {
+                        label: "6 Essential Questions",
+                        icon: <BookMarked size={13} />,
+                        title: "The 6 Essential Questions every story needs to answer",
+                        run: () => p.onOpenGuides("essential"),
+                      },
+                    ],
                   },
                   {
-                    label: "MICE Guide",
-                    icon: <Layers size={13} />,
-                    title: "Understand the MICE Quotient — Milieu, Idea, Character, Event",
-                    run: () => p.onOpenGuides("mice"),
+                    heading: "Tools for this scene",
+                    items: [
+                      {
+                        label: "Tag Suggestions",
+                        icon: <Tag size={13} />,
+                        title: "Scan for untagged quotes and propose speaker attribution",
+                        run: p.onOpenAutoTag,
+                      },
+                      {
+                        label: "Link Mentions",
+                        icon: <Link size={13} />,
+                        title: "Scan for unlinked character and location mentions",
+                        run: p.onOpenAutoLink,
+                      },
+                    ],
                   },
-                  {
-                    label: "6 Essential Questions",
-                    icon: <BookMarked size={13} />,
-                    title: "The 6 Essential Questions every story needs to answer",
-                    run: () => p.onOpenGuides("essential"),
-                  },
-                  {
-                    label: "Tag Suggestions",
-                    icon: <Tag size={13} />,
-                    title: "Scan for untagged quotes and propose speaker attribution",
-                    run: p.onOpenAutoTag,
-                  },
-                  {
-                    label: "Link Mentions",
-                    icon: <Link size={13} />,
-                    title: "Scan for unlinked character and location mentions",
-                    run: p.onOpenAutoLink,
-                  },
-                ].map((item) => (
-                  <GuideItem
-                    key={item.label}
-                    label={item.label}
-                    icon={item.icon}
-                    title={item.title}
-                    onSelect={() => {
-                      item.run();
-                      setGuideOpen(false);
-                    }}
-                  />
+                ].map((group) => (
+                  <div key={group.heading}>
+                    <div className={styles.guideMenuLabel}>{group.heading}</div>
+                    {group.items.map((item) => (
+                      <GuideItem
+                        key={item.label}
+                        label={item.label}
+                        icon={item.icon}
+                        title={item.title}
+                        onSelect={() => {
+                          item.run();
+                          setGuideOpen(false);
+                        }}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
             )}
