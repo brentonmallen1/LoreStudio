@@ -66,3 +66,21 @@ def test_patch_me_merges_settings(client):
     r = client.patch("/api/auth/me", json={"settings": {"ui": {"theme": "nord"}}, "display_name": "Bee"})
     assert r.json()["settings"]["ui"] == {"mode": "writer", "theme": "nord"}
     assert r.json()["display_name"] == "Bee"
+
+
+def test_name_drift_reads_the_words_of_a_name_not_its_punctuation():
+    """ "The Visitor (Calder)" is Calder: the bare name is not a misspelling of "(Calder)"."""
+
+    class Node:
+        def __init__(self, id, title, content):
+            self.id, self.title, self.content = id, title, content
+
+    class Char:
+        def __init__(self, name):
+            self.name = name
+
+    found = name_drift(
+        [Node("n1", "Night Passage", "<p>Calder set down her bag. Caldor looked away.</p>")],
+        [Char("The Visitor (Calder)")],
+    )
+    assert [(f.text, f.suggestion) for f in found] == [("Caldor", "Calder")]

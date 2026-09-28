@@ -4,6 +4,7 @@ import { Compass, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
 import { useAIAvailable } from "../../lib/mode";
+import AttributionChecks from "./AttributionChecks";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -138,6 +139,7 @@ export default function DialogueIsolationView({
           </button>
         </div>
       </div>
+      {activeStory && <AttributionChecks storyId={activeStory.id} nodeId={activeNode.id} />}
       {blocks.length === 0 ? (
         <p className={styles.dialogueIsolationEmpty}>
           No dialogue in this scene. Quoted lines appear here; attribute one with{" "}

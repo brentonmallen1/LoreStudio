@@ -60,3 +60,12 @@ export const toolsApi = {
       scenes: { node_id: string; title: string; changed: number }[];
     }>(`/stories/${storyId}/quotes/normalize`, { method: "POST", body: JSON.stringify(body) }),
 };
+
+/** Deterministic spaCy checks on chosen scenes (POST /analyze/prose-nlp). No model call. */
+export const proseChecksApi = {
+  run: (storyId: string, nodeIds: string[], checks: string[]) =>
+    request<import("../types").ProseNLPResponse>(`/stories/${storyId}/analyze/prose-nlp`, {
+      method: "POST",
+      body: JSON.stringify({ node_ids: nodeIds, checks }),
+    }),
+};

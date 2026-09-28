@@ -121,7 +121,8 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
     const levelDef = activeTemplate?.levels[addingLevel];
     if (!levelDef) return;
 
-    if (addingLevel === 0) {
+    // A flat template's levels are kinds of beat, not depths: every one goes at the top.
+    if (addingLevel === 0 || activeTemplate?.flat) {
       const node = await api.createNode(storyId, {
         title: newTitle.trim(),
         level: 0,
@@ -223,11 +224,11 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
             {showAddMenu && (
               <div className={styles.addMenu}>
                 {activeTemplate?.levels.map((level, idx) => {
-                  const parent = parentForLevel(structure, idx, activeNode);
-                  const enabled = idx === 0 || !!parent;
+                  const parent = activeTemplate.flat ? null : parentForLevel(structure, idx, activeNode);
+                  const enabled = idx === 0 || activeTemplate.flat || !!parent;
                   const above = activeTemplate.levels[idx - 1]?.name.toLowerCase() ?? "";
                   const hint =
-                    idx === 0
+                    idx === 0 || activeTemplate.flat
                       ? undefined
                       : parent
                         ? `in ${parent.title}`

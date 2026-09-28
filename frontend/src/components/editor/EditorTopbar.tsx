@@ -92,15 +92,24 @@ export default function EditorTopbar(p: Props) {
     setActiveNode({ ...activeNode, status: updated.status });
   }
 
-  async function changeType(levelIdx: number) {
-    const lvl = activeTemplate?.levels[levelIdx];
-    if (!lvl) return;
-    const updated = await api.updateNode(activeNode.id, {
-      level_type: lvl.name.toLowerCase(),
-      level: levelIdx,
-    });
+  // The type is what the node is (an Opening, a Try / Fail beat), not how deep it sits.
+  // This used to be keyed by depth: in a Single MICE story, where every beat is at the
+  // top level, every beat showed as "Opening", and choosing a type moved the node down
+  // the tree. Depth is changed by moving the node; this only changes its type.
+  async function changeType(levelType: string) {
+    const updated = await api.updateNode(activeNode.id, { level_type: levelType });
+    const patch = (nodes: StructureNode[]): StructureNode[] =>
+      nodes.map((n) =>
+        n.id === activeNode.id
+          ? { ...n, level_type: levelType }
+          : { ...n, children: patch(n.children ?? []) },
+      );
+    setStructure(patch(structure));
     setActiveNode({ ...activeNode, ...updated });
   }
+  const typeOptions =
+    activeTemplate?.levels.map((l) => ({ value: l.name.toLowerCase(), label: l.name })) ?? [];
+  const currentType = activeNode.level_type.toLowerCase();
 
   async function saveTitle() {
     setEditingTitle(false);
@@ -130,15 +139,18 @@ export default function EditorTopbar(p: Props) {
           <select
             className={styles.typeSelect}
             style={segmentStyle(activeNode.level_type)}
-            value={activeNode.level}
-            onChange={(e) => changeType(Number(e.target.value))}
+            value={currentType}
+            onChange={(e) => changeType(e.target.value)}
             title="Change segment type"
           >
-            {activeTemplate.levels.map((lvl, idx) => (
-              <option key={idx} value={idx}>
-                {lvl.name}
+            {typeOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
+            {!typeOptions.some((o) => o.value === currentType) && (
+              <option value={currentType}>{activeNode.level_type}</option>
+            )}
           </select>
         ) : (
           <span className={styles.typeBadge} style={segmentStyle(activeNode.level_type)}>

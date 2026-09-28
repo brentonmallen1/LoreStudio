@@ -1,0 +1,44 @@
+.checks {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-nlp-border);
+  border-radius: var(--radius);
+  background: var(--color-nlp-subtle);
+  font-size: 0.78rem;
+  color: var(--color-text);
+}
+
+.checks summary {
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.checks ul {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.checks li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.passage {
+  font-style: italic;
+}
+
+.why,
+.none {
+  margin: 0.4rem 0 0;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.checks li .why {
+  margin: 0;
+}

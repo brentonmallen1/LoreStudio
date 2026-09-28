@@ -66,6 +66,7 @@ def test_templates_say_what_a_new_story_starts_with(client):
     by_id = {t["id"]: t for t in client.get("/api/templates/structures").json()}
     assert by_id["three-act"]["starter_outline"] == ["Act 1: Setup", "Act 2: Confrontation", "Act 3: Resolution"]
     assert by_id["freeform"]["starter_outline"] == ["Section 1"]
+    assert by_id["mice-single"]["flat"] is True and by_id["three-act"]["flat"] is False
 
 
 def test_an_empty_story_starts_its_outline_in_one_call(client, db_session):

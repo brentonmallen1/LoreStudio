@@ -168,3 +168,28 @@ class TestStoryHealthAlertsEndpoint:
     def test_alerts_returns_404_for_unknown_story(self, client: TestClient):
         response = client.get("/api/stories/does-not-exist/health/alerts")
         assert response.status_code == 404
+
+
+def test_screen_time_counts_how_prose_names_a_character(client, db_session: Session, test_user):
+    """
+    "The Visitor (Calder)" is "Calder" in a sentence and "Eleanor Vance" is "Eleanor".
+    Matching the full label counted the Visitor in 0 scenes of a story she drives.
+    """
+    from app.models.character import Character
+
+    story = _story(test_user.id)
+    db_session.add(story)
+    db_session.flush()
+    db_session.add_all(
+        [
+            Character(story_id=story.id, name="The Visitor (Calder)", role="deuteragonist"),
+            Character(story_id=story.id, name="Eleanor Vance", role="protagonist"),
+            _scene(story.id, content="<p>Calder set down her bag. Eleanor watched.</p>", position=0),
+            _scene(story.id, content="<p>The visitor said nothing.</p>", position=1),
+        ]
+    )
+    db_session.commit()
+    body = client.get(f"/api/stories/{story.id}/health").json()
+    seen = {c["name"]: c["scene_appearances"] for c in body["characters"]}
+    assert seen["The Visitor (Calder)"] == 2
+    assert seen["Eleanor Vance"] == 1

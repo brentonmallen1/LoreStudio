@@ -88,6 +88,8 @@ export interface StoryStructureTemplate {
   user_id: string | null;
   /** Top-level titles a new story with this template starts with. */
   starter_outline: string[];
+  /** Levels are kinds of beat side by side (Single MICE), all at the top level. */
+  flat: boolean;
 }
 
 export interface InlineNote {

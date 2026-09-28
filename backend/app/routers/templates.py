@@ -6,7 +6,7 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
-from ..services.structure_scaffold import starter_titles
+from ..services.structure_scaffold import FLAT, starter_titles
 
 router = APIRouter()
 
@@ -20,6 +20,12 @@ class TemplateOut(BaseModel):
     user_id: str | None = None
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def flat(self) -> bool:
+        """Its levels are kinds of beat side by side (Single MICE), not a hierarchy."""
+        return self.id in FLAT
 
     @computed_field
     @property

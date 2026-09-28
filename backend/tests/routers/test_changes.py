@@ -113,6 +113,8 @@ def test_new_edit_clears_redo_and_conflict_is_409(client):
     client.patch(f"/api/structure/{n['id']}", json={"title": "Sideways"}, headers=H1)
     r = client.post(f"/api/stories/{sid}/undo", headers=H2)  # would set Tide -> Lamp but title is Sideways
     assert r.status_code == 409
+    # Said in the author's words, not as a column name.
+    assert r.json()["detail"].startswith("The title of “Sideways” was edited again after that change")
 
 
 def test_character_delete_undo_restores_relationships(client):

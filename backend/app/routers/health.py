@@ -26,6 +26,7 @@ from ..models.plot_thread import PlotThread
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..services.codex.presence import name_patterns
 from ..services.mice_validation import validate_thread_nesting
 from ..services.word_count import get_word_count_status
 
@@ -125,10 +126,17 @@ def story_health(
     char_screen_time: list[dict[str, Any]] = []
     absent_characters = []
 
+    # The Codex's name forms: "Eleanor" for Eleanor Vance, either half of "The Visitor
+    # (Calder)", and no form two characters share. Matching the full label found almost
+    # nobody — the Visitor was in 0 scenes of a story she drives.
+    patterns = name_patterns({c.id: c.name for c in characters})
+
+    def appears(c_id: str, node) -> bool:
+        return bool(node.content) and any(p.search(node.content) for p in patterns.get(c_id, []))
+
     for c in characters:
-        name_lower = c.name.lower()
-        scene_count = sum(1 for n in leaves if n.content and name_lower in n.content.lower())
-        recent_count = sum(1 for n in recent_leaves if n.content and name_lower in n.content.lower())
+        scene_count = sum(1 for n in leaves if appears(c.id, n))
+        recent_count = sum(1 for n in recent_leaves if appears(c.id, n))
 
         # Arc milestone progress
         milestones = c.arc_milestones or []
@@ -256,10 +264,17 @@ def story_health_alerts(
     written_leaves = [n for n in leaves if n.word_count > 0]
 
     absent_characters = []
+    # The Codex's name forms: "Eleanor" for Eleanor Vance, either half of "The Visitor
+    # (Calder)", and no form two characters share. Matching the full label found almost
+    # nobody — the Visitor was in 0 scenes of a story she drives.
+    patterns = name_patterns({c.id: c.name for c in characters})
+
+    def appears(c_id: str, node) -> bool:
+        return bool(node.content) and any(p.search(node.content) for p in patterns.get(c_id, []))
+
     for c in characters:
-        name_lower = c.name.lower()
-        scene_count = sum(1 for n in leaves if n.content and name_lower in n.content.lower())
-        recent_count = sum(1 for n in recent_leaves if n.content and name_lower in n.content.lower())
+        scene_count = sum(1 for n in leaves if appears(c.id, n))
+        recent_count = sum(1 for n in recent_leaves if appears(c.id, n))
         if (
             len(written_leaves) >= RECENT_SCENE_WINDOW
             and scene_count > 0

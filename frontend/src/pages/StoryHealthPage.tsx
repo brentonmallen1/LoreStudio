@@ -20,10 +20,12 @@ import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import { api } from "../api/client";
 import type { StoryHealth, PlotThread, DialogueStats, DialogueInteraction } from "../types";
 import { useStoryStore } from "../stores/storyStore";
+import { useAIAvailable } from "../lib/mode";
 import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import ActionToolbar from "../components/health/ActionToolbar";
+import ConsistencyCard from "../components/health/ConsistencyCard";
 import ReportsView from "../components/health/ReportsView";
 import MaintenanceView from "../components/health/MaintenanceView";
 import { EditorView } from "../components/health/EditorView";
@@ -64,6 +66,7 @@ function flattenNodes(nodes: import("../types").StructureNode[]): import("../typ
 }
 
 export default function StoryHealthPage() {
+  const aiAvailable = useAIAvailable();
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { activeStory, structure, characters, beatSheets } = useStoryStore();
@@ -251,8 +254,10 @@ export default function StoryHealthPage() {
             </div>
           </section>
 
-          {/* Scene Summaries */}
-          {health.scene_summaries && (
+          {storyId && <ConsistencyCard storyId={storyId} />}
+
+          {/* Scene Summaries: AI-written, so absent without AI */}
+          {health.scene_summaries && aiAvailable && (
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <ScrollText size={14} className={styles.cardIcon} />

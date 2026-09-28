@@ -408,7 +408,15 @@ def _apply_fields(model, entity_id: str, expected: dict | None, values: dict, db
     if expected:
         for key, val in expected.items():
             if _jsonable(getattr(obj, key, None)) != val:
-                raise UndoConflict(f"'{key}' changed since then; undo skipped to protect the newer edit.")
+                # In the author's words: which thing, which part of it. This used to say
+                # "'title' changed since then", naming a database column.
+                name = getattr(obj, "title", None) or getattr(obj, "name", None)
+                field = key.replace("_", " ")
+                where = f"The {field} of “{name}”" if name else f"The {field}"
+                raise UndoConflict(
+                    f"{where} was edited again after that change, so undo left it alone rather than "
+                    "overwrite the newer version."
+                )
     for key, val in values.items():
         col = getattr(type(obj), key).property.columns[0].type if hasattr(type(obj), key) else None
         if col is not None and col.__class__.__name__ == "DateTime" and isinstance(val, str):

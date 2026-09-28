@@ -119,7 +119,9 @@ def name_drift(nodes: list[StructureNode], characters: list[Character]) -> list[
     """Capitalised words one or two edits away from a character's name (or a name part)."""
     names: set[str] = set()
     for c in characters:
-        for part in re.split(r"[\s\-]+", c.name or ""):
+        # Words only: splitting on spaces kept "(Calder)" from "The Visitor (Calder)", and
+        # every "Calder" in the prose was two edits from it — flagged as a misspelling.
+        for part in re.findall(r"[^\W\d_][\w'’]*", c.name or ""):
             if len(part) >= 4:
                 names.add(part)
     if not names:

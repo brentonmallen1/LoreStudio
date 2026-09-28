@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Cpu } from "lucide-react";
+import { Cpu, Info } from "lucide-react";
 import { IconButton } from "../common";
-import { useMode } from "../../lib/mode";
+import { useAIAvailable, useMode } from "../../lib/mode";
 import { visibleFeatures } from "../../lib/ai/featureRegistry";
 import AIFeatureInfoModal from "./AIFeatureInfoModal";
 
@@ -23,14 +23,19 @@ interface Props {
 export default function AIFeatureInfoTrigger({ pageId, size = "sm" }: Props) {
   const [open, setOpen] = useState(false);
   const mode = useMode();
+  const aiAvailable = useAIAvailable();
 
   if (visibleFeatures(pageId, mode).length === 0) return null;
 
+  // Without AI it describes only the analysis tools: no AI chip, no "AI" in the words.
+  const Icon = aiAvailable ? Cpu : Info;
   return (
     <>
       <IconButton
-        icon={<Cpu size={size === "sm" ? 12 : 14} />}
-        tooltip="About AI & NLP features on this page"
+        icon={<Icon size={size === "sm" ? 12 : 14} />}
+        tooltip={
+          aiAvailable ? "About AI & NLP features on this page" : "About the analysis tools on this page"
+        }
         onClick={() => setOpen(true)}
         size={size}
         variant="ghost"
