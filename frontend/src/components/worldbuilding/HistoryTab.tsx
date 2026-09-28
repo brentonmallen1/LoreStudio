@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Clock, Trash2, ChevronDown, ChevronRight, BookOpen, Compass } from "lucide-react";
 import { api } from "../../api/client";
+import { reselect, useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { Era, HistoricalEvent } from "../../types";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
@@ -38,6 +39,15 @@ export default function HistoryTab({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useReloadOnUndo(["era", "historical_event"], () =>
+    Promise.all([api.listEras(storyId), api.listHistoricalEvents(storyId)]).then(([e, ev]) => {
+      setEras(e);
+      setEvents(ev);
+      setSelectedEra((prev) => reselect(prev, e));
+      setSelectedEvent((prev) => reselect(prev, ev));
+    }),
+  );
 
   function scheduleEventUpdate(field: string, value: unknown) {
     if (!selectedEvent) return;

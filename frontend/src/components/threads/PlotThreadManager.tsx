@@ -15,6 +15,7 @@ import {
   Compass,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { PlotThread, MICEType, TryFailCycle, StructureNode } from "../../types";
 import ThreadVisualization from "./ThreadVisualization";
 import MICEGuide from "../help/MICEGuide";
@@ -129,6 +130,10 @@ export default function PlotThreadManager({ storyId }: Props) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
+
+  useReloadOnUndo(["plot_thread", "plot_thread_appearance", "structure_node"], () =>
+    api.listThreads(storyId).then(setThreads),
+  );
 
   async function handleCreate() {
     if (!newName.trim()) return;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Calendar as CalendarIcon, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
+import { reselect, useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { Calendar } from "../../types";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
@@ -30,6 +31,13 @@ export default function CalendarEditor({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useReloadOnUndo(["calendar"], () =>
+    api.listCalendars(storyId).then((rows) => {
+      setCalendars(rows);
+      setSelected((prev) => reselect(prev, rows));
+    }),
+  );
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;

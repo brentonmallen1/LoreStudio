@@ -7,6 +7,7 @@ from ..models.culture import Culture
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.culture import CultureCreate, CultureOut, CultureUpdate
+from ..services import change_log
 
 router = APIRouter()
 
@@ -44,10 +45,22 @@ def create_culture(
     body: CultureCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     culture = Culture(story_id=story_id, **body.model_dump())
     db.add(culture)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        culture,
+        "cultures",
+        entity_type="culture",
+        story_id=story_id,
+        label=f"Add culture {culture.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(culture)
     return culture
@@ -68,9 +81,21 @@ def update_culture(
     body: CultureUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     culture = _verify_culture_access(culture_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        culture,
+        data,
+        entity_type="culture",
+        story_id=culture.story_id,
+        label=f"Edit {{fields}} on culture {culture.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(culture, key, value)
     db.commit()
     db.refresh(culture)
@@ -82,7 +107,18 @@ def delete_culture(
     culture_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     culture = _verify_culture_access(culture_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        culture,
+        "cultures",
+        entity_type="culture",
+        story_id=culture.story_id,
+        label=f"Delete culture {culture.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(culture)
     db.commit()

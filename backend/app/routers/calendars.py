@@ -7,6 +7,7 @@ from ..models.calendar import Calendar
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.calendar import CalendarCreate, CalendarOut, CalendarUpdate
+from ..services import change_log
 
 router = APIRouter()
 
@@ -44,10 +45,22 @@ def create_calendar(
     body: CalendarCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     calendar = Calendar(story_id=story_id, **body.model_dump())
     db.add(calendar)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        calendar,
+        "calendars",
+        entity_type="calendar",
+        story_id=story_id,
+        label=f"Add calendar {calendar.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(calendar)
     return calendar
@@ -68,9 +81,21 @@ def update_calendar(
     body: CalendarUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     calendar = _verify_calendar_access(calendar_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        calendar,
+        data,
+        entity_type="calendar",
+        story_id=calendar.story_id,
+        label=f"Edit {{fields}} on calendar {calendar.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(calendar, key, value)
     db.commit()
     db.refresh(calendar)
@@ -82,7 +107,18 @@ def delete_calendar(
     calendar_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     calendar = _verify_calendar_access(calendar_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        calendar,
+        "calendars",
+        entity_type="calendar",
+        story_id=calendar.story_id,
+        label=f"Delete calendar {calendar.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(calendar)
     db.commit()

@@ -15,6 +15,16 @@ const ENTITY_LABEL: Record<string, string> = {
   story: "Story",
   location: "Location",
   todo: "TODO",
+  culture: "Culture",
+  world_system: "System",
+  era: "Era",
+  historical_event: "Event",
+  calendar: "Calendar",
+  compendium_entry: "Compendium",
+  compendium_attachment: "Compendium",
+  twist: "Twist",
+  plot_thread: "Plot thread",
+  plot_thread_appearance: "Plot thread",
 };
 
 interface Batch {

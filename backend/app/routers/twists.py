@@ -11,6 +11,7 @@ from ..models.twist import Twist
 from ..models.user import User
 from ..schemas.ai_responses import StructuredResult, TwistAnalysisResponse
 from ..schemas.twist import TwistCreate, TwistOut, TwistUpdate
+from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
@@ -52,10 +53,22 @@ def create_twist(
     body: TwistCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
     twist = Twist(story_id=story_id, **body.model_dump())
     db.add(twist)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        twist,
+        "twists",
+        entity_type="twist",
+        story_id=story_id,
+        label=f"Add twist {twist.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(twist)
     return twist
@@ -76,9 +89,21 @@ def update_twist(
     body: TwistUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     twist = _verify_twist(twist_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        twist,
+        data,
+        entity_type="twist",
+        story_id=twist.story_id,
+        label=f"Edit {{fields}} on twist {twist.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(twist, key, value)
     db.commit()
     db.refresh(twist)
@@ -90,8 +115,19 @@ def delete_twist(
     twist_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     twist = _verify_twist(twist_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        twist,
+        "twists",
+        entity_type="twist",
+        story_id=twist.story_id,
+        label=f"Delete twist {twist.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(twist)
     db.commit()
 
@@ -291,10 +327,11 @@ def link_clue_to_scene(
     scene_id: str = Body(..., embed=True),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Link a clue to a specific scene node (or unlink by passing empty string)."""
     twist = _verify_twist(twist_id, db, current_user)
-    clues = list(twist.clues or [])
+    clues = [dict(c) for c in twist.clues or []]  # copies, so the before-image stays intact
     scene_title = None
     if scene_id:
         node = db.get(StructureNode, scene_id)
@@ -305,6 +342,16 @@ def link_clue_to_scene(
             c["node_id"] = scene_id or None
             c["scene_title"] = scene_title
             break
+    change_log.record_update(
+        db,
+        twist,
+        {"clues": clues},
+        entity_type="twist",
+        story_id=twist.story_id,
+        label=f"Link a clue on twist {twist.name}" if scene_id else f"Unlink a clue on twist {twist.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     twist.clues = clues
     db.commit()
     db.refresh(twist)

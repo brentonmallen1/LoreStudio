@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PlotThread, StructureNode } from "../../types";
 import styles from "./ThreadVisualization.module.css";
@@ -91,6 +92,10 @@ export default function ThreadVisualization({ storyId }: Props) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
+
+  useReloadOnUndo(["plot_thread", "plot_thread_appearance", "structure_node"], () =>
+    api.listThreads(storyId).then(setThreads),
+  );
 
   if (loading) return <div className={styles.loading}>Loading…</div>;
 

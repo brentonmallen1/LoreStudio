@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { Twist, TwistType, TwistStatus, TwistClue, StructureNode } from "../../types";
 import TwistClueEditor from "./TwistClueEditor";
 import TwistAnalysisPanel from "./TwistAnalysisPanel";
@@ -127,6 +128,8 @@ export default function TwistManager({ storyId }: Props) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
+
+  useReloadOnUndo(["twist"], () => api.listTwists(storyId).then(setTwists));
 
   async function handleCreate() {
     if (!newName.trim()) return;

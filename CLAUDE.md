@@ -161,7 +161,8 @@ Navigate from non-React code with `lib/navigation.ts` (`navigateTo`), never `win
 Server-side change log (`backend/app/services/change_log.py`, table `changes`). Any route that mutates
 story data records a change in the same transaction (`record`, `record_update`, `record_row_create`,
 `record_row_delete`, `capture_*`). Prose content edits are logged but not undoable (TipTap history).
-Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`.
+Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`
+through `useReloadOnUndo([entity types], reload)` (`reselect` re-points a selected row at the fresh list).
 
 ### Writer and Studio modes
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,

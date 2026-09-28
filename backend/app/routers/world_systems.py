@@ -7,6 +7,7 @@ from ..models.story import Story
 from ..models.user import User
 from ..models.world_system import PREDEFINED_SYSTEM_TYPES, WorldSystem
 from ..schemas.world_system import WorldSystemCreate, WorldSystemOut, WorldSystemUpdate
+from ..services import change_log
 
 router = APIRouter()
 
@@ -66,10 +67,22 @@ def create_world_system(
     body: WorldSystemCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     system = WorldSystem(story_id=story_id, **body.model_dump())
     db.add(system)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        system,
+        "world_systems",
+        entity_type="world_system",
+        story_id=story_id,
+        label=f"Add system {system.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(system)
     return system
@@ -90,9 +103,21 @@ def update_world_system(
     body: WorldSystemUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     system = _verify_system_access(system_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        system,
+        data,
+        entity_type="world_system",
+        story_id=system.story_id,
+        label=f"Edit {{fields}} on system {system.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(system, key, value)
     db.commit()
     db.refresh(system)
@@ -104,7 +129,18 @@ def delete_world_system(
     system_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     system = _verify_system_access(system_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        system,
+        "world_systems",
+        entity_type="world_system",
+        story_id=system.story_id,
+        label=f"Delete system {system.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(system)
     db.commit()

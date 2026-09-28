@@ -5,6 +5,7 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.story import Story
+from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.plot_thread import (
     PlotThreadAppearanceCreate,
@@ -13,6 +14,7 @@ from ..schemas.plot_thread import (
     PlotThreadOut,
     PlotThreadUpdate,
 )
+from ..services import change_log
 
 router = APIRouter()
 
@@ -32,6 +34,11 @@ def _verify_thread(thread_id: str, db: Session, user: User) -> PlotThread:
     return thread
 
 
+def _scene_title(node_id: str, db: Session) -> str:
+    node = db.get(StructureNode, node_id)
+    return (node.title if node else None) or "Untitled"
+
+
 @router.get("/stories/{story_id}/threads", response_model=list[PlotThreadOut])
 def list_threads(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     _verify_story(story_id, db, current_user)
@@ -44,10 +51,22 @@ def create_thread(
     body: PlotThreadCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
     thread = PlotThread(story_id=story_id, **body.model_dump())
     db.add(thread)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        thread,
+        "plot_threads",
+        entity_type="plot_thread",
+        story_id=story_id,
+        label=f"Add thread {thread.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(thread)
     return thread
@@ -59,9 +78,21 @@ def update_thread(
     body: PlotThreadUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     thread = _verify_thread(thread_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        thread,
+        data,
+        entity_type="plot_thread",
+        story_id=thread.story_id,
+        label=f"Edit {{fields}} on thread {thread.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(thread, key, value)
     db.commit()
     db.refresh(thread)
@@ -69,8 +100,25 @@ def update_thread(
 
 
 @router.delete("/threads/{thread_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_thread(thread_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def delete_thread(
+    thread_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
     thread = _verify_thread(thread_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=thread.story_id,
+        entity_type="plot_thread",
+        entity_id=thread.id,
+        action="delete",
+        before=change_log.capture_plot_thread(thread, db),
+        after=None,
+        label=f"Delete thread {thread.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(thread)
     db.commit()
 
@@ -83,8 +131,9 @@ def add_appearance(
     body: PlotThreadAppearanceCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_thread(thread_id, db, current_user)
+    thread = _verify_thread(thread_id, db, current_user)
     # Prevent duplicate appearances for same node
     existing = (
         db.query(PlotThreadAppearance)
@@ -98,6 +147,17 @@ def add_appearance(
         return existing
     appearance = PlotThreadAppearance(thread_id=thread_id, node_id=body.node_id, note=body.note)
     db.add(appearance)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        appearance,
+        "plot_thread_appearances",
+        entity_type="plot_thread_appearance",
+        story_id=thread.story_id,
+        label=f"Add {thread.name} to scene “{_scene_title(appearance.node_id, db)}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(appearance)
     return appearance
@@ -109,8 +169,9 @@ def remove_appearance(
     node_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_thread(thread_id, db, current_user)
+    thread = _verify_thread(thread_id, db, current_user)
     appearance = (
         db.query(PlotThreadAppearance)
         .filter(
@@ -120,5 +181,15 @@ def remove_appearance(
         .first()
     )
     if appearance:
+        change_log.record_row_delete(
+            db,
+            appearance,
+            "plot_thread_appearances",
+            entity_type="plot_thread_appearance",
+            story_id=thread.story_id,
+            label=f"Remove {thread.name} from scene “{_scene_title(node_id, db)}”",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
         db.delete(appearance)
         db.commit()

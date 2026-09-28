@@ -19,6 +19,7 @@ from ..schemas.compendium import (
     CompendiumNoteCreate,
     CompendiumUrlCreate,
 )
+from ..services import change_log
 
 router = APIRouter()
 
@@ -96,6 +97,7 @@ def create_note(
     body: CompendiumNoteCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     entry = CompendiumEntry(
@@ -108,6 +110,17 @@ def create_note(
         notes=body.notes,
     )
     db.add(entry)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        entry,
+        "compendium_entries",
+        entity_type="compendium_entry",
+        story_id=story_id,
+        label=f"Add note “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(entry)
     return entry
@@ -121,6 +134,7 @@ async def create_url(
     body: CompendiumUrlCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
 
@@ -147,6 +161,17 @@ async def create_url(
         notes=body.notes,
     )
     db.add(entry)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        entry,
+        "compendium_entries",
+        entity_type="compendium_entry",
+        story_id=story_id,
+        label=f"Add link “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(entry)
     return entry
@@ -160,6 +185,7 @@ def create_document(
     body: CompendiumDocumentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story_access(story_id, db, current_user)
     asset = db.get(StoryAsset, body.asset_id)
@@ -175,6 +201,17 @@ def create_document(
         notes=body.notes,
     )
     db.add(entry)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        entry,
+        "compendium_entries",
+        entity_type="compendium_entry",
+        story_id=story_id,
+        label=f"Add document “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(entry)
     return entry
@@ -237,9 +274,21 @@ def update_entry(
     body: CompendiumEntryUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     entry = _verify_entry_access(entry_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        entry,
+        data,
+        entity_type="compendium_entry",
+        story_id=entry.story_id,
+        label=f"Edit {{fields}} on “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(entry, key, value)
     db.commit()
     db.refresh(entry)
@@ -251,8 +300,21 @@ def delete_entry(
     entry_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     entry = _verify_entry_access(entry_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=entry.story_id,
+        entity_type="compendium_entry",
+        entity_id=entry.id,
+        action="delete",
+        before=change_log.capture_compendium_entry(entry, db),
+        after=None,
+        label=f"Delete “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(entry)
     db.commit()
 
@@ -265,14 +327,29 @@ async def refresh_url(
     entry_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     entry = _verify_entry_access(entry_id, db, current_user)
     if entry.entry_type != "url" or not entry.url:
         raise HTTPException(status_code=400, detail="Entry is not a URL type")
     meta = await _fetch_url_metadata(entry.url)
-    entry.url_title = meta.get("title") or entry.url_title
-    entry.url_description = meta.get("description") or entry.url_description
-    entry.url_fetched_at = datetime.now(UTC)
+    data = {
+        "url_title": meta.get("title") or entry.url_title,
+        "url_description": meta.get("description") or entry.url_description,
+    }
+    change_log.record_update(
+        db,
+        entry,
+        data,
+        entity_type="compendium_entry",
+        story_id=entry.story_id,
+        label=f"Refresh link “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
+        setattr(entry, key, value)
+    entry.url_fetched_at = datetime.now(UTC)  # bookkeeping, not an edit: left out of the change
     db.commit()
     db.refresh(entry)
     return entry
@@ -289,8 +366,9 @@ def attach_entry(
     body: CompendiumAttachBody,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_entry_access(entry_id, db, current_user)
+    entry = _verify_entry_access(entry_id, db, current_user)
     # Prevent duplicate attachments
     existing = (
         db.query(CompendiumAttachment)
@@ -310,6 +388,17 @@ def attach_entry(
         note=body.note,
     )
     db.add(attachment)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        attachment,
+        "compendium_attachments",
+        entity_type="compendium_attachment",
+        story_id=entry.story_id,
+        label=f"Attach “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(attachment)
     return attachment
@@ -346,10 +435,21 @@ def delete_attachment(
     attachment_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     attachment = db.get(CompendiumAttachment, attachment_id)
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    _verify_entry_access(attachment.entry_id, db, current_user)
+    entry = _verify_entry_access(attachment.entry_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        attachment,
+        "compendium_attachments",
+        entity_type="compendium_attachment",
+        story_id=entry.story_id,
+        label=f"Detach “{entry.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(attachment)
     db.commit()

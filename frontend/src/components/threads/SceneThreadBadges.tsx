@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { PlotThread } from "../../types";
 import styles from "./SceneThreadBadges.module.css";
 
@@ -21,6 +22,10 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [storyId]);
+
+  useReloadOnUndo(["plot_thread", "plot_thread_appearance", "structure_node"], () =>
+    api.listThreads(storyId).then(setThreads),
+  );
 
   const activeThreads = threads.filter((t) => t.appearances.some((a) => a.node_id === nodeId));
   const inactiveThreads = threads.filter((t) => !t.appearances.some((a) => a.node_id === nodeId));

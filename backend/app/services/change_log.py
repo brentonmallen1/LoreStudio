@@ -13,6 +13,7 @@ change regardless of origin (the Activity page uses this).
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -20,17 +21,23 @@ from fastapi import Header
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..models.calendar import Calendar
 from ..models.change import Change
 from ..models.character import Character, CharacterRelationship
+from ..models.compendium import CompendiumAttachment, CompendiumEntry
+from ..models.culture import Culture
 from ..models.dialogue import DialogueBlock
+from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, SceneSetting
 from ..models.outline import Outline, OutlineItem
-from ..models.plot_thread import PlotThreadAppearance
+from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.todo import StoryTodo
+from ..models.twist import Twist
+from ..models.world_system import WorldSystem
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
 ENTITY_MODELS: dict[str, type] = {
@@ -42,6 +49,16 @@ ENTITY_MODELS: dict[str, type] = {
     "story": Story,
     "location": Location,
     "todo": StoryTodo,
+    "culture": Culture,
+    "world_system": WorldSystem,
+    "era": Era,
+    "historical_event": HistoricalEvent,
+    "calendar": Calendar,
+    "compendium_entry": CompendiumEntry,
+    "compendium_attachment": CompendiumAttachment,
+    "twist": Twist,
+    "plot_thread": PlotThread,
+    "plot_thread_appearance": PlotThreadAppearance,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -50,6 +67,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "structure_nodes": StructureNode,
     "scene_settings": SceneSetting,
     "scene_links": SceneLink,
+    "plot_threads": PlotThread,
     "plot_thread_appearances": PlotThreadAppearance,
     "dialogue_blocks": DialogueBlock,
     "characters": Character,
@@ -58,6 +76,14 @@ BUNDLE_MODELS: dict[str, type] = {
     "outlines": Outline,
     "outline_items": OutlineItem,
     "story_todos": StoryTodo,
+    "cultures": Culture,
+    "world_systems": WorldSystem,
+    "calendars": Calendar,
+    "eras": Era,
+    "historical_events": HistoricalEvent,
+    "compendium_entries": CompendiumEntry,
+    "compendium_attachments": CompendiumAttachment,
+    "twists": Twist,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000
@@ -274,7 +300,7 @@ def record_update(db: Session, obj, data: dict, *, entity_type: str, story_id: s
             action="update",
             before=before,
             after=after,
-            label=label.format(fields=", ".join(sorted(after))),
+            label=label.replace("{fields}", ", ".join(sorted(after))),  # not format(): names may hold braces
             actor_id=actor_id,
             client_id=client_id,
         )
@@ -319,6 +345,33 @@ def record_row_create(
 def capture_outline(outline: Outline, db: Session) -> dict[str, list[dict]]:
     items = db.query(OutlineItem).filter(OutlineItem.outline_id == outline.id).all()
     return {"outlines": [_row(outline)], "outline_items": [_row(i) for i in items]}
+
+
+def capture_era(era: Era, db: Session) -> dict[str, list[dict]]:
+    events = db.query(HistoricalEvent).filter(HistoricalEvent.era_id == era.id).all()
+    return {"eras": [_row(era)], "historical_events": [_row(e) for e in events]}
+
+
+def capture_compendium_entry(entry: CompendiumEntry, db: Session) -> dict[str, list[dict]]:
+    attachments = db.query(CompendiumAttachment).filter(CompendiumAttachment.entry_id == entry.id).all()
+    return {"compendium_entries": [_row(entry)], "compendium_attachments": [_row(a) for a in attachments]}
+
+
+def capture_plot_thread(thread: PlotThread, db: Session) -> dict[str, list[dict]]:
+    appearances = db.query(PlotThreadAppearance).filter(PlotThreadAppearance.thread_id == thread.id).all()
+    return {"plot_threads": [_row(thread)], "plot_thread_appearances": [_row(a) for a in appearances]}
+
+
+#: Models whose delete takes child rows with it; everything else is a single-row bundle.
+_CAPTURES: dict[type, Callable[[Any, Session], dict[str, list[dict]]]] = {
+    StructureNode: capture_node_tree,
+    Character: capture_character,
+    Outline: capture_outline,
+    Location: capture_location,
+    Era: capture_era,
+    CompendiumEntry: capture_compendium_entry,
+    PlotThread: capture_plot_thread,
+}
 
 
 # ── Applying inverses ────────────────────────────────────────────────────────────
@@ -391,14 +444,9 @@ def _capture_current(model, entity_id: str, db: Session) -> dict[str, list[dict]
     obj = db.get(model, entity_id)
     if obj is None:
         return None
-    if model is StructureNode:
-        return capture_node_tree(obj, db)
-    if model is Character:
-        return capture_character(obj, db)
-    if model is Outline:
-        return capture_outline(obj, db)
-    if model is Location:
-        return capture_location(obj, db)
+    capture = _CAPTURES.get(model)
+    if capture is not None:
+        return capture(obj, db)
     table = next((t for t, m in BUNDLE_MODELS.items() if m is model), None)
     return {table: [_row(obj)]} if table else None
 

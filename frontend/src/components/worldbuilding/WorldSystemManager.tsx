@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Zap, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
+import { reselect, useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { WorldSystem } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
@@ -39,6 +40,13 @@ export default function WorldSystemManager({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useReloadOnUndo(["world_system"], () =>
+    api.listWorldSystems(storyId).then((rows) => {
+      setSystems(rows);
+      setSelected((prev) => reselect(prev, rows));
+    }),
+  );
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;

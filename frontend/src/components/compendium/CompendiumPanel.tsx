@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, BookOpen, FileText, Link, File } from "lucide-react";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { CompendiumEntrySummary, CompendiumEntry } from "../../types";
 import CompendiumEntryCard from "./CompendiumEntryCard";
 import CompendiumCreateDialog from "./CompendiumCreateDialog";
@@ -38,6 +39,12 @@ export default function CompendiumPanel({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [storyId, filter]);
+
+  useReloadOnUndo(["compendium_entry", "compendium_attachment"], () => {
+    load();
+    if (selectedEntry)
+      api.getCompendiumEntry(selectedEntry.id).then(setSelectedEntry, () => setSelectedEntry(null));
+  });
 
   const displayed = search
     ? entries.filter((e) => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
 import { ApiError, MUTATION_EVENT } from "../api/request";
 import { toolsApi, type UndoResult, type UndoState } from "../api/tools";
@@ -6,6 +6,35 @@ import { useStoryStore } from "../stores/storyStore";
 
 /** Components that keep their own copy of story data listen for this and reload. */
 export const UNDO_APPLIED_EVENT = "ls:undo-applied";
+
+/**
+ * Re-run `reload` after an undo or redo that touched one of `entityTypes`, for components
+ * that hold their own copy of the rows. An event with no entity type reloads too. `reload`
+ * may return a promise; its rejection is swallowed.
+ */
+export function useReloadOnUndo(entityTypes: readonly string[], reload: () => unknown) {
+  const reloadRef = useRef(reload);
+  useEffect(() => {
+    reloadRef.current = reload;
+  });
+  const key = entityTypes.join(",");
+  useEffect(() => {
+    const types = key.split(",");
+    const onUndo = (e: Event) => {
+      const d = (e as CustomEvent).detail as { entity_type?: string } | undefined;
+      if (d?.entity_type && !types.includes(d.entity_type)) return;
+      // A failed reload keeps what is on screen; the next edit or visit fetches again.
+      Promise.resolve(reloadRef.current()).catch(() => {});
+    };
+    window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
+    return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
+  }, [key]);
+}
+
+/** The fresh copy of a selected row after a reload, or null when undo removed it. */
+export function reselect<T extends { id: string }>(prev: T | null, rows: T[]): T | null {
+  return prev ? (rows.find((r) => r.id === prev.id) ?? null) : null;
+}
 
 const EMPTY: UndoState = { can_undo: false, undo_label: null, can_redo: false, redo_label: null };
 

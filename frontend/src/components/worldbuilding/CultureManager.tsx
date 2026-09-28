@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Plus, Users, Trash2, Compass } from "lucide-react";
 import { api } from "../../api/client";
+import { reselect, useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { Culture } from "../../types";
 import { SectionCard } from "../common";
 import styles from "./WorldBuilding.module.css";
@@ -31,6 +32,13 @@ export default function CultureManager({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useReloadOnUndo(["culture"], () =>
+    api.listCultures(storyId).then((rows) => {
+      setCultures(rows);
+      setSelected((prev) => reselect(prev, rows));
+    }),
+  );
 
   function scheduleUpdate(field: string, value: unknown) {
     if (!selected) return;
