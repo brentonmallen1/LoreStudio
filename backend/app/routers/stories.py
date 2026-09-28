@@ -12,11 +12,19 @@ from ..models.character import Character, CharacterRelationship
 from ..models.interview import CharacterInterview
 from ..models.plot_thread import PlotThread
 from ..models.story import Story
-from ..models.structure import StructureNode
+from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
 from ..schemas.character import CharacterCreate, RelationshipOut
-from ..schemas.story import StoryCreate, StoryGoalCreate, StoryGoalUpdate, StoryOut, StoryOverview, StoryUpdate
+from ..schemas.story import (
+    StoryCreate,
+    StoryCreated,
+    StoryGoalCreate,
+    StoryGoalUpdate,
+    StoryOut,
+    StoryOverview,
+    StoryUpdate,
+)
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
 from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
@@ -24,6 +32,7 @@ from ..services.llm.prompts.generation import build_relationship_suggestion_prom
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
+from ..services.structure_scaffold import scaffold_story
 from ..services.word_count import get_word_count_status
 
 router = APIRouter()
@@ -34,13 +43,17 @@ def list_stories(db: Session = Depends(get_db), current_user: User = Depends(get
     return db.query(Story).filter(Story.user_id == current_user.id).order_by(Story.updated_at.desc()).all()
 
 
-@router.post("", response_model=StoryOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=StoryCreated, status_code=status.HTTP_201_CREATED)
 def create_story(body: StoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    story = Story(user_id=current_user.id, **body.model_dump())
+    story = Story(user_id=current_user.id, **body.model_dump(exclude={"scaffold"}))
     db.add(story)
+    db.flush()
+    start = None
+    if body.scaffold:
+        start = scaffold_story(story.id, db.get(StoryStructureTemplate, story.structure_template_id), db)
     db.commit()
     db.refresh(story)
-    return story
+    return StoryCreated.model_validate(story).model_copy(update={"start_node_id": start.id if start else None})
 
 
 @router.get("/{story_id}", response_model=StoryOut)
@@ -474,6 +487,48 @@ def create_structure_node(
     db.commit()
     db.refresh(node)
     return node
+
+
+@router.post("/{story_id}/structure/start")
+def start_structure(
+    story_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """
+    Lay out an empty story's first outline from its template, and say where to write.
+
+    The Write page's empty state calls this, so a story that has nothing yet is one click
+    from a scene. One undo removes the whole outline.
+    """
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    if db.query(StructureNode.id).filter(StructureNode.story_id == story_id).first():
+        raise HTTPException(status_code=409, detail="This story already has an outline")
+    start = scaffold_story(story_id, db.get(StoryStructureTemplate, story.structure_template_id), db)
+    if start is None:  # a template with no levels: one scene is still somewhere to write
+        start = StructureNode(story_id=story_id, level=0, level_type="scene", title="Scene 1", position=0)
+        db.add(start)
+        db.flush()
+    batch = str(uuid.uuid4())
+    for top in db.query(StructureNode).filter(StructureNode.story_id == story_id, StructureNode.parent_id.is_(None)):
+        change_log.record(
+            db,
+            story_id=story_id,
+            entity_type="structure_node",
+            entity_id=top.id,
+            action="create",
+            before=None,
+            after=change_log.capture_node_tree(top, db),
+            label="Start the outline",
+            actor_id=current_user.id,
+            client_id=client_id,
+            batch_id=batch,
+        )
+    db.commit()
+    return {"start_node_id": start.id}
 
 
 @router.post("/{story_id}/structure/reorder", status_code=status.HTTP_204_NO_CONTENT)

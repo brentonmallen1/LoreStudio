@@ -471,6 +471,11 @@
   background: var(--color-danger);
 }
 
+/* Never backed up: a brand-new story, not an emergency. */
+.dotNone {
+  background: var(--color-text-subtle);
+}
+
 /* ── Responsive adaptations ── */
 @media (max-width: 640px) {
   .header {

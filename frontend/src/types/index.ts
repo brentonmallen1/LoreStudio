@@ -86,6 +86,8 @@ export interface StoryStructureTemplate {
   levels: { name: string; plural: string }[];
   is_system: boolean;
   user_id: string | null;
+  /** Top-level titles a new story with this template starts with. */
+  starter_outline: string[];
 }
 
 export interface InlineNote {

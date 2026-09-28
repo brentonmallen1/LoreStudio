@@ -303,11 +303,14 @@
   color: var(--color-accent);
 }
 
+/* Opens rightward, over the editor: right-aligned it hung off the panel's left edge. */
 .addMenu {
   position: absolute;
   top: calc(100% + 4px);
-  right: 0;
-  min-width: 160px;
+  left: 0;
+  width: max-content;
+  min-width: 190px;
+  max-width: 280px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -343,11 +346,19 @@
   cursor: not-allowed;
 }
 
-.addMenuHint {
-  margin-left: auto;
-  font-size: 10px;
-  color: var(--color-text-muted);
+.addMenuLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
   white-space: nowrap;
+}
+
+.addMenuHint {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Inline add input (top of tree) */

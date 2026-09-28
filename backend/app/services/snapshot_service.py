@@ -7,6 +7,7 @@ from typing import Any
 
 from sqlalchemy import DateTime as SA_DateTime
 from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..config import settings as app_settings
@@ -244,11 +245,24 @@ def _insert_ordered_tree(model_class, records: list[dict], db: Session) -> None:
 
 
 def _get_or_create_settings(story_id: str, db: Session) -> StoryBackupSettings:
-    settings = db.query(StoryBackupSettings).filter(StoryBackupSettings.story_id == story_id).first()
-    if not settings:
-        settings = StoryBackupSettings(story_id=story_id)
-        db.add(settings)
-        db.flush()
+    """
+    The story's backup settings row, created on first use.
+
+    Opening a story fires two requests that both land here first (the workspace's
+    auto-backup check and the header's status), and both used to insert: the loser hit
+    the UNIQUE constraint on story_id and returned a 500. The insert now runs in a
+    savepoint, and losing the race just means reading the row the other request wrote.
+    """
+    query = db.query(StoryBackupSettings).filter(StoryBackupSettings.story_id == story_id)
+    settings = query.first()
+    if settings:
+        return settings
+    try:
+        with db.begin_nested():
+            settings = StoryBackupSettings(story_id=story_id)
+            db.add(settings)
+    except IntegrityError:
+        settings = query.one()
     return settings
 
 

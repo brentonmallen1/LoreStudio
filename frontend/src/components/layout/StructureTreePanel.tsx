@@ -7,6 +7,7 @@ import { useUIStore } from "../../stores/uiStore";
 import type { StructureNode } from "../../types";
 import NodeItem from "./StructureTreeNode";
 import {
+  parentForLevel,
   findNode,
   flattenPositions,
   getSegmentIcon,
@@ -129,15 +130,20 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
       });
       setStructure([...structure, { ...node, children: [] }]);
     } else {
-      if (!activeNode) return;
+      const parent = parentForLevel(structure, addingLevel, activeNode);
+      if (!parent) return;
       const node = await api.createNode(storyId, {
         title: newTitle.trim(),
-        parent_id: activeNode.id,
+        parent_id: parent.id,
         level: addingLevel,
         level_type: levelDef.name.toLowerCase(),
-        position: activeNode.children?.length ?? 0,
+        position: parent.children?.length ?? 0,
       });
-      setStructure(insertNodeIntoTree(structure, activeNode.id, { ...node, children: [] }));
+      setStructure(insertNodeIntoTree(structure, parent.id, { ...node, children: [] }));
+      // A new scene is somewhere to write: open it.
+      if (addingLevel === (activeTemplate?.levels.length ?? 0) - 1) {
+        useStoryStore.getState().setActiveNode({ ...node, children: [] });
+      }
     }
     setNewTitle("");
     setAddingLevel(null);
@@ -217,9 +223,15 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
             {showAddMenu && (
               <div className={styles.addMenu}>
                 {activeTemplate?.levels.map((level, idx) => {
-                  const enabled = idx === 0 || activeNode?.level === idx - 1;
+                  const parent = parentForLevel(structure, idx, activeNode);
+                  const enabled = idx === 0 || !!parent;
+                  const above = activeTemplate.levels[idx - 1]?.name.toLowerCase() ?? "";
                   const hint =
-                    idx > 0 && !enabled ? `Select a ${activeTemplate.levels[idx - 1].name} first` : undefined;
+                    idx === 0
+                      ? undefined
+                      : parent
+                        ? `in ${parent.title}`
+                        : `Add ${/^[aeiou]/.test(above) ? "an" : "a"} ${above} first`;
                   const Icon = getSegmentIcon(level.name.toLowerCase());
                   return (
                     <button
@@ -235,8 +247,10 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
                       disabled={!enabled}
                     >
                       <Icon size={11} style={{ color: segmentColor(level.name.toLowerCase()) }} />
-                      <span>Add {level.name}</span>
-                      {hint && <span className={styles.addMenuHint}>{hint}</span>}
+                      <span className={styles.addMenuLabel}>
+                        <span>Add {level.name}</span>
+                        {hint && <span className={styles.addMenuHint}>{hint}</span>}
+                      </span>
                     </button>
                   );
                 })}
@@ -311,14 +325,14 @@ export default function StructureTreePanel({ onMouseLeave, onMouseEnter, overlay
               placeholder={
                 addingLevel === 0
                   ? `${activeTemplate?.levels[0]?.name ?? "Section"} title…`
-                  : `${activeTemplate?.levels[addingLevel]?.name ?? "Node"} title (under "${activeNode?.title}")…`
+                  : `${activeTemplate?.levels[addingLevel]?.name ?? "Node"} title (in ${parentForLevel(structure, addingLevel, activeNode)?.title ?? "…"})…`
               }
               className={styles.addInput}
             />
           </div>
         )}
         {structure.length === 0 && addingLevel === null && (
-          <p className={styles.emptyHint}>No sections yet</p>
+          <p className={styles.emptyHint}>Nothing here yet. Start writing opens a first outline.</p>
         )}
         {structure.map((node) => (
           <NodeItem

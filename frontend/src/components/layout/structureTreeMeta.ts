@@ -130,3 +130,34 @@ export function visibleIds(nodes: StructureNode[], collapsed: Set<string>): stri
   nodes.forEach(walk);
   return out;
 }
+
+/**
+ * Where a new node at `level` goes: the selected node when it sits one level up, the
+ * selected node's ancestor at that level when the selection is deeper, or else the last
+ * node at that level. Null when the story has nothing at that level to hold it.
+ *
+ * "Add Chapter" used to be disabled until an act was selected, so adding the first
+ * chapter took a detour through the tree.
+ */
+export function parentForLevel(
+  nodes: StructureNode[],
+  level: number,
+  selected: StructureNode | null,
+): StructureNode | null {
+  if (level === 0) return null;
+  const want = level - 1;
+  if (selected) {
+    let at: StructureNode | undefined = findNode(nodes, selected.id) ?? selected;
+    while (at && at.level > want) at = at.parent_id ? findNode(nodes, at.parent_id) : undefined;
+    if (at && at.level === want) return at;
+  }
+  let last: StructureNode | null = null;
+  const walk = (list: StructureNode[]) => {
+    for (const n of list) {
+      if (n.level === want) last = n;
+      walk(n.children ?? []);
+    }
+  };
+  walk(nodes);
+  return last;
+}

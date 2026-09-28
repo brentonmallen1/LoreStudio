@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
+import { findNode } from "../components/layout/structureTreeMeta";
+import { rememberScene, sceneToResume } from "../lib/resumeScene";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
@@ -43,8 +45,15 @@ const LocationSheet = lazy(() => import("./LocationSheet"));
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { setActiveStory, setStructure, setCharacters, setActiveTemplate, setBeatSheets, structure } =
-    useStoryStore();
+  const {
+    setActiveStory,
+    setStructure,
+    setCharacters,
+    setActiveTemplate,
+    setBeatSheets,
+    setActiveNode,
+    structure,
+  } = useStoryStore();
   const location = useLocation();
   const onWriteTab = location.pathname.endsWith("/write");
   const {
@@ -56,7 +65,6 @@ export default function StoryWorkspacePage() {
     closeStorySearch,
     openStorySearch,
   } = useUIStore();
-  const { setActiveNode } = useStoryStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
   const [sidebarRevealed, setSidebarRevealed] = useState(false);
@@ -75,6 +83,13 @@ export default function StoryWorkspacePage() {
       .then(([story, structure, characters, templates, beatSheets]) => {
         setActiveStory(story);
         setStructure(structure);
+        // Open the scene a link names, keep one already open in this story, or resume
+        // where the author left off (lib/resumeScene.ts). Read once, at load.
+        const requested = new URLSearchParams(window.location.search).get("node");
+        const current = useStoryStore.getState().activeNode;
+        const keep = current?.story_id === storyId && findNode(structure, current.id);
+        if (requested || !keep) setActiveNode(sceneToResume(storyId, structure, requested));
+        if (requested) navigate({ search: "" }, { replace: true });
         setCharacters(characters);
         setBeatSheets(beatSheets);
         const tmpl = templates.find((t) => t.id === story.structure_template_id) ?? null;
@@ -82,7 +97,13 @@ export default function StoryWorkspacePage() {
       })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, navigate]);
+  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, setActiveNode, navigate]);
+
+  // Remember the open scene per story, so the Write page reopens it next time.
+  const activeNode = useStoryStore((s) => s.activeNode);
+  useEffect(() => {
+    if (storyId && activeNode?.story_id === storyId) rememberScene(storyId, activeNode.id);
+  }, [storyId, activeNode]);
 
   // Auto-backup: check on load, then every 5 minutes while the story is open
   useEffect(() => {

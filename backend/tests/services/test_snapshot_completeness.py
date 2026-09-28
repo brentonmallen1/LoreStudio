@@ -81,3 +81,30 @@ def test_restore_via_api(client, db_session, test_user):
     assert snap.status_code == 200, snap.text
     r = client.post(f"/api/stories/{sid}/snapshots/{snap.json()['id']}/restore", json={"create_safety_backup": True})
     assert r.status_code == 200, r.text
+
+
+def test_backup_settings_survive_two_first_requests(db_session, test_user):
+    """
+    Opening a story sent two requests that both created its backup settings; the second
+    hit the UNIQUE constraint and returned a 500. Losing the race now reads the winner's row.
+    """
+    from unittest.mock import patch
+
+    from sqlalchemy.orm import Query
+
+    from app.models.snapshot import StoryBackupSettings
+    from app.models.story import Story
+    from app.services.snapshot_service import _get_or_create_settings
+
+    story = Story(title="Race", user_id=test_user.id)
+    db_session.add(story)
+    db_session.flush()
+    winner = StoryBackupSettings(story_id=story.id)
+    db_session.add(winner)
+    db_session.commit()
+
+    # This request looked before the other one's row existed.
+    with patch.object(Query, "first", return_value=None):
+        got = _get_or_create_settings(story.id, db_session)
+    assert got.id == winner.id
+    assert db_session.query(StoryBackupSettings).filter_by(story_id=story.id).count() == 1

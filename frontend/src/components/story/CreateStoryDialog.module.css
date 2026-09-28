@@ -116,3 +116,24 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.scaffold {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.84rem;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.scaffold input {
+  margin-top: 0.2rem;
+}
+
+.scaffoldHint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}

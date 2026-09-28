@@ -16,6 +16,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [templateId, setTemplateId] = useState("freeform");
+  const [scaffold, setScaffold] = useState(true);
   const [templates, setTemplates] = useState<StoryStructureTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -35,9 +36,15 @@ export default function CreateStoryDialog({ onClose }: Props) {
         title: title.trim(),
         description,
         structure_template_id: templateId,
+        scaffold,
       });
       upsertStory(story);
-      navigate(`/stories/${story.id}`);
+      // Straight into the first scene of the new outline, ready to type.
+      navigate(
+        story.start_node_id
+          ? `/stories/${story.id}/write?node=${story.start_node_id}`
+          : `/stories/${story.id}`,
+      );
     } finally {
       setLoading(false);
     }
@@ -133,6 +140,20 @@ export default function CreateStoryDialog({ onClose }: Props) {
               <p className={styles.templateHint}>{selectedTemplate.description}</p>
             )}
           </div>
+
+          {!!selectedTemplate?.starter_outline?.length && (
+            <label className={styles.scaffold}>
+              <input type="checkbox" checked={scaffold} onChange={(e) => setScaffold(e.target.checked)} />
+              <span>
+                Start with an outline
+                <span className={styles.scaffoldHint}>
+                  {selectedTemplate.starter_outline.join(" · ")}, with a first{" "}
+                  {selectedTemplate.levels[selectedTemplate.levels.length - 1].name.toLowerCase()} ready to
+                  write in. Rename, move or delete any of it.
+                </span>
+              </span>
+            </label>
+          )}
         </form>
       </Modal>
     </>

@@ -40,10 +40,17 @@ export default function Modal({
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement;
-      // Focus the dialog on next tick so it's in the DOM
+      // Focus the dialog on next tick so it's in the DOM. A field that already took focus
+      // (autoFocus) keeps it; otherwise the first field, not the header's close button —
+      // "New Story" used to open with the cursor on ✕ instead of in Title.
       requestAnimationFrame(() => {
-        const firstFocusable = dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE);
-        (firstFocusable ?? dialogRef.current)?.focus();
+        const dialog = dialogRef.current;
+        if (!dialog || dialog.contains(document.activeElement)) return;
+        const field = dialog.querySelector<HTMLElement>(
+          "input:not([disabled]):not([type=hidden]), textarea:not([disabled]), select:not([disabled])",
+        );
+        const firstFocusable = dialog.querySelector<HTMLElement>(FOCUSABLE);
+        (field ?? firstFocusable ?? dialog).focus();
       });
     } else {
       previousFocusRef.current?.focus();

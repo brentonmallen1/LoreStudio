@@ -5,6 +5,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Typography from "@tiptap/extension-typography";
 import { X } from "lucide-react";
+import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
@@ -43,6 +44,7 @@ import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
+import EmptyManuscript from "./EmptyManuscript";
 import styles from "./SceneEditor.module.css";
 
 const SELECTION_DEBOUNCE_MS = 400;
@@ -66,8 +68,6 @@ export default function SceneEditor() {
     closeWritingGuides,
     storySummaryOpen,
     closeStorySummary,
-    treeDetached,
-    setTreeDetached,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
@@ -136,11 +136,31 @@ export default function SceneEditor() {
     activeNode?.id,
   );
 
-  // Load the active node's content into the editor when the selection changes
+  // Load the active node's content into the editor when the selection changes.
+  // A node from the tree listing carries no prose (StructureNodeMeta), and resuming or
+  // "Continue writing" can hand one over: fetch the full node rather than show — and
+  // risk saving — an empty scene.
+  const needsProse = !!activeNode && activeNode.content === undefined;
   useEffect(() => {
     if (!editor || !activeNode) return;
+    if (needsProse) {
+      const id = activeNode.id;
+      api.getNode(id).then((full) => {
+        if (useStoryStore.getState().activeNode?.id === id) setActiveNode(full);
+      });
+      return;
+    }
     if (editor.getHTML() !== activeNode.content) editor.commands.setContent(activeNode.content ?? "");
-  }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeNode?.id, needsProse, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // An empty scene is somewhere to type: put the cursor there. A new story used to open
+  // its first scene with the cursor nowhere, so the first words went missing. A scene
+  // with text keeps focus where it was, so arrowing through the tree still works.
+  useEffect(() => {
+    if (!editor || !activeNode || !editor.isEmpty) return;
+    const frame = requestAnimationFrame(() => editor.commands.focus("end"));
+    return () => cancelAnimationFrame(frame);
+  }, [editor, activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setInlineImageInsertCallback(() => setImagePickerOpen(true));
@@ -193,19 +213,7 @@ export default function SceneEditor() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [editor, activeNode?.id, activeStory?.id, aiAvailable]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!activeNode) {
-    return (
-      <div className={styles.empty}>
-        {treeDetached ? (
-          <p className={styles.emptyText}>Pick a section in the structure tree to begin writing.</p>
-        ) : (
-          <button className={styles.emptyAction} onClick={() => setTreeDetached(true)}>
-            Show the structure tree to pick a section
-          </button>
-        )}
-      </div>
-    );
-  }
+  if (!activeNode) return <EmptyManuscript />;
 
   function applyUpdated(updated: Partial<typeof activeNode> & { content?: string }) {
     if (!activeNode) return;

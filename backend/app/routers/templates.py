@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
+from ..services.structure_scaffold import starter_titles
 
 router = APIRouter()
 
@@ -19,6 +20,12 @@ class TemplateOut(BaseModel):
     user_id: str | None = None
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def starter_outline(self) -> list[str]:
+        """What a new story with this template starts with (services/structure_scaffold.py)."""
+        return starter_titles(self.id, self.levels)
 
 
 class TemplateCreate(BaseModel):

@@ -16,8 +16,13 @@ export function getClientId(): string {
   }
 }
 
-/** Fired after every non-GET request completes, so undo state and lists can refresh. */
+/**
+ * Fired after every non-GET request completes, so undo state and lists can refresh.
+ * `detail.path` is the request path, for listeners that only care about some of them.
+ */
 export const MUTATION_EVENT = "ls:mutation";
+
+export type MutationEventDetail = { path: string };
 
 export function getToken() {
   return localStorage.getItem("ls_token");
@@ -64,7 +69,8 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   }
 
   const method = (init.method ?? "GET").toUpperCase();
-  if (method !== "GET") window.dispatchEvent(new Event(MUTATION_EVENT));
+  if (method !== "GET")
+    window.dispatchEvent(new CustomEvent<MutationEventDetail>(MUTATION_EVENT, { detail: { path } }));
   if (res.status === 204) return undefined as T;
   return res.json();
 }

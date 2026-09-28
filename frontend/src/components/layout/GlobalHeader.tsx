@@ -31,6 +31,7 @@ import type {
 import { useAIStore } from "../../stores/aiStore";
 import { hasScratchPadContent } from "../common/ScratchPadDrawer";
 import { api } from "../../api/client";
+import { MUTATION_EVENT, type MutationEventDetail } from "../../api/request";
 import type { BackupStatus } from "../../types";
 import styles from "./GlobalHeader.module.css";
 import { relativeTime } from "../../utils/relativeTime";
@@ -118,7 +119,21 @@ export default function GlobalHeader() {
         .then(setBackupStatus)
         .catch(() => {});
     }, 60_000);
-    return () => clearInterval(interval);
+    // A backup made now (the workspace's check on open, a manual snapshot) shows now. The
+    // chip used to say "No backup" for up to a minute after the first one was written.
+    const onMutation = (e: Event) => {
+      const path = (e as CustomEvent<MutationEventDetail>).detail?.path ?? "";
+      if (path.includes("/snapshots"))
+        api
+          .getBackupStatus(storyId)
+          .then(setBackupStatus)
+          .catch(() => {});
+    };
+    window.addEventListener(MUTATION_EVENT, onMutation);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener(MUTATION_EVENT, onMutation);
+    };
   }, [storyId]);
 
   // Cmd+/ to toggle assistant
@@ -226,13 +241,13 @@ export default function GlobalHeader() {
         {storyId && (
           <button
             className={`${styles.backupIndicator} ${
-              backupStatus
-                ? backupStatus.staleness === "fresh"
+              !backupStatus?.last_backup_at
+                ? ""
+                : backupStatus.staleness === "fresh"
                   ? styles.backupFresh
                   : backupStatus.staleness === "stale"
                     ? styles.backupStale
                     : styles.backupOverdue
-                : ""
             }`}
             onClick={() => navigate(`/stories/${storyId}/versions`)}
             title={
@@ -245,17 +260,17 @@ export default function GlobalHeader() {
             {backupStatus?.last_backup_at ? (
               <span>{relativeTime(backupStatus.last_backup_at)}</span>
             ) : !backupStatus ? null : (
-              <span>No backup</span>
+              <span>Not backed up yet</span>
             )}
             <span
               className={`${styles.backupDot} ${
-                backupStatus
-                  ? backupStatus.staleness === "fresh"
+                !backupStatus?.last_backup_at
+                  ? styles.dotNone
+                  : backupStatus.staleness === "fresh"
                     ? styles.dotFresh
                     : backupStatus.staleness === "stale"
                       ? styles.dotStale
                       : styles.dotOverdue
-                  : styles.dotOverdue
               }`}
             />
           </button>

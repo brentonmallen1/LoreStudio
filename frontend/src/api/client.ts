@@ -18,7 +18,12 @@ export const api = {
     description?: string;
     intent?: string;
     structure_template_id?: string;
-  }) => request<import("../types").Story>("/stories", { method: "POST", body: JSON.stringify(data) }),
+    scaffold?: boolean;
+  }) =>
+    request<import("../types").Story & { start_node_id: string | null }>("/stories", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   getStory: (id: string) => request<import("../types").Story>(`/stories/${id}`),
   updateStory: (id: string, data: Partial<import("../types").Story>) =>
     request<import("../types").Story>(`/stories/${id}`, { method: "PATCH", body: JSON.stringify(data) }),

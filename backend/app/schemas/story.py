@@ -14,6 +14,8 @@ class StoryCreate(BaseModel):
     description: str = ""
     intent: str = ""
     structure_template_id: str = "freeform"
+    #: Lay out the template's first outline (services/structure_scaffold.py).
+    scaffold: bool = True
 
 
 class StoryUpdate(BaseModel):
@@ -75,6 +77,12 @@ class StoryOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class StoryCreated(StoryOut):
+    """A new story, and the node its first outline opens at (None when nothing was laid out)."""
+
+    start_node_id: str | None = None
 
 
 class RecentScene(BaseModel):
