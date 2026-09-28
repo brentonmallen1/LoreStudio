@@ -419,11 +419,11 @@ def seed_demo_story():  # noqa: PLR0915
             tone="Atmospheric, melancholic, quietly tense",
             themes=["solitude", "memory", "secrets", "grief", "identity"],
             central_conflict="Eleanor's need to protect her carefully constructed isolation versus the truth that threatens to surface",
-            target_audience="Adult literary fiction readers",
+            target_audience="adult",
             # Narrative grounding
             narrative_intent="Explore how self-imposed isolation can be both sanctuary and prison, and how the past finds us regardless of where we hide.",
             premise="A solitary lighthouse keeper on a dying island must confront her buried past when a mysterious stranger arrives seeking answers she's spent years avoiding.",
-            logline="When a mysterious historian arrives during a storm, a reclusive lighthouse keeper must decide whether to protect her secrets or finally face what she buried.",
+            logline="When a mysterious historian arrives in a storm, a reclusive lighthouse keeper must choose between guarding her secrets and facing what she buried.",
             intended_length="novelette",
             # Snowflake Method layers
             snowflake_sentence="A reclusive lighthouse keeper must choose between protecting her buried past or finally telling the truth when a stranger arrives on her dying island seeking answers.",
@@ -467,6 +467,9 @@ def seed_demo_story():  # noqa: PLR0915
             background="Grew up on Harrow Island, the daughter of the lighthouse keeper. Left for the mainland at nineteen, built a career as a cartographer, but returned when her father fell ill five years ago. He died two months after her arrival. She never left.",
             appearance="Early forties, weathered hands, dark hair streaked with grey. Wears practical clothing, always has a pocket knife on her belt.",
             arc_notes="Moves from guarded self-sufficiency toward allowing someone into her carefully ordered world — and confronting what she buried when she came back.",
+            flaws="Mistakes routine for peace, and silence for loyalty. Would rather keep a secret she does not understand than risk finding out what it cost.",
+            quirks="Logs the barometer aloud to an empty room. Keeps her father's pencil stubs in a tin and uses none of them.",
+            speech_patterns="Short, plain sentences. Answers a question with a fact about the weather when she does not want to answer it. Never says her father's name.",
             interview_prompts=[
                 "What do you miss most about the mainland?",
                 "Why did you really come back to the island?",
@@ -534,6 +537,9 @@ def seed_demo_story():  # noqa: PLR0915
             background="Her real name is Calder. Her brother James was captain of the cargo vessel Ardent, which went down five years ago with all hands lost. She works for the Maritime Heritage Foundation investigating maritime incidents, but this case is different — she came to Harrow Island once before, two weeks before Thomas Vance died, and left with more questions than answers.",
             appearance="About fifty, grey-haired, weathered in a way that suggests time spent on boats. Wears a canvas jacket and carries a leather notebook. Her calm is studied, not natural — the kind you learn when falling apart isn't an option.",
             arc_notes="Functions as a mirror for Eleanor — her presence forces Eleanor to examine the story she tells herself about why she stayed. Calder's grief is a preview of what Eleanor might become if she doesn't face her own.",
+            flaws="Grief made into method: she has been right about her brother's death for five years and cannot afford to be wrong now.",
+            quirks="Folds every piece of paper she is handed into exact thirds. Sits with her back to a wall.",
+            speech_patterns="Precise, unhurried, a little formal; asks questions that sound like statements. Uses people's full names until they give her permission not to.",
             interview_prompts=[
                 "What are you really looking for here?",
                 "Have we met before?",
@@ -603,6 +609,9 @@ def seed_demo_story():  # noqa: PLR0915
             background="Lighthouse keeper of Harrow Island for thirty-one years. Taught Eleanor everything about the sea and the light. Died five years ago, two months after Eleanor returned. The cause was listed as heart failure.",
             appearance="Only known through Eleanor's memory: a large man with careful hands, a beard he kept trimmed for the weather, and a habit of silence that felt like wisdom.",
             arc_notes="Thomas exists as an absence. His choices shape the present without him being present. The story is partly an excavation of who he actually was.",
+            flaws="Believed that protecting one person justified silence toward everyone else — and never asked his daughter whether she agreed.",
+            quirks="Wrote the log in two inks: black for weather, green for anything he could not explain.",
+            speech_patterns="Known only through the log: terse entries, nautical shorthand, and one long letter that sounds like someone else entirely.",
             interview_prompts=[],
             traits={
                 "Status": "Deceased",
@@ -663,6 +672,9 @@ def seed_demo_story():  # noqa: PLR0915
             background="Born on Harrow Island, married a fisherman named Robert, buried him here twenty years ago. One of three permanent residents who never left. At seventy-four, she keeps a kitchen garden, trades supplies with Eleanor weekly, and watches the lighthouse beam from her window every night — partly habit, partly vigil. She saw the lamp go dark the night of the Ardent but chose not to speak of it until asked.",
             appearance="Small, deliberate in her movements. Wears the same oilskin coat regardless of weather. Hands roughened by decades of practical work. Eyes that miss very little but reveal even less.",
             arc_notes="Margaret is a witness — to the island's long decline, to Thomas Vance's final years, to Eleanor's quiet unraveling. Her choice to finally speak what she saw represents the story's theme: some silences protect us, and some silences become prisons.",
+            flaws="Has confused discretion with kindness for so long that she no longer notices when it is neither.",
+            quirks="Counts the boats in the harbour every morning. Brings bread nobody asked for.",
+            speech_patterns="Economical and island-plain; says the difficult thing at the door, on her way out, so no one can answer it.",
             interview_prompts=[
                 "What do you remember about the night Thomas died?",
                 "Have you seen strangers on the island before?",
@@ -2283,7 +2295,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
                 "trust across the unknown",
             ],
             central_conflict="Yuki's duty to follow protocol and stay silent conflicts with her certainty that the signal is a human distress call that will be lost forever if she doesn't act now.",
-            target_audience="Adult science fiction readers who enjoy thoughtful first contact stories",
+            target_audience="adult",
             # Narrative grounding
             narrative_intent="Explore how isolation can either calcify us or prepare us for the one moment when reaching out matters most. What does it mean to be a signal in the dark — and what does it cost to answer one?",
             premise="A communications officer stationed alone at the edge of human space intercepts a repeating signal that matches the carrier wave of a colony ship that disappeared thirty years ago, forcing her to choose between protocol and action.",

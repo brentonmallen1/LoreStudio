@@ -191,3 +191,32 @@ def test_export_does_not_strip_html_tags():
     cleaned = _clean_mentions(html)
     assert "<strong>" in cleaned
     assert "&lt;Maya&gt;" not in cleaned
+
+
+# ── Speech tags with a plain name ────────────────────────────────────────────
+
+
+def test_a_plain_name_tag_attributes_the_line():
+    """ "Eleanor said" named nobody before: only @mentions were read, so real prose was Unknown."""
+    from app.services.dialogue_service import extract_dialogue
+
+    html = (
+        '<p>"You\'re early," Eleanor said.</p>'
+        '<p>"The tide," said Calder, "does not wait."</p>'
+        '<p>Margaret asked, "Tea?"</p>'
+        '<p>"Nobody knows who says this."</p>'
+    )
+    blocks = extract_dialogue(html, names=["Eleanor", "Calder", "Margaret"])
+    speakers = [(b["content"], b["speaker_name"], b["attribution_method"]) for b in blocks]
+    assert speakers[0] == ("You're early,", "Eleanor", "inferred")
+    assert speakers[1][1] == "Calder"
+    assert ("Tea?", "Margaret", "inferred") in speakers
+    # No tag and no mention: whatever alternation makes of it, the tag pass claimed nothing.
+    assert speakers[-1][2] != "inferred"
+
+
+def test_a_name_that_is_not_a_speech_tag_attributes_nothing():
+    from app.services.dialogue_service import extract_dialogue
+
+    [block] = extract_dialogue('<p>"Close the door." Eleanor looked at the sea.</p>', names=["Eleanor"])
+    assert (block["speaker_name"], block["attribution_method"]) == ("", "unattributed")

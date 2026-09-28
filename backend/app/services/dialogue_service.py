@@ -47,6 +47,40 @@ _STANDALONE_QUOTE_RE = re.compile(
     re.UNICODE,
 )
 
+# Dialogue tags that name the speaker in plain prose: "…," Eleanor said / said Eleanor /
+# Eleanor said, "…". The @mention pass alone left most real prose unattributed — the
+# Lighthouse's own "Eleanor said" lines came out as Unknown.
+_SPEECH_VERBS = (
+    "said|says|asked|asks|replied|answered|whispered|murmured|muttered|called|shouted|cried|"
+    "added|continued|began|repeated|admitted|explained|insisted|snapped|told|tells"
+)
+_TAG_WINDOW = 60
+
+
+def _case(form: str) -> int:
+    # As the Codex matches presence: a one-word name must be capitalised as written ("will"
+    # is not Will), a longer one is distinctive enough in any case ("the Visitor said").
+    return re.IGNORECASE if " " in form else 0
+
+
+def _tag_after(tail: str, forms: list[str]) -> str | None:
+    """The speaker named by a tag right after a quote: '"…," Eleanor said' or 'said Eleanor'."""
+    for form in forms:
+        f = re.escape(form)
+        pattern = rf"^[\s,.!?\u2014-]*(?:{f}\s+(?:{_SPEECH_VERBS})|(?:{_SPEECH_VERBS})\s+{f})\b"
+        if re.match(pattern, tail, _case(form)):
+            return form
+    return None
+
+
+def _tag_before(head: str, forms: list[str]) -> str | None:
+    """The speaker named by a tag right before a quote: 'Eleanor said, "…"'."""
+    for form in forms:
+        if re.search(rf"\b{re.escape(form)}\s+(?:{_SPEECH_VERBS})\s*[,:]?\s*$", head, _case(form)):
+            return form
+    return None
+
+
 # Any @mention in a line (for proximity/alternation inference).
 # Deliberately excludes \s so that @Maya followed by prose words isn't consumed.
 # Multi-word names (e.g. Lady Ashford) require explicit @Name: "..." syntax.
@@ -62,6 +96,7 @@ def _extract_from_paragraph(
     text: str,
     para_index: int,
     known_names: set[str],
+    forms: list[str] | None = None,
 ) -> list[dict]:
     """Return a list of raw dialogue dicts extracted from one paragraph."""
     results = []
@@ -92,11 +127,11 @@ def _extract_from_paragraph(
 
     # Pass 2: inferred — build candidate quote list and nearby @mentions
     # Collect all quotes with positions
-    quotes: list[tuple[int, str]] = []  # (start_pos, content)
+    quotes: list[tuple[int, int, str]] = []  # (start_pos, end_pos, content)
     for m in _STANDALONE_QUOTE_RE.finditer(text):
         content = (m.group(1) or m.group(2) or "").strip()
         if content and len(content) >= 2:
-            quotes.append((m.start(), content))
+            quotes.append((m.start(), m.end(), content))
 
     if not quotes:
         return results
@@ -104,19 +139,29 @@ def _extract_from_paragraph(
     # Find all @mentions with positions
     mentions: list[tuple[int, str]] = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(text)]
 
-    for q_pos, q_content in quotes:
+    for q_pos, q_end, q_content in quotes:
         best_speaker = None
         best_dist = 999
         best_method = "unattributed"
 
-        for m_pos, m_name in mentions:
-            dist = abs(q_pos - m_pos)
-            if dist < best_dist and dist <= 150:
-                best_dist = dist
-                best_speaker = m_name
-                best_method = "inferred"
+        # A tag that names the speaker beside this quote beats a mention somewhere nearby.
+        tagged = (
+            _tag_after(text[q_end : q_end + _TAG_WINDOW], forms or [])
+            or _tag_before(text[max(0, q_pos - _TAG_WINDOW) : q_pos], forms or [])
+            if forms
+            else None
+        )
+        if tagged:
+            best_speaker, best_method, best_dist = tagged, "inferred", 0
+        else:
+            for m_pos, m_name in mentions:
+                dist = abs(q_pos - m_pos)
+                if dist < best_dist and dist <= 150:
+                    best_dist = dist
+                    best_speaker = m_name
+                    best_method = "inferred"
 
-        confidence = max(0.0, 1.0 - (best_dist / 150)) if best_speaker else 0.0
+        confidence = (0.85 if tagged else max(0.0, 1.0 - (best_dist / 150))) if best_speaker else 0.0
 
         results.append(
             {
@@ -188,6 +233,7 @@ def extract_dialogue(
     scene_content: str,
     para_index_offset: int = 0,
     speaker: Callable[[str], str] | None = None,
+    names: list[str] | None = None,
 ) -> list[dict]:
     """Parse TipTap HTML and return raw dialogue block dicts (unsaved).
 
@@ -197,11 +243,16 @@ def extract_dialogue(
     `speaker` maps a name as written to the one it means. It runs before alternation,
     which otherwise takes "@Victor" and "<Victor Harlan>" for two people and hands the
     next unattributed line to one of them.
+
+    `names` are the ways the prose names the cast ("Eleanor", "Calder"); with them, a tag
+    such as '"…," Eleanor said' attributes the line.
     """
+    # Longest first, so "Eleanor Vance said" is read as Eleanor Vance, not a stray "Vance".
+    forms = sorted(set(names or []), key=len, reverse=True)
     paragraphs = _html_to_paragraphs(scene_content)
     all_blocks = []
     for i, para in enumerate(paragraphs):
-        blocks = _extract_from_paragraph(para, i + para_index_offset, known_names=set())
+        blocks = _extract_from_paragraph(para, i + para_index_offset, known_names=set(), forms=forms)
         all_blocks.extend(blocks)
     if speaker:
         for b in all_blocks:
@@ -262,7 +313,8 @@ def _plan(content: str, characters: list[Character], pov_char: Character | None)
         char = resolve(written)
         return char.name if char else written
 
-    speech = extract_dialogue(content, speaker=canonical)
+    forms = [form for c in characters for form in name_forms(c.name or "")]
+    speech = extract_dialogue(content, speaker=canonical, names=forms)
     thoughts = extract_thoughts(content)
     if pov_char:
         # First person: a line nobody is tagged for is the narrator's, and so is every thought.
