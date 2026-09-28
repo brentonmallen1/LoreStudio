@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import type { Location, SceneSetting } from "../../types";
 import { SectionCard } from "../common";
+import { humanize } from "../../lib/labels";
 import styles from "./WorldBuilding.module.css";
 import { useUIStore } from "../../stores/uiStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -87,14 +88,16 @@ function LocationTreeItem({
         >
           {hasChildren ? isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} /> : null}
         </button>
-        <MapPin size={12} color={location.is_stub ? "var(--color-ai, #a78bfa)" : "var(--color-text-muted)"} />
+        <MapPin size={12} color={location.is_stub ? "var(--color-warning)" : "var(--color-text-muted)"} />
         <span
           className={styles.listItemName}
           style={location.is_stub ? { color: "var(--color-text-muted)" } : undefined}
         >
           {location.name}
         </span>
-        {location.location_type && <span className={styles.listItemBadge}>{location.location_type}</span>}
+        {location.location_type && (
+          <span className={styles.listItemBadge}>{humanize(location.location_type)}</span>
+        )}
         {location.is_stub && <span className={styles.stubDot} title="Discovered — needs review" />}
         <button
           className={styles.treeAddBtn}
@@ -269,6 +272,8 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
   }
 
   const stubCount = countStubs(locations);
+  // Every location, nested ones included: `locations` is the tree's top level only.
+  const locationCount = flattenForSelect(locations).length;
 
   if (loading) return <div className={styles.loading}>Loading locations…</div>;
 
@@ -278,13 +283,13 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <h3 className={styles.sidebarTitle}>
-            Locations
+            Locations <span className={styles.locationTotal}>{locationCount}</span>
             {stubCount > 0 && (
               <span
                 className={styles.stubCount}
-                title={`${stubCount} discovered location${stubCount !== 1 ? "s" : ""} need review`}
+                title="Locations found in the prose, waiting for you to confirm"
               >
-                {stubCount}
+                {stubCount} to review
               </span>
             )}
           </h3>
@@ -394,6 +399,34 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                   </div>
                 </div>
               </SectionCard>
+
+              {sceneUsages.length > 0 && (
+                <SectionCard title={`Appears in (${sceneUsages.length})`}>
+                  <div className={styles.usageList}>
+                    {sceneUsages.map((u) => {
+                      const node = nodeMap.get(u.node_id);
+                      const title = node?.title || `Scene ${u.node_id.slice(0, 8)}…`;
+                      return (
+                        <div
+                          key={u.id}
+                          className={styles.usageItem}
+                          style={{ cursor: node ? "pointer" : "default" }}
+                          title={node ? `Go to "${title}"` : undefined}
+                          onClick={() => {
+                            if (!node) return;
+                            setActiveNode(node);
+                            navigate(`/stories/${storyId}/write`);
+                          }}
+                        >
+                          <MapPin size={12} color="var(--color-text-muted)" />
+                          <span style={{ flex: 1 }}>{title}</span>
+                          <span className={styles.usageRole}>{u.role}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </SectionCard>
+              )}
 
               <SectionCard title="Geography">
                 <div className={styles.fieldRow}>
@@ -524,34 +557,6 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                   </div>
                 </SectionCard>
               )}
-
-              {sceneUsages.length > 0 && (
-                <SectionCard title={`Scene Appearances (${sceneUsages.length})`}>
-                  <div className={styles.usageList}>
-                    {sceneUsages.map((u) => {
-                      const node = nodeMap.get(u.node_id);
-                      const title = node?.title || `Scene ${u.node_id.slice(0, 8)}…`;
-                      return (
-                        <div
-                          key={u.id}
-                          className={styles.usageItem}
-                          style={{ cursor: node ? "pointer" : "default" }}
-                          title={node ? `Go to "${title}"` : undefined}
-                          onClick={() => {
-                            if (!node) return;
-                            setActiveNode(node);
-                            navigate(`/stories/${storyId}/write`);
-                          }}
-                        >
-                          <MapPin size={12} color="var(--color-text-muted)" />
-                          <span style={{ flex: 1 }}>{title}</span>
-                          <span className={styles.usageRole}>{u.role}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </SectionCard>
-              )}
             </div>
           </>
         )}
@@ -676,14 +681,14 @@ function TypeSelector({
       <option value="">— select type —</option>
       {predefined.map((t) => (
         <option key={t} value={t}>
-          {t}
+          {humanize(t)}
         </option>
       ))}
       {options
         .filter((t) => !predefined.includes(t))
         .map((t) => (
           <option key={t} value={t}>
-            {t} (custom)
+            {humanize(t)} (custom)
           </option>
         ))}
       <option value="__custom__">Custom…</option>

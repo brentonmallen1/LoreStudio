@@ -86,6 +86,8 @@ class CompendiumEntrySummary(BaseModel):
     tags: list[str]
     category: str
     attachment_count: int
+    #: The start of the entry's text, so the list says what each one is about.
+    preview: str = ""
     created_at: datetime
     updated_at: datetime
 

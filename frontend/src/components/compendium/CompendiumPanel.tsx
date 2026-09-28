@@ -76,7 +76,7 @@ export default function CompendiumPanel({ storyId }: Props) {
   }
 
   function handleCreated(entry: CompendiumEntry) {
-    setEntries((prev) => [{ ...entry, attachment_count: 0 }, ...prev]);
+    setEntries((prev) => [{ ...entry, attachment_count: 0, preview: previewOf(entry) }, ...prev]);
     setCreating(false);
     setSelectedEntry(entry);
   }
@@ -84,7 +84,9 @@ export default function CompendiumPanel({ storyId }: Props) {
   function handleUpdated(updated: CompendiumEntry) {
     setEntries((prev) =>
       prev.map((e) =>
-        e.id === updated.id ? { ...updated, attachment_count: updated.attachments.length } : e,
+        e.id === updated.id
+          ? { ...updated, attachment_count: updated.attachments.length, preview: previewOf(updated) }
+          : e,
       ),
     );
     setEditingEntry(null);
@@ -106,7 +108,9 @@ export default function CompendiumPanel({ storyId }: Props) {
           setSelectedEntry(updated);
           setEntries((prev) =>
             prev.map((e) =>
-              e.id === updated.id ? { ...updated, attachment_count: updated.attachments.length } : e,
+              e.id === updated.id
+                ? { ...updated, attachment_count: updated.attachments.length, preview: previewOf(updated) }
+                : e,
             ),
           );
         }}
@@ -205,4 +209,14 @@ export default function CompendiumPanel({ storyId }: Props) {
       )}
     </div>
   );
+}
+
+/** The list's preview for an entry edited here, the same rule the server uses. */
+function previewOf(entry: CompendiumEntry): string {
+  const source = entry.content || entry.url_description || entry.notes || "";
+  const text = source
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length <= 180 ? text : `${text.slice(0, 180).replace(/\s+\S*$/, "")}…`;
 }

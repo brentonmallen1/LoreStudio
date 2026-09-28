@@ -36,6 +36,11 @@ class Character(Base):
     background: Mapped[str] = mapped_column(Text, default="")
     appearance: Mapped[str] = mapped_column(Text, default="")
     arc_notes: Mapped[str] = mapped_column(Text, default="")
+    # What makes a character particular, as plain fields the author fills in (Writer mode
+    # had nowhere to put these; they existed only as AI suggestions).
+    flaws: Mapped[str] = mapped_column(Text, default="", server_default="")
+    quirks: Mapped[str] = mapped_column(Text, default="", server_default="")
+    speech_patterns: Mapped[str] = mapped_column(Text, default="", server_default="")
     interview_prompts: Mapped[list] = mapped_column(JSON, default=list)  # list of strings
     traits: Mapped[dict] = mapped_column(JSON, default=dict)  # flexible key-value traits
     attributes: Mapped[dict] = mapped_column(JSON, default=dict)  # intelligence, alignment, etc.

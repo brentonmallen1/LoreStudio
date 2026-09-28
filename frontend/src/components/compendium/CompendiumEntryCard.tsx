@@ -51,6 +51,8 @@ export default function CompendiumEntryCard({
         </div>
       )}
 
+      {entry.preview && <p className={styles.cardPreview}>{entry.preview}</p>}
+
       {entry.tags.length > 0 && (
         <div className={styles.cardTags}>
           {entry.tags.slice(0, 4).map((t) => (

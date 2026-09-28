@@ -173,6 +173,9 @@ export interface Character {
   background: string;
   appearance: string;
   arc_notes: string;
+  flaws: string;
+  quirks: string;
+  speech_patterns: string;
   interview_prompts: string[];
   traits: Record<string, string>;
   attributes: CharacterAttributes;
@@ -1009,6 +1012,7 @@ export interface CompendiumEntrySummary {
   tags: string[];
   category: string;
   attachment_count: number;
+  preview: string;
   created_at: string;
   updated_at: string;
 }

@@ -143,6 +143,9 @@ def build_packet(  # noqa: C901, PLR0912
                 profile["background"] = c.background[:300]
             if c.arc_notes:
                 profile["arc_notes"] = c.arc_notes
+            for field in ("flaws", "quirks", "speech_patterns"):
+                if getattr(c, field):
+                    profile[field] = getattr(c, field)
             if c.narrative_intent and not c.narrative_intent_hidden:
                 profile["narrative_intent"] = c.narrative_intent
             if c.arc_milestones:

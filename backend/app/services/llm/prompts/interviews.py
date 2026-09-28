@@ -131,6 +131,9 @@ def _profile_lines(character: Character) -> list[str]:
         ("motivation", character.motivation),
         ("background", character.background),
         ("appearance", character.appearance),
+        ("flaws", character.flaws),
+        ("quirks", character.quirks),
+        ("way of speaking", character.speech_patterns),
     )
     lines = [f"\nYour {label}: {value}" for label, value in fields if value]
 

@@ -96,17 +96,19 @@ function simulate(
   }));
 
   const simulation = forceSimulation<SimNode>(ns)
-    .force("charge", forceManyBody<SimNode>().strength(-350))
+    // Spaced for the names under each node, not just the circles: at -350 / 150 / +14 the
+    // Lighthouse's four characters sat on each other's labels.
+    .force("charge", forceManyBody<SimNode>().strength(-700))
     .force(
       "link",
       forceLink<SimNode, SimEdge>(edges as SimEdge[])
         .id((d) => d.id)
-        .distance(150),
+        .distance(210),
     )
     .force("center", forceCenter(w / 2, h / 2).strength(0.08))
     .force(
       "collide",
-      forceCollide<SimNode>().radius((d) => nodeRadius(d.role) + 14),
+      forceCollide<SimNode>().radius((d) => nodeRadius(d.role) + 48),
     )
     .stop();
 

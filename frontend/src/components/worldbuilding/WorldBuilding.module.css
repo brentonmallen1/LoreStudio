@@ -197,7 +197,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-ai);
+  background: var(--color-warning);
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -206,8 +206,8 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  background: color-mix(in srgb, var(--color-ai) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 30%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
   border-radius: 6px;
   padding: 0.6rem 0.85rem;
   margin-bottom: 1rem;
@@ -236,14 +236,23 @@
   color: var(--color-text);
 }
 
+/* Found in the prose and awaiting review. Not AI purple: stubs come from name matching
+   as well as from AI discovery, and Writer mode shows them too. */
 .stubCount {
   font-size: 0.67rem;
-  padding: 0.1rem 0.4rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--color-ai) 15%, transparent);
-  color: var(--color-ai);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 30%, transparent);
-  font-weight: 600;
+  background: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  color: var(--color-text);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.locationTotal {
+  margin: 0 0.35rem 0 0.2rem;
+  color: var(--color-text-subtle);
+  font-weight: 500;
 }
 
 /* ── Tree ── */

@@ -46,6 +46,9 @@ class CharacterCreate(BaseModel):
     background: str = ""
     appearance: str = ""
     arc_notes: str = ""
+    flaws: str = ""
+    quirks: str = ""
+    speech_patterns: str = ""
     interview_prompts: list[str] = []
     traits: dict = {}
     attributes: dict = {}
@@ -66,6 +69,9 @@ class CharacterUpdate(BaseModel):
     background: str | None = None
     appearance: str | None = None
     arc_notes: str | None = None
+    flaws: str | None = None
+    quirks: str | None = None
+    speech_patterns: str | None = None
     interview_prompts: list[str] | None = None
     traits: dict | None = None
     attributes: dict | None = None
@@ -90,6 +96,9 @@ class CharacterOut(BaseModel):
     background: str
     appearance: str
     arc_notes: str
+    flaws: str = ""
+    quirks: str = ""
+    speech_patterns: str = ""
     interview_prompts: list[str]
     traits: dict
     attributes: dict

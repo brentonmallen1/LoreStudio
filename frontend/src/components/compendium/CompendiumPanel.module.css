@@ -224,6 +224,18 @@
   text-overflow: ellipsis;
 }
 
+/* The start of the entry, so the list says what each one holds. */
+.cardPreview {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .cardTags {
   display: flex;
   flex-wrap: wrap;

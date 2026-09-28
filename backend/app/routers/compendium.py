@@ -20,6 +20,7 @@ from ..schemas.compendium import (
     CompendiumUrlCreate,
 )
 from ..services import change_log
+from ..services.text_utils import html_to_text
 
 router = APIRouter()
 
@@ -41,8 +42,20 @@ def _verify_entry_access(entry_id: str, db: Session, user: User) -> CompendiumEn
     return entry
 
 
+#: How much of an entry the list shows before the author opens it.
+PREVIEW_CHARS = 180
+
+
+def _preview(entry: CompendiumEntry) -> str:
+    """The start of what an entry holds: a note's text, a link's description, or its notes."""
+    source = entry.content or entry.url_description or entry.notes or ""
+    text = " ".join(html_to_text(source).split())
+    return text if len(text) <= PREVIEW_CHARS else text[:PREVIEW_CHARS].rsplit(" ", 1)[0] + "…"
+
+
 def _to_summary(entry: CompendiumEntry) -> dict:
     return {
+        "preview": _preview(entry),
         "id": entry.id,
         "story_id": entry.story_id,
         "title": entry.title,

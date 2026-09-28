@@ -127,3 +127,13 @@ def test_clue_link_undo_and_braces_in_names(client):
     # a name with braces must not break the "Edit {fields}" label
     client.patch(f"/api/twists/{twist['id']}", json={"status": "seeding"}, headers=H1)
     assert _undo(client, sid)["label"] == "Edit status on twist The {letter}"
+
+
+def test_compendium_list_previews_each_entry(client):
+    sid = _story(client)
+    long_text = "<p>" + ("Storm records from the Maine coast. " * 10) + "</p>"
+    client.post(f"/api/stories/{sid}/compendium/notes", json={"title": "Storms", "content": long_text})
+    [entry] = client.get(f"/api/stories/{sid}/compendium").json()
+    assert entry["preview"].startswith("Storm records from the Maine coast.")
+    assert "<p>" not in entry["preview"]
+    assert entry["preview"].endswith("…") and len(entry["preview"]) <= 181

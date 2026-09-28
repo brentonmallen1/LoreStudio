@@ -63,6 +63,7 @@ import AttributeGeneratorDialog from "./AttributeGeneratorDialog";
 import StartInterviewDialog from "./StartInterviewDialog";
 import AssetPicker from "../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../media/PortraitEditor";
+import { PROFILE_FIELDS } from "./profileFields";
 import styles from "./CharacterSheet.module.css";
 
 export default function CharacterSheet() {
@@ -125,11 +126,7 @@ export default function CharacterSheet() {
       setIntentText(character.narrative_intent ?? "");
       setMissionText(character.mission_statement ?? "");
       setLocalFields({
-        personality: character.personality ?? "",
-        motivation: character.motivation ?? "",
-        background: character.background ?? "",
-        appearance: character.appearance ?? "",
-        arc_notes: character.arc_notes ?? "",
+        ...Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key, character[f.key] ?? ""])),
         snowflake_summary: character.snowflake_summary ?? "",
         snowflake_synopsis: character.snowflake_synopsis ?? "",
       });
@@ -562,22 +559,18 @@ export default function CharacterSheet() {
                   rows={2}
                 />
               </div>
-              {(["personality", "motivation", "background", "appearance", "arc_notes"] as const).map(
-                (field) => (
-                  <div key={field} className={styles.field}>
-                    <p className={styles.fieldLabel}>
-                      {field === "arc_notes" ? "Arc Notes" : field.charAt(0).toUpperCase() + field.slice(1)}
-                    </p>
-                    <textarea
-                      className={styles.fieldTextarea}
-                      value={localFields[field] ?? ""}
-                      onChange={(e) => scheduleFieldSave(field, e.target.value)}
-                      placeholder={`${field === "arc_notes" ? "Arc notes" : field.charAt(0).toUpperCase() + field.slice(1)}…`}
-                      rows={3}
-                    />
-                  </div>
-                ),
-              )}
+              {PROFILE_FIELDS.map((f) => (
+                <div key={f.key} className={styles.field}>
+                  <p className={styles.fieldLabel}>{f.label}</p>
+                  <textarea
+                    className={styles.fieldTextarea}
+                    value={localFields[f.key] ?? ""}
+                    onChange={(e) => scheduleFieldSave(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    rows={3}
+                  />
+                </div>
+              ))}
             </SectionCard>
 
             {/* ── Narrative Intent ── */}
