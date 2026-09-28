@@ -60,6 +60,51 @@
   color: var(--color-accent);
 }
 
+/* ── Inside a story: back, title, sidebar toggle (HeaderTitle.tsx) ── */
+.storyTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.backToStories {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.backToStories:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.storyTitle {
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* ── Assistant button ── */
 .assistantBtn {
   display: flex;

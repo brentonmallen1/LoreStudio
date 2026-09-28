@@ -283,6 +283,7 @@
 
 /* ── Detail form ── */
 .detailHeader {
+  max-width: var(--page-width-form);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -309,6 +310,7 @@
 }
 
 .detailContent {
+  max-width: var(--page-width-form);
   display: flex;
   flex-direction: column;
   gap: 0.875rem;

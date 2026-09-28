@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen, SquareLibrary, UserCircle2 } from "lucide-react";
+import { ChevronDown, SquareLibrary } from "lucide-react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { useHealthStore } from "../../stores/healthStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -54,9 +54,9 @@ function activeRouteId(pathname: string, routes: StoryRoute[]): string {
 export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMouseEnter }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { storyId, characterId } = useParams<{ storyId: string; characterId?: string }>();
-  const { activeStory, characters } = useStoryStore();
-  const { sidebarCollapsed, setSidebarCollapsed, treeDetached, setTreeDetached } = useUIStore();
+  const { storyId } = useParams<{ storyId: string }>();
+  const { activeStory } = useStoryStore();
+  const { sidebarCollapsed, treeDetached, setTreeDetached } = useUIStore();
   const { pendingCount, refreshCount } = useDiscoveryStore();
   const { alertCount, refreshAlerts } = useHealthStore();
   const getTabStatus = useLLMStore((s) => s.getTabStatus);
@@ -151,17 +151,8 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
       onMouseLeave={onMouseLeave}
       onMouseEnter={onMouseEnter}
     >
-      {!isCollapsed && (
-        <div className={styles.header}>
-          <button onClick={() => navigate("/")} className={styles.backBtn} title="All stories">
-            <SquareLibrary size={14} />
-          </button>
-          <span className={styles.storyTitle} title={activeStory?.title}>
-            {activeStory?.title ?? "Story"}
-          </span>
-        </div>
-      )}
-
+      {/* The story's title, the way back and the collapse control are in the header
+          (HeaderTitle.tsx), so they are in one place whatever the sidebar's state. */}
       <nav className={styles.tabRail} aria-label="Story sections">
         {isCollapsed && collapsedProp !== undefined && (
           <button onClick={() => navigate("/")} className={styles.railBtn} title="All stories">
@@ -197,46 +188,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
             })}
       </nav>
 
-      {!isCollapsed && active === "characters" && (
-        <>
-          <div className={styles.tree}>
-            {characters.length === 0 && <p className={styles.emptyHint}>Your cast will appear here.</p>}
-            {characters.map((char) => (
-              <button
-                key={char.id}
-                onClick={() => navigate(`/stories/${storyId}/characters/${char.id}`)}
-                className={`${styles.nodeRow} ${characterId === char.id ? styles.nodeActive : ""}`}
-              >
-                <span className={styles.charAvatar}>{char.name[0].toUpperCase()}</span>
-                <span className={styles.nodeLabel}>{char.name}</span>
-                <span className={styles.roleBadge}>{char.role}</span>
-              </button>
-            ))}
-          </div>
-          <div className={styles.addSection}>
-            <button onClick={() => navigate(`/stories/${storyId}/characters`)} className={styles.addBtn}>
-              <UserCircle2 size={12} />
-              All characters
-            </button>
-          </div>
-        </>
-      )}
-
       {!isCollapsed && aiAvailable && <AIActivityIndicator />}
-
-      {/* Collapse / expand lives at the bottom of the rail (todo.md feedback). Not on the
-          Write page, which is always the rail. */}
-      {collapsedProp === undefined && !writing && (
-        <div className={styles.railFooter}>
-          <button
-            className={styles.collapseToggle}
-            onClick={() => setSidebarCollapsed(!isCollapsed)}
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-          </button>
-        </div>
-      )}
     </aside>
   );
 }

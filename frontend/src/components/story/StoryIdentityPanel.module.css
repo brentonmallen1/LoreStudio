@@ -8,7 +8,7 @@
 }
 
 .panelHeader {
-  padding: 1.5rem 2rem 1rem;
+  padding: 1.5rem max(2rem, calc((100% - var(--page-width-form)) / 2)) 1rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
   flex-shrink: 0;
@@ -72,10 +72,12 @@
 }
 
 /* ── Scroll area ── */
+/* Content at reading width, centred; the padding does the centring so the scrollbar
+   stays at the window edge. */
 .scrollArea {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem 2rem 3rem;
+  padding: 1.25rem max(2rem, calc((100% - var(--page-width-form)) / 2)) 3rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;

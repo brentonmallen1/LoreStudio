@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Search,
   Settings,
@@ -19,6 +19,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useAIAvailable } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
+import HeaderTitle from "./HeaderTitle";
 import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
 import type {
@@ -232,9 +233,7 @@ export default function GlobalHeader() {
               <PanelLeft size={15} />
             </button>
           )}
-          <Link to="/" className={styles.wordmark}>
-            LoreStudio
-          </Link>
+          <HeaderTitle />
         </div>
 
         {/* Backup indicator — shown when inside a story */}

@@ -90,6 +90,12 @@
   padding: 0.75rem 1.5rem 1.5rem;
 }
 
+/* Over the list, the header lines up with the 640px column instead of the window edges. */
+.headerOverList {
+  padding-left: max(1.5rem, calc((100% - 640px) / 2));
+  padding-right: max(1.5rem, calc((100% - 640px) / 2));
+}
+
 .listContent .list {
   max-width: 640px;
   margin: 0 auto;

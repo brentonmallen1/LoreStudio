@@ -90,7 +90,7 @@ export default function CharacterList({ storyId }: Props) {
 
   return (
     <div className={styles.graphPage}>
-      <div className={styles.graphHeader}>
+      <div className={`${styles.graphHeader} ${view === "list" ? styles.headerOverList : ""}`}>
         <h1 className={styles.title}>Characters</h1>
         <div className={styles.headerActions}>
           {view === "graph" && (
