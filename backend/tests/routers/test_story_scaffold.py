@@ -91,3 +91,39 @@ def test_one_undo_removes_the_whole_starting_outline(client, db_session):
     assert undone.status_code == 200, undone.text
     db_session.expire_all()
     assert _tree(db_session, story["id"]) == {}
+
+
+def test_overview_lists_chapters_in_reading_order(client, db_session):
+    """Sorting by each chapter's own position interleaved acts: 1, 3, 5, 2, 4, 6."""
+    story = client.post(
+        "/api/stories", json={"title": "Order", "structure_template_id": "three-act", "scaffold": False}
+    ).json()
+    sid = story["id"]
+    for a in range(2):
+        act = StructureNode(story_id=sid, level=0, level_type="act", title=f"Act {a + 1}", position=a)
+        db_session.add(act)
+        db_session.flush()
+        for c in range(2):
+            ch = StructureNode(
+                story_id=sid, parent_id=act.id, level=1, level_type="chapter", title=f"Ch {a * 2 + c + 1}", position=c
+            )
+            db_session.add(ch)
+            db_session.flush()
+            db_session.add(
+                StructureNode(story_id=sid, parent_id=ch.id, level=2, level_type="scene", title="s", position=0)
+            )
+    db_session.commit()
+    titles = [d["title"] for d in client.get(f"/api/stories/{sid}/overview").json()["distribution"]]
+    assert titles == ["Ch 1", "Ch 2", "Ch 3", "Ch 4"]
+
+
+def test_story_progress_for_dashboard_cards(client, db_session):
+    story = client.post("/api/stories", json={"title": "Prog", "structure_template_id": "three-act"}).json()
+    client.patch(f"/api/stories/{story['id']}", json={"intended_length": "short_story"})
+    scene = db_session.get(StructureNode, story["start_node_id"])
+    scene.word_count = 700
+    db_session.commit()
+    row = next(p for p in client.get("/api/stories/progress").json() if p["story_id"] == story["id"])
+    assert row["word_count"] == 700
+    assert row["last_scene_id"] == scene.id
+    assert row["target_words"] and row["pct"] > 0

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Clock, FileInput, Trash2 } from "lucide-react";
+import { Plus, Clock, FileInput, Trash2, ArrowRight } from "lucide-react";
 import { api } from "../api/client";
+import { progressApi, type StoryProgress } from "../api/progress";
 import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
@@ -18,13 +19,21 @@ export default function DashboardPage() {
   const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  // Words, progress toward the target and the scene to continue in, per story.
+  const [progress, setProgress] = useState<Record<string, StoryProgress>>({});
 
   useEffect(() => {
-    // Only fetch if the store is empty — avoids refetch on every navigation back to dashboard
-    if (stories.length === 0) {
-      api.listStories().then(setStories).catch(console.error);
-    }
-  }, []);
+    progressApi
+      .list()
+      .then((rows) => setProgress(Object.fromEntries(rows.map((r) => [r.story_id, r]))))
+      .catch(() => {});
+  }, [stories.length]);
+
+  // Fetched on every visit: the list is small, and a cached one showed stale "updated"
+  // times and order after an evening of writing.
+  useEffect(() => {
+    api.listStories().then(setStories).catch(console.error);
+  }, [setStories]);
 
   async function confirmDelete(story: Story, e: React.MouseEvent) {
     e.stopPropagation();
@@ -102,11 +111,23 @@ export default function DashboardPage() {
                 >
                   <h3 className={styles.storyTitle}>{story.title}</h3>
                   {story.description && <p className={styles.storyDesc}>{story.description}</p>}
+                  <StoryProgressLine progress={progress[story.id]} />
                   <div className={styles.storymeta}>
                     <Clock size={11} />
                     {formatRelative(story.updated_at)}
                   </div>
                 </button>
+                {progress[story.id]?.last_scene_id && (
+                  <button
+                    className={styles.continueLink}
+                    onClick={() =>
+                      navigate(`/stories/${story.id}/write?node=${progress[story.id].last_scene_id}`)
+                    }
+                    title={`Continue writing “${progress[story.id].last_scene_title}”`}
+                  >
+                    Continue <ArrowRight size={12} />
+                  </button>
+                )}
                 {pendingDeleteId === story.id ? (
                   <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
                     <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>
@@ -140,6 +161,28 @@ export default function DashboardPage() {
 
       {creating && <CreateStoryDialog onClose={() => setCreating(false)} />}
       {importing && <ImportWizard onClose={() => setImporting(false)} />}
+    </div>
+  );
+}
+
+/** "3,529 of 17,500 words" with a bar, or just the count when the story has no target. */
+function StoryProgressLine({ progress }: { progress?: StoryProgress }) {
+  if (!progress || progress.word_count === 0) return null;
+  const words = progress.word_count.toLocaleString();
+  return (
+    <div className={styles.progress}>
+      {progress.target_words ? (
+        <>
+          <div className={styles.progressTrack} aria-hidden>
+            <span style={{ width: `${Math.min(100, progress.pct ?? 0)}%` }} />
+          </div>
+          <span>
+            {words} of {progress.target_words.toLocaleString()} words
+          </span>
+        </>
+      ) : (
+        <span>{words} words</span>
+      )}
     </div>
   );
 }

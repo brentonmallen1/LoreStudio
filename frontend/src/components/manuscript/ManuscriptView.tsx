@@ -12,6 +12,7 @@ import { BookOpen, RefreshCw, Download, X, Feather, Compass } from "lucide-react
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection } from "../../types";
 import ExportPanel from "./ExportPanel";
+import { useAIAvailable } from "../../lib/mode";
 import CompTitlesSuggester from "../publish/CompTitlesSuggester";
 import { useAIStore } from "../../stores/aiStore";
 import styles from "./ManuscriptView.module.css";
@@ -97,6 +98,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [exportOpen, setExportOpen] = useState(false);
+  const aiAvailable = useAIAvailable();
   const [pubPrepOpen, setPubPrepOpen] = useState(false);
   const [showCompTitles, setShowCompTitles] = useState(false);
   const { createSession } = useAIStore();
@@ -144,17 +146,20 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
           <button className={styles.refreshBtn} onClick={load} title="Refresh">
             <RefreshCw size={13} />
           </button>
-          <button
-            className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
-            onClick={() => {
-              setPubPrepOpen((v) => !v);
-              setExportOpen(false);
-            }}
-            title="Publication preparation tools"
-          >
-            <Feather size={13} />
-            Publish Prep
-          </button>
+          {/* AI tools: absent in Writer mode and with AI switched off. */}
+          {aiAvailable && (
+            <button
+              className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
+              onClick={() => {
+                setPubPrepOpen((v) => !v);
+                setExportOpen(false);
+              }}
+              title="Publication preparation tools"
+            >
+              <Feather size={13} />
+              Publish Prep
+            </button>
+          )}
           <button
             className={`${styles.exportBtn} ${exportOpen ? styles.exportBtnActive : ""}`}
             onClick={() => {
@@ -192,7 +197,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
           )}
         </div>
 
-        {pubPrepOpen && (
+        {pubPrepOpen && aiAvailable && (
           <div className={styles.exportDrawer}>
             <div className={styles.exportDrawerHeader}>
               <span className={styles.exportDrawerTitle}>Publication Prep</span>

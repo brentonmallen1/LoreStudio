@@ -201,6 +201,9 @@ interface UIState {
   // Story-wide search (slide-out panel; the combo lives in lib/keyboard/shortcuts.ts)
   storySearchOpen: boolean;
   openStorySearch: () => void;
+  /** The Export dialog (components/manuscript/ExportDialog.tsx), openable from anywhere. */
+  exportOpen: boolean;
+  setExportOpen: (open: boolean) => void;
   closeStorySearch: () => void;
 
   // Scratch pad (slide-in drawer; the combo lives in lib/keyboard/shortcuts.ts)
@@ -439,6 +442,8 @@ export const useUIStore = create<UIState>((set) => ({
 
   storySearchOpen: false,
   openStorySearch: () => set({ storySearchOpen: true }),
+  exportOpen: false,
+  setExportOpen: (exportOpen) => set({ exportOpen }),
   closeStorySearch: () => set({ storySearchOpen: false }),
 
   scratchPadOpen: false,

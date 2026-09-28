@@ -22,6 +22,7 @@ import {
   BookMarked,
   SquareLibrary,
   PenLine,
+  Download,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
@@ -329,6 +330,20 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openSceneSearch();
+  },
+});
+
+// Export lived only behind an unlabelled icon inside Manuscript view, and Publish is a
+// Studio page, so Writer mode had no findable way out of the app with the manuscript.
+commandRegistry.register({
+  id: "manuscript-export",
+  label: "Export manuscript…",
+  keywords: ["export", "download", "docx", "word", "pdf", "epub", "markdown", "txt", "manuscript"],
+  icon: Download,
+  group: "Manuscript",
+  when: () => !!useStoryStore.getState().activeStory,
+  action: () => {
+    useUIStore.getState().setExportOpen(true);
   },
 });
 

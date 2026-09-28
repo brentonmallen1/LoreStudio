@@ -2,7 +2,7 @@ import { parseServerDate, serverTime } from "../lib/serverDate";
 import { streamAnswer } from "../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen, Users, ListTree } from "lucide-react";
+import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen, Users, ListTree, Download } from "lucide-react";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -288,7 +288,10 @@ export default function StoryOverviewPage() {
         {/* ── Word count distribution ── */}
         {ov && ov.distribution.length > 1 && wordCount > 0 && (
           <div className={styles.distSection}>
-            <h2 className={styles.sectionTitle}>Word count by chapter</h2>
+            {/* By whatever holds the scenes: chapters, beats, stages. */}
+            <h2 className={styles.sectionTitle}>
+              Word count by {ov.distribution[0]?.level_type || "section"}
+            </h2>
             <div className={styles.distBars}>
               {ov.distribution.map((entry) => (
                 <div key={entry.id} className={styles.distRow}>
@@ -324,6 +327,15 @@ export default function StoryOverviewPage() {
             >
               <BookOpen size={14} />
               View Manuscript
+            </button>
+          )}
+          {hasContent && (
+            <button
+              className={styles.manuscriptBtn}
+              onClick={() => useUIStore.getState().setExportOpen(true)}
+            >
+              <Download size={14} />
+              Export
             </button>
           )}
           {lastSessionText && <p className={styles.lastSession}>{lastSessionText}</p>}

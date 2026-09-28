@@ -43,6 +43,47 @@ def list_stories(db: Session = Depends(get_db), current_user: User = Depends(get
     return db.query(Story).filter(Story.user_id == current_user.id).order_by(Story.updated_at.desc()).all()
 
 
+@router.get("/progress")
+def list_story_progress(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    For the dashboard's story cards: words written, progress toward the target, and the
+    scene to continue in. One query over the tree, no prose.
+    """
+    stories = db.query(Story).filter(Story.user_id == current_user.id).all()
+    rows = (
+        db.query(
+            StructureNode.story_id,
+            StructureNode.id,
+            StructureNode.title,
+            StructureNode.parent_id,
+            StructureNode.word_count,
+            StructureNode.updated_at,
+        )
+        .filter(StructureNode.story_id.in_([st.id for st in stories]))
+        .all()
+    )
+    parents = {r.parent_id for r in rows if r.parent_id}
+    leaves = [r for r in rows if r.id not in parents]
+    out = []
+    for story in stories:
+        mine = [r for r in leaves if r.story_id == story.id]
+        words = sum(r.word_count or 0 for r in mine)
+        written = [r for r in mine if (r.word_count or 0) > 0] or mine
+        last = max(written, key=lambda r: r.updated_at, default=None)
+        target = get_word_count_status(story.intended_length or "", words)
+        out.append(
+            {
+                "story_id": story.id,
+                "word_count": words,
+                "target_words": target["max"] if target else None,
+                "pct": target["pct"] if target else None,
+                "last_scene_id": last.id if last else None,
+                "last_scene_title": last.title if last else None,
+            }
+        )
+    return out
+
+
 @router.post("", response_model=StoryCreated, status_code=status.HTTP_201_CREATED)
 def create_story(body: StoryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     story = Story(user_id=current_user.id, **body.model_dump(exclude={"scaffold"}))
@@ -180,8 +221,18 @@ def get_story_overview(
         buckets[bucket_id]["words"] += leaf.word_count
         buckets[bucket_id]["count"] += 1
 
-    # Sort by position order: prefer parent's position, fallback to node id
-    sorted_buckets = sorted(buckets.values(), key=lambda b: b["node"].position)
+    # Reading order: the positions along the node's path from the top, so Chapter 2 (first
+    # in Act 1's second slot) comes after Chapter 1 and before Chapter 3. Sorting on the
+    # node's own position interleaved acts: 1, 3, 5, 2, 4, 6.
+    def reading_order(node: StructureNode) -> tuple[int, ...]:
+        path: list[int] = []
+        at: StructureNode | None = node
+        while at is not None:
+            path.append(at.position)
+            at = node_map.get(at.parent_id) if at.parent_id else None
+        return tuple(reversed(path))
+
+    sorted_buckets = sorted(buckets.values(), key=lambda b: reading_order(b["node"]))
     distribution = [
         {
             "id": b["node"].id,

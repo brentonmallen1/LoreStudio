@@ -137,9 +137,14 @@
 }
 
 .storyCard {
-  display: block;
+  /* A button centres its content vertically; a card reads from the top. */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
   width: 100%;
-  padding: 1.25rem;
+  /* Fill the grid cell, so the Continue link (pinned to the cell's corner) sits on it. */
+  height: 100%;
+  padding: 1.25rem 1.25rem 2.9rem;
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -410,4 +415,51 @@
   .empty {
     padding: 3rem 1rem;
   }
+}
+
+/* ── Progress and Continue on story cards ── */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progressTrack {
+  flex: 0 1 8rem;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.progressTrack span {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+}
+
+.continueLink {
+  position: absolute;
+  right: 0.9rem;
+  bottom: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.continueLink:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }

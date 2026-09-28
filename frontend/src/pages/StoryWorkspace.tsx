@@ -14,6 +14,7 @@ const ROUTE = (id: string) => STORY_ROUTES.find((r) => r.id === id)!;
 import Sidebar from "../components/layout/Sidebar";
 import StructureTreePanel from "../components/layout/StructureTreePanel";
 import StorySearchPanel from "../components/story/StorySearchPanel";
+import ExportDialog from "../components/manuscript/ExportDialog";
 import styles from "./StoryWorkspace.module.css";
 
 // Lazy-loaded route panels — only fetched when the user navigates to them
@@ -169,6 +170,8 @@ export default function StoryWorkspacePage() {
           )}
         </>
       )}
+
+      {storyId && <ExportDialog storyId={storyId} />}
 
       {storySearchOpen && storyId && (
         <StorySearchPanel
