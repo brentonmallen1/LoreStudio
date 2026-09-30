@@ -234,14 +234,21 @@ export default function NodeItem({
               }}
             />
           ) : (
-            <span className={styles.nodeLabel}>{node.title}</span>
+            <span
+              className={`${styles.nodeLabel} ${node.status === "planned" ? (isActive ? styles.nodePlannedActive : styles.nodePlanned) : ""}`}
+              title={
+                node.status === "planned" ? `Planned${node.synopsis ? `: ${node.synopsis}` : ""}` : undefined
+              }
+            >
+              {node.title}
+            </span>
           )}
           {!renaming && node.word_count > 0 && (
             <span className={styles.nodeWordCount} title={`${node.word_count.toLocaleString()} words`}>
               {node.word_count >= 1000 ? `${(node.word_count / 1000).toFixed(1)}k` : node.word_count}
             </span>
           )}
-          {node.status !== "draft" && (
+          {(node.status === "revised" || node.status === "final") && (
             <span
               className={`${styles.nodeStatus} ${node.status === "final" ? styles.statusFinal : styles.statusRevised}`}
             >

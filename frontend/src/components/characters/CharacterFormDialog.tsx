@@ -586,7 +586,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
         {/* ── Character Depth ── */}
         <SectionCard title="Character Depth">
           <TextField
-            label="Mission Statement"
+            label="Goal"
             value={missionStatement}
             onChange={setMissionStatement}
             rows={1}

@@ -253,6 +253,17 @@
   border-radius: var(--radius-sm);
 }
 
+/* A scene in the plan with no prose yet: the whole book is visible before it is written. */
+.nodePlanned {
+  font-style: italic;
+  color: var(--color-text-subtle);
+}
+
+/* On the selected row's accent background the muted colour would not read. */
+.nodePlannedActive {
+  font-style: italic;
+}
+
 .statusFinal {
   background: color-mix(in srgb, var(--color-accent) 15%, transparent);
   color: var(--color-accent);

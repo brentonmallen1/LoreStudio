@@ -59,7 +59,9 @@ def _character_chunks(c: Character) -> list[Chunk]:
         c.appearance,
         c.arc_notes,
         c.narrative_intent,
-        c.snowflake_summary,
+        c.mission_statement,
+        c.conflict,
+        c.epiphany,
     )
 
 

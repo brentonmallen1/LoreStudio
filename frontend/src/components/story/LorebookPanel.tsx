@@ -200,7 +200,7 @@ export default function LorebookPanel({ storyId }: { storyId: string }) {
 
   async function handleInjectBeatSheet(beatSheetId: string) {
     const result = await api.injectBeatSheet(storyId, beatSheetId);
-    navigate(`outline?tab=${result.id}`);
+    navigate(`plan?tab=${result.id}`);
   }
 
   function updateBeatSheet(id: string | null) {

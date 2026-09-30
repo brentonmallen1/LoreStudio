@@ -367,18 +367,25 @@ async def snowflake_guidance(
     context_parts = []
     if story.title:
         context_parts.append(f"Title: {story.title}")
-    if story.snowflake_sentence:
-        context_parts.append(f"One-sentence summary: {story.snowflake_sentence}")
-    if story.snowflake_paragraph:
-        context_parts.append(f"One-paragraph summary: {story.snowflake_paragraph}")
+    if story.logline:
+        context_parts.append(f"One-sentence summary: {story.logline}")
+    if story.paragraph_summary:
+        context_parts.append(f"One-paragraph summary: {story.paragraph_summary}")
 
     if character_id and layer in ("character_summary", "character_synopsis"):
         char = db.get(Character, character_id)
         if char and char.story_id == story_id:
             if char.name:
                 context_parts.append(f"Character: {char.name} ({char.role})")
-            if char.snowflake_summary and layer == "character_synopsis":
-                context_parts.append(f"Character summary: {char.snowflake_summary}")
+            if layer == "character_synopsis":
+                for label, value in (
+                    ("Goal", char.mission_statement),
+                    ("Motivation", char.motivation),
+                    ("Conflict", char.conflict),
+                    ("Epiphany", char.epiphany),
+                ):
+                    if value:
+                        context_parts.append(f"{label}: {value}")
 
     story_context = "\n".join(context_parts)
     feature_prompt = build_snowflake_guidance_prompt(layer=layer, content=content, story_context=story_context)

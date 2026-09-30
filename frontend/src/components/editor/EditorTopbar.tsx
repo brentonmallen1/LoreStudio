@@ -187,7 +187,11 @@ export default function EditorTopbar(p: Props) {
         <button
           className={`${styles.statusBadge} ${statusClass}`}
           onClick={cycleStatus}
-          title="Click to cycle: draft → revised → final"
+          title={
+            activeNode.status === "planned"
+              ? "Planned: becomes a draft when you start writing (or click)"
+              : "Click to cycle: draft → revised → final"
+          }
         >
           {activeNode.status}
         </button>

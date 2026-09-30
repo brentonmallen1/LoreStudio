@@ -13,7 +13,6 @@ import {
   BookMarked,
   Activity,
   MessageSquare,
-  Snowflake,
   ScrollText,
 } from "lucide-react";
 import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
@@ -25,6 +24,7 @@ import WordCountProgress from "../components/health/WordCountProgress";
 import MICEValidation from "../components/health/MICEValidation";
 import StoryProgressionGraph from "../components/health/StoryProgressionGraph";
 import ActionToolbar from "../components/health/ActionToolbar";
+import PlanProgressCard from "../components/health/PlanProgressCard";
 import ConsistencyCard from "../components/health/ConsistencyCard";
 import ReportsView from "../components/health/ReportsView";
 import MaintenanceView from "../components/health/MaintenanceView";
@@ -69,7 +69,7 @@ export default function StoryHealthPage() {
   const aiAvailable = useAIAvailable();
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { activeStory, structure, characters, beatSheets } = useStoryStore();
+  const { activeStory, structure, beatSheets } = useStoryStore();
   const [view, setView] = useState<"dashboard" | "reports" | "maintenance" | "editor">("dashboard");
   const [health, setHealth] = useState<StoryHealth | null>(null);
   const [loading, setLoading] = useState(true);
@@ -518,55 +518,7 @@ export default function StoryHealthPage() {
             </section>
           )}
 
-          {/* Snowflake Progress */}
-          {activeStory &&
-            (activeStory.snowflake_sentence ||
-              activeStory.snowflake_paragraph ||
-              activeStory.snowflake_synopsis) &&
-            (() => {
-              const storyLayers = [
-                { label: "One-Sentence", done: activeStory.snowflake_sentence.trim().length > 0 },
-                { label: "One-Paragraph", done: activeStory.snowflake_paragraph.trim().length > 0 },
-                { label: "One-Page Synopsis", done: activeStory.snowflake_synopsis.trim().length > 0 },
-              ];
-              const charSummaryDone =
-                characters.length > 0 && characters.every((c) => c.snowflake_summary.trim().length > 0);
-              const charSynopsisDone =
-                characters.length > 0 && characters.every((c) => c.snowflake_synopsis.trim().length > 0);
-              const allLayers = [
-                ...storyLayers,
-                {
-                  label: `Character Summaries (${characters.filter((c) => c.snowflake_summary.trim().length > 0).length}/${characters.length})`,
-                  done: charSummaryDone,
-                },
-                {
-                  label: `Character Synopses (${characters.filter((c) => c.snowflake_synopsis.trim().length > 0).length}/${characters.length})`,
-                  done: charSynopsisDone,
-                },
-              ];
-              const completedCount = allLayers.filter((l) => l.done).length;
-              return (
-                <section className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <Snowflake size={14} className={styles.cardIcon} />
-                    <h3 className={styles.cardTitle}>Snowflake Progress</h3>
-                  </div>
-                  <p className={styles.bigStatSub} style={{ marginBottom: "0.75rem" }}>
-                    {completedCount}/{allLayers.length} layers complete
-                  </p>
-                  <div className={styles.beatList}>
-                    {allLayers.map((layer) => (
-                      <div key={layer.label} className={styles.beatItem}>
-                        <span className={layer.done ? styles.beatAssigned : styles.beatUnassigned}>
-                          {layer.done ? <CheckCircle2 size={12} /> : <Circle size={12} />}
-                        </span>
-                        <span className={styles.beatName}>{layer.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              );
-            })()}
+          <PlanProgressCard storyId={storyId!} />
 
           {/* Dialogue Stats */}
           {dialogueStats && dialogueStats.total_blocks > 0 && (

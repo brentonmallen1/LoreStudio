@@ -1234,8 +1234,9 @@ Appearance: {char.get("appearance", "")}
 Arc notes: {char.get("arc_notes", "")}
 Narrative intent: {char.get("narrative_intent", "")}
 Mission statement: {char.get("mission_statement", "")}
-Snowflake summary: {char.get("snowflake_summary", "")}
-Snowflake synopsis: {char.get("snowflake_synopsis", "")}
+Conflict (what stands in the way): {char.get("conflict", "")}
+Epiphany (what they learn): {char.get("epiphany", "")}
+Their arc in their own words: {char.get("arc_in_own_words", "")}
 Traits: {", ".join(f"{k}: {v}" for k, v in (char.get("traits") or {}).items() if v)}
 Scenes featuring this character: {char.get("scene_count", 0)}
 {relationships_block}

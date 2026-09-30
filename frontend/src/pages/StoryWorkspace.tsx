@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, useLocation, Routes, Route } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Navigate, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { rememberScene, sceneToResume } from "../lib/resumeScene";
@@ -27,7 +27,7 @@ const WorldBuildingHub = lazy(() => import("../components/worldbuilding/WorldBui
 const PanelInterviewPanel = lazy(() => import("../components/panels/PanelInterviewPanel"));
 const PlotThreadManager = lazy(() => import("../components/threads/PlotThreadManager"));
 const TwistManager = lazy(() => import("../components/twists/TwistManager"));
-const OutlineManager = lazy(() => import("../components/outline/OutlineManager"));
+const PlanPage = lazy(() => import("../components/plan/PlanPage"));
 const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
 const StoryboardView = lazy(() => import("../components/story/StoryboardView"));
 const TodoListView = lazy(() => import("../components/story/TodoListView"));
@@ -242,7 +242,12 @@ export default function StoryWorkspacePage() {
                 </ModeGate>
               }
             />
-            <Route path="/outline" element={<OutlineManager storyId={storyId!} />} />
+            <Route path="/plan" element={<PlanPage storyId={storyId!} />} />
+            {/* The Outline page became Plan; old links (?tab=<outline id>) open its beat boards. */}
+            <Route
+              path="/outline"
+              element={<Navigate to={`/stories/${storyId}/plan${location.search}`} replace />}
+            />
             <Route path="/threads" element={<PlotThreadManager storyId={storyId!} />} />
             <Route
               path="/twists"

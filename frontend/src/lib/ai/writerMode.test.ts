@@ -49,7 +49,7 @@ const WRITER_ENTRY_POINTS = [
   "src/components/characters/CharacterSheet.tsx",
   "src/components/compendium/CompendiumPanel.tsx",
   "src/components/worldbuilding/WorldBuildingHub.tsx",
-  "src/components/outline/OutlineManager.tsx",
+  "src/components/plan/PlanPage.tsx",
   "src/components/threads/PlotThreadManager.tsx",
 ];
 
@@ -122,8 +122,8 @@ describe("the story routes this test walks", () => {
       "health",
       "lorebook",
       "media",
-      "outline",
       "overview",
+      "plan",
       "threads",
       "versions",
       "worldbuilding",

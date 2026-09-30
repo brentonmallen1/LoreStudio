@@ -23,6 +23,26 @@ def _scene(client, sid, title="S", parent=None, position=0, content="<p>Hi</p>",
     return r.json()
 
 
+def test_first_words_turn_a_planned_scene_into_a_draft(client):
+    sid = _story(client)
+    r = client.post(
+        f"/api/stories/{sid}/structure",
+        json={"title": "Plan", "level": 0, "level_type": "scene", "status": "planned", "synopsis": "She lies."},
+        headers=H1,
+    )
+    n = r.json()
+    assert n["status"] == "planned"
+    # Saving an empty editor keeps it planned; the first words make it a draft.
+    client.patch(f"/api/structure/{n['id']}", json={"content": "<p></p>", "word_count": 0}, headers=H1)
+    assert client.get(f"/api/structure/{n['id']}").json()["status"] == "planned"
+    client.patch(f"/api/structure/{n['id']}", json={"content": "<p>The lamp</p>", "word_count": 2}, headers=H1)
+    assert client.get(f"/api/structure/{n['id']}").json()["status"] == "draft"
+    changes = client.get(f"/api/stories/{sid}/changes").json()
+    assert "became a draft" in changes[0]["label"] and changes[0]["undoable"] is False
+    # Undo reaches past it to the create, never to a planned scene holding prose.
+    assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"].startswith("Add scene")
+
+
 def test_rename_undo_redo(client):
     sid = _story(client)
     n = _scene(client, sid, "Lamp")

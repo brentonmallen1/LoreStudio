@@ -11,13 +11,13 @@ Switch in **Settings › Appearance › Mode**. Everything in Writer mode works 
 
 ## The five places things live
 
-| Place                | What is there                                                               |
-| -------------------- | --------------------------------------------------------------------------- |
-| **Manuscript**       | Scenes and chapters (the structure tree), the editor, outline, plot threads |
-| **Lorebook**         | Story identity, characters, relationships, locations, world systems         |
-| **Compendium**       | Research, references, media and diagrams                                    |
-| **Codex** _(Studio)_ | What-if explorations, group interviews, discoveries the AI proposes         |
-| **Chronicle**        | Snapshots, the change history, AI activity                                  |
+| Place                | What is there                                                                     |
+| -------------------- | --------------------------------------------------------------------------------- |
+| **Manuscript**       | Scenes and chapters (the structure tree), the editor, the Plan page, plot threads |
+| **Lorebook**         | Story identity, characters, relationships, locations, world systems               |
+| **Compendium**       | Research, references, media and diagrams                                          |
+| **Codex** _(Studio)_ | What-if explorations, group interviews, discoveries the AI proposes               |
+| **Chronicle**        | Snapshots, the change history, AI activity                                        |
 
 ## A first session
 

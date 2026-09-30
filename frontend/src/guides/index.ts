@@ -1,5 +1,6 @@
 import gettingStarted from "./getting-started.md?raw";
 import structure from "./structure.md?raw";
+import planning from "./planning.md?raw";
 import dialogue from "./dialogue-and-quotes.md?raw";
 import notes from "./notes-and-todos.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
@@ -36,6 +37,13 @@ export const GUIDES: Guide[] = [
     body: structure,
     modes: BOTH,
     keywords: ["tree", "chapters", "scenes", "template"],
+  },
+  {
+    id: "planning",
+    title: "Planning a story",
+    body: planning,
+    modes: BOTH,
+    keywords: ["plan", "snowflake", "outline", "logline", "synopsis", "method", "beat board", "planned"],
   },
   {
     id: "dialogue-and-quotes",

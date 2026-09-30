@@ -77,8 +77,9 @@ class CharacterUpdate(BaseModel):
     attributes: dict | None = None
     narrative_intent: str | None = None
     narrative_intent_hidden: bool | None = None
-    snowflake_summary: str | None = None
-    snowflake_synopsis: str | None = None
+    conflict: str | None = None
+    epiphany: str | None = None
+    arc_in_own_words: str | None = None
 
 
 class CharacterOut(BaseModel):
@@ -104,8 +105,9 @@ class CharacterOut(BaseModel):
     attributes: dict
     narrative_intent: str
     narrative_intent_hidden: bool
-    snowflake_summary: str
-    snowflake_synopsis: str
+    conflict: str
+    epiphany: str
+    arc_in_own_words: str
     arc_milestones: list[ArcMilestone]
     discovery_notes: list[DiscoveryNote] = []
     created_at: datetime

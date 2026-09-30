@@ -62,9 +62,11 @@ class Character(Base):
     discovery_notes: Mapped[list] = mapped_column(JSON, default=list)
     # Format: [{"id": "uuid", "text": "...", "scene_id": null, "scene_title": null, "timestamp": "iso", "confirmed": false}]
 
-    # Snowflake Method layers
-    snowflake_summary: Mapped[str] = mapped_column(Text, default="")  # Layer 3: goal, motivation, conflict, epiphany
-    snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")  # Layer 5: full arc told in first person
+    # Planning: goal is mission_statement, motivation above; what stands in the way and
+    # what they learn. arc_in_own_words is the character's arc told in first person.
+    conflict: Mapped[str] = mapped_column(Text, default="", server_default="")
+    epiphany: Mapped[str] = mapped_column(Text, default="", server_default="")
+    arc_in_own_words: Mapped[str] = mapped_column(Text, default="", server_default="")
     # Format: [{"id": "uuid", "text": "First moment of doubt", "completed": false}]
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(

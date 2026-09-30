@@ -127,8 +127,7 @@ export default function CharacterSheet() {
       setMissionText(character.mission_statement ?? "");
       setLocalFields({
         ...Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key, character[f.key] ?? ""])),
-        snowflake_summary: character.snowflake_summary ?? "",
-        snowflake_synopsis: character.snowflake_synopsis ?? "",
+        arc_in_own_words: character.arc_in_own_words ?? "",
       });
     }
   }, [character?.id]);
@@ -544,7 +543,7 @@ export default function CharacterSheet() {
             {/* ── Profile ── */}
             <SectionCard title="Profile" collapsed={!!collapsed.profile} onToggle={() => toggle("profile")}>
               <div className={styles.field}>
-                <p className={styles.missionLabel}>Mission Statement</p>
+                <p className={styles.missionLabel}>Goal</p>
                 <p className={styles.missionHint}>
                   One sentence: what does this character fundamentally want or need?
                 </p>
@@ -613,36 +612,23 @@ export default function CharacterSheet() {
               />
             </SectionCard>
 
-            {/* ── Snowflake Method ── */}
+            {/* ── In their own words ── */}
             <SectionCard
-              title="Snowflake Method"
-              collapsed={!!collapsed.snowflake}
-              onToggle={() => toggle("snowflake")}
+              title="In Their Own Words"
+              collapsed={!!collapsed.ownWords}
+              onToggle={() => toggle("ownWords")}
             >
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Character Summary</p>
-                <p className={styles.intentHint}>One sentence: goal, motivation, conflict, and epiphany.</p>
-                <textarea
-                  className={styles.fieldTextarea}
-                  value={localFields.snowflake_summary ?? ""}
-                  onChange={(e) => scheduleFieldSave("snowflake_summary", e.target.value)}
-                  placeholder="e.g. Eleanor wants to restore the lighthouse but must confront her guilt over her brother's disappearance…"
-                  rows={2}
-                />
-              </div>
-              <div className={styles.field}>
-                <p className={styles.fieldLabel}>Character Synopsis</p>
-                <p className={styles.intentHint}>
-                  A full paragraph told in first person — the character's inner arc in their own voice.
-                </p>
-                <textarea
-                  className={styles.fieldTextarea}
-                  value={localFields.snowflake_synopsis ?? ""}
-                  onChange={(e) => scheduleFieldSave("snowflake_synopsis", e.target.value)}
-                  placeholder="I grew up believing the light was enough…"
-                  rows={5}
-                />
-              </div>
+              <p className={styles.intentHint}>
+                Their whole arc told in first person: where they began, what happened to them, where they
+                ended. Their truth as they lived it, not their plot function.
+              </p>
+              <textarea
+                className={styles.fieldTextarea}
+                value={localFields.arc_in_own_words ?? ""}
+                onChange={(e) => scheduleFieldSave("arc_in_own_words", e.target.value)}
+                placeholder="I grew up believing the light was enough…"
+                rows={5}
+              />
             </SectionCard>
 
             {/* ── Arc Milestones ── */}

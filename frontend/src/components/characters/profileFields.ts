@@ -4,7 +4,9 @@
  */
 export const PROFILE_FIELDS = [
   { key: "personality", label: "Personality", placeholder: "How they come across, and what is underneath…" },
-  { key: "motivation", label: "Motivation", placeholder: "What they want, and why…" },
+  { key: "motivation", label: "Motivation", placeholder: "Why they want it…" },
+  { key: "conflict", label: "Conflict", placeholder: "What stands between them and what they want…" },
+  { key: "epiphany", label: "Epiphany", placeholder: "What they learn by the end, or refuse to…" },
   { key: "background", label: "Background", placeholder: "Where they come from…" },
   { key: "appearance", label: "Appearance", placeholder: "What someone notices first…" },
   { key: "flaws", label: "Flaws", placeholder: "What gets in their way — the fault they cannot see…" },

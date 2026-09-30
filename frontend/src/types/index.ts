@@ -53,9 +53,11 @@ export interface Story {
   discovery_min_confidence: number;
   narrative_perspective: string;
   pov_character_id: string | null;
-  snowflake_sentence: string;
-  snowflake_paragraph: string;
-  snowflake_synopsis: string;
+  /** Planning summaries; the one-sentence summary is `logline`. */
+  paragraph_summary: string;
+  synopsis: string;
+  /** The Plan page's method (lib/planning/methods.ts), "" until chosen. */
+  planning_method: string;
   created_at: string;
   updated_at: string;
 }
@@ -116,7 +118,8 @@ export interface StructureNode {
   content: string;
   position: number;
   word_count: number;
-  status: "draft" | "revised" | "final";
+  /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
+  status: "planned" | "draft" | "revised" | "final";
   purpose: string;
   inline_notes: InlineNote[];
   metadata_: SegmentMeta;
@@ -183,8 +186,11 @@ export interface Character {
   attributes: CharacterAttributes;
   narrative_intent: string;
   narrative_intent_hidden: boolean;
-  snowflake_summary: string;
-  snowflake_synopsis: string;
+  /** Goal is `mission_statement`; with `motivation`, these make the character's plan. */
+  conflict: string;
+  epiphany: string;
+  /** The character's arc told in first person. */
+  arc_in_own_words: string;
   arc_milestones: ArcMilestone[];
   discovery_notes: DiscoveryNote[];
   created_at: string;

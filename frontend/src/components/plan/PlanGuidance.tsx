@@ -2,7 +2,7 @@ import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useEffect } from "react";
 import { Compass, X, Loader } from "lucide-react";
 import { api } from "../../api/client";
-import styles from "./SnowflakeGuidance.module.css";
+import styles from "./PlanGuidance.module.css";
 import { useAIAvailable } from "../../lib/mode";
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function SnowflakeGuidance({ storyId, layer, content, characterId, onClose }: Props) {
+export default function PlanGuidance({ storyId, layer, content, characterId, onClose }: Props) {
   // Writer mode renders no AI affordance at all, and the master switch is a promise, not a
   // preference. This whole component is one, so it renders nothing rather than something dead.
   const aiAvailable = useAIAvailable();

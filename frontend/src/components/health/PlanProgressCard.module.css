@@ -1,0 +1,13 @@
+.step {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.step:hover {
+  background: var(--color-surface-2);
+}

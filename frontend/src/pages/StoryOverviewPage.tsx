@@ -235,6 +235,11 @@ export default function StoryOverviewPage() {
               <span className={styles.metricValue}>{ov.scene_count}</span>
               <span className={styles.metricLabel}>{ov.scene_count === 1 ? "scene" : "scenes"}</span>
               <div className={styles.metricSubrow}>
+                {(ov.scenes_by_status.planned ?? 0) > 0 && (
+                  <span className={styles.metricSub} style={{ color: "var(--color-text-subtle)" }}>
+                    {ov.scenes_by_status.planned} planned
+                  </span>
+                )}
                 <span className={styles.metricSub} style={{ color: "var(--color-text-muted)" }}>
                   {ov.scenes_by_status.draft ?? 0} draft
                 </span>
@@ -410,7 +415,7 @@ export default function StoryOverviewPage() {
                   Create characters first. Give them roles, interview them, then write.
                 </span>
               </button>
-              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/outline`)}>
+              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/plan`)}>
                 <span className={styles.startPathIcon}>
                   <ListTree size={15} />
                 </span>

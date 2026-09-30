@@ -146,7 +146,7 @@ export const PAGE_LABELS: Record<string, string> = {
   "character-sheet": "Character Sheet",
   worldbuilding: "World Building",
   "scene-editor": "Scene Editor",
-  outline: "Outline",
+  outline: "Plan",
   codex: "Codex Review",
   "discovery-queue": "Discovery Queue",
   twists: "Twists & Misdirection",

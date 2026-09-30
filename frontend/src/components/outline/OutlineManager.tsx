@@ -1,16 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plus, X, Trash2, Info, Snowflake, BookOpen, Pencil, Compass, CheckSquare } from "lucide-react";
+import { Plus, X, Trash2, BookOpen, Pencil, Compass, CheckSquare } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
-import type { Outline, OutlineItem, StructureNode } from "../../types";
+import type { Outline, OutlineItem } from "../../types";
 import OutlineItemComponent from "./OutlineItem";
-import SnowflakeView from "./SnowflakeView";
-import OutlineInfoModal from "./OutlineInfoModal";
 import ExtractOutlinePanel from "./ExtractOutlinePanel";
 import OutlineAlignmentPanel from "./OutlineAlignmentPanel";
-import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import { sceneLeaves } from "../../lib/planning/methods";
+import { addPlannedScene } from "../../lib/planning/plannedScene";
 import styles from "./OutlineManager.module.css";
 import AIOnly from "../ai/AIOnly";
 
@@ -117,7 +116,7 @@ function flattenIds(nodes: OutlineItem[]): string[] {
 
 function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
   const navigate = useNavigate();
-  const { structure, setActiveNode } = useStoryStore();
+  const { structure, activeTemplate, setActiveNode } = useStoryStore();
   const [showAlignment, setShowAlignment] = useState(false);
   const [items, setItems] = useState<OutlineItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,7 +125,8 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
   const [addingRoot, setAddingRoot] = useState(false);
   const [newRootText, setNewRootText] = useState("");
   const [focusId, setFocusId] = useState<string | null>(null);
-  const [sceneNodes, setSceneNodes] = useState<StructureNode[]>([]);
+  const sceneNodes = sceneLeaves(structure, activeTemplate);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const itemsRef = useRef(items);
   itemsRef.current = items;
@@ -149,23 +149,6 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
     return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
   }, [outline.id]);
-
-  useEffect(() => {
-    api
-      .getStructure(storyId)
-      .then((tree) => {
-        const leaves: StructureNode[] = [];
-        function walk(nodes: StructureNode[]) {
-          for (const n of nodes) {
-            if (!n.children?.length) leaves.push(n);
-            else walk(n.children);
-          }
-        }
-        walk(tree);
-        setSceneNodes(leaves);
-      })
-      .catch(() => {});
-  }, [storyId]);
 
   // ── DnD ─────────────────────────────────────────────────────────────────────
 
@@ -295,6 +278,21 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
     if (next === prev) return;
     setItems(next);
     api.bulkReorderOutline(outline.id, flattenPositions(next)).catch(() => setItems(prev));
+  }
+
+  async function makeScene(item: OutlineItem) {
+    setNotice(null);
+    const text = item.text.trim();
+    const result = await addPlannedScene(storyId, {
+      title: text.length > 60 ? `${text.slice(0, 57)}…` : text,
+      synopsis: item.notes.trim() || text,
+    });
+    if ("hint" in result) {
+      setNotice(result.hint);
+      return;
+    }
+    handleUpdate(item.id, { scene_id: result.node.id, scene_title: result.node.title });
+    setNotice(`Added “${result.node.title}” to the end of the story as a planned scene.`);
   }
 
   function navigateToScene(sceneId: string) {
@@ -480,6 +478,12 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
           </div>
         )}
 
+        {notice && (
+          <p className={styles.notice} role="status">
+            {notice}
+          </p>
+        )}
+
         {items.length > 0 && (
           <div className={styles.tree}>
             {items.map((item) => (
@@ -500,6 +504,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                 focusId={focusId}
                 sceneNodes={sceneNodes}
                 onNavigateToScene={navigateToScene}
+                onMakeScene={makeScene}
               />
             ))}
             <button
@@ -561,11 +566,10 @@ interface Props {
 export default function OutlineManager({ storyId }: Props) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [outlines, setOutlines] = useState<Outline[]>([]);
-  const [activeTab, setActiveTab] = useState<"snowflake" | string>("snowflake");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
   const [loadingOutlines, setLoadingOutlines] = useState(true);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [pendingDeleteOutlineId, setPendingDeleteOutlineId] = useState<string | null>(null);
-  const [showInfoModal, setShowInfoModal] = useState(false);
   const [showExtractPanel, setShowExtractPanel] = useState(false);
 
   useEffect(() => {
@@ -577,7 +581,9 @@ export default function OutlineManager({ storyId }: Props) {
         const tabParam = searchParams.get("tab");
         if (tabParam && data.some((o) => o.id === tabParam)) {
           setActiveTab(tabParam);
-          setSearchParams({}, { replace: true });
+          setSearchParams({ view: "boards" }, { replace: true });
+        } else {
+          setActiveTab(data[0]?.id ?? null);
         }
       })
       .finally(() => setLoadingOutlines(false));
@@ -593,7 +599,7 @@ export default function OutlineManager({ storyId }: Props) {
     setPendingDeleteOutlineId(null);
     await api.deleteOutline(id);
     setOutlines((prev) => prev.filter((o) => o.id !== id));
-    if (activeTab === id) setActiveTab("snowflake");
+    if (activeTab === id) setActiveTab(outlines.find((o) => o.id !== id)?.id ?? null);
   }
 
   async function handleRenameCommit(id: string, name: string) {
@@ -609,15 +615,6 @@ export default function OutlineManager({ storyId }: Props) {
       {/* Tab bar */}
       <div className={styles.tabBar}>
         <div className={styles.tabs}>
-          {/* Snowflake tab — always first */}
-          <button
-            className={`${styles.tab} ${activeTab === "snowflake" ? styles.tabActive : ""}`}
-            onClick={() => setActiveTab("snowflake")}
-          >
-            <Snowflake size={12} />
-            Snowflake
-          </button>
-
           {/* Outline tabs */}
           {outlines.map((outline) => (
             <div
@@ -710,37 +707,12 @@ export default function OutlineManager({ storyId }: Props) {
               Extract
             </button>
           </AIOnly>
-
-          {/* Info button */}
-          <button
-            className={styles.infoBtn}
-            onClick={() => setShowInfoModal(true)}
-            title="About Snowflake & outlines"
-          >
-            <Info size={14} />
-          </button>
-          <AIFeatureInfoTrigger pageId="outline" size="sm" />
         </div>
       </div>
 
       {/* Tab content */}
       {loadingOutlines ? (
         <div className={styles.loading}>Loading…</div>
-      ) : activeTab === "snowflake" ? (
-        <div className={styles.manager}>
-          <div className={styles.managerInner}>
-            <div className={styles.header}>
-              <h2 className={styles.title}>Snowflake Method</h2>
-            </div>
-            <SnowflakeView
-              storyId={storyId}
-              onSwitchToList={() => {
-                if (outlines.length > 0) setActiveTab(outlines[0].id);
-                else handleCreateOutline();
-              }}
-            />
-          </div>
-        </div>
       ) : activeOutline ? (
         <OutlinePanel key={activeOutline.id} outline={activeOutline} storyId={storyId} />
       ) : (
@@ -749,19 +721,18 @@ export default function OutlineManager({ storyId }: Props) {
             <div className={styles.emptyIcon}>
               <BookOpen size={36} />
             </div>
-            <p className={styles.emptyTitle}>No outlines yet</p>
+            <p className={styles.emptyTitle}>No beat boards yet</p>
             <p className={styles.emptyDesc}>
-              Create a blank outline or inject a beat sheet template from the Lorebook.
+              A beat board is a loose outline: jot beats, nest and reorder them, and turn any beat into a
+              scene when it's ready. Start blank, or inject a beat sheet from Story Identity.
             </p>
             <button className={styles.addBeatBtnPrimary} onClick={handleCreateOutline}>
               <Plus size={14} />
-              New outline
+              New beat board
             </button>
           </div>
         </div>
       )}
-
-      {showInfoModal && <OutlineInfoModal onClose={() => setShowInfoModal(false)} />}
 
       {showExtractPanel && (
         <ExtractOutlinePanel

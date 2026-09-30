@@ -66,10 +66,11 @@ class Story(Base):
         String, ForeignKey("characters.id", use_alter=True, name="fk_stories_pov_character_id"), nullable=True
     )
 
-    # Snowflake Method layers
-    snowflake_sentence: Mapped[str] = mapped_column(Text, default="")
-    snowflake_paragraph: Mapped[str] = mapped_column(Text, default="")
-    snowflake_synopsis: Mapped[str] = mapped_column(Text, default="")
+    # Planning summaries, filled by any planning method (the one sentence is the logline)
+    paragraph_summary: Mapped[str] = mapped_column(Text, default="", server_default="")
+    synopsis: Mapped[str] = mapped_column(Text, default="", server_default="")
+    # Which method the Plan page follows (frontend lib/planning/methods.ts); "" until chosen
+    planning_method: Mapped[str] = mapped_column(String, default="", server_default="")
 
     # Story goals checklist
     goals: Mapped[list] = mapped_column(JSON, default=list)

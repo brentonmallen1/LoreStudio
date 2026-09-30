@@ -115,6 +115,23 @@ def update_node(
         )
     for key, value in data.items():
         setattr(node, key, value)
+    if node.status == "planned" and "status" not in data and (data.get("word_count") or 0) > 0:
+        # The first words turn a planned scene into a draft. Logged, not undoable on its own:
+        # undoing it would leave prose in a scene marked as not yet written.
+        change_log.record(
+            db,
+            story_id=node.story_id,
+            entity_type="structure_node",
+            entity_id=node.id,
+            action="update",
+            before={"status": "planned"},
+            after={"status": "draft"},
+            label=f"“{node.title}” became a draft",
+            actor_id=current_user.id,
+            client_id=client_id,
+            undoable=False,
+        )
+        node.status = "draft"
     db.commit()
     db.refresh(node)
 

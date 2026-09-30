@@ -15,6 +15,8 @@ interface StoryState {
 
   structure: StructureNode[];
   setStructure: (nodes: StructureNode[]) => void;
+  /** Merge saved fields into one node of the tree (and the open node, if it is that one). */
+  patchNode: (id: string, patch: Partial<StructureNode>) => void;
 
   activeNode: StructureNode | null;
   setActiveNode: (node: StructureNode | null) => void;
@@ -26,6 +28,14 @@ interface StoryState {
 
   beatSheets: BeatSheet[];
   setBeatSheets: (sheets: BeatSheet[]) => void;
+}
+
+function patchTree(nodes: StructureNode[], id: string, patch: Partial<StructureNode>): StructureNode[] {
+  return nodes.map((n) =>
+    n.id === id
+      ? { ...n, ...patch, children: n.children }
+      : { ...n, children: patchTree(n.children ?? [], id, patch) },
+  );
 }
 
 export const useStoryStore = create<StoryState>((set) => ({
@@ -47,6 +57,11 @@ export const useStoryStore = create<StoryState>((set) => ({
 
   structure: [],
   setStructure: (nodes) => set({ structure: nodes }),
+  patchNode: (id, patch) =>
+    set((s) => ({
+      structure: patchTree(s.structure, id, patch),
+      activeNode: s.activeNode?.id === id ? { ...s.activeNode, ...patch } : s.activeNode,
+    })),
 
   activeNode: null,
   setActiveNode: (node) => set({ activeNode: node }),

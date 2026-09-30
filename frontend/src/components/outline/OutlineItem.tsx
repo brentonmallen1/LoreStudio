@@ -1,5 +1,15 @@
 import { useState } from "react";
-import { GripVertical, ChevronRight, ChevronDown, Plus, Trash2, FileText, Link, X } from "lucide-react";
+import {
+  GripVertical,
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Trash2,
+  FileText,
+  FilePlus2,
+  Link,
+  X,
+} from "lucide-react";
 import type { OutlineItem as OutlineItemType, StructureNode } from "../../types";
 import styles from "./OutlineItem.module.css";
 
@@ -29,6 +39,8 @@ export interface OutlineItemProps {
   focusId?: string | null;
   sceneNodes?: StructureNode[];
   onNavigateToScene?: (sceneId: string) => void;
+  /** Turn this beat into a planned scene at the end of the story, linked back to it. */
+  onMakeScene?: (item: OutlineItemType) => void;
 }
 
 export default function OutlineItem({
@@ -47,6 +59,7 @@ export default function OutlineItem({
   focusId,
   sceneNodes = [],
   onNavigateToScene,
+  onMakeScene,
 }: OutlineItemProps) {
   const [dropZone, setDropZone] = useState<DropZone>(null);
   const [collapsed, setCollapsed] = useState(item.collapsed);
@@ -283,6 +296,17 @@ export default function OutlineItem({
 
         {/* Action buttons */}
         <div className={styles.actions}>
+          {onMakeScene && !item.scene_id && item.text.trim() && (
+            <button
+              className={styles.actionBtn}
+              onClick={() => onMakeScene(item)}
+              title="Make this beat a scene"
+              aria-label="Make this beat a scene"
+              tabIndex={-1}
+            >
+              <FilePlus2 size={13} />
+            </button>
+          )}
           {sceneNodes.length > 0 && (
             <button
               className={`${styles.actionBtn} ${item.scene_id ? styles.actionBtnActive : ""}`}
@@ -352,6 +376,7 @@ export default function OutlineItem({
               focusId={focusId}
               sceneNodes={sceneNodes}
               onNavigateToScene={onNavigateToScene}
+              onMakeScene={onMakeScene}
             />
           ))}
         </div>
