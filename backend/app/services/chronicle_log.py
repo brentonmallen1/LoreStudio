@@ -65,7 +65,14 @@ def get_or_create_session(
     return session
 
 
-def add_message(db: Session, session: ChatSession, role: str, content: str, model: str = "") -> None:
+def add_message(
+    db: Session,
+    session: ChatSession,
+    role: str,
+    content: str,
+    model: str = "",
+    mentioned_refs: list[dict] | None = None,
+) -> None:
     """
     Append one message. Failures are logged and swallowed.
 
@@ -75,7 +82,15 @@ def add_message(db: Session, session: ChatSession, role: str, content: str, mode
     if not content.strip():
         return
     try:
-        db.add(ChatMessage(session_id=session.id, role=role, content=content, model=model))
+        db.add(
+            ChatMessage(
+                session_id=session.id,
+                role=role,
+                content=content,
+                model=model,
+                mentioned_refs=mentioned_refs or None,
+            )
+        )
         if role == "user" and not session.title:
             session.title = content[:TITLE_CHARS] + ("…" if len(content) > TITLE_CHARS else "")
         session.updated_at = datetime.now(UTC)

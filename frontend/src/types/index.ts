@@ -1027,6 +1027,8 @@ export interface PromptPreviewRequest {
   context_options?: ContextOptions;
   /** Summary style, so previewing a detailed summary does not show the brief one. */
   style?: string;
+  /** What the author @mentioned in the composer, so the preview matches the call (doc 11 P6). */
+  mentioned_refs?: { kind: string; id: string }[];
 }
 
 export interface ContextSource {

@@ -1,8 +1,8 @@
-import { useRef } from "react";
+import { useRef, type RefObject } from "react";
 import { Send, Square } from "lucide-react";
 import styles from "./ChatInput.module.css";
 
-interface Props {
+export interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
@@ -11,6 +11,11 @@ interface Props {
   placeholder?: string;
   hintLeft?: React.ReactNode;
   hintRight?: React.ReactNode;
+  /** A wrapper's first look at a key; returning true means it was handled (the mention popover). */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => boolean;
+  /** Rendered above the row: chips, a popover. */
+  above?: React.ReactNode;
+  textareaRef?: RefObject<HTMLTextAreaElement | null>;
 }
 
 export default function ChatInput({
@@ -22,10 +27,15 @@ export default function ChatInput({
   placeholder = "Send a message…",
   hintLeft,
   hintRight,
-}: Props) {
-  const ref = useRef<HTMLTextAreaElement>(null);
+  onKeyDown,
+  above,
+  textareaRef,
+}: ChatInputProps) {
+  const ownRef = useRef<HTMLTextAreaElement>(null);
+  const ref = textareaRef ?? ownRef;
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (onKeyDown?.(e)) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSend();
@@ -34,6 +44,7 @@ export default function ChatInput({
 
   return (
     <div className={styles.root}>
+      {above}
       <div className={styles.row}>
         <textarea
           ref={ref}

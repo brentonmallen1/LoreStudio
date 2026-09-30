@@ -36,7 +36,7 @@ registerSessionType({
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId } = session.context;
     if (!storyId) throw new Error("Story required for What-If");
-    return api.sendWhatIfMessage(storyId, session.messages, signal, llmParams);
+    return api.sendWhatIfMessage(storyId, session.messages, signal, llmParams, session.mentionedRefs);
   },
 
   persistsInBackend: false,

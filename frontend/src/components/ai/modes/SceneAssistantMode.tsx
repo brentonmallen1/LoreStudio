@@ -11,7 +11,7 @@ import { LLMContextSources } from "../../llm";
 import AIModeWrapper from "../AIModeWrapper";
 import ChatImagePicker from "../../layout/ChatImagePicker";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./SceneAssistantMode.module.css";
 
 interface SelectedImage {
@@ -213,7 +213,8 @@ export default function SceneAssistantMode({ session }: Props) {
         />
       )}
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}

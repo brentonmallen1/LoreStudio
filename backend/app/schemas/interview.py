@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from .llm_params import LLMParamsOverride
+from .mentions import MentionedRef
 
 KnowledgeScopeValue = Literal["profile", "present", "as_of", "omniscient"]
 
@@ -19,6 +20,8 @@ class InterviewCreate(BaseModel):
 class InterviewMessageRequest(BaseModel):
     content: str
     llm_params: LLMParamsOverride | None = None
+    #: What the author @mentioned in the composer (doc 11 P6).
+    mentioned_refs: list[MentionedRef] = []
 
 
 class MessageOut(BaseModel):

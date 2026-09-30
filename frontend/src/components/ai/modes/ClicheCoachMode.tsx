@@ -5,7 +5,7 @@ import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./ClicheCoachMode.module.css";
 
 const DIRECTION_PRESETS = ["Freshen it", "Subvert it", "Keep it"] as const;
@@ -115,7 +115,8 @@ export default function ClicheCoachMode({ session }: Props) {
       )}
 
       {hasMessages && (
-        <ChatInput
+        <MentionComposer
+          sessionId={session.id}
           value={state.input}
           onChange={state.setInput}
           onSend={() => handleSend()}

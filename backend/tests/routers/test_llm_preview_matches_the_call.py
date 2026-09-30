@@ -68,3 +68,30 @@ def test_the_panel_preview_is_the_prompt_a_member_is_actually_sent(client, db_se
     assert preview == sent
     assert SCOPE_MARKER in preview
     assert "Mara" in preview
+
+
+def test_a_mention_shows_in_the_preview_the_way_the_call_sends_it(client, db_session, test_user):
+    from app.schemas.mentions import MentionedRef
+    from app.services.codex.mentions import SECTION_HEADING
+
+    story, elena, mara = _cast(db_session, test_user)
+    panel = PanelInterview(story_id=story.id, character_ids=[elena.id])
+    db_session.add(panel)
+    db_session.commit()
+
+    refs = [{"kind": "character", "id": mara.id}]
+    preview = client.post(
+        "/api/llm/prompt-preview", json={"context_type": "panel", "panel_id": panel.id, "mentioned_refs": refs}
+    ).json()
+    sent = assemble_panel_member(elena, [], db_session, mentioned_refs=[MentionedRef(**r) for r in refs])
+    assert preview["system_prompt"] == sent.prompt
+    assert SECTION_HEADING in preview["system_prompt"]
+    assert any(s["source"] == "mentioned" and s["included"] for s in preview["sources"])
+
+    # A scene chat at story level (no scene) previews too, and carries the mention.
+    scene_preview = client.post(
+        "/api/llm/prompt-preview",
+        json={"context_type": "scene-chat", "story_id": story.id, "node_id": "__story__", "mentioned_refs": refs},
+    )
+    assert scene_preview.status_code == 200
+    assert "### Mara (character)" in scene_preview.json()["system_prompt"]

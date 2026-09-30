@@ -28,12 +28,14 @@ from ...models.setting import Setting
 from ...models.story import Story
 from ...models.structure import StructureNode
 from ...models.user import User
+from ...schemas.mentions import MentionedRef
 from ..character_journey import get_cached_journey
 from ..character_knowledge import build_scope, describe_scope
 from ..llm.prompts.interviews import build_character_interview_system_prompt
 from ..llm.prompts.panel import build_panel_character_prompt
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
+from .mentions import render_mentions, resolve_mentions, without
 
 
 class ContextOptions(BaseModel):
@@ -65,10 +67,20 @@ def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
 VIRTUAL_NODE_IDS = {"__global__", "__story__"}
 
 
-def build_packet(  # noqa: C901, PLR0912
-    story: Story, node: StructureNode | None, db: Session, context_options: ContextOptions | None = None
+def build_packet(  # noqa: C901, PLR0912, PLR0915
+    story: Story,
+    node: StructureNode | None,
+    db: Session,
+    context_options: ContextOptions | None = None,
+    mentioned_refs: list[MentionedRef] | None = None,
 ) -> dict:
-    """The context packet itself: everything the scene assistant is told, as a dict."""
+    """
+    The context packet itself: everything the scene assistant is told, as a dict.
+
+    `mentioned_refs` are what the author @mentioned in the composer (doc 11 P6). They are
+    added under `mentioned` after the automatic selection, minus anything it already
+    covers; nothing else in the packet changes.
+    """
 
     # ── Lorebook ──
     # Resolve POV character name if set
@@ -207,6 +219,15 @@ def build_packet(  # noqa: C901, PLR0912
             for s in siblings[:6]
         ]
 
+    mentioned = without(
+        resolve_mentions(story.id, mentioned_refs, db),
+        names_by_kind={
+            "character": {c["name"] for c in mentioned_char_profiles},
+            "thread": {t["name"] for t in threads_in_scene},
+        },
+        node_id=node.id if node else None,
+    )
+
     return {
         "story": lorebook,
         "scene": scene,
@@ -216,6 +237,7 @@ def build_packet(  # noqa: C901, PLR0912
         "threads_in_scene": threads_in_scene,
         "open_threads": all_open_threads,
         "sibling_scenes": sibling_context,
+        "mentioned": mentioned,
     }
 
 
@@ -326,6 +348,7 @@ def _blocks_for(packet: dict) -> list[Block]:
         ("sibling_scenes", "Neighbouring scenes", "adjacent in the manuscript"),
         ("all_characters", "Cast summary", ""),
         ("open_threads", "Open threads", ""),
+        ("mentioned", "Also in mind", "you @mentioned them"),
     ):
         items = packet.get(key) or []
         blocks.append(Block(key, f"{label} ({len(items)})", bool(items), _tokens(items), why=why if items else ""))
@@ -338,9 +361,10 @@ def assemble_scene(
     db: Session,
     context_options: ContextOptions | None = None,
     budget: int = 0,
+    mentioned_refs: list[MentionedRef] | None = None,
 ) -> AssembledContext:
     """The packet and its account of itself, from one pass over the story."""
-    packet = build_packet(story, node, db, context_options)
+    packet = build_packet(story, node, db, context_options, mentioned_refs)
     return AssembledContext(packet=packet, blocks=_blocks_for(packet), budget=budget)
 
 
@@ -633,6 +657,7 @@ async def assemble_interview(
     journey_summary: str | None = None,
     question: str = "",
     user: User | None = None,
+    mentioned_refs: list[MentionedRef] | None = None,
 ) -> AssembledContext:
     """
     Everything an interview tells the character, and an account of it.
@@ -662,6 +687,10 @@ async def assemble_interview(
             f"{interview.compacted_summary}\n"
             f"--- End of earlier summary ---"
         )
+    mentioned = without(
+        resolve_mentions(character.story_id, mentioned_refs, db), names_by_kind={"character": {character.name}}
+    )
+    prompt += render_mentions(mentioned)
 
     messages = len(interview.messages) if interview.messages else 0
     blocks = [
@@ -677,8 +706,19 @@ async def assemble_interview(
         Block("interview.previous", "Notes from an earlier session", bool(previous), estimate_tokens(previous or "")),
         Block("interview.compacted", "Compacted earlier conversation", bool(interview.compacted_summary)),
         Block("interview.history", f"Prior messages ({messages})", messages > 0),
+        _mentioned_block(mentioned),
     ]
     return AssembledContext(packet={}, blocks=blocks, retrieved=passages, prompt=prompt)
+
+
+def _mentioned_block(mentioned: list[dict]) -> Block:
+    return Block(
+        "mentioned",
+        f"Also in mind ({len(mentioned)})",
+        bool(mentioned),
+        _tokens(mentioned),
+        why="you @mentioned them" if mentioned else "",
+    )
 
 
 def assemble_panel_member(
@@ -687,6 +727,7 @@ def assemble_panel_member(
     db: Session,
     *,
     response_length: str | None = None,
+    mentioned_refs: list[MentionedRef] | None = None,
 ) -> AssembledContext:
     """
     One member of a panel: their persona, the room around them, and what they know.
@@ -710,6 +751,11 @@ def assemble_panel_member(
         response_length=response_length,
         knowledge_block=describe_scope(speaker, scope),
     )
+    mentioned = without(
+        resolve_mentions(speaker.story_id, mentioned_refs, db),
+        names_by_kind={"character": {c.name for c in [speaker, *others]}},
+    )
+    prompt += render_mentions(mentioned)
     blocks = [
         Block("character.profile", f"{speaker.name}'s profile", True, estimate_tokens(prompt)),
         Block("panel.others", f"Others in the room ({len(others)})", bool(others)),
@@ -721,5 +767,6 @@ def assemble_panel_member(
             why=SCOPE_REASONS.get(scope.mode, ""),
         ),
         Block("interview.facts", f"Facts they know ({len(scope.facts)})", bool(scope.facts)),
+        _mentioned_block(mentioned),
     ]
     return AssembledContext(packet={}, blocks=blocks, prompt=prompt)

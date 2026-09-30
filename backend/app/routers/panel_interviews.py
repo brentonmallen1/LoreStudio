@@ -57,7 +57,12 @@ def _get_or_create_chronicle_session(panel: PanelInterview, user: User, db: Sess
 
 
 def _add_chronicle_message(
-    chronicle_session: ChatSession, role: str, content: str, db: Session, model: str = ""
+    chronicle_session: ChatSession,
+    role: str,
+    content: str,
+    db: Session,
+    model: str = "",
+    mentioned_refs: list[dict] | None = None,
 ) -> None:
     """Add a message to the Chronicle session."""
     msg = ChatMessage(
@@ -65,6 +70,7 @@ def _add_chronicle_message(
         role=role,
         content=content,
         model=model,
+        mentioned_refs=mentioned_refs or None,
     )
     chronicle_session.updated_at = datetime.now(UTC)
     db.add(msg)
@@ -182,7 +188,9 @@ async def send_panel_message(
     }
     messages = list(panel.messages) + [user_msg]
     panel.messages = messages
-    _add_chronicle_message(chronicle_session, "user", body.content, db)
+    _add_chronicle_message(
+        chronicle_session, "user", body.content, db, mentioned_refs=[r.model_dump() for r in body.mentioned_refs]
+    )
     db.commit()
 
     orch_ctx = AICallContext(
@@ -231,7 +239,11 @@ async def send_panel_message(
                 # Assembled in one place, so the transparency view shows this prompt and
                 # not a persona with no idea what it lived through (doc 07 §5).
                 char_prompt = assemble_panel_member(
-                    character, other_characters, db, response_length=body.response_length
+                    character,
+                    other_characters,
+                    db,
+                    response_length=body.response_length,
+                    mentioned_refs=body.mentioned_refs,
                 ).prompt
 
                 llm_messages = [

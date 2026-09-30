@@ -67,14 +67,7 @@ export default function StoryStrip() {
   );
 
   return (
-    <nav
-      aria-label="The book"
-      className={styles.strip}
-      style={{ width: WIDTH_PX[width] }}
-      data-width={width}
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
-    >
+    <nav aria-label="The book" className={styles.strip} style={{ width: WIDTH_PX[width] }} data-width={width}>
       <button
         className={styles.handle}
         onClick={cycle}
@@ -129,7 +122,13 @@ export default function StoryStrip() {
         </div>
       )}
 
-      <div className={styles.body}>
+      {/* The key shows while the pointer is over the line itself, not the foot: open the
+          More menu there and the key would sit on top of it. */}
+      <div
+        className={styles.body}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+      >
         {width === "strip" && (
           <TransitStrip line={line} mode={stripColourMode} ctx={ctx} storyId={storyId!} />
         )}

@@ -217,3 +217,95 @@ def test_an_exact_restriction_does_not_walk(db_session, test_user):
         retrieve_with_vector(db_session, story.id, [1.0, 0.0], seed_ref_ids=[], restrict_ref_ids=[], model="test-embed")
         == []
     )
+
+
+# ── @-mentions (doc 11 P6) ──────────────────────────────────────────────────
+
+
+def _mention(kind, obj):
+    from app.schemas.mentions import MentionedRef
+
+    return MentionedRef(kind=kind, id=obj.id)
+
+
+def test_a_mention_adds_to_the_packet_and_says_why(db_session, test_user):
+    from app.models.plot_thread import PlotThread
+
+    story = _story(db_session, test_user)
+    elena = Character(story_id=story.id, name="Elena", role="protagonist")
+    mara = Character(story_id=story.id, name="Mara", role="ally", motivation="Keep the light burning.")
+    thread = PlotThread(story_id=story.id, name="The Missing Logs", status="open")
+    harbour = Location(story_id=story.id, name="The Harbour", atmosphere="Salt and rope.")
+    db_session.add_all([elena, mara, thread, harbour])
+    scene = _scene(db_session, story, "Arrival", content="<p>@Elena climbed the stair.</p>")
+    db_session.commit()
+
+    plain = assemble_scene(story, scene, db_session)
+    refs = [_mention("character", mara), _mention("thread", thread), _mention("location", harbour)]
+    with_refs = assemble_scene(story, scene, db_session, mentioned_refs=refs)
+
+    # Added, never replacing: everything else in the packet is untouched.
+    assert {k: v for k, v in with_refs.packet.items() if k != "mentioned"} == {
+        k: v for k, v in plain.packet.items() if k != "mentioned"
+    }
+    assert plain.packet["mentioned"] == []
+    assert [m["name"] for m in with_refs.packet["mentioned"]] == ["Mara", "The Missing Logs", "The Harbour"]
+    assert with_refs.packet["mentioned"][0]["motivation"] == "Keep the light burning."
+    block = next(b for b in with_refs.blocks if b.key == "mentioned")
+    assert block.included is True
+    assert block.why == "you @mentioned them"
+    assert _blocks(plain)["mentioned"] is False
+
+
+def test_a_mention_the_prose_already_covers_is_not_repeated(db_session, test_user):
+    story = _story(db_session, test_user)
+    elena = Character(story_id=story.id, name="Elena", role="protagonist")
+    db_session.add(elena)
+    scene = _scene(db_session, story, "Arrival", content="<p>@Elena climbed the stair.</p>")
+    db_session.commit()
+
+    assembled = assemble_scene(
+        story, scene, db_session, mentioned_refs=[_mention("character", elena), _mention("scene", scene)]
+    )
+    assert assembled.packet["mentioned"] == []
+    assert len(assembled.packet["characters_in_scene"]) == 1
+
+
+def test_unknown_foreign_and_duplicate_mentions_are_dropped(db_session, test_user):
+    from app.schemas.mentions import MentionedRef
+
+    story = _story(db_session, test_user)
+    other = _story(db_session, test_user)
+    stranger = Character(story_id=other.id, name="Stranger", role="minor")
+    mara = Character(story_id=story.id, name="Mara", role="ally")
+    db_session.add_all([stranger, mara])
+    scene = _scene(db_session, story, "Arrival")
+    db_session.commit()
+
+    refs = [
+        MentionedRef(kind="character", id="nope"),
+        _mention("character", stranger),
+        _mention("character", mara),
+        _mention("character", mara),
+    ]
+    assembled = assemble_scene(story, scene, db_session, mentioned_refs=refs)
+    assert [m["name"] for m in assembled.packet["mentioned"]] == ["Mara"]
+
+
+def test_the_prompt_renders_the_mentioned_section(db_session, test_user):
+    from app.services.codex.mentions import SECTION_HEADING
+    from app.services.llm.prompts.chat import build_scene_chat_system_prompt, build_writing_coach_system_prompt
+
+    story = _story(db_session, test_user)
+    mara = Character(story_id=story.id, name="Mara", role="ally")
+    db_session.add(mara)
+    scene = _scene(db_session, story, "Arrival")
+    db_session.commit()
+
+    packet = assemble_scene(story, scene, db_session, mentioned_refs=[_mention("character", mara)]).packet
+    for build in (build_scene_chat_system_prompt, build_writing_coach_system_prompt):
+        prompt = build(packet)
+        assert SECTION_HEADING in prompt
+        assert "### Mara (character)" in prompt
+    plain = assemble_scene(story, scene, db_session).packet
+    assert SECTION_HEADING not in build_scene_chat_system_prompt(plain)

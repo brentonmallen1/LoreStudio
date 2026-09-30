@@ -6,7 +6,7 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import ChatImagePicker from "../../layout/ChatImagePicker";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import ContextChips from "../ContextChips";
 import styles from "./AssistantMode.module.css";
 
@@ -111,7 +111,8 @@ export default function AssistantMode({ session }: Props) {
         />
       )}
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}

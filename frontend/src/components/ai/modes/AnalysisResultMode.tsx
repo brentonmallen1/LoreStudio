@@ -4,7 +4,7 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import { aiFeatureLabel } from "../../../lib/ai/features.generated";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./AnalysisResultMode.module.css";
 
 /** Renders whatever shape an analysis returned, without a schema per feature. */
@@ -96,7 +96,8 @@ export default function AnalysisResultMode({ session }: { session: AISession }) 
         emptyText="Ask about any of this — why it was flagged, what to do about it, what it missed."
       />
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}

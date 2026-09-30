@@ -13,6 +13,9 @@ import { usePanelStore } from "../../stores/panelStore";
 import { entityColor } from "../panel/entityColor";
 import styles from "./Strip.module.css";
 
+/** A stop shows at most this many colour pips (a 2×2 grid); the peek and title name the rest. */
+const MAX_PIPS = 4;
+
 interface Props {
   line: Line;
   mode: ColourMode;
@@ -116,8 +119,9 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                       <span
                         className={`${styles.pill} ${current ? styles.pillCurrent : ""}`}
                         style={{ opacity: ahead ? 0.55 : 1 }}
+                        title={swatches.map((s) => s.label).join(", ")}
                       >
-                        {swatches.map((s) => (
+                        {swatches.slice(0, MAX_PIPS).map((s) => (
                           <span
                             key={s.label}
                             className={`${styles.pip} ${shape === "hollow" ? styles.pipHollow : ""}`}

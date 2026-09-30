@@ -16,6 +16,7 @@ from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import RelationshipSuggestionsResponse, StructuredResult
 from ..schemas.character import CharacterCreate, RelationshipOut
+from ..schemas.mentions import MentionedRef
 from ..schemas.story import (
     StoryCreate,
     StoryCreated,
@@ -27,6 +28,7 @@ from ..schemas.story import (
 )
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
 from ..services import change_log
+from ..services.codex.mentions import render_mentions, resolve_mentions
 from ..services.color_slots import next_slot
 from ..services.idea_names import idea_names
 from ..services.llm.gateway import AICallContext, ai_gateway
@@ -782,6 +784,8 @@ def delete_goal(
 class IdentityWorkshopRequest(BaseModel):
     messages: list[dict]
     llm_params: dict | None = None
+    #: What the author @mentioned in the composer (doc 11 P6).
+    mentioned_refs: list[MentionedRef] = []
 
 
 @router.post("/{story_id}/identity-workshop")
@@ -798,7 +802,9 @@ async def identity_workshop(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    prompt = build_identity_workshop_prompt(story, db)
+    prompt = build_identity_workshop_prompt(story, db) + render_mentions(
+        resolve_mentions(story.id, body.mentioned_refs, db)
+    )
     llm_params = LLMParamsOverride(**body.llm_params) if body.llm_params else None
 
     ctx = AICallContext(

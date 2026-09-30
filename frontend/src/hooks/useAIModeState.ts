@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { AISession } from "../stores/aiStore";
-import type { LLMParams, TokenBreakdown } from "../types";
+import type { LLMParams, PromptPreviewRequest, TokenBreakdown } from "../types";
+import { toWire } from "../types/mentions";
+import type { CallLookup } from "../api/aiCalls";
 import { useLLMTransparency } from "./useLLMTransparency";
 import { api } from "../api/client";
 import { contextWindowFor } from "../lib/ai/contextWindow";
@@ -19,7 +21,18 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
   const [ctxLimit, setCtxLimit] = useState(_cachedCtxLimit ?? CTX_LIMIT_FALLBACK);
   const lastUserMsg = useRef("");
   const lastResponse = useRef("");
-  const transparency = useLLMTransparency();
+  const rawTransparency = useLLMTransparency();
+  // Every preview a mode opens carries what the author @mentioned, so what is inspected
+  // is what was sent (doc 11 P6) without each mode remembering to add it.
+  const mentionedRefs = session.mentionedRefs;
+  const transparency = useMemo(
+    () => ({
+      ...rawTransparency,
+      open: (request: PromptPreviewRequest, response: string, call?: CallLookup) =>
+        rawTransparency.open({ mentioned_refs: toWire(mentionedRefs), ...request }, response, call),
+    }),
+    [rawTransparency, mentionedRefs],
+  );
 
   // Fetch model context length once on first use
   useEffect(() => {

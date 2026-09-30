@@ -16,6 +16,8 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
+from ..schemas.mentions import MentionedRef
+from ..services.codex.mentions import render_mentions, resolve_mentions
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.whatif import build_whatif_system_prompt
 from ..services.llm.sse import sse_stream
@@ -97,18 +99,20 @@ async def whatif_simulator(
     story_id: str,
     messages: list[dict] = Body(...),
     llm_params: LLMParamsOverride | None = Body(None),
+    mentioned_refs: list[MentionedRef] = Body([]),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """
     Stream a counterfactual analysis for a 'What if...' scenario.
 
-    The request body is just the conversation messages — no scene context needed,
-    analysis is always story-wide.
+    The request body is the conversation messages — no scene context needed, analysis is
+    always story-wide — plus whatever the author @mentioned, which the story-wide context
+    then dwells on.
     """
     story = _get_story(story_id, db, current_user)
     ctx = _build_whatif_context(story, db)
-    system_prompt = build_whatif_system_prompt(ctx)
+    system_prompt = build_whatif_system_prompt(ctx) + render_mentions(resolve_mentions(story.id, mentioned_refs, db))
 
     call_ctx = AICallContext(
         feature="whatif",

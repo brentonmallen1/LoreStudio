@@ -5,7 +5,7 @@ import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./WritingCoachMode.module.css";
 
 const MOOD_PRESETS = ["Darker", "Lighter", "More Tense", "Calmer"];
@@ -134,7 +134,8 @@ export default function WritingCoachMode({ session }: Props) {
       )}
 
       {hasMessages && (
-        <ChatInput
+        <MentionComposer
+          sessionId={session.id}
           value={state.input}
           onChange={state.setInput}
           onSend={() => handleSend()}

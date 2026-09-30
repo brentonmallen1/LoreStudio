@@ -4,7 +4,7 @@ import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./AssistantMode.module.css";
 
 const EXAMPLE_PROMPTS = [
@@ -68,7 +68,8 @@ export default function StoryIdentityWorkshopMode({ session }: Props) {
         />
       )}
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}

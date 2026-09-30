@@ -53,6 +53,7 @@ registerSessionType({
       undefined,
       contextOptions,
       session.chronicleSessionId,
+      session.mentionedRefs,
     );
   },
 
@@ -149,6 +150,7 @@ registerSessionType({
       undefined,
       contextOptions,
       session.chronicleSessionId,
+      session.mentionedRefs,
     );
   },
 
@@ -225,7 +227,17 @@ registerSessionType({
     const { storyId, contextScope } = session.context;
     if (!storyId) throw new Error("Story required for story assistant");
     const effectiveNodeId = contextScope === "lorebook-only" ? "__global__" : "__story__";
-    return api.sendChatMessage(storyId, effectiveNodeId, session.messages, signal, llmParams);
+    return api.sendChatMessage(
+      storyId,
+      effectiveNodeId,
+      session.messages,
+      signal,
+      llmParams,
+      undefined,
+      undefined,
+      undefined,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: false,
@@ -264,7 +276,17 @@ registerSessionType({
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId, nodeId } = session.context;
     if (!storyId || !nodeId) throw new Error("Story and scene required for writing coach");
-    return api.sendChatMessage(storyId, nodeId, session.messages, signal, llmParams, "writing-coach");
+    return api.sendChatMessage(
+      storyId,
+      nodeId,
+      session.messages,
+      signal,
+      llmParams,
+      "writing-coach",
+      undefined,
+      undefined,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: false,
@@ -301,7 +323,15 @@ registerSessionType({
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId, nodeId, selectedText } = session.context;
     if (!storyId || !nodeId) throw new Error("Story and scene required for Cliche Coach");
-    return api.sendClicheCoachMessage(storyId, nodeId, session.messages, selectedText, signal, llmParams);
+    return api.sendClicheCoachMessage(
+      storyId,
+      nodeId,
+      session.messages,
+      selectedText,
+      signal,
+      llmParams,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: false,
@@ -338,7 +368,13 @@ registerSessionType({
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId } = session.context;
     if (!storyId) throw new Error("Story required for Identity Workshop");
-    return api.sendIdentityWorkshopMessage(storyId, session.messages, signal, llmParams);
+    return api.sendIdentityWorkshopMessage(
+      storyId,
+      session.messages,
+      signal,
+      llmParams,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: false,

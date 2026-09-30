@@ -7,7 +7,7 @@ import { useLLMContextSources } from "../../../hooks/useLLMContextSources";
 import { LLMContextSources } from "../../llm";
 import AIModeWrapper from "../AIModeWrapper";
 import MessageList from "../shared/MessageList";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./StoryAssistantMode.module.css";
 
 const STARTER_PROMPTS = [
@@ -141,7 +141,8 @@ export default function StoryAssistantMode({ session }: Props) {
         />
       )}
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={() => handleSend()}

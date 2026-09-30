@@ -133,7 +133,17 @@ registerSessionType({
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId } = session.context;
     if (!storyId) return Promise.reject(new Error("This analysis has no story."));
-    return api.sendChatMessage(storyId, "__story__", session.messages, signal, llmParams);
+    return api.sendChatMessage(
+      storyId,
+      "__story__",
+      session.messages,
+      signal,
+      llmParams,
+      undefined,
+      undefined,
+      undefined,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: false,

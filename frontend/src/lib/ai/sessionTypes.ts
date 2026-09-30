@@ -123,6 +123,8 @@ export interface SessionTypeConfig {
       chronicleSessionId?: string;
       context: SessionContext;
       messages: import("../../types").ChatMessage[];
+      /** What the author @-mentioned in this session (doc 11 P6); added to the server's own context. */
+      mentionedRefs?: import("../../types/mentions").MentionedRef[];
     },
     content: string,
     signal?: AbortSignal,

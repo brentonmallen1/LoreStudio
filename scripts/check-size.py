@@ -54,7 +54,7 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 OVER_BUDGET: dict[str, int] = {
     "backend/app/routers/analysis.py": 1651,
     "frontend/src/types/index.ts": 1648,
-    "frontend/src/api/client.ts": 1515,
+    "frontend/src/api/client.ts": 1366,
     "backend/app/services/llm/prompts/analysis.py": 1249,
     "frontend/src/components/health/ReportCard.tsx": 1025,
     "frontend/src/pages/VersionsPage.tsx": 1019,
@@ -64,7 +64,7 @@ OVER_BUDGET: dict[str, int] = {
     "frontend/src/components/outline/OutlineManager.tsx": 702,
     "frontend/src/pages/Settings.tsx": 585,
     "frontend/src/components/worldbuilding/LocationManager.tsx": 651,
-    "frontend/src/pages/StoryHealthPage.tsx": 633,
+    "frontend/src/pages/StoryHealthPage.tsx": 590,
     "frontend/src/components/characters/RelationshipGraph.tsx": 633,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 621,
     "frontend/src/components/story/StoryIdentityPanel.tsx": 556,

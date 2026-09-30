@@ -30,6 +30,7 @@ from ..schemas.ai_responses import (
     ThreadAnalysisResponse,
 )
 from ..schemas.chronicle import ActivityLogOut
+from ..schemas.mentions import MentionedRef
 from ..schemas.nlp_analysis import (
     EditorialConsistencyResponse,
     EntitySuggestionsResponse,
@@ -1498,11 +1499,13 @@ async def cliche_coach_chat(
     messages: list[dict] = Body(...),
     selected_text: str | None = Body(None),
     llm_params=Body(None),
+    mentioned_refs: list[MentionedRef] = Body([]),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Stream a cliche coaching response for selected prose."""
     from ..schemas.llm_params import LLMParamsOverride
+    from ..services.codex.mentions import render_mentions, resolve_mentions
 
     if llm_params and not isinstance(llm_params, LLMParamsOverride):
         llm_params = LLMParamsOverride(**llm_params)
@@ -1520,7 +1523,7 @@ async def cliche_coach_chat(
         scene_title=scene_title,
         genre=story.genre or None,
         selected_text=passage,
-    )
+    ) + render_mentions(resolve_mentions(story_id, mentioned_refs, db))
 
     call_ctx = AICallContext(
         feature="cliche-coach",

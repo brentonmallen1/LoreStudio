@@ -186,7 +186,8 @@
 }
 
 .rowStop {
-  height: 20px;
+  min-height: 20px;
+  padding: 2px 0;
 }
 
 .rail {
@@ -326,7 +327,10 @@
 
 .pill {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 6px);
+  grid-auto-rows: 6px;
+  justify-content: center;
   gap: 2px;
   padding: 2px 3px;
   border-radius: 6px;

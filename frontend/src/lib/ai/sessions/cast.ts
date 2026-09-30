@@ -60,7 +60,13 @@ registerSessionType({
 
   sendMessage: (session, content, signal, llmParams) => {
     if (!session.backendSessionId) throw new Error("No interview session");
-    return api.sendInterviewMessage(session.backendSessionId, content, signal, llmParams);
+    return api.sendInterviewMessage(
+      session.backendSessionId,
+      content,
+      signal,
+      llmParams,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: true,
@@ -101,7 +107,14 @@ registerSessionType({
 
   sendMessage: (session, content, signal, llmParams) => {
     if (!session.backendSessionId) throw new Error("No panel session");
-    return api.sendPanelMessage(session.backendSessionId, content, signal, llmParams);
+    return api.sendPanelMessage(
+      session.backendSessionId,
+      content,
+      signal,
+      llmParams,
+      undefined,
+      session.mentionedRefs,
+    );
   },
 
   persistsInBackend: true,

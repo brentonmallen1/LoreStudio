@@ -117,6 +117,8 @@ async def send_message(
 
     # Append user message
     user_msg = {"role": "user", "content": body.content, "timestamp": datetime.now(UTC).isoformat()}
+    if body.mentioned_refs:
+        user_msg["mentioned_refs"] = [r.model_dump() for r in body.mentioned_refs]
     messages = list(interview.messages)
     messages.append(user_msg)
     interview.messages = messages
@@ -168,6 +170,7 @@ async def send_message(
         journey_summary=journey_summary,
         question=next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), ""),
         user=current_user,
+        mentioned_refs=body.mentioned_refs,
     )
     feature_prompt = assembled.prompt
     llm_messages = [{"role": m["role"], "content": m["content"]} for m in messages]

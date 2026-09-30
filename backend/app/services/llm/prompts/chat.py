@@ -2,6 +2,8 @@
 Chat prompts — scene-aware chat assistant and writing coach.
 """
 
+from ...codex.mentions import render_mentions
+
 
 def build_writing_coach_system_prompt(ctx: dict) -> str:
     """
@@ -56,6 +58,8 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
         lines += ["", "## Story characters"]
         for c in ctx["all_characters"]:
             lines.append(f"- {c['name']} ({c['role']})")
+
+    lines.append(render_mentions(ctx.get("mentioned")))
 
     lines += [
         "",
@@ -174,6 +178,8 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
             if passage.get("why"):
                 heading += f" — {passage['why']}"
             lines += [heading, passage["text"]]
+
+    lines.append(render_mentions(ctx.get("mentioned")))
 
     lines += [
         "",

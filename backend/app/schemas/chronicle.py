@@ -15,6 +15,7 @@ class ChatMessageOut(BaseModel):
     model: str | None
     tokens_in: int | None
     tokens_out: int | None
+    mentioned_refs: list[dict] | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

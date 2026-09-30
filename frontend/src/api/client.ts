@@ -1,8 +1,10 @@
+import { aiChatApi } from "./aiChat";
 import { chronicleApi } from "./chronicle";
 import { BASE, getToken, request } from "./request";
 export { ApiError } from "./request";
 
 export const api = {
+  ...aiChatApi,
   // Auth
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/auth/login", {
@@ -47,20 +49,6 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(goalIds),
     }),
-  sendIdentityWorkshopMessage: (
-    storyId: string,
-    messages: import("../types").ChatMessage[],
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/identity-workshop`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
-      signal,
-    });
-  },
 
   // Story AI
   summarizeStory: (
@@ -472,23 +460,6 @@ export const api = {
     }),
 
   // Interview streaming (returns Response, not parsed JSON)
-  sendInterviewMessage: (
-    interviewId: string,
-    content: string,
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/interviews/${interviewId}/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ content, llm_params: llmParams ?? null }),
-      signal,
-    });
-  },
 
   summarizeInterview: (interviewId: string, signal?: AbortSignal): Promise<Response> => {
     const token = getToken();
@@ -705,28 +676,6 @@ export const api = {
     }),
   getPanel: (panelId: string) => request<import("../types").PanelInterview>(`/panels/${panelId}`),
   deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
-  sendPanelMessage: (
-    panelId: string,
-    content: string,
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-    responseLength?: "brief" | "normal" | "detailed",
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/panels/${panelId}/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        content,
-        llm_params: llmParams ?? null,
-        response_length: responseLength ?? null,
-      }),
-      signal,
-    });
-  },
 
   // Scene Links
   getSceneLinks: (params: { story_id?: string; node_id?: string }) =>
@@ -823,34 +772,6 @@ export const api = {
   // Scene Chat
   getChatContext: (storyId: string, nodeId: string) =>
     request<import("../types").ChatContextPreview>(`/stories/${storyId}/chat/context?node_id=${nodeId}`),
-  sendChatMessage: (
-    storyId: string,
-    nodeId: string,
-    messages: import("../types").ChatMessage[],
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-    mode?: string,
-    contextOptions?: import("../types").ContextOptions,
-    chronicleSessionId?: string,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        node_id: nodeId,
-        messages,
-        llm_params: llmParams ?? null,
-        mode: mode ?? null,
-        context_options: contextOptions ?? null,
-        chronicle_session_id: chronicleSessionId ?? null,
-      }),
-      signal,
-    });
-  },
 
   // Conversation Summarize
   summarizeConversation: (
@@ -871,30 +792,6 @@ export const api = {
   },
 
   // Cliche Coach
-  sendClicheCoachMessage: (
-    storyId: string,
-    nodeId: string,
-    messages: import("../types").ChatMessage[],
-    selectedText?: string,
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/chat/cliche-coach`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        node_id: nodeId,
-        messages,
-        selected_text: selectedText ?? null,
-        llm_params: llmParams ?? null,
-      }),
-      signal,
-    });
-  },
 
   // Scene Planner
   sendScenePlanMessage: (
@@ -915,23 +812,6 @@ export const api = {
     }),
 
   // Brainstorm ("What's Next?")
-  sendWhatIfMessage: (
-    storyId: string,
-    messages: import("../types").ChatMessage[],
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/whatif`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
-      signal,
-    });
-  },
 
   sendBrainstormMessage: (
     storyId: string,
@@ -1633,41 +1513,6 @@ export const api = {
     }),
 
   // Publication Prep
-  sendBookDescriptionMessage: (
-    storyId: string,
-    messages: import("../types").ChatMessage[],
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/chat/book-description`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
-      signal,
-    });
-  },
-
-  sendQueryLetterMessage: (
-    storyId: string,
-    messages: import("../types").ChatMessage[],
-    signal?: AbortSignal,
-    llmParams?: import("../types").LLMParams,
-  ): Promise<Response> => {
-    const token = getToken();
-    return fetch(`${BASE}/stories/${storyId}/chat/query-letter`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ messages, llm_params: llmParams ?? null }),
-      signal,
-    });
-  },
 
   suggestCompTitles: (storyId: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/publication/comp-titles`, {

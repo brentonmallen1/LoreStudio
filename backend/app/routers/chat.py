@@ -29,6 +29,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.llm_params import LLMParamsOverride
+from ..schemas.mentions import MentionedRef
 from ..services.chronicle_log import add_message, get_or_create_session
 from ..services.codex.context import (
     VIRTUAL_NODE_IDS,
@@ -66,6 +67,8 @@ class ChatRequest(BaseModel):
     context_options: ContextOptions | None = None
     #: The Chronicle session this continues. Absent on the first message of a conversation.
     chronicle_session_id: str | None = None
+    #: What the author @mentioned in the composer (doc 11 P6); added to the context, never replacing it.
+    mentioned_refs: list[MentionedRef] = []
 
 
 class SummarizeRequest(BaseModel):
@@ -121,7 +124,7 @@ async def scene_chat(
             raise HTTPException(status_code=404, detail="Scene not found")
 
     feature = mode if mode and get_feature(mode) else "scene-chat"
-    ctx = assemble_scene(story, node, db, context_options).packet
+    ctx = assemble_scene(story, node, db, context_options, mentioned_refs=body.mentioned_refs).packet
     # The author's last message is the query the index is searched with. With no scene to
     # start from, the walk has no seed and the search is the whole story.
     ctx = attach_passages(
@@ -131,7 +134,7 @@ async def scene_chat(
             story_id,
             next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), ""),
             feature=feature,
-            seed_ref_ids=[node.id] if node else [],
+            seed_ref_ids=([node.id] if node else []) + [r.id for r in body.mentioned_refs],
             user=current_user,
             whole_story=node is None,
         ),
@@ -162,7 +165,7 @@ async def scene_chat(
         session_id=body.chronicle_session_id,
     )
     last_user = next((m.get("content", "") for m in reversed(messages) if m.get("role") == "user"), "")
-    add_message(db, chronicle, "user", last_user)
+    add_message(db, chronicle, "user", last_user, mentioned_refs=[r.model_dump() for r in body.mentioned_refs])
 
     def _save_answer(answer: str) -> None:
         # Synchronous, and in `finally`, for the same reason the call log is: a closed tab

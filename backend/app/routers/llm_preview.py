@@ -17,7 +17,9 @@ from ..models.panel_interview import PanelInterview
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..schemas.mentions import MentionedRef
 from ..services.codex.context import (
+    VIRTUAL_NODE_IDS,
     AssembledContext,
     ContextOptions,
     assemble_interview,
@@ -52,6 +54,8 @@ class PromptPreviewRequest(BaseModel):
     context_options: dict | None = None  # Forwarded to the assembler as ContextOptions
     #: Summary style, so previewing a detailed summary does not show the brief one.
     style: str | None = None
+    #: What the author @mentioned in the composer, so the preview shows the same section the call sends.
+    mentioned_refs: list[MentionedRef] = []
 
 
 class ContextSource(BaseModel):
@@ -130,11 +134,12 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         from ..services.llm.prompts.chat import build_scene_chat_system_prompt
 
         story = _get_story(body.story_id)
-        node = db.get(StructureNode, body.node_id)
-        if not node or node.story_id != body.story_id:
+        # A story-level chat (no scene) previews the way it is sent: no scene, whole story.
+        node = db.get(StructureNode, body.node_id) if body.node_id not in VIRTUAL_NODE_IDS else None
+        if body.node_id not in VIRTUAL_NODE_IDS and (not node or node.story_id != body.story_id):
             raise HTTPException(status_code=404, detail="Scene not found")
         ctx_opts = ContextOptions(**(body.context_options or {})) if body.context_options is not None else None
-        assembled = assemble_scene(story, node, db, ctx_opts)
+        assembled = assemble_scene(story, node, db, ctx_opts, mentioned_refs=body.mentioned_refs)
         # The same retrieval the real call makes, with the same question — otherwise the
         # preview would show a prompt missing whatever the index would have added.
         assembled.retrieved = await retrieve_for(
@@ -142,8 +147,9 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
             story.id,
             body.user_message or "",
             feature="scene-chat",
-            seed_ref_ids=[node.id],
+            seed_ref_ids=([node.id] if node else []) + [r.id for r in body.mentioned_refs],
             user=current_user,
+            whole_story=node is None,
         )
         attach_passages(assembled.packet, assembled.retrieved, db)
         system_prompt = build_scene_chat_system_prompt(assembled.packet)
@@ -166,7 +172,12 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         # The same assembly the interview itself does, so what is inspected is what is
         # sent: the journey so far, prior sessions, and the bound on what they know.
         assembled = await assemble_interview(
-            interview, character, db, question=body.user_message or "", user=current_user
+            interview,
+            character,
+            db,
+            question=body.user_message or "",
+            user=current_user,
+            mentioned_refs=body.mentioned_refs,
         )
         system_prompt = assembled.prompt
         if not user_message:
@@ -208,7 +219,7 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
         # A panel is not one prompt: each member is asked separately, with their own
         # persona and the room around them. Preview the first speaker's prompt — the
         # shape every member gets — rather than a combined prompt nothing sends.
-        assembled = assemble_panel_member(characters[0], characters[1:], db)
+        assembled = assemble_panel_member(characters[0], characters[1:], db, mentioned_refs=body.mentioned_refs)
         system_prompt = assembled.prompt
         if not user_message:
             user_message = "[your message to the panel]"

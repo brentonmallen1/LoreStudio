@@ -9,7 +9,7 @@ import type { AISession } from "../../../stores/aiStore";
 import type { PanelMessage, PanelStreamEvent, LLMParams } from "../../../types";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
-import ChatInput from "../shared/ChatInput";
+import MentionComposer from "../shared/MentionComposer";
 import styles from "./PanelMode.module.css";
 
 interface Props {
@@ -283,7 +283,8 @@ export default function PanelMode({ session }: Props) {
         ))}
       </div>
 
-      <ChatInput
+      <MentionComposer
+        sessionId={session.id}
         value={state.input}
         onChange={state.setInput}
         onSend={handleSend}
