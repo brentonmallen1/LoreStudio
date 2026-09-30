@@ -1,13 +1,10 @@
-/* The panel fills this window: no header, no sidebar, nothing to push aside. */
+/* The panel fills this window: no header, no strip, nothing to push aside. */
 .window {
   position: fixed;
   inset: 0;
+  display: flex;
   background: var(--color-bg);
   color: var(--color-text);
-}
-
-.window :global([class*="panel"]) {
-  top: 0;
 }
 
 .error {

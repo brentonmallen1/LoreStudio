@@ -59,7 +59,7 @@ export const SHORTCUTS = {
   },
   toggleAIPanel: {
     combo: "mod+j",
-    label: "Show or hide the AI panel",
+    label: "Show or hide the assistant",
     group: "AI",
     scope: "global",
     modes: ["studio"],
@@ -67,10 +67,10 @@ export const SHORTCUTS = {
   },
   floatAIPanel: {
     combo: "mod+shift+j",
-    label: "Float or dock the AI panel",
-    group: "AI",
+    label: "Float or dock the side panel",
+    group: "Global",
     scope: "global",
-    modes: ["studio"],
+    modes: BOTH,
     commandId: "float-ai-panel",
   },
   assistant: {

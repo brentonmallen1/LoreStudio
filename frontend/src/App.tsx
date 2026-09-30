@@ -31,7 +31,7 @@ import GuidePage from "./pages/GuidePage";
 import CommandPalette from "./components/layout/CommandPalette";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
-import AIWindowPage from "./pages/AIWindowPage";
+import PanelWindowPage, { LegacyAIWindowRedirect } from "./pages/PanelWindowPage";
 
 /** Hands the router's navigate to non-React code (palette commands). */
 function NavigatorBridge() {
@@ -127,15 +127,16 @@ function AppRoutes() {
       <div style={{ display: "contents" }} inert={!!background}>
         <Routes location={background ?? location}>
           <Route path="/login" element={<LoginPage />} />
-          {/* The AI panel in its own window: authenticated, but no app chrome (doc 06 §2.2). */}
+          {/* The side panel in its own window: authenticated, but no app chrome (doc 11 P5). */}
           <Route
-            path="/ai-window"
+            path="/panel-window"
             element={
               <RequireAuth>
-                <AIWindowPage />
+                <PanelWindowPage />
               </RequireAuth>
             }
           />
+          <Route path="/ai-window" element={<LegacyAIWindowRedirect />} />
           <Route
             element={
               <RequireAuth>

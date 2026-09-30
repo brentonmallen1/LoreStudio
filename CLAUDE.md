@@ -185,7 +185,7 @@ offers Keep mine / Take theirs. Every edit is mirrored to an IndexedDB draft buf
 metadata keys.
 
 ### Unified AI assistant
-All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single AI panel opened via the header button. No redundant AI entry points in sub-components (scene editor topbar, etc.) — the header button is the one place. Each tool runs in its own tab within the panel, preserving conversation history.
+All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single place: the **Assistant tab** of the side panel (`components/panel/AssistantTab.tsx`, body in `components/ai/AssistantTabBody.tsx`), docked past a divider at the end of the tab strip, icon-only with a session count (doc 11 P5). The header's Feather button, ⌘J and the palette all open that tab. No redundant AI entry points in sub-components (scene editor topbar, etc.). Each session runs as a sub-tab there, preserving conversation history; the whole side panel can dock, float or pop out to its own window (`/panel-window`).
 
 To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.ts` via `registerSessionType`, (2) add a `case` in `frontend/src/components/ai/SessionView.tsx`, (3) create a mode component using `AIModeWrapper` as the shell.
 
@@ -204,7 +204,7 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 **Button style:** `background: var(--color-ai)`, `color: var(--color-ai-fg)`. Match `.generateBtn` in `StorySummaryPanel.module.css` exactly — that is the canonical reference.
 
-**Text labels are required.** An icon alone is never enough. Label examples: "Draft logline", "Suggest themes", "Generate summary", "Identify conflict".
+**Text labels are required.** An icon alone is never enough. Label examples: "Draft logline", "Suggest themes", "Generate summary", "Identify conflict". One exception: the side panel's Assistant *tab* is icon-only (Feather + session count) with an `aria-label` and tooltip. It is the panel's own tab, not an action button, and a labelled tab would not fit beside the story tabs.
 
 **`AIFeatureInfoTrigger` is mandatory** on any panel or page that exposes AI features. It renders the `Cpu` icon button that opens `AIFeatureInfoModal`. Place it in the panel header next to the title.
 

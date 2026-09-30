@@ -1,3 +1,4 @@
+import { usePanelStore } from "./panelStore";
 import { create } from "zustand";
 import type { ChatMessage, LLMParams } from "../types";
 import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
@@ -197,44 +198,33 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
   return { characterName, storyTitle, nodeName };
 }
 
-/** Docked or floating survives a reload; it is a per-browser preference, not story data. */
-const FLOATING_KEY = "ls_ai_panel_floating";
-
-function readFloating(): boolean {
-  try {
-    return localStorage.getItem(FLOATING_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export const useAIStore = create<AIStore>((set, get) => ({
   panelOpen: false,
   panelCollapsed: false,
-  panelFloating: readFloating(),
+  panelFloating: false,
   otherWindowOpen: false,
 
-  openPanel: () => set({ panelOpen: true, panelCollapsed: false }),
-  closePanel: () => set({ panelOpen: false }),
-  collapsePanel: () => set({ panelCollapsed: true }),
-  expandPanel: () => set({ panelCollapsed: false, panelOpen: true }),
+  // The assistant lives in the side panel's Assistant tab (doc 11 P5); these delegate so
+  // every caller of the old panel actions keeps working.
+  openPanel: () => {
+    usePanelStore.getState().openAssistant();
+    set({ panelOpen: true, panelCollapsed: false });
+  },
+  closePanel: () => {
+    usePanelStore.getState().activate("scene");
+    set({ panelOpen: false });
+  },
+  collapsePanel: () => get().closePanel(),
+  expandPanel: () => get().openPanel(),
   setPanelFloating: (floating) => {
-    try {
-      localStorage.setItem(FLOATING_KEY, floating ? "1" : "0");
-    } catch {
-      // A browser with site data blocked still gets the panel, just not the memory of it.
-    }
+    usePanelStore.getState().setFrame(floating ? "floating" : "docked");
     set({ panelFloating: floating, panelCollapsed: false, panelOpen: true });
   },
-  togglePanelFloating: () => get().setPanelFloating(!get().panelFloating),
+  togglePanelFloating: () => get().setPanelFloating(usePanelStore.getState().frame !== "floating"),
 
   togglePanel: () => {
-    const { panelOpen, panelCollapsed } = get();
-    if (panelCollapsed) {
-      set({ panelCollapsed: false, panelOpen: true });
-    } else {
-      set({ panelOpen: !panelOpen });
-    }
+    usePanelStore.getState().toggleAssistant();
+    set({ panelOpen: usePanelStore.getState().activeTabId === "assistant" });
   },
 
   sessions: [],
@@ -271,6 +261,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
       panelOpen: true,
       panelCollapsed: false,
     }));
+    // A new session is something to look at: show the Assistant tab.
+    usePanelStore.getState().openAssistant();
 
     return session;
   },
@@ -402,6 +394,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
       panelOpen: true,
       panelCollapsed: false,
     }));
+    // A new session is something to look at: show the Assistant tab.
+    usePanelStore.getState().openAssistant();
 
     return session;
   },
@@ -635,6 +629,8 @@ export const useAIStore = create<AIStore>((set, get) => ({
       panelOpen: true,
       panelCollapsed: false,
     }));
+    // A new session is something to look at: show the Assistant tab.
+    usePanelStore.getState().openAssistant();
 
     return session;
   },

@@ -3,12 +3,13 @@ import { Outlet } from "react-router-dom";
 import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import { useUIStore } from "../../stores/uiStore";
-import AIPanel from "../ai/AIPanel";
 import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
 import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useAIStore } from "../../stores/aiStore";
 import { startAISync } from "../../lib/ai/aiSync";
+import { startPanelSync } from "../../lib/panel/panelSync";
+import { usePanelStore } from "../../stores/panelStore";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -18,6 +19,7 @@ export default function GlobalLayout() {
 
   // Keep this window's panel in step with one opened in its own window (doc 06 §2.2).
   useEffect(() => startAISync("main"), []);
+  useEffect(() => startPanelSync("main"), []);
 
   // Writer mode, or the AI switch off: AI commands never appear in the palette.
   useEffect(() => {
@@ -43,15 +45,15 @@ export default function GlobalLayout() {
         const { viewState: v, setViewState } = useUIStore.getState();
         setViewState(v === "focus" ? "normal" : "focus");
       }
-      // The AI panel: show/hide, and float/dock (doc 06 §2.2). Both are no-ops when AI
-      // is unavailable, so the keys stay inert in Writer mode and with the switch off.
+      // The Assistant tab shows or hides with ⌘J, inert in Writer mode and with the switch
+      // off; the whole side panel floats or docks with ⌘⇧J in both modes (doc 11 P5).
       if (aiAvailable && matchesCombo(e, SHORTCUTS.toggleAIPanel.combo)) {
         e.preventDefault();
         useAIStore.getState().togglePanel();
       }
-      if (aiAvailable && matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
+      if (matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
         e.preventDefault();
-        useAIStore.getState().togglePanelFloating();
+        usePanelStore.getState().toggleFloating();
       }
     }
     window.addEventListener("keydown", onKey);
@@ -64,7 +66,6 @@ export default function GlobalLayout() {
       <div className={`${styles.content} ${isFocused ? styles.contentFocused : styles.contentNormal}`}>
         <Outlet />
       </div>
-      {aiAvailable && <AIPanel />}
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   );

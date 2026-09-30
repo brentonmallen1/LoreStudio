@@ -1,66 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Minus,
-  X,
-  Feather,
-  Plus,
-  ChevronLeft,
-  User2,
-  PanelRight,
-  PictureInPicture2,
-  ExternalLink,
-  List,
-} from "lucide-react";
+import { Feather, Plus, ChevronLeft, User2, List } from "lucide-react";
 import AIFeatureInfoTrigger from "./AIFeatureInfoTrigger";
 import { useAIStore } from "../../stores/aiStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { getSessionType, getAllSessionTypes } from "../../lib/ai/sessionTypes";
-import PanelFrame from "./PanelFrame";
 import SessionList from "./SessionList";
 import { sessionLabel } from "../../lib/ai/sessionLabel";
-import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import SessionView from "./SessionView";
 import styles from "./AIPanel.module.css";
 
 type MenuStep = { kind: "types" } | { kind: "pick-character"; forType: string };
 
-export default function AIPanel() {
-  const {
-    panelOpen,
-    panelCollapsed,
-    sessions,
-    activeSessionId,
-    closePanel,
-    collapsePanel,
-    expandPanel,
-    createSession,
-    panelFloating,
-    togglePanelFloating,
-    otherWindowOpen,
-    renameSession,
-  } = useAIStore();
+/**
+ * The assistant inside the side panel's Assistant tab (refactor doc 11, phase 5): the
+ * open session, a way into the rest, a New menu, and the session itself. The frame,
+ * floating and pop-out belong to the panel now, so this is only the conversation.
+ */
+export default function AssistantTabBody() {
+  const { sessions, activeSessionId, createSession, renameSession } = useAIStore();
+  const { activeStory, activeNode, characters } = useStoryStore();
   const [showSessions, setShowSessions] = useState(false);
   const [renaming, setRenaming] = useState(false);
-  const inOwnWindow = typeof window !== "undefined" && window.location.pathname === AI_WINDOW_PATH;
-
-  function openInNewWindow() {
-    const story = activeStory?.id ? `?story=${encodeURIComponent(activeStory.id)}` : "";
-    // A named window means a second click focuses the one that is open, not a third panel.
-    const opened = window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-ai", "width=460,height=760");
-    // Leave the strip saying where the panel went, with a way back. Closing the panel here
-    // meant the strip — which only renders while the panel is open — could never appear,
-    // and the panel simply vanished. The new window's hello confirms it; its goodbye clears it.
-    if (opened) useAIStore.setState({ otherWindowOpen: true });
-  }
-  const { activeStory, activeNode, characters } = useStoryStore();
-
-  // New session menu state
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [menuStep, setMenuStep] = useState<MenuStep>({ kind: "types" });
-  const newMenuRef = useRef<HTMLDivElement>(null);
-
-  // Character picker overlay (for session types that require a character, triggered from empty state)
   const [pickingCharacterFor, setPickingCharacterFor] = useState<string | null>(null);
+  const newMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!showNewMenu) return;
@@ -74,32 +38,15 @@ export default function AIPanel() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNewMenu]);
 
-  // Keep the content area clear of the panel. A docked panel's own width is set by
-  // PanelFrame, which owns it; the cases here are the ones where nothing is docked.
-  useEffect(() => {
-    if (panelOpen && !panelCollapsed && !panelFloating) return;
-    const offset = panelOpen && panelCollapsed ? 32 : 0;
-    document.documentElement.style.setProperty("--ai-panel-offset", `${offset}px`);
-  }, [panelOpen, panelCollapsed, panelFloating]);
-
   function launchSession(typeId: string, fromDropdown = false) {
     const type = getSessionType(typeId);
     if (!type) return;
-
     if (type.requiresCharacter) {
-      if (fromDropdown) {
-        setMenuStep({ kind: "pick-character", forType: typeId });
-      } else {
-        setPickingCharacterFor(typeId);
-      }
+      if (fromDropdown) setMenuStep({ kind: "pick-character", forType: typeId });
+      else setPickingCharacterFor(typeId);
       return;
     }
-
-    const context = type.getDefaultContext({
-      storyId: activeStory?.id,
-      nodeId: activeNode?.id,
-    });
-    createSession(typeId, context);
+    createSession(typeId, type.getDefaultContext({ storyId: activeStory?.id, nodeId: activeNode?.id }));
     if (fromDropdown) {
       setShowNewMenu(false);
       setMenuStep({ kind: "types" });
@@ -109,65 +56,18 @@ export default function AIPanel() {
   function handleCharacterPicked(characterId: string, forType: string) {
     const type = getSessionType(forType);
     if (!type) return;
-    const context = type.getDefaultContext({
-      storyId: activeStory?.id,
-      nodeId: activeNode?.id,
-    });
+    const context = type.getDefaultContext({ storyId: activeStory?.id, nodeId: activeNode?.id });
     createSession(forType, { ...context, characterId });
     setShowNewMenu(false);
     setMenuStep({ kind: "types" });
     setPickingCharacterFor(null);
   }
 
-  function openNewMenu() {
-    setMenuStep({ kind: "types" });
-    setShowNewMenu((v) => !v);
-  }
-
   const allTypes = getAllSessionTypes();
-
-  if (!panelOpen) return null;
-
   const activeSession = sessions.find((s) => s.id === activeSessionId);
 
-  // The panel is open in its own window: say so rather than showing a second copy of it.
-  if (otherWindowOpen && !inOwnWindow) {
-    return (
-      <div className={styles.awayStrip} role="status">
-        <ExternalLink size={12} />
-        <span>AI panel is open in another window</span>
-        <button className={styles.awayBtn} onClick={() => useAIStore.setState({ otherWindowOpen: false })}>
-          Bring it back
-        </button>
-      </div>
-    );
-  }
-
-  // Collapsed state: just a thin strip with a button to expand
-  if (panelCollapsed) {
-    return (
-      <button
-        className={styles.collapsed}
-        onClick={expandPanel}
-        aria-label={
-          sessions.length > 0
-            ? `Expand AI panel (${sessions.length} session${sessions.length !== 1 ? "s" : ""})`
-            : "Expand AI panel"
-        }
-      >
-        <Feather size={16} className={styles.collapsedIcon} />
-        {sessions.length > 0 && (
-          <span className={styles.collapsedCount} aria-hidden="true">
-            {sessions.length}
-          </span>
-        )}
-      </button>
-    );
-  }
-
   return (
-    <PanelFrame floating={panelFloating && !inOwnWindow} fill={inOwnWindow}>
-      {/* Session bar: the open session, and a way into the rest (doc 06 §2.1) */}
+    <>
       <div className={styles.tabBar}>
         <button
           className={styles.sessionsBtn}
@@ -204,11 +104,13 @@ export default function AIPanel() {
           </button>
         )}
 
-        {/* New session button — between tabs and controls */}
         <div className={styles.newMenuWrapper} ref={newMenuRef}>
           <button
             className={styles.newSessionBtn}
-            onClick={openNewMenu}
+            onClick={() => {
+              setMenuStep({ kind: "types" });
+              setShowNewMenu((v) => !v);
+            }}
             title="New session"
             aria-label="New session"
             aria-expanded={showNewMenu}
@@ -232,7 +134,7 @@ export default function AIPanel() {
                     </button>
                   );
                 })
-              ) : menuStep.kind === "pick-character" ? (
+              ) : (
                 <>
                   <button className={styles.newMenuBack} onClick={() => setMenuStep({ kind: "types" })}>
                     <ChevronLeft size={12} />
@@ -254,47 +156,21 @@ export default function AIPanel() {
                     ))
                   )}
                 </>
-              ) : null}
+              )}
             </div>
           )}
         </div>
 
         <div className={styles.tabControls}>
           <AIFeatureInfoTrigger pageId="ai-panel" size="sm" />
-          {!inOwnWindow && (
-            <button
-              className={styles.controlBtn}
-              onClick={openInNewWindow}
-              title="Open the panel in its own window"
-              aria-label="Open the AI panel in its own window"
-            >
-              <ExternalLink size={13} />
-            </button>
-          )}
-          <button
-            className={styles.controlBtn}
-            onClick={togglePanelFloating}
-            title={panelFloating ? "Dock to the side" : "Float over the page"}
-            aria-label={panelFloating ? "Dock the AI panel" : "Float the AI panel"}
-          >
-            {panelFloating ? <PanelRight size={13} /> : <PictureInPicture2 size={13} />}
-          </button>
-          <button className={styles.controlBtn} onClick={collapsePanel} title="Minimize">
-            <Minus size={13} />
-          </button>
-          <button className={styles.controlBtn} onClick={closePanel} title="Close AI panel">
-            <X size={13} />
-          </button>
         </div>
       </div>
 
       {showSessions && <SessionList onPick={() => setShowSessions(false)} />}
 
-      {/* Session content */}
       {activeSession ? (
         <SessionView session={activeSession} />
       ) : pickingCharacterFor ? (
-        /* Character picker overlay — shown when Interview is launched from the empty state */
         <div className={styles.charPicker}>
           <div className={styles.charPickerHeader}>
             <button className={styles.charPickerBack} onClick={() => setPickingCharacterFor(null)}>
@@ -337,6 +213,6 @@ export default function AIPanel() {
           </div>
         </div>
       )}
-    </PanelFrame>
+    </>
   );
 }

@@ -2,11 +2,11 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { sceneCastApi } from "../api/sceneCast";
+import { loadStoryIntoStores } from "../lib/story/loadStory";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { rememberScene, sceneToResume } from "../lib/resumeScene";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useStoryStore } from "../stores/storyStore";
-import { usePanelStore } from "../stores/panelStore";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
 import PageBackBar from "../components/layout/PageBackBar";
@@ -20,17 +20,7 @@ import styles from "./StoryWorkspace.module.css";
 export default function StoryWorkspacePage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const {
-    setActiveStory,
-    setStructure,
-    setCharacters,
-    setActiveTemplate,
-    setBeatSheets,
-    setActiveNode,
-    setLocations,
-    setThreads,
-    setSceneCast,
-  } = useStoryStore();
+  const { setActiveNode, setSceneCast } = useStoryStore();
   const { viewState, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } = useUIStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
@@ -40,32 +30,8 @@ export default function StoryWorkspacePage() {
   useEffect(() => {
     if (!storyId) return;
     setLoading(true);
-    Promise.all([
-      api.getStory(storyId),
-      api.getStructure(storyId),
-      api.listCharacters(storyId),
-      api.listStructureTemplates(),
-      api.listBeatSheets(),
-      api.listLocationsFlat(storyId),
-      api.listThreads(storyId),
-      sceneCastApi.get(storyId).catch(() => null),
-    ])
-      .then(([story, structure, characters, templates, beatSheets, locations, threads, cast]) => {
-        setActiveStory(story);
-        setStructure(structure);
-        setLocations(locations);
-        setThreads(threads);
-        setSceneCast(cast);
-        // The side panel's tabs come back with the story; ones whose entity is gone drop out.
-        const panel = usePanelStore.getState();
-        panel.loadForStory(storyId);
-        panel.prune((tab) => {
-          if (tab.kind !== "entity") return true;
-          if (tab.entityKind === "character") return characters.some((c) => c.id === tab.entityId);
-          if (tab.entityKind === "location") return locations.some((l) => l.id === tab.entityId);
-          if (tab.entityKind === "thread") return threads.some((t) => t.id === tab.entityId);
-          return true;
-        });
+    loadStoryIntoStores(storyId)
+      .then((structure) => {
         // Open the scene a link names, keep one already open in this story, or resume
         // where the author left off (lib/resumeScene.ts). Read once, at load.
         const requested = new URLSearchParams(window.location.search).get("node");
@@ -73,14 +39,10 @@ export default function StoryWorkspacePage() {
         const keep = current?.story_id === storyId && findNode(structure, current.id);
         if (requested || !keep) setActiveNode(sceneToResume(storyId, structure, requested));
         if (requested) navigate({ search: "" }, { replace: true });
-        setCharacters(characters);
-        setBeatSheets(beatSheets);
-        const tmpl = templates.find((t) => t.id === story.structure_template_id) ?? null;
-        setActiveTemplate(tmpl);
       })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, setActiveNode, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [storyId, setActiveNode, navigate]);
 
   // Remember the open scene per story, so the Write page reopens it next time.
   const activeNode = useStoryStore((s) => s.activeNode);

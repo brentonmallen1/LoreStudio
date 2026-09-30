@@ -30,6 +30,7 @@ import type {
   EditorLineWidth,
 } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
+import { usePanelStore } from "../../stores/panelStore";
 import { hasScratchPadContent } from "../common/ScratchPadDrawer";
 import { api } from "../../api/client";
 import { MUTATION_EVENT, type MutationEventDetail } from "../../api/request";
@@ -89,7 +90,8 @@ export default function GlobalHeader() {
     toggleScratchPad,
     scratchPadOpen,
   } = useUIStore();
-  const { panelOpen, togglePanel } = useAIStore();
+  const { togglePanel } = useAIStore();
+  const panelOpen = usePanelStore((s) => s.open && s.activeTabId === "assistant");
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);

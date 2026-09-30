@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { ExternalLink, Menu, PanelRight, PictureInPicture2, X } from "lucide-react";
+import { useAIAvailable } from "../../lib/mode";
+import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
+import AssistantTab from "./AssistantTab";
 import { fitTabs } from "../../lib/panel/overflow";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -12,13 +15,18 @@ import styles from "./Panel.module.css";
 const TAB_WIDTH = 96;
 const SCENE_TAB_WIDTH = 92;
 const OVERFLOW_RESERVE = 58;
+const CONTROLS_RESERVE = 78;
+const ASSISTANT_RESERVE = 70;
 
 /**
  * The tabs across the top of the panel (doc 11). Fixed-width tabs so what fits is
  * arithmetic (lib/panel/overflow.ts) rather than measurement; the rest fold into ☰.
  */
-export default function TabStrip() {
-  const { tabs, activeTabId, activate, close, setHighlight } = usePanelStore();
+export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
+  const { tabs, activeTabId, activate, close, setHighlight, frame, toggleFloating, setOpen, setFrame } =
+    usePanelStore();
+  const aiAvailable = useAIAvailable();
+  const storyId = useStoryStore((s) => s.activeStory?.id);
   // Re-render when the open node changes: the first tab is named for its level.
   useStoryStore((s) => s.activeNode?.id);
   const stripRef = useRef<HTMLDivElement>(null);
@@ -39,7 +47,22 @@ export default function TabStrip() {
   const widths = Object.fromEntries(
     tabs.map((t) => [t.id, t.kind === "scene" ? SCENE_TAB_WIDTH : TAB_WIDTH]),
   );
-  const { visible, hidden } = fitTabs(tabs, widths, available - 4, activeTabId, OVERFLOW_RESERVE, TAB_WIDTH);
+  const reserved = (aiAvailable ? ASSISTANT_RESERVE : 0) + (inWindow ? 0 : CONTROLS_RESERVE);
+  const { visible, hidden } = fitTabs(
+    tabs,
+    widths,
+    available - 4 - reserved,
+    activeTabId,
+    OVERFLOW_RESERVE,
+    TAB_WIDTH,
+  );
+
+  function popOut() {
+    const story = storyId ? `?story=${encodeURIComponent(storyId)}` : "";
+    // A named window means a second click focuses the one that is open, not a third panel.
+    const opened = window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-panel", "width=520,height=800");
+    if (opened) setFrame("window");
+  }
   const menuVisible = menuOpen && hidden.length > 0;
 
   function hoverTab(tab: PanelTab | null) {
@@ -89,6 +112,34 @@ export default function TabStrip() {
         );
       })}
       <div className={styles.stripSpacer} />
+      {!inWindow && (
+        <div className={styles.controls}>
+          <button
+            className={styles.controlBtn}
+            onClick={toggleFloating}
+            title={frame === "floating" ? "Dock to the side" : "Float over the page"}
+            aria-label={frame === "floating" ? "Dock the side panel" : "Float the side panel"}
+          >
+            {frame === "floating" ? <PanelRight size={13} /> : <PictureInPicture2 size={13} />}
+          </button>
+          <button
+            className={styles.controlBtn}
+            onClick={popOut}
+            title="Open in its own window"
+            aria-label="Open the side panel in its own window"
+          >
+            <ExternalLink size={13} />
+          </button>
+          <button
+            className={styles.controlBtn}
+            onClick={() => setOpen(false)}
+            title="Hide the side panel"
+            aria-label="Hide the side panel"
+          >
+            <X size={13} />
+          </button>
+        </div>
+      )}
       {hidden.length > 0 && (
         <button
           className={styles.overflowBtn}
@@ -101,6 +152,7 @@ export default function TabStrip() {
           {hidden.length}
         </button>
       )}
+      <AssistantTab />
       {menuVisible && (
         <OverflowMenu
           hidden={hidden}

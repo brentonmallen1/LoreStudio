@@ -23,6 +23,7 @@ import {
   SquareLibrary,
   PenLine,
   Download,
+  PanelRight,
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import "./planning";
@@ -39,6 +40,7 @@ import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useAIStore } from "../../stores/aiStore";
+import { usePanelStore } from "../../stores/panelStore";
 
 // ── Manuscript tools (non-AI) ─────────────────────────────────────────────────
 
@@ -377,7 +379,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "toggle-ai-panel",
-  label: "Show or Hide AI Panel",
+  label: "Show or Hide the Assistant",
   keywords: ["ai", "panel", "assistant", "toggle", "hide", "show"],
   icon: Feather,
   group: "AI",
@@ -389,13 +391,13 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "float-ai-panel",
-  label: "Float or Dock AI Panel",
-  keywords: ["ai", "panel", "float", "dock", "undock", "window", "detach"],
-  icon: Feather,
-  group: "AI",
+  label: "Float or Dock the Side Panel",
+  keywords: ["panel", "float", "dock", "undock", "window", "detach", "tabs"],
+  icon: PanelRight,
+  group: "View",
   shortcut: formatCombo(SHORTCUTS.floatAIPanel.combo),
   action: () => {
-    useAIStore.getState().togglePanelFloating();
+    usePanelStore.getState().toggleFloating();
   },
 });
 

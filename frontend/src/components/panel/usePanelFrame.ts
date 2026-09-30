@@ -116,7 +116,7 @@ export function usePanelFrame(floating: boolean, options: PanelFrameOptions = {}
       const d = drag.current;
       if (!d) return;
       drag.current = null;
-      document.documentElement.removeAttribute("data-ai-resizing");
+      document.documentElement.removeAttribute("data-panel-resizing");
       if (d.mode === "rail") write(widthKey, d.latest.width);
       else write(rectKey, d.latest.rect);
     }
@@ -147,7 +147,7 @@ export function usePanelFrame(floating: boolean, options: PanelFrameOptions = {}
         rect: mode === "rail" ? { ...rect, width } : rect,
         latest: { width, rect },
       };
-      document.documentElement.setAttribute("data-ai-resizing", "");
+      document.documentElement.setAttribute("data-panel-resizing", "");
       e.preventDefault();
     },
     [rect, width],
