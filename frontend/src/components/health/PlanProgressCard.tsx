@@ -1,18 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Circle, CircleDashed, MapIcon } from "lucide-react";
-import { useStoryStore } from "../../stores/storyStore";
-import { methodById, sceneLeaves, stepProgress, type PlanData } from "../../lib/planning/methods";
+import { stepProgress } from "../../lib/planning/methods";
+import { usePlanData } from "../../lib/planning/usePlanData";
 import page from "../../pages/StoryHealthPage.module.css";
 import styles from "./PlanProgressCard.module.css";
 
 /** How far the story's planning method has got, step by step; each step opens on the Plan page. */
 export default function PlanProgressCard({ storyId }: { storyId: string }) {
   const navigate = useNavigate();
-  const { activeStory, characters, structure, activeTemplate } = useStoryStore();
-  const method = methodById(activeStory?.planning_method);
-  if (!activeStory || !method) return null;
+  const { data, method } = usePlanData();
+  if (!data || !method) return null;
 
-  const data: PlanData = { story: activeStory, characters, scenes: sceneLeaves(structure, activeTemplate) };
   const steps = method.steps.map((s) => ({ step: s, ...stepProgress(s, data) }));
   const complete = steps.filter((s) => s.done === s.total).length;
 

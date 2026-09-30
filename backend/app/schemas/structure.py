@@ -23,6 +23,7 @@ class StructureNodeCreate(BaseModel):
     position: int = 0
     status: str = "draft"
     purpose: str = ""
+    beat_id: str | None = None
 
 
 class StructureNodeUpdate(BaseModel):

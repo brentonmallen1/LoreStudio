@@ -216,3 +216,13 @@ def test_prune_keeps_newest(client, db_session):
     assert removed == 3
     rows = client.get(f"/api/stories/{sid}/changes").json()
     assert [r["label"] for r in rows] == ["Add scene “S5”", "Add scene “S4”", "Add scene “S3”"]
+
+
+def test_a_scene_planned_for_a_beat_carries_it_from_the_start(client):
+    sid = _story(client)
+    r = client.post(
+        f"/api/stories/{sid}/structure",
+        json={"title": "Midpoint", "level": 0, "level_type": "scene", "status": "planned", "beat_id": "midpoint"},
+        headers=H1,
+    )
+    assert r.status_code == 201 and r.json()["beat_id"] == "midpoint"

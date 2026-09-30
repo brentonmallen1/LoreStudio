@@ -7,7 +7,14 @@
  * Adding a method is adding an entry here; the Plan page, the Overview's next step and
  * Story Health all read this list.
  */
-import type { Character, Story, StoryStructureTemplate, StructureNode } from "../../types";
+import type {
+  BeatSheet,
+  Character,
+  PlotThread,
+  Story,
+  StoryStructureTemplate,
+  StructureNode,
+} from "../../types";
 
 export type StoryPlanField = "logline" | "premise" | "central_conflict" | "paragraph_summary" | "synopsis";
 export type CharacterPlanField =
@@ -16,7 +23,13 @@ export type CharacterPlanField =
 export type PlanTarget =
   | { kind: "story"; field: StoryPlanField }
   | { kind: "characters"; fields: CharacterPlanField[] }
-  | { kind: "scenes" };
+  | { kind: "scenes" }
+  /** The scenes that carry one beat of a beat sheet (StructureNode.beat_id). */
+  | { kind: "beat"; beatId: string }
+  /** MICE: the threads the story opens, each with its kind. */
+  | { kind: "threads" }
+  /** MICE: the scene where each thread opens and the one where it closes. */
+  | { kind: "threadPlacement" };
 
 export interface PlanStep {
   id: string;
@@ -25,8 +38,8 @@ export interface PlanStep {
   why: string;
   /** How to write it. */
   how: string;
-  /** From The Last Lighthouse. */
-  example: string;
+  /** From The Last Lighthouse, where there is one. */
+  example?: string;
   target: PlanTarget;
   /** A story field shown above the editor as the thing this step grows from. */
   buildsOn?: StoryPlanField;
@@ -62,22 +75,24 @@ const SCENE_LIST: PlanStep = {
   target: { kind: "scenes" },
 };
 
+const LOGLINE: PlanStep = {
+  id: "logline",
+  label: "The story in one sentence",
+  why: "A sentence you can hold in your head while you write.",
+  how: "Who, what they want, what stands in the way. Around 25 words.",
+  example:
+    "When a mysterious historian arrives in a storm, a reclusive lighthouse keeper must choose between guarding her secrets and facing what she's buried.",
+  target: { kind: "story", field: "logline" },
+  rows: 2,
+};
+
 export const PLAN_METHODS: PlanMethod[] = [
   {
     id: "essentials",
     label: "The essentials",
     summary: "Four questions: what it is, what's at stake, who wants what, and what happens.",
     steps: [
-      {
-        id: "logline",
-        label: "The story in one sentence",
-        why: "A sentence you can hold in your head while you write.",
-        how: "Who, what they want, what stands in the way. Around 25 words.",
-        example:
-          "When a mysterious historian arrives in a storm, a reclusive lighthouse keeper must choose between guarding her secrets and facing what she's buried.",
-        target: { kind: "story", field: "logline" },
-        rows: 2,
-      },
+      LOGLINE,
       {
         id: "conflict",
         label: "The central conflict",
@@ -160,10 +175,71 @@ export const PLAN_METHODS: PlanMethod[] = [
       SCENE_LIST,
     ],
   },
+  {
+    id: "mice",
+    label: "MICE threads",
+    summary:
+      "A story opens questions of place, idea, character and event, and closes them in the reverse order it opened them.",
+    steps: [
+      LOGLINE,
+      {
+        id: "threads",
+        label: "The threads",
+        why: "Every thread is a promise to the reader; knowing yours tells you what the ending owes.",
+        how: "Name each thread and its kind: Milieu (a place to enter and leave), Idea (a question to answer), Character (a change to make), Event (a disruption to set right).",
+        example: "Idea: what happened to the log entries? Character: will Eleanor let anyone in?",
+        target: { kind: "threads" },
+      },
+      SCENE_LIST,
+      {
+        id: "placement",
+        label: "Where each opens and closes",
+        why: "Threads close in the reverse order they open, like nested brackets. A crossing is worth a second look.",
+        how: "For each thread, the scene where it opens and the one where it closes.",
+        example: "The missing-logs question opens in The Logbook and closes in What Thomas Knew.",
+        target: { kind: "threadPlacement" },
+      },
+    ],
+  },
 ];
 
-export function methodById(id: string | null | undefined): PlanMethod | undefined {
-  return PLAN_METHODS.find((m) => m.id === id);
+function whereInStory(pct: number): string {
+  if (pct <= 0) return "At the very start.";
+  if (pct >= 100) return "At the very end.";
+  return `Around ${Math.round(pct)}% of the way through.`;
+}
+
+/** A beat sheet as a method: its beats are the steps, each asking which scenes carry it. */
+export function beatSheetMethod(sheet: BeatSheet): PlanMethod {
+  return {
+    id: `beats:${sheet.id}`,
+    label: sheet.name,
+    summary: sheet.description || `${sheet.beats.length} beats, each placed where it lands in the story.`,
+    steps: [
+      LOGLINE,
+      ...[...sheet.beats]
+        .sort((a, b) => a.position_pct - b.position_pct)
+        .map((beat): PlanStep => ({
+          id: `beat-${beat.id}`,
+          label: beat.name,
+          why: whereInStory(beat.position_pct),
+          how: beat.description || "Which scene carries this beat? Say in a line what happens.",
+          target: { kind: "beat", beatId: beat.id },
+        })),
+    ],
+  };
+}
+
+/** Every method: the fixed ones, then one per beat sheet (the story's own ones included). */
+export function planMethods(beatSheets: BeatSheet[] = []): PlanMethod[] {
+  return [...PLAN_METHODS, ...beatSheets.map(beatSheetMethod)];
+}
+
+export function methodById(
+  id: string | null | undefined,
+  beatSheets: BeatSheet[] = [],
+): PlanMethod | undefined {
+  return planMethods(beatSheets).find((m) => m.id === id);
 }
 
 // ── Progress ────────────────────────────────────────────────────────────────
@@ -173,6 +249,8 @@ export interface PlanData {
   characters: Character[];
   /** The scenes: leaves of the structure tree, in reading order. */
   scenes: StructureNode[];
+  /** Plot threads, for the MICE steps; null until loaded (those steps then read 0). */
+  threads?: PlotThread[] | null;
 }
 
 /** Characters a method asks about: everyone but walk-ons. */
@@ -194,6 +272,19 @@ export function stepProgress(step: PlanStep, data: PlanData): { done: number; to
     const main = mainCharacters(data.characters);
     if (main.length === 0) return { done: 0, total: 1 };
     return { done: main.filter((c) => characterDone(c, t.fields)).length, total: main.length };
+  }
+  if (t.kind === "beat") {
+    const carried = data.scenes.some((s) => s.beat_id === t.beatId && filled(s.synopsis));
+    return { done: carried ? 1 : 0, total: 1 };
+  }
+  if (t.kind === "threads" || t.kind === "threadPlacement") {
+    const typed = (data.threads ?? []).filter((th) => th.mice_type);
+    if (t.kind === "threads") return { done: typed.length ? 1 : 0, total: 1 };
+    if (typed.length === 0) return { done: 0, total: 1 };
+    return {
+      done: typed.filter((th) => th.opens_at_node_id && th.closes_at_node_id).length,
+      total: typed.length,
+    };
   }
   if (data.scenes.length === 0) return { done: 0, total: 1 };
   return { done: data.scenes.filter((s) => filled(s.synopsis)).length, total: data.scenes.length };
@@ -226,5 +317,26 @@ export function sceneLeaves(
     }
   };
   walk(nodes);
+  return out;
+}
+
+/**
+ * Threads that cross instead of nesting: A opens before B but closes after B opened and
+ * before B closed. Pairs of names, for a gentle warning, not a rule.
+ */
+export function crossingThreads(threads: PlotThread[], scenes: StructureNode[]): [string, string][] {
+  const at = new Map(scenes.map((s, i) => [s.id, i]));
+  const spans = threads
+    .filter((t) => t.mice_type && t.opens_at_node_id && t.closes_at_node_id)
+    .map((t) => ({
+      name: t.name,
+      open: at.get(t.opens_at_node_id!) ?? -1,
+      close: at.get(t.closes_at_node_id!) ?? -1,
+    }))
+    .filter((t) => t.open >= 0 && t.close >= t.open);
+  const out: [string, string][] = [];
+  for (const a of spans)
+    for (const b of spans)
+      if (a.open < b.open && b.open <= a.close && a.close < b.close) out.push([a.name, b.name]);
   return out;
 }

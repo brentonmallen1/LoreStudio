@@ -2,14 +2,8 @@ import { lazy, Suspense, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
-import {
-  PLAN_METHODS,
-  isStepDone,
-  methodById,
-  sceneLeaves,
-  type PlanData,
-  type PlanMethod,
-} from "../../lib/planning/methods";
+import { isStepDone, type PlanMethod } from "../../lib/planning/methods";
+import { usePlanData } from "../../lib/planning/usePlanData";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import MethodSteps from "./MethodSteps";
 import IdeaView from "./IdeaView";
@@ -32,14 +26,13 @@ function viewFrom(params: URLSearchParams): View {
  */
 export default function PlanPage({ storyId }: { storyId: string }) {
   const [params, setParams] = useSearchParams();
-  const { activeStory, setActiveStory, characters, structure, activeTemplate } = useStoryStore();
+  const { activeStory, setActiveStory } = useStoryStore();
+  const { data, method, methods, reloadThreads } = usePlanData();
   // Held in state: the outline lists clear the query string once they have read ?tab=.
   const [view, setView] = useState<View>(() => viewFrom(params));
   const [choosing, setChoosing] = useState(false);
 
-  if (!activeStory) return null;
-  const method = methodById(activeStory.planning_method);
-  const data: PlanData = { story: activeStory, characters, scenes: sceneLeaves(structure, activeTemplate) };
+  if (!activeStory || !data) return null;
 
   function show(next: View) {
     setView(next);
@@ -47,7 +40,12 @@ export default function PlanPage({ storyId }: { storyId: string }) {
   }
 
   async function choose(id: string) {
-    setActiveStory(await api.updateStory(storyId, { planning_method: id }));
+    // A beat-sheet method is that beat sheet: the scenes' beat pickers and the Story
+    // Health beat card follow it.
+    const sheet = id.startsWith("beats:") ? id.slice("beats:".length) : null;
+    setActiveStory(
+      await api.updateStory(storyId, { planning_method: id, ...(sheet ? { beat_sheet_id: sheet } : {}) }),
+    );
     setChoosing(false);
   }
 
@@ -119,6 +117,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
       ) : !method || choosing ? (
         <MethodPicker
           current={method}
+          methods={methods}
           onChoose={choose}
           onIdeas={() => show("ideas")}
           onCancel={method ? () => setChoosing(false) : undefined}
@@ -131,6 +130,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
             data={data}
             initialStep={params.get("step")}
             onStepChange={(step) => setParams({ step }, { replace: true })}
+            reloadThreads={reloadThreads}
           />
         </div>
       )}
@@ -140,15 +140,29 @@ export default function PlanPage({ storyId }: { storyId: string }) {
 
 function MethodPicker({
   current,
+  methods,
   onChoose,
   onIdeas,
   onCancel,
 }: {
   current?: PlanMethod;
+  methods: PlanMethod[];
   onChoose: (id: string) => void;
   onIdeas: () => void;
   onCancel?: () => void;
 }) {
+  const beatSheets = methods.filter((m) => m.id.startsWith("beats:"));
+  const card = (m: PlanMethod) => (
+    <button
+      key={m.id}
+      className={`${styles.methodCard} ${m.id === current?.id ? styles.methodCardCurrent : ""}`}
+      onClick={() => onChoose(m.id)}
+    >
+      <span className={styles.methodName}>{m.label}</span>
+      <span className={styles.methodSummary}>{m.summary}</span>
+      <span className={styles.methodStepsPreview}>{m.steps.map((s) => s.label).join(" · ")}</span>
+    </button>
+  );
   return (
     <div className={styles.body}>
       <div className={styles.picker}>
@@ -157,17 +171,7 @@ function MethodPicker({
           itself (its logline, characters and scenes), so switching methods later keeps everything.
         </p>
         <div className={styles.methodCards}>
-          {PLAN_METHODS.map((m) => (
-            <button
-              key={m.id}
-              className={`${styles.methodCard} ${m.id === current?.id ? styles.methodCardCurrent : ""}`}
-              onClick={() => onChoose(m.id)}
-            >
-              <span className={styles.methodName}>{m.label}</span>
-              <span className={styles.methodSummary}>{m.summary}</span>
-              <span className={styles.methodStepsPreview}>{m.steps.map((s) => s.label).join(" · ")}</span>
-            </button>
-          ))}
+          {methods.filter((m) => !m.id.startsWith("beats:")).map(card)}
           <button className={`${styles.methodCard} ${styles.methodCardIdea}`} onClick={onIdeas}>
             <span className={styles.methodName}>Start from an idea</span>
             <span className={styles.methodSummary}>
@@ -177,6 +181,16 @@ function MethodPicker({
             <span className={styles.methodStepsPreview}>Ideas tab · no method needed</span>
           </button>
         </div>
+        {beatSheets.length > 0 && (
+          <>
+            <h3 className={styles.pickerHeading}>Beat sheets</h3>
+            <p className={styles.pickerIntro}>
+              Walk a beat sheet beat by beat, planning the scene that carries each one. Choosing one also
+              makes it the story's beat sheet; ones you make in Story Identity appear here too.
+            </p>
+            <div className={styles.methodCards}>{beatSheets.map(card)}</div>
+          </>
+        )}
         {onCancel && (
           <button className={styles.quietBtn} onClick={onCancel}>
             Keep {current?.label}

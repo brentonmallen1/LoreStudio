@@ -85,7 +85,7 @@ export default function SceneListStep({ storyId }: { storyId: string }) {
   );
 }
 
-interface RowProps {
+export interface RowProps {
   scene: StructureNode;
   number: number;
   autoFocus: boolean;
@@ -95,7 +95,7 @@ interface RowProps {
   onEnterAtEnd?: () => void;
 }
 
-function SceneRow({ scene, number, autoFocus, onFocused, onOpen, onEnterAtEnd }: RowProps) {
+export function SceneRow({ scene, number, autoFocus, onFocused, onOpen, onEnterAtEnd }: RowProps) {
   const patchNode = useStoryStore((s) => s.patchNode);
   const save = (field: "title" | "synopsis") => async (value: string) => {
     const updated = await api.updateNode(scene.id, { [field]: value });

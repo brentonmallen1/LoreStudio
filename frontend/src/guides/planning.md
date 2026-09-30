@@ -8,6 +8,8 @@ Pick a method the first time you open Plan:
 
 - **The essentials**: the story in one sentence, the central conflict, who wants what, and the scene list.
 - **Snowflake Method**: grow the story outward from one sentence to a paragraph, character summaries, a one-page synopsis, each character's arc in their own words, and the scene list.
+- **MICE threads**: the threads your story opens (Milieu, Idea, Character, Event), the scene list, then where each thread opens and closes. Threads close in the reverse order they open; a crossing gets a gentle warning.
+- **Any beat sheet** (Save the Cat, Story Circle, Hero's Journey, Three-Act Beats, and ones you make under Story Identity → Manage): each beat is a step asking which scene carries it. "Plan a scene for this beat" places the new scene next to the scenes of the neighbouring beats, so you can plan beats in any order. Choosing a beat sheet here also makes it the story's beat sheet.
 
 Every step writes into the story itself, not into the method. The one-sentence summary _is_ the logline on Story Identity; a character's goal, motivation, conflict and epiphany are the fields on their sheet. Switching methods keeps everything, and the steps you've already answered show as done.
 

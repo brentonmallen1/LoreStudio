@@ -11,6 +11,8 @@ import {
 import StoryFieldStep from "./StoryFieldStep";
 import CharacterStep from "./CharacterStep";
 import SceneListStep from "./SceneListStep";
+import BeatStep from "./BeatStep";
+import { ThreadPlacementStep, ThreadsStep } from "./ThreadsStep";
 import styles from "./Plan.module.css";
 
 interface Props {
@@ -18,10 +20,12 @@ interface Props {
   data: PlanData;
   initialStep?: string | null;
   onStepChange: (id: string) => void;
+  /** Re-read plot threads after a MICE step changes them. */
+  reloadThreads: () => void;
 }
 
 /** A method's steps down the side, the open step beside them. */
-export default function MethodSteps({ method, data, initialStep, onStepChange }: Props) {
+export default function MethodSteps({ method, data, initialStep, onStepChange, reloadThreads }: Props) {
   const [stepId, setStepId] = useState(
     () =>
       method.steps.find((s) => s.id === initialStep)?.id ?? nextStep(method, data)?.id ?? method.steps[0].id,
@@ -82,12 +86,14 @@ export default function MethodSteps({ method, data, initialStep, onStepChange }:
         </h3>
         <p className={styles.stepWhy}>{step.why}</p>
         <p className={styles.stepHow}>{step.how}</p>
-        <details className={styles.example}>
-          <summary>Example from The Last Lighthouse</summary>
-          <p>{step.example}</p>
-        </details>
+        {step.example && (
+          <details className={styles.example}>
+            <summary>Example from The Last Lighthouse</summary>
+            <p>{step.example}</p>
+          </details>
+        )}
 
-        <StepEditor key={step.id} step={step} data={data} />
+        <StepEditor key={step.id} step={step} data={data} reloadThreads={reloadThreads} />
 
         <div className={styles.stepNav}>
           {index > 0 ? (
@@ -110,9 +116,29 @@ export default function MethodSteps({ method, data, initialStep, onStepChange }:
   );
 }
 
-function StepEditor({ step, data }: { step: PlanStep; data: PlanData }) {
+function StepEditor({
+  step,
+  data,
+  reloadThreads,
+}: {
+  step: PlanStep;
+  data: PlanData;
+  reloadThreads: () => void;
+}) {
   const t = step.target;
-  if (t.kind === "story") return <StoryFieldStep story={data.story} step={{ ...step, target: t }} />;
-  if (t.kind === "characters") return <CharacterStep storyId={data.story.id} step={{ ...step, target: t }} />;
-  return <SceneListStep storyId={data.story.id} />;
+  const storyId = data.story.id;
+  switch (t.kind) {
+    case "story":
+      return <StoryFieldStep story={data.story} step={{ ...step, target: t }} />;
+    case "characters":
+      return <CharacterStep storyId={storyId} step={{ ...step, target: t }} />;
+    case "beat":
+      return <BeatStep storyId={storyId} beatId={t.beatId} beatName={step.label} />;
+    case "threads":
+      return <ThreadsStep storyId={storyId} threads={data.threads ?? null} reload={reloadThreads} />;
+    case "threadPlacement":
+      return <ThreadPlacementStep threads={data.threads ?? null} reload={reloadThreads} />;
+    default:
+      return <SceneListStep storyId={storyId} />;
+  }
 }

@@ -524,7 +524,7 @@ export const api = {
   listThreads: (storyId: string) => request<import("../types").PlotThread[]>(`/stories/${storyId}/threads`),
   createThread: (
     storyId: string,
-    data: { name: string; description?: string; status?: string; color?: string },
+    data: { name: string } & Partial<Omit<import("../types").PlotThread, "id" | "appearances">>,
   ) =>
     request<import("../types").PlotThread>(`/stories/${storyId}/threads`, {
       method: "POST",
@@ -532,7 +532,7 @@ export const api = {
     }),
   updateThread: (
     threadId: string,
-    data: { name?: string; description?: string; status?: string; color?: string },
+    data: Partial<Omit<import("../types").PlotThread, "id" | "appearances" | "status">> & { status?: string },
   ) =>
     request<import("../types").PlotThread>(`/threads/${threadId}`, {
       method: "PATCH",

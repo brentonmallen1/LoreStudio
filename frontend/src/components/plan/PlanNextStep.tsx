@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, MapIcon } from "lucide-react";
-import { useStoryStore } from "../../stores/storyStore";
-import { isStepDone, methodById, nextStep, sceneLeaves, type PlanData } from "../../lib/planning/methods";
+import { isStepDone, nextStep } from "../../lib/planning/methods";
+import { usePlanData } from "../../lib/planning/usePlanData";
 import styles from "./PlanNextStep.module.css";
 
 /**
@@ -10,11 +10,9 @@ import styles from "./PlanNextStep.module.css";
  */
 export default function PlanNextStep({ storyId }: { storyId: string }) {
   const navigate = useNavigate();
-  const { activeStory, characters, structure, activeTemplate } = useStoryStore();
-  const method = methodById(activeStory?.planning_method);
-  if (!activeStory || !method) return null;
+  const { data, method } = usePlanData();
+  if (!data || !method) return null;
 
-  const data: PlanData = { story: activeStory, characters, scenes: sceneLeaves(structure, activeTemplate) };
   const done = method.steps.filter((s) => isStepDone(s, data)).length;
   const next = nextStep(method, data);
   const pct = Math.round((done / method.steps.length) * 100);

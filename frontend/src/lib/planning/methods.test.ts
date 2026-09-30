@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { Character, Story, StructureNode } from "../../types";
-import { PLAN_METHODS, methodById, nextStep, sceneLeaves, stepProgress, type PlanData } from "./methods";
+import type { BeatSheet, Character, PlotThread, Story, StructureNode } from "../../types";
+import {
+  PLAN_METHODS,
+  crossingThreads,
+  methodById,
+  nextStep,
+  planMethods,
+  sceneLeaves,
+  stepProgress,
+  type PlanData,
+} from "./methods";
 
 const story = (over: Partial<Story> = {}) =>
   ({ logline: "", premise: "", central_conflict: "", paragraph_summary: "", synopsis: "", ...over }) as Story;
@@ -82,5 +91,49 @@ describe("planning methods", () => {
       "act2",
       "prologue",
     ]);
+  });
+
+  it("turns a beat sheet into a method whose beats ask which scene carries them", () => {
+    const sheet = {
+      id: "cat",
+      name: "Save the Cat",
+      description: "",
+      beats: [
+        { id: "mid", name: "Midpoint", position_pct: 50, description: "False victory." },
+        { id: "open", name: "Opening Image", position_pct: 0, description: "" },
+      ],
+    } as BeatSheet;
+    const method = methodById("beats:cat", [sheet])!;
+    expect(method.steps.map((st) => st.id)).toEqual(["logline", "beat-open", "beat-mid"]);
+    expect(method.steps[1].why).toBe("At the very start.");
+    expect(planMethods([sheet]).length).toBe(PLAN_METHODS.length + 1);
+
+    const beat = method.steps[2];
+    const data: PlanData = {
+      story: story(),
+      characters: [],
+      scenes: [node({ beat_id: "mid", synopsis: "" })],
+    };
+    expect(stepProgress(beat, data).done).toBe(0); // assigned, but nothing says what happens
+    data.scenes = [node({ beat_id: "mid", synopsis: "She wins, wrongly." })];
+    expect(stepProgress(beat, data).done).toBe(1);
+  });
+
+  it("counts MICE threads by kind and by where they open and close", () => {
+    const [, threadsStep, , placement] = methodById("mice")!.steps;
+    const thread = (over: Partial<PlotThread>) => ({ name: "t", mice_type: "idea", ...over }) as PlotThread;
+    const data: PlanData = { story: story(), characters: [], scenes: [], threads: null };
+    expect(stepProgress(threadsStep, data).done).toBe(0);
+    data.threads = [thread({ opens_at_node_id: "a", closes_at_node_id: "b" }), thread({ mice_type: null })];
+    expect(stepProgress(threadsStep, data)).toEqual({ done: 1, total: 1 });
+    expect(stepProgress(placement, data)).toEqual({ done: 1, total: 1 });
+  });
+
+  it("finds threads that cross instead of nesting", () => {
+    const scenes = ["s1", "s2", "s3", "s4"].map((id) => node({ id }));
+    const t = (name: string, open: string, close: string) =>
+      ({ name, mice_type: "event", opens_at_node_id: open, closes_at_node_id: close }) as PlotThread;
+    expect(crossingThreads([t("outer", "s1", "s4"), t("inner", "s2", "s3")], scenes)).toEqual([]);
+    expect(crossingThreads([t("A", "s1", "s3"), t("B", "s2", "s4")], scenes)).toEqual([["A", "B"]]);
   });
 });

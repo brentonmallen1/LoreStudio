@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { Character, Story, StructureNode } from "../../../types";
-import { methodById, nextStep, sceneLeaves } from "../../../lib/planning/methods";
+import { nextStep, sceneLeaves } from "../../../lib/planning/methods";
+import { usePlanData } from "../../../lib/planning/usePlanData";
 import { charactersIn } from "../../../lib/planning/whoIsInScene";
 import QuestionsList from "../../plan/QuestionsList";
 import styles from "./StoryPlanPanel.module.css";
@@ -26,8 +27,8 @@ export default function StoryPlanPanel({ node, story, characters }: Props) {
   const present = charactersIn(`${node.content ?? ""} ${node.synopsis ?? ""}`, characters);
   const pov = characters.find((c) => c.id === povId);
   const people = pov && !present.includes(pov) ? [pov, ...present] : present;
-  const method = methodById(story.planning_method);
-  const next = method ? nextStep(method, { story, characters, scenes }) : null;
+  const { data, method } = usePlanData();
+  const next = method && data ? nextStep(method, data) : null;
   const planPath = `/stories/${story.id}/plan`;
 
   return (
