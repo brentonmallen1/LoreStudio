@@ -5,7 +5,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1180px) {
+/* The editor's width, not the window's: the tree and sidebar take their share first. */
+@container (max-width: 1180px) {
   .today {
     display: none;
   }

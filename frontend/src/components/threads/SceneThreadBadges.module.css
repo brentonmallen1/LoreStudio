@@ -1,7 +1,8 @@
 .wrap {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  /* One line in the editor topbar; wrapped chips pushed the bar taller. */
+  flex-wrap: nowrap;
   gap: 0.3rem;
 }
 

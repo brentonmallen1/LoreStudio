@@ -25,7 +25,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-width: 0;
+  /* Never narrower than the type, a few letters of the title and the status; the
+     responsive rules below hide things on the right before it gets that tight. */
+  min-width: min-content;
   flex: 1;
 }
 
@@ -84,7 +86,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  min-width: 0;
+  min-width: 5rem;
   cursor: text;
 }
 
@@ -2081,8 +2083,9 @@
 
 /* ── Responsive topbar: progressively hide content as editor narrows ── */
 
-/* Hide button text labels → icon-only buttons */
-@container (max-width: 720px) {
+/* Hide button text labels → icon-only buttons. Early enough that the scene title keeps
+   room: with the thread chips and the day's count it was cut to "T…" at 1130px. */
+@container (max-width: 1100px) {
   .topbarBtn span {
     display: none;
   }
@@ -2092,7 +2095,7 @@
 }
 
 /* Hide thread badges and word count */
-@container (max-width: 560px) {
+@container (max-width: 720px) {
   .threadBadgesWrap {
     display: none;
   }
