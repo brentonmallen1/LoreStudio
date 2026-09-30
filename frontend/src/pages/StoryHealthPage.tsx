@@ -455,13 +455,13 @@ export default function StoryHealthPage() {
                     <div className={styles.charRow1}>
                       <button
                         className={styles.charName}
-                        onClick={() => navigate(`/stories/${storyId}/characters/${c.id}`)}
+                        onClick={() => navigate(`/stories/${storyId}/lorebook/characters/${c.id}`)}
                       >
                         {c.name}
                       </button>
                       <button
                         className={styles.viewArcBtn}
-                        onClick={() => navigate(`/stories/${storyId}/characters/${c.id}?tab=arc`)}
+                        onClick={() => navigate(`/stories/${storyId}/lorebook/characters/${c.id}?tab=arc`)}
                       >
                         Arc →
                       </button>

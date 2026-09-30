@@ -70,7 +70,7 @@ export function ThreadsStep({ storyId, threads, reload }: Props) {
           Add thread
         </button>
       </form>
-      <Link to={`/stories/${storyId}/threads`} className={styles.quietLink}>
+      <Link to={`/stories/${storyId}/lorebook/threads`} className={styles.quietLink}>
         Plot Threads page: appearances, try/fail cycles, the timeline
       </Link>
     </div>

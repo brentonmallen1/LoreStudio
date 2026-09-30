@@ -169,7 +169,7 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
   }, [filtered, characters]);
 
   function handleNavigate(characterId: string) {
-    navigate(`/stories/${storyId}/characters/${characterId}?tab=relationships`);
+    navigate(`/stories/${storyId}/lorebook/characters/${characterId}?tab=relationships`);
   }
 
   const totalCount = filtered.length;

@@ -77,7 +77,7 @@ export default function StoryPlanPanel({ node, story, characters }: Props) {
           <ul className={styles.people}>
             {people.map((c) => (
               <li key={c.id} className={styles.person}>
-                <Link to={`/stories/${story.id}/characters/${c.id}`} className={styles.name}>
+                <Link to={`/stories/${story.id}/lorebook/characters/${c.id}`} className={styles.name}>
                   {c.name}
                   {c.id === povId && <span className={styles.pov}>POV</span>}
                 </Link>

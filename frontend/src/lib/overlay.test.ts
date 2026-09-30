@@ -41,6 +41,8 @@ describe("the close button names the page underneath", () => {
     expect(originLabel("/stories/s1/write")).toBe("Write");
     expect(originLabel("/stories/s1/chronicle")).toBe("Chronicle");
     expect(originLabel("/stories/s1")).toBe("Overview");
+    expect(originLabel("/stories/s1/lorebook/characters/c1")).toBe("Characters");
+    expect(originLabel("/stories/s1/lorebook")).toBe("Lorebook");
   });
 
   it("calls anything outside a story the dashboard", () => {

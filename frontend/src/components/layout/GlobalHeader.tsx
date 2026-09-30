@@ -252,7 +252,7 @@ export default function GlobalHeader() {
                     ? styles.backupStale
                     : styles.backupOverdue
             }`}
-            onClick={() => navigate(`/stories/${storyId}/versions`)}
+            onClick={() => navigate(`/stories/${storyId}/chronicle/versions`)}
             title={
               backupStatus?.last_backup_at
                 ? `Last backup: ${relativeTime(backupStatus.last_backup_at)} · Click to view version history`

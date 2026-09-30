@@ -545,7 +545,7 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
                       clearTimeout(clickTimerRef.current);
                       clickTimerRef.current = null;
                     }
-                    navigate(`/stories/${storyId}/characters/${char.id}`);
+                    navigate(`/stories/${storyId}/lorebook/characters/${char.id}`);
                   }}
                 >
                   {isActive && (

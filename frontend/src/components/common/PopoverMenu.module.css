@@ -1,0 +1,85 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
+.trigger:focus-visible,
+.item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: var(--z-popover);
+  min-width: 200px;
+  padding: 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu[data-align="end"] {
+  right: 0;
+}
+
+.menu[data-align="start"] {
+  left: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 34px;
+  padding: 0 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.item:disabled {
+  color: var(--color-text-subtle);
+  cursor: default;
+}
+
+.itemAi {
+  color: var(--color-ai);
+}
+
+.itemDanger {
+  color: var(--color-danger);
+}

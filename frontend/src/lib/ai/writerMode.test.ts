@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { flatRoutes } from "../routes";
 
 /**
  * Writer mode renders no AI affordance at all (CLAUDE.md).
@@ -35,8 +36,9 @@ const GUARDS = ["AIOnly", "useAIAvailable", "getAIAvailable", "useMode", "getMod
  */
 const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 
-/** The story routes marked `modes: BOTH` in lib/routes.ts, as their components. */
+/** The story routes and sections open in writer mode (lib/routes.ts), as their components. */
 const WRITER_ENTRY_POINTS = [
+  "src/pages/LocationSheet.tsx",
   "src/pages/StoryOverviewPage.tsx",
   "src/pages/MediaPage.tsx",
   "src/pages/StoryHealthPage.tsx",
@@ -108,25 +110,34 @@ describe("writer mode renders no AI affordance", () => {
 });
 
 describe("the story routes this test walks", () => {
-  it("covers every route marked for both modes", () => {
-    // If a route becomes available in writer mode, its component belongs above.
-    const routes = readFileSync("src/lib/routes.ts", "utf8");
-    const both = [...routes.matchAll(/id:\s*"([\w-]+)",[\s\S]{0,200}?modes:\s*BOTH/g)].map((m) => m[1]);
-    expect(both.length).toBeGreaterThan(8);
-    // The workspace maps these paths to components; the entry list is derived from it by
-    // hand, so this asserts the count has not quietly grown.
-    expect(both.sort()).toEqual([
-      "characters",
+  it("covers every route and section open in writer mode", () => {
+    // If a page or section becomes available in writer mode, its component belongs above.
+    const writer = flatRoutes("writer")
+      .filter((e) => !e.ai)
+      .map((e) => e.key)
+      .sort();
+    expect(writer).toEqual([
       "chronicle",
+      "chronicle.activity",
+      "chronicle.changes",
+      "chronicle.versions",
       "compendium",
+      "compendium.diagrams",
+      "compendium.images",
+      "compendium.research",
       "health",
       "lorebook",
-      "media",
+      "lorebook.calendars",
+      "lorebook.characters",
+      "lorebook.cultures",
+      "lorebook.history",
+      "lorebook.identity",
+      "lorebook.places",
+      "lorebook.systems",
+      "lorebook.threads",
+      "lorebook.travel",
       "overview",
       "plan",
-      "threads",
-      "versions",
-      "worldbuilding",
       "write",
     ]);
   });

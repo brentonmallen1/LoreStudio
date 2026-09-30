@@ -5,6 +5,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { isStepDone, type PlanMethod } from "../../lib/planning/methods";
 import { usePlanData } from "../../lib/planning/usePlanData";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
+import PageHeader from "../layout/PageHeader";
 import MethodSteps from "./MethodSteps";
 import IdeaView from "./IdeaView";
 import styles from "./Plan.module.css";
@@ -54,57 +55,31 @@ export default function PlanPage({ storyId }: { storyId: string }) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <h2 className={styles.title}>Plan</h2>
-          <div className={styles.tabs} role="tablist" aria-label="Plan views">
-            <button
-              role="tab"
-              aria-selected={view === "ideas"}
-              className={`${styles.tab} ${view === "ideas" ? styles.tabActive : ""}`}
-              onClick={() => show("ideas")}
-            >
-              Ideas
-              {unsortedCount > 0 && <span className={styles.tabCount}>{unsortedCount}</span>}
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "method"}
-              className={`${styles.tab} ${view === "method" ? styles.tabActive : ""}`}
-              onClick={() => show("method")}
-            >
-              {method ? method.label : "Method"}
-            </button>
-            <button
-              role="tab"
-              aria-selected={view === "boards"}
-              className={`${styles.tab} ${view === "boards" ? styles.tabActive : ""}`}
-              onClick={() => show("boards")}
-            >
-              Beat boards
-            </button>
-          </div>
-          <AIFeatureInfoTrigger pageId="outline" size="sm" />
-        </div>
-        {view === "method" && method && !choosing && (
-          <p className={styles.subtitle}>
-            {doneCount} of {method.steps.length} steps done ·{" "}
-            <button className={styles.linkBtn} onClick={() => setChoosing(true)}>
-              Change method
-            </button>
-          </p>
-        )}
-        {view === "ideas" && (
-          <p className={styles.subtitle}>
-            Everything you know, in any order. Sort it into the story when you're ready.
-          </p>
-        )}
-        {view === "boards" && (
-          <p className={styles.subtitle}>
-            Loose outlines for brainstorming beats. Turn any beat into a scene.
-          </p>
-        )}
-      </header>
+      <PageHeader
+        title="Plan"
+        views={[
+          { id: "ideas", label: "Ideas", count: unsortedCount },
+          { id: "method", label: method ? method.label : "Method" },
+          { id: "boards", label: "Beat boards" },
+        ]}
+        view={view}
+        onView={(id) => show(id as View)}
+        aside={<AIFeatureInfoTrigger pageId="outline" size="sm" />}
+        summary={
+          view === "method" && method && !choosing ? (
+            <>
+              {doneCount} of {method.steps.length} steps done ·{" "}
+              <button className={styles.linkBtn} onClick={() => setChoosing(true)}>
+                Change method
+              </button>
+            </>
+          ) : view === "ideas" ? (
+            "Everything you know, in any order. Sort it into the story when you're ready."
+          ) : view === "boards" ? (
+            "Loose outlines for brainstorming beats. Turn any beat into a scene."
+          ) : undefined
+        }
+      />
 
       {view === "ideas" ? (
         <div className={styles.body}>

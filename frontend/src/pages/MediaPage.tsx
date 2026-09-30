@@ -1,8 +1,9 @@
 import { parseServerDate } from "../lib/serverDate";
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Plus, GitBranch, ImageIcon, Trash2, Network } from "lucide-react";
 import { api } from "../api/client";
+import { sectionPath } from "../lib/routes";
 import type { StoryAsset, Diagram, DiagramSummary } from "../types";
 import MediaLibrary from "../components/media/MediaLibrary";
 import DiagramEditor from "../components/media/DiagramEditor";
@@ -10,9 +11,13 @@ import styles from "./MediaPage.module.css";
 
 type Tab = "media" | "diagrams";
 
-export default function MediaPage() {
+/** The Compendium's Images and Diagrams sections (doc 12 P1): the tabs became index entries. */
+export default function MediaPage({ section = "images" }: { section?: string }) {
   const { storyId } = useParams<{ storyId: string }>();
-  const [tab, setTab] = useState<Tab>("media");
+  const navigate = useNavigate();
+  const tab: Tab = section === "diagrams" ? "diagrams" : "media";
+  const setTab = (next: Tab) =>
+    storyId && navigate(sectionPath(storyId, "compendium", next === "diagrams" ? "diagrams" : "images"));
   const [assets, setAssets] = useState<StoryAsset[]>([]);
   const [diagrams, setDiagrams] = useState<DiagramSummary[]>([]);
   const [activeDiagram, setActiveDiagram] = useState<Diagram | null>(null);
@@ -89,23 +94,11 @@ export default function MediaPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Media & Diagrams</h2>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${tab === "media" ? styles.activeTab : ""}`}
-            onClick={() => setTab("media")}
-          >
-            <ImageIcon size={13} /> Media Library
-            <span className={styles.tabCount}>{assets.length}</span>
-          </button>
-          <button
-            className={`${styles.tab} ${tab === "diagrams" ? styles.activeTab : ""}`}
-            onClick={() => setTab("diagrams")}
-          >
-            <Network size={13} /> Diagrams
-            <span className={styles.tabCount}>{diagrams.length}</span>
-          </button>
-        </div>
+        <h2 className={styles.title}>
+          {tab === "media" ? <ImageIcon size={15} /> : <Network size={15} />}
+          {tab === "media" ? "Images" : "Diagrams"}
+          <span className={styles.tabCount}>{tab === "media" ? assets.length : diagrams.length}</span>
+        </h2>
       </div>
 
       <div className={styles.content}>

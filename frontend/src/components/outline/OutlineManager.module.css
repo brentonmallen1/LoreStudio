@@ -377,8 +377,8 @@
   justify-content: space-between;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg);
-  /* Lined up with the Plan page's header above it (Plan.module.css). */
-  padding: 0 max(1rem, calc((100% - 64rem) / 2));
+  /* Lined up with the page header above it (components/layout/PageHeader.module.css). */
+  padding: 0 max(1.25rem, calc((100% - 64rem) / 2));
   flex-shrink: 0;
   position: sticky;
   top: 0;

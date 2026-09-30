@@ -61,13 +61,13 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
           : "";
   const fullPath =
     tab.entityKind === "character"
-      ? `${base}/characters/${tab.entityId}`
+      ? `${base}/lorebook/characters/${tab.entityId}`
       : tab.entityKind === "location"
-        ? `${base}/locations/${tab.entityId}`
+        ? `${base}/lorebook/places/${tab.entityId}`
         : tab.entityKind === "thread"
-          ? `${base}/threads`
+          ? `${base}/lorebook/threads`
           : tab.entityKind === "twist"
-            ? `${base}/twists`
+            ? `${base}/lorebook/twists`
             : `${base}/compendium`;
 
   return (

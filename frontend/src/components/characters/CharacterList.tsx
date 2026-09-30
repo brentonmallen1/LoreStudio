@@ -99,7 +99,7 @@ export default function CharacterList({ storyId }: Props) {
               value=""
               onChange={(e) => {
                 if (e.target.value)
-                  navigate(`/stories/${storyId}/characters/${e.target.value}?tab=relationships`);
+                  navigate(`/stories/${storyId}/lorebook/characters/${e.target.value}?tab=relationships`);
               }}
             >
               <option value="">View character relationships…</option>
@@ -122,7 +122,7 @@ export default function CharacterList({ storyId }: Props) {
         <RelationshipGraph
           storyId={storyId}
           onEditRelationship={(rel) =>
-            navigate(`/stories/${storyId}/characters/${rel.character_id}?tab=relationships`)
+            navigate(`/stories/${storyId}/lorebook/characters/${rel.character_id}?tab=relationships`)
           }
         />
       )}
@@ -147,7 +147,7 @@ export default function CharacterList({ storyId }: Props) {
               {characters.map((c) => (
                 <div
                   key={c.id}
-                  onClick={() => navigate(`/stories/${storyId}/characters/${c.id}`)}
+                  onClick={() => navigate(`/stories/${storyId}/lorebook/characters/${c.id}`)}
                   className={styles.card}
                 >
                   {portraitUrls[c.id] ? (

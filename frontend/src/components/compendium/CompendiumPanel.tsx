@@ -6,6 +6,7 @@ import type { CompendiumEntrySummary, CompendiumEntry } from "../../types";
 import CompendiumEntryCard from "./CompendiumEntryCard";
 import CompendiumCreateDialog from "./CompendiumCreateDialog";
 import CompendiumEntryDetail from "./CompendiumEntryDetail";
+import PageHeader from "../layout/PageHeader";
 import styles from "./CompendiumPanel.module.css";
 
 interface Props {
@@ -17,7 +18,7 @@ type FilterType = "all" | "note" | "url" | "document";
 const FILTER_TABS: { id: FilterType; label: string; icon: React.ElementType }[] = [
   { id: "all", label: "All", icon: BookOpen },
   { id: "note", label: "Notes", icon: FileText },
-  { id: "url", label: "URLs", icon: Link },
+  { id: "url", label: "Links", icon: Link },
   { id: "document", label: "Documents", icon: File },
 ];
 
@@ -121,43 +122,35 @@ export default function CompendiumPanel({ storyId }: Props) {
 
   return (
     <div className={styles.page}>
-      <div className={styles.inner}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Compendium</h1>
-          <button className={styles.addBtn} onClick={() => setCreating(true)}>
-            <Plus size={14} />
-            Add Entry
-          </button>
-        </div>
-        <p className={styles.subtitle}>
-          Research notes, reference URLs, and documents that inform your story.
-        </p>
-
-        <div className={styles.toolbar}>
-          <div className={styles.filterTabs}>
-            {FILTER_TABS.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                className={`${styles.filterTab} ${filter === id ? styles.filterTabActive : ""}`}
-                onClick={() => setFilter(id)}
-              >
-                <Icon size={12} />
-                {label}
-              </button>
-            ))}
-          </div>
-
+      <PageHeader
+        title="Research"
+        summary={`${entries.length} ${entries.length === 1 ? "entry" : "entries"} · notes, links and documents that inform the story`}
+        primary={{ label: "Add entry", icon: Plus, onClick: () => setCreating(true) }}
+        aside={
           <div className={styles.searchWrap}>
-            <Search size={13} className={styles.searchIcon} />
+            <Search size={13} className={styles.searchIcon} aria-hidden />
             <input
               className={styles.searchInput}
-              placeholder="Search…"
+              placeholder="Search research…"
+              aria-label="Search research"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-        </div>
-
+        }
+        chips={FILTER_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className={`${styles.filterTab} ${filter === id ? styles.filterTabActive : ""}`}
+            onClick={() => setFilter(id)}
+            aria-pressed={filter === id}
+          >
+            <Icon size={12} aria-hidden />
+            {label}
+          </button>
+        ))}
+      />
+      <div className={styles.inner}>
         {displayed.length === 0 ? (
           <div className={styles.empty}>
             <BookOpen size={36} className={styles.emptyIcon} />

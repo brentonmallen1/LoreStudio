@@ -17,9 +17,9 @@ import styles from "./IdeaView.module.css";
 function filedPath(storyId: string, filed: NonNullable<IdeaFragment["filed"]>): string | null {
   switch (filed.kind) {
     case "character":
-      return `/stories/${storyId}/characters/${filed.ref_id}`;
+      return `/stories/${storyId}/lorebook/characters/${filed.ref_id}`;
     case "place":
-      return `/stories/${storyId}/locations/${filed.ref_id}`;
+      return `/stories/${storyId}/lorebook/places/${filed.ref_id}`;
     case "scene":
       return `/stories/${storyId}/write?node=${filed.ref_id}`;
     case "question":

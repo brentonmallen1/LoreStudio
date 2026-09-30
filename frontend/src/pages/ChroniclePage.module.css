@@ -7,37 +7,7 @@
   background: var(--color-bg);
 }
 
-/* ── Header: title, what this view is, the three views ── */
-.header {
-  padding: 1.25rem 1.75rem 0;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  flex-shrink: 0;
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  /* The search box's height, so switching to Changes (no search) does not jump. */
-  min-height: 2.1rem;
-}
-
-.title {
-  flex: 1;
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.blurb {
-  margin: 0.3rem 0 0.9rem;
-  max-width: 70ch;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
+/* ── The search box beside the page header ── */
 
 .search {
   position: relative;
@@ -69,33 +39,6 @@
 .search input:focus {
   border-color: var(--color-accent);
   background: var(--color-surface);
-}
-
-.tabs {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.tab {
-  padding: 0.5rem 0.8rem;
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--color-text-muted);
-  font: inherit;
-  font-size: 0.84rem;
-  cursor: pointer;
-  margin-bottom: -1px;
-}
-
-.tab:hover {
-  color: var(--color-text);
-}
-
-.tab[data-on="true"] {
-  color: var(--color-text);
-  font-weight: 500;
-  border-bottom-color: var(--color-accent);
 }
 
 /* ── Body: the list, and what is open beside it ── */

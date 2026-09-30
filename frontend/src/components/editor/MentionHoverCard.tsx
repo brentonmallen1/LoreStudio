@@ -68,8 +68,9 @@ export default function MentionHoverCard({
                 className={styles.hoverCardViewBtn}
                 onClick={() => {
                   hover.close();
-                  if (card.type === "character") navigate(`/stories/${storyId}/characters/${card.entityId}`);
-                  else navigate(`/stories/${storyId}/locations/${card.entityId}`);
+                  if (card.type === "character")
+                    navigate(`/stories/${storyId}/lorebook/characters/${card.entityId}`);
+                  else navigate(`/stories/${storyId}/lorebook/places/${card.entityId}`);
                 }}
               >
                 Full sheet

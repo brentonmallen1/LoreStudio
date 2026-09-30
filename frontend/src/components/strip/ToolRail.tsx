@@ -5,7 +5,8 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { TOOL_ICONS } from "../panel/toolIcons";
 import { useMode } from "../../lib/mode";
-import { DOMAIN_LABELS, routesFor, storyPath, type Domain } from "../../lib/routes";
+import { useAIAvailable } from "../../lib/mode";
+import { routesFor, sectionModes, sectionPath, storyPath, type Domain } from "../../lib/routes";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { toolTabId, type ToolId } from "../../types/panel";
@@ -19,13 +20,22 @@ const TOOLS: { tool: ToolId; label: string; icon: (typeof TOOL_ICONS)[ToolId] }[
   { tool: "questions", label: "Open questions", icon: TOOL_ICONS.questions },
 ];
 
-const DOMAIN_ORDER: Domain[] = ["manuscript", "lorebook", "compendium", "codex", "chronicle", "system"];
+/** Groups of the More menu, divided by a rule: home and plan, canon, research, AI, history, the rest. */
+const DOMAIN_ORDER: Domain[][] = [
+  ["home", "manuscript"],
+  ["lorebook"],
+  ["compendium"],
+  ["codex"],
+  ["chronicle"],
+  ["system"],
+];
 
 /** The tools at the foot of the strip: each opens as a tab beside the page; More lists every page. */
 export default function ToolRail({ wide }: { wide: boolean }) {
   const { storyId } = useParams<{ storyId: string }>();
   const { pathname } = useLocation();
   const mode = useMode();
+  const aiAvailable = useAIAvailable();
   const { tabs, activeTabId, openTool } = usePanelStore();
   const discoveryEnabled = useStoryStore((s) => s.activeStory?.discovery_enabled);
   const { pendingCount, refreshCount } = useDiscoveryStore();
@@ -61,7 +71,7 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   }, [moreOpen]);
 
   const routes = routesFor(mode).filter(
-    (r) => r.id !== "write" && r.id !== "overview" && (r.id !== "discoveries" || discoveryEnabled),
+    (r) => r.id !== "write" && (r.id !== "discoveries" || discoveryEnabled) && (!r.ai || aiAvailable),
   );
   const openIds = new Set(tabs.map((t) => t.id));
 
@@ -94,29 +104,56 @@ export default function ToolRail({ wide }: { wide: boolean }) {
           {badgeTotal > 0 && <span className={styles.badge}>{badgeTotal}</span>}
         </button>
         {moreOpen && (
-          <div className={styles.menu} role="menu" aria-label="More pages" style={{ bottom: wide ? 0 : 8 }}>
-            {DOMAIN_ORDER.map((domain) => {
-              const rows = routes.filter((r) => r.domain === domain);
+          <div
+            className={styles.menu}
+            role="menu"
+            aria-label="More pages"
+            style={{ bottom: wide ? 0 : 8, maxHeight: "calc(100vh - 72px)", overflowY: "auto" }}
+          >
+            {DOMAIN_ORDER.map((domains, gi) => {
+              const rows = routes.filter((r) => domains.includes(r.domain));
               if (!rows.length) return null;
               return (
-                <div key={domain}>
-                  <div className={styles.menuHeader}>{DOMAIN_LABELS[domain]}</div>
+                <div key={domains.join()} className={gi > 0 ? styles.menuGroup : undefined}>
                   {rows.map((r) => {
                     const Icon = r.icon;
-                    const on = pathname.startsWith(storyPath(storyId!, r)) && r.path !== "";
+                    const on = r.path !== "" && pathname.startsWith(storyPath(storyId!, r));
+                    const sections = (r.sections ?? []).filter((sec) => {
+                      const m = sectionModes(r, sec);
+                      return m.modes.includes(mode) && (!m.ai || aiAvailable);
+                    });
                     return (
-                      <Link
-                        key={r.id}
-                        role="menuitem"
-                        to={storyPath(storyId!, r)}
-                        className={`${styles.menuItem} ${on ? styles.menuItemOn : ""}`}
-                        style={{ minHeight: 34 }}
-                        onClick={() => setMoreOpen(false)}
-                      >
-                        <Icon size={14} />
-                        <span className={styles.menuLabel}>{r.label}</span>
-                        {badges[r.id] && <span className={styles.badge}>{badges[r.id]}</span>}
-                      </Link>
+                      <div key={r.id}>
+                        <Link
+                          role="menuitem"
+                          to={storyPath(storyId!, r)}
+                          className={`${styles.menuItem} ${on ? styles.menuItemOn : ""}`}
+                          style={{ minHeight: 34 }}
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          <Icon size={14} />
+                          <span className={styles.menuLabel}>{r.label}</span>
+                          {badges[r.id] && <span className={styles.badge}>{badges[r.id]}</span>}
+                        </Link>
+                        {sections.length > 0 && (
+                          <div className={styles.menuSections}>
+                            {sections.map((sec) => {
+                              const to = sectionPath(storyId!, r.id, sec.id);
+                              return (
+                                <Link
+                                  key={sec.id}
+                                  role="menuitem"
+                                  to={to}
+                                  className={`${styles.menuSection} ${(sec.path === "" ? pathname === to : pathname.startsWith(to)) ? styles.menuSectionOn : ""}`}
+                                  onClick={() => setMoreOpen(false)}
+                                >
+                                  {sec.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>

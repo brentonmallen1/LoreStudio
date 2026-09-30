@@ -314,7 +314,7 @@ export default function LocationManager({ storyId, selectLocationName }: Props) 
                   setNewParentId(parentId);
                   setShowAddModal(true);
                 }}
-                onOpenSheet={(id) => navigate(`/stories/${storyId}/locations/${id}`)}
+                onOpenSheet={(id) => navigate(`/stories/${storyId}/lorebook/places/${id}`)}
               />
             ))
           )}

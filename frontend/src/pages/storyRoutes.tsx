@@ -4,9 +4,10 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "re
 import ModeGate from "../components/layout/ModeGate";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { sceneToResume } from "../lib/resumeScene";
-import { STORY_ROUTES } from "../lib/routes";
+import { STORY_REDIRECTS, STORY_ROUTES, fillParams } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
+import SectionedPage from "./SectionedPage";
 import WriteNodePage from "./WriteNodePage";
 import styles from "./StoryWorkspace.module.css";
 
@@ -17,8 +18,6 @@ import styles from "./StoryWorkspace.module.css";
  * missing from the table below. Component imports stay out of `lib/routes.ts` so the
  * Writer bundle and the coverage test never import a page.
  */
-const CharacterSheet = lazy(() => import("../components/characters/CharacterSheet"));
-const LocationSheet = lazy(() => import("./LocationSheet"));
 const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
 const StoryboardView = lazy(() => import("../components/story/StoryboardView"));
 const TodoListView = lazy(() => import("../components/story/TodoListView"));
@@ -53,6 +52,19 @@ function WriteIndex({ storyId }: { storyId: string }) {
   return <SceneEditor />;
 }
 
+/** An old address that moved into a grouped page (doc 12 P1): params, query and state carry over. */
+function MovedTo({ to }: { to: string }) {
+  const params = useParams();
+  const { search, hash, state } = useLocation();
+  return (
+    <Navigate
+      to={`/stories/${params.storyId}${fillParams(to, params)}${search}${hash}`}
+      state={state}
+      replace
+    />
+  );
+}
+
 function OutlineRedirect({ storyId }: { storyId: string }) {
   const { search } = useLocation();
   // The Outline page became Plan; old links (?tab=<outline id>) open its beat boards.
@@ -65,6 +77,15 @@ export default function StoryRoutes() {
   return (
     <Routes>
       {STORY_ROUTES.map((route) => {
+        if (route.sections) {
+          return (
+            <Route
+              key={route.id}
+              path={`${route.path}/*`}
+              element={<SectionedPage route={route} storyId={storyId} />}
+            />
+          );
+        }
         const Page = ROUTE_ELEMENTS[route.id] as LazyExoticComponent<ComponentType<{ storyId: string }>>;
         const element =
           route.id === "write" ? (
@@ -80,8 +101,9 @@ export default function StoryRoutes() {
       })}
       <Route path="/overview" element={<Navigate to={`/stories/${storyId}`} replace />} />
       <Route path="/write/:nodeId" element={<WriteNodePage />} />
-      <Route path="/characters/:characterId" element={<CharacterSheet />} />
-      <Route path="/locations/:locationId" element={<LocationSheet />} />
+      {STORY_REDIRECTS.map(({ from, to }) => (
+        <Route key={from} path={from} element={<MovedTo to={to} />} />
+      ))}
       <Route path="/outline" element={<OutlineRedirect storyId={storyId} />} />
       <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
     </Routes>

@@ -67,7 +67,7 @@ export function useEntityCommands() {
           c.id,
           c.name,
           activeStory.id,
-          `${base}/characters/${c.id}`,
+          `${base}/lorebook/characters/${c.id}`,
           Users,
           "Characters",
         );
@@ -81,7 +81,7 @@ export function useEntityCommands() {
           l.id,
           l.name,
           activeStory.id,
-          `${base}/locations/${l.id}`,
+          `${base}/lorebook/places/${l.id}`,
           MapPin,
           "Places",
         );
@@ -89,7 +89,16 @@ export function useEntityCommands() {
       for (const t of threads) {
         const id = `thread-view-${t.id}`;
         ids.add(id);
-        entityCommand(id, "thread", t.id, t.name, activeStory.id, `${base}/threads`, GitBranch, "Threads");
+        entityCommand(
+          id,
+          "thread",
+          t.id,
+          t.name,
+          activeStory.id,
+          `${base}/lorebook/threads`,
+          GitBranch,
+          "Threads",
+        );
       }
       const walk = (nodes: typeof structure) => {
         for (const node of nodes) {

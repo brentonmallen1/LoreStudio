@@ -233,7 +233,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
               <DiagramThumbnail
                 key={d.id}
                 diagram={d}
-                onClick={() => navigate(`/stories/${activeStory.id}/worldbuilding`)}
+                onClick={() => navigate(`/stories/${activeStory.id}/lorebook/places`)}
               />
             ))}
           </div>

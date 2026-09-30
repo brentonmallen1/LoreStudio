@@ -431,7 +431,10 @@ export default function StoryOverviewPage() {
                   Write down everything you know, then sort it into characters, places and scenes.
                 </span>
               </button>
-              <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/characters`)}>
+              <button
+                className={styles.startPath}
+                onClick={() => navigate(`/stories/${storyId}/lorebook/characters`)}
+              >
                 <span className={styles.startPathIcon}>
                   <Users size={15} />
                 </span>

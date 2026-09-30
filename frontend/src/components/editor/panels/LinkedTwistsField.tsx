@@ -23,7 +23,7 @@ export default function LinkedTwistsField({
   }, [activeNode.id]);
 
   if (twists.length === 0) return null;
-  const go = () => navigate(`/stories/${activeStory.id}/twists`);
+  const go = () => navigate(`/stories/${activeStory.id}/lorebook/twists`);
 
   return (
     <div className={styles.overviewField}>

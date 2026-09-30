@@ -91,7 +91,7 @@ export default function CommandPalette() {
       when: hasStory,
       action: () => {
         const sid = _useStoryStoreForNav.getState().activeStory?.id;
-        if (sid) navigate(`/stories/${sid}/characters`);
+        if (sid) navigate(`/stories/${sid}/lorebook/characters`);
       },
     });
     commandRegistry.update({
@@ -127,7 +127,7 @@ export default function CommandPalette() {
       when: hasStory,
       action: () => {
         const sid = _useStoryStoreForNav.getState().activeStory?.id;
-        if (sid) navigate(`/stories/${sid}/threads`);
+        if (sid) navigate(`/stories/${sid}/lorebook/threads`);
       },
     });
     commandRegistry.update({
@@ -207,7 +207,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}`);
         break;
       case "character":
-        navigate(`/stories/${result.story_id}/characters/${result.id}`);
+        navigate(`/stories/${result.story_id}/lorebook/characters/${result.id}`);
         break;
       case "scene": {
         api.getNode(result.id).then(setActiveNode);
@@ -218,7 +218,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}/lorebook`);
         break;
       case "thread":
-        navigate(`/stories/${result.story_id}/threads`);
+        navigate(`/stories/${result.story_id}/lorebook/threads`);
         break;
     }
     close();

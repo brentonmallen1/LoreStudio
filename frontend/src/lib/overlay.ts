@@ -50,12 +50,14 @@ export function closeDelta(origin: OverlayOrigin | null, current: number | null)
   return origin.idx - current;
 }
 
-/** "Write", "Characters", "Dashboard": the name of the page the overlay covers. */
+/** "Write", "Characters", "Dashboard": the name of the page (or section) the overlay covers. */
 export function originLabel(pathname: string): string {
-  const match = pathname.match(/^\/stories\/[^/]+(\/[^/]+)?/);
+  const match = pathname.match(/^\/stories\/[^/]+(\/[^/]+)?(\/[^/]+)?/);
   if (!match) return "Dashboard";
   const route = STORY_ROUTES.find((r) => r.path === (match[1] ?? ""));
-  return route?.label ?? "story";
+  if (!route) return "story";
+  const section = match[2] ? route.sections?.find((s) => s.path === match[2]) : undefined;
+  return section?.label ?? route.label;
 }
 
 // ── Surviving a reload ─────────────────────────────────────────────────

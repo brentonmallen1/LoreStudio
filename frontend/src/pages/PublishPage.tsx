@@ -21,10 +21,10 @@ export default function PublishPage() {
       if (n.children) queue.push(...n.children);
     }
     setViewMode("tree");
-    navigate(`/stories/${storyId}/write`);
+    navigate(`/stories/${storyId}/write/${id}`);
   }
 
   if (!storyId) return null;
 
-  return <ManuscriptView storyId={storyId} onNavigateToScene={handleNavigateToScene} />;
+  return <ManuscriptView storyId={storyId} onNavigateToScene={handleNavigateToScene} asPage />;
 }

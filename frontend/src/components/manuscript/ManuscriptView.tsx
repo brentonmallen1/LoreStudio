@@ -12,6 +12,7 @@ import { BookOpen, RefreshCw, Download, X, Feather, Compass } from "lucide-react
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection } from "../../types";
 import ExportPanel from "./ExportPanel";
+import PageHeader from "../layout/PageHeader";
 import { useAIAvailable } from "../../lib/mode";
 import CompTitlesSuggester from "../publish/CompTitlesSuggester";
 import { useAIStore } from "../../stores/aiStore";
@@ -23,6 +24,8 @@ interface Props {
   storyId: string;
   /** Called when the user clicks a scene title — omit for read-only mode */
   onNavigateToScene?: (sectionId: string) => void;
+  /** Drawn as the Publish page (doc 12 P1): the shared page header instead of the toolbar. */
+  asPage?: boolean;
 }
 
 const STATUS_FILTER_LABELS: Record<StatusFilter, string> = {
@@ -93,7 +96,7 @@ function SceneSection({
   );
 }
 
-export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
+export default function ManuscriptView({ storyId, onNavigateToScene, asPage = false }: Props) {
   const [manuscript, setManuscript] = useState<Manuscript | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -116,63 +119,104 @@ export default function ManuscriptView({ storyId, onNavigateToScene }: Props) {
     load();
   }, [load]);
 
+  const filterSelect = (
+    <select
+      className={styles.filterSelect}
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+      aria-label="Which scenes to show"
+    >
+      {(Object.keys(STATUS_FILTER_LABELS) as StatusFilter[]).map((k) => (
+        <option key={k} value={k}>
+          {STATUS_FILTER_LABELS[k]}
+        </option>
+      ))}
+    </select>
+  );
+
   const isEmpty = !manuscript || manuscript.sections.filter((s) => s.is_leaf).length === 0;
 
   return (
     <div className={styles.wrap}>
       {/* Toolbar */}
-      <div className={styles.toolbar}>
-        <BookOpen size={14} className={styles.toolbarIcon} />
-        <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
-        {manuscript && (
-          <span className={styles.toolbarMeta}>
-            {manuscript.total_words.toLocaleString()} words
-            {" · "}
-            {estimateReadingTime(manuscript.total_words)}
-          </span>
-        )}
-        <div className={styles.toolbarRight}>
-          <select
-            className={styles.filterSelect}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-          >
-            {(Object.keys(STATUS_FILTER_LABELS) as StatusFilter[]).map((k) => (
-              <option key={k} value={k}>
-                {STATUS_FILTER_LABELS[k]}
-              </option>
-            ))}
-          </select>
-          <button className={styles.refreshBtn} onClick={load} title="Refresh">
-            <RefreshCw size={13} />
-          </button>
-          {/* AI tools: absent in Writer mode and with AI switched off. */}
-          {aiAvailable && (
-            <button
-              className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
-              onClick={() => {
-                setPubPrepOpen((v) => !v);
-                setExportOpen(false);
-              }}
-              title="Publication preparation tools"
-            >
-              <Feather size={13} />
-              Publish Prep
-            </button>
-          )}
-          <button
-            className={`${styles.exportBtn} ${exportOpen ? styles.exportBtnActive : ""}`}
-            onClick={() => {
+      {asPage ? (
+        <PageHeader
+          title="Publish"
+          summary={
+            manuscript
+              ? `${manuscript.total_words.toLocaleString()} words · ${estimateReadingTime(manuscript.total_words)} · the manuscript as a reader will see it`
+              : "The manuscript as a reader will see it"
+          }
+          aside={filterSelect}
+          primary={{
+            label: exportOpen ? "Close export" : "Export…",
+            icon: Download,
+            onClick: () => {
               setExportOpen((v) => !v);
               setPubPrepOpen(false);
-            }}
-            title="Export manuscript"
-          >
-            <Download size={13} />
-            Export
-          </button>
+            },
+          }}
+          more={[
+            { label: "Refresh", icon: RefreshCw, onSelect: load },
+            ...(aiAvailable
+              ? [
+                  {
+                    label: pubPrepOpen ? "Close publication prep" : "Publication prep",
+                    icon: Feather,
+                    ai: true,
+                    onSelect: () => {
+                      setPubPrepOpen((v) => !v);
+                      setExportOpen(false);
+                    },
+                  },
+                ]
+              : []),
+          ]}
+        />
+      ) : (
+        <div className={styles.toolbar}>
+          <BookOpen size={14} className={styles.toolbarIcon} />
+          <span className={styles.toolbarTitle}>{manuscript?.title ?? "Manuscript"}</span>
+          {manuscript && (
+            <span className={styles.toolbarMeta}>
+              {manuscript.total_words.toLocaleString()} words
+              {" · "}
+              {estimateReadingTime(manuscript.total_words)}
+            </span>
+          )}
+          <div className={styles.toolbarRight}>
+            {filterSelect}
+            <button className={styles.refreshBtn} onClick={load} title="Refresh">
+              <RefreshCw size={13} />
+            </button>
+            {/* AI tools: absent in Writer mode and with AI switched off. */}
+            {aiAvailable && (
+              <button
+                className={`${styles.exportBtn} ${pubPrepOpen ? styles.exportBtnActive : ""}`}
+                onClick={() => {
+                  setPubPrepOpen((v) => !v);
+                  setExportOpen(false);
+                }}
+                title="Publication preparation tools"
+              >
+                <Feather size={13} />
+                Publish Prep
+              </button>
+            )}
+            <button
+              className={`${styles.exportBtn} ${exportOpen ? styles.exportBtnActive : ""}`}
+              onClick={() => {
+                setExportOpen((v) => !v);
+                setPubPrepOpen(false);
+              }}
+              title="Export manuscript"
+            >
+              <Download size={13} />
+              Export
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Body: prose + optional export drawer */}
       <div className={styles.body}>

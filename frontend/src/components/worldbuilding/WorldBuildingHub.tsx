@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Globe, MapPin, Zap, Users, Clock, ArrowLeftRight, Calendar } from "lucide-react";
+import { MapPin, Zap, Users, Clock, ArrowLeftRight, Calendar } from "lucide-react";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { useParams, useLocation } from "react-router-dom";
 import LocationManager from "./LocationManager";
@@ -23,11 +22,26 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "calendars", label: "Calendars", icon: <Calendar size={13} /> },
 ];
 
-export default function WorldBuildingHub() {
+/** The Lorebook section each tab now answers to (doc 12 P1: the tabs became index entries). */
+const TAB_FOR_SECTION: Record<string, Tab> = {
+  places: "locations",
+  systems: "systems",
+  cultures: "cultures",
+  history: "history",
+  travel: "travel",
+  calendars: "calendars",
+};
+
+/**
+ * The world's sections of the Lorebook. Until doc 12 phase 2 gives each its own sheet, one
+ * body serves them all, picked by the section in the address.
+ */
+export default function WorldBuildingHub({ section = "places" }: { section?: string }) {
   const { storyId } = useParams<{ storyId: string }>();
   const { state } = useLocation();
   const selectLocationName: string | undefined = state?.selectLocationName;
-  const [activeTab, setActiveTab] = useState<Tab>("locations");
+  const activeTab = TAB_FOR_SECTION[section] ?? "locations";
+  const tab = TABS.find((t) => t.id === activeTab)!;
   const { worldBuildingAIPanelOpen } = useUIStore();
 
   if (!storyId) return null;
@@ -35,22 +49,9 @@ export default function WorldBuildingHub() {
   return (
     <div className={styles.hub}>
       <div className={styles.hubHeader}>
-        <Globe size={18} color="var(--color-text-muted)" />
-        <h1 className={styles.hubTitle}>World Building</h1>
+        {tab.icon}
+        <h1 className={styles.hubTitle}>{activeTab === "locations" ? "Places" : tab.label}</h1>
         <AIFeatureInfoTrigger pageId="worldbuilding" size="md" />
-      </div>
-
-      <div className={styles.tabBar}>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`${styles.tab} ${activeTab === t.id ? styles.tabActive : ""}`}
-            onClick={() => setActiveTab(t.id)}
-          >
-            {t.icon}
-            {t.label}
-          </button>
-        ))}
       </div>
 
       <div

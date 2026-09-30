@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import ActivityView from "../components/chronicle/ActivityView";
 import ChangesView from "../components/chronicle/ChangesView";
@@ -13,6 +13,8 @@ import {
   type ChronicleView,
 } from "../components/chronicle/useChronicleParams";
 import { useAIAvailable } from "../lib/mode";
+import { sectionPath } from "../lib/routes";
+import PageHeader from "../components/layout/PageHeader";
 import styles from "./ChroniclePage.module.css";
 
 const VIEWS: { id: ChronicleView; label: string; ai?: boolean; searchable: boolean }[] = [
@@ -39,12 +41,15 @@ const WRITER_ACTIVITY_BLURB = "Analyses and checks run on this story. Open a row
  * is a row that opens onto its calls, and Summaries became a filter. What is open lives in
  * the URL, so Back closes it and anything can link straight to a job or a call.
  */
-export default function ChroniclePage() {
+export default function ChroniclePage({ section = "activity" }: { section?: string }) {
   const { storyId } = useParams<{ storyId: string }>();
+  const { search } = useLocation();
   const aiAvailable = useAIAvailable();
   const { view: requested, item, filter, q, update } = useChronicleParams();
   const views = VIEWS.filter((v) => aiAvailable || !v.ai);
-  const view = views.some((v) => v.id === requested) ? requested : "activity";
+  // The views are sections of the Chronicle now (doc 12 P1); `?view=` from older links moves over.
+  const view = views.find((v) => v.id === section)?.id ?? "activity";
+  const legacy = section === "activity" && requested !== "activity" && views.some((v) => v.id === requested);
   const searchable = views.find((v) => v.id === view)?.searchable ?? false;
 
   // The box updates as you type; the URL (and the query) a moment later.
@@ -61,15 +66,22 @@ export default function ChroniclePage() {
   }, [draft, q, update]);
 
   if (!storyId) return null;
+  if (legacy) {
+    const rest = new URLSearchParams(search);
+    rest.delete("view");
+    const qs = rest.toString();
+    return <Navigate to={`${sectionPath(storyId, "chronicle", requested)}${qs ? `?${qs}` : ""}`} replace />;
+  }
 
   const open = (kind: "job" | "log" | "session", id: string) => update({ item: itemParam(kind, id) });
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.titleRow}>
-          <h1 className={styles.title}>Chronicle</h1>
-          {searchable && (
+      <PageHeader
+        title={VIEWS.find((v) => v.id === view)!.label}
+        summary={view === "activity" && !aiAvailable ? WRITER_ACTIVITY_BLURB : BLURBS[view]}
+        aside={
+          searchable && (
             <label className={styles.search}>
               <Search size={13} className={styles.searchIcon} aria-hidden />
               <input
@@ -80,27 +92,9 @@ export default function ChroniclePage() {
                 aria-label={view === "activity" ? "Search activity" : "Search conversations"}
               />
             </label>
-          )}
-        </div>
-        <p className={styles.blurb}>
-          {view === "activity" && !aiAvailable ? WRITER_ACTIVITY_BLURB : BLURBS[view]}
-        </p>
-        <nav className={styles.tabs} role="tablist" aria-label="Chronicle views">
-          {views.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              role="tab"
-              aria-selected={view === v.id}
-              className={styles.tab}
-              data-on={view === v.id}
-              onClick={() => update({ view: v.id, item: null, filter: null, q: null })}
-            >
-              {v.label}
-            </button>
-          ))}
-        </nav>
-      </header>
+          )
+        }
+      />
 
       <div className={styles.body} data-detail={item ? "open" : undefined}>
         <section className={styles.list}>

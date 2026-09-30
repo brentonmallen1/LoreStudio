@@ -77,7 +77,7 @@ export default function LocationSheet() {
     if (!location) return;
     setPendingDelete(false);
     await api.deleteLocation(location.id).catch(() => {});
-    navigate(`/stories/${storyId}/worldbuilding`);
+    navigate(`/stories/${storyId}/lorebook/places`);
   }
 
   function navigateToScene(sceneId: string) {
@@ -117,7 +117,7 @@ export default function LocationSheet() {
           <div className={styles.nameRow}>
             <button
               className={styles.backBtn}
-              onClick={() => navigate(`/stories/${storyId}/worldbuilding`)}
+              onClick={() => navigate(`/stories/${storyId}/lorebook/places`)}
               title="Back to World Building"
             >
               <ArrowLeft size={14} />

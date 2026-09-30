@@ -73,7 +73,7 @@ function CharacterFields({
     <>
       <div className={styles.castHeader}>
         <span className={styles.castRole}>{humanize(character.role)}</span>
-        <Link to={`/stories/${storyId}/characters/${character.id}`} className={styles.quietLink}>
+        <Link to={`/stories/${storyId}/lorebook/characters/${character.id}`} className={styles.quietLink}>
           Open character sheet
         </Link>
       </div>

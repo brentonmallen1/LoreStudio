@@ -328,7 +328,7 @@ export default function CharacterSheet() {
         <div className={styles.switcher}>
           <button
             className={styles.backBtn}
-            onClick={() => navigate(`/stories/${storyId}/characters`)}
+            onClick={() => navigate(`/stories/${storyId}/lorebook/characters`)}
             title="Back to characters"
           >
             <ArrowLeft size={14} />
@@ -337,7 +337,9 @@ export default function CharacterSheet() {
             <select
               className={styles.switcherSelect}
               value={character.id}
-              onChange={(e) => navigate(`/stories/${storyId}/characters/${e.target.value}?tab=${activeTab}`)}
+              onChange={(e) =>
+                navigate(`/stories/${storyId}/lorebook/characters/${e.target.value}?tab=${activeTab}`)
+              }
             >
               {characters.map((c) => (
                 <option key={c.id} value={c.id}>

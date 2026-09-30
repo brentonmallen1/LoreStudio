@@ -31,10 +31,10 @@ import "./panel";
 import "./strip";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
-import { STORY_ROUTES, storyPath } from "../routes";
+import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";
 import { SETTINGS_SECTIONS, settingsPath } from "../../pages/settings/sections";
 import { navigateTo } from "../navigation";
-import { getMode } from "../mode";
+import { getAIAvailable, getMode } from "../mode";
 import { GUIDES } from "../../guides";
 import { useUIStore } from "../../stores/uiStore";
 import { useAuthStore } from "../../stores/authStore";
@@ -97,7 +97,13 @@ for (const route of STORY_ROUTES) {
   commandRegistry.register({
     id: `nav-${route.id}`,
     label: route.id === "overview" ? "Story overview" : `Go to ${route.label}`,
-    keywords: ["go to", "open", route.label.toLowerCase(), ...(route.keywords ?? [])],
+    keywords: [
+      "go to",
+      "open",
+      route.label.toLowerCase(),
+      ...(route.keywords ?? []),
+      ...(route.sections ?? []).map((s) => s.label.toLowerCase()),
+    ],
     icon: route.icon,
     group: route.ai ? "AI" : "Navigation",
     when: () => {
@@ -109,6 +115,34 @@ for (const route of STORY_ROUTES) {
       if (story) navigateTo(storyPath(story.id, route));
     },
   });
+  // One command per section (doc 12 D6): grouping pages must not hide where things live, so
+  // "characters", "personae" or "world building" each still find their place in one keystroke.
+  for (const section of route.sections ?? []) {
+    if (section.path === "" && section.label === route.label) continue;
+    const { modes, ai } = sectionModes(route, section);
+    commandRegistry.register({
+      id: `nav-${route.id}-${section.id}`,
+      label: `Go to ${section.label}`,
+      description: `In the ${route.label}`,
+      keywords: [
+        "go to",
+        "open",
+        section.label.toLowerCase(),
+        route.label.toLowerCase(),
+        ...(section.keywords ?? []),
+      ],
+      icon: section.icon,
+      group: ai ? "AI" : "Navigation",
+      when: () => {
+        const story = useStoryStore.getState().activeStory;
+        return Boolean(story) && modes.includes(getMode()) && (!ai || getAIAvailable());
+      },
+      action: () => {
+        const story = useStoryStore.getState().activeStory;
+        if (story) navigateTo(sectionPath(story.id, route.id, section.id));
+      },
+    });
+  }
 }
 
 commandRegistry.register({
