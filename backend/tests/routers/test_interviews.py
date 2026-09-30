@@ -79,8 +79,8 @@ class TestStartInterview:
 
         app.dependency_overrides[get_db] = override_get_db
         try:
-            with TestClient(app) as c:
-                response = c.post(f"/api/interviews/characters/{char.id}", json={})
+            # No `with`: the lifespan would migrate and seed the real database.
+            response = TestClient(app).post(f"/api/interviews/characters/{char.id}", json={})
             assert response.status_code == 401
         finally:
             app.dependency_overrides.clear()
