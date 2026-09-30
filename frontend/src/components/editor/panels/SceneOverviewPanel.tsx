@@ -25,7 +25,8 @@ interface Props {
   activeStory: Story | null;
   characters: Character[];
   locations: Location[];
-  notes: InlineNotesState;
+  /** The editor's live notes; absent when the panel is open on another page. */
+  notes?: InlineNotesState;
 }
 
 const OVERVIEW_SAVE_DEBOUNCE_MS = 900;
@@ -210,7 +211,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
       <SceneSettingsField activeNode={activeNode} locations={locations} />
       {studio && activeStory && <WhoIsHereField activeNode={activeNode} storyId={activeStory.id} />}
       {studio && <SceneSummaryField activeNode={activeNode} setActiveNode={setActiveNode} />}
-      <InlineNotesField notes={notes} />
+      {notes && <InlineNotesField notes={notes} />}
       <ChecksField activeNode={activeNode} />
       <QuotesField activeNode={activeNode} />
       {activeStory && (

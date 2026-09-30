@@ -48,6 +48,7 @@ from .routers.plot_threads import router as plot_threads_router
 from .routers.prose_tools import router as prose_tools_router
 from .routers.publication import router as publication_router
 from .routers.reader_knowledge import router as reader_knowledge_router
+from .routers.scene_cast import router as scene_cast_router
 from .routers.scene_links import router as scene_links_router
 from .routers.scene_planner import router as scene_planner_router
 from .routers.search import router as search_router
@@ -158,6 +159,7 @@ app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
+app.include_router(scene_cast_router, prefix="/api", tags=["scene-cast"])
 app.include_router(search_router, prefix="/api", tags=["search"])
 app.include_router(media_router, prefix="/api", tags=["media"])
 app.include_router(diagrams_router, prefix="/api", tags=["diagrams"])

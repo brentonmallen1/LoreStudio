@@ -945,72 +945,6 @@
   overflow-y: auto;
 }
 
-/* Scene notes: a column beside the prose (SceneOverviewPanel). */
-.notesSide {
-  flex: 0 0 clamp(300px, 32%, 420px);
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow-y: auto;
-  border-left: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-
-.notesSideHead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.75rem 0.6rem 1.1rem;
-  border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-surface);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
-}
-
-.notesSideHead button {
-  display: flex;
-  padding: 0.25rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-}
-
-.notesSideHead button:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
-
-.notesTabs {
-  margin-left: -0.5rem;
-  display: flex;
-  gap: 0.15rem;
-}
-
-.notesSideHead .notesTabs button {
-  padding: 0.25rem 0.5rem;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-}
-
-.notesSideHead .notesTabs .notesTabActive {
-  color: var(--color-text);
-  background: var(--color-surface-2);
-}
-
-.notesSide .overviewPanel {
-  border-bottom: none;
-  padding: 0.9rem 1.1rem 1.5rem;
-}
-
 /* ── Editor content ── */
 .editorWrap {
   max-width: var(--editor-max-width);
@@ -2063,6 +1997,11 @@
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+}
+
+.hoverCardActions {
+  display: flex;
+  gap: 0.35rem;
 }
 
 .hoverCardViewBtn {

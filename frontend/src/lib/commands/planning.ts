@@ -1,18 +1,18 @@
 /**
- * Planning commands (refactor doc 10): the Ideas tab, open questions, and the editor's side
- * panel tabs. Kept apart from index.ts, which is at its size budget.
+ * Planning commands (refactor doc 10): the Ideas tab, open questions, and the side
+ * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
 import { CircleHelp, FileText, Lightbulb, MapIcon } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
+import { usePanelStore } from "../../stores/panelStore";
 
-/** Open the editor's side panel on a tab, going to the Write page first if need be. */
-function showScenePanel(panel: "scene" | "story") {
+/** Show the scene's notes in the side panel, going to the Write page first if need be. */
+function showSceneTab() {
   const { activeStory } = useStoryStore.getState();
   if (!activeStory) return;
-  useUIStore.getState().setScenePanel(panel);
+  usePanelStore.getState().activate("scene");
   if (!window.location.pathname.endsWith("/write")) navigateTo(`/stories/${activeStory.id}/write`);
 }
 
@@ -23,10 +23,7 @@ commandRegistry.register({
   icon: Lightbulb,
   group: "Manuscript",
   when: () => !!useStoryStore.getState().activeStory,
-  action: () => {
-    const { activeStory } = useStoryStore.getState();
-    if (activeStory) navigateTo(`/stories/${activeStory.id}/plan?view=ideas`);
-  },
+  action: () => usePanelStore.getState().openTool("ideas"),
 });
 
 commandRegistry.register({
@@ -36,10 +33,7 @@ commandRegistry.register({
   icon: CircleHelp,
   group: "Manuscript",
   when: () => !!useStoryStore.getState().activeStory,
-  action: () => {
-    const { activeStory } = useStoryStore.getState();
-    if (activeStory) navigateTo(`/stories/${activeStory.id}/plan?view=ideas`);
-  },
+  action: () => usePanelStore.getState().openTool("questions"),
 });
 
 commandRegistry.register({
@@ -49,15 +43,16 @@ commandRegistry.register({
   icon: FileText,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,
-  action: () => showScenePanel("scene"),
+  action: showSceneTab,
 });
 
 commandRegistry.register({
   id: "editor-show-story-plan",
   label: "Show Story Plan",
+  description: "The logline, who is here and what they want, under the scene's notes",
   keywords: ["plan", "logline", "goal", "conflict", "who is here", "outline", "panel"],
   icon: MapIcon,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,
-  action: () => showScenePanel("story"),
+  action: showSceneTab,
 });

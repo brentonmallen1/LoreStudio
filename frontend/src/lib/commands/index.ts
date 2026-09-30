@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { commandRegistry } from "./registry";
 import "./planning";
+import "./panel";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, storyPath } from "../routes";

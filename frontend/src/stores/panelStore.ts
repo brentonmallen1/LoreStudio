@@ -1,0 +1,157 @@
+import { create } from "zustand";
+import { entityTabId, toolTabId, type EntityKind, type PanelTab, type ToolId } from "../types/panel";
+
+/**
+ * The side panel (refactor doc 11): what is open beside the page. "This scene" is always
+ * first and follows the open scene; everything else the author opened stays until they
+ * close it, and comes back with the story. Per-browser, like the other layout choices,
+ * so it lives in localStorage rather than on the account.
+ */
+export interface Highlight {
+  kind: EntityKind;
+  id: string;
+  name: string;
+}
+
+interface PanelState {
+  storyId: string | null;
+  tabs: PanelTab[];
+  activeTabId: string;
+  open: boolean;
+  /** The entity whose mentions light up in the prose and on the strip. */
+  highlight: Highlight | null;
+
+  loadForStory: (storyId: string) => void;
+  openEntity: (kind: EntityKind, id: string, label: string) => void;
+  openTool: (tool: ToolId) => void;
+  activate: (id: string) => void;
+  close: (id: string) => void;
+  setOpen: (open: boolean) => void;
+  toggle: () => void;
+  setHighlight: (h: Highlight | null) => void;
+  /** Drop tabs whose entity no longer exists. */
+  prune: (exists: (tab: PanelTab) => boolean) => void;
+}
+
+const SCENE_TAB: PanelTab = { id: "scene", kind: "scene" };
+const OPEN_KEY = "ls_panel_open";
+const tabsKey = (storyId: string) => `ls_panel:${storyId}`;
+
+function read<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function write(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Site data blocked: the panel still works, it just forgets between visits.
+  }
+}
+
+function persistTabs(storyId: string | null, tabs: PanelTab[], activeTabId: string) {
+  if (!storyId) return;
+  write(tabsKey(storyId), { tabs: tabs.filter((t) => t.kind !== "scene"), activeTabId });
+}
+
+export const usePanelStore = create<PanelState>((set, get) => ({
+  storyId: null,
+  tabs: [SCENE_TAB],
+  activeTabId: "scene",
+  open: read<boolean>(OPEN_KEY, true),
+  highlight: null,
+
+  loadForStory: (storyId) => {
+    if (get().storyId === storyId) return;
+    const saved = read<{ tabs: PanelTab[]; activeTabId: string }>(tabsKey(storyId), {
+      tabs: [],
+      activeTabId: "scene",
+    });
+    const tabs = [SCENE_TAB, ...saved.tabs.filter((t) => t.kind !== "scene")];
+    const activeTabId = tabs.some((t) => t.id === saved.activeTabId) ? saved.activeTabId : "scene";
+    set({ storyId, tabs, activeTabId, highlight: null });
+  },
+
+  openEntity: (kind, id, label) => {
+    const tabId = entityTabId(kind, id);
+    const { tabs, storyId } = get();
+    const next = tabs.some((t) => t.id === tabId)
+      ? tabs
+      : [...tabs, { id: tabId, kind: "entity" as const, entityKind: kind, entityId: id, label }];
+    persistTabs(storyId, next, tabId);
+    set({ tabs: next, activeTabId: tabId, open: true, highlight: { kind, id, name: label } });
+    write(OPEN_KEY, true);
+  },
+
+  openTool: (tool) => {
+    const tabId = toolTabId(tool);
+    const { tabs, storyId } = get();
+    const next = tabs.some((t) => t.id === tabId)
+      ? tabs
+      : [...tabs, { id: tabId, kind: "tool" as const, tool }];
+    persistTabs(storyId, next, tabId);
+    set({ tabs: next, activeTabId: tabId, open: true });
+    write(OPEN_KEY, true);
+  },
+
+  activate: (id) => {
+    const { tabs, storyId } = get();
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    persistTabs(storyId, tabs, id);
+    set({
+      activeTabId: id,
+      open: true,
+      highlight: tab.kind === "entity" ? { kind: tab.entityKind, id: tab.entityId, name: tab.label } : null,
+    });
+    write(OPEN_KEY, true);
+  },
+
+  close: (id) => {
+    if (id === "scene") return;
+    const { tabs, activeTabId, storyId } = get();
+    const index = tabs.findIndex((t) => t.id === id);
+    if (index < 0) return;
+    const next = tabs.filter((t) => t.id !== id);
+    // Closing the open tab lands on its neighbour, the way browser tabs do.
+    const nextActive =
+      activeTabId === id ? (next[Math.min(index, next.length - 1)]?.id ?? "scene") : activeTabId;
+    persistTabs(storyId, next, nextActive);
+    const active = next.find((t) => t.id === nextActive);
+    set({
+      tabs: next,
+      activeTabId: nextActive,
+      highlight:
+        active?.kind === "entity"
+          ? { kind: active.entityKind, id: active.entityId, name: active.label }
+          : null,
+    });
+  },
+
+  setOpen: (open) => {
+    write(OPEN_KEY, open);
+    set({ open });
+  },
+  toggle: () => get().setOpen(!get().open),
+
+  setHighlight: (highlight) => set({ highlight }),
+
+  prune: (exists) => {
+    const { tabs, activeTabId, storyId } = get();
+    const next = tabs.filter((t) => t.kind !== "entity" || exists(t));
+    if (next.length === tabs.length) return;
+    const nextActive = next.some((t) => t.id === activeTabId) ? activeTabId : "scene";
+    persistTabs(storyId, next, nextActive);
+    set({ tabs: next, activeTabId: nextActive });
+  },
+}));
+
+/** The highlighted entity's name, for code outside React (the editor's decorations). */
+export function currentHighlight(): Highlight | null {
+  return usePanelStore.getState().highlight;
+}

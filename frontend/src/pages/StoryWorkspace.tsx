@@ -1,9 +1,12 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation, Navigate, Routes, Route } from "react-router-dom";
 import { api } from "../api/client";
+import { sceneCastApi } from "../api/sceneCast";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { rememberScene, sceneToResume } from "../lib/resumeScene";
+import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useStoryStore } from "../stores/storyStore";
+import { usePanelStore } from "../stores/panelStore";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
 import { STORY_ROUTES } from "../lib/routes";
@@ -13,6 +16,7 @@ const ROUTE = (id: string) => STORY_ROUTES.find((r) => r.id === id)!;
 // Always-loaded layout chrome
 import Sidebar from "../components/layout/Sidebar";
 import StructureTreePanel from "../components/layout/StructureTreePanel";
+import StoryPanel from "../components/panel/StoryPanel";
 import StorySearchPanel from "../components/story/StorySearchPanel";
 import ExportDialog from "../components/manuscript/ExportDialog";
 import styles from "./StoryWorkspace.module.css";
@@ -53,6 +57,9 @@ export default function StoryWorkspacePage() {
     setActiveTemplate,
     setBeatSheets,
     setActiveNode,
+    setLocations,
+    setThreads,
+    setSceneCast,
     structure,
   } = useStoryStore();
   const location = useLocation();
@@ -80,10 +87,26 @@ export default function StoryWorkspacePage() {
       api.listCharacters(storyId),
       api.listStructureTemplates(),
       api.listBeatSheets(),
+      api.listLocationsFlat(storyId),
+      api.listThreads(storyId),
+      sceneCastApi.get(storyId).catch(() => null),
     ])
-      .then(([story, structure, characters, templates, beatSheets]) => {
+      .then(([story, structure, characters, templates, beatSheets, locations, threads, cast]) => {
         setActiveStory(story);
         setStructure(structure);
+        setLocations(locations);
+        setThreads(threads);
+        setSceneCast(cast);
+        // The side panel's tabs come back with the story; ones whose entity is gone drop out.
+        const panel = usePanelStore.getState();
+        panel.loadForStory(storyId);
+        panel.prune((tab) => {
+          if (tab.kind !== "entity") return true;
+          if (tab.entityKind === "character") return characters.some((c) => c.id === tab.entityId);
+          if (tab.entityKind === "location") return locations.some((l) => l.id === tab.entityId);
+          if (tab.entityKind === "thread") return threads.some((t) => t.id === tab.entityId);
+          return true;
+        });
         // Open the scene a link names, keep one already open in this story, or resume
         // where the author left off (lib/resumeScene.ts). Read once, at load.
         const requested = new URLSearchParams(window.location.search).get("node");
@@ -98,13 +121,27 @@ export default function StoryWorkspacePage() {
       })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, setActiveNode, navigate]);
+  }, [storyId, setActiveStory, setStructure, setCharacters, setActiveTemplate, setActiveNode, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Remember the open scene per story, so the Write page reopens it next time.
   const activeNode = useStoryStore((s) => s.activeNode);
   useEffect(() => {
     if (storyId && activeNode?.story_id === storyId) rememberScene(storyId, activeNode.id);
   }, [storyId, activeNode]);
+
+  // Who is in each scene changes as the prose does: refresh when the scene changes and
+  // after an undo touches the tree, presence or thread placement.
+  const reloadCast = useCallback(() => {
+    if (storyId)
+      sceneCastApi
+        .get(storyId)
+        .then(setSceneCast)
+        .catch(() => {});
+  }, [storyId, setSceneCast]);
+  useEffect(() => {
+    if (activeNode?.id) reloadCast();
+  }, [activeNode?.id, reloadCast]);
+  useReloadOnUndo(["structure_node", "plot_thread_appearance", "scene_presence"], reloadCast);
 
   // Auto-backup: check on load, then every 5 minutes while the story is open
   useEffect(() => {
@@ -296,6 +333,7 @@ export default function StoryWorkspacePage() {
           </Routes>
         </Suspense>
       </main>
+      {viewState === "normal" && <StoryPanel />}
     </div>
   );
 }

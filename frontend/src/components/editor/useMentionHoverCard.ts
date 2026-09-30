@@ -30,21 +30,27 @@ function excerptOf(raw: string): string {
  * scroll area; the listener reads characters/locations through refs so it never
  * needs to be re-bound.
  */
+export type OpenedMention = Extract<HoverCard, { open: true }>;
+
 export function useMentionHoverCard(
   scrollAreaRef: RefObject<HTMLDivElement | null>,
   cardRef: RefObject<HTMLDivElement | null>,
   characters: Character[],
   locations: Location[],
   rebindKey: string | undefined,
+  /** ⌘/Ctrl-click on a mention: open it beside the page (doc 11). A plain click keeps placing the caret. */
+  onOpen?: (mention: OpenedMention) => void,
 ) {
   const [card, setCard] = useState<HoverCard>({ open: false });
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const charactersRef = useRef(characters);
   const locationsRef = useRef(locations);
+  const onOpenRef = useRef(onOpen);
   useEffect(() => {
     charactersRef.current = characters;
     locationsRef.current = locations;
+    onOpenRef.current = onOpen;
   });
 
   useEffect(() => {
@@ -110,11 +116,27 @@ export function useMentionHoverCard(
       closeTimer.current = setTimeout(() => setCard({ open: false }), CLOSE_DELAY_MS);
     }
 
+    function onClick(e: MouseEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const target = mentionTarget(e);
+      if (!target) return;
+      const name = target.getAttribute("data-mention-name") ?? "";
+      const type = (target.getAttribute("data-mention-type") ?? "character") as "character" | "setting";
+      const found = lookup(type, name, target.getBoundingClientRect());
+      if (!found.open || !found.found) return;
+      e.preventDefault();
+      if (showTimer.current) clearTimeout(showTimer.current);
+      setCard({ open: false });
+      onOpenRef.current?.(found);
+    }
+
     el.addEventListener("mouseover", onOver);
     el.addEventListener("mouseout", onOut);
+    el.addEventListener("click", onClick);
     return () => {
       el.removeEventListener("mouseover", onOver);
       el.removeEventListener("mouseout", onOut);
+      el.removeEventListener("click", onClick);
     };
   }, [rebindKey]); // eslint-disable-line react-hooks/exhaustive-deps
 

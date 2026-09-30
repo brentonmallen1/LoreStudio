@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { api } from "../../api/client";
+import { useStoryStore } from "../../stores/storyStore";
 import type { Character, Location, Story } from "../../types";
 import {
   setMentionItems,
@@ -35,19 +36,19 @@ interface Args {
  * items, the scene settings picker and the hover card.
  */
 export function useMentionDropdown({ editor, activeStory, characters, setCharacters }: Args) {
-  // Loaded per story; anything cached for another story reads as empty.
-  const [loaded, setLoaded] = useState<{
-    storyId: string | null;
-    locations: Location[];
-    items: MentionItem[];
-  }>({
-    storyId: null,
-    locations: [],
-    items: [],
-  });
-  const forStory = loaded.storyId === (activeStory?.id ?? null);
-  const flatLocations = useMemo(() => (forStory ? loaded.locations : []), [forStory, loaded.locations]);
-  const allItems = useMemo(() => (forStory ? loaded.items : []), [forStory, loaded.items]);
+  // Characters and places both come from the store (the workspace loads places once,
+  // doc 11); the mention items follow whichever list changes.
+  const flatLocations: Location[] = useStoryStore((s) => s.locations);
+  const allItems = useMemo<MentionItem[]>(
+    () =>
+      activeStory
+        ? [
+            ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
+            ...flatLocations.map((s) => ({ type: "setting" as const, name: s.name })),
+          ]
+        : [],
+    [activeStory, characters, flatLocations],
+  );
   const [open, setOpen_] = useState(false);
   const [query, setQuery] = useState("");
   const [pos, setPos] = useState({ bottom: 0, left: 0 });
@@ -68,34 +69,11 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
     if (!next) setAttributionMode(false);
   }
 
-  // Load locations once per story; characters come from the store.
+  // Hand the items to the decoration plugin and rebuild whenever they, or the editor, change.
   useEffect(() => {
-    if (!activeStory) {
-      setMentionItems([]);
-      return;
-    }
-    const storyId = activeStory.id;
-    api
-      .listLocationsFlat(storyId)
-      .then((locations) => {
-        const items: MentionItem[] = [
-          ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
-          ...locations.map((s) => ({ type: "setting" as const, name: s.name })),
-        ];
-        setLoaded({ storyId, locations, items });
-        setMentionItems(items);
-        if (editor?.view) editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
-      })
-      .catch(() => {});
-  }, [activeStory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Force decoration rebuild when the editor becomes ready and items exist
-  useEffect(() => {
-    if (editor?.view && allItems.length > 0) {
-      setMentionItems(allItems);
-      editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
-    }
-  }, [editor]); // eslint-disable-line react-hooks/exhaustive-deps
+    setMentionItems(allItems);
+    if (editor?.view) editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+  }, [allItems, editor]);
 
   const filteredItems = useMemo(() => {
     const characterOnly = dialogueMode || attributionMode;
@@ -151,13 +129,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
         try {
           const newChar = await api.createCharacter(activeStory.id, { name });
           createdName = newChar.name;
-          const newItem: MentionItem = { type: "character", name: createdName, role: newChar.role };
-          setLoaded((prev) => {
-            const items = [...prev.items, newItem];
-            setMentionItems(items);
-            return { ...prev, items };
-          });
-          if (editor.view) editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+          // The store's cast is the source of the items: adding them there rebuilds the decorations.
           setCharacters([...characters, newChar]);
         } catch {
           /* fall through with typed name */

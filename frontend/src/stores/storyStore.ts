@@ -1,5 +1,14 @@
 import { create } from "zustand";
-import type { Story, StructureNode, Character, StoryStructureTemplate, BeatSheet } from "../types";
+import type {
+  Story,
+  StructureNode,
+  Character,
+  StoryStructureTemplate,
+  BeatSheet,
+  Location,
+  PlotThread,
+} from "../types";
+import type { SceneCast } from "../types/panel";
 
 interface StoryState {
   stories: Story[];
@@ -28,6 +37,19 @@ interface StoryState {
 
   beatSheets: BeatSheet[];
   setBeatSheets: (sheets: BeatSheet[]) => void;
+
+  /** Flat list of the story's places (doc 11): the panel, mentions and the strip read it. */
+  locations: Location[];
+  setLocations: (locations: Location[]) => void;
+  upsertLocation: (location: Location) => void;
+
+  threads: PlotThread[];
+  setThreads: (threads: PlotThread[]) => void;
+  upsertThread: (thread: PlotThread) => void;
+
+  /** Who and what each scene carries, from `GET /scene-cast`; null until loaded. */
+  sceneCast: SceneCast | null;
+  setSceneCast: (cast: SceneCast | null) => void;
 }
 
 function patchTree(nodes: StructureNode[], id: string, patch: Partial<StructureNode>): StructureNode[] {
@@ -78,4 +100,25 @@ export const useStoryStore = create<StoryState>((set) => ({
 
   beatSheets: [],
   setBeatSheets: (sheets) => set({ beatSheets: sheets }),
+
+  locations: [],
+  setLocations: (locations) => set({ locations }),
+  upsertLocation: (location) =>
+    set((s) => ({
+      locations: s.locations.some((x) => x.id === location.id)
+        ? s.locations.map((x) => (x.id === location.id ? location : x))
+        : [...s.locations, location],
+    })),
+
+  threads: [],
+  setThreads: (threads) => set({ threads }),
+  upsertThread: (thread) =>
+    set((s) => ({
+      threads: s.threads.some((x) => x.id === thread.id)
+        ? s.threads.map((x) => (x.id === thread.id ? thread : x))
+        : [...s.threads, thread],
+    })),
+
+  sceneCast: null,
+  setSceneCast: (sceneCast) => set({ sceneCast }),
 }));

@@ -62,10 +62,26 @@ function clamp(rect: Rect): Rect {
   };
 }
 
-export function usePanelFrame(floating: boolean) {
-  const [width, setWidth] = useState(() => read<number>(WIDTH_KEY, 340));
+export interface PanelFrameOptions {
+  /** localStorage keys, so a second panel (the story panel, doc 11) keeps its own size. */
+  widthKey?: string;
+  rectKey?: string;
+  defaultWidth?: number;
+  minWidth?: number;
+  maxWidth?: number;
+}
+
+export function usePanelFrame(floating: boolean, options: PanelFrameOptions = {}) {
+  const {
+    widthKey = WIDTH_KEY,
+    rectKey = RECT_KEY,
+    defaultWidth = 340,
+    minWidth = MIN_WIDTH,
+    maxWidth = MAX_WIDTH,
+  } = options;
+  const [width, setWidth] = useState(() => read<number>(widthKey, defaultWidth));
   const [rect, setRect] = useState<Rect>(() =>
-    clamp(read<Rect>(RECT_KEY, defaultRect(read(WIDTH_KEY, 340)))),
+    clamp(read<Rect>(rectKey, defaultRect(read(widthKey, defaultWidth)))),
   );
   const drag = useRef<{
     mode: "move" | "resize" | "rail";
@@ -83,7 +99,7 @@ export function usePanelFrame(floating: boolean) {
       const dx = e.clientX - d.x;
       const dy = e.clientY - d.y;
       if (d.mode === "rail") {
-        const next = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, d.rect.width - dx));
+        const next = Math.max(minWidth, Math.min(maxWidth, d.rect.width - dx));
         d.latest.width = next;
         setWidth(next);
       } else if (d.mode === "move") {
@@ -101,8 +117,8 @@ export function usePanelFrame(floating: boolean) {
       if (!d) return;
       drag.current = null;
       document.documentElement.removeAttribute("data-ai-resizing");
-      if (d.mode === "rail") write(WIDTH_KEY, d.latest.width);
-      else write(RECT_KEY, d.latest.rect);
+      if (d.mode === "rail") write(widthKey, d.latest.width);
+      else write(rectKey, d.latest.rect);
     }
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
@@ -110,7 +126,7 @@ export function usePanelFrame(floating: boolean) {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
-  }, []);
+  }, [widthKey, rectKey, minWidth, maxWidth]);
 
   // A resized window (or a disconnected monitor) must not strand the panel offscreen.
   useEffect(() => {

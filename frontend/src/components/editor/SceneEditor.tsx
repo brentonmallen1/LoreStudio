@@ -10,6 +10,8 @@ import { noteWritingActivity } from "../../lib/writingToday";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { useAIStore } from "../../stores/aiStore";
+import { usePanelStore } from "../../stores/panelStore";
+import { useEditorBridge } from "../../stores/editorBridge";
 import { InlineNoteExtension } from "../story/InlineNoteExtension";
 import {
   InlineImageExtension,
@@ -44,8 +46,6 @@ import { DraftBanner } from "./SaveStatusPill";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
-import SceneOverviewPanel from "./panels/SceneOverviewPanel";
-import StoryPlanPanel from "./panels/StoryPlanPanel";
 import EmptyManuscript from "./EmptyManuscript";
 import ScenePlanCard from "./ScenePlanCard";
 import styles from "./SceneEditor.module.css";
@@ -71,13 +71,15 @@ export default function SceneEditor() {
     closeWritingGuides,
     storySummaryOpen,
     closeStorySummary,
-    scenePanel,
-    setScenePanel,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
-
-  const showOverview = scenePanel !== null;
+  // The scene's notes live in the side panel now (doc 11); the topbar button shows or hides it.
+  const panelOpen = usePanelStore((s) => s.open);
+  const togglePanel = usePanelStore((s) => s.toggle);
+  const activateTab = usePanelStore((s) => s.activate);
+  const openEntity = usePanelStore((s) => s.openEntity);
+  const setBridgeNotes = useEditorBridge((s) => s.setNotes);
   const [guidesTab, setGuidesTab] = useState<WritingGuideTab>("dialogue");
   const [showAutoTag, setShowAutoTag] = useState(false);
   const [showAutoLink, setShowAutoLink] = useState(false);
@@ -142,7 +144,14 @@ export default function SceneEditor() {
     characters,
     mention.flatLocations,
     activeNode?.id,
+    (m) => openEntity(m.type === "character" ? "character" : "location", m.entityId, m.name),
   );
+
+  // The side panel's inline-notes field reads the editor's live notes through the bridge.
+  useEffect(() => {
+    setBridgeNotes(notes);
+  });
+  useEffect(() => () => setBridgeNotes(null), [setBridgeNotes]);
 
   // Load the active node's content into the editor when the selection changes.
   // A node from the tree listing carries no prose (StructureNodeMeta), and resuming or
@@ -235,8 +244,8 @@ export default function SceneEditor() {
         activeNode={activeNode}
         wordCount={autosave.wordCount}
         autosave={autosave}
-        showOverview={showOverview}
-        onToggleOverview={() => setScenePanel(showOverview ? null : "scene")}
+        showOverview={panelOpen}
+        onToggleOverview={togglePanel}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
@@ -290,7 +299,7 @@ export default function SceneEditor() {
                     node={activeNode}
                     story={activeStory}
                     characters={characters}
-                    onOpenNotes={() => setScenePanel("scene")}
+                    onOpenNotes={() => activateTab("scene")}
                   />
                 )}
                 <EditorContent editor={editor} />
@@ -298,51 +307,6 @@ export default function SceneEditor() {
             )}
           </div>
         </div>
-        {/* Scene notes beside the prose, not over it: planning a scene you cannot see
-            meant scrolling back and forth between the two. */}
-        {showOverview && (
-          <aside className={styles.notesSide} aria-label="Scene notes">
-            <div className={styles.notesSideHead}>
-              <div className={styles.notesTabs} role="tablist" aria-label="Side panel">
-                <button
-                  role="tab"
-                  aria-selected={scenePanel === "scene"}
-                  className={scenePanel === "scene" ? styles.notesTabActive : ""}
-                  onClick={() => setScenePanel("scene")}
-                >
-                  Scene notes
-                </button>
-                <button
-                  role="tab"
-                  aria-selected={scenePanel === "story"}
-                  className={scenePanel === "story" ? styles.notesTabActive : ""}
-                  onClick={() => setScenePanel("story")}
-                >
-                  Story plan
-                </button>
-              </div>
-              <button
-                onClick={() => setScenePanel(null)}
-                title="Close the side panel"
-                aria-label="Close the side panel"
-              >
-                <X size={13} />
-              </button>
-            </div>
-            {scenePanel === "story" && activeStory ? (
-              <StoryPlanPanel node={activeNode} story={activeStory} characters={characters} />
-            ) : (
-              <SceneOverviewPanel
-                key={activeNode.id}
-                activeNode={activeNode}
-                activeStory={activeStory}
-                characters={characters}
-                locations={mention.flatLocations}
-                notes={notes}
-              />
-            )}
-          </aside>
-        )}
         {plannerPanelOpen && activeStory && (
           <ScenePlannerPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}
