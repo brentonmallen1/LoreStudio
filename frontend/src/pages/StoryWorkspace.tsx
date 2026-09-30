@@ -15,7 +15,8 @@ import ModeGate from "../components/layout/ModeGate";
 const ROUTE = (id: string) => STORY_ROUTES.find((r) => r.id === id)!;
 // Always-loaded layout chrome
 import Sidebar from "../components/layout/Sidebar";
-import StructureTreePanel from "../components/layout/StructureTreePanel";
+import StoryStrip from "../components/strip/StoryStrip";
+import WriteNodePage from "./WriteNodePage";
 import StoryPanel from "../components/panel/StoryPanel";
 import StorySearchPanel from "../components/story/StorySearchPanel";
 import ExportDialog from "../components/manuscript/ExportDialog";
@@ -63,16 +64,8 @@ export default function StoryWorkspacePage() {
     structure,
   } = useStoryStore();
   const location = useLocation();
-  const onWriteTab = location.pathname.endsWith("/write");
-  const {
-    viewState,
-    viewMode,
-    treeDetached,
-    setViewMode,
-    storySearchOpen,
-    closeStorySearch,
-    openStorySearch,
-  } = useUIStore();
+  const { viewState, viewMode, setViewMode, storySearchOpen, closeStorySearch, openStorySearch } =
+    useUIStore();
   const [loading, setLoading] = useState(true);
   const isFocused = viewState === "focus";
   const [sidebarRevealed, setSidebarRevealed] = useState(false);
@@ -172,6 +165,15 @@ export default function StoryWorkspacePage() {
     return <div className={styles.loading}>Loading…</div>;
   }
 
+  // Where `/write` with no node goes: the node already open in this story, else the one
+  // to resume. Existing callers that set the node and then go to `/write` keep working.
+  const writeTarget =
+    activeNode && activeNode.story_id === storyId && findNode(structure, activeNode.id)
+      ? activeNode
+      : storyId
+        ? sceneToResume(storyId, structure, null)
+        : null;
+
   function startSidebarHide() {
     clearTimeout(sidebarHideTimerRef.current);
     sidebarHideTimerRef.current = setTimeout(() => setSidebarRevealed(false), 600);
@@ -198,14 +200,12 @@ export default function StoryWorkspacePage() {
       )}
 
       {viewState === "normal" && <Sidebar />}
-      {viewState === "normal" && treeDetached && onWriteTab && <StructureTreePanel />}
+      {viewState === "normal" && <StoryStrip />}
       {isFocused && sidebarRevealed && (
-        <>
-          <Sidebar collapsed={true} onMouseLeave={startSidebarHide} onMouseEnter={cancelSidebarHide} />
-          {treeDetached && onWriteTab && (
-            <StructureTreePanel onMouseLeave={startSidebarHide} onMouseEnter={cancelSidebarHide} overlay />
-          )}
-        </>
+        <div className={styles.revealed} onMouseLeave={startSidebarHide} onMouseEnter={cancelSidebarHide}>
+          <Sidebar collapsed={true} />
+          <StoryStrip />
+        </div>
       )}
 
       {storyId && <ExportDialog storyId={storyId} />}
@@ -215,17 +215,8 @@ export default function StoryWorkspacePage() {
           storyId={storyId}
           onClose={closeStorySearch}
           onNavigateToNode={(nodeId) => {
-            const queue = [...structure];
-            while (queue.length) {
-              const n = queue.shift()!;
-              if (n.id === nodeId) {
-                setActiveNode(n);
-                break;
-              }
-              if (n.children) queue.push(...n.children);
-            }
-            navigate(`/stories/${storyId}/write`);
             setViewMode("tree");
+            navigate(`/stories/${storyId}/write/${nodeId}`);
           }}
         />
       )}
@@ -248,23 +239,19 @@ export default function StoryWorkspacePage() {
                   <ManuscriptView
                     storyId={storyId!}
                     onNavigateToScene={(id) => {
-                      const queue = [...structure];
-                      while (queue.length) {
-                        const n = queue.shift()!;
-                        if (n.id === id) {
-                          setActiveNode(n);
-                          break;
-                        }
-                        if (n.children) queue.push(...n.children);
-                      }
                       setViewMode("tree");
+                      navigate(`/stories/${storyId}/write/${id}`);
                     }}
                   />
+                ) : writeTarget ? (
+                  // The URL names the open node (doc 11 P3): the strip, breadcrumb and links agree.
+                  <Navigate to={`/stories/${storyId}/write/${writeTarget.id}`} replace />
                 ) : (
                   <SceneEditor />
                 )
               }
             />
+            <Route path="/write/:nodeId" element={<WriteNodePage />} />
             <Route path="/characters" element={<CharacterList storyId={storyId!} />} />
             <Route path="/characters/:characterId" element={<CharacterSheet />} />
             <Route path="/lorebook" element={<StoryIdentityPanel storyId={storyId!} />} />

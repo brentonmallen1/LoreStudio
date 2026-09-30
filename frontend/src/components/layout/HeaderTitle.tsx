@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import BreadcrumbNav from "./BreadcrumbNav";
 import styles from "./GlobalHeader.module.css";
 
 /**
@@ -27,7 +28,7 @@ export default function HeaderTitle() {
   }
 
   // The Write page always shows the icon rail, so there is nothing to toggle there.
-  const writing = pathname.endsWith("/write");
+  const writing = pathname.includes("/write");
   return (
     <div className={styles.storyTitleRow}>
       <button className={styles.backToStories} onClick={() => navigate("/")} title="All stories">
@@ -37,6 +38,7 @@ export default function HeaderTitle() {
       <span className={styles.storyTitle} title={activeStory.title}>
         {activeStory.title}
       </span>
+      {writing && <BreadcrumbNav />}
       {!writing && (
         <button
           className={styles.iconBtn}

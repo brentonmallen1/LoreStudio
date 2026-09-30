@@ -1,0 +1,796 @@
+/* The story strip (doc 11 P3): the book down the left edge, at three widths. */
+
+.strip {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  transition: width var(--transition-md);
+}
+
+.handle {
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  width: 14px;
+  height: 56px;
+  margin-top: -28px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  cursor: pointer;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.handle::after {
+  content: "";
+  width: 2px;
+  height: 24px;
+  border-radius: 1px;
+  background: var(--color-text-subtle);
+}
+
+.handle:hover {
+  border-color: var(--color-accent);
+}
+
+/* ── Header ── */
+.head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 46px;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.headNarrow {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.readoutTop {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
+.readoutBottom {
+  font-size: 0.62rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.headTitle {
+  flex: 1;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 12px;
+  background: var(--color-surface-3);
+}
+
+.segBtn {
+  height: 22px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.segBtnOn {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-3);
+}
+
+.homeBtn {
+  composes: iconBtn;
+  width: 32px;
+  height: 30px;
+  border-radius: var(--radius);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.homeBtnOn {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+/* ── Body ── */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Transit line ── */
+.line {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.rowAct {
+  height: 20px;
+  cursor: pointer;
+}
+
+.rowStation {
+  height: 30px;
+}
+
+.rowStop {
+  height: 20px;
+}
+
+.rail {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  margin-left: -1px;
+  border-left: 2px solid var(--color-border);
+}
+
+.railPast {
+  border-left-color: var(--color-text-muted);
+}
+
+.railPlan {
+  border-left-style: dashed;
+}
+
+.railNone {
+  border-left-color: transparent;
+}
+
+.actLabel {
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.rowAct:hover .actLabel,
+.actLabelOn {
+  color: var(--color-text);
+}
+
+.station {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: conic-gradient(var(--status-final) calc(var(--done) * 1turn), var(--color-border) 0);
+  transition: box-shadow var(--transition);
+}
+
+.stationPlanned {
+  background: var(--color-surface-2);
+  border: 1.5px dashed var(--color-text-subtle);
+  box-sizing: border-box;
+}
+
+.stationInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.stationCurrent .stationInner {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.stationPlanned .stationInner {
+  background: transparent;
+  color: var(--color-text-subtle);
+}
+
+.stationSelected {
+  box-shadow:
+    0 0 0 3px var(--color-surface-2),
+    0 0 0 5px var(--color-warning);
+}
+
+.row:hover .station {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-text) 12%, transparent);
+}
+
+.dot {
+  position: relative;
+  display: block;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--stop-color, var(--color-text-muted));
+  transition: transform var(--transition);
+}
+
+.row:hover .dot {
+  transform: scale(1.3);
+}
+
+.dotAhead {
+  opacity: 0.55;
+}
+
+.dotHollow {
+  background: var(--color-surface-2);
+  border: 2px solid var(--stop-color, var(--color-text-muted));
+}
+
+.dotDashed {
+  background: var(--color-surface-2);
+  border: 1.5px dashed var(--color-text-subtle);
+}
+
+.dotRinged {
+  width: 11px;
+  height: 11px;
+  box-shadow:
+    0 0 0 1.5px var(--color-surface-2),
+    0 0 0 3px var(--stop-color, var(--color-text-muted));
+}
+
+.dotCurrent {
+  width: 14px;
+  height: 14px;
+  opacity: 1;
+  box-shadow:
+    0 0 0 2px var(--color-surface-2),
+    0 0 0 4px var(--color-text),
+    0 0 10px 4px color-mix(in srgb, var(--color-warning) 55%, transparent);
+}
+
+.pill {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 2px 3px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-border);
+}
+
+.pillCurrent {
+  box-shadow:
+    0 0 0 2px var(--color-text),
+    0 0 10px 4px color-mix(in srgb, var(--color-warning) 50%, transparent);
+}
+
+.pip {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.pipHollow {
+  border: 1.5px solid var(--pip-color);
+  background: var(--color-surface);
+}
+
+.presence {
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Peek card ── */
+.peek {
+  position: fixed;
+  z-index: var(--z-popover);
+  width: 250px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  pointer-events: none;
+}
+
+.peekKicker {
+  font-size: 0.65rem;
+  color: var(--color-text-subtle);
+}
+
+.peekTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.peekText {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.peekTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  padding-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}
+
+.peekTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Footer: colour picker, key, tools ── */
+.foot {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.35rem 0.5rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.footWide {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.modeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 44px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
+.modeBtnOn {
+  border-color: var(--color-text);
+}
+
+.modeSwatches {
+  display: flex;
+  gap: 2px;
+}
+
+.modeSwatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-text) 15%, transparent);
+}
+
+.menu {
+  position: absolute;
+  left: calc(100% + 8px);
+  bottom: 8px;
+  z-index: var(--z-popover);
+  width: 260px;
+  padding: 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menuHeader {
+  padding: 0.3rem 0.5rem 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 42px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.menuItem:hover,
+.menuItemOn {
+  background: var(--color-surface-2);
+}
+
+.menuText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.menuLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.menuSub {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.radio {
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.radioOn {
+  border: 4px solid var(--color-text);
+}
+
+.key {
+  position: absolute;
+  left: calc(100% + 8px);
+  bottom: 60px;
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 420px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.keyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.7rem;
+}
+
+.keyLabel {
+  width: 46px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.toolBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 40px;
+  height: 36px;
+  padding: 0 0.6rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.toolBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.toolBtnOpen {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.toolBtnOn {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.toolBtnOn:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+/* ── Chapter rows ── */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 0.35rem 0.4rem;
+}
+
+.rowsAct {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.4rem 0.2rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.rowsAct:hover {
+  color: var(--color-text);
+}
+
+.chapter {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+}
+
+.chapterCurrent {
+  background: var(--color-surface-3);
+}
+
+.chapterHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chapterHead:hover {
+  background: var(--color-surface);
+}
+
+.chapterNum {
+  width: 18px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-subtle);
+}
+
+.chapterTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapterCurrent .chapterTitle {
+  font-weight: 600;
+}
+
+.chapterMeta {
+  font-size: 0.66rem;
+  color: var(--color-text-subtle);
+}
+
+.bars {
+  display: flex;
+  gap: 3px;
+  padding: 0 0.5rem 0.4rem 2rem;
+}
+
+.bar {
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background: var(--stop-color, var(--color-border));
+  cursor: pointer;
+}
+
+.barPlanned {
+  border: 1.5px dashed var(--color-text-subtle);
+  background: transparent;
+}
+
+.barCurrent {
+  background: var(--color-text);
+}
+
+.sceneRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 28px;
+  padding: 0 0.5rem 0 2rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sceneRow:hover {
+  background: var(--color-surface);
+}
+
+.sceneRowCurrent {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.sceneRowCurrent:hover {
+  background: var(--color-text);
+}
+
+.sceneRowPlanned {
+  font-style: italic;
+  color: var(--color-text-muted);
+}
+
+.sceneTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filter {
+  width: 100%;
+  box-sizing: border-box;
+  height: 30px;
+  margin: 0.4rem 0 0.2rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.filterWrap {
+  padding: 0 0.5rem;
+}

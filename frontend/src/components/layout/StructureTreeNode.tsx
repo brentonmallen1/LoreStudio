@@ -1,5 +1,5 @@
 import { createElement, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronDown, Plus, GripVertical, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
@@ -41,7 +41,6 @@ export default function NodeItem({
 
   const { activeNode, setActiveNode, activeTemplate, structure, setStructure } = useStoryStore();
   const navigate = useNavigate();
-  const location = useLocation();
   const hasChildren = node.children && node.children.length > 0;
   const isActive = activeNode?.id === node.id;
 
@@ -163,12 +162,7 @@ export default function NodeItem({
 
         <button
           data-tree-node={node.id}
-          onClick={() => {
-            api.getNode(node.id).then(setActiveNode);
-            if (!location.pathname.endsWith("/write")) {
-              navigate(`/stories/${storyId}/write`);
-            }
-          }}
+          onClick={() => navigate(`/stories/${storyId}/write/${node.id}`)}
           onDoubleClick={(e) => {
             e.stopPropagation();
             setRenameValue(node.title);

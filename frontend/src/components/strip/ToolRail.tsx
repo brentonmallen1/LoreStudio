@@ -1,0 +1,112 @@
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { CircleHelp, GitBranch, Lightbulb, MapPin, MoreHorizontal, Users } from "lucide-react";
+import { useMode } from "../../lib/mode";
+import { DOMAIN_LABELS, routesFor, storyPath, type Domain } from "../../lib/routes";
+import { usePanelStore } from "../../stores/panelStore";
+import { useStoryStore } from "../../stores/storyStore";
+import { toolTabId, type ToolId } from "../../types/panel";
+import styles from "./Strip.module.css";
+
+const TOOLS: { tool: ToolId; label: string; icon: typeof Users }[] = [
+  { tool: "characters", label: "Characters", icon: Users },
+  { tool: "places", label: "Places", icon: MapPin },
+  { tool: "threads", label: "Plot threads", icon: GitBranch },
+  { tool: "ideas", label: "Ideas", icon: Lightbulb },
+  { tool: "questions", label: "Open questions", icon: CircleHelp },
+];
+
+const DOMAIN_ORDER: Domain[] = ["manuscript", "lorebook", "compendium", "codex", "chronicle", "system"];
+
+/** The tools at the foot of the strip: each opens as a tab beside the page; More lists every page. */
+export default function ToolRail({ wide }: { wide: boolean }) {
+  const { storyId } = useParams<{ storyId: string }>();
+  const { pathname } = useLocation();
+  const mode = useMode();
+  const { tabs, activeTabId, openTool } = usePanelStore();
+  const discoveryEnabled = useStoryStore((s) => s.activeStory?.discovery_enabled);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    function onDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setMoreOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMoreOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
+
+  const routes = routesFor(mode).filter(
+    (r) => r.id !== "write" && r.id !== "overview" && (r.id !== "discoveries" || discoveryEnabled),
+  );
+  const openIds = new Set(tabs.map((t) => t.id));
+
+  return (
+    <>
+      {TOOLS.map(({ tool, label, icon: Icon }) => {
+        const id = toolTabId(tool);
+        return (
+          <button
+            key={tool}
+            className={`${styles.toolBtn} ${openIds.has(id) ? styles.toolBtnOpen : ""} ${activeTabId === id ? styles.toolBtnOn : ""}`}
+            onClick={() => openTool(tool)}
+            title={`${label}: open beside the page`}
+            aria-label={label}
+            aria-pressed={activeTabId === id}
+          >
+            <Icon size={16} />
+          </button>
+        );
+      })}
+      <div ref={ref} style={{ position: "relative" }}>
+        <button
+          className={styles.toolBtn}
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
+          aria-label="More pages"
+          title="More pages"
+        >
+          <MoreHorizontal size={16} />
+        </button>
+        {moreOpen && (
+          <div className={styles.menu} role="menu" aria-label="More pages" style={{ bottom: wide ? 0 : 8 }}>
+            {DOMAIN_ORDER.map((domain) => {
+              const rows = routes.filter((r) => r.domain === domain);
+              if (!rows.length) return null;
+              return (
+                <div key={domain}>
+                  <div className={styles.menuHeader}>{DOMAIN_LABELS[domain]}</div>
+                  {rows.map((r) => {
+                    const Icon = r.icon;
+                    const on = pathname.startsWith(storyPath(storyId!, r)) && r.path !== "";
+                    return (
+                      <Link
+                        key={r.id}
+                        role="menuitem"
+                        to={storyPath(storyId!, r)}
+                        className={`${styles.menuItem} ${on ? styles.menuItemOn : ""}`}
+                        style={{ minHeight: 34 }}
+                        onClick={() => setMoreOpen(false)}
+                      >
+                        <Icon size={14} />
+                        <span className={styles.menuLabel}>{r.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}

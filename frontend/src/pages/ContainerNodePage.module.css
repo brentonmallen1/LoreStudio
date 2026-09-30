@@ -1,0 +1,207 @@
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 15px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--color-text);
+}
+
+.kicker {
+  font-size: 0.72rem;
+  color: var(--color-text-subtle);
+}
+
+.title {
+  margin: -0.4rem 0 0.2rem;
+  font-family: var(--font-editor);
+  font-weight: 500;
+  font-size: 1.9rem;
+  line-height: 1.15;
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.planHead,
+.sectionHead {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.sectionHead {
+  margin-top: 0.5rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: var(--color-text-subtle);
+}
+
+.cardPlanned {
+  border-style: dashed;
+}
+
+.cardAdd {
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 0.4rem;
+  min-height: 64px;
+  border-style: dashed;
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  background: transparent;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardPlanned .cardTitle {
+  font-style: italic;
+  font-weight: 500;
+}
+
+.cardMeta {
+  font-size: 0.7rem;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.cardText {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.state {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-text-muted);
+}
+
+.state_dashed {
+  background: transparent;
+  border: 1.5px dashed var(--status-planned);
+}
+
+.state_hollow {
+  background: transparent;
+  border: 2px solid var(--status-draft);
+}
+
+.state_filled {
+  background: var(--status-revised);
+}
+
+.state_ringed {
+  background: var(--status-final);
+  box-shadow:
+    0 0 0 1.5px var(--color-surface),
+    0 0 0 3px var(--status-final);
+}
+
+.addInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.addActions {
+  display: flex;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.primary,
+.secondary {
+  height: 30px;
+  padding: 0 0.8rem;
+  border-radius: 15px;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.primary {
+  border: none;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.secondary {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+}

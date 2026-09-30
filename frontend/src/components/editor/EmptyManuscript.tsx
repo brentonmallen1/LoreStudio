@@ -16,17 +16,16 @@ import styles from "./EmptyManuscript.module.css";
  */
 export default function EmptyManuscript() {
   const { activeStory, activeTemplate, structure, setStructure, setActiveNode } = useStoryStore();
-  const { treeDetached, setTreeDetached } = useUIStore();
+  const { stripWidth, setStripWidth } = useUIStore();
   const [starting, setStarting] = useState(false);
 
   if (structure.length > 0) {
     return (
       <div className={styles.empty}>
-        {treeDetached ? (
-          <p className={styles.text}>Pick a scene in the structure tree to begin writing.</p>
-        ) : (
-          <button className={styles.secondary} onClick={() => setTreeDetached(true)}>
-            Show the structure tree to pick a scene
+        <p className={styles.text}>Pick a scene in the story strip to begin writing.</p>
+        {stripWidth !== "scenes" && (
+          <button className={styles.secondary} onClick={() => setStripWidth("scenes")}>
+            Show the full tree
           </button>
         )}
       </div>

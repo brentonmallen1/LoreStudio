@@ -8,7 +8,7 @@ export function openScene(nodeId: string): void {
   const node = findNode(structure, nodeId);
   if (!node || !activeStory) return;
   setActiveNode(node);
-  if (!window.location.pathname.endsWith("/write")) navigateTo(`/stories/${activeStory.id}/write`);
+  navigateTo(`/stories/${activeStory.id}/write/${nodeId}`);
 }
 
 /** The title of a scene by id, for lists that only hold ids. */

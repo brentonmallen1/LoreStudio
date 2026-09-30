@@ -1,3 +1,4 @@
+import { nextWidth } from "../../lib/strip/stripModel";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronDown, SquareLibrary } from "lucide-react";
@@ -56,7 +57,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   const location = useLocation();
   const { storyId } = useParams<{ storyId: string }>();
   const { activeStory } = useStoryStore();
-  const { sidebarCollapsed, treeDetached, setTreeDetached } = useUIStore();
+  const { sidebarCollapsed, stripWidth, setStripWidth } = useUIStore();
   const { pendingCount, refreshCount } = useDiscoveryStore();
   const { alertCount, refreshAlerts } = useHealthStore();
   const getTabStatus = useLLMStore((s) => s.getTabStatus);
@@ -110,8 +111,7 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
   }
 
   function railTitle(r: StoryRoute, badge: number | undefined): string {
-    if (r.id === "write" && writing)
-      return treeDetached ? "Write — hide the structure tree" : "Write — show the structure tree";
+    if (r.id === "write" && writing) return "Write — widen or narrow the story strip";
     return badge ? `${r.label} (${badge})` : r.label;
   }
 
@@ -123,11 +123,10 @@ export default function Sidebar({ collapsed: collapsedProp, onMouseLeave, onMous
     return (
       <button
         key={r.id}
-        onClick={() => (r.id === "write" && writing ? setTreeDetached(!treeDetached) : go(r))}
+        onClick={() => (r.id === "write" && writing ? setStripWidth(nextWidth(stripWidth, true)) : go(r))}
         className={`${styles.railBtn} ${isActive ? styles.railBtnActive : ""}`}
         title={isCollapsed ? railTitle(r, badge) : undefined}
         aria-current={isActive ? "page" : undefined}
-        aria-expanded={r.id === "write" && writing ? treeDetached : undefined}
       >
         <Icon size={16} />
         {!isCollapsed && <span className={styles.railLabel}>{r.label}</span>}

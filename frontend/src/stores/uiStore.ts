@@ -1,3 +1,4 @@
+import type { ColourMode, StripWidth } from "../lib/strip/stripModel";
 import { create } from "zustand";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
@@ -136,19 +137,11 @@ interface UIState {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
 
-  // Structure tree height (resizable, Write tab only)
-  treeHeight: number;
-  setTreeHeight: (height: number) => void;
-
-  // Structure tree expanded/collapsed
-  treeExpanded: boolean;
-  setTreeExpanded: (expanded: boolean) => void;
-
-  // Structure tree detached to second panel
-  treeDetached: boolean;
-  setTreeDetached: (detached: boolean) => void;
-  treePanelWidth: number;
-  setTreePanelWidth: (width: number) => void;
+  // The story strip (doc 11 P3): how wide the book is drawn, and what colours its stops.
+  stripWidth: StripWidth;
+  setStripWidth: (width: StripWidth) => void;
+  stripColourMode: ColourMode;
+  setStripColourMode: (mode: ColourMode) => void;
 
   // Sprint timer
   sprintActive: boolean;
@@ -312,6 +305,14 @@ applyEditorFont(savedEditorFont, savedEditorSize);
 applyEditorLineWidth(savedLineWidth);
 applyHighlightDialogue(savedHighlightDialogue);
 
+for (const stale of ["ls_tree_height", "ls_tree_expanded", "ls_tree_detached", "ls_tree_panel_width"]) {
+  try {
+    localStorage.removeItem(stale);
+  } catch {
+    /* nothing to tidy */
+  }
+}
+
 export const useUIStore = create<UIState>((set) => ({
   themeName: savedThemeName,
   colorMode: savedColorMode,
@@ -371,30 +372,21 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sidebarCollapsed: collapsed });
   },
 
-  treeHeight: Number(localStorage.getItem("ls_tree_height") ?? 200),
-  setTreeHeight: (height) => {
-    localStorage.setItem("ls_tree_height", String(height));
-    set({ treeHeight: height });
+  stripWidth: (["strip", "chapters", "scenes"].includes(localStorage.getItem("ls_strip_width") ?? "")
+    ? localStorage.getItem("ls_strip_width")
+    : "strip") as StripWidth,
+  setStripWidth: (width) => {
+    localStorage.setItem("ls_strip_width", width);
+    set({ stripWidth: width });
   },
-
-  treeExpanded: localStorage.getItem("ls_tree_expanded") !== "false",
-  setTreeExpanded: (expanded) => {
-    localStorage.setItem("ls_tree_expanded", String(expanded));
-    set({ treeExpanded: expanded });
-  },
-
-  // Open unless the author closed it: without it the Write page has no way to pick a scene.
-  treeDetached: localStorage.getItem("ls_tree_detached") !== "false",
-  setTreeDetached: (detached) => {
-    localStorage.setItem("ls_tree_detached", String(detached));
-    set({ treeDetached: detached });
-  },
-
-  // 260 fits most scene titles; at 200 they were cut to "Knock at th…". Drag to change.
-  treePanelWidth: Number(localStorage.getItem("ls_tree_panel_width") ?? 260),
-  setTreePanelWidth: (width) => {
-    localStorage.setItem("ls_tree_panel_width", String(width));
-    set({ treePanelWidth: width });
+  stripColourMode: (["none", "cast", "threads", "status", "beat"].includes(
+    localStorage.getItem("ls_strip_colour") ?? "",
+  )
+    ? localStorage.getItem("ls_strip_colour")
+    : "none") as ColourMode,
+  setStripColourMode: (mode) => {
+    localStorage.setItem("ls_strip_colour", mode);
+    set({ stripColourMode: mode });
   },
 
   sprintActive: false,

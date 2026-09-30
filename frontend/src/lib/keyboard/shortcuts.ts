@@ -41,6 +41,14 @@ export const SHORTCUTS = {
     modes: BOTH,
     commandId: "view-focus",
   },
+  cycleStrip: {
+    combo: "mod+shift+e",
+    label: "Widen or narrow the story strip",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "strip-cycle-width",
+  },
   scratchPad: {
     combo: "mod+shift+p",
     label: "Scratch pad",

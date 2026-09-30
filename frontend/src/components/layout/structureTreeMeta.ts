@@ -161,3 +161,17 @@ export function parentForLevel(
   walk(nodes);
   return last;
 }
+
+/** The ancestors of a node, root first, then the node. */
+export function pathTo(
+  nodes: StructureNode[],
+  id: string,
+  trail: StructureNode[] = [],
+): StructureNode[] | null {
+  for (const n of nodes) {
+    if (n.id === id) return [...trail, n];
+    const hit = pathTo(n.children ?? [], id, [...trail, n]);
+    if (hit) return hit;
+  }
+  return null;
+}

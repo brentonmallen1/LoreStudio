@@ -525,6 +525,8 @@ def seed_demo_story():  # noqa: PLR0915
         # Set POV character — Eleanor is the perspective anchor for this third-limited story
         story.narrative_perspective = "third_limited"
         story.pov_character_id = eleanor.id
+        # The demo is on a beat sheet (doc 11 P3), so the strip's beat colouring has data.
+        story.beat_sheet_id = "save-the-cat"
 
         visitor = Character(
             story_id=story.id,
@@ -851,9 +853,10 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The Light",
+            beat_id="opening-image",
             synopsis="Eleanor climbs to the lamp room as the storm rolls in.",
             position=0,
-            status="revised",
+            status="final",
             timeline_position=2,
             entry_state="Eleanor alone in her lighthouse, mid-routine — log entry made, barometer falling, the world predictably hers.",
             exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
@@ -914,6 +917,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="Knock at the Door",
+            beat_id="catalyst",
             synopsis="Eleanor opens the door to find the Visitor standing in the rain.",
             position=0,
             timeline_position=3,
@@ -981,6 +985,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The Logbook",
+            beat_id="debate",
             synopsis="The Visitor asks to examine the lighthouse records. Eleanor hesitates, then agrees.",
             position=0,
             timeline_position=4,
@@ -1019,6 +1024,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The Gap",
+            beat_id="midpoint",
             synopsis="Eleanor notices six months of entries missing. The Visitor is not surprised.",
             position=1,
             timeline_position=1,  # Flashback: chronologically first — represents the period three years ago when Thomas removed these entries
@@ -1078,6 +1084,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="Night Passage",
+            beat_id="bad-guys-close-in",
             synopsis="The Visitor begins to tell a version of the truth. Eleanor listens.",
             position=0,
             timeline_position=5,
@@ -1155,6 +1162,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="What Thomas Knew",
+            beat_id="dark-night",
             synopsis="The Visitor reveals why the log entries are missing and what Thomas Vance did.",
             position=0,
             timeline_position=6,
@@ -1216,6 +1224,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The Decision",
+            beat_id="break-into-three",
             synopsis="Eleanor chooses what to do with the truth — and with the Visitor.",
             position=1,
             timeline_position=7,
@@ -1287,6 +1296,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The Departure",
+            beat_id="finale",
             synopsis="Calder leaves the island. Eleanor watches the boat until it disappears.",
             position=0,
             timeline_position=8,
@@ -1371,6 +1381,7 @@ def seed_demo_story():  # noqa: PLR0915
             level=2,
             level_type="scene",
             title="The New Entry",
+            beat_id="final-image",
             synopsis="Eleanor makes her first log entry since the storm.",
             position=2,
             timeline_position=10,
