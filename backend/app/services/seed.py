@@ -1407,16 +1407,21 @@ def seed_demo_story():  # noqa: PLR0915
         )
         db.add(ch7)
         db.flush()
-        for position, (title, synopsis) in enumerate(
+        # The Report carries a full plan, so opening it shows the card the editor puts above
+        # an empty scene: synopsis, why it's here, where it starts and ends.
+        for position, planned in enumerate(
             [
-                (
-                    "The Report",
-                    "Calder's report arrives by post. Eleanor reads what the Foundation made of her father.",
-                ),
-                (
-                    "The Crossing",
-                    "Eleanor takes the supply boat to the mainland and does not look back until the light is out of sight.",
-                ),
+                {
+                    "title": "The Report",
+                    "synopsis": "Calder's report arrives by post. Eleanor reads what the Foundation made of her father.",
+                    "purpose": "Let the truth go public, and see what Eleanor does once it is no longer hers to keep.",
+                    "entry_state": "A month after the storm. The post comes on Thursdays.",
+                    "exit_state": "Eleanor knows what the world will be told, and finds she can bear it.",
+                },
+                {
+                    "title": "The Crossing",
+                    "synopsis": "Eleanor takes the supply boat to the mainland and does not look back until the light is out of sight.",
+                },
             ]
         ):
             db.add(
@@ -1425,10 +1430,9 @@ def seed_demo_story():  # noqa: PLR0915
                     parent_id=ch7.id,
                     level=2,
                     level_type="scene",
-                    title=title,
-                    synopsis=synopsis,
                     position=position,
                     status="planned",
+                    **planned,
                 )
             )
         db.flush()

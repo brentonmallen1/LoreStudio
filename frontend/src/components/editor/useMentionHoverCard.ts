@@ -12,6 +12,9 @@ export type HoverCard =
       roleOrLabel: string;
       pronouns?: string;
       excerpt: string;
+      /** A character's plan: what they want and what stands in the way. */
+      goal?: string;
+      conflict?: string;
       rect: DOMRect;
     };
 
@@ -61,6 +64,8 @@ export function useMentionHoverCard(
             roleOrLabel: char.role || "Character",
             pronouns: char.pronouns || undefined,
             excerpt: excerptOf(char.personality || char.motivation || ""),
+            goal: excerptOf(char.mission_statement || "") || undefined,
+            conflict: excerptOf(char.conflict || "") || undefined,
             rect,
           };
         }

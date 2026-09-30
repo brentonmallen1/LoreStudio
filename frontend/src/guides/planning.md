@@ -17,6 +17,13 @@ Each line of the scene list is a real scene in the structure tree, marked **plan
 
 In the scene list, **Enter** in the last scene's line adds the next scene.
 
+## The plan where you write
+
+- **Above an empty scene**, the editor shows its plan: what happens, why it's here, where it starts and ends, and what the point-of-view character wants. The first words tuck it away.
+- **Story plan** is a tab of the editor's side panel (**Notes**, or "Show Story Plan" in the palette): the logline and conflict, where this scene sits and what comes next, and what each character in the scene wants and what stands against them.
+- **Hovering a character's name** in the prose shows their goal and conflict.
+- The **Overview** shows the method's progress and the next step.
+
 ## Beat boards
 
 **Beat boards** are loose outlines for brainstorming: jot beats, nest and reorder them, then use **Make scene** on a beat to add it to the end of the story as a planned scene, linked back to the beat.

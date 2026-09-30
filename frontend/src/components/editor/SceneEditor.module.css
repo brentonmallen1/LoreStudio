@@ -988,6 +988,24 @@
   color: var(--color-text);
 }
 
+.notesTabs {
+  margin-left: -0.5rem;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.notesSideHead .notesTabs button {
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.notesSideHead .notesTabs .notesTabActive {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
 .notesSide .overviewPanel {
   border-bottom: none;
   padding: 0.9rem 1.1rem 1.5rem;
@@ -2007,6 +2025,33 @@
   color: var(--color-text-subtle);
   flex-shrink: 0;
   opacity: 0.8;
+}
+
+/* A character's goal and conflict, from the plan: the two things to keep in mind mid-scene. */
+.hoverCardPlan {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.5rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.hoverCardPlan dt {
+  color: var(--color-text-subtle);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 0.1rem;
+}
+
+.hoverCardPlan dd {
+  margin: 0;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .hoverCardExcerpt {

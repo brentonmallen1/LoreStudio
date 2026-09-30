@@ -32,7 +32,24 @@ export default function MentionHoverCard({
             <span className={styles.hoverCardLabel}>{card.roleOrLabel}</span>
             {card.pronouns && <span className={styles.hoverCardPronouns}>{card.pronouns}</span>}
           </div>
-          {card.excerpt && <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>}
+          {card.goal || card.conflict ? (
+            <dl className={styles.hoverCardPlan}>
+              {card.goal && (
+                <>
+                  <dt>Wants</dt>
+                  <dd>{card.goal}</dd>
+                </>
+              )}
+              {card.conflict && (
+                <>
+                  <dt>Against</dt>
+                  <dd>{card.conflict}</dd>
+                </>
+              )}
+            </dl>
+          ) : (
+            card.excerpt && <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>
+          )}
           {storyId && (
             <button
               className={styles.hoverCardViewBtn}

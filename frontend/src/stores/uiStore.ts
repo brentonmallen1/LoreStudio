@@ -178,6 +178,10 @@ interface UIState {
   openPlannerPanel: () => void;
   closePlannerPanel: () => void;
 
+  // The editor's side panel: the scene's notes or the story's plan (palette → SceneEditor)
+  scenePanel: "scene" | "story" | null;
+  setScenePanel: (panel: "scene" | "story" | null) => void;
+
   // Dialogue insert trigger (command palette → SceneEditor)
   dialogueInsertTrigger: number;
   triggerDialogueInsert: () => void;
@@ -423,6 +427,9 @@ export const useUIStore = create<UIState>((set) => ({
   plannerPanelOpen: false,
   openPlannerPanel: () => set({ plannerPanelOpen: true }),
   closePlannerPanel: () => set({ plannerPanelOpen: false }),
+
+  scenePanel: null,
+  setScenePanel: (scenePanel) => set({ scenePanel }),
 
   dialogueInsertTrigger: 0,
   triggerDialogueInsert: () => set((s) => ({ dialogueInsertTrigger: s.dialogueInsertTrigger + 1 })),

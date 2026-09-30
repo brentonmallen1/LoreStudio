@@ -1,0 +1,110 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1rem 1.1rem 1.5rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.heading {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.logline {
+  margin: 0;
+  font-family: var(--font-editor);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  column-gap: 0.4rem;
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.label {
+  padding-top: 0.12rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-subtle);
+}
+
+.after {
+  color: var(--color-text-subtle);
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-text-subtle);
+}
+
+.empty a,
+.foot a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.empty a:hover,
+.foot a:hover {
+  text-decoration: underline;
+}
+
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.name:hover {
+  color: var(--color-accent);
+}
+
+.pov {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.05rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.foot {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-light);
+}

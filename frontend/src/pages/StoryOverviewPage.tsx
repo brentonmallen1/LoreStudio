@@ -1,3 +1,4 @@
+import PlanNextStep from "../components/plan/PlanNextStep";
 import { parseServerDate, serverTime } from "../lib/serverDate";
 import { streamAnswer } from "../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
@@ -346,6 +347,8 @@ export default function StoryOverviewPage() {
           {lastSessionText && <p className={styles.lastSession}>{lastSessionText}</p>}
         </div>
 
+        <PlanNextStep storyId={storyId!} />
+
         {/* ── Session recap ── */}
         {hasContent && aiAvailable && (
           <div className={styles.recapSection}>
@@ -419,9 +422,9 @@ export default function StoryOverviewPage() {
                 <span className={styles.startPathIcon}>
                   <ListTree size={15} />
                 </span>
-                <span className={styles.startPathName}>Plan the structure</span>
+                <span className={styles.startPathName}>Plan it out</span>
                 <span className={styles.startPathHint}>
-                  Map acts, chapters, and beats before the prose begins.
+                  A few small questions in order: one sentence, who wants what, then the scenes.
                 </span>
               </button>
             </div>

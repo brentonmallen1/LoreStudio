@@ -1,0 +1,84 @@
+/* The plan above an empty scene: quiet, in the page's column, gone at the first word. */
+
+.card {
+  margin: 0 0 2rem;
+  padding: 1rem 1.15rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  font-family: var(--font-ui);
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+}
+
+.beat {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-surface-2);
+}
+
+.synopsis {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-editor);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 0.9rem;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.facts dt {
+  color: var(--color-text-subtle);
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border-light);
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-accent);
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

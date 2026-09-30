@@ -45,7 +45,9 @@ import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, matchesCombo } from "../../lib/keyboard/shortcuts";
 import DialogueIsolationView from "./DialogueIsolationView";
 import SceneOverviewPanel from "./panels/SceneOverviewPanel";
+import StoryPlanPanel from "./panels/StoryPlanPanel";
 import EmptyManuscript from "./EmptyManuscript";
+import ScenePlanCard from "./ScenePlanCard";
 import styles from "./SceneEditor.module.css";
 
 const SELECTION_DEBOUNCE_MS = 400;
@@ -69,11 +71,13 @@ export default function SceneEditor() {
     closeWritingGuides,
     storySummaryOpen,
     closeStorySummary,
+    scenePanel,
+    setScenePanel,
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
 
-  const [showOverview, setShowOverview] = useState(false);
+  const showOverview = scenePanel !== null;
   const [guidesTab, setGuidesTab] = useState<WritingGuideTab>("dialogue");
   const [showAutoTag, setShowAutoTag] = useState(false);
   const [showAutoLink, setShowAutoLink] = useState(false);
@@ -232,7 +236,7 @@ export default function SceneEditor() {
         wordCount={autosave.wordCount}
         autosave={autosave}
         showOverview={showOverview}
-        onToggleOverview={() => setShowOverview((s) => !s)}
+        onToggleOverview={() => setScenePanel(showOverview ? null : "scene")}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
@@ -281,6 +285,14 @@ export default function SceneEditor() {
               <div
                 className={`${styles.editorWrap}${notes.hideEditorial ? ` ${styles.hideEditorialNotes}` : ""}`}
               >
+                {editor?.isEmpty && (
+                  <ScenePlanCard
+                    node={activeNode}
+                    story={activeStory}
+                    characters={characters}
+                    onOpenNotes={() => setScenePanel("scene")}
+                  />
+                )}
                 <EditorContent editor={editor} />
               </div>
             )}
@@ -291,23 +303,44 @@ export default function SceneEditor() {
         {showOverview && (
           <aside className={styles.notesSide} aria-label="Scene notes">
             <div className={styles.notesSideHead}>
-              <span>Scene notes</span>
+              <div className={styles.notesTabs} role="tablist" aria-label="Side panel">
+                <button
+                  role="tab"
+                  aria-selected={scenePanel === "scene"}
+                  className={scenePanel === "scene" ? styles.notesTabActive : ""}
+                  onClick={() => setScenePanel("scene")}
+                >
+                  Scene notes
+                </button>
+                <button
+                  role="tab"
+                  aria-selected={scenePanel === "story"}
+                  className={scenePanel === "story" ? styles.notesTabActive : ""}
+                  onClick={() => setScenePanel("story")}
+                >
+                  Story plan
+                </button>
+              </div>
               <button
-                onClick={() => setShowOverview(false)}
-                title="Close scene notes"
-                aria-label="Close scene notes"
+                onClick={() => setScenePanel(null)}
+                title="Close the side panel"
+                aria-label="Close the side panel"
               >
                 <X size={13} />
               </button>
             </div>
-            <SceneOverviewPanel
-              key={activeNode.id}
-              activeNode={activeNode}
-              activeStory={activeStory}
-              characters={characters}
-              locations={mention.flatLocations}
-              notes={notes}
-            />
+            {scenePanel === "story" && activeStory ? (
+              <StoryPlanPanel node={activeNode} story={activeStory} characters={characters} />
+            ) : (
+              <SceneOverviewPanel
+                key={activeNode.id}
+                activeNode={activeNode}
+                activeStory={activeStory}
+                characters={characters}
+                locations={mention.flatLocations}
+                notes={notes}
+              />
+            )}
           </aside>
         )}
         {plannerPanelOpen && activeStory && (
