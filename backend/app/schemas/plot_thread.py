@@ -8,7 +8,8 @@ class PlotThreadCreate(BaseModel):
     name: str
     description: str = ""
     status: str = "open"
-    color: str = "#6b7280"
+    #: Palette slot 1..8; 0 lets the server pick the least-used one.
+    color_slot: int = 0
     mice_type: str | None = None
     opens_at_node_id: str | None = None
     closes_at_node_id: str | None = None
@@ -19,7 +20,7 @@ class PlotThreadUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     status: str | None = None
-    color: str | None = None
+    color_slot: int | None = None
     mice_type: str | None = None
     opens_at_node_id: str | None = None
     closes_at_node_id: str | None = None
@@ -47,7 +48,7 @@ class PlotThreadOut(BaseModel):
     name: str
     description: str
     status: str
-    color: str
+    color_slot: int = 0
     mice_type: str | None
     opens_at_node_id: str | None
     closes_at_node_id: str | None

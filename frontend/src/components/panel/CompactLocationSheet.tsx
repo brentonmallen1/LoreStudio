@@ -4,6 +4,7 @@ import { openScene, sceneTitle } from "../../lib/panel/openScene";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Location } from "../../types";
 import AutosaveTextarea from "./AutosaveTextarea";
+import SlotPicker from "../common/SlotPicker";
 import styles from "./Panel.module.css";
 
 /** A place beside the prose: how it feels, why it matters, and the scenes set there. */
@@ -19,6 +20,11 @@ export default function CompactLocationSheet({ location }: { location: Location 
   return (
     <>
       <section className={styles.section}>
+        <SlotPicker
+          size="sm"
+          value={location.color_slot}
+          onChange={(slot) => api.updateLocation(location.id, { color_slot: slot }).then(upsertLocation)}
+        />
         <AutosaveTextarea
           key={`${location.id}:description`}
           label="Description"

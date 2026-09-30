@@ -265,15 +265,13 @@
 }
 
 .statusFinal {
-  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
-  color: var(--color-accent);
+  background: color-mix(in srgb, var(--status-final) 15%, transparent);
+  color: var(--status-final);
 }
 
 .statusRevised {
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
-  /* Amber alone measured under 3:1 on the light palettes; pulled toward the text colour
-     it darkens on light themes and lightens on dark ones, and keeps its hue. */
-  color: color-mix(in srgb, var(--color-warning) 65%, var(--color-text));
+  background: color-mix(in srgb, var(--status-revised) 15%, transparent);
+  color: var(--status-revised);
 }
 
 /* Header right group */

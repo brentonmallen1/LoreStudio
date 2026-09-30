@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { PanelTab } from "../../types/panel";
 import { tabLabel } from "../../lib/panel/tabLabel";
-import { KIND_COLOR } from "./tabColors";
+import { tabColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 interface Props {
@@ -41,7 +41,7 @@ export default function OverflowMenu({ hidden, onPick, onClose, onDismiss }: Pro
             onClick={() => onPick(tab.id)}
             style={
               {
-                "--tab-color": tab.kind === "entity" ? KIND_COLOR[tab.entityKind] : undefined,
+                "--tab-color": tabColor(tab),
               } as React.CSSProperties
             }
           >

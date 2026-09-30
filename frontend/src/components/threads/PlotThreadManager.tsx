@@ -15,6 +15,8 @@ import {
   Compass,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { slotVar } from "../../lib/colorSlots";
+import SlotPicker from "../common/SlotPicker";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { PlotThread, MICEType, TryFailCycle, StructureNode } from "../../types";
 import ThreadVisualization from "./ThreadVisualization";
@@ -36,17 +38,6 @@ const STATUS_LABELS: Record<string, string> = {
   developing: "Developing",
   resolved: "Resolved",
 };
-
-const PRESET_COLORS = [
-  "#6b7280",
-  "#3b82f6",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#8b5cf6",
-  "#ec4899",
-  "#06b6d4",
-];
 
 const MICE_OPTIONS: { value: MICEType; label: string; icon: React.ReactNode; tooltip: string }[] = [
   {
@@ -79,7 +70,7 @@ interface EditFields {
   name: string;
   description: string;
   status: string;
-  color: string;
+  color_slot: number;
   mice_type: MICEType | null;
   opens_at_node_id: string | null;
   closes_at_node_id: string | null;
@@ -109,12 +100,12 @@ export default function PlotThreadManager({ storyId }: Props) {
   const [showMICEGuide, setShowMICEGuide] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
-  const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
+  const [newSlot, setNewSlot] = useState(0);
   const [editFields, setEditFields] = useState<EditFields>({
     name: "",
     description: "",
     status: "open",
-    color: PRESET_COLORS[0],
+    color_slot: 0,
     mice_type: null,
     opens_at_node_id: null,
     closes_at_node_id: null,
@@ -137,10 +128,10 @@ export default function PlotThreadManager({ storyId }: Props) {
 
   async function handleCreate() {
     if (!newName.trim()) return;
-    const thread = await api.createThread(storyId, { name: newName.trim(), color: newColor });
+    const thread = await api.createThread(storyId, { name: newName.trim(), color_slot: newSlot });
     setThreads((prev) => [...prev, thread]);
     setNewName("");
-    setNewColor(PRESET_COLORS[0]);
+    setNewSlot(0);
     setCreating(false);
   }
 
@@ -150,7 +141,7 @@ export default function PlotThreadManager({ storyId }: Props) {
       name: t.name,
       description: t.description,
       status: t.status,
-      color: t.color,
+      color_slot: t.color_slot,
       mice_type: t.mice_type,
       opens_at_node_id: t.opens_at_node_id,
       closes_at_node_id: t.closes_at_node_id,
@@ -239,15 +230,7 @@ export default function PlotThreadManager({ storyId }: Props) {
                 className={styles.nameInput}
               />
               <div className={styles.colorRow}>
-                {PRESET_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    className={`${styles.colorSwatch} ${newColor === c ? styles.colorSelected : ""}`}
-                    style={{ background: c }}
-                    onClick={() => setNewColor(c)}
-                    aria-label={`Color ${c}`}
-                  />
-                ))}
+                <SlotPicker size="sm" value={newSlot} onChange={setNewSlot} />
               </div>
               <div className={styles.createActions}>
                 <button onClick={() => setCreating(false)} className={styles.cancelBtn}>
@@ -389,15 +372,11 @@ export default function PlotThreadManager({ storyId }: Props) {
                           ))}
                         </select>
                         <div className={styles.colorRow}>
-                          {PRESET_COLORS.map((c) => (
-                            <button
-                              key={c}
-                              className={`${styles.colorSwatch} ${editFields.color === c ? styles.colorSelected : ""}`}
-                              style={{ background: c }}
-                              onClick={() => setEditFields((f) => ({ ...f, color: c }))}
-                              aria-label={`Color ${c}`}
-                            />
-                          ))}
+                          <SlotPicker
+                            size="sm"
+                            value={editFields.color_slot}
+                            onChange={(slot) => setEditFields((f) => ({ ...f, color_slot: slot }))}
+                          />
                         </div>
                       </div>
                     </SectionCard>
@@ -414,7 +393,7 @@ export default function PlotThreadManager({ storyId }: Props) {
                 ) : (
                   <>
                     <div className={styles.threadLeft}>
-                      <span className={styles.colorDot} style={{ background: t.color }} />
+                      <span className={styles.colorDot} style={{ background: slotVar(t.color_slot) }} />
                       <div className={styles.threadBody}>
                         <span className={styles.threadName}>{t.name}</span>
                         {t.description && <p className={styles.threadDesc}>{t.description}</p>}

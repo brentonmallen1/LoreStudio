@@ -19,6 +19,7 @@ from ..schemas.location import (
     SceneSettingOut,
 )
 from ..services import change_log
+from ..services.color_slots import next_slot
 
 router = APIRouter()
 
@@ -105,6 +106,10 @@ def create_location(
 ):
     _verify_story_access(story_id, db, current_user)
     location = Location(story_id=story_id, **body.model_dump())
+    if not location.color_slot:
+        location.color_slot = next_slot(
+            slot for (slot,) in db.query(Location.color_slot).filter(Location.story_id == story_id).all()
+        )
     db.add(location)
     db.flush()
     change_log.record_row_create(

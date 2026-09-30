@@ -5,6 +5,7 @@ import type { Character } from "../../types";
 import { PROFILE_FIELDS } from "../characters/profileFields";
 import QuestionsList from "../plan/QuestionsList";
 import AutosaveTextarea from "./AutosaveTextarea";
+import SlotPicker from "../common/SlotPicker";
 import styles from "./Panel.module.css";
 
 const COMPACT_KEYS = new Set(["personality", "motivation", "flaws"]);
@@ -26,6 +27,11 @@ export default function CompactCharacterSheet({ character }: { character: Charac
   return (
     <>
       <section className={styles.section}>
+        <SlotPicker
+          size="sm"
+          value={character.color_slot}
+          onChange={(slot) => api.updateCharacter(character.id, { color_slot: slot }).then(upsertCharacter)}
+        />
         <AutosaveTextarea
           key={`${character.id}:wants`}
           label="Wants"

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ZoomIn, ZoomOut } from "lucide-react";
 import type { PacingEntry, PlotThread, BeatSheet } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
+import { slotVar } from "../../lib/colorSlots";
 import styles from "./StoryProgressionGraph.module.css";
 
 interface Props {
@@ -22,22 +23,11 @@ const CHAR_ROW_H = 22;
 const MIN_SLOT_W = 4;
 const ZOOM_STEPS = [1, 1.5, 2, 3, 4];
 
-// Stable color palette for character rows (cycles if more than colors)
-const CHAR_COLORS = [
-  "var(--color-accent)",
-  "var(--color-ai)",
-  "var(--color-nlp)",
-  "var(--color-success)",
-  "var(--color-warning)",
-  "#a78bfa",
-  "#f472b6",
-  "#34d399",
-];
-
 const STATUS_COLORS: Record<string, string> = {
-  final: "var(--color-success)",
-  revised: "var(--color-accent)",
-  draft: "var(--color-text-muted)",
+  final: "var(--status-final)",
+  revised: "var(--status-revised)",
+  draft: "var(--status-draft)",
+  planned: "var(--status-planned)",
 };
 
 function statusColor(s: string) {
@@ -52,7 +42,7 @@ interface Tooltip {
 
 export default function StoryProgressionGraph({ pacing, threads, beatSheet, storyId }: Props) {
   const navigate = useNavigate();
-  const { structure, setActiveNode } = useStoryStore();
+  const { structure, setActiveNode, characters } = useStoryStore();
   const [tab, setTab] = useState<MetricTab>("words");
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
   const [zoomIdx, setZoomIdx] = useState(0);
@@ -94,7 +84,10 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
   // Character data for the characters tab
   const allCharNames = Array.from(new Set(pacing.flatMap((p) => p.character_names ?? []))).sort();
   const charColorMap = Object.fromEntries(
-    allCharNames.map((name, i) => [name, CHAR_COLORS[i % CHAR_COLORS.length]]),
+    allCharNames.map((name) => [
+      name,
+      slotVar(characters.find((c) => c.name === name)?.color_slot, "var(--color-accent)"),
+    ]),
   );
 
   // Beat markers: map position_pct → scene index
@@ -373,7 +366,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
                   const y = MARGIN.top + row * THREAD_ROW_H;
                   const spanX = xForScene(minIdx!);
                   const spanW = xForScene(maxIdx! + 1) - spanX;
-                  const color = thread.color || "var(--color-accent)";
+                  const color = slotVar(thread.color_slot, "var(--color-accent)");
                   return (
                     <g key={thread.id}>
                       {/* Row background */}
@@ -524,7 +517,7 @@ export default function StoryProgressionGraph({ pacing, threads, beatSheet, stor
                 <span
                   key={t.id}
                   className={styles.ttThread}
-                  style={{ borderColor: t.color || "var(--color-accent)" }}
+                  style={{ borderColor: slotVar(t.color_slot, "var(--color-accent)") }}
                 >
                   {t.name}
                 </span>

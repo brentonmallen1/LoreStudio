@@ -27,6 +27,7 @@ from ..schemas.story import (
 )
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
 from ..services import change_log
+from ..services.color_slots import next_slot
 from ..services.idea_names import idea_names
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
@@ -691,6 +692,10 @@ def create_character(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     character = Character(story_id=story_id, **body.model_dump())
+    if not character.color_slot:
+        character.color_slot = next_slot(
+            slot for (slot,) in db.query(Character.color_slot).filter(Character.story_id == story_id).all()
+        )
     db.add(character)
     db.commit()
     db.refresh(character)

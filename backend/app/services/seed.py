@@ -457,6 +457,7 @@ def seed_demo_story():  # noqa: PLR0915
         eleanor = Character(
             story_id=story.id,
             name="Eleanor Vance",
+            color_slot=1,
             role="protagonist",
             character_type="dynamic",
             jungian_archetype="ruler",
@@ -528,6 +529,7 @@ def seed_demo_story():  # noqa: PLR0915
         visitor = Character(
             story_id=story.id,
             name="The Visitor (Calder)",
+            color_slot=2,
             role="deuteragonist",
             character_type="round",
             jungian_archetype="sage",
@@ -602,6 +604,7 @@ def seed_demo_story():  # noqa: PLR0915
         thomas = Character(
             story_id=story.id,
             name="Thomas Vance",
+            color_slot=5,
             role="foil",
             character_type="symbolic",
             jungian_archetype="caregiver",
@@ -664,6 +667,7 @@ def seed_demo_story():  # noqa: PLR0915
         margaret = Character(
             story_id=story.id,
             name="Margaret Holt",
+            color_slot=6,
             role="confidant",
             character_type="static",
             jungian_archetype="caregiver",
@@ -788,7 +792,7 @@ def seed_demo_story():  # noqa: PLR0915
             name="The Missing Logs",
             description="Several entries from five years ago are missing or damaged. What was recorded there — and why were they removed?",
             status="open",
-            color="#3b82f6",
+            color_slot=1,
             mice_type="idea",  # A question raised → answered
         )
         db.add(thread_logs)
@@ -798,7 +802,7 @@ def seed_demo_story():  # noqa: PLR0915
             name="The Visitor's Identity",
             description="Who is this 'historian' really, and why do they know so much about Harrow Island and the Vance family?",
             status="developing",
-            color="#8b5cf6",
+            color_slot=4,
             mice_type="idea",  # Who is she? → answered when Calder's identity is revealed
         )
         db.add(thread_identity)
@@ -808,7 +812,7 @@ def seed_demo_story():  # noqa: PLR0915
             name="Eleanor's Father",
             description="What really happened in the final months of Thomas Vance's life? Eleanor's account has gaps she won't examine.",
             status="open",
-            color="#ef4444",
+            color_slot=2,
             mice_type="character",  # Eleanor's dissatisfaction with her idealized image of her father → acceptance of who he was
         )
         db.add(thread_father)
@@ -1619,6 +1623,7 @@ def seed_demo_story():  # noqa: PLR0915
         harrow_island = Location(
             story_id=story.id,
             name="Harrow Island",
+            color_slot=8,
             location_type="natural_feature",
             description=(
                 "A small, rocky island off the Atlantic coast. Largely uninhabited now — "
@@ -1637,6 +1642,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             parent_id=harrow_island.id,
             name="The Lighthouse",
+            color_slot=7,
             location_type="structure",
             description=(
                 "A white-painted stone lighthouse built in the 1890s. Four storeys: "
@@ -1662,6 +1668,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             parent_id=harrow_island.id,
             name="Keeper's Cottage",
+            color_slot=3,
             location_type="structure",
             description=(
                 "A low stone cottage attached to the base of the lighthouse. Two rooms: a main "
@@ -1677,6 +1684,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             parent_id=harrow_island.id,
             name="The Shoals",
+            color_slot=1,
             location_type="natural_feature",
             description=(
                 "Submerged rock formations extending south of the island. Navigational hazard "
@@ -1692,6 +1700,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             parent_id=harrow_island.id,
             name="The Village",
+            color_slot=4,
             location_type="settlement",
             description=(
                 "What remains of the fishing settlement on the island's sheltered east side. "
@@ -1710,6 +1719,7 @@ def seed_demo_story():  # noqa: PLR0915
                 story_id=story.id,
                 parent_id=harrow_island.id,
                 name="The Mainland",
+                color_slot=2,
                 description="Mentioned in Eleanor's inner monologue as the place she left and has not returned to.",
                 is_stub=True,
                 position=4,
@@ -2684,7 +2694,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             name="The Anomalous Signal",
             description="What is the signal? Where does it come from? Is it alien, human, or something else entirely?",
             status="open",
-            color="#22c55e",
+            color_slot=3,
             mice_type="idea",  # A question raised → answered
         )
         db.add(thread_signal)
@@ -2694,7 +2704,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             name="The Lost Colony",
             description="What happened to the Persephone and its 1,247 colonists? Where have they been for thirty years?",
             status="developing",
-            color="#3b82f6",
+            color_slot=1,
             mice_type="milieu",  # Entering unknown space → understanding achieved
         )
         db.add(thread_colony)
@@ -2704,7 +2714,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             name="Yuki's Isolation",
             description="Yuki chose solitude as safety. The signal forces her to decide if she will stay hidden or reach out.",
             status="open",
-            color="#f59e0b",
+            color_slot=5,
             mice_type="character",  # Dissatisfaction with isolation → choosing connection
         )
         db.add(thread_isolation)
@@ -3994,7 +4004,7 @@ def seed_flash_fiction_demo():
             name="Will Lena let go?",
             description="Character thread: Lena is dissatisfied — unable to grieve properly, unable to move on. The story opens the question when she arrives and closes it when she leaves the key.",
             status="resolved",
-            color="#a78bfa",
+            color_slot=4,
             mice_type="character",
         )
         db.add(thread)
@@ -4255,7 +4265,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             name="Will Elena accept the end of performing?",
             description="Character thread (outer). Elena's dissatisfaction: she is losing the thing that defines her, and she cannot decide if she is fighting it or surrendering to it. Opens in Movement 1. Closes in Movement 3.",
             status="resolved",
-            color="#8b5cf6",
+            color_slot=4,
             mice_type="character",
         )
         db.add(thread_character)
@@ -4265,7 +4275,7 @@ def seed_short_story_demo():  # noqa: PLR0915
             name="Will Elena get through the audition?",
             description="Event thread (inner). A discrete, bounded question: she has committed to performing, and the audition either goes well or it doesn't. Opens in Movement 1 Beat 2. Closes in Movement 2 Beat 3.",
             status="resolved",
-            color="#3b82f6",
+            color_slot=1,
             mice_type="event",
         )
         db.add(thread_event)
@@ -4879,7 +4889,7 @@ def seed_first_person_demo():
             name="What is Victor hiding?",
             description="Event thread: Maya&#x27;s single goal is to get Victor to confirm, on record, what she already knows about the 2019 pilot. The thread opens when she sits down. It closes when he slips.",
             status="resolved",
-            color="#3b82f6",
+            color_slot=1,
             mice_type="event",
         )
         db.add(thread)

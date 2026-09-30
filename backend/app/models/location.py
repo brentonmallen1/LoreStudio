@@ -65,6 +65,8 @@ class Location(Base):
 
     # Discovery provenance — set when created via discovery approval
     is_stub: Mapped[bool] = mapped_column(Boolean, default=False)
+    #: Palette slot 1..8 (doc 11 P2); 0 until chosen or assigned.
+    color_slot: Mapped[int] = mapped_column(Integer, default=0)
     discovered_from_id: Mapped[str | None] = mapped_column(String, ForeignKey("discovered_elements.id"), nullable=True)
     discovered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

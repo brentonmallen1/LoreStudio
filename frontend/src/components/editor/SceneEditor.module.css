@@ -133,15 +133,15 @@
 }
 
 .statusBadge.final {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-accent);
-  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  background: color-mix(in srgb, var(--status-final) 12%, transparent);
+  color: var(--status-final);
+  border-color: color-mix(in srgb, var(--status-final) 25%, transparent);
 }
 
 .statusBadge.revised {
-  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
-  color: var(--color-warning);
-  border-color: color-mix(in srgb, var(--color-warning) 22%, transparent);
+  background: color-mix(in srgb, var(--status-revised) 10%, transparent);
+  color: var(--status-revised);
+  border-color: color-mix(in srgb, var(--status-revised) 22%, transparent);
 }
 
 .metaGroup {
@@ -941,8 +941,30 @@
 }
 
 .scrollArea {
+  position: relative;
   flex: 1;
   overflow-y: auto;
+}
+
+/* Paragraph marks for the highlighted entity (doc 11 P2): a strip on the prose's right edge. */
+.mentionGutter {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  width: 6px;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mentionGutterMark {
+  position: absolute;
+  left: 0;
+  width: 6px;
+  border-radius: 3px;
+  opacity: 0.85;
+  transition:
+    top var(--transition),
+    height var(--transition);
 }
 
 /* ── Editor content ── */
@@ -1435,14 +1457,49 @@
 
 /* ── @mention inline decorations (applied via ProseMirror DecorationSet) ── */
 /* A name reads as a name: a faint dotted underline, no fill. Hover still opens the card. */
-.editorWrap :global(.ProseMirror .mention-char) {
-  border-bottom: 1px dotted color-mix(in srgb, var(--segment-scene) 55%, transparent);
+.editorWrap :global(.ProseMirror .mention-char),
+.editorWrap :global(.ProseMirror .mention-setting) {
+  --mention-ink: var(--segment-scene);
+  border-bottom: 1px dotted color-mix(in srgb, var(--mention-ink) 55%, transparent);
+  border-radius: 2px;
   cursor: pointer;
+  transition: background var(--transition);
 }
 
 .editorWrap :global(.ProseMirror .mention-setting) {
-  border-bottom: 1px dotted color-mix(in srgb, var(--segment-chapter) 55%, transparent);
-  cursor: pointer;
+  --mention-ink: var(--segment-chapter);
+}
+
+/* The entity's palette slot (doc 11 P2): the same colour as its tab and its dot on the strip. */
+.editorWrap :global(.ProseMirror [data-slot="1"]) {
+  --mention-ink: var(--cat-1);
+}
+.editorWrap :global(.ProseMirror [data-slot="2"]) {
+  --mention-ink: var(--cat-2);
+}
+.editorWrap :global(.ProseMirror [data-slot="3"]) {
+  --mention-ink: var(--cat-3);
+}
+.editorWrap :global(.ProseMirror [data-slot="4"]) {
+  --mention-ink: var(--cat-4);
+}
+.editorWrap :global(.ProseMirror [data-slot="5"]) {
+  --mention-ink: var(--cat-5);
+}
+.editorWrap :global(.ProseMirror [data-slot="6"]) {
+  --mention-ink: var(--cat-6);
+}
+.editorWrap :global(.ProseMirror [data-slot="7"]) {
+  --mention-ink: var(--cat-7);
+}
+.editorWrap :global(.ProseMirror [data-slot="8"]) {
+  --mention-ink: var(--cat-8);
+}
+
+/* The entity whose tab is open or hovered lights up everywhere it is named. */
+.editorWrap :global(.ProseMirror .mention-hl) {
+  background: color-mix(in srgb, var(--mention-ink) 18%, transparent);
+  border-bottom: 2px solid var(--mention-ink);
 }
 
 /* The mention's own syntax — the @ and the [[ ]] — is hidden while you write, and shown

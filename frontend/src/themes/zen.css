@@ -64,6 +64,27 @@
   --color-brainstorm-subtle: rgba(217, 119, 6, 0.1);
   --color-brainstorm-border: rgba(217, 119, 6, 0.28);
   --color-overlay: rgba(0, 0, 0, 0.4);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #2668c4;
+  --cat-1-fg: #ffffff;
+  --cat-2: #c94f1e;
+  --cat-2-fg: #ffffff;
+  --cat-3: #1a9272;
+  --cat-3-fg: #111111;
+  --cat-4: #7040b8;
+  --cat-4-fg: #ffffff;
+  --cat-5: #b07c10;
+  --cat-5-fg: #111111;
+  --cat-6: #b83670;
+  --cat-6-fg: #ffffff;
+  --cat-7: #2a8a9a;
+  --cat-7-fg: #111111;
+  --cat-8: #5a6a82;
+  --cat-8-fg: #ffffff;
+  --status-planned: #88867f;
+  --status-draft: #c47a1e;
+  --status-revised: #2a8a9a;
+  --status-final: #4a9c6e;
 }
 
 /* ── Zen theme · dark mode ─────────────────────── */
@@ -143,4 +164,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #5b9fe0;
+  --cat-1-fg: #111111;
+  --cat-2: #f07050;
+  --cat-2-fg: #111111;
+  --cat-3: #35c498;
+  --cat-3-fg: #111111;
+  --cat-4: #b07ae0;
+  --cat-4-fg: #111111;
+  --cat-5: #e0a830;
+  --cat-5-fg: #111111;
+  --cat-6: #e0608a;
+  --cat-6-fg: #111111;
+  --cat-7: #50c0d8;
+  --cat-7-fg: #111111;
+  --cat-8: #8a9ab0;
+  --cat-8-fg: #111111;
+  --status-planned: #858379;
+  --status-draft: #d08428;
+  --status-revised: #50c0d8;
+  --status-final: #5ab87e;
 }

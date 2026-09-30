@@ -52,6 +52,27 @@
   --color-danger-bg: #f7eeec;
   --color-warning: #b58900;
   --color-success: #859900;
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #268bd2;
+  --cat-1-fg: #111111;
+  --cat-2: #dc322f;
+  --cat-2-fg: #ffffff;
+  --cat-3: #7b8e00;
+  --cat-3-fg: #111111;
+  --cat-4: #696ebf;
+  --cat-4-fg: #ffffff;
+  --cat-5: #a77f00;
+  --cat-5-fg: #111111;
+  --cat-6: #d33682;
+  --cat-6-fg: #ffffff;
+  --cat-7: #26938b;
+  --cat-7-fg: #111111;
+  --cat-8: #768587;
+  --cat-8-fg: #111111;
+  --status-planned: #737f7f;
+  --status-draft: #a77f00;
+  --status-revised: #26938b;
+  --status-final: #7b8e00;
 }
 
 /* ── Solarized theme · dark mode ───────────────── */
@@ -119,4 +140,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #268bd2;
+  --cat-1-fg: #111111;
+  --cat-2: #e04644;
+  --cat-2-fg: #111111;
+  --cat-3: #859900;
+  --cat-3-fg: #111111;
+  --cat-4: #7075c5;
+  --cat-4-fg: #111111;
+  --cat-5: #b58900;
+  --cat-5-fg: #111111;
+  --cat-6: #d6458b;
+  --cat-6-fg: #111111;
+  --cat-7: #2aa198;
+  --cat-7-fg: #111111;
+  --cat-8: #6d8086;
+  --cat-8-fg: #111111;
+  --status-planned: #73878f;
+  --status-draft: #d4a800;
+  --status-revised: #2aa198;
+  --status-final: #859900;
 }

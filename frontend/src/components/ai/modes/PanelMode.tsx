@@ -1,3 +1,4 @@
+import { slotVar } from "../../../lib/colorSlots";
 import { readFrames } from "../../../lib/ai/eventStream";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Users } from "lucide-react";
@@ -10,8 +11,6 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import ChatInput from "../shared/ChatInput";
 import styles from "./PanelMode.module.css";
-
-const CHAR_COLORS = ["var(--color-accent)", "#e8854a", "#4aae8c", "#c45fc4", "#5f9ce8", "#c4b44a"];
 
 interface Props {
   session: AISession;
@@ -34,7 +33,6 @@ export default function PanelMode({ session }: Props) {
   panelIdRef.current = session.backendSessionId ?? null;
 
   const storyId = session.context.storyId ?? "";
-  const charIds = session.context.characterIds ?? selectedIds;
 
   // Load existing messages when panel is opened
   useEffect(() => {
@@ -50,11 +48,7 @@ export default function PanelMode({ session }: Props) {
   }, [localMessages, streamingText]);
 
   function charColor(charName: string): string {
-    const idx = charIds.findIndex((id) => {
-      const c = characters.find((x) => x.id === id);
-      return c?.name === charName;
-    });
-    return CHAR_COLORS[Math.max(0, idx) % CHAR_COLORS.length];
+    return slotVar(characters.find((c) => c.name === charName)?.color_slot, "var(--color-accent)");
   }
 
   async function handleCreate() {
@@ -191,7 +185,7 @@ export default function PanelMode({ session }: Props) {
             <p className={styles.setupEmpty}>No characters found in this story.</p>
           ) : (
             <div className={styles.charGrid}>
-              {characters.map((c, i) => (
+              {characters.map((c) => (
                 <button
                   key={c.id}
                   className={`${styles.charChip} ${selectedIds.includes(c.id) ? styles.charChipSelected : ""}`}
@@ -199,8 +193,8 @@ export default function PanelMode({ session }: Props) {
                   style={
                     selectedIds.includes(c.id)
                       ? {
-                          borderColor: CHAR_COLORS[i % CHAR_COLORS.length],
-                          color: CHAR_COLORS[i % CHAR_COLORS.length],
+                          borderColor: slotVar(c.color_slot, "var(--color-accent)"),
+                          color: slotVar(c.color_slot, "var(--color-accent)"),
                         }
                       : {}
                   }

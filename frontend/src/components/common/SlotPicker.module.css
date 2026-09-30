@@ -1,0 +1,35 @@
+.row {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+
+.swatch:hover {
+  transform: scale(1.12);
+}
+
+.selected {
+  border-color: var(--color-text);
+}
+
+.sm .swatch {
+  width: 16px;
+  height: 16px;
+  border-width: 1.5px;
+}
+
+.sm {
+  gap: 0.25rem;
+}

@@ -1,3 +1,4 @@
+import SlotPicker from "../components/common/SlotPicker";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MapPin, Trash2, ArrowLeft, ExternalLink } from "lucide-react";
@@ -125,6 +126,16 @@ export default function LocationSheet() {
             {location.location_type && (
               <span className={styles.typeBadge}>{location.location_type.replace(/_/g, " ")}</span>
             )}
+            <SlotPicker
+              size="sm"
+              value={location.color_slot}
+              onChange={(slot) =>
+                api.updateLocation(location.id, { color_slot: slot }).then((saved) => {
+                  setLocation(saved);
+                  useStoryStore.getState().upsertLocation(saved);
+                })
+              }
+            />
           </div>
           {parent && (
             <p className={styles.breadcrumb}>

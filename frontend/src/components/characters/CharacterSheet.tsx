@@ -1,3 +1,4 @@
+import CharacterColorSlot from "./CharacterColorSlot";
 import QuestionsList from "../plan/QuestionsList";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
@@ -370,6 +371,7 @@ export default function CharacterSheet() {
                   </span>
                 )}
                 {character.pronouns && <span className={styles.pronounsBadge}>{character.pronouns}</span>}
+                <CharacterColorSlot character={character} />
               </div>
               {(character.jungian_archetype || character.narrative_archetype) && (
                 <div className={styles.archetypeRow}>

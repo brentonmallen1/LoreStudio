@@ -1,3 +1,4 @@
+import { slotVar } from "../../lib/colorSlots";
 import { readFrames } from "../../lib/ai/eventStream";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Plus, Trash2, Send, Square, Users, Settings2 } from "lucide-react";
@@ -19,8 +20,6 @@ import styles from "./PanelInterviewPanel.module.css";
 interface Props {
   storyId: string;
 }
-
-const CHAR_COLORS = ["var(--color-accent)", "#e8854a", "#4aae8c", "#c45fc4", "#5f9ce8", "#c4b44a"];
 
 export default function PanelInterviewPanel({ storyId }: Props) {
   const { characters } = useStoryStore();
@@ -59,11 +58,7 @@ export default function PanelInterviewPanel({ storyId }: Props) {
   }, [activePanel?.messages, streamingText]);
 
   function charColor(charName: string): string {
-    const idx = (activePanel?.character_ids ?? []).findIndex((id) => {
-      const c = characters.find((x) => x.id === id);
-      return c?.name === charName;
-    });
-    return CHAR_COLORS[Math.max(0, idx) % CHAR_COLORS.length];
+    return slotVar(characters.find((c) => c.name === charName)?.color_slot, "var(--color-accent)");
   }
 
   async function openPanel(id: string) {

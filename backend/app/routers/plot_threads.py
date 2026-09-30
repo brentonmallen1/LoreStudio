@@ -15,6 +15,7 @@ from ..schemas.plot_thread import (
     PlotThreadUpdate,
 )
 from ..services import change_log
+from ..services.color_slots import next_slot
 
 router = APIRouter()
 
@@ -55,6 +56,10 @@ def create_thread(
 ):
     _verify_story(story_id, db, current_user)
     thread = PlotThread(story_id=story_id, **body.model_dump())
+    if not thread.color_slot:
+        thread.color_slot = next_slot(
+            slot for (slot,) in db.query(PlotThread.color_slot).filter(PlotThread.story_id == story_id).all()
+        )
     db.add(thread)
     db.flush()
     change_log.record_row_create(

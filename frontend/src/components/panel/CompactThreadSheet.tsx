@@ -4,6 +4,7 @@ import { openScene, sceneTitle } from "../../lib/panel/openScene";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PlotThread } from "../../types";
 import AutosaveTextarea from "./AutosaveTextarea";
+import SlotPicker from "../common/SlotPicker";
 import styles from "./Panel.module.css";
 
 const MICE: Record<string, string> = {
@@ -24,6 +25,11 @@ export default function CompactThreadSheet({ thread }: { thread: PlotThread }) {
   return (
     <>
       <section className={styles.section}>
+        <SlotPicker
+          size="sm"
+          value={thread.color_slot}
+          onChange={(slot) => api.updateThread(thread.id, { color_slot: slot }).then(upsertThread)}
+        />
         <AutosaveTextarea
           key={`${thread.id}:description`}
           label="What it is"

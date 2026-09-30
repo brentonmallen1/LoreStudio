@@ -6,21 +6,7 @@ export interface User {
   settings?: Record<string, unknown>;
 }
 
-export interface Beat {
-  id: string;
-  name: string;
-  position_pct: number;
-  description: string;
-}
-
-export interface BeatSheet {
-  id: string;
-  name: string;
-  description: string;
-  is_system: boolean;
-  user_id: string | null;
-  beats: Beat[];
-}
+export type { Beat, BeatSheet } from "./beats";
 
 export interface StoryGoal {
   id: string;
@@ -169,6 +155,7 @@ export interface Character {
   story_id: string;
   name: string;
   role: string;
+  color_slot: number;
   character_type: string;
   jungian_archetype: string;
   narrative_archetype: string;
@@ -547,7 +534,8 @@ export interface PlotThread {
   name: string;
   description: string;
   status: "open" | "developing" | "resolved";
-  color: string;
+  /** Palette slot 1..8 (doc 11 P2); the theme paints it. */
+  color_slot: number;
   mice_type: MICEType | null;
   opens_at_node_id: string | null;
   closes_at_node_id: string | null;
@@ -1444,6 +1432,7 @@ export interface Location {
   story_id: string;
   parent_id: string | null;
   name: string;
+  color_slot: number;
   location_type: string;
   climate: string;
   terrain: string;

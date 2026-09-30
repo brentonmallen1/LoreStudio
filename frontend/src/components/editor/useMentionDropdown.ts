@@ -43,8 +43,13 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
     () =>
       activeStory
         ? [
-            ...characters.map((c) => ({ type: "character" as const, name: c.name, role: c.role })),
-            ...flatLocations.map((s) => ({ type: "setting" as const, name: s.name })),
+            ...characters.map((c) => ({
+              type: "character" as const,
+              name: c.name,
+              role: c.role,
+              slot: c.color_slot,
+            })),
+            ...flatLocations.map((s) => ({ type: "setting" as const, name: s.name, slot: s.color_slot })),
           ]
         : [],
     [activeStory, characters, flatLocations],

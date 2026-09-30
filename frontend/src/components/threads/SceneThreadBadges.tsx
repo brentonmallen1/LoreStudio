@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { api } from "../../api/client";
+import { slotVar } from "../../lib/colorSlots";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { PlotThread } from "../../types";
 import styles from "./SceneThreadBadges.module.css";
@@ -51,9 +52,13 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
         <span
           key={t.id}
           className={styles.badge}
-          // The thread's colour is the author's choice and can be anything; the CSS derives a
-          // readable text colour from it rather than printing it straight onto the surface.
-          style={{ borderColor: t.color, "--thread-color": t.color } as React.CSSProperties}
+          // The thread's palette slot (doc 11 P2): the theme's own ink, so it reads on its surfaces.
+          style={
+            {
+              borderColor: slotVar(t.color_slot),
+              "--thread-color": slotVar(t.color_slot),
+            } as React.CSSProperties
+          }
         >
           {t.name}
           <button
@@ -79,7 +84,7 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
             <div className={styles.picker}>
               {inactiveThreads.map((t) => (
                 <button key={t.id} onClick={() => addThread(t.id)} className={styles.pickerItem}>
-                  <span className={styles.pickerDot} style={{ background: t.color }} />
+                  <span className={styles.pickerDot} style={{ background: slotVar(t.color_slot) }} />
                   {t.name}
                 </button>
               ))}

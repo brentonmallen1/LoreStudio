@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
+import { slotVar } from "../../lib/colorSlots";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PlotThread, StructureNode } from "../../types";
@@ -271,7 +272,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                   y={y + 4}
                   textAnchor="end"
                   fontSize={11}
-                  fill={isHov ? thread.color : "var(--color-text-muted)"}
+                  fill={isHov ? slotVar(thread.color_slot) : "var(--color-text-muted)"}
                   fontFamily="Inter, system-ui, sans-serif"
                   style={{ cursor: "default", userSelect: "none" }}
                   onMouseEnter={() => setHovThread(thread.id)}
@@ -298,7 +299,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                     y1={y}
                     x2={cx(cols[cols.length - 1])}
                     y2={y}
-                    stroke={thread.color}
+                    stroke={slotVar(thread.color_slot)}
                     strokeWidth={1.5}
                     opacity={lineAlpha}
                     style={{ transition: "opacity 120ms ease" }}
@@ -314,7 +315,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                       cx={cx(col)}
                       cy={y}
                       r={DOT_R_HOV + 5}
-                      fill={thread.color}
+                      fill={slotVar(thread.color_slot)}
                       opacity={0.14}
                       pointerEvents="none"
                     />
@@ -327,7 +328,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                     cx={cx(col)}
                     cy={y}
                     r={r}
-                    fill={thread.color}
+                    fill={slotVar(thread.color_slot)}
                     opacity={dotAlpha}
                     style={{ cursor: "pointer", transition: "opacity 120ms ease" }}
                     onMouseEnter={() => {
@@ -389,7 +390,7 @@ export default function ThreadVisualization({ storyId }: Props) {
               >
                 <span
                   className={styles.legendDot}
-                  style={{ background: isHidden ? "var(--color-border)" : t.color }}
+                  style={{ background: isHidden ? "var(--color-border)" : slotVar(t.color_slot) }}
                 />
                 {t.name}
               </button>

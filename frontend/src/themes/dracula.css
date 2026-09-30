@@ -63,4 +63,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #8be9fd;
+  --cat-1-fg: #111111;
+  --cat-2: #ff5555;
+  --cat-2-fg: #111111;
+  --cat-3: #50fa7b;
+  --cat-3-fg: #111111;
+  --cat-4: #bd93f9;
+  --cat-4-fg: #111111;
+  --cat-5: #ffb86c;
+  --cat-5-fg: #111111;
+  --cat-6: #ff79c6;
+  --cat-6-fg: #111111;
+  --cat-7: #8be9fd;
+  --cat-7-fg: #111111;
+  --cat-8: #6e7dab;
+  --cat-8-fg: #111111;
+  --status-planned: #7987b2;
+  --status-draft: #ffb86c;
+  --status-revised: #8be9fd;
+  --status-final: #50fa7b;
 }

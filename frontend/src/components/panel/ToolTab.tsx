@@ -5,7 +5,7 @@ import type { PanelTab, ToolId } from "../../types/panel";
 import { TOOL_LABELS } from "../../types/panel";
 import IdeaView from "../plan/IdeaView";
 import QuestionsList from "../plan/QuestionsList";
-import { KIND_COLOR } from "./tabColors";
+import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 type ToolPanelTab = Extract<PanelTab, { kind: "tool" }>;
@@ -55,7 +55,7 @@ function EntityList({ tool }: { tool: Exclude<ToolId, "ideas" | "questions"> }) 
                 onMouseEnter={() => setHighlight({ kind, id: row.id, name: row.title })}
                 onMouseLeave={() => setHighlight(null)}
               >
-                <span className={styles.tabDot} style={{ background: KIND_COLOR[kind] }} />
+                <span className={styles.tabDot} style={{ background: entityColor(kind, row.id) }} />
                 <span className={styles.rowText}>
                   <span className={styles.rowTitle}>{row.title}</span>
                   {row.meta && <span className={styles.rowMeta}>{row.meta}</span>}

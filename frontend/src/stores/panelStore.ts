@@ -74,7 +74,17 @@ export const usePanelStore = create<PanelState>((set, get) => ({
     });
     const tabs = [SCENE_TAB, ...saved.tabs.filter((t) => t.kind !== "scene")];
     const activeTabId = tabs.some((t) => t.id === saved.activeTabId) ? saved.activeTabId : "scene";
-    set({ storyId, tabs, activeTabId, highlight: null });
+    // The tab you left open comes back lit, the way it was when you left.
+    const active = tabs.find((t) => t.id === activeTabId);
+    set({
+      storyId,
+      tabs,
+      activeTabId,
+      highlight:
+        active?.kind === "entity"
+          ? { kind: active.entityKind, id: active.entityId, name: active.label }
+          : null,
+    });
   },
 
   openEntity: (kind, id, label) => {

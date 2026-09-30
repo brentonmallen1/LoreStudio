@@ -10,7 +10,8 @@ import CompactCompendiumSheet from "./CompactCompendiumSheet";
 import CompactLocationSheet from "./CompactLocationSheet";
 import CompactThreadSheet from "./CompactThreadSheet";
 import CompactTwistSheet from "./CompactTwistSheet";
-import { KIND_COLOR, KIND_LABEL } from "./tabColors";
+import { KIND_LABEL } from "./tabColors";
+import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 type EntityPanelTab = Extract<PanelTab, { kind: "entity" }>;
@@ -24,7 +25,7 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
   const close = usePanelStore((s) => s.close);
   if (!activeStory) return null;
   const base = `/stories/${activeStory.id}`;
-  const color = KIND_COLOR[tab.entityKind];
+  const color = entityColor(tab.entityKind, tab.entityId);
 
   const entity =
     tab.entityKind === "character"

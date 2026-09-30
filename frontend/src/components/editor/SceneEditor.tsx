@@ -18,7 +18,7 @@ import {
   setInlineImageInsertCallback,
   insertInlineImage,
 } from "../story/InlineImageExtension";
-import { MentionDropdownExtension } from "../story/MentionDropdown";
+import { MentionDropdownExtension, FORCE_MENTION_KEY, setMentionHighlight } from "../story/MentionDropdown";
 import { DialogueExtension } from "../story/DialogueExtension";
 import { SlashCommandExtension } from "../story/SlashCommandExtension";
 import { TodoExtension } from "../story/TodoExtension";
@@ -41,6 +41,7 @@ import MentionDropdown from "./MentionDropdown";
 import { SlashPicker, TodoInputPopup } from "./SlashPicker";
 import InlineNotePopover from "./InlineNotePopover";
 import MentionHoverCard from "./MentionHoverCard";
+import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
 import { useAIAvailable } from "../../lib/mode";
@@ -146,6 +147,14 @@ export default function SceneEditor() {
     activeNode?.id,
     (m) => openEntity(m.type === "character" ? "character" : "location", m.entityId, m.name),
   );
+
+  // The entity whose tab is open or hovered lights up in the prose (doc 11 P2). The
+  // decoration plugin paints it, so ProseMirror's own DOM is never touched from outside.
+  const highlightName = usePanelStore((s) => s.highlight?.name ?? null);
+  useEffect(() => {
+    setMentionHighlight(highlightName);
+    if (editor?.view) editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+  }, [highlightName, editor]);
 
   // The side panel's inline-notes field reads the editor's live notes through the bridge.
   useEffect(() => {
@@ -305,6 +314,7 @@ export default function SceneEditor() {
                 <EditorContent editor={editor} />
               </div>
             )}
+            <MentionGutter scrollAreaRef={scrollAreaRef} />
           </div>
         </div>
         {plannerPanelOpen && activeStory && (

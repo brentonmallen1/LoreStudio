@@ -40,6 +40,8 @@ class LocationCreate(BaseModel):
     habitability: str = ""
     radiation_level: str = ""
     position: int = 0
+    #: Palette slot 1..8; 0 lets the server pick the least-used one.
+    color_slot: int = 0
 
 
 class LocationUpdate(BaseModel):
@@ -60,6 +62,7 @@ class LocationUpdate(BaseModel):
     radiation_level: str | None = None
     position: int | None = None
     is_stub: bool | None = None
+    color_slot: int | None = None
 
 
 class LocationOut(BaseModel):
@@ -86,6 +89,7 @@ class LocationOut(BaseModel):
     discovered_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    color_slot: int = 0
 
     model_config = {"from_attributes": True}
 

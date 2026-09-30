@@ -56,6 +56,8 @@ class CharacterCreate(BaseModel):
     narrative_intent_hidden: bool = True
     # A character filed from the Idea page arrives with the author's words as a note.
     discovery_notes: list[dict] = []
+    #: Palette slot 1..8; 0 lets the server pick the least-used one.
+    color_slot: int = 0
 
 
 class CharacterUpdate(BaseModel):
@@ -84,6 +86,7 @@ class CharacterUpdate(BaseModel):
     conflict: str | None = None
     epiphany: str | None = None
     arc_in_own_words: str | None = None
+    color_slot: int | None = None
 
 
 class CharacterOut(BaseModel):
@@ -114,6 +117,7 @@ class CharacterOut(BaseModel):
     arc_in_own_words: str
     arc_milestones: list[ArcMilestone]
     discovery_notes: list[DiscoveryNote] = []
+    color_slot: int = 0
     created_at: datetime
     updated_at: datetime
 

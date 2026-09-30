@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -20,7 +20,8 @@ class PlotThread(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String, default="open")  # open | developing | resolved
-    color: Mapped[str] = mapped_column(String, default="#6b7280")
+    #: Palette slot 1..8 (doc 11 P2), painted by each theme; 0 until chosen or assigned.
+    color_slot: Mapped[int] = mapped_column(Integer, default=0)
     mice_type: Mapped[str | None] = mapped_column(String, nullable=True)  # milieu | idea | character | event
     opens_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)
     closes_at_node_id: Mapped[str | None] = mapped_column(String, nullable=True)

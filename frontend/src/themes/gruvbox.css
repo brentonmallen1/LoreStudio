@@ -52,6 +52,27 @@
   --color-danger-bg: #f4e8e0;
   --color-warning: #d79921;
   --color-success: #98971a;
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #427e81;
+  --cat-1-fg: #ffffff;
+  --cat-2: #cc241d;
+  --cat-2-fg: #ffffff;
+  --cat-3: #858417;
+  --cat-3-fg: #111111;
+  --cat-4: #a85d7f;
+  --cat-4-fg: #ffffff;
+  --cat-5: #ac7a1a;
+  --cat-5-fg: #111111;
+  --cat-6: #d65d0e;
+  --cat-6-fg: #111111;
+  --cat-7: #427e81;
+  --cat-7-fg: #ffffff;
+  --cat-8: #665c54;
+  --cat-8-fg: #ffffff;
+  --status-planned: #7c6f64;
+  --status-draft: #ac7a1a;
+  --status-revised: #458588;
+  --status-final: #858417;
 }
 
 /* ── Gruvbox theme · dark mode ─────────────────── */
@@ -119,4 +140,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #83a598;
+  --cat-1-fg: #111111;
+  --cat-2: #fb4934;
+  --cat-2-fg: #111111;
+  --cat-3: #b8bb26;
+  --cat-3-fg: #111111;
+  --cat-4: #d3869b;
+  --cat-4-fg: #111111;
+  --cat-5: #fabd2f;
+  --cat-5-fg: #111111;
+  --cat-6: #fe8019;
+  --cat-6-fg: #111111;
+  --cat-7: #83a598;
+  --cat-7-fg: #111111;
+  --cat-8: #928374;
+  --cat-8-fg: #111111;
+  --status-planned: #a89984;
+  --status-draft: #fabd2f;
+  --status-revised: #83a598;
+  --status-final: #b8bb26;
 }

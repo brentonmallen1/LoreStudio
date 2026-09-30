@@ -7,6 +7,8 @@ export interface MentionItem {
   type: "character" | "setting" | "create";
   name: string;
   role?: string;
+  /** Palette slot 1..8 (doc 11 P2), painted on the decoration as data-slot. */
+  slot?: number;
 }
 
 export interface MentionCallbacks {
@@ -20,6 +22,11 @@ export interface MentionCallbacks {
 // Module-level state — safe since only one SceneEditor exists at a time.
 let _isOpen = false;
 let _items: MentionItem[] = [];
+/** The entity lit up in the prose (doc 11 P2): the one whose tab is open or hovered. */
+let _highlightName: string | null = null;
+export function setMentionHighlight(name: string | null): void {
+  _highlightName = name;
+}
 
 const _cb: MentionCallbacks = {
   onOpen: () => {},
@@ -115,9 +122,10 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             from,
             to,
             {
-              class: "mention-char",
+              class: char.name === _highlightName ? "mention-char mention-hl" : "mention-char",
               "data-mention-name": char.name,
               "data-mention-type": "character",
+              ...(char.slot ? { "data-slot": String(char.slot) } : {}),
             },
             MENTION_SPEC,
           ),
@@ -139,9 +147,10 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             from,
             to,
             {
-              class: "mention-setting",
+              class: setting.name === _highlightName ? "mention-setting mention-hl" : "mention-setting",
               "data-mention-name": setting.name,
               "data-mention-type": "setting",
+              ...(setting.slot ? { "data-slot": String(setting.slot) } : {}),
             },
             MENTION_SPEC,
           ),

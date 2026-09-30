@@ -58,6 +58,27 @@
   --color-danger-bg: #f0e8e8;
   --color-warning: #a87820;
   --color-success: #3d7856;
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #2858a8;
+  --cat-1-fg: #ffffff;
+  --cat-2: #b84040;
+  --cat-2-fg: #ffffff;
+  --cat-3: #208060;
+  --cat-3-fg: #ffffff;
+  --cat-4: #6040a0;
+  --cat-4-fg: #ffffff;
+  --cat-5: #966d1f;
+  --cat-5-fg: #ffffff;
+  --cat-6: #9a3868;
+  --cat-6-fg: #ffffff;
+  --cat-7: #287888;
+  --cat-7-fg: #ffffff;
+  --cat-8: #506070;
+  --cat-8-fg: #ffffff;
+  --status-planned: #827e78;
+  --status-draft: #a87820;
+  --status-revised: #287888;
+  --status-final: #3d7856;
 }
 
 /* ── E-ink theme · dark mode ───────────────────── */
@@ -131,4 +152,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #5080c8;
+  --cat-1-fg: #111111;
+  --cat-2: #d06040;
+  --cat-2-fg: #111111;
+  --cat-3: #30a880;
+  --cat-3-fg: #111111;
+  --cat-4: #9870c8;
+  --cat-4-fg: #111111;
+  --cat-5: #c09030;
+  --cat-5-fg: #111111;
+  --cat-6: #c25c83;
+  --cat-6-fg: #111111;
+  --cat-7: #48a8c0;
+  --cat-7-fg: #111111;
+  --cat-8: #788898;
+  --cat-8-fg: #111111;
+  --status-planned: #78716d;
+  --status-draft: #c89840;
+  --status-revised: #48a8c0;
+  --status-final: #58906a;
 }

@@ -67,6 +67,28 @@ const PAIRS: [string, string, number, string][] = [
   ["--color-accent-fg", "--color-accent", 4.5, "text on accent buttons"],
   ["--color-ai-fg", "--color-ai", 4.5, "text on AI buttons"],
   ["--color-nlp-fg", "--color-nlp", 3, "text on NLP badges"],
+  // Palette slots (doc 11 P2): used as ink (dots, rings, underlines, chip fills), so 3:1 on
+  // both grounds, and the text on a filled chip reaches 4.5.
+  ...Array.from({ length: 8 }, (_, i) => i + 1).flatMap((n): [string, string, number, string][] => [
+    [`--cat-${n}`, "--color-bg", 3, `slot ${n} on page`],
+    [`--cat-${n}`, "--color-surface", 3, `slot ${n} on cards`],
+    [`--cat-${n}-fg`, `--cat-${n}`, 4.5, `text on slot ${n}`],
+  ]),
+  ...["planned", "draft", "revised", "final"].map((s): [string, string, number, string] => [
+    `--status-${s}`,
+    "--color-surface",
+    3,
+    `${s} state on cards`,
+  ]),
+];
+
+/** Tokens every palette must define in hex, light and dark, or the pairs above are silently skipped. */
+const REQUIRED = [
+  ...Array.from({ length: 8 }, (_, i) => [`--cat-${i + 1}`, `--cat-${i + 1}-fg`]).flat(),
+  "--status-planned",
+  "--status-draft",
+  "--status-revised",
+  "--status-final",
 ];
 
 const files = readdirSync(THEMES_DIR).filter((f) => f.endsWith(".css") && f !== "base.css");
@@ -82,6 +104,9 @@ describe("theme contrast (WCAG)", () => {
     });
     for (const block of blocks) {
       const tokens = block.selector.includes(".dark") ? { ...light!.tokens, ...block.tokens } : block.tokens;
+      it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} defines every slot and status token`, () => {
+        expect(REQUIRED.filter((t) => !block.tokens[t])).toEqual([]);
+      });
       it(`${file} ${block.selector.includes(".dark") ? "dark" : "light"} meets the minimum ratios`, () => {
         const failures: string[] = [];
         for (const [fg, bg, min, what] of PAIRS) {

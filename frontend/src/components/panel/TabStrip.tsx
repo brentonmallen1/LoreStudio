@@ -5,7 +5,7 @@ import { usePanelStore } from "../../stores/panelStore";
 import type { PanelTab } from "../../types/panel";
 import { tabLabel } from "../../lib/panel/tabLabel";
 import OverflowMenu from "./OverflowMenu";
-import { KIND_COLOR } from "./tabColors";
+import { tabColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 const TAB_WIDTH = 96;
@@ -56,7 +56,7 @@ export default function TabStrip() {
     <div ref={stripRef} className={styles.strip} role="tablist" aria-label="Side panel">
       {visible.map((tab) => {
         const selected = tab.id === activeTabId;
-        const color = tab.kind === "entity" ? KIND_COLOR[tab.entityKind] : undefined;
+        const color = tabColor(tab);
         return (
           <div
             key={tab.id}

@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -51,6 +51,8 @@ class Character(Base):
     # Author-facing: what is this character FOR in the story (hidden from character interviews)
     narrative_intent: Mapped[str] = mapped_column(Text, default="")
     narrative_intent_hidden: Mapped[bool] = mapped_column(Boolean, default=True)
+    #: Palette slot 1..8 (doc 11 P2); 0 until chosen or assigned.
+    color_slot: Mapped[int] = mapped_column(Integer, default=0)
 
     # Pronouns: he/him, she/her, they/them, or custom
     pronouns: Mapped[str] = mapped_column(String, default="")

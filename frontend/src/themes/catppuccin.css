@@ -52,6 +52,27 @@
   --color-danger-bg: #f4e8ec;
   --color-warning: #df8e1d;
   --color-success: #40a02b;
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #1e66f5;
+  --cat-1-fg: #ffffff;
+  --cat-2: #d20f39;
+  --cat-2-fg: #ffffff;
+  --cat-3: #3d9829;
+  --cat-3-fg: #111111;
+  --cat-4: #8839ef;
+  --cat-4-fg: #ffffff;
+  --cat-5: #de580a;
+  --cat-5-fg: #111111;
+  --cat-6: #c161a7;
+  --cat-6-fg: #111111;
+  --cat-7: #1d8fa3;
+  --cat-7-fg: #111111;
+  --cat-8: #828495;
+  --cat-8-fg: #111111;
+  --status-planned: #6f7287;
+  --status-draft: #b87518;
+  --status-revised: #1d8fa3;
+  --status-final: #3d9829;
 }
 
 /* ── Catppuccin theme · Macchiato (dark) ───────── */
@@ -119,4 +140,25 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
+  --cat-1: #8aadf4;
+  --cat-1-fg: #111111;
+  --cat-2: #ed8796;
+  --cat-2-fg: #111111;
+  --cat-3: #a6da95;
+  --cat-3-fg: #111111;
+  --cat-4: #c6a0f6;
+  --cat-4-fg: #111111;
+  --cat-5: #f5a97f;
+  --cat-5-fg: #111111;
+  --cat-6: #f5bde6;
+  --cat-6-fg: #111111;
+  --cat-7: #8bd5ca;
+  --cat-7-fg: #111111;
+  --cat-8: #8087a2;
+  --cat-8-fg: #111111;
+  --status-planned: #8087a2;
+  --status-draft: #eed49f;
+  --status-revised: #8bd5ca;
+  --status-final: #a6da95;
 }
