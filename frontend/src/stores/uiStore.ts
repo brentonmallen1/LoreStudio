@@ -134,9 +134,6 @@ interface UIState {
   setViewState: (state: "normal" | "focus") => void;
 
   // Sidebar collapsed (icon rail vs full panel)
-  sidebarCollapsed: boolean;
-  setSidebarCollapsed: (collapsed: boolean) => void;
-
   // The story strip (doc 11 P3): how wide the book is drawn, and what colours its stops.
   stripWidth: StripWidth;
   setStripWidth: (width: StripWidth) => void;
@@ -305,7 +302,14 @@ applyEditorFont(savedEditorFont, savedEditorSize);
 applyEditorLineWidth(savedLineWidth);
 applyHighlightDialogue(savedHighlightDialogue);
 
-for (const stale of ["ls_tree_height", "ls_tree_expanded", "ls_tree_detached", "ls_tree_panel_width"]) {
+for (const stale of [
+  "ls_tree_height",
+  "ls_tree_expanded",
+  "ls_tree_detached",
+  "ls_tree_panel_width",
+  "ls_sidebar_collapsed",
+  "ls_sidebar_closed",
+]) {
   try {
     localStorage.removeItem(stale);
   } catch {
@@ -365,12 +369,6 @@ export const useUIStore = create<UIState>((set) => ({
 
   viewState: "normal",
   setViewState: (state) => set({ viewState: state }),
-
-  sidebarCollapsed: localStorage.getItem("ls_sidebar_collapsed") === "true",
-  setSidebarCollapsed: (collapsed) => {
-    localStorage.setItem("ls_sidebar_collapsed", String(collapsed));
-    set({ sidebarCollapsed: collapsed });
-  },
 
   stripWidth: (["strip", "chapters", "scenes"].includes(localStorage.getItem("ls_strip_width") ?? "")
     ? localStorage.getItem("ls_strip_width")

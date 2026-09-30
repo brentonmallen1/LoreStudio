@@ -288,3 +288,19 @@
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* The row's second action (doc 11 P4): "Go to page" beside "Open beside". */
+.pill {
+  flex-shrink: 0;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.pill:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-subtle);
+}

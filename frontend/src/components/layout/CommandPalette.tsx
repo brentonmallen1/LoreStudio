@@ -5,6 +5,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { commandRegistry } from "../../lib/commands/registry";
+import { useEntityCommands } from "../../lib/commands/entities";
 import type { CommandAction } from "../../lib/commands/registry";
 import type { SearchResult } from "../../types";
 import {
@@ -43,8 +44,8 @@ const TYPE_LABELS: Record<SearchResult["type"], string> = {
 
 export default function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
-  const { stories, characters, setActiveNode, activeStory, structure } = useStoryStore();
   const navigate = useNavigate();
+  const { activeStory, setActiveNode } = useStoryStore();
 
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -61,7 +62,6 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const subInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const prevWriteNodeIds = useRef(new Set<string>());
 
   const close = useCallback(() => {
     setCommandPaletteOpen(false);
@@ -71,72 +71,8 @@ export default function CommandPalette() {
     setSubQuery("");
   }, [setCommandPaletteOpen]);
 
-  // Register dynamic commands that depend on store state (stories, characters)
-  useEffect(() => {
-    stories.forEach((s) => {
-      commandRegistry.update({
-        id: `story-${s.id}`,
-        label: s.title,
-        keywords: ["story", "open", "navigate"],
-        icon: BookOpen,
-        group: "Stories",
-        action: () => navigate(`/stories/${s.id}`),
-      });
-    });
-    characters.forEach((c) => {
-      commandRegistry.update({
-        id: `char-view-${c.id}`,
-        label: `View: ${c.name}`,
-        keywords: ["character", "view", "open", c.name.toLowerCase()],
-        icon: Users,
-        group: "Characters",
-        action: () => navigate(`/stories/${c.story_id}/characters/${c.id}`),
-      });
-    });
-    forceUpdate((n) => n + 1);
-  }, [stories, characters, navigate]);
-
-  // Register write-section (structure node) navigation commands
-  useEffect(() => {
-    // Unregister nodes from previous render (handles deletions)
-    prevWriteNodeIds.current.forEach((id) => commandRegistry.unregister(id));
-    const nextIds = new Set<string>();
-
-    if (activeStory) {
-      function flatten(nodes: typeof structure): typeof structure {
-        return nodes.flatMap((n) => [n, ...flatten(n.children)]);
-      }
-      flatten(structure).forEach((node) => {
-        const id = `write-node-${node.id}`;
-        nextIds.add(id);
-        commandRegistry.update({
-          id,
-          label: node.title || `Untitled ${node.level_type}`,
-          description: node.synopsis ? node.synopsis.slice(0, 80) : undefined,
-          keywords: [
-            "write",
-            node.level_type,
-            "scene",
-            "chapter",
-            "go to",
-            "navigate",
-            node.title.toLowerCase(),
-          ].filter(Boolean),
-          icon: Clapperboard,
-          group: "Write",
-          when: () => _useStoryStoreForNav.getState().activeStory?.id === node.story_id,
-          action: async () => {
-            const fullNode = await api.getNode(node.id);
-            setActiveNode(fullNode);
-            navigate(`/stories/${activeStory.id}/write`);
-          },
-        });
-      });
-    }
-
-    prevWriteNodeIds.current = nextIds;
-    forceUpdate((n) => n + 1);
-  }, [structure, activeStory?.id, navigate, setActiveNode]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Stories, cast, places, threads and outline nodes follow the store (lib/commands/entities.ts).
+  useEntityCommands();
 
   // Register creation commands whenever the active story changes
   useEffect(() => {
@@ -243,7 +179,12 @@ export default function CommandPalette() {
     debounceRef.current = setTimeout(async () => {
       try {
         const results = await api.search(query.trim());
-        setSearchResults(results);
+        // Characters, places and threads of the open story are commands now (Open beside /
+        // Go to page), so their content hits would only repeat the row above.
+        const sid = useStoryStore.getState().activeStory?.id;
+        setSearchResults(
+          results.filter((r) => !(r.story_id === sid && ["character", "setting", "thread"].includes(r.type))),
+        );
         setSelectedIndex(0);
       } catch {
         setSearchResults([]);
@@ -284,6 +225,14 @@ export default function CommandPalette() {
   }
 
   // ── Action execution ───────────────────────────────────────────────────────
+
+  /** The second way to run a command (doc 11 P4): ⌘Enter, or the pill on its row. */
+  function executeSecondary(action: CommandAction) {
+    if (!action.secondaryAction) return executeAction(action);
+    commandRegistry.recordUsed(action.id);
+    action.secondaryAction.run();
+    close();
+  }
 
   function executeAction(action: CommandAction) {
     if (action.getSubItems) {
@@ -333,10 +282,14 @@ export default function CommandPalette() {
     : [];
 
   // Flat list for keyboard nav — last-run first (always), then recent (no query), then commands, then content results
-  const flatItems: Array<{ action: () => void }> = [
-    ...(lastRun ? [{ action: () => executeAction(lastRun) }] : []),
-    ...recentItems.map((a) => ({ action: () => executeAction(a) })),
-    ...Object.values(actionGroups).flatMap((items) => items.map((a) => ({ action: () => executeAction(a) }))),
+  const flatItems: Array<{ action: () => void; secondary?: () => void }> = [
+    ...(lastRun
+      ? [{ action: () => executeAction(lastRun), secondary: () => executeSecondary(lastRun) }]
+      : []),
+    ...recentItems.map((a) => ({ action: () => executeAction(a), secondary: () => executeSecondary(a) })),
+    ...Object.values(actionGroups).flatMap((items) =>
+      items.map((a) => ({ action: () => executeAction(a), secondary: () => executeSecondary(a) })),
+    ),
     ...(hasQuery && hasSearchResults ? searchResults.map((r) => ({ action: () => navigateTo(r) })) : []),
   ];
 
@@ -361,7 +314,10 @@ export default function CommandPalette() {
       });
     } else if (e.key === "Enter") {
       e.preventDefault();
-      flatItems[selectedIndex]?.action();
+      const item = flatItems[selectedIndex];
+      const secondary = item?.secondary;
+      if (secondary && matchesCombo(e.nativeEvent, SHORTCUTS.submitText.combo)) secondary();
+      else item?.action();
     }
   }
 
@@ -609,6 +565,19 @@ export default function CommandPalette() {
                           {action.shortcut && (
                             <span className={styles.shortcutHint} aria-hidden="true">
                               {action.shortcut}
+                            </span>
+                          )}
+                          {action.secondaryAction && (
+                            <span
+                              role="button"
+                              className={styles.pill}
+                              title={`${action.secondaryAction.label} (${formatCombo(SHORTCUTS.submitText.combo)})`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                executeSecondary(action);
+                              }}
+                            >
+                              {action.secondaryAction.label}
                             </span>
                           )}
                           {action.getSubItems && (

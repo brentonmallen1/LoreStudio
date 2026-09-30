@@ -229,7 +229,11 @@ export default function GlobalHeader() {
       >
         <div className={styles.left}>
           {isFocused && (
-            <button onClick={() => setViewState("normal")} className={styles.iconBtn} title="Restore sidebar">
+            <button
+              onClick={() => setViewState("normal")}
+              className={styles.iconBtn}
+              title="Leave focus mode"
+            >
               <PanelLeft size={15} />
             </button>
           )}

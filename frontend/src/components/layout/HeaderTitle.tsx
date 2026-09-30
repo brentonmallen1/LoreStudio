@@ -1,23 +1,18 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
-import { useUIStore } from "../../stores/uiStore";
 import BreadcrumbNav from "./BreadcrumbNav";
 import styles from "./GlobalHeader.module.css";
 
 /**
  * The header's left side: the app name, or inside a story a way back to your stories,
- * the story's title, and the sidebar's collapse control beside it (todo.md feedback).
- *
- * The collapse control used to sit at the bottom of the sidebar and the way back was an
- * unlabelled library icon beside a second copy of the title; both moved here.
+ * the story's title, and while writing the breadcrumb of where you are (doc 11).
  */
 export default function HeaderTitle() {
   const { storyId } = useParams<{ storyId: string }>();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const activeStory = useStoryStore((s) => s.activeStory);
-  const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
 
   if (!storyId || activeStory?.id !== storyId) {
     return (
@@ -27,7 +22,6 @@ export default function HeaderTitle() {
     );
   }
 
-  // The Write page always shows the icon rail, so there is nothing to toggle there.
   const writing = pathname.includes("/write");
   return (
     <div className={styles.storyTitleRow}>
@@ -39,16 +33,6 @@ export default function HeaderTitle() {
         {activeStory.title}
       </span>
       {writing && <BreadcrumbNav />}
-      {!writing && (
-        <button
-          className={styles.iconBtn}
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {sidebarCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
-        </button>
-      )}
     </div>
   );
 }

@@ -16,6 +16,8 @@ export interface CommandAction {
   /** Dynamic child items — when present, selecting this action drills into the sub-menu */
   getSubItems?: () => CommandAction[];
   action: () => void | Promise<void>;
+  /** A second way to run it (doc 11 P4): ⌘Enter, or the pill on the row. "Go to page" beside "Open beside". */
+  secondaryAction?: { label: string; run: () => void | Promise<void> };
 }
 
 function tokenize(str: string): string[] {

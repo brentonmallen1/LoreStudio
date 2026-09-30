@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { fitTabs } from "../../lib/panel/overflow";
 import { usePanelStore } from "../../stores/panelStore";
+import { useStoryStore } from "../../stores/storyStore";
 import type { PanelTab } from "../../types/panel";
 import { tabLabel } from "../../lib/panel/tabLabel";
 import OverflowMenu from "./OverflowMenu";
@@ -18,6 +19,8 @@ const OVERFLOW_RESERVE = 58;
  */
 export default function TabStrip() {
   const { tabs, activeTabId, activate, close, setHighlight } = usePanelStore();
+  // Re-render when the open node changes: the first tab is named for its level.
+  useStoryStore((s) => s.activeNode?.id);
   const stripRef = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState(600);
   const [menuOpen, setMenuOpen] = useState(false);

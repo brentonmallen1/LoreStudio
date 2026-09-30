@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useDiscoveryStore } from "../../stores/discoveryStore";
+import { useHealthStore } from "../../stores/healthStore";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { CircleHelp, GitBranch, Lightbulb, MapPin, MoreHorizontal, Users } from "lucide-react";
 import { useMode } from "../../lib/mode";
@@ -25,6 +27,19 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   const mode = useMode();
   const { tabs, activeTabId, openTool } = usePanelStore();
   const discoveryEnabled = useStoryStore((s) => s.activeStory?.discovery_enabled);
+  const { pendingCount, refreshCount } = useDiscoveryStore();
+  const { alertCount, refreshAlerts } = useHealthStore();
+  const badges: Record<string, number | undefined> = {
+    health: alertCount || undefined,
+    discoveries: pendingCount || undefined,
+  };
+  useEffect(() => {
+    if (storyId && discoveryEnabled) refreshCount(storyId);
+  }, [storyId, discoveryEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (storyId) refreshAlerts(storyId);
+  }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const badgeTotal = Object.values(badges).reduce<number>((n, b) => n + (b ?? 0), 0);
   const [moreOpen, setMoreOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -75,6 +90,7 @@ export default function ToolRail({ wide }: { wide: boolean }) {
           title="More pages"
         >
           <MoreHorizontal size={16} />
+          {badgeTotal > 0 && <span className={styles.badge}>{badgeTotal}</span>}
         </button>
         {moreOpen && (
           <div className={styles.menu} role="menu" aria-label="More pages" style={{ bottom: wide ? 0 : 8 }}>
@@ -98,6 +114,7 @@ export default function ToolRail({ wide }: { wide: boolean }) {
                       >
                         <Icon size={14} />
                         <span className={styles.menuLabel}>{r.label}</span>
+                        {badges[r.id] && <span className={styles.badge}>{badges[r.id]}</span>}
                       </Link>
                     );
                   })}

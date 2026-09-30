@@ -794,3 +794,27 @@
 .filterWrap {
   padding: 0 0.5rem;
 }
+
+.badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--color-warning);
+  color: var(--color-bg);
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.toolBtn .badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.toolBtn {
+  position: relative;
+}

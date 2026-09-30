@@ -105,7 +105,9 @@ api/client.ts     — Single fetch wrapper + every API method
 stores/           — Zustand: authStore, uiStore, storyStore
 pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
-  layout/         — Sidebar, InterviewPanel
+  layout/         — GlobalHeader, breadcrumb navigator, back bar, ModeGate
+  strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
+  panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
   story/          — SceneEditor, CorkboardView, StorySummaryPanel, LorebookPanel
   characters/     — CharacterSheet, CharacterList, RelationshipGraph
   threads/        — PlotThreadManager, ThreadVisualization
