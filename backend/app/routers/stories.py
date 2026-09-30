@@ -27,6 +27,7 @@ from ..schemas.story import (
 )
 from ..schemas.structure import ReorderStructurePayload, StructureNodeCreate, StructureNodeMeta, StructureNodeOut
 from ..services import change_log
+from ..services.idea_names import idea_names
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.generation import build_relationship_suggestion_prompt
 from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidance_prompt
@@ -340,6 +341,25 @@ async def summarize_story(
         db=db,
         user=current_user,
     )
+
+
+class IdeaNamesIn(BaseModel):
+    texts: dict[str, str]
+
+
+@router.post("/{story_id}/ideas/names")
+def idea_name_suggestions(
+    story_id: str,
+    body: IdeaNamesIn,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """People and places named in brain-dump fragments that the story does not have yet."""
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    known = [c.name for c in story.characters] + [loc.name for loc in story.locations]
+    return {"names": idea_names(dict(list(body.texts.items())[:200]), known)}
 
 
 @router.post("/{story_id}/snowflake/guidance")

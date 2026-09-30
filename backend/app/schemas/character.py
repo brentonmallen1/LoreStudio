@@ -54,6 +54,8 @@ class CharacterCreate(BaseModel):
     attributes: dict = {}
     narrative_intent: str = ""
     narrative_intent_hidden: bool = True
+    # A character filed from the Idea page arrives with the author's words as a note.
+    discovery_notes: list[dict] = []
 
 
 class CharacterUpdate(BaseModel):
@@ -77,6 +79,8 @@ class CharacterUpdate(BaseModel):
     attributes: dict | None = None
     narrative_intent: str | None = None
     narrative_intent_hidden: bool | None = None
+    # Filing from the Idea page adds the author's words as a note (doc 10 P2).
+    discovery_notes: list[dict] | None = None
     conflict: str | None = None
     epiphany: str | None = None
     arc_in_own_words: str | None = None

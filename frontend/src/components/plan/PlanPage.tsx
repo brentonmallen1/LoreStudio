@@ -12,11 +12,17 @@ import {
 } from "../../lib/planning/methods";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import MethodSteps from "./MethodSteps";
+import IdeaView from "./IdeaView";
 import styles from "./Plan.module.css";
 
 const OutlineManager = lazy(() => import("../outline/OutlineManager"));
 
-type View = "method" | "boards";
+type View = "ideas" | "method" | "boards";
+
+function viewFrom(params: URLSearchParams): View {
+  if (params.has("tab") || params.get("view") === "boards") return "boards";
+  return params.get("view") === "ideas" ? "ideas" : "method";
+}
 
 /**
  * The Plan page (refactor doc 10). A method walks the author through the story's
@@ -28,9 +34,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
   const [params, setParams] = useSearchParams();
   const { activeStory, setActiveStory, characters, structure, activeTemplate } = useStoryStore();
   // Held in state: the outline lists clear the query string once they have read ?tab=.
-  const [view, setView] = useState<View>(
-    params.has("tab") || params.get("view") === "boards" ? "boards" : "method",
-  );
+  const [view, setView] = useState<View>(() => viewFrom(params));
   const [choosing, setChoosing] = useState(false);
 
   if (!activeStory) return null;
@@ -39,7 +43,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
 
   function show(next: View) {
     setView(next);
-    setParams(next === "boards" ? { view: "boards" } : {}, { replace: true });
+    setParams(next === "method" ? {} : { view: next }, { replace: true });
   }
 
   async function choose(id: string) {
@@ -47,6 +51,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
     setChoosing(false);
   }
 
+  const unsortedCount = (activeStory.idea_fragments ?? []).filter((f) => !f.filed).length;
   const doneCount = method ? method.steps.filter((s) => isStepDone(s, data)).length : 0;
 
   return (
@@ -55,6 +60,15 @@ export default function PlanPage({ storyId }: { storyId: string }) {
         <div className={styles.titleRow}>
           <h2 className={styles.title}>Plan</h2>
           <div className={styles.tabs} role="tablist" aria-label="Plan views">
+            <button
+              role="tab"
+              aria-selected={view === "ideas"}
+              className={`${styles.tab} ${view === "ideas" ? styles.tabActive : ""}`}
+              onClick={() => show("ideas")}
+            >
+              Ideas
+              {unsortedCount > 0 && <span className={styles.tabCount}>{unsortedCount}</span>}
+            </button>
             <button
               role="tab"
               aria-selected={view === "method"}
@@ -82,6 +96,11 @@ export default function PlanPage({ storyId }: { storyId: string }) {
             </button>
           </p>
         )}
+        {view === "ideas" && (
+          <p className={styles.subtitle}>
+            Everything you know, in any order. Sort it into the story when you're ready.
+          </p>
+        )}
         {view === "boards" && (
           <p className={styles.subtitle}>
             Loose outlines for brainstorming beats. Turn any beat into a scene.
@@ -89,7 +108,11 @@ export default function PlanPage({ storyId }: { storyId: string }) {
         )}
       </header>
 
-      {view === "boards" ? (
+      {view === "ideas" ? (
+        <div className={styles.body}>
+          <IdeaView storyId={storyId} />
+        </div>
+      ) : view === "boards" ? (
         <Suspense fallback={null}>
           <OutlineManager storyId={storyId} />
         </Suspense>
@@ -97,6 +120,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
         <MethodPicker
           current={method}
           onChoose={choose}
+          onIdeas={() => show("ideas")}
           onCancel={method ? () => setChoosing(false) : undefined}
         />
       ) : (
@@ -117,10 +141,12 @@ export default function PlanPage({ storyId }: { storyId: string }) {
 function MethodPicker({
   current,
   onChoose,
+  onIdeas,
   onCancel,
 }: {
   current?: PlanMethod;
   onChoose: (id: string) => void;
+  onIdeas: () => void;
   onCancel?: () => void;
 }) {
   return (
@@ -142,6 +168,14 @@ function MethodPicker({
               <span className={styles.methodStepsPreview}>{m.steps.map((s) => s.label).join(" · ")}</span>
             </button>
           ))}
+          <button className={`${styles.methodCard} ${styles.methodCardIdea}`} onClick={onIdeas}>
+            <span className={styles.methodName}>Start from an idea</span>
+            <span className={styles.methodSummary}>
+              Not ready for questions? Write down everything you know, in any order, then sort it into
+              characters, places, scenes and questions.
+            </span>
+            <span className={styles.methodStepsPreview}>Ideas tab · no method needed</span>
+          </button>
         </div>
         {onCancel && (
           <button className={styles.quietBtn} onClick={onCancel}>

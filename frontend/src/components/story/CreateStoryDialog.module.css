@@ -137,3 +137,50 @@
   line-height: 1.45;
   color: var(--color-text-muted);
 }
+
+.begin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.begin legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+}
+
+.beginOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.beginOption input {
+  margin-top: 0.2rem;
+  accent-color: var(--color-accent);
+}
+
+.beginChosen {
+  border-color: var(--color-accent);
+  background: var(--color-surface-2);
+}
+
+.beginName {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.beginHint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}

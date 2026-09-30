@@ -24,6 +24,13 @@ class StoryTodo(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     done: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # "todo", or "question": something not decided yet (done = answered)
+    kind: Mapped[str] = mapped_column(String, default="todo", server_default="todo")
+    # What a question is about, besides a scene (node_id): "character" or "location"
+    about_type: Mapped[str | None] = mapped_column(String, nullable=True)
+    about_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    answer: Mapped[str] = mapped_column(Text, default="", server_default="")
+
     # Manual ordering within story
     position: Mapped[int] = mapped_column(Integer, default=0)
 

@@ -2299,6 +2299,54 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
 
+        # ── Ideas and open questions (doc 10 P2, P3) ────────────────────────
+        # The brain dump the story grew from, part sorted: the filed pieces point at what
+        # they became; the rest are still waiting. Questions: two open, one settled.
+        def fragment(text: str, filed: dict | None = None) -> dict:
+            return {"id": str(uuid.uuid4()), "text": text, "created_at": "2026-09-01T09:00:00", "filed": filed}
+
+        story.idea_fragments = [
+            fragment(
+                "A keeper who stayed when everyone else left the island.",
+                {"kind": "premise", "ref_id": None, "label": "Premise"},
+            ),
+            fragment(
+                "Calder is a historian with a cover story. Her brother was on the Ardent.",
+                {"kind": "character", "ref_id": visitor.id, "label": visitor.name},
+            ),
+            fragment(
+                "The lamp room smells of paraffin, though the light has been electric for decades.",
+                {"kind": "place", "ref_id": lighthouse.id, "label": lighthouse.name},
+            ),
+            fragment("What if Margaret saw the light go dark that night and never said?"),
+            fragment("The ferry stopped running the year before last. Nobody comes to Harrow unless they mean to."),
+            fragment("Keeping a promise to someone who is dead: loyalty, or fear?"),
+            fragment("Maybe the book ends with Eleanor on the Mainland, looking back at the light."),
+        ]
+        for position, (content, about, answer) in enumerate(
+            [
+                ("Did Thomas ever tell Margaret why the light went dark?", thomas, ""),
+                ("Does Eleanor leave the island for good, or only visit the mainland?", eleanor, ""),
+                (
+                    "Who removed the log entries?",
+                    None,
+                    "Thomas, the week after the wreck. Settled in “What Thomas Knew”.",
+                ),
+            ]
+        ):
+            db.add(
+                StoryTodo(
+                    story_id=story.id,
+                    kind="question",
+                    content=content,
+                    about_type="character" if about else None,
+                    about_id=about.id if about else None,
+                    answer=answer,
+                    done=bool(answer),
+                    position=position,
+                )
+            )
+
         # Chronicle: a finished summary job and a failed Codex pass, so a new install has a
         # job to open (seed_chronicle.py).
         db.flush()

@@ -71,6 +71,8 @@ class Story(Base):
     synopsis: Mapped[str] = mapped_column(Text, default="", server_default="")
     # Which method the Plan page follows (frontend lib/planning/methods.ts); "" until chosen
     planning_method: Mapped[str] = mapped_column(String, default="", server_default="")
+    # The brain dump, sorted fragment by fragment (migration 0017 has the shape)
+    idea_fragments: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
 
     # Story goals checklist
     goals: Mapped[list] = mapped_column(JSON, default=list)

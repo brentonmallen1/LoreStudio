@@ -1,3 +1,4 @@
+import QuestionsList from "../plan/QuestionsList";
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
@@ -628,6 +629,20 @@ export default function CharacterSheet() {
                 onChange={(e) => scheduleFieldSave("arc_in_own_words", e.target.value)}
                 placeholder="I grew up believing the light was enough…"
                 rows={5}
+              />
+            </SectionCard>
+
+            {/* ── Open questions about them ── */}
+            <SectionCard
+              title="Open Questions"
+              collapsed={!!collapsed.questions}
+              onToggle={() => toggle("questions")}
+            >
+              <QuestionsList
+                storyId={character.story_id}
+                subject={{ about_type: "character", about_id: character.id }}
+                compact
+                placeholder={`Something you don't know yet about ${character.name}… (Enter)`}
               />
             </SectionCard>
 

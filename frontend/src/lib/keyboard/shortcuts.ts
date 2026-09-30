@@ -88,6 +88,13 @@ export const SHORTCUTS = {
     scope: "editor",
     modes: BOTH,
   },
+  submitText: {
+    combo: "mod+enter",
+    label: "Add what you've typed (ideas, answers)",
+    group: "Global",
+    scope: "global",
+    modes: BOTH,
+  },
   insertImage: { combo: "mod+shift+i", label: "Insert image", group: "Editor", scope: "editor", modes: BOTH },
   writingCoach: {
     combo: "mod+shift+r",
@@ -132,7 +139,7 @@ export const MODIFIER = {
 export function formatCombo(combo: string): string {
   const parts = combo.split("+");
   const key = parts[parts.length - 1];
-  const shown = key.length === 1 ? key.toUpperCase() : key;
+  const shown = key === "enter" ? (IS_MAC ? "↩" : "Enter") : key.length === 1 ? key.toUpperCase() : key;
   if (IS_MAC) {
     return (
       (parts.includes("mod") ? "⌘" : "") +

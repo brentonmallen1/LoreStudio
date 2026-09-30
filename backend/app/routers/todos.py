@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -28,12 +30,20 @@ def _verify_todo(todo_id: str, db: Session, user: User) -> StoryTodo:
     return todo
 
 
+def _noun(todo: StoryTodo) -> str:
+    return "question" if todo.kind == "question" else "TODO"
+
+
 def _serialize(todo: StoryTodo) -> TodoOut:
     return TodoOut(
         id=todo.id,
         story_id=todo.story_id,
         node_id=todo.node_id,
         content=todo.content,
+        kind=todo.kind,
+        about_type=todo.about_type,
+        about_id=todo.about_id,
+        answer=todo.answer or "",
         done=todo.done,
         position=todo.position,
         doc_from=todo.doc_from,
@@ -50,13 +60,14 @@ def _serialize(todo: StoryTodo) -> TodoOut:
 @router.get("/stories/{story_id}/todos", response_model=list[TodoOut])
 def list_todos(
     story_id: str,
+    kind: Literal["todo", "question"] = "todo",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     _verify_story(story_id, db, current_user)
     todos = (
         db.query(StoryTodo)
-        .filter(StoryTodo.story_id == story_id)
+        .filter(StoryTodo.story_id == story_id, StoryTodo.kind == kind)
         .order_by(StoryTodo.position.asc(), StoryTodo.created_at.asc())
         .all()
     )
@@ -96,7 +107,7 @@ def create_todo(
         "story_todos",
         entity_type="todo",
         story_id=story_id,
-        label=f"Add TODO “{(todo.content or '')[:40]}”",
+        label=f"Add {_noun(todo)} “{(todo.content or '')[:40]}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -111,6 +122,7 @@ def create_todo(
 @router.get("/structure/{node_id}/todos", response_model=list[TodoOut])
 def todos_for_scene(
     node_id: str,
+    kind: Literal["todo", "question"] = "todo",
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -120,7 +132,7 @@ def todos_for_scene(
     _verify_story(node.story_id, db, current_user)
     todos = (
         db.query(StoryTodo)
-        .filter(StoryTodo.node_id == node_id)
+        .filter(StoryTodo.node_id == node_id, StoryTodo.kind == kind)
         .order_by(StoryTodo.position.asc(), StoryTodo.created_at.asc())
         .all()
     )
@@ -156,7 +168,7 @@ def update_todo(
         data,
         entity_type="todo",
         story_id=todo.story_id,
-        label=f"Edit TODO “{(todo.content or '')[:40]}”",
+        label=f"Edit {_noun(todo)} “{(todo.content or '')[:40]}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -181,7 +193,7 @@ def delete_todo(
         "story_todos",
         entity_type="todo",
         story_id=todo.story_id,
-        label=f"Delete TODO “{(todo.content or '')[:40]}”",
+        label=f"Delete {_noun(todo)} “{(todo.content or '')[:40]}”",
         actor_id=current_user.id,
         client_id=client_id,
     )
@@ -243,6 +255,7 @@ def delete_done_todos(
     _verify_story(story_id, db, current_user)
     db.query(StoryTodo).filter(
         StoryTodo.story_id == story_id,
+        StoryTodo.kind == "todo",
         StoryTodo.done == True,  # noqa: E712
     ).delete()
     db.commit()

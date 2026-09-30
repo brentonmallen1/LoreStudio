@@ -3,7 +3,17 @@ import { parseServerDate, serverTime } from "../lib/serverDate";
 import { streamAnswer } from "../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { PenLine, ArrowRight, Compass, RefreshCw, BookOpen, Users, ListTree, Download } from "lucide-react";
+import {
+  Lightbulb,
+  PenLine,
+  ArrowRight,
+  Compass,
+  RefreshCw,
+  BookOpen,
+  Users,
+  ListTree,
+  Download,
+} from "lucide-react";
 import { api } from "../api/client";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -407,6 +417,18 @@ export default function StoryOverviewPage() {
                 <span className={styles.startPathName}>Write a scene</span>
                 <span className={styles.startPathHint}>
                   Jump straight in. Add structure, characters, and details as you go.
+                </span>
+              </button>
+              <button
+                className={styles.startPath}
+                onClick={() => navigate(`/stories/${storyId}/plan?view=ideas`)}
+              >
+                <span className={styles.startPathIcon}>
+                  <Lightbulb size={15} />
+                </span>
+                <span className={styles.startPathName}>Start from an idea</span>
+                <span className={styles.startPathHint}>
+                  Write down everything you know, then sort it into characters, places and scenes.
                 </span>
               </button>
               <button className={styles.startPath} onClick={() => navigate(`/stories/${storyId}/characters`)}>

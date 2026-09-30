@@ -11,6 +11,18 @@ Pick a method the first time you open Plan:
 
 Every step writes into the story itself, not into the method. The one-sentence summary _is_ the logline on Story Identity; a character's goal, motivation, conflict and epiphany are the fields on their sheet. Switching methods keeps everything, and the steps you've already answered show as done.
 
+## Start from an idea
+
+Not ready for questions? The **Ideas** tab takes everything you know, in any order. Paste a page of notes and it becomes one piece per paragraph (or per line); **⌘↩** (Ctrl+Enter) adds what you've typed.
+
+Then sort it. Each piece can be filed as a **character** (new, or a note on one you have), a **place**, a planned **scene**, an open **question**, a **theme**, or the **logline**, **premise** or **central conflict**. Filed pieces move to a folded "Filed" list that links to what they became; the pile gets shorter as the story takes shape. Names the story doesn't know yet are suggested as you go (plain text analysis, no AI).
+
+New Story asks how you want to begin: **Just write**, **Start from an idea**, or **Plan it out**.
+
+## Open questions
+
+Write down what you haven't decided yet instead of holding it in your head. Questions live beside the ideas, on a character's sheet (about them) and in the editor's Story plan tab (about the scene). **Answer** one to settle it; the answer stays with it, so you can see later why you decided.
+
 ## The scene list becomes the book
 
 Each line of the scene list is a real scene in the structure tree, marked **planned** until it has prose. Planned scenes show in italics in the tree. Open one and start typing; the first words make it a draft.

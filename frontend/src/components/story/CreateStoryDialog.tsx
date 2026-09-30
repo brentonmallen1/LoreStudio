@@ -8,6 +8,19 @@ import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import { Modal } from "../common";
 import styles from "./CreateStoryDialog.module.css";
 
+type Begin = "write" | "idea" | "plan";
+
+/** Three ways in (refactor doc 10 P7); none is a gate, and writing stays one click away. */
+const BEGINNINGS: { id: Begin; label: string; hint: string }[] = [
+  { id: "write", label: "Just write", hint: "Open the first scene and start typing." },
+  { id: "idea", label: "Start from an idea", hint: "Write down what you know, then sort it into the story." },
+  {
+    id: "plan",
+    label: "Plan it out",
+    hint: "A few small questions in order: a sentence, who wants what, the scenes.",
+  },
+];
+
 interface Props {
   onClose: () => void;
 }
@@ -17,6 +30,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
   const [description, setDescription] = useState("");
   const [templateId, setTemplateId] = useState("freeform");
   const [scaffold, setScaffold] = useState(true);
+  const [begin, setBegin] = useState<Begin>("write");
   const [templates, setTemplates] = useState<StoryStructureTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -39,12 +53,15 @@ export default function CreateStoryDialog({ onClose }: Props) {
         scaffold,
       });
       upsertStory(story);
+      if (begin === "idea") navigate(`/stories/${story.id}/plan?view=ideas`);
+      else if (begin === "plan") navigate(`/stories/${story.id}/plan`);
       // Straight into the first scene of the new outline, ready to type.
-      navigate(
-        story.start_node_id
-          ? `/stories/${story.id}/write?node=${story.start_node_id}`
-          : `/stories/${story.id}`,
-      );
+      else
+        navigate(
+          story.start_node_id
+            ? `/stories/${story.id}/write?node=${story.start_node_id}`
+            : `/stories/${story.id}`,
+        );
     } finally {
       setLoading(false);
     }
@@ -154,6 +171,27 @@ export default function CreateStoryDialog({ onClose }: Props) {
               </span>
             </label>
           )}
+          <fieldset className={styles.begin}>
+            <legend className={styles.label}>How do you want to begin?</legend>
+            {BEGINNINGS.map((b) => (
+              <label
+                key={b.id}
+                className={`${styles.beginOption} ${begin === b.id ? styles.beginChosen : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="begin"
+                  value={b.id}
+                  checked={begin === b.id}
+                  onChange={() => setBegin(b.id)}
+                />
+                <span>
+                  <span className={styles.beginName}>{b.label}</span>
+                  <span className={styles.beginHint}>{b.hint}</span>
+                </span>
+              </label>
+            ))}
+          </fieldset>
         </form>
       </Modal>
     </>
