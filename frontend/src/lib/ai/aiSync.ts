@@ -11,11 +11,6 @@ import { publish, subscribe, toSynced, type PanelMessage, type WindowRole } from
 let applying = false;
 let started = false;
 
-/** True while another window has the AI panel open — the main window shows a strip. */
-export function useOtherWindow(): boolean {
-  return useAIStore((s) => s.otherWindowOpen);
-}
-
 function applyState(sessions: AISession[], activeSessionId: string | null): void {
   applying = true;
   try {
@@ -30,7 +25,7 @@ function applyState(sessions: AISession[], activeSessionId: string | null): void
   }
 }
 
-function onMessage(message: PanelMessage, role: WindowRole): void {
+function onMessage(message: PanelMessage): void {
   if (message.kind === "state") {
     applyState(message.sessions as AISession[], message.activeSessionId);
   } else if (message.kind === "delta") {
@@ -45,15 +40,13 @@ function onMessage(message: PanelMessage, role: WindowRole): void {
       applying = false;
     }
   } else if (message.kind === "hello") {
-    // A window just opened: tell it what we have, and note whether it is the AI window.
+    // A window just opened: tell it what we have. Which window holds the panel is the
+    // panel's own business now (panelStore.frame, lib/panel/panelSync.ts).
     publish({
       kind: "state",
       sessions: toSynced(useAIStore.getState().sessions),
       activeSessionId: useAIStore.getState().activeSessionId,
     });
-    if (role === "main" && message.role === "ai-window") useAIStore.setState({ otherWindowOpen: true });
-  } else if (message.kind === "bye") {
-    if (role === "main" && message.role === "ai-window") useAIStore.setState({ otherWindowOpen: false });
   }
 }
 
@@ -64,7 +57,7 @@ export function startAISync(role: WindowRole): () => void {
   if (started) return () => {};
   started = true;
 
-  const stopChannel = subscribe((message) => onMessage(message, role));
+  const stopChannel = subscribe(onMessage);
 
   let lastSessions = useAIStore.getState().sessions;
   let lastActive = useAIStore.getState().activeSessionId;

@@ -57,22 +57,6 @@ export interface AISession {
 }
 
 interface AIStore {
-  // ── Panel state ──────────────────────────────────────────────────────────
-  panelOpen: boolean;
-  panelCollapsed: boolean;
-  /** Floating: the panel detaches from the right rail into a draggable window (doc 06 §2.2). */
-  panelFloating: boolean;
-  /** True while the panel is open in its own browser window; the main window shows a strip. */
-  otherWindowOpen: boolean;
-
-  openPanel: () => void;
-  closePanel: () => void;
-  collapsePanel: () => void;
-  expandPanel: () => void;
-  togglePanel: () => void;
-  setPanelFloating: (floating: boolean) => void;
-  togglePanelFloating: () => void;
-
   // ── Session management ───────────────────────────────────────────────────
   sessions: AISession[];
   activeSessionId: string | null;
@@ -203,34 +187,6 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
 }
 
 export const useAIStore = create<AIStore>((set, get) => ({
-  panelOpen: false,
-  panelCollapsed: false,
-  panelFloating: false,
-  otherWindowOpen: false,
-
-  // The assistant lives in the side panel's Assistant tab (doc 11 P5); these delegate so
-  // every caller of the old panel actions keeps working.
-  openPanel: () => {
-    usePanelStore.getState().openAssistant();
-    set({ panelOpen: true, panelCollapsed: false });
-  },
-  closePanel: () => {
-    usePanelStore.getState().activate("scene");
-    set({ panelOpen: false });
-  },
-  collapsePanel: () => get().closePanel(),
-  expandPanel: () => get().openPanel(),
-  setPanelFloating: (floating) => {
-    usePanelStore.getState().setFrame(floating ? "floating" : "docked");
-    set({ panelFloating: floating, panelCollapsed: false, panelOpen: true });
-  },
-  togglePanelFloating: () => get().setPanelFloating(usePanelStore.getState().frame !== "floating"),
-
-  togglePanel: () => {
-    usePanelStore.getState().toggleAssistant();
-    set({ panelOpen: usePanelStore.getState().activeTabId === "assistant" });
-  },
-
   sessions: [],
   activeSessionId: null,
   _pendingChronicle: {},
@@ -262,8 +218,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: [...s.sessions, session],
       activeSessionId: session.id,
-      panelOpen: true,
-      panelCollapsed: false,
     }));
     // A new session is something to look at: show the Assistant tab.
     usePanelStore.getState().openAssistant();
@@ -319,8 +273,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: [...s.sessions, session],
       activeSessionId: session.id,
-      panelOpen: true,
-      panelCollapsed: false,
     }));
     return session;
   },
@@ -395,8 +347,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: [...s.sessions, session],
       activeSessionId: session.id,
-      panelOpen: true,
-      panelCollapsed: false,
     }));
     // A new session is something to look at: show the Assistant tab.
     usePanelStore.getState().openAssistant();
@@ -636,8 +586,6 @@ export const useAIStore = create<AIStore>((set, get) => ({
     set((s) => ({
       sessions: [...s.sessions, session],
       activeSessionId: session.id,
-      panelOpen: true,
-      panelCollapsed: false,
     }));
     // A new session is something to look at: show the Assistant tab.
     usePanelStore.getState().openAssistant();

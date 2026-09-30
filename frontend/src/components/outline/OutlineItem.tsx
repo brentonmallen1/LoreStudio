@@ -13,7 +13,7 @@ import {
 import type { OutlineItem as OutlineItemType, StructureNode } from "../../types";
 import styles from "./OutlineItem.module.css";
 
-// Module-level drag ID — same pattern as StructureTreePanel
+// Module-level drag ID — same pattern as the story strip's full tree
 export let _draggedId: string | null = null;
 
 type DropZone = "above" | "below" | "into" | null;

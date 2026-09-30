@@ -309,6 +309,9 @@ for (const stale of [
   "ls_tree_panel_width",
   "ls_sidebar_collapsed",
   "ls_sidebar_closed",
+  "ls_ai_panel_width",
+  "ls_ai_panel_rect",
+  "ls_ai_panel_open",
 ]) {
   try {
     localStorage.removeItem(stale);

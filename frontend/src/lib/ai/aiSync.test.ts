@@ -49,7 +49,7 @@ describe("AI panel sync", () => {
     vi.resetModules();
     ({ useAIStore } = await import("../../stores/aiStore"));
     const { startAISync } = await import("./aiSync");
-    useAIStore.setState({ sessions: [], activeSessionId: null, otherWindowOpen: false });
+    useAIStore.setState({ sessions: [], activeSessionId: null });
     stop = startAISync("main");
   });
 
@@ -86,12 +86,5 @@ describe("AI panel sync", () => {
     });
     expect(useAIStore.getState().sessions.map((s) => s.id)).toEqual(["remote"]);
     expect(sent.filter((m) => (m as { kind: string }).kind === "state")).toEqual([]);
-  });
-
-  it("notes when the panel opens in its own window, and when it closes", () => {
-    listener?.({ data: { kind: "hello", from: "other", role: "ai-window" } });
-    expect(useAIStore.getState().otherWindowOpen).toBe(true);
-    listener?.({ data: { kind: "bye", from: "other", role: "ai-window" } });
-    expect(useAIStore.getState().otherWindowOpen).toBe(false);
   });
 });

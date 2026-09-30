@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { useHealthStore } from "../../stores/healthStore";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { CircleHelp, GitBranch, Lightbulb, MapPin, MoreHorizontal, Users } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
+import { TOOL_ICONS } from "../panel/toolIcons";
 import { useMode } from "../../lib/mode";
 import { DOMAIN_LABELS, routesFor, storyPath, type Domain } from "../../lib/routes";
 import { usePanelStore } from "../../stores/panelStore";
@@ -10,12 +11,12 @@ import { useStoryStore } from "../../stores/storyStore";
 import { toolTabId, type ToolId } from "../../types/panel";
 import styles from "./Strip.module.css";
 
-const TOOLS: { tool: ToolId; label: string; icon: typeof Users }[] = [
-  { tool: "characters", label: "Characters", icon: Users },
-  { tool: "places", label: "Places", icon: MapPin },
-  { tool: "threads", label: "Plot threads", icon: GitBranch },
-  { tool: "ideas", label: "Ideas", icon: Lightbulb },
-  { tool: "questions", label: "Open questions", icon: CircleHelp },
+const TOOLS: { tool: ToolId; label: string; icon: (typeof TOOL_ICONS)[ToolId] }[] = [
+  { tool: "characters", label: "Characters", icon: TOOL_ICONS.characters },
+  { tool: "places", label: "Places", icon: TOOL_ICONS.places },
+  { tool: "threads", label: "Plot threads", icon: TOOL_ICONS.threads },
+  { tool: "ideas", label: "Ideas", icon: TOOL_ICONS.ideas },
+  { tool: "questions", label: "Open questions", icon: TOOL_ICONS.questions },
 ];
 
 const DOMAIN_ORDER: Domain[] = ["manuscript", "lorebook", "compendium", "codex", "chronicle", "system"];

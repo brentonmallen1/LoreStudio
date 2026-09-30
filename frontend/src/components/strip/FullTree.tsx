@@ -18,7 +18,7 @@ import {
   visibleIds,
 } from "../layout/structureTreeMeta";
 import { filterTree } from "../../lib/strip/filterTree";
-import tree from "../layout/StructureTreePanel.module.css";
+import tree from "./Tree.module.css";
 import styles from "./Strip.module.css";
 
 /**

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, Menu, PanelRight, PictureInPicture2, X } from "lucide-react";
+import { ChevronsRight, ExternalLink, Menu, PanelRight, PictureInPicture2, X } from "lucide-react";
 import { useAIAvailable } from "../../lib/mode";
+import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import AssistantTab from "./AssistantTab";
 import { fitTabs } from "../../lib/panel/overflow";
@@ -133,10 +134,10 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
           <button
             className={styles.controlBtn}
             onClick={() => setOpen(false)}
-            title="Hide the side panel"
-            aria-label="Hide the side panel"
+            title={`Collapse the side panel (${formatCombo(SHORTCUTS.togglePanel.combo)})`}
+            aria-label="Collapse the side panel"
           >
-            <X size={13} />
+            <ChevronsRight size={13} />
           </button>
         </div>
       )}

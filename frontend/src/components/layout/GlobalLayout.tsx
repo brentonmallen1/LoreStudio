@@ -6,7 +6,6 @@ import { useUIStore } from "../../stores/uiStore";
 import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
 import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shortcuts";
-import { useAIStore } from "../../stores/aiStore";
 import { startAISync } from "../../lib/ai/aiSync";
 import { startPanelSync } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
@@ -49,7 +48,11 @@ export default function GlobalLayout() {
       // off; the whole side panel floats or docks with ⌘⇧J in both modes (doc 11 P5).
       if (aiAvailable && matchesCombo(e, SHORTCUTS.toggleAIPanel.combo)) {
         e.preventDefault();
-        useAIStore.getState().togglePanel();
+        usePanelStore.getState().toggleAssistant();
+      }
+      if (matchesCombo(e, SHORTCUTS.togglePanel.combo)) {
+        e.preventDefault();
+        usePanelStore.getState().toggle();
       }
       if (matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
         e.preventDefault();

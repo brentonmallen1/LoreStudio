@@ -636,3 +636,93 @@
 .awayBtn:hover {
   text-decoration: underline;
 }
+
+/* ── Collapsed: a slim rail of the tabs down the right edge (doc 11 P7) ── */
+.rail {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 36px;
+  height: 100%;
+  padding: 0.35rem 0;
+  border-left: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.railTabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.35rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.railBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.railBtn:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.railBtnOn {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+  box-shadow: inset 2px 0 0 var(--color-text);
+}
+
+.railDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+}
+
+.railAi {
+  color: var(--color-ai);
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--color-border-light);
+  border-radius: 0;
+  height: auto;
+  padding-bottom: 2px;
+}
+
+.railAi.railBtnOn {
+  box-shadow: inset 2px 0 0 var(--color-ai);
+}
+
+.railCount {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  font-size: 0.58rem;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+}

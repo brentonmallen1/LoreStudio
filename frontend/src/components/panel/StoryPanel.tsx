@@ -3,6 +3,7 @@ import { useAIAvailable } from "../../lib/mode";
 import { usePanelStore } from "../../stores/panelStore";
 import EntityTab from "./EntityTab";
 import PanelFrame from "./PanelFrame";
+import CollapsedRail from "./CollapsedRail";
 import TabStrip from "./TabStrip";
 import ThisSceneTab from "./ThisSceneTab";
 import ToolTab from "./ToolTab";
@@ -19,7 +20,9 @@ const AssistantTabBody = lazy(() => import("../ai/AssistantTabBody"));
 export default function StoryPanel({ fill = false }: { fill?: boolean }) {
   const { open, tabs, activeTabId, frame } = usePanelStore();
   const aiAvailable = useAIAvailable();
-  if (!open && !fill) return null;
+  // Hidden, the docked panel leaves a slim rail of its tabs so it can come back on any of
+  // them; floating or popped out there is nothing to leave behind.
+  if (!open && !fill) return frame === "docked" ? <CollapsedRail /> : null;
   const showAssistant = activeTabId === "assistant" && aiAvailable;
   const active = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
 

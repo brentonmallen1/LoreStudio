@@ -29,7 +29,6 @@ import type {
   EditorFontSize,
   EditorLineWidth,
 } from "../../stores/uiStore";
-import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { hasScratchPadContent } from "../common/ScratchPadDrawer";
 import { api } from "../../api/client";
@@ -90,7 +89,6 @@ export default function GlobalHeader() {
     toggleScratchPad,
     scratchPadOpen,
   } = useUIStore();
-  const { togglePanel } = useAIStore();
   const panelOpen = usePanelStore((s) => s.open && s.activeTabId === "assistant");
 
   const isFocused = viewState === "focus";
@@ -168,7 +166,7 @@ export default function GlobalHeader() {
 
   function handleAssistantToggle() {
     if (!aiAvailable) return;
-    togglePanel();
+    usePanelStore.getState().toggleAssistant();
   }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 

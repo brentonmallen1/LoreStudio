@@ -65,6 +65,14 @@ export const SHORTCUTS = {
     modes: ["studio"],
     commandId: "toggle-ai-panel",
   },
+  togglePanel: {
+    combo: "mod+.",
+    label: "Show or hide the side panel",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "panel-toggle",
+  },
   floatAIPanel: {
     combo: "mod+shift+j",
     label: "Float or dock the side panel",

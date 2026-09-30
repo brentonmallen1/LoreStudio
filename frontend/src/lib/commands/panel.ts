@@ -7,6 +7,7 @@ import { commandRegistry } from "./registry";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { ToolId } from "../../types/panel";
+import { SHORTCUTS } from "../keyboard/shortcuts";
 
 const inStory = () => !!useStoryStore.getState().activeStory;
 
@@ -49,6 +50,7 @@ commandRegistry.register({
   keywords: ["panel", "notes", "sidebar", "tabs", "hide", "show"],
   icon: PanelRight,
   group: "View",
+  shortcut: SHORTCUTS.togglePanel.combo,
   when: inStory,
   action: () => usePanelStore.getState().toggle(),
 });

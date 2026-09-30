@@ -6,7 +6,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 import { getSegmentIcon, segmentColor } from "./structureTreeMeta";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
-import styles from "./StructureTreePanel.module.css";
+import styles from "../strip/Tree.module.css";
 
 // Shared across every row so a drop knows what was picked up.
 const dragState: { id: string | null } = { id: null };

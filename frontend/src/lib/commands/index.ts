@@ -144,12 +144,12 @@ commandRegistry.register({
   group: "AI",
   shortcut: formatCombo(SHORTCUTS.assistant.combo),
   action: async () => {
-    const { sessions, createSession, setActiveSession, openPanel } = useAIStore.getState();
+    const { sessions, createSession, setActiveSession } = useAIStore.getState();
     const { activeStory, activeNode } = useStoryStore.getState();
     const existing = sessions.find((s) => s.type === "assistant");
     if (existing) {
       setActiveSession(existing.id);
-      openPanel();
+      usePanelStore.getState().openAssistant();
     } else {
       await createSession("assistant", {
         storyId: activeStory?.id,
@@ -385,7 +385,7 @@ commandRegistry.register({
   group: "AI",
   shortcut: formatCombo(SHORTCUTS.toggleAIPanel.combo),
   action: () => {
-    useAIStore.getState().togglePanel();
+    usePanelStore.getState().toggleAssistant();
   },
 });
 

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Geometry for the AI panel in both its shapes (doc 06 §2.2, tier 1).
+ * Geometry for the side panel in both its shapes (doc 06 §2.2, doc 11 P5).
  *
  * Docked, the panel is a right rail with a width. Floating, it is a window with a
  * position and a size that the author drags around — over the manuscript, or onto a
- * second monitor once the panel can open in its own window. Both are per-browser
- * preferences, so they live in localStorage rather than on the account.
+ * second monitor. Both are per-browser preferences, so they live in localStorage rather
+ * than on the account.
  */
 export interface Rect {
   x: number;
