@@ -31,9 +31,7 @@
 .rightTitle {
   font-size: 0.78rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
   margin: 0;
 }
 

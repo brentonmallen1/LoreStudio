@@ -22,6 +22,11 @@ Two things fail here.
    near-miss for `--color-text-muted`, and 48 rules using it were dead. The 161
    references in the tree when this went in are all resolved; the lock is empty.
 
+3. `text-transform: uppercase` in a component stylesheet. Labels are sentence case in the
+   section-title colour (DESIGN.md); small capitals were 140 rules of 9–11px grey text
+   that read as shouting and failed contrast. Acronyms are written in capitals in the
+   source and need no transform. Nothing is locked: one fails at once.
+
 Usage:
     python3 scripts/check-tokens.py            # check
     python3 scripts/check-tokens.py --update   # reprint both debt blocks
@@ -110,6 +115,18 @@ def count_undefined() -> dict[str, int]:
     return counts
 
 
+UPPERCASE = re.compile(r"text-transform:\s*uppercase")
+
+
+def uppercase_rules() -> list[str]:
+    found = []
+    for path in component_styles():
+        for i, line in enumerate(path.read_text().splitlines(), 1):
+            if UPPERCASE.search(line):
+                found.append(f"{path.relative_to(ROOT)}:{i}")
+    return found
+
+
 def ratchet(counts: dict[str, int], locks: dict[str, int], what: str, fix: str) -> tuple[list[str], list[str]]:
     problems: list[str] = []
     notes: list[str] = []
@@ -149,6 +166,10 @@ def main() -> int:
     )
     problems += more
     notes += extra
+    problems += [
+        f"{where}: text-transform: uppercase. Write the label in sentence case instead."
+        for where in uppercase_rules()
+    ]
 
     for note in notes:
         print(f"  · {note}")

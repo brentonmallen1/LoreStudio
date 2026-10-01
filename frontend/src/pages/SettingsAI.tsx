@@ -153,7 +153,7 @@ export default function SettingsAIPage() {
         {/* Core Prompt */}
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionLabel}>Core System Prompt</h2>
+            <h2 className={styles.sectionLabel}>Core system prompt</h2>
             {settings?.core_prompt_is_custom && <span className={styles.customBadge}>Custom</span>}
           </div>
           <p className={styles.sectionDesc}>
@@ -186,7 +186,7 @@ export default function SettingsAIPage() {
 
         {/* Feature Prompts */}
         <section className={styles.section}>
-          <h2 className={styles.sectionLabel}>Feature Prompts</h2>
+          <h2 className={styles.sectionLabel}>Feature prompts</h2>
           <p className={styles.sectionDesc}>
             Appended to the core prompt for specific features. Leave blank to use the built-in default.
           </p>

@@ -111,11 +111,9 @@
 
 .groupLabel {
   padding: 0.5rem 1rem 0.25rem;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
+  color: var(--color-section-title);
 }
 
 .item {
@@ -267,11 +265,9 @@
   align-items: center;
   gap: 5px;
   padding: 0.3rem 0.9rem 0.1rem;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
 }
 
 .lastRunBadge {

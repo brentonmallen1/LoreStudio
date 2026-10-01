@@ -21,10 +21,8 @@
 }
 
 .key {
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }
 
 .list {

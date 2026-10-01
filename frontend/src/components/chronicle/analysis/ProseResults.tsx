@@ -56,7 +56,7 @@ export function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
             </div>
             {scene.passive_voice && scene.passive_voice.passive_count > 0 && (
               <div className={styles.checkGroup}>
-                <span className={styles.checkLabel}>Passive Voice ({scene.passive_voice.percentage}%)</span>
+                <span className={styles.checkLabel}>Passive voice ({scene.passive_voice.percentage}%)</span>
                 {scene.passive_voice.findings.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
                     <SeverityIcon severity={f.severity} />
@@ -90,7 +90,7 @@ export function ProseResultDisplay({ result }: { result: ProseNLPResponse }) {
             {scene.repeated_words && scene.repeated_words.findings.length > 0 && (
               <div className={styles.checkGroup}>
                 <span className={styles.checkLabel}>
-                  Repeated Words ({scene.repeated_words.findings.length})
+                  Repeated words ({scene.repeated_words.findings.length})
                 </span>
                 {scene.repeated_words.findings.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
@@ -192,7 +192,7 @@ export function EditorialResultDisplay({ result }: { result: EditorialConsistenc
             {tenseIssues.length > 0 && (
               <div className={styles.checkGroup}>
                 <span className={styles.checkLabel}>
-                  Tense Shifts ({tenseIssues.length}), dominant: {scene.tense_consistency?.dominant_tense}
+                  Tense shifts ({tenseIssues.length}), dominant: {scene.tense_consistency?.dominant_tense}
                 </span>
                 {tenseIssues.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>

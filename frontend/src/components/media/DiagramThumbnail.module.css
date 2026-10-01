@@ -52,10 +52,8 @@
 }
 
 .type {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 

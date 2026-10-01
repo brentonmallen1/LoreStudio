@@ -126,11 +126,9 @@
 }
 
 .checkLabel {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-section-title);
   display: block;
   margin-bottom: 0.2rem;
 }
@@ -227,11 +225,9 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-nlp);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   padding-bottom: 0.25rem;
   border-bottom: 1px solid var(--color-border-light);
 }

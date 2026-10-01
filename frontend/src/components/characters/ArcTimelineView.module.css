@@ -278,11 +278,9 @@
 }
 
 .mentionTitle {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   color: var(--color-nlp);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   flex-shrink: 0;
 }
 

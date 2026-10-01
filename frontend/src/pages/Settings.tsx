@@ -503,7 +503,7 @@ export default function SettingsPage() {
 
               {/* LLM Parameters */}
               <section className={styles.section} id="model-parameters">
-                <h2 className={styles.sectionLabel}>Model Parameters</h2>
+                <h2 className={styles.sectionLabel}>Model parameters</h2>
                 <div className={styles.card}>
                   {/* Temperature */}
                   <div className={styles.field}>

@@ -236,11 +236,9 @@
 
 .positioningLabel {
   display: block;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
   margin-bottom: 0.3rem;
 }
 

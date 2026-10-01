@@ -366,11 +366,9 @@
 
 .sectionLabel {
   margin: 0 0 0.45rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
+  color: var(--color-section-title);
 }
 
 .sentence {

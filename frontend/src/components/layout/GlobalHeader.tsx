@@ -355,7 +355,7 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownDivider} />
 
                 <div className={styles.dropdownSection}>
-                  <span className={styles.dropdownLabel}>Color Mode</span>
+                  <span className={styles.dropdownLabel}>Color mode</span>
                   <div className={styles.btnRow}>
                     {colorModeOptions.map(({ value, label, Icon }) => {
                       const isDisabled = value === "light" && THEME_META[themeName].darkOnly;
@@ -377,7 +377,7 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownDivider} />
 
                 <div className={styles.dropdownSection}>
-                  <span className={styles.dropdownLabel}>Editor Font</span>
+                  <span className={styles.dropdownLabel}>Editor font</span>
                   <select
                     className={styles.fontSelect}
                     value={editorFontFamily}
@@ -397,7 +397,7 @@ export default function GlobalHeader() {
                 </div>
 
                 <div className={styles.dropdownSection}>
-                  <span className={styles.dropdownLabel}>Font Size</span>
+                  <span className={styles.dropdownLabel}>Font size</span>
                   <div className={styles.btnRow}>
                     {sizeOptions.map(({ value, label }) => (
                       <button
@@ -412,7 +412,7 @@ export default function GlobalHeader() {
                 </div>
 
                 <div className={styles.dropdownSection}>
-                  <span className={styles.dropdownLabel}>Line Width</span>
+                  <span className={styles.dropdownLabel}>Line width</span>
                   <div className={styles.btnRow}>
                     {widthOptions.map(({ value, label }) => (
                       <button

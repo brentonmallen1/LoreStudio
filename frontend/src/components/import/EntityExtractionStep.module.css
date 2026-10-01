@@ -347,11 +347,9 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-section-title);
 }
 
 /* ── Candidate card (used by ExtractionCandidateCard) ── */

@@ -216,10 +216,8 @@
 }
 
 .snBadge {
-  font-size: 0.58rem;
+  font-size: var(--text-xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
   color: #fff;
   padding: 1px 5px;
   border-radius: 3px;

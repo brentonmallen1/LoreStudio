@@ -38,9 +38,7 @@
 .groupLabel {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-text-muted);
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  color: var(--color-section-title);
 }
 
 /* Feature card */
@@ -150,9 +148,7 @@
 .detailLabel {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-section-title);
 }
 
 .noPromptNote {

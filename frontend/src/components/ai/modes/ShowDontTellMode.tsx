@@ -183,7 +183,7 @@ export default function ShowDontTellMode({ session }: Props) {
           {/* Instances grouped by severity */}
           {strong.length > 0 && (
             <section className={styles.group}>
-              <p className={styles.groupLabel}>Strong Telling</p>
+              <p className={styles.groupLabel}>Strong telling</p>
               {strong.map((inst, i) => (
                 <InstanceCard key={i} instance={inst} />
               ))}

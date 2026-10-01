@@ -162,7 +162,7 @@ export function ThemeResultDisplay({ result }: { result: StructuredResult }) {
       )}
       {data.gaps?.length > 0 && (
         <div className={styles.checkGroup}>
-          <span className={styles.checkLabel}>Thematic Gaps</span>
+          <span className={styles.checkLabel}>Thematic gaps</span>
           {data.gaps.map((g, i) => (
             <p key={i} className={styles.note}>
               {g}
@@ -211,7 +211,7 @@ export function PlotHolesResultDisplay({ result }: { result: StructuredResult })
       )}
       {data.logic_gaps?.length > 0 && (
         <div className={styles.checkGroup}>
-          <span className={styles.checkLabel}>Logic Gaps</span>
+          <span className={styles.checkLabel}>Logic gaps</span>
           {data.logic_gaps.map((g, i) => (
             <p key={i} className={styles.note}>
               {g}
@@ -221,7 +221,7 @@ export function PlotHolesResultDisplay({ result }: { result: StructuredResult })
       )}
       {data.unanswered_questions?.length > 0 && (
         <div className={styles.checkGroup}>
-          <span className={styles.checkLabel}>Unanswered Questions</span>
+          <span className={styles.checkLabel}>Unanswered questions</span>
           {data.unanswered_questions.map((q, i) => (
             <p key={i} className={styles.note}>
               {q}
@@ -249,7 +249,7 @@ function FirstPassGapsDisplay({
   if (!gaps || gaps.length === 0) return null;
   return (
     <div className={styles.checkGroup}>
-      <span className={styles.checkLabel}>Intent Gaps ({gaps.length})</span>
+      <span className={styles.checkLabel}>Intent gaps ({gaps.length})</span>
       {gaps.map((gap, i) => {
         const SevIcon = SEVERITY_ICON[gap.severity] ?? MinusCircle;
         return (

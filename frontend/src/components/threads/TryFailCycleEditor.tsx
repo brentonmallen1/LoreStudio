@@ -47,7 +47,7 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
     <div className={styles.wrap}>
       <button className={styles.toggle} onClick={() => setExpanded((v) => !v)} type="button">
         <span className={styles.toggleLabel}>
-          Try/Fail Cycles
+          Try/Fail cycles
           {cycleCount > 0 && <span className={styles.count}>{cycleCount}</span>}
         </span>
         <span className={styles.chevron}>{expanded ? "▲" : "▼"}</span>

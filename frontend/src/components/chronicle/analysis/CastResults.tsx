@@ -252,7 +252,7 @@ export function CharacterDimensionalityDisplay({ result }: { result: StructuredR
       {data.ensemble_dynamics && (
         <div className={styles.checkGroup} style={{ marginTop: "0.35rem" }}>
           <span className={styles.checkLabel} style={{ color: "var(--color-ai)" }}>
-            Ensemble Dynamics
+            Ensemble dynamics
           </span>
           <p className={styles.issueSuggestion}>{data.ensemble_dynamics}</p>
         </div>

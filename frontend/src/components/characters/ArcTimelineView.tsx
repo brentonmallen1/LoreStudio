@@ -255,7 +255,7 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
       {/* Mention Discovery */}
       <div className={styles.mentionSection}>
         <div className={styles.mentionHeader}>
-          <span className={styles.mentionTitle}>Mention Discovery</span>
+          <span className={styles.mentionTitle}>Mention discovery</span>
           <span className={styles.mentionHint}>Scan scenes for untagged references to {characterName}</span>
         </div>
         <MentionReviewPanel

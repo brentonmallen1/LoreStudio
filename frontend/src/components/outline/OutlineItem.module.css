@@ -256,12 +256,10 @@
 .beatBadge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   padding: 0.1rem 0.35rem;
   border-radius: 9999px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .beatBadge.plot {

@@ -170,7 +170,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
           {/* Custom templates section */}
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionTitle}>My Templates</span>
+              <span className={styles.sectionTitle}>My templates</span>
               <button onClick={startCreate} className={styles.newBtn}>
                 <Plus size={12} /> New
               </button>

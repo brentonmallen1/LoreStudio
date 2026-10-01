@@ -82,11 +82,9 @@
 }
 
 .sceneTitle {
-  font-size: 0.73rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-section-title);
   padding-bottom: 0.2rem;
   border-bottom: 1px solid var(--color-border-light);
 }

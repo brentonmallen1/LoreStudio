@@ -244,7 +244,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
         {pubPrepOpen && aiAvailable && (
           <div className={styles.exportDrawer}>
             <div className={styles.exportDrawerHeader}>
-              <span className={styles.exportDrawerTitle}>Publication Prep</span>
+              <span className={styles.exportDrawerTitle}>Publication prep</span>
               <button
                 className={styles.exportDrawerClose}
                 onClick={() => setPubPrepOpen(false)}

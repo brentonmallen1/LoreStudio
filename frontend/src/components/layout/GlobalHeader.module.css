@@ -320,11 +320,9 @@
 }
 
 .dropdownLabel {
-  font-size: 0.67rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--color-section-title);
   padding: 0 0.3rem;
 }
 

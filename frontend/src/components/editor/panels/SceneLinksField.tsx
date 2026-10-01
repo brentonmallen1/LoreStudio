@@ -83,7 +83,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
 
   const typeSelect = (
     <div className={styles.modalField}>
-      <label className={styles.modalLabel}>Link Type</label>
+      <label className={styles.modalLabel}>Link type</label>
       <select
         value={form.type}
         onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
@@ -173,7 +173,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
             </div>
             <div className={styles.modalBody}>
               <div className={styles.modalField}>
-                <label className={styles.modalLabel}>Target Scene</label>
+                <label className={styles.modalLabel}>Target scene</label>
                 <input
                   type="text"
                   placeholder="Search scenes…"

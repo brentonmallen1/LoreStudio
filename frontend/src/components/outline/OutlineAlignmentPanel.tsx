@@ -162,7 +162,7 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
             {/* Unplanned content */}
             {result.unplanned_content.length > 0 && (
               <div className={styles.section}>
-                <h4 className={styles.sectionTitle}>Unplanned Content</h4>
+                <h4 className={styles.sectionTitle}>Unplanned content</h4>
                 <ul className={styles.simpleList}>
                   {result.unplanned_content.map((item, i) => (
                     <li key={i}>{item}</li>

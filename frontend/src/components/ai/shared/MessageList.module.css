@@ -157,10 +157,8 @@
   cursor: pointer;
   padding: 0.4rem 0.65rem;
   color: var(--color-ai);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   user-select: none;
   list-style: none;
 }

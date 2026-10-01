@@ -200,7 +200,7 @@ export default function CharacterDialogueActionToolbar({
         <span className={styles.toolbarChevron}>
           {collapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
         </span>
-        <span className={styles.toolbarTitle}>Dialogue Analysis</span>
+        <span className={styles.toolbarTitle}>Dialogue analysis</span>
         <div className={styles.toolbarLegend}>
           <span
             className={styles.legendItem}

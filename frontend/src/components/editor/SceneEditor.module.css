@@ -38,11 +38,9 @@
 
 /* Type selector (dropdown when template is known) */
 .typeSelect {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
@@ -66,10 +64,8 @@
 
 /* Fallback static badge (no template) */
 .typeBadge {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
@@ -433,10 +429,8 @@
 }
 
 .staleBadge {
-  font-size: 0.62rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   color: var(--color-warning);
   background: color-mix(in srgb, var(--color-warning) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-warning) 30%, transparent);
@@ -693,10 +687,8 @@
 }
 
 .modalLabel {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
   color: var(--color-section-title);
 }
 
@@ -768,11 +760,9 @@
 }
 
 .nodeListType {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   flex-shrink: 0;
 }
 
@@ -1298,10 +1288,8 @@
 
 /* Dialogue mode indicator in the mention dropdown header */
 .mentionDropdownDialogueMode {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--color-accent);
   padding: 0.375rem 0.75rem 0.125rem;
   border-bottom: 1px solid var(--color-border-light);
@@ -1439,8 +1427,6 @@
   color: var(--color-accent);
   text-align: right;
   font-size: 0.8125rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
@@ -1638,10 +1624,8 @@
 }
 
 .slashDropdownHint {
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
   color: var(--color-text-muted);
   padding: 0.375rem 0.75rem 0.2rem;
   margin: 0;
@@ -1736,11 +1720,9 @@
 }
 
 .hoverCardLabel {
-  font-size: 0.63rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-subtle);
+  color: var(--color-section-title);
   flex-shrink: 0;
 }
 
@@ -1762,10 +1744,8 @@
 }
 
 .hoverCardPlan dt {
-  color: var(--color-text-subtle);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
   padding-top: 0.1rem;
 }
 
@@ -2008,10 +1988,8 @@
 }
 
 .todoInputHint {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--color-todo);
   margin: 0;
 }

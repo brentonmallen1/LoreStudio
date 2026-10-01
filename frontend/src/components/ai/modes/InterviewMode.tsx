@@ -341,7 +341,7 @@ export default function InterviewMode({ session }: Props) {
           <div className={styles.notesHeader}>
             <span className={styles.notesLabel}>
               <Brain size={11} />
-              Captured Insights
+              Captured insights
             </span>
             <div className={styles.notesActions}>
               {summaryText && !isSummarizing && (

@@ -19,9 +19,7 @@
 
 .eyebrow {
   font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-text-subtle);
+  color: var(--color-section-title);
 }
 
 .beat {

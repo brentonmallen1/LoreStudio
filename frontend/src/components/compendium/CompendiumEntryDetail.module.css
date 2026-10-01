@@ -242,9 +242,7 @@
 .sectionTitle {
   font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-subtle);
+  color: var(--color-section-title);
   margin-bottom: 0.5rem;
 }
 

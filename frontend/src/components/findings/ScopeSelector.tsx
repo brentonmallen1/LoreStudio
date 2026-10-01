@@ -73,7 +73,7 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
 
               {leaves.length > 0 && (
                 <>
-                  <div className={styles.groupLabel}>Individual Scenes</div>
+                  <div className={styles.groupLabel}>Individual scenes</div>
                   {leaves.map((n) => (
                     <label key={n.id} className={styles.checkRow}>
                       <input
