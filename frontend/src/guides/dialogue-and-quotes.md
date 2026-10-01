@@ -7,7 +7,7 @@ LoreStudio keeps track of who says what, without changing how you write.
 Three ways, all producing `"…"<Name>` in the prose:
 
 1. Type `^` and pick the speaker: an empty quoted line appears with the cursor inside.
-2. Select spoken text and press **⌘⇧D** (or _Attribute_ in the selection toolbar).
+2. Select spoken text and press **{{key:attributeDialogue}}** (or _Attribute_ in the selection toolbar).
 3. After a closing quote type `<` and the speaker's name; the picker completes it.
 
 Unattributed quotes are still detected. The **Dialogue** view (top bar) shows every line as a bubble, marks inferred and unattributed speakers, and lets you fix them in bulk with _Tag Suggestions_ (heuristic, no AI).

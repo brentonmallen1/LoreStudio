@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
  * of them survived Stage 2 (Show/Tell and Audience), and the palette advertised ⌘⇧I for
  * the interview picker while the table had given ⌘⇧I to Insert image.
  *
- * Comments may mention a combo; rendered text may not.
+ * Comments may mention a combo; rendered text may not. Guides write `{{key:id}}`.
  */
 const SRC = join(__dirname, "..", "..");
 const ALLOWED = ["lib/keyboard/shortcuts.ts"];
@@ -18,7 +18,7 @@ function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
     if (statSync(path).isDirectory()) return sourceFiles(path);
-    return /\.(ts|tsx)$/.test(entry) && !entry.endsWith(".test.ts") && !entry.endsWith(".test.tsx")
+    return /\.(ts|tsx|md)$/.test(entry) && !entry.endsWith(".test.ts") && !entry.endsWith(".test.tsx")
       ? [path]
       : [];
   });

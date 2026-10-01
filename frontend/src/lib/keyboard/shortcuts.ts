@@ -50,7 +50,8 @@ export const SHORTCUTS = {
     commandId: "strip-cycle-width",
   },
   scratchPad: {
-    combo: "mod+shift+p",
+    // Not ⌘⇧P: Firefox keeps that for a new private window and never shows it to the page.
+    combo: "mod+alt+p",
     label: "Scratch pad",
     group: "Global",
     scope: "global",
@@ -99,8 +100,9 @@ export const SHORTCUTS = {
   },
   find: { combo: "mod+f", label: "Find in scene", group: "Editor", scope: "editor", modes: BOTH },
   inlineNote: {
-    combo: "mod+shift+n",
-    label: "Add inline note",
+    // Google Docs' comment combo. Not ⌘⇧N: Chrome keeps that for a new incognito window.
+    combo: "mod+alt+m",
+    label: "Add a note",
     group: "Editor",
     scope: "editor",
     modes: BOTH,
@@ -145,7 +147,25 @@ export function matchesCombo(e: KeyboardEvent | React.KeyboardEvent, combo: stri
   if (wantShift !== e.shiftKey) return false;
   if (wantAlt !== e.altKey) return false;
   if (!wantMod && !wantShift && !wantAlt && key === "?") return e.key === "?";
-  return e.key.toLowerCase() === key;
+  if (e.key.toLowerCase() === key) return true;
+  // ⌥ changes the character on macOS (⌥M is "µ"), so match the physical key as well.
+  return wantAlt && "code" in e && e.code === KEY_CODES[key];
+}
+
+const KEY_CODES: Record<string, string> = Object.fromEntries([
+  ..."abcdefghijklmnopqrstuvwxyz".split("").map((c) => [c, `Key${c.toUpperCase()}`]),
+  ..."0123456789".split("").map((d) => [d, `Digit${d}`]),
+  [".", "Period"],
+  ["/", "Slash"],
+  ["\\", "Backslash"],
+]);
+
+/** The same combo in TipTap's keymap spelling: "mod+alt+m" → "Mod-Alt-m". */
+export function editorKey(combo: string): string {
+  return combo
+    .split("+")
+    .map((p) => (p === "mod" ? "Mod" : p === "alt" ? "Alt" : p === "shift" ? "Shift" : p))
+    .join("-");
 }
 
 /** "mod+shift+k" → "⌘⇧K" on macOS, "Ctrl+Shift+K" elsewhere. */

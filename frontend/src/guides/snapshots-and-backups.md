@@ -4,7 +4,7 @@ Three layers protect your work.
 
 ## Undo (seconds)
 
-**⌘Z / ⌘⇧Z** undo and redo changes to titles, structure, characters, relationships, locations, outlines, TODOs and story identity. Prose keystrokes use the editor's own history. The header shows what will be undone. Undo is per browser tab; **Chronicle › Changes** can reverse the latest change from any tab and lists everything.
+**{{key:undo}} / {{key:redo}}** undo and redo changes to titles, structure, characters, relationships, locations, outlines, TODOs and story identity. Prose keystrokes use the editor's own history. The header shows what will be undone. Undo is per browser tab; **Chronicle › Changes** can reverse the latest change from any tab and lists everything.
 
 ## Snapshots (minutes to days)
 

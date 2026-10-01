@@ -72,7 +72,7 @@ export default function SelectionToolbar({
       <button
         className={styles.btn}
         onClick={onAddNote}
-        title={`Add inline note (${formatCombo(SHORTCUTS.inlineNote.combo)})`}
+        title={`Add a note (${formatCombo(SHORTCUTS.inlineNote.combo)})`}
       >
         <MessageSquare size={12} />
         Note

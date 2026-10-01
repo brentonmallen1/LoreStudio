@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from "@tiptap/core";
 import type { NodeViewRendererProps } from "@tiptap/core";
 import { api } from "../../api/client";
+import { SHORTCUTS, editorKey } from "../../lib/keyboard/shortcuts";
 
 // Module-level callback for showing the asset picker to insert an image.
 let _onInsertImage: (() => void) | null = null;
@@ -86,7 +87,7 @@ export const InlineImageExtension = Node.create({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Shift-i": () => {
+      [editorKey(SHORTCUTS.insertImage.combo)]: () => {
         _onInsertImage?.();
         return true;
       },

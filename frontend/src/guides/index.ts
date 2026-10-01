@@ -8,6 +8,7 @@ import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
 import type { UIMode } from "../lib/mode";
+import { SHORTCUTS, formatCombo, type ShortcutId } from "../lib/keyboard/shortcuts";
 
 export interface Guide {
   id: string;
@@ -23,7 +24,7 @@ const BOTH: UIMode[] = ["writer", "studio"];
  * In-app guides (refactor doc 04 §8). Markdown files next to this index, imported raw and
  * rendered by GuidePage. Every guide gets a palette command; the coverage test checks that.
  */
-export const GUIDES: Guide[] = [
+const GUIDE_LIST: Guide[] = [
   {
     id: "getting-started",
     title: "Getting started",
@@ -88,6 +89,15 @@ export const GUIDES: Guide[] = [
     keywords: ["lorebook", "manuscript", "compendium", "codex", "chronicle"],
   },
 ];
+
+/** "{{key:inlineNote}}" in a guide becomes that shortcut as this platform writes it (D11). */
+export function withKeys(body: string): string {
+  return body.replace(/\{\{key:(\w+)\}\}/g, (whole, id: string) =>
+    id in SHORTCUTS ? formatCombo(SHORTCUTS[id as ShortcutId].combo) : whole,
+  );
+}
+
+export const GUIDES: Guide[] = GUIDE_LIST.map((g) => ({ ...g, body: withKeys(g.body) }));
 
 export function guidesFor(mode: UIMode): Guide[] {
   return GUIDES.filter((g) => g.modes.includes(mode));

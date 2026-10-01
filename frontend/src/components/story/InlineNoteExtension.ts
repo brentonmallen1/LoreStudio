@@ -1,5 +1,6 @@
 import { Mark, mergeAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { SHORTCUTS, editorKey } from "../../lib/keyboard/shortcuts";
 
 export interface InlineNoteCallbacks {
   onNoteActivate: (noteId: string, rect: DOMRect) => void;
@@ -49,7 +50,7 @@ export const InlineNoteExtension = Mark.create({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Shift-n": () => {
+      [editorKey(SHORTCUTS.inlineNote.combo)]: () => {
         const { from, to, empty } = this.editor.state.selection;
         if (!empty) {
           const anchor = this.editor.state.doc.textBetween(from, to);

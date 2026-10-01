@@ -15,7 +15,7 @@ Every step writes into the story itself, not into the method. The one-sentence s
 
 ## Start from an idea
 
-Not ready for questions? The **Ideas** tab takes everything you know, in any order. Paste a page of notes and it becomes one piece per paragraph (or per line); **⌘↩** (Ctrl+Enter) adds what you've typed.
+Not ready for questions? The **Ideas** tab takes everything you know, in any order. Paste a page of notes and it becomes one piece per paragraph (or per line); **{{key:submitText}}** adds what you've typed.
 
 Then sort it. Each piece can be filed as a **character** (new, or a note on one you have), a **place**, a planned **scene**, an open **question**, a **theme**, or the **logline**, **premise** or **central conflict**. Filed pieces move to a folded "Filed" list that links to what they became; the pile gets shorter as the story takes shape. Names the story doesn't know yet are suggested as you go (plain text analysis, no AI).
 

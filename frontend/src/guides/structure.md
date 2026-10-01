@@ -6,7 +6,7 @@ A story is a tree. The **structure template** names the levels (Act → Chapter 
 
 - **↑ ↓** move between rows, **→ ←** expand and collapse, **Enter** opens a segment.
 - **F2** or double-click renames. **Esc** cancels.
-- Drag a row to reorder or nest it. Every move is undoable (**⌘Z**).
+- Drag a row to reorder or nest it. Every move is undoable (**{{key:undo}}**).
 - The **+** on a row adds a child of the next level; the **+** in the header adds at any level.
 - Badges show word counts and status (~ revised, ✓ final). Collapsed chapters stay collapsed per story.
 

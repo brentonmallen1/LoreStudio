@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { SHORTCUTS, formatCombo, matchesCombo, yieldsToTyping, type ShortcutDef } from "./shortcuts";
+import {
+  SHORTCUTS,
+  editorKey,
+  formatCombo,
+  matchesCombo,
+  yieldsToTyping,
+  type ShortcutDef,
+} from "./shortcuts";
+
+/**
+ * Combos a browser keeps for itself: the page never sees the keydown, so a binding here can
+ * never fire. Chrome's reserved commands (new window, incognito, tab, close, reopen, switch
+ * tab, quit) plus Firefox's new private window.
+ */
+const RESERVED = [
+  "mod+n",
+  "mod+shift+n",
+  "mod+t",
+  "mod+shift+t",
+  "mod+w",
+  "mod+shift+w",
+  "mod+q",
+  "mod+tab",
+  "mod+shift+tab",
+  "mod+pageup",
+  "mod+pagedown",
+  "mod+shift+p",
+];
 
 describe("SHORTCUTS", () => {
   it("has no duplicate combos within overlapping scopes", () => {
@@ -11,6 +38,25 @@ describe("SHORTCUTS", () => {
       expect(prev, `${id} and ${prev} both use ${key}`).toBeUndefined();
       seen.set(key, id);
     }
+  });
+
+  it("uses no combo the browser keeps for itself", () => {
+    for (const [id, def] of Object.entries(SHORTCUTS) as [string, ShortcutDef][]) {
+      expect(RESERVED, `${id} uses ${def.combo}, which the browser takes first`).not.toContain(def.combo);
+    }
+  });
+
+  it("matches an ⌥ combo by its physical key, since ⌥ changes the character on macOS", () => {
+    const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+    const mod = isMac ? { metaKey: true, ctrlKey: false } : { ctrlKey: true, metaKey: false };
+    const e = { ...mod, shiftKey: false, altKey: true, key: "µ", code: "KeyM" } as KeyboardEvent;
+    expect(matchesCombo(e, "mod+alt+m")).toBe(true);
+    expect(matchesCombo({ ...e, code: "KeyN" } as KeyboardEvent, "mod+alt+m")).toBe(false);
+  });
+
+  it("spells a combo the way TipTap's keymap does", () => {
+    expect(editorKey("mod+alt+m")).toBe("Mod-Alt-m");
+    expect(editorKey("mod+shift+i")).toBe("Mod-Shift-i");
   });
 
   it("matches combos against keyboard events", () => {
