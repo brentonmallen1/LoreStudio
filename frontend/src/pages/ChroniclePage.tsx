@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useLocation, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import ActivityView from "../components/chronicle/ActivityView";
 import ChangesView from "../components/chronicle/ChangesView";
@@ -7,15 +7,12 @@ import ConversationsView from "../components/chronicle/ConversationsView";
 import JobDetail from "../components/chronicle/JobDetail";
 import LogDetail from "../components/chronicle/LogDetail";
 import SessionDetail from "../components/chronicle/SessionDetail";
-import {
-  itemParam,
-  useChronicleParams,
-  type ChronicleView,
-} from "../components/chronicle/useChronicleParams";
+import { itemParam, useChronicleParams } from "../components/chronicle/useChronicleParams";
 import { useAIAvailable } from "../lib/mode";
-import { sectionPath } from "../lib/routes";
 import PageHeader from "../components/layout/PageHeader";
 import styles from "./ChroniclePage.module.css";
+
+type ChronicleView = "activity" | "conversations" | "changes";
 
 const VIEWS: { id: ChronicleView; label: string; ai?: boolean; searchable: boolean }[] = [
   { id: "activity", label: "Activity", searchable: true },
@@ -43,13 +40,10 @@ const WRITER_ACTIVITY_BLURB = "Analyses and checks run on this story. Open a row
  */
 export default function ChroniclePage({ section = "activity" }: { section?: string }) {
   const { storyId } = useParams<{ storyId: string }>();
-  const { search } = useLocation();
   const aiAvailable = useAIAvailable();
-  const { view: requested, item, filter, q, update } = useChronicleParams();
+  const { item, filter, q, update } = useChronicleParams();
   const views = VIEWS.filter((v) => aiAvailable || !v.ai);
-  // The views are sections of the Chronicle now (doc 12 P1); `?view=` from older links moves over.
   const view = views.find((v) => v.id === section)?.id ?? "activity";
-  const legacy = section === "activity" && requested !== "activity" && views.some((v) => v.id === requested);
   const searchable = views.find((v) => v.id === view)?.searchable ?? false;
 
   // The box updates as you type; the URL (and the query) a moment later.
@@ -66,12 +60,6 @@ export default function ChroniclePage({ section = "activity" }: { section?: stri
   }, [draft, q, update]);
 
   if (!storyId) return null;
-  if (legacy) {
-    const rest = new URLSearchParams(search);
-    rest.delete("view");
-    const qs = rest.toString();
-    return <Navigate to={`${sectionPath(storyId, "chronicle", requested)}${qs ? `?${qs}` : ""}`} replace />;
-  }
 
   const open = (kind: "job" | "log" | "session", id: string) => update({ item: itemParam(kind, id) });
 

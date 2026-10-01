@@ -72,7 +72,7 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
 export function NeedsYourEye({ storyId }: { storyId: string }) {
   const findings = useOpenFindings();
   const { run } = useFindingActions();
-  const route = findRoute("health");
+  const route = findRoute("findings");
   const top = [...findings].sort(bySeverity).slice(0, 3);
   return (
     <section className={styles.card} aria-label="Needs your eye">

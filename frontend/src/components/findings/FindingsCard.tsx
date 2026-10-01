@@ -23,7 +23,7 @@ export default function FindingsCard({
   /** What to say when there is nothing; null says nothing at all. */
   empty: string | null;
 }) {
-  const route = findRoute("health");
+  const route = findRoute("findings");
   if (findings.length === 0) return empty ? <p className={styles.where}>{empty}</p> : null;
   return (
     <div className={styles.card}>

@@ -8,6 +8,7 @@ export const CONTEXT_LABELS: Record<string, string> = {
   character: "Character",
   story: "Story",
   panel: "Group Interview",
+  interview: "Interview",
 };
 
 export function sessionTitle(s: ChronicleSession): string {

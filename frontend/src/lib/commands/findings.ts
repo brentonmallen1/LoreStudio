@@ -20,6 +20,6 @@ commandRegistry.register({
     const story = useStoryStore.getState().activeStory;
     if (!story) return;
     await useFindingsStore.getState().runLocal();
-    navigateTo(`/stories/${story.id}/health`);
+    navigateTo(`/stories/${story.id}/findings`);
   },
 });

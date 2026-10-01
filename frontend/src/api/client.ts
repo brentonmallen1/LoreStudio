@@ -392,9 +392,6 @@ export const api = {
         knowledge_scope: scope ?? "profile",
       }),
     }),
-  getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
-  compactInterview: (id: string) =>
-    request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
 
   // Interview notes
   updateInterview: (id: string, data: import("../types").InterviewUpdate) =>

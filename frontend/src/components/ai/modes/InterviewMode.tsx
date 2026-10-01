@@ -8,10 +8,10 @@ import {
   ChevronDown,
   ChevronUp,
   Brain,
-  Scissors,
   Archive,
 } from "lucide-react";
 import { api } from "../../../api/client";
+import { conversationsApi } from "../../../api/conversations";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
@@ -53,18 +53,19 @@ export default function InterviewMode({ session }: Props) {
   const [showNotes, setShowNotes] = useState(!!session.interviewNotes);
   const [showApply, setShowApply] = useState(false);
   const [journey, setJourney] = useState<CharacterJourney | null>(null);
-  const [isCompacting, setIsCompacting] = useState(false);
   const [compactionCount, setCompactionCount] = useState<number>(0);
 
-  // Sync compaction_count from interview data
+  // How often the history has been compacted (the header's Compact history does it); read
+  // again whenever the conversation starts with a summary or starts over.
+  const startsWithSummary = Boolean(session.messages[0]?.isSummary);
   useEffect(() => {
     if (session.backendSessionId) {
-      api
+      conversationsApi
         .getInterview(session.backendSessionId)
         .then((iv) => setCompactionCount(iv.compaction_count ?? 0))
         .catch(() => {});
     }
-  }, [session.backendSessionId]);
+  }, [session.backendSessionId, startsWithSummary]);
 
   const lastContextType = useRef<"interview" | "interview-summary">("interview");
 
@@ -159,19 +160,6 @@ export default function InterviewMode({ session }: Props) {
     state.lastUserMsg.current = "Please summarize this interview.";
     setShowNotes(true);
     streamSummary((signal) => api.summarizeInterview(session.backendSessionId!, signal));
-  }
-
-  async function handleCompact() {
-    if (!session.backendSessionId || isCompacting) return;
-    setIsCompacting(true);
-    try {
-      const updated = await api.compactInterview(session.backendSessionId);
-      setCompactionCount(updated.compaction_count ?? 0);
-    } catch {
-      // ignore
-    } finally {
-      setIsCompacting(false);
-    }
   }
 
   async function applyToCharacter(fields: string[]) {
@@ -339,28 +327,9 @@ export default function InterviewMode({ session }: Props) {
         emptyText="Start the interview by saying hello or asking a question."
       />
 
-      {/* ── Compaction bar ── */}
-      {state.ctxWarning !== "normal" && session.messages.length >= 10 && (
+      {compactionCount > 0 && (
         <div className={styles.compactBar}>
-          {compactionCount > 0 && (
-            <span className={styles.compactedBadge} title="History has been compacted to free context space">
-              <Archive size={10} /> {compactionCount}× compacted
-            </span>
-          )}
-          <button
-            className={styles.compactBtn}
-            onClick={handleCompact}
-            disabled={isCompacting}
-            title="Summarize older messages to free up context space"
-          >
-            <Scissors size={12} />
-            {isCompacting ? "Compacting…" : "Compact history"}
-          </button>
-        </div>
-      )}
-      {compactionCount > 0 && state.ctxWarning === "normal" && (
-        <div className={styles.compactBar}>
-          <span className={styles.compactedBadge} title="History has been compacted">
+          <span className={styles.compactedBadge} title="Older messages are kept as a summary">
             <Archive size={10} /> {compactionCount}× compacted
           </span>
         </div>

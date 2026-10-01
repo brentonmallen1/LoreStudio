@@ -46,6 +46,7 @@ from ..schemas.chronicle import (
     TimelineResponse,
 )
 from ..schemas.jobs import JobOut
+from ..services import conversations
 from ..services.chronicle_timeline import TimelineFilters, timeline
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.sse import sse_stream
@@ -309,6 +310,8 @@ def delete_session(
     user: User = Depends(get_current_user),
 ):
     s = _session_or_404(session_id, db, user)
+    # The live transcript of an interview is the interview: deleting one deletes both.
+    conversations.delete_mirrored(db, s)
     db.delete(s)
     db.commit()
 

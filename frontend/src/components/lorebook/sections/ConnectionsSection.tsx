@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Network, RefreshCw } from "lucide-react";
 import { codexApi, type CodexGraph } from "../../../api/codex";
 import { ACTIVE_JOB_STATUSES } from "../../../api/jobs";
 import { useJobs } from "../../../hooks/useJobs";
+import { isProposal } from "../../../lib/graph/codexVocabulary";
+import { useAIAvailable } from "../../../lib/mode";
 import CodexGraphView from "../../codex/CodexGraphView";
 import CodexNodePanel from "../../codex/CodexNodePanel";
 import styles from "./Connections.module.css";
@@ -13,16 +15,30 @@ const BUILD_JOB = "codex-sync";
  * Connections (doc 12 P5): the Codex graph as a Lorebook section, beside the entries it
  * connects. Anything the model proposed and the author has not answered is drawn dashed;
  * answering it happens in Proposals, with everything else waiting for a yes or no.
+ * Building the graph uses no AI, so Writer mode has it too (doc 13 D2), without the
+ * model's proposals.
  */
 export default function ConnectionsSection({ storyId }: { storyId: string }) {
-  const [graph, setGraph] = useState<CodexGraph | null>(null);
+  const [loaded, setLoaded] = useState<CodexGraph | null>(null);
+  const aiAvailable = useAIAvailable();
+  const graph = useMemo(
+    () =>
+      loaded && !aiAvailable
+        ? {
+            ...loaded,
+            nodes: loaded.nodes.filter((n) => !isProposal(n.props.source as string)),
+            edges: loaded.edges.filter((e) => !isProposal(e.source)),
+          }
+        : loaded,
+    [loaded, aiAvailable],
+  );
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   const loadGraph = useCallback(() => {
     codexApi
       .graph(storyId)
-      .then(setGraph)
-      .catch(() => setGraph({ nodes: [], edges: [], counts: {} }));
+      .then(setLoaded)
+      .catch(() => setLoaded({ nodes: [], edges: [], counts: {} }));
   }, [storyId]);
 
   // The graph is rebuilt on request, not as you write, so the button lives on the graph.
@@ -82,6 +98,7 @@ export default function ConnectionsSection({ storyId }: { storyId: string }) {
         <aside className={styles.graphSide}>
           <CodexNodePanel
             storyId={storyId}
+            showAI={aiAvailable}
             nodeId={selectedNode}
             onSelect={setSelectedNode}
             onClose={() => setSelectedNode(null)}

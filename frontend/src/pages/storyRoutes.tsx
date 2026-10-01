@@ -1,11 +1,10 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 import { ROUTE_ELEMENTS } from "./routeElements";
-import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import ModeGate from "../components/layout/ModeGate";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { sceneToResume } from "../lib/resumeScene";
-import SessionLauncher from "./SessionLauncher";
-import { STORY_REDIRECTS, STORY_ROUTES, fillParams } from "../lib/routes";
+import { STORY_ROUTES } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import SectionedPage from "./SectionedPage";
@@ -53,25 +52,6 @@ function WriteIndex({ storyId }: { storyId: string }) {
   return <SceneEditor />;
 }
 
-/** An old address that moved into a grouped page (doc 12 P1): params, query and state carry over. */
-function MovedTo({ to }: { to: string }) {
-  const params = useParams();
-  const { search, hash, state } = useLocation();
-  return (
-    <Navigate
-      to={`/stories/${params.storyId}${fillParams(to, params)}${search}${hash}`}
-      state={state}
-      replace
-    />
-  );
-}
-
-function OutlineRedirect({ storyId }: { storyId: string }) {
-  const { search } = useLocation();
-  // The Outline page became Plan; old links (?tab=<outline id>) open its beat boards.
-  return <Navigate to={`/stories/${storyId}/plan${search}`} replace />;
-}
-
 export default function StoryRoutes() {
   const { storyId } = useParams<{ storyId: string }>();
   if (!storyId) return null;
@@ -100,15 +80,7 @@ export default function StoryRoutes() {
           );
         return <Route key={route.id} path={route.path || "/"} element={element} />;
       })}
-      <Route path="/overview" element={<Navigate to={`/stories/${storyId}`} replace />} />
       <Route path="/write/:nodeId" element={<WriteNodePage />} />
-      {STORY_REDIRECTS.map(({ from, to }) => (
-        <Route key={from} path={from} element={<MovedTo to={to} />} />
-      ))}
-      <Route path="/outline" element={<OutlineRedirect storyId={storyId} />} />
-      {/* Conversations now, not pages (doc 12 P6). */}
-      <Route path="/whatif" element={<SessionLauncher storyId={storyId} type="whatif" />} />
-      <Route path="/panels" element={<SessionLauncher storyId={storyId} type="panel" />} />
       <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
     </Routes>
   );

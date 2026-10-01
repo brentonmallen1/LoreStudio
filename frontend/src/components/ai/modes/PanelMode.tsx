@@ -1,8 +1,9 @@
 import { slotVar } from "../../../lib/colorSlots";
 import { readFrames } from "../../../lib/ai/eventStream";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Users } from "lucide-react";
+import { Eraser, FoldVertical, Users } from "lucide-react";
 import { api } from "../../../api/client";
+import { conversationsApi } from "../../../api/conversations";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { AISession } from "../../../stores/aiStore";
@@ -15,6 +16,9 @@ import styles from "./PanelMode.module.css";
 interface Props {
   session: AISession;
 }
+
+/** The server folds lines into a summary once there are this many (routers/panel_interviews.py). */
+const COMPACT_AT = 10;
 
 export default function PanelMode({ session }: Props) {
   const state = useAIModeState(session);
@@ -67,6 +71,60 @@ export default function PanelMode({ session }: Props) {
       setCreating(false);
     }
   }
+
+  const [working, setWorking] = useState(false);
+  const panelId = session.backendSessionId;
+
+  async function clearHistory() {
+    if (
+      !panelId ||
+      !window.confirm("Clear this group interview's history? The transcript stays in the Chronicle.")
+    )
+      return;
+    setWorking(true);
+    try {
+      setLocalMessages((await conversationsApi.clearPanel(panelId)).messages);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function compactHistory() {
+    if (!panelId) return;
+    setWorking(true);
+    try {
+      setLocalMessages((await conversationsApi.compactPanel(panelId)).messages);
+    } catch {
+      window.alert("The history could not be compacted. It is unchanged.");
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  const historyActions = panelId && localMessages.length > 0 && (
+    <>
+      {localMessages.length >= COMPACT_AT && (
+        <button
+          type="button"
+          className={styles.historyBtn}
+          onClick={() => void compactHistory()}
+          disabled={working || sending}
+          title="Compact history: summarize the older lines"
+        >
+          <FoldVertical size={13} aria-hidden /> Compact
+        </button>
+      )}
+      <button
+        type="button"
+        className={styles.historyBtn}
+        onClick={() => void clearHistory()}
+        disabled={working || sending}
+        title="Clear history and start over with the same characters"
+      >
+        <Eraser size={13} aria-hidden /> Clear
+      </button>
+    </>
+  );
 
   function toggleChar(id: string) {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -223,7 +281,13 @@ export default function PanelMode({ session }: Props) {
 
   // ── Active panel conversation ─────────────────────────────────────────────
   return (
-    <AIModeWrapper session={session} state={state} icon={Users} title="Panel Interview">
+    <AIModeWrapper
+      session={session}
+      state={state}
+      icon={Users}
+      title="Panel Interview"
+      headerExtra={historyActions}
+    >
       <div className={styles.messages}>
         {localMessages.length === 0 && !sending && (
           <div className={styles.emptyMsg}>
@@ -231,6 +295,14 @@ export default function PanelMode({ session }: Props) {
           </div>
         )}
         {localMessages.map((msg, i) => {
+          if (msg.role === "summary") {
+            return (
+              <div key={i} className={styles.summaryMsg}>
+                <span className={styles.userLabel}>Earlier, in summary</span>
+                <p className={styles.userText}>{msg.content}</p>
+              </div>
+            );
+          }
           if (msg.role === "user") {
             return (
               <div key={i} className={styles.userMsg}>

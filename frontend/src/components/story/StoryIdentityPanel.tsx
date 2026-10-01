@@ -487,7 +487,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           <div>
             <p className={styles.subFieldLabel}>Intended Length</p>
             <p className={styles.fieldHint}>
-              Target form and word count range. Used by Story Health and AI tools.
+              Target form and word count range. Used by Findings, Numbers and the Assistant.
             </p>
             <select
               value={fields.intended_length}

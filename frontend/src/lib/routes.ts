@@ -187,13 +187,12 @@ export const STORY_ROUTES: StoryRoute[] = [
         keywords: ["distances", "routes", "journeys", "world building", "worldbuilding"],
       },
       {
-        // The Codex graph (doc 12 P5): what the story's things are to each other.
+        // The Codex graph (doc 12 P5): what the story's things are to each other. Building it
+        // uses no AI, so both modes have it (doc 13 D2).
         id: "connections",
         path: "/connections",
         label: "Connections",
         icon: Network,
-        modes: STUDIO,
-        ai: true,
         keywords: ["codex", "knowledge graph", "graph", "network", "relationships map"],
       },
     ],
@@ -251,23 +250,14 @@ export const STORY_ROUTES: StoryRoute[] = [
     ],
   },
   {
-    id: "health",
-    path: "/health",
+    id: "findings",
+    path: "/findings",
     label: "Findings",
     icon: ScanEye,
     domain: "system",
     modes: BOTH,
     // Story Health was this page's name until doc 12 P4; people will still look for it.
-    keywords: [
-      "story health",
-      "health",
-      "what needs my eye",
-      "issues",
-      "problems",
-      "report",
-      "analysis",
-      "checks",
-    ],
+    keywords: ["story health", "what needs my eye", "issues", "problems", "report", "analysis", "checks"],
   },
   {
     id: "chronicle",
@@ -336,29 +326,6 @@ export function storyPath(storyId: string, route: StoryRoute): string {
 
 export function routesFor(mode: UIMode): StoryRoute[] {
   return STORY_ROUTES.filter((r) => r.modes.includes(mode));
-}
-
-/**
- * Old paths that now live inside a grouped page (doc 12 P1). Relative to `/stories/:storyId`;
- * `:params` carry over, and so do the query string and navigation state. Every page that was
- * merged keeps its address working, so bookmarks and links from older notes still land.
- */
-export const STORY_REDIRECTS: { from: string; to: string }[] = [
-  { from: "/characters", to: "/lorebook/characters" },
-  { from: "/characters/:entryId", to: "/lorebook/characters/:entryId" },
-  { from: "/locations/:entryId", to: "/lorebook/places/:entryId" },
-  { from: "/worldbuilding", to: "/lorebook/places" },
-  { from: "/threads", to: "/lorebook/threads" },
-  { from: "/twists", to: "/lorebook/twists" },
-  { from: "/media", to: "/compendium/images" },
-  { from: "/versions", to: "/chronicle/versions" },
-  { from: "/codex", to: "/lorebook/connections" },
-  { from: "/discoveries", to: "/proposals" },
-];
-
-/** Fill `:name` segments of a redirect target from the matched params. */
-export function fillParams(pattern: string, params: Record<string, string | undefined>): string {
-  return pattern.replace(/:(\w+)/g, (_, name: string) => encodeURIComponent(params[name] ?? ""));
 }
 
 export function findRoute(id: string): StoryRoute | undefined {

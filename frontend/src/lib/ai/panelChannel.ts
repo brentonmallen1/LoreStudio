@@ -11,7 +11,7 @@ import { createWindowChannel } from "../sync/windowChannel";
  * session is never answered twice.
  */
 
-/** Route for the popped-out side panel (doc 11 P5); `/ai-window` redirects here. */
+/** Route for the popped-out side panel (doc 11 P5). */
 export const AI_WINDOW_PATH = "/panel-window";
 
 /** Sessions cross the channel without their abort controller, which cannot be cloned. */

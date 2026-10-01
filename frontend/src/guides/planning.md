@@ -44,4 +44,4 @@ In the scene list, **Enter** in the last scene's line adds the next scene.
 
 ## Progress
 
-Story Health shows how far the method has got. Each step there opens straight on the Plan page.
+The Overview shows the method's next step. It opens straight on the Plan page.

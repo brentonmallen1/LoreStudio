@@ -6,8 +6,6 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.character import Character
-from ..models.chat_message import ChatMessage
-from ..models.chat_session import ChatSession
 from ..models.panel_interview import PanelInterview
 from ..models.story import Story
 from ..models.user import User
@@ -18,9 +16,11 @@ from ..schemas.panel_interview import (
     PanelInterviewSummaryOut,
     PanelMessageRequest,
 )
+from ..services import conversations
 from ..services.codex.context import assemble_panel_member
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.panel import (
+    build_panel_compaction_prompt,
     build_panel_orchestrator_prompt,
     format_history_with_labels,
 )
@@ -28,53 +28,14 @@ from ..services.llm.sse import format_event, split_events, sse_response
 
 router = APIRouter()
 
-
-def _get_or_create_chronicle_session(panel: PanelInterview, user: User, db: Session) -> ChatSession:
-    """Get or create a Chronicle session for this panel interview."""
-    existing = (
-        db.query(ChatSession)
-        .filter(
-            ChatSession.user_id == user.id,
-            ChatSession.context_type == "panel",
-            ChatSession.context_id == panel.id,
-        )
-        .first()
-    )
-    if existing:
-        return existing
-
-    session = ChatSession(
-        story_id=panel.story_id,
-        user_id=user.id,
-        context_type="panel",
-        context_id=panel.id,
-        context_label=panel.title,
-        title=panel.title,
-    )
-    db.add(session)
-    db.flush()
-    return session
+COMPACT_THRESHOLD = 10  # Lines before a group interview can be compacted
+COMPACT_KEEP = 6  # Most recent lines kept as they were
 
 
-def _add_chronicle_message(
-    chronicle_session: ChatSession,
-    role: str,
-    content: str,
-    db: Session,
-    model: str = "",
-    mentioned_refs: list[dict] | None = None,
-) -> None:
-    """Add a message to the Chronicle session."""
-    msg = ChatMessage(
-        session_id=chronicle_session.id,
-        role=role,
-        content=content,
-        model=model,
-        mentioned_refs=mentioned_refs or None,
-    )
-    chronicle_session.updated_at = datetime.now(UTC)
-    db.add(msg)
-    db.flush()
+def _as_llm_message(m: dict) -> dict:
+    if m["role"] == conversations.SUMMARY_ROLE:
+        return {"role": "user", "content": f"(Earlier in this conversation, in summary)\n{m['content']}"}
+    return {"role": "user" if m["role"] == "user" else "assistant", "content": m["content"]}
 
 
 def _verify_story_access(story_id: str, db: Session, user: User) -> Story:
@@ -179,7 +140,9 @@ async def send_panel_message(
     settings = panel.settings or {}
     max_rounds = min(int(settings.get("max_rounds", 2)), 4)
 
-    chronicle_session = _get_or_create_chronicle_session(panel, current_user, db)
+    chronicle_session = conversations.chronicle_session(
+        db, current_user, story_id=panel.story_id, context_type="panel", context_id=panel.id, label=panel.title
+    )
 
     user_msg = {
         "role": "user",
@@ -188,7 +151,7 @@ async def send_panel_message(
     }
     messages = list(panel.messages) + [user_msg]
     panel.messages = messages
-    _add_chronicle_message(
+    conversations.add_message(
         chronicle_session, "user", body.content, db, mentioned_refs=[r.model_dump() for r in body.mentioned_refs]
     )
     db.commit()
@@ -246,13 +209,7 @@ async def send_panel_message(
                     mentioned_refs=body.mentioned_refs,
                 ).prompt
 
-                llm_messages = [
-                    {
-                        "role": "user" if m["role"] == "user" else "assistant",
-                        "content": m["content"],
-                    }
-                    for m in current_messages
-                ]
+                llm_messages = [_as_llm_message(m) for m in current_messages]
 
                 yield format_event("start", {"character": char_name, "character_id": character.id})
 
@@ -298,7 +255,7 @@ async def send_panel_message(
                     }
                     current_messages = current_messages + [char_msg]
                     panel.messages = current_messages
-                    _add_chronicle_message(chronicle_session, "assistant", f"[{char_name}]: {full_content}", db)
+                    conversations.add_message(chronicle_session, "assistant", f"[{char_name}]: {full_content}", db)
                     db.commit()
 
                 yield format_event("end", {"character": char_name})
@@ -313,20 +270,53 @@ async def send_panel_message(
     return sse_response(stream_panel())
 
 
+@router.post("/panels/{panel_id}/clear", response_model=PanelInterviewOut)
+def clear_panel(panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Start the conversation over with the same characters; the transcript stays in the Chronicle."""
+    panel = _verify_panel_access(panel_id, db, current_user)
+    panel.messages = []
+    conversations.archive_sessions(db, current_user, "panel", panel.id)
+    db.commit()
+    db.refresh(panel)
+    return panel
+
+
+@router.post("/panels/{panel_id}/compact", response_model=PanelInterviewOut)
+async def compact_panel(panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Fold all but the last few lines into one summary the characters still remember."""
+    panel = _verify_panel_access(panel_id, db, current_user)
+    messages = list(panel.messages)
+    if len(messages) < COMPACT_THRESHOLD:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A group interview needs at least {COMPACT_THRESHOLD} lines to compact (has {len(messages)})",
+        )
+    names = [c.name for cid in panel.character_ids if (c := db.get(Character, cid))]
+    ctx = AICallContext(
+        feature="panel-compaction",
+        user_id=current_user.id,
+        story_id=panel.story_id,
+        tags=["panel", "compaction", "user-initiated"],
+    )
+    tokens: list[str] = []
+    async for token in ai_gateway.stream(
+        messages=[{"role": "user", "content": "Please summarize these messages."}],
+        feature_prompt=build_panel_compaction_prompt(names, messages[:-COMPACT_KEEP]),
+        context=ctx,
+        db=db,
+        user=current_user,
+        include_core_prompt=False,
+    ):
+        tokens.append(token)
+    panel.messages = conversations.compact(messages, "".join(tokens).strip(), COMPACT_KEEP)
+    db.commit()
+    db.refresh(panel)
+    return panel
+
+
 @router.delete("/panels/{panel_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_panel(panel_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     panel = _verify_panel_access(panel_id, db, current_user)
-    # Also delete associated Chronicle session
-    chronicle_session = (
-        db.query(ChatSession)
-        .filter(
-            ChatSession.user_id == current_user.id,
-            ChatSession.context_type == "panel",
-            ChatSession.context_id == panel.id,
-        )
-        .first()
-    )
-    if chronicle_session:
-        db.delete(chronicle_session)
+    conversations.delete_sessions(db, current_user, "panel", panel.id)
     db.delete(panel)
     db.commit()

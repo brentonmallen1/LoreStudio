@@ -17,6 +17,7 @@ import {
   noCallsNote,
   plainText,
 } from "./timelineFormat";
+import { sectionPath } from "../../lib/routes";
 import styles from "./Timeline.module.css";
 
 const BUSY_MS = 2000;
@@ -25,8 +26,9 @@ const BUSY_MS = 2000;
 function followUp(job: AIJob): { to: string; label: string } | null {
   if (!job.story_id || job.status !== "done") return null;
   if (job.kind === "codex-suggest")
-    return { to: `/stories/${job.story_id}/codex`, label: "Review the proposals" };
-  if (job.kind === "codex-sync") return { to: `/stories/${job.story_id}/codex`, label: "Open the graph" };
+    return { to: `/stories/${job.story_id}/proposals`, label: "Review the proposals" };
+  if (job.kind === "codex-sync")
+    return { to: sectionPath(job.story_id, "lorebook", "connections"), label: "Open the graph" };
   return null;
 }
 

@@ -69,7 +69,6 @@ HARDCODED: dict[str, int] = {
     "frontend/src/components/characters/relationships/StrengthSliders.module.css": 2,
     "frontend/src/components/media/AssetPicker.module.css": 2,
     "frontend/src/components/story/StoryboardView.module.css": 2,
-    "frontend/src/pages/WhatIfPage.module.css": 2,
     "frontend/src/components/ai/modes/ClicheCoachMode.module.css": 1,
     "frontend/src/components/ai/modes/DiscoveryQuestionsMode.module.css": 1,
     "frontend/src/components/help/EssentialQuestionsGuide.module.css": 1,

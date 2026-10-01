@@ -31,7 +31,7 @@ import GuidePage from "./pages/GuidePage";
 import CommandPalette from "./components/layout/CommandPalette";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
-import PanelWindowPage, { LegacyAIWindowRedirect } from "./pages/PanelWindowPage";
+import PanelWindowPage from "./pages/PanelWindowPage";
 
 /** Hands the router's navigate to non-React code (palette commands). */
 function NavigatorBridge() {
@@ -136,7 +136,6 @@ function AppRoutes() {
               </RequireAuth>
             }
           />
-          <Route path="/ai-window" element={<LegacyAIWindowRedirect />} />
           <Route
             element={
               <RequireAuth>

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import StoryPanel from "../components/panel/StoryPanel";
 import { startAISync } from "../lib/ai/aiSync";
-import { AI_WINDOW_PATH } from "../lib/ai/panelChannel";
 import { startPanelSync } from "../lib/panel/panelSync";
 import { loadStoryIntoStores } from "../lib/story/loadStory";
 import { useStoryStore } from "../stores/storyStore";
@@ -45,10 +44,4 @@ export default function PanelWindowPage() {
       <StoryPanel fill />
     </div>
   );
-}
-
-/** `/ai-window` was the assistant's own window; the whole panel pops out now. */
-export function LegacyAIWindowRedirect() {
-  const { search } = useLocation();
-  return <Navigate to={`${AI_WINDOW_PATH}${search}`} replace />;
 }

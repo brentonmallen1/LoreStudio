@@ -69,7 +69,18 @@ export default function AIModeWrapper({
     updateSessionContext(session.id, { contextOptions: opts });
   }
 
+  const serverHistory = sessionType?.clearHistory && session.backendSessionId;
+  const [compacting, setCompacting] = useState(false);
+
   async function handleNewChat() {
+    if (serverHistory) {
+      // The server remembers this conversation, so starting over is a real loss of context.
+      if (!window.confirm("Clear this conversation's history? The transcript stays in the Chronicle."))
+        return;
+      await sessionType.clearHistory!(session.backendSessionId!);
+      startFreshSession(session.id);
+      return;
+    }
     if (session.chronicleSessionId) {
       try {
         await api.updateChronicleSession(session.chronicleSessionId, { archived: true });
@@ -79,6 +90,23 @@ export default function AIModeWrapper({
     }
     startFreshSession(session.id);
   }
+
+  async function handleSummarize() {
+    if (!sessionType?.compactHistory || !session.backendSessionId) {
+      setShowSummarize(true);
+      return;
+    }
+    setCompacting(true);
+    try {
+      const { summary, keep } = await sessionType.compactHistory(session.backendSessionId);
+      applySummary(session.id, summary, keep);
+    } catch {
+      window.alert("The history could not be compacted. It is unchanged.");
+    } finally {
+      setCompacting(false);
+    }
+  }
+
   const allowedScopes = sessionType?.allowedScopes;
   const currentScope: ContextScope =
     session.context.contextScope ?? sessionType?.defaultScope ?? "current-scene";
@@ -162,8 +190,10 @@ export default function AIModeWrapper({
         {session.messages.length >= SUMMARIZE_THRESHOLD && (
           <button
             className={`${styles.headerBtn} ${styles.summarizeBtn}`}
-            onClick={() => setShowSummarize(true)}
-            title="Summarize conversation"
+            onClick={() => void handleSummarize()}
+            disabled={compacting}
+            title={compacting ? "Compacting…" : "Compact history: summarize the older messages"}
+            aria-label="Compact history"
           >
             <FoldVertical size={13} />
           </button>
@@ -183,7 +213,8 @@ export default function AIModeWrapper({
           className={`${styles.headerBtn} ${styles.newChatBtn}`}
           onClick={handleNewChat}
           disabled={session.messages.length === 0}
-          title="Start new conversation"
+          title={serverHistory ? "Clear history and start over" : "Start new conversation"}
+          aria-label={serverHistory ? "Clear history" : "New chat"}
         >
           <Plus size={13} />
         </button>
@@ -197,8 +228,12 @@ export default function AIModeWrapper({
           <span>
             {ctxWarning === "critical" ? "Context limit nearly reached" : "Context limit approaching"}
           </span>
-          <button className={styles.contextWarnBtn} onClick={() => setShowSummarize(true)}>
-            Summarize
+          <button
+            className={styles.contextWarnBtn}
+            onClick={() => void handleSummarize()}
+            disabled={compacting}
+          >
+            Compact history
           </button>
           <button
             className={styles.contextWarnBtn}

@@ -7,6 +7,8 @@ import styles from "./CodexNodePanel.module.css";
 interface Props {
   storyId: string;
   nodeId: string;
+  /** Studio: the passages indexed, AI calls and the model's unanswered proposals. */
+  showAI: boolean;
   onSelect: (nodeId: string) => void;
   onClose: () => void;
 }
@@ -33,7 +35,7 @@ function heading(kind: string, direction: string): string {
  * its keep" — a node nothing has ever been sent about is a node the graph built for
  * nobody, and the author can see that rather than being told the Codex is working.
  */
-export default function CodexNodePanel({ storyId, nodeId, onSelect, onClose }: Props) {
+export default function CodexNodePanel({ storyId, nodeId, showAI, onSelect, onClose }: Props) {
   const [detail, setDetail] = useState<CodexNodeDetail | null>(null);
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function CodexNodePanel({ storyId, nodeId, onSelect, onClose }: P
     );
 
   const { node } = detail;
+  const edges = showAI ? detail.edges : detail.edges.filter((e) => !isProposal(e.source));
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
@@ -71,25 +74,29 @@ export default function CodexNodePanel({ storyId, nodeId, onSelect, onClose }: P
 
       <div className={styles.stats}>
         <div className={styles.stat}>
-          <span className={styles.statValue}>{detail.edges.length}</span>
+          <span className={styles.statValue}>{edges.length}</span>
           <span className={styles.statLabel}>Connections</span>
         </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>
-            {detail.embedded}/{detail.chunks}
-          </span>
-          <span className={styles.statLabel}>Passages indexed</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.statValue}>{detail.ai_calls}</span>
-          <span className={styles.statLabel}>AI calls about it</span>
-        </div>
+        {showAI && (
+          <>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>
+                {detail.embedded}/{detail.chunks}
+              </span>
+              <span className={styles.statLabel}>Passages indexed</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{detail.ai_calls}</span>
+              <span className={styles.statLabel}>AI calls about it</span>
+            </div>
+          </>
+        )}
       </div>
 
-      {detail.edges.length === 0 ? (
+      {edges.length === 0 ? (
         <p className={styles.empty}>Nothing connects to this yet.</p>
       ) : (
-        groupByKind(detail.edges).map(([key, rows]) => {
+        groupByKind(edges).map(([key, rows]) => {
           const [kind, direction] = key.split(":");
           return (
             <div key={key} className={styles.group}>

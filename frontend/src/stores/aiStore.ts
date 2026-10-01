@@ -5,6 +5,7 @@ import type { ChatMessage, LLMParams } from "../types";
 import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
 import { getSessionType } from "../lib/ai/sessionTypes";
 import { maybeAutoSummarize } from "../lib/ai/autoSummarize";
+import { conversationsApi } from "../api/conversations";
 import { useStoryStore } from "./storyStore";
 import { readEventStream } from "../lib/ai/eventStream";
 
@@ -559,6 +560,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       scene: "scene-assistant",
       story: "story-assistant",
       character: "interview",
+      interview: "interview",
       panel: "panel",
     };
     const sessionType = typeMap[contextType] ?? "scene-assistant";
@@ -568,6 +570,19 @@ export const useAIStore = create<AIStore>((set, get) => ({
       nodeId: contextType === "scene" ? (contextId ?? undefined) : undefined,
       characterId: contextType === "character" ? (contextId ?? undefined) : undefined,
     };
+    // An interview or group interview carries on with its own record (doc 13 P1): the server
+    // holds its history, so that is what the panel shows and sends to.
+    let backendSessionId: string | undefined;
+    if (contextType === "panel" && contextId) backendSessionId = contextId;
+    if (contextType === "interview" && contextId) {
+      const interview = await conversationsApi.getInterview(contextId);
+      backendSessionId = interview.id;
+      context.characterId = interview.character_id;
+      messages = interview.messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      }));
+    }
 
     const resolvedNames = await resolveNames(context);
 
@@ -579,6 +594,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
       messages,
       contextLocked: messages.length > 0,
       chronicleSessionId,
+      backendSessionId,
       isStreaming: false,
       createdAt: new Date().toISOString(),
     };

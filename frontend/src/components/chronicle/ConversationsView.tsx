@@ -84,17 +84,33 @@ export default function ConversationsView({ storyId, q, selectedId, onSelect }: 
   }, [fetchSessions, version]);
 
   async function apply(action: "archive" | "delete", ids: string[]) {
+    if (action === "delete" && !window.confirm(deleteQuestion(ids))) return;
     setWorking(true);
-    await Promise.all(
-      ids.map((id) =>
-        action === "archive"
-          ? api.updateChronicleSession(id, { archived: true })
-          : api.deleteChronicleSession(id),
-      ),
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          action === "archive"
+            ? api.updateChronicleSession(id, { archived: true })
+            : api.deleteChronicleSession(id),
+        ),
+      );
+      setPicked(new Set());
+    } catch {
+      window.alert(`Some conversations could not be ${action === "archive" ? "archived" : "deleted"}.`);
+    } finally {
+      setWorking(false);
+      setVersion((v) => v + 1);
+    }
+  }
+
+  /** Deleting the current transcript of an interview deletes the interview too (doc 13 P1). */
+  function deleteQuestion(ids: string[]): string {
+    const rows = (sessions ?? []).filter((s) => ids.includes(s.id));
+    const live = rows.some(
+      (s) => !s.archived && (s.context_type === "interview" || s.context_type === "panel"),
     );
-    setPicked(new Set());
-    setWorking(false);
-    setVersion((v) => v + 1);
+    const what = ids.length === 1 ? "this conversation" : `${ids.length} conversations`;
+    return `Delete ${what}? This cannot be undone.${live ? " An interview deleted here is gone from the Assistant too." : ""}`;
   }
 
   function toggle(id: string) {

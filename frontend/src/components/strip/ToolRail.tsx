@@ -39,7 +39,7 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   const openFindings = useOpenFindings().length;
   const openProposals = useOpenProposals().length;
   const badges: Record<string, number | undefined> = {
-    health: openFindings || undefined,
+    findings: openFindings || undefined,
     proposals: openProposals || undefined,
   };
   const badgeTotal = Object.values(badges).reduce<number>((n, b) => n + (b ?? 0), 0);

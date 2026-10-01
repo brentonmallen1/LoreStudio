@@ -18,6 +18,7 @@ from ..schemas.interview import (
     InterviewSummaryOut,
     InterviewUpdate,
 )
+from ..services import conversations
 from ..services.character_journey import (
     build_journey_prompt,
     get_cached_journey,
@@ -117,11 +118,22 @@ async def send_message(
 
     # Append user message
     user_msg = {"role": "user", "content": body.content, "timestamp": datetime.now(UTC).isoformat()}
-    if body.mentioned_refs:
-        user_msg["mentioned_refs"] = [r.model_dump() for r in body.mentioned_refs]
+    refs = [r.model_dump() for r in body.mentioned_refs]
+    if refs:
+        user_msg["mentioned_refs"] = refs
     messages = list(interview.messages)
     messages.append(user_msg)
     interview.messages = messages
+    # Mirrored into the Chronicle with every other conversation (doc 13 P1).
+    chronicle = conversations.chronicle_session(
+        db,
+        current_user,
+        story_id=character.story_id,
+        context_type="interview",
+        context_id=interview.id,
+        label=f"Interview with {character.name}",
+    )
+    conversations.add_message(chronicle, "user", body.content, db, mentioned_refs=refs)
     db.commit()
 
     # Fetch journey summary if interview has a story context point
@@ -190,6 +202,7 @@ async def send_message(
             "timestamp": datetime.now(UTC).isoformat(),
         }
         interview.messages = list(interview.messages) + [assistant_msg]
+        conversations.add_message(chronicle, "assistant", result.content, db)
         db.commit()
 
     return sse_stream(
@@ -346,8 +359,22 @@ async def compact_interview(
     return interview
 
 
+@router.post("/{interview_id}/clear", response_model=InterviewOut)
+def clear_interview(interview_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Start the conversation over. Captured insights stay; the transcript stays in the Chronicle."""
+    interview = _verify_interview_access(interview_id, db, current_user)
+    interview.messages = []
+    interview.compacted_summary = None
+    interview.compaction_count = 0
+    conversations.archive_sessions(db, current_user, "interview", interview.id)
+    db.commit()
+    db.refresh(interview)
+    return interview
+
+
 @router.delete("/{interview_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_interview(interview_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     interview = _verify_interview_access(interview_id, db, current_user)
+    conversations.delete_sessions(db, current_user, "interview", interview.id)
     db.delete(interview)
     db.commit()

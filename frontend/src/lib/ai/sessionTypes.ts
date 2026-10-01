@@ -135,6 +135,14 @@ export interface SessionTypeConfig {
   persistsInBackend: boolean;
 
   /**
+   * Sessions whose history lives on the server (interviews, group interviews) start over and
+   * compact there (doc 13 P1); without these the panel only forgets its own copy.
+   * `compactHistory` returns the summary and how many recent messages it kept.
+   */
+  clearHistory?: (backendSessionId: string) => Promise<void>;
+  compactHistory?: (backendSessionId: string) => Promise<{ summary: string; keep: number }>;
+
+  /**
    * Hidden from the panel's New menu: some sessions are opened by a page with a result in
    * hand (doc 06 §2.1) and make no sense to start empty.
    */

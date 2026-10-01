@@ -46,7 +46,7 @@ describe("command palette coverage", () => {
     ["diagrams", "nav-compendium-diagrams"],
     ["versions", "nav-chronicle-versions"],
     ["snapshots", "nav-chronicle-versions"],
-    ["story health", "nav-health"],
+    ["story health", "nav-findings"],
     ["discoveries", "nav-proposals"],
     ["codex review", "nav-proposals"],
   ])("finds %s", (query, id) => {

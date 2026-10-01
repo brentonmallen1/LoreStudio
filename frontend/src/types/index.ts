@@ -460,7 +460,7 @@ export type {
 } from "./interviews";
 
 export interface PanelMessage {
-  role: "user" | "character";
+  role: "user" | "character" | "summary";
   content: string;
   timestamp: string;
   character_id?: string;
@@ -1224,7 +1224,7 @@ export interface ChronicleSession {
   id: string;
   story_id: string;
   user_id: string;
-  context_type: "scene" | "character" | "story" | "panel";
+  context_type: "scene" | "character" | "story" | "panel" | "interview";
   context_id: string | null;
   context_label: string;
   title: string;

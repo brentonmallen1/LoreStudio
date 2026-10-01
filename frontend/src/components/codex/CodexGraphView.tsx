@@ -169,9 +169,11 @@ export default function CodexGraphView({ graph, selectedId, onSelect, emptyActio
         <span className={styles.legendItem}>
           {view.nodes.length} of {graph.nodes.length} things · {view.edges.length} connections
         </span>
-        <span className={styles.legendItem}>
-          <span className={styles.legendDash} /> suggested, awaiting your answer
-        </span>
+        {graph.edges.some((e) => isProposal(e.source)) && (
+          <span className={styles.legendItem}>
+            <span className={styles.legendDash} /> suggested, awaiting your answer
+          </span>
+        )}
       </div>
     </div>
   );

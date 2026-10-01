@@ -67,6 +67,8 @@ def format_history_with_labels(messages: list[dict]) -> str:
         elif role == "character":
             name = m.get("character_name") or "Character"
             lines.append(f"[{name}]: {content}")
+        elif role == "summary":
+            lines.append(f"[Earlier, in summary]: {content}")
     return "\n".join(lines) if lines else "(No conversation yet)"
 
 
@@ -220,3 +222,18 @@ def build_panel_character_prompt(  # noqa: C901, PLR0912
     )
 
     return "\n".join(parts)
+
+
+def build_panel_compaction_prompt(names: list[str], messages: list[dict]) -> str:
+    """Fold the early part of a group interview into a record the panel can remember."""
+    return (
+        f"You are summarizing the early part of a group interview with {', '.join(names)}.\n\n"
+        f"Here is the excerpt, each line labelled by who spoke:\n{format_history_with_labels(messages)}\n\n"
+        "Create a compact memory summary that preserves:\n"
+        "1. What each character revealed, and to whom\n"
+        "2. Where they agreed, disagreed or changed their mind\n"
+        "3. Topics that were discussed and where they landed\n"
+        "4. The tone between the characters, and between them and the author\n\n"
+        "Write as a third-person record in past tense, naming who said what. Be concise but "
+        "complete. Do not include anything that wasn't in the conversation."
+    )

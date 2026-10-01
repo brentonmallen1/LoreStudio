@@ -188,7 +188,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                         className={styles.generateLink}
                         onClick={() => {
                           onClose();
-                          navigate(`/stories/${activeStory.id}/health`);
+                          navigate(`/stories/${activeStory.id}/findings`);
                         }}
                       >
                         Generate scene summaries <ExternalLink size={10} />

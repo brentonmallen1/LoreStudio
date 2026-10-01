@@ -121,6 +121,15 @@ export const AI_FEATURES: AIFeatureRow[] = [
     budget: 16384,
   },
   {
+    id: "panel-compaction",
+    label: "Group Interview Compaction",
+    group: "system",
+    classification: "summarise",
+    description: "Compresses the older turns of a group interview so a long one keeps fitting.",
+    context: ["Older group interview messages"],
+    budget: 16384,
+  },
+  {
     id: "panel-character",
     label: "Panel Interview",
     group: "cast",

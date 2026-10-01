@@ -19,7 +19,7 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   write: lazy(() => import("../components/editor/SceneEditor")),
   plan: lazy(() => import("../components/plan/PlanPage")),
   proposals: lazy(() => import("./ProposalsPage")),
-  health: lazy(() => import("./FindingsPage")),
+  findings: lazy(() => import("./FindingsPage")),
   publish: lazy(() => import("./PublishPage")),
 };
 

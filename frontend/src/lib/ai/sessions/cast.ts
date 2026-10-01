@@ -5,6 +5,7 @@
 import { MessageSquare, Users } from "lucide-react";
 import { registerSessionType } from "../sessionTypes";
 import { api } from "../../../api/client";
+import { conversationsApi } from "../../../api/conversations";
 import { useStoryStore } from "../../../stores/storyStore";
 
 // ── Interview ─────────────────────────────────────────────────────────────────
@@ -70,6 +71,15 @@ registerSessionType({
   },
 
   persistsInBackend: true,
+  clearHistory: async (id) => {
+    await conversationsApi.clearInterview(id);
+  },
+  compactHistory: async (id) => {
+    const iv = await conversationsApi.compactInterview(id);
+    // The latest compaction is the last block of the running summary.
+    const summary = (iv.compacted_summary ?? "").split("\n\n---\n\n").pop() ?? "";
+    return { summary, keep: iv.messages.length };
+  },
   allowContextSwitch: true,
 });
 
@@ -117,6 +127,7 @@ registerSessionType({
     );
   },
 
+  // PanelMode holds its own transcript, so it clears and compacts it there (doc 13 P1).
   persistsInBackend: true,
   allowContextSwitch: false,
 });

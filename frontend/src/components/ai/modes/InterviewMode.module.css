@@ -295,27 +295,8 @@
   flex-shrink: 0;
 }
 
-.compactBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  font-family: inherit;
-  padding: 0.2rem 0.5rem;
-  border-radius: 99px;
-  border: 1px solid var(--color-warning);
-  color: var(--color-warning);
-  background: none;
-  cursor: pointer;
-  transition: background var(--transition);
-  margin-left: auto;
-}
 .compactBtn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-}
-.compactBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .compactedBadge {
