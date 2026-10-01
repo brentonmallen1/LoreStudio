@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { entityTabId, toolTabId, type EntityKind, type PanelTab, type ToolId } from "../types/panel";
+import { panelStartsOpen } from "../lib/layout/sides";
 
 /**
  * The side panel (refactor doc 11): what is open beside the page. "This scene" is always
@@ -89,7 +90,10 @@ function persistTabs(storyId: string | null, tabs: PanelTab[], activeTabId: stri
 }
 
 const initialOpen: Record<PanelSide, boolean> = {
-  writing: read<boolean>(OPEN_KEYS.writing, OPEN_DEFAULTS.writing),
+  writing: panelStartsOpen(
+    read<boolean>(OPEN_KEYS.writing, OPEN_DEFAULTS.writing),
+    typeof window === "undefined" ? Infinity : window.innerWidth,
+  ),
   pages: read<boolean>(OPEN_KEYS.pages, OPEN_DEFAULTS.pages),
 };
 

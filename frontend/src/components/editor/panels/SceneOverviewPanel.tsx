@@ -46,6 +46,9 @@ function TextField({
   placeholder: string;
   hint?: string;
 }) {
+  // At rest a filled field is two lines of its text; reaching it opens the whole answer to
+  // edit (doc 14 review: six full paragraphs beside the prose competed with it).
+  const [editing, setEditing] = useState(false);
   // Grow with the text: in the side column a fixed two rows cut most answers off.
   const ref = useRef<HTMLTextAreaElement>(null);
   useLayoutEffect(() => {
@@ -53,20 +56,36 @@ function TextField({
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight + 2}px`;
-  }, [value]);
+  }, [value, editing]);
+  const folded = !editing && value.trim().length > 0;
   return (
     <div className={styles.overviewField}>
       <label className={styles.overviewLabel}>{label}</label>
-      <textarea
-        ref={ref}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        className={styles.overviewTextarea}
-        rows={2}
-      />
-      {hint && <p className={styles.overviewHint}>{hint}</p>}
+      {folded ? (
+        <button
+          type="button"
+          className={styles.overviewPreview}
+          onClick={() => setEditing(true)}
+          aria-label={`${label}: ${value}. Edit`}
+        >
+          <span className={styles.overviewClamp}>{value}</span>
+        </button>
+      ) : (
+        <textarea
+          ref={ref}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={() => {
+            setEditing(false);
+            onBlur?.();
+          }}
+          placeholder={placeholder}
+          className={styles.overviewTextarea}
+          rows={2}
+          autoFocus={editing}
+        />
+      )}
+      {hint && !folded && <p className={styles.overviewHint}>{hint}</p>}
     </div>
   );
 }

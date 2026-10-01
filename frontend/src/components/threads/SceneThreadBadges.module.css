@@ -22,9 +22,14 @@
   white-space: nowrap;
 }
 
+/* A 24px target round a 9px cross (WCAG 2.5.8), without widening the chip. */
 .removeBadge {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin: -7px -8px -7px -6px;
   background: none;
   border: none;
   cursor: pointer;
@@ -101,4 +106,65 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+}
+
+.compact {
+  display: none;
+  align-items: center;
+  height: 24px;
+  padding: 0 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.compact:hover,
+.wrap[data-open] .compact {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.compact:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* The editor's width, not the window's. */
+@container (max-width: 720px) {
+  .wrap {
+    position: relative;
+  }
+  .compact {
+    display: inline-flex;
+  }
+  .chips {
+    display: none;
+  }
+  .wrap[data-open] .chips {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 60;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: max-content;
+    max-width: 280px;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-lg);
+  }
 }

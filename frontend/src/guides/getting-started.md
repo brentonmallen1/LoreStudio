@@ -24,7 +24,7 @@ Switch in **Settings › Appearance › Mode**. Everything in Writer mode works 
 1. **New Story** from the dashboard, or **Import** a manuscript (DOCX, Markdown, text).
 2. Pick a structure template (Act → Chapter → Scene, or freeform). Add a chapter and a scene in the tree.
 3. Write. The pill in the top bar says _Saved_ within a second of each pause.
-4. The side panel's **This scene** tab holds the synopsis, purpose, checks and quote style; notes on passages sit in the margin beside the prose. The columns button in the top bar ({{key:collapseSides}}) folds both sides away when you want the page to yourself; its ⋯ menu holds the type, a writing sprint, images, the guides and the scene tools.
+4. The side panel's **This scene** tab holds the synopsis, purpose, checks and quote style; notes on passages sit in the margin beside the prose. **{{key:togglePanel}}** shows or hides the side panel on its own; the columns button in the top bar ({{key:collapseSides}}) folds both sides away when you want the page to yourself; its ⋯ menu holds the type, a writing sprint, images, the guides and the scene tools.
 5. Press **{{key:palette}}** at any time: every page and action is in the command palette. Press **?** for shortcuts.
 
 ## Where to look when something feels off

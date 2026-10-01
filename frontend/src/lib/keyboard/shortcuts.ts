@@ -100,8 +100,9 @@ export const SHORTCUTS = {
   },
   find: { combo: "mod+f", label: "Find in scene", group: "Editor", scope: "editor", modes: BOTH },
   inlineNote: {
-    // Google Docs' comment combo. Not ⌘⇧N: Chrome keeps that for a new incognito window.
-    combo: "mod+alt+m",
+    // N for note. Not ⌘⇧N: Chrome keeps that for a new incognito window. Not ⇧⌥N alone:
+    // without ⌘, ⌥ types a character into the prose.
+    combo: "mod+alt+n",
     label: "Add a note",
     group: "Editor",
     scope: "editor",

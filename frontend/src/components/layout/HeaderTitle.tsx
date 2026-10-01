@@ -30,11 +30,15 @@ export default function HeaderTitle() {
   const writing = pathname.includes("/write");
   // Away from the prose, the way back to the scene you were writing (doc 11 P4; in the app
   // bar since doc 12 P2, so pages keep their full height).
-  const back = writing
-    ? null
-    : activeNode && activeNode.story_id === storyId
-      ? activeNode
-      : sceneToResume(storyId, structure, null);
+  // The Overview's own hero says where to carry on (the last scene edited), so the header
+  // does not offer a second, different answer there (doc 14 review).
+  const overview = /^\/stories\/[^/]+\/?$/.test(pathname);
+  const back =
+    writing || overview
+      ? null
+      : activeNode && activeNode.story_id === storyId
+        ? activeNode
+        : sceneToResume(storyId, structure, null);
   return (
     <div className={styles.storyTitleRow}>
       <button className={styles.backToStories} onClick={() => navigate("/")} title="All stories">
