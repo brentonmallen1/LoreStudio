@@ -842,10 +842,9 @@ export const api = {
     });
   },
   listAssets: (storyId: string) => request<import("../types").StoryAsset[]>(`/stories/${storyId}/media`),
-  assetFileUrl: (assetId: string) => {
-    const token = getToken();
-    // Returns URL for use in <img src> — must include token as query param since we can't set headers on img src
-    return `${BASE}/media/${assetId}/file?token=${token ?? ""}`;
+  assetFileUrl: (assetId: string, version?: string) => {
+    const token = getToken(); // <img src> cannot send a header; `version` refetches a replaced file
+    return `${BASE}/media/${assetId}/file?token=${token ?? ""}${version ? `&v=${encodeURIComponent(version)}` : ""}`;
   },
   updateAsset: (assetId: string, data: { alt_text?: string; description?: string }) =>
     request<import("../types").StoryAsset>(`/media/${assetId}`, {

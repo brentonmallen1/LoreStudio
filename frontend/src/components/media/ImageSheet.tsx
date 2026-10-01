@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Trash2, ZoomIn } from "lucide-react";
+import { ArrowLeft, Replace, Trash2, ZoomIn } from "lucide-react";
 import { api } from "../../api/client";
+import { mediaApi } from "../../api/media";
 import { sectionPath } from "../../lib/routes";
 import { ago } from "../../lib/serverDate";
 import type { StoryAsset } from "../../types";
@@ -35,7 +36,9 @@ export default function ImageSheet({
   const [zoom, setZoom] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const url = api.assetFileUrl(asset.id);
+  const [replacing, setReplacing] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const url = api.assetFileUrl(asset.id, asset.updated_at);
 
   async function save(data: { alt_text?: string; description?: string }) {
     if (
@@ -48,6 +51,19 @@ export default function ImageSheet({
       setError(null);
     } catch {
       setError("That did not save. Try again in a moment.");
+    }
+  }
+
+  async function replace(file: File) {
+    setReplacing(true);
+    try {
+      onChange(await mediaApi.replaceFile(asset.id, file));
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The file could not be replaced.");
+    } finally {
+      setReplacing(false);
+      if (fileInput.current) fileInput.current.value = "";
     }
   }
 
@@ -128,10 +144,31 @@ export default function ImageSheet({
                   </button>
                 </>
               ) : (
-                <button type="button" className={styles.quiet} onClick={() => setConfirming(true)}>
-                  <Trash2 size={13} aria-hidden /> Delete image
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className={styles.quiet}
+                    onClick={() => fileInput.current?.click()}
+                    disabled={replacing}
+                    title="Choose a new file; the caption, note and every use stay"
+                  >
+                    <Replace size={13} aria-hidden /> {replacing ? "Replacing…" : "Replace file…"}
+                  </button>
+                  <button type="button" className={styles.quiet} onClick={() => setConfirming(true)}>
+                    <Trash2 size={13} aria-hidden /> Delete image
+                  </button>
+                </>
               )}
+              <input
+                ref={fileInput}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void replace(f);
+                }}
+              />
             </div>
           </div>
         </div>

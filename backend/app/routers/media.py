@@ -51,6 +51,28 @@ def _verify_asset_access(asset_id: str, db: Session, user: User) -> StoryAsset:
 # --- Upload ---
 
 
+async def _read_upload(file: UploadFile) -> tuple[bytes, str]:
+    """The file's bytes and type, refused when the type or size is not allowed."""
+    mime = file.content_type or "application/octet-stream"
+    if not any(mime.startswith(p) for p in ALLOWED_MIME_PREFIXES):
+        raise HTTPException(status_code=415, detail=f"File type '{mime}' not allowed")
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit")
+    return contents, mime
+
+
+def _write_upload(story_id: str, asset_id: str, filename: str | None, contents: bytes) -> str:
+    """Write the bytes under the story's folder; returns the stored path."""
+    story_dir = _get_uploads_dir() / story_id
+    story_dir.mkdir(exist_ok=True)
+    safe_name = "".join(c if c.isalnum() or c in "._-" else "_" for c in (filename or "file"))
+    # A short random part keeps a replacement from landing on the file it replaces.
+    stored_path = f"{story_id}/{asset_id}_{uuid.uuid4().hex[:8]}_{safe_name}"
+    (_get_uploads_dir() / stored_path).write_bytes(contents)
+    return stored_path
+
+
 @router.post("/stories/{story_id}/media/upload", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
 async def upload_asset(
     story_id: str,
@@ -59,38 +81,43 @@ async def upload_asset(
     current_user: User = Depends(get_current_user),
 ):
     story = _verify_story_access(story_id, db, current_user)
-
-    mime = file.content_type or "application/octet-stream"
-    if not any(mime.startswith(p) for p in ALLOWED_MIME_PREFIXES):
-        raise HTTPException(status_code=415, detail=f"File type '{mime}' not allowed")
-
-    contents = await file.read()
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit")
-
-    uploads_dir = _get_uploads_dir()
-    story_dir = uploads_dir / story_id
-    story_dir.mkdir(exist_ok=True)
-
+    contents, mime = await _read_upload(file)
     asset_id = str(uuid.uuid4())
-    safe_name = "".join(c if c.isalnum() or c in "._-" else "_" for c in (file.filename or "file"))
-    stored_path = f"{story_id}/{asset_id}_{safe_name}"
-    full_path = uploads_dir / stored_path
-
-    full_path.write_bytes(contents)
-
     asset = StoryAsset(
         id=asset_id,
         story_id=story.id,
         user_id=current_user.id,
         original_filename=file.filename or "file",
-        stored_path=stored_path,
+        stored_path=_write_upload(story_id, asset_id, file.filename, contents),
         mime_type=mime,
         size_bytes=len(contents),
     )
     db.add(asset)
     db.commit()
     db.refresh(asset)
+    return asset
+
+
+@router.put("/media/{asset_id}/file", response_model=AssetOut)
+async def replace_asset_file(
+    asset_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """A new file for the same image (doc 14 Q5): its caption, note and every place that uses
+    it stay, so a scene, sheet or diagram shows the new picture without being touched."""
+    asset = _verify_asset_access(asset_id, db, current_user)
+    contents, mime = await _read_upload(file)
+    old_path = _get_uploads_dir() / asset.stored_path
+    asset.stored_path = _write_upload(asset.story_id, asset.id, file.filename, contents)
+    asset.original_filename = file.filename or asset.original_filename
+    asset.mime_type = mime
+    asset.size_bytes = len(contents)
+    db.commit()
+    db.refresh(asset)
+    if old_path.exists() and old_path != _get_uploads_dir() / asset.stored_path:
+        old_path.unlink()
     return asset
 
 
@@ -138,7 +165,13 @@ def serve_asset_file(
     full_path = _get_uploads_dir() / asset.stored_path
     if not full_path.exists():
         raise HTTPException(status_code=404, detail="File not found on disk")
-    return FileResponse(full_path, media_type=asset.mime_type, filename=asset.original_filename)
+    # no-cache: the browser asks again each time, so a replaced file shows (a 304 when unchanged).
+    return FileResponse(
+        full_path,
+        media_type=asset.mime_type,
+        filename=asset.original_filename,
+        headers={"Cache-Control": "no-cache"},
+    )
 
 
 # --- Update / Delete ---
