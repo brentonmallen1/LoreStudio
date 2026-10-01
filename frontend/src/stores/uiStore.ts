@@ -1,4 +1,11 @@
-import { COLOUR_MODES, type ColourMode, type StripWidth } from "../lib/strip/stripModel";
+import {
+  COLOUR_MODES,
+  EXPANDED_DEFAULT_PX,
+  clampStripPx,
+  type ColourMode,
+  type StripDepth,
+  type StripWidth,
+} from "../lib/strip/stripModel";
 import { create } from "zustand";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
@@ -137,6 +144,13 @@ interface UIState {
   // The story strip (doc 11 P3): how wide the book is drawn, and what colours its stops.
   stripWidth: StripWidth;
   setStripWidth: (width: StripWidth) => void;
+  /** The expanded strip's width, and the view it last showed (doc 14 strip). */
+  stripPx: number;
+  setStripPx: (px: number) => void;
+  stripDepth: StripDepth;
+  /** The strip's readout: "1 of 7", or how far through by words. */
+  stripReadoutPct: boolean;
+  toggleStripReadout: () => void;
   stripColourMode: ColourMode;
   setStripColourMode: (mode: ColourMode) => void;
 
@@ -323,7 +337,7 @@ for (const stale of [
   }
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   themeName: savedThemeName,
   colorMode: savedColorMode,
   setThemeName: (themeName) => {
@@ -380,8 +394,34 @@ export const useUIStore = create<UIState>((set) => ({
     ? localStorage.getItem("ls_strip_width")
     : "strip") as StripWidth,
   setStripWidth: (width) => {
-    localStorage.setItem("ls_strip_width", width);
-    set({ stripWidth: width });
+    try {
+      localStorage.setItem("ls_strip_width", width);
+      if (width !== "strip") localStorage.setItem("ls_strip_depth", width);
+    } catch {
+      // Site data blocked: the strip still works, it just forgets between visits.
+    }
+    set(width === "strip" ? { stripWidth: width } : { stripWidth: width, stripDepth: width });
+  },
+  stripPx: clampStripPx(Number(localStorage.getItem("ls_strip_px") ?? EXPANDED_DEFAULT_PX)),
+  setStripPx: (px) => {
+    const clamped = clampStripPx(px);
+    try {
+      localStorage.setItem("ls_strip_px", String(clamped));
+    } catch {
+      // As above.
+    }
+    set({ stripPx: clamped });
+  },
+  stripDepth: localStorage.getItem("ls_strip_depth") === "scenes" ? "scenes" : "chapters",
+  stripReadoutPct: localStorage.getItem("ls_strip_readout") === "pct",
+  toggleStripReadout: () => {
+    const next = !get().stripReadoutPct;
+    try {
+      localStorage.setItem("ls_strip_readout", next ? "pct" : "count");
+    } catch {
+      // As above.
+    }
+    set({ stripReadoutPct: next });
   },
   // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
   stripColourMode: (COLOUR_MODES.some((m) => m.id === localStorage.getItem("ls_strip_colour"))

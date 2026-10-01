@@ -43,7 +43,7 @@ export const SHORTCUTS = {
   },
   cycleStrip: {
     combo: "mod+shift+e",
-    label: "Widen or narrow the story strip",
+    label: "Collapse or expand the story strip",
     group: "Navigation",
     scope: "global",
     modes: BOTH,

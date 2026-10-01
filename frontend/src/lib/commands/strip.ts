@@ -1,11 +1,11 @@
 /**
- * Story strip commands (refactor doc 11, phase 3): widen or narrow the book down the left
+ * Story strip commands (refactor doc 11, phase 3): collapse or expand the book down the left
  * edge, and choose what colours its stops. Kept apart from index.ts, which is at its
  * size budget.
  */
 import { PanelLeft, Palette } from "lucide-react";
 import { commandRegistry } from "./registry";
-import { COLOUR_MODES, buildLine, nextWidth } from "../strip/stripModel";
+import { COLOUR_MODES, buildLine, toggleStrip } from "../strip/stripModel";
 import { SHORTCUTS } from "../keyboard/shortcuts";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -14,17 +14,18 @@ const inStory = () => !!useStoryStore.getState().activeStory;
 
 commandRegistry.register({
   id: "strip-cycle-width",
-  label: "Widen or narrow the story strip",
-  keywords: ["tree", "outline", "chapters", "scenes", "strip", "sidebar", "structure"],
+  label: "Collapse or expand the story strip",
+  keywords: ["tree", "outline", "chapters", "scenes", "strip", "sidebar", "structure", "widen", "narrow"],
   icon: PanelLeft,
   group: "View",
   shortcut: SHORTCUTS.cycleStrip.combo,
   when: inStory,
   action: () => {
     // The same test the strip uses for whether there are chapters to show.
-    const { stripWidth, setStripWidth } = useUIStore.getState();
+    const { stripWidth, stripDepth, setStripWidth } = useUIStore.getState();
     const { structure, activeTemplate } = useStoryStore.getState();
-    setStripWidth(nextWidth(stripWidth, buildLine(structure, activeTemplate, undefined, null).hasStations));
+    const { hasStations } = buildLine(structure, activeTemplate, undefined, null);
+    setStripWidth(toggleStrip(stripWidth, stripDepth, hasStations));
   },
 });
 

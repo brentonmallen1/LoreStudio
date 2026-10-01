@@ -4,12 +4,15 @@ import type { SceneCast } from "../../types/panel";
 import {
   buildLine,
   colourFor,
+  COLLAPSED_PX,
+  EXPANDED_MAX_PX,
+  EXPANDED_MIN_PX,
+  clampStripPx,
   legendFor,
-  nextWidth,
   roman,
-  snapWidth,
-  stepWidth,
   stopShape,
+  stripPx,
+  toggleStrip,
 } from "./stripModel";
 
 const node = (
@@ -67,7 +70,7 @@ describe("buildLine", () => {
 
   it("reads out the chapter and how far through the words you are", () => {
     const line = buildLine(structure, template, "s2", null);
-    expect(line.readout).toEqual({ top: "Ch 2", bottom: "of 3 · 33%" }); // 200 of 600 written
+    expect(line.readout).toEqual({ position: 2, total: 3, unit: "chapter", pct: 33 }); // 200 of 600 written
     expect(line.stations[0].done).toBe(1);
     expect(line.stations[2].done).toBe(0);
     expect(line.stations[2].planned).toBe(false);
@@ -77,7 +80,7 @@ describe("buildLine", () => {
     const line = buildLine(structure, template, "c3", null);
     expect(line.currentIndex).toBe(-1);
     expect(line.currentStationKey).toBe("c3");
-    expect(line.readout.top).toBe("Ch 3");
+    expect(line.readout.position).toBe(3);
   });
 
   it("is a line of stops for a flat template", () => {
@@ -85,30 +88,27 @@ describe("buildLine", () => {
     const line = buildLine([node("x", "One", 0), node("y", "Two", 0)], flat, "y", null);
     expect(line.hasStations).toBe(false);
     expect(line.stations).toHaveLength(1);
-    expect(line.readout).toEqual({ top: "Sc 2", bottom: "of 2 · 50%" });
-    expect(nextWidth("strip", false)).toBe("scenes");
-    expect(nextWidth("strip", true)).toBe("chapters");
+    expect(line.readout).toEqual({ position: 2, total: 2, unit: "scene", pct: 50 });
   });
 });
 
-describe("dragging and stepping the width", () => {
-  it("snaps a drag to the nearest width", () => {
-    expect(snapWidth(20, true)).toBe("strip");
-    expect(snapWidth(150, true)).toBe("strip");
-    expect(snapWidth(170, true)).toBe("chapters");
-    expect(snapWidth(290, true)).toBe("scenes");
-    expect(snapWidth(900, true)).toBe("scenes");
+describe("collapsed or expanded", () => {
+  it("collapses to the line and expands back to the view it had", () => {
+    expect(toggleStrip("chapters", "chapters", true)).toBe("strip");
+    expect(toggleStrip("strip", "scenes", true)).toBe("scenes");
+    expect(toggleStrip("strip", "chapters", true)).toBe("chapters");
   });
 
-  it("skips the chapter rows when there are no chapters", () => {
-    expect(snapWidth(240, false)).toBe("scenes");
-    expect(stepWidth("strip", false, 1)).toBe("scenes");
+  it("expands a flat outline to its scenes", () => {
+    expect(toggleStrip("strip", "chapters", false)).toBe("scenes");
   });
 
-  it("steps one width at a time and stops at the ends", () => {
-    expect(stepWidth("strip", true, 1)).toBe("chapters");
-    expect(stepWidth("scenes", true, 1)).toBe("scenes");
-    expect(stepWidth("strip", true, -1)).toBe("strip");
+  it("keeps one expanded width whatever it shows, within its limits", () => {
+    expect(stripPx("chapters", 340)).toBe(340);
+    expect(stripPx("scenes", 340)).toBe(340);
+    expect(stripPx("strip", 340)).toBe(COLLAPSED_PX);
+    expect(clampStripPx(10)).toBe(EXPANDED_MIN_PX);
+    expect(clampStripPx(9999)).toBe(EXPANDED_MAX_PX);
   });
 });
 

@@ -4,10 +4,11 @@ import { ChevronsLeft, ChevronsRight, Home } from "lucide-react";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useOpenFindings } from "../../stores/findingsStore";
 import {
-  WIDTH_PX,
   buildLine,
-  nextWidth,
+  stripPx,
+  toggleStrip,
   type ColourContext,
+  type Readout,
   type StripWidth,
 } from "../../lib/strip/stripModel";
 import { useStoryStore } from "../../stores/storyStore";
@@ -22,9 +23,9 @@ import TransitStrip from "./TransitStrip";
 import styles from "./Strip.module.css";
 
 /**
- * The book down the left edge of every story page (refactor doc 11, phase 3), at one of
- * three widths: a transit line of chapters and scenes, chapter rows, or the full tree.
- * Whatever the width, it says where you are and how far through you are.
+ * The book down the left edge of every story page (refactor doc 11, phase 3). Collapsed, a
+ * transit line of chapters and scenes; expanded, chapter rows or the full tree at the width
+ * the author dragged it to (doc 14). Either way it says where you are.
  */
 export default function StoryStrip() {
   const { storyId } = useParams<{ storyId: string }>();
@@ -32,7 +33,17 @@ export default function StoryStrip() {
   const { pathname } = useLocation();
   const { structure, activeTemplate, activeNode, sceneCast, characters, threads, beatSheets, activeStory } =
     useStoryStore();
-  const { stripWidth, setStripWidth, stripColourMode, setStripColourMode } = useUIStore();
+  const {
+    stripWidth,
+    setStripWidth,
+    stripColourMode,
+    setStripColourMode,
+    stripPx: expandedPx,
+    setStripPx,
+    stripDepth,
+    stripReadoutPct,
+    toggleStripReadout,
+  } = useUIStore();
   const [hovering, setHovering] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [dragPx, setDragPx] = useState<number | null>(null);
@@ -50,7 +61,7 @@ export default function StoryStrip() {
     beatSheet: beatSheets.find((b) => b.id === activeStory?.beat_sheet_id) ?? null,
     findings,
   };
-  const cycle = () => setStripWidth(nextWidth(width, line.hasStations));
+  const cycle = () => setStripWidth(toggleStrip(width, stripDepth, line.hasStations));
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -79,17 +90,25 @@ export default function StoryStrip() {
     <nav
       aria-label="The book"
       className={styles.strip}
-      style={{ width: dragPx ?? WIDTH_PX[width] }}
+      style={{ width: dragPx ?? stripPx(width, expandedPx) }}
       data-width={width}
       data-dragging={dragPx !== null || undefined}
     >
-      <StripEdge width={width} hasStations={line.hasStations} onWidth={setStripWidth} onDrag={setDragPx} />
+      {width !== "strip" && (
+        <StripEdge px={stripPx(width, expandedPx)} onDrag={setDragPx} onCommit={setStripPx} />
+      )}
 
       {width === "strip" ? (
         <div className={`${styles.head} ${styles.headNarrow}`}>
           {home}
-          <span className={styles.readoutTop}>{line.readout.top}</span>
-          <span className={styles.readoutBottom}>{line.readout.bottom}</span>
+          <button
+            type="button"
+            className={styles.readout}
+            onClick={toggleStripReadout}
+            title={readoutTitle(line.readout, stripReadoutPct)}
+          >
+            {stripReadoutPct ? `${line.readout.pct}%` : readoutText(line.readout)}
+          </button>
           <button
             className={styles.iconBtn}
             onClick={cycle}
@@ -125,7 +144,7 @@ export default function StoryStrip() {
             className={styles.iconBtn}
             onClick={() => setStripWidth("strip")}
             aria-label="Collapse to the line"
-            title="Collapse to the line"
+            title={`Collapse to the line (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
           >
             <ChevronsLeft size={13} />
           </button>
@@ -162,4 +181,18 @@ export default function StoryStrip() {
       {(hovering || pickerOpen) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
     </nav>
   );
+}
+
+/** "1 of 7"; with nothing open, how many there are. */
+function readoutText(r: Readout): string {
+  return r.position === null ? `${r.total}` : `${r.position} of ${r.total}`;
+}
+
+function readoutTitle(r: Readout, pct: boolean): string {
+  const where =
+    r.position === null
+      ? `${r.total} ${r.unit}${r.total === 1 ? "" : "s"}`
+      : `${r.unit === "chapter" ? "Chapter" : "Scene"} ${r.position} of ${r.total}`;
+  const through = `${r.pct}% of the words come before here`;
+  return pct ? `${through} (${where}). Click for the ${r.unit}.` : `${where}. Click for how far through.`;
 }

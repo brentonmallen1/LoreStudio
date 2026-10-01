@@ -76,7 +76,17 @@ export interface Line {
   currentActKey: string | null;
   totalWords: number;
   wordsBefore: number;
-  readout: { top: string; bottom: string };
+  readout: Readout;
+}
+
+/** Where you are: "1 of 7", or how far through by words (the strip's readout toggles). */
+export interface Readout {
+  /** This chapter's or scene's number, or null when nothing is open. */
+  position: number | null;
+  total: number;
+  unit: "chapter" | "scene";
+  /** Words before here, as a share of the whole. */
+  pct: number;
 }
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
@@ -169,12 +179,13 @@ export function buildLine(
   const totalWords = stops.reduce((n, s) => n + s.words, 0);
   const wordsBefore = stops.slice(0, Math.max(0, currentIndex)).reduce((n, s) => n + s.words, 0);
   const pct = totalWords ? Math.round((wordsBefore / totalWords) * 100) : 0;
-  const readout =
-    hasStations && currentStation
-      ? { top: `Ch ${currentStation.number}`, bottom: `of ${stations.length} · ${pct}%` }
-      : currentIndex >= 0
-        ? { top: `Sc ${currentIndex + 1}`, bottom: `of ${stops.length} · ${pct}%` }
-        : { top: `${stops.length}`, bottom: stops.length === 1 ? "scene" : "scenes" };
+  const readout: Readout = {
+    position:
+      hasStations && currentStation ? currentStation.number : currentIndex >= 0 ? currentIndex + 1 : null,
+    total: hasStations && currentStation ? stations.length : stops.length,
+    unit: hasStations && currentStation ? "chapter" : "scene",
+    pct,
+  };
 
   return {
     acts,
@@ -261,30 +272,30 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
   return [...seen.values()];
 }
 
-/** The strip's three widths, in pixels. */
-export const WIDTH_PX: Record<StripWidth, number> = { strip: 64, chapters: 248, scenes: 304 };
+/**
+ * Two states (doc 14 strip): collapsed to the line of dots, or expanded to the width the
+ * author dragged it to. Chapters or scenes is what the expanded strip shows, not how wide
+ * it is, so switching between them never moves the page.
+ */
+export const COLLAPSED_PX = 64;
+export const EXPANDED_MIN_PX = 288;
+export const EXPANDED_MAX_PX = 460;
+export const EXPANDED_DEFAULT_PX = 304;
 
-function widthsFor(hasStations: boolean): StripWidth[] {
-  return hasStations ? ["strip", "chapters", "scenes"] : ["strip", "scenes"];
+export type StripDepth = Exclude<StripWidth, "strip">;
+
+export function clampStripPx(px: number): number {
+  if (!Number.isFinite(px)) return EXPANDED_DEFAULT_PX;
+  return Math.round(Math.min(EXPANDED_MAX_PX, Math.max(EXPANDED_MIN_PX, px)));
 }
 
-/** The next width when the shortcut is used: strip → chapters → scenes → strip; a flat template has no chapters stop. */
-export function nextWidth(width: StripWidth, hasStations: boolean): StripWidth {
-  const order = widthsFor(hasStations);
-  const i = order.indexOf(width);
-  return order[(i + 1) % order.length];
+/** The strip's width on screen. */
+export function stripPx(width: StripWidth, expandedPx: number): number {
+  return width === "strip" ? COLLAPSED_PX : clampStripPx(expandedPx);
 }
 
-/** One width wider or narrower, stopping at either end (the edge's arrow keys). */
-export function stepWidth(width: StripWidth, hasStations: boolean, dir: 1 | -1): StripWidth {
-  const order = widthsFor(hasStations);
-  const i = Math.max(0, order.indexOf(width));
-  return order[Math.min(order.length - 1, Math.max(0, i + dir))];
-}
-
-/** Where a drag of the strip's edge lands: the nearest of its widths (doc 13 P2). */
-export function snapWidth(px: number, hasStations: boolean): StripWidth {
-  return widthsFor(hasStations).reduce((best, w) =>
-    Math.abs(WIDTH_PX[w] - px) < Math.abs(WIDTH_PX[best] - px) ? w : best,
-  );
+/** Collapse, or expand back to the view it had; a flat outline has no chapters view. */
+export function toggleStrip(width: StripWidth, lastDepth: StripDepth, hasStations: boolean): StripWidth {
+  if (width !== "strip") return "strip";
+  return hasStations ? lastDepth : "scenes";
 }

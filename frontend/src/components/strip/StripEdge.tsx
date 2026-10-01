@@ -1,27 +1,24 @@
 import { useRef, useState } from "react";
-import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
-import { WIDTH_PX, snapWidth, stepWidth, type StripWidth } from "../../lib/strip/stripModel";
+import { EXPANDED_MAX_PX, EXPANDED_MIN_PX, clampStripPx } from "../../lib/strip/stripModel";
 import styles from "./Strip.module.css";
 
-const MIN = 48;
-const MAX = 380;
+const STEP = 16;
 
 /**
- * The strip's right edge (doc 13 P2, D7). It looked like a handle and only cycled when
- * clicked; now it is one: drag it and the strip follows, then settles on the nearest of
- * its three widths. Arrow keys do the same a step at a time.
+ * The expanded strip's right edge (doc 14 strip). Dragging it resizes the strip as the
+ * pointer moves, between a floor that keeps its header whole and a ceiling, and the width is
+ * kept when you let go. Collapsing to the line is the header's button, not a drag: the old
+ * edge snapped between three widths only on release, so nothing showed what a drag would do.
  */
 export default function StripEdge({
-  width,
-  hasStations,
-  onWidth,
+  px,
   onDrag,
+  onCommit,
 }: {
-  width: StripWidth;
-  hasStations: boolean;
-  onWidth: (w: StripWidth) => void;
+  px: number;
   /** The live width while dragging, or null when the drag ends. */
   onDrag: (px: number | null) => void;
+  onCommit: (px: number) => void;
 }) {
   const start = useRef<{ x: number; px: number } | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -30,20 +27,20 @@ export default function StripEdge({
     if (e.button !== 0) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
-    start.current = { x: e.clientX, px: WIDTH_PX[width] };
+    start.current = { x: e.clientX, px };
     setDragging(true);
   }
   function move(e: React.PointerEvent<HTMLDivElement>) {
     if (!start.current) return;
-    onDrag(Math.min(MAX, Math.max(MIN, start.current.px + e.clientX - start.current.x)));
+    onDrag(clampStripPx(start.current.px + e.clientX - start.current.x));
   }
   function up(e: React.PointerEvent<HTMLDivElement>) {
     if (!start.current) return;
-    const px = start.current.px + e.clientX - start.current.x;
+    const next = clampStripPx(start.current.px + e.clientX - start.current.x);
     start.current = null;
     setDragging(false);
     onDrag(null);
-    onWidth(snapWidth(px, hasStations));
+    onCommit(next);
   }
 
   return (
@@ -53,11 +50,11 @@ export default function StripEdge({
       role="separator"
       aria-orientation="vertical"
       aria-label="Story strip width"
-      aria-valuemin={WIDTH_PX.strip}
-      aria-valuemax={WIDTH_PX.scenes}
-      aria-valuenow={WIDTH_PX[width]}
+      aria-valuemin={EXPANDED_MIN_PX}
+      aria-valuemax={EXPANDED_MAX_PX}
+      aria-valuenow={px}
       tabIndex={0}
-      title={`Drag to widen or narrow (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
+      title="Drag to widen or narrow"
       onPointerDown={down}
       onPointerMove={move}
       onPointerUp={up}
@@ -65,7 +62,7 @@ export default function StripEdge({
       onKeyDown={(e) => {
         if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
           e.preventDefault();
-          onWidth(stepWidth(width, hasStations, e.key === "ArrowRight" ? 1 : -1));
+          onCommit(clampStripPx(px + (e.key === "ArrowRight" ? STEP : -STEP)));
         }
       }}
     />
