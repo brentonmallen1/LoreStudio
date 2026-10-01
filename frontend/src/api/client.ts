@@ -134,29 +134,6 @@ export const api = {
       body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
     }),
 
-  analyzeProseNLP: (storyId: string, nodeIds?: string[], checks?: string[], signal?: AbortSignal) =>
-    request<import("../types").ProseNLPResponse>(`/stories/${storyId}/analyze/prose-nlp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ node_ids: nodeIds ?? null, checks: checks ?? null }),
-      signal,
-    }),
-
-  analyzeEntitySuggestions: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").EntitySuggestionsResponse>(`/stories/${storyId}/analyze/entity-suggestions`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeEditorialConsistency: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").EditorialConsistencyResponse>(
-      `/stories/${storyId}/analyze/editorial-consistency`,
-      {
-        method: "POST",
-        signal,
-      },
-    ),
-
   analyzePacing: (storyId: string, signal?: AbortSignal) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, {
       method: "POST",
@@ -210,13 +187,6 @@ export const api = {
     request<import("../types").ActivityLog | null>(
       `/stories/${storyId}/analysis/latest?feature=${encodeURIComponent(feature)}`,
     ),
-  getAnalysisHistory: (storyId: string, features?: string[], limit?: number) => {
-    const params = new URLSearchParams();
-    if (features?.length) params.set("features", features.join(","));
-    if (limit != null) params.set("limit", String(limit));
-    const qs = params.toString() ? `?${params}` : "";
-    return request<import("../types").ActivityLog[]>(`/stories/${storyId}/analysis/history${qs}`);
-  },
 
   // Editorial pass
   runEditorialPass: (
@@ -232,9 +202,6 @@ export const api = {
       body: JSON.stringify({ context_level: contextLevel, scope_type: scopeType, scope_ids: scopeIds }),
       signal,
     }),
-
-  getEditorialReports: (storyId: string) =>
-    request<import("../types").ActivityLog[]>(`/stories/${storyId}/editorial/reports`),
 
   deleteEditorialReport: (storyId: string, reportId: string) =>
     request<void>(`/stories/${storyId}/editorial/reports/${reportId}`, { method: "DELETE" }),
@@ -284,7 +251,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getCharacter: (id: string) => request<import("../types").Character>(`/characters/${id}`),
   updateCharacter: (id: string, data: Partial<import("../types").Character>) =>
     request<import("../types").Character>(`/characters/${id}`, {
       method: "PATCH",
@@ -408,26 +374,10 @@ export const api = {
     ),
   getRelationshipTemplates: () =>
     request<import("../types").RelationshipTemplate[]>(`/characters/relationships/templates`),
-  createRelationshipFromTemplate: (characterId: string, relatedCharacterId: string, templateId: string) =>
-    request<import("../types").CharacterRelationship>(
-      `/characters/${characterId}/relationships/from-template`,
-      {
-        method: "POST",
-        body: JSON.stringify({ related_character_id: relatedCharacterId, template_id: templateId }),
-      },
-    ),
 
   // Settings (deprecated — use listLocationsFlat instead)
-  listSettings: (storyId: string) => request<import("../types").Setting[]>(`/stories/${storyId}/settings`),
-
-  migrateSettingsToLocations: (storyId: string) =>
-    request<{ created: number; merged: number }>(`/stories/${storyId}/locations/migrate-settings`, {
-      method: "POST",
-    }),
 
   // Interviews
-  listInterviews: (characterId: string) =>
-    request<import("../types").InterviewSummary[]>(`/interviews/characters/${characterId}`),
   startInterview: (
     characterId: string,
     title?: string,
@@ -443,7 +393,6 @@ export const api = {
       }),
     }),
   getInterview: (id: string) => request<import("../types").Interview>(`/interviews/${id}`),
-  deleteInterview: (id: string) => request<void>(`/interviews/${id}`, { method: "DELETE" }),
   compactInterview: (id: string) =>
     request<import("../types").Interview>(`/interviews/${id}/compact`, { method: "POST" }),
 
@@ -550,11 +499,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  updateReaderKnowledgeEvent: (eventId: string, data: Partial<import("../types").ReaderKnowledgeEvent>) =>
-    request<import("../types").ReaderKnowledgeEvent>(`/reader-knowledge/${eventId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
   deleteReaderKnowledgeEvent: (eventId: string) =>
     request<void>(`/reader-knowledge/${eventId}`, { method: "DELETE" }),
   scanReaderKnowledgeEvents: (storyId: string) =>
@@ -597,11 +541,6 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteTodo: (todoId: string) => request<void>(`/todos/${todoId}`, { method: "DELETE" }),
-  reorderTodos: (storyId: string, todoIds: string[]) =>
-    request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos/reorder`, {
-      method: "POST",
-      body: JSON.stringify({ todo_ids: todoIds }),
-    }),
   deleteDoneTodos: (storyId: string) => request<void>(`/stories/${storyId}/todos/done`, { method: "DELETE" }),
 
   // Outlines
@@ -644,11 +583,6 @@ export const api = {
       body: JSON.stringify(data),
     }),
   deleteOutlineItem: (itemId: string) => request<void>(`/outline-items/${itemId}`, { method: "DELETE" }),
-  reorderOutline: (outlineId: string, parentId: string | null, itemIds: string[]) =>
-    request<void>(`/outlines/${outlineId}/reorder`, {
-      method: "POST",
-      body: JSON.stringify({ parent_id: parentId, item_ids: itemIds }),
-    }),
   bulkReorderOutline: (
     outlineId: string,
     operations: { item_id: string; parent_id: string | null; position: number }[],
@@ -667,15 +601,12 @@ export const api = {
     }),
 
   // Panel Interviews
-  listPanels: (storyId: string) =>
-    request<import("../types").PanelInterviewSummary[]>(`/stories/${storyId}/panels`),
   createPanel: (storyId: string, data: { title?: string; character_ids: string[] }) =>
     request<import("../types").PanelInterview>(`/stories/${storyId}/panels`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
   getPanel: (panelId: string) => request<import("../types").PanelInterview>(`/panels/${panelId}`),
-  deletePanel: (panelId: string) => request<void>(`/panels/${panelId}`, { method: "DELETE" }),
 
   // Scene Links
   getSceneLinks: (params: { story_id?: string; node_id?: string }) =>
@@ -916,7 +847,6 @@ export const api = {
     });
   },
   listAssets: (storyId: string) => request<import("../types").StoryAsset[]>(`/stories/${storyId}/media`),
-  getAsset: (assetId: string) => request<import("../types").StoryAsset>(`/media/${assetId}`),
   assetFileUrl: (assetId: string) => {
     const token = getToken();
     // Returns URL for use in <img src> — must include token as query param since we can't set headers on img src
@@ -1074,15 +1004,6 @@ export const api = {
   deleteCompendiumEntry: (entryId: string) => request<void>(`/compendium/${entryId}`, { method: "DELETE" }),
   refreshCompendiumUrl: (entryId: string) =>
     request<import("../types").CompendiumEntry>(`/compendium/${entryId}/refresh-url`, { method: "POST" }),
-  attachCompendiumEntry: (entryId: string, objectType: string, objectId: string, note = "") =>
-    request<import("../types").CompendiumAttachment>(`/compendium/${entryId}/attach`, {
-      method: "POST",
-      body: JSON.stringify({ object_type: objectType, object_id: objectId, note }),
-    }),
-  listCompendiumAttachments: (objectType: string, objectId: string) =>
-    request<import("../types").CompendiumAttachment[]>(`/compendium/attachments/${objectType}/${objectId}`),
-  detachCompendiumEntry: (attachmentId: string) =>
-    request<void>(`/compendium/attachments/${attachmentId}`, { method: "DELETE" }),
 
   // LLM Transparency
   getPromptPreview: (body: import("../types").PromptPreviewRequest) =>
@@ -1137,16 +1058,13 @@ export const api = {
     request<import("../types/system").SystemStatus["backups"]>("/system/backups", { method: "POST" }),
 
   // World Building — Locations
-  listLocations: (storyId: string) => request<import("../types").Location[]>(`/stories/${storyId}/locations`),
   listLocationsFlat: (storyId: string) =>
     request<import("../types").Location[]>(`/stories/${storyId}/locations/flat`),
-  getLocationTypes: (storyId: string) => request<string[]>(`/stories/${storyId}/location-types`),
   createLocation: (storyId: string, data: Partial<import("../types").Location>) =>
     request<import("../types").Location>(`/stories/${storyId}/locations`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getLocation: (id: string) => request<import("../types").Location>(`/locations/${id}`),
   updateLocation: (id: string, data: Partial<import("../types").Location>) =>
     request<import("../types").Location>(`/locations/${id}`, {
       method: "PATCH",
@@ -1157,12 +1075,6 @@ export const api = {
   // World Building — Scene Settings
   getSceneSettingsForNode: (nodeId: string) =>
     request<import("../types").SceneSetting[]>(`/structure/${nodeId}/scene-settings`),
-  getSceneSettingsForLocation: (locationId: string) =>
-    request<import("../types").SceneSetting[]>(`/locations/${locationId}/scene-settings`),
-  getScenesForLocation: (locationId: string) =>
-    request<
-      { scene_setting_id: string; scene_id: string; scene_title: string; role: string; notes: string }[]
-    >(`/locations/${locationId}/scenes`),
   addSceneSetting: (data: { location_id: string; node_id: string; role?: string; notes?: string }) =>
     request<import("../types").SceneSetting>("/scene-settings", {
       method: "POST",
@@ -1173,13 +1085,11 @@ export const api = {
   // World Building — World Systems
   listWorldSystems: (storyId: string) =>
     request<import("../types").WorldSystem[]>(`/stories/${storyId}/world-systems`),
-  getSystemTypes: (storyId: string) => request<string[]>(`/stories/${storyId}/world-system-types`),
   createWorldSystem: (storyId: string, data: Partial<import("../types").WorldSystem>) =>
     request<import("../types").WorldSystem>(`/stories/${storyId}/world-systems`, {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getWorldSystem: (id: string) => request<import("../types").WorldSystem>(`/world-systems/${id}`),
   updateWorldSystem: (id: string, data: Partial<import("../types").WorldSystem>) =>
     request<import("../types").WorldSystem>(`/world-systems/${id}`, {
       method: "PATCH",
@@ -1194,7 +1104,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getCulture: (id: string) => request<import("../types").Culture>(`/cultures/${id}`),
   updateCulture: (id: string, data: Partial<import("../types").Culture>) =>
     request<import("../types").Culture>(`/cultures/${id}`, {
       method: "PATCH",
@@ -1209,7 +1118,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getEra: (id: string) => request<import("../types").Era>(`/eras/${id}`),
   updateEra: (id: string, data: Partial<import("../types").Era>) =>
     request<import("../types").Era>(`/eras/${id}`, {
       method: "PATCH",
@@ -1225,7 +1133,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getHistoricalEvent: (id: string) => request<import("../types").HistoricalEvent>(`/historical-events/${id}`),
   updateHistoricalEvent: (id: string, data: Partial<import("../types").HistoricalEvent>) =>
     request<import("../types").HistoricalEvent>(`/historical-events/${id}`, {
       method: "PATCH",
@@ -1255,7 +1162,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
-  getCalendar: (id: string) => request<import("../types").Calendar>(`/calendars/${id}`),
   updateCalendar: (id: string, data: Partial<import("../types").Calendar>) =>
     request<import("../types").Calendar>(`/calendars/${id}`, {
       method: "PATCH",
@@ -1269,30 +1175,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ node_id: nodeId ?? null }),
     }),
-  listDiscoveries: (storyId: string, status = "pending") =>
-    request<import("../types").DiscoveredElement[]>(`/stories/${storyId}/discoveries?status=${status}`),
-  countPendingDiscoveries: (storyId: string) =>
-    request<{ count: number }>(`/stories/${storyId}/discoveries/count`),
-  approveDiscovery: (elementId: string, overrides?: { name?: string; description?: string }) =>
-    request<import("../types").DiscoveredElement>(`/discoveries/${elementId}/approve`, {
-      method: "POST",
-      body: JSON.stringify(overrides ?? {}),
-    }),
-  rejectDiscovery: (elementId: string) =>
-    request<import("../types").DiscoveredElement>(`/discoveries/${elementId}/reject`, {
-      method: "POST",
-    }),
-  deleteDiscovery: (elementId: string) => request<void>(`/discoveries/${elementId}`, { method: "DELETE" }),
 
   // Dialogue
   listDialogue: (sceneId: string) =>
     request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue`),
-  refreshDialogue: (sceneId: string) =>
-    request<import("../types").DialogueBlock[]>(`/scenes/${sceneId}/dialogue/refresh`, { method: "POST" }),
-  getSubtextNotes: (characterId: string) =>
-    request<
-      { scene_id: string; scene_title: string; blocks: { id: string; content: string; subtext: string }[] }[]
-    >(`/characters/${characterId}/subtext-notes`),
   patchDialogueBlock: (
     blockId: string,
     data: { speaker_name?: string; character_id?: string | null; subtext?: string },
@@ -1301,16 +1187,8 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  getDialogueStats: (storyId: string) =>
-    request<import("../types").DialogueStats>(`/stories/${storyId}/dialogue/stats`),
-  getDialogueInteractions: (storyId: string) =>
-    request<import("../types").DialogueInteraction[]>(`/stories/${storyId}/dialogue/interactions`),
   getCharacterDialogue: (characterId: string) =>
     request<import("../types").DialogueBlockWithScene[]>(`/characters/${characterId}/dialogue`),
-  getScenesWithUnattributedDialogue: (characterId: string) =>
-    request<{ scene_id: string; scene_title: string; unattributed_count: number }[]>(
-      `/characters/${characterId}/scenes-with-unattributed`,
-    ),
   suggestDialogueTags: (sceneId: string) =>
     request<import("../types").ProposedDialogueTag[]>(`/scenes/${sceneId}/dialogue/suggest-tags`, {
       method: "POST",
@@ -1391,8 +1269,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ name: name ?? null }),
     }),
-  getSnapshot: (storyId: string, snapshotId: string) =>
-    request<import("../types").StorySnapshot>(`/stories/${storyId}/snapshots/${snapshotId}`),
   renameSnapshot: (storyId: string, snapshotId: string, name: string | null) =>
     request<import("../types").StorySnapshot>(`/stories/${storyId}/snapshots/${snapshotId}`, {
       method: "PATCH",
@@ -1425,16 +1301,6 @@ export const api = {
     const form = new FormData();
     form.append("file", file);
     return fetch(`${BASE}/stories/${storyId}/snapshots/import?create_safety_backup=${createSafetyBackup}`, {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body: form,
-    });
-  },
-  importAsNewStory: (file: File): Promise<Response> => {
-    const token = getToken();
-    const form = new FormData();
-    form.append("file", file);
-    return fetch(`${BASE}/stories/import`, {
       method: "POST",
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: form,

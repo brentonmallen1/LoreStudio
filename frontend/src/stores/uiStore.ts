@@ -312,6 +312,9 @@ for (const stale of [
   "ls_ai_panel_width",
   "ls_ai_panel_rect",
   "ls_ai_panel_open",
+  // Story Health's action toolbar (retired, doc 12 P4).
+  "ls_health_actions_collapsed",
+  "ls_health_actions_tab",
 ]) {
   try {
     localStorage.removeItem(stale);

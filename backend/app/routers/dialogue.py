@@ -28,8 +28,6 @@ from ..models.user import User
 from ..schemas.ai_responses import DialogueAttributionResponse
 from ..services.dialogue_service import (
     _html_to_paragraphs,
-    get_dialogue_stats,
-    get_interaction_matrix,
     sync_scene_dialogue,
     sync_story_dialogue,
 )
@@ -443,28 +441,6 @@ def patch_dialogue_block(
 # ---------------------------------------------------------------------------
 # Story-level analytics endpoints
 # ---------------------------------------------------------------------------
-
-
-@router.get("/stories/{story_id}/dialogue/stats")
-def dialogue_stats(
-    story_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Aggregate dialogue statistics for the Story Health dashboard."""
-    _get_story(story_id, db, current_user)
-    return get_dialogue_stats(story_id, db)
-
-
-@router.get("/stories/{story_id}/dialogue/interactions")
-def dialogue_interactions(
-    story_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Pairwise character interaction data based on shared dialogue scenes."""
-    _get_story(story_id, db, current_user)
-    return get_interaction_matrix(story_id, db)
 
 
 @router.get("/characters/{character_id}/subtext-notes")

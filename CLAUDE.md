@@ -114,9 +114,10 @@ components/       — Feature components organized by domain
   chronicle/      — Activity, conversations, changes; analysis/ draws any past run in full
   lorebook/       — The Lorebook browser: one EntitySheet for every kind (fields from
                     lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/
-  story/          — SceneEditor, CorkboardView, StorySummaryPanel, LorebookPanel
+  story/          — CorkboardView, StoryboardView, StorySummaryPanel, StoryIdentityPanel
+  overview/       — The Overview's cards: vitals, needs your eye, words by chapter, cast, lately
   characters/     — Character parts the Lorebook sheet uses: dialogue, arc, relationships, graph
-  threads/        — PlotThreadManager, ThreadVisualization
+  threads/        — ThreadVisualization (the Lorebook's thread map)
   panels/         — Group interview (multi-character panel)
   analysis/       — Perspective summaries
 types/index.ts    — All shared TypeScript interfaces
@@ -216,6 +217,9 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 **Text labels are required.** An icon alone is never enough. Label examples: "Draft logline", "Suggest themes", "Generate summary", "Identify conflict". One exception: the side panel's Assistant *tab* is icon-only (Feather + session count) with an `aria-label` and tooltip. It is the panel's own tab, not an action button, and a labelled tab would not fit beside the story tabs.
 
 **`AIFeatureInfoTrigger` is mandatory** on any panel or page that exposes AI features. It renders the `Cpu` icon button that opens `AIFeatureInfoModal`. Place it in the panel header next to the title.
+
+**Assistant actions on a Lorebook sheet** fold into its one `AssistantRow`; on a page they sit in the
+header's ⋯ menu (AI colour, Compass), never as buttons across the page.
 
 **`LLMTransparencyTrigger`** (`ShieldCheck`) must appear next to AI-generated content so the author can inspect what was sent to the model. Use the `useLLMTransparency` hook.
 

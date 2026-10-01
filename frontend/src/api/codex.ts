@@ -23,18 +23,6 @@ export interface CodexSettings {
   search_backend: string;
 }
 
-export interface CodexSuggestion {
-  id: string;
-  /** "presence" | "fact" — what confirming this writes into the Lorebook. */
-  kind: string;
-  statement: string;
-  /** The words in the scene it was read from. */
-  quote: string;
-  confidence: number;
-  scene_id: string | null;
-  scene_title: string;
-}
-
 export interface CodexNode {
   id: string;
   kind: string;
@@ -119,13 +107,5 @@ export const codexApi = {
     request<{ role: string; source: string }>(`/stories/${storyId}/codex/presence`, {
       method: "POST",
       body: JSON.stringify({ node_id: nodeId, character_id: characterId, role }),
-    }),
-  suggestions: (storyId: string) => request<CodexSuggestion[]>(`/stories/${storyId}/codex/suggestions`),
-  suggest: (storyId: string) =>
-    request<{ job_id: string }>(`/stories/${storyId}/codex/suggest`, { method: "POST" }),
-  review: (storyId: string, ids: string[], accept: boolean) =>
-    request<{ reviewed: number }>(`/stories/${storyId}/codex/suggestions/${accept ? "confirm" : "reject"}`, {
-      method: "POST",
-      body: JSON.stringify({ ids }),
     }),
 };

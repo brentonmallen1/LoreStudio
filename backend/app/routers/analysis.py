@@ -1797,33 +1797,3 @@ def get_latest_analysis(
         if log.metadata_.get("feature") == feature:
             return log
     return None
-
-
-@router.get("/stories/{story_id}/analysis/history", response_model=list[ActivityLogOut])
-def get_analysis_history(
-    story_id: str,
-    features: str | None = Query(None, description="Comma-separated feature keys"),
-    limit: int = Query(50, le=200),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Return analysis_run logs for a story, optionally filtered by feature."""
-    _get_story(story_id, db, current_user)
-    feature_set = None
-    if features:
-        feature_set = {f.strip() for f in features.split(",") if f.strip() in HEALTH_FEATURES}
-
-    logs = (
-        db.query(ActivityLog)
-        .filter(
-            ActivityLog.story_id == story_id,
-            ActivityLog.user_id == current_user.id,
-            ActivityLog.event_type == "analysis_run",
-        )
-        .order_by(ActivityLog.created_at.desc())
-        .limit(200)
-        .all()
-    )
-    if feature_set:
-        logs = [log for log in logs if log.metadata_.get("feature") in feature_set]
-    return logs[:limit]

@@ -439,27 +439,6 @@ async def run_editorial_pass(  # noqa: C901, PLR0912, PLR0915
     return log
 
 
-@router.get("/stories/{story_id}/editorial/reports", response_model=list[ActivityLogOut])
-def list_editorial_reports(
-    story_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """List all editorial pass reports for a story, newest first."""
-    _get_story(story_id, db, current_user)
-    logs = (
-        db.query(ActivityLog)
-        .filter(
-            ActivityLog.story_id == story_id,
-            ActivityLog.user_id == current_user.id,
-            ActivityLog.event_type == "editorial_pass",
-        )
-        .order_by(ActivityLog.created_at.desc())
-        .all()
-    )
-    return logs
-
-
 @router.delete("/stories/{story_id}/editorial/reports/{report_id}", status_code=204)
 def delete_editorial_report(
     story_id: str,

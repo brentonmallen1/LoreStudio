@@ -356,15 +356,6 @@ export interface EditorialConsistencyResponse {
 
 // ── AI Story Analysis Results ─────────────────────────────────────────────────
 
-export interface PacingAnalysisResult {
-  act_balance: { summary: string; details: string[] };
-  tension_curve: { summary: string; details: string[] };
-  slow_spots: string[];
-  pacing_strengths: string[];
-  recommendations: string[];
-  overall_rating: string;
-}
-
 export interface ContinuityIssue {
   description: string;
   severity: string;
@@ -495,16 +486,6 @@ export interface PanelInterview {
   character_ids: string[];
   messages: PanelMessage[];
   settings: Partial<PanelSettings>;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PanelInterviewSummary {
-  id: string;
-  story_id: string;
-  title: string;
-  character_ids: string[];
-  message_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -1037,28 +1018,9 @@ export interface RelationshipSuggestionsResult extends StructuredResult {
   data?: { suggestions: RelationshipSuggestion[] };
 }
 
-export interface ScenePlanResponse {
-  synopsis: string;
-  purpose: string;
-  entry_state: string;
-  exit_state: string;
-  key_events: string[];
-  characters_to_feature: { name: string; reason: string }[];
-  threads_to_advance: { name: string; how: string }[];
-  /** What only the author can decide about this scene (doc 06 §5). */
-  questions?: string[];
-}
-
 export interface AnalysisSection {
   summary: string;
   details: string[];
-}
-
-export interface EconomyAnalysisResponse {
-  thread_balance: AnalysisSection;
-  scene_economy: AnalysisSection;
-  try_fail_cycles: AnalysisSection;
-  recommendations: string[];
 }
 
 export interface AttributeSuggestion {
@@ -1066,19 +1028,11 @@ export interface AttributeSuggestion {
   rationale: string;
 }
 
-export interface AttributeSuggestionsResponse {
-  suggestions: AttributeSuggestion[];
-}
-
 export interface RelationshipSuggestion {
   character_a: string;
   character_b: string;
   relationship_type: string;
   description: string;
-}
-
-export interface RelationshipSuggestionsResponse {
-  suggestions: RelationshipSuggestion[];
 }
 
 // ── Thread Analysis ──
@@ -1091,15 +1045,6 @@ export interface ThreadMomentDiscovery {
   suggested_cycle_link: boolean;
 }
 
-export interface ThreadAnalysisResponse {
-  progression: AnalysisSection;
-  moment_discoveries: ThreadMomentDiscovery[];
-  quality: AnalysisSection;
-  unlinked_cycles: string[];
-  suggestions: string[];
-  overall_rating: string;
-}
-
 // ── Arc Analysis ──
 
 export interface ArcMomentDiscovery {
@@ -1107,16 +1052,6 @@ export interface ArcMomentDiscovery {
   scene_title: string;
   arc_significance: string;
   suggested_milestone_link: string;
-}
-
-export interface ArcAnalysisResponse {
-  trajectory: AnalysisSection;
-  moment_discoveries: ArcMomentDiscovery[];
-  drift_analysis: AnalysisSection;
-  health: AnalysisSection;
-  unlinked_milestones: string[];
-  suggestions: string[];
-  overall_rating: string;
 }
 
 export interface ArcTimelineScene {
@@ -1497,31 +1432,6 @@ export interface DialogueBlock {
   dialogue_type: "speech" | "thought" | null;
   confidence: number;
   subtext: string | null;
-}
-
-export interface DialogueStats {
-  total_blocks: number;
-  unattributed: number;
-  by_character: {
-    speaker_name: string;
-    character_id: string | null;
-    line_count: number;
-    word_count: number;
-  }[];
-  balance_score: number | null; // 0-100, higher = more balanced
-  monologue_scenes: {
-    scene_id: string;
-    dominant_speaker: string;
-    pct: number;
-  }[];
-}
-
-export interface DialogueInteraction {
-  character_a_id: string;
-  character_a_name: string;
-  character_b_id: string;
-  character_b_name: string;
-  scene_count: number;
 }
 
 export interface DialogueBlockWithScene {

@@ -17,6 +17,7 @@ from ..models.location import Location, SceneSetting
 from ..models.location_travel import LocationTravel
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.story import Story
@@ -1852,16 +1853,16 @@ def seed_demo_story():  # noqa: PLR0915
             HistoricalEvent(
                 story_id=story.id,
                 era_id=keepers_era.id,
-                name="Silas Vance Becomes Keeper",
+                name="Thomas Vance Becomes Keeper",
                 in_world_date="Spring 1971",
                 description=(
-                    "Eleanor's father, Silas Vance, took over the lighthouse from the retiring keeper Thomas Mull. "
+                    "Eleanor's father, Thomas Vance, took over the lighthouse from the retiring keeper Thomas Mull. "
                     "He was 28. He would not leave the island again for the rest of his life."
                 ),
-                causes="Thomas Mull's retirement after 34 years. Silas, then a mainland fisherman's son, applied and was accepted by the lighthouse authority.",
-                consequences="Silas became the defining presence of the island. Eleanor was born on the island six years later.",
+                causes="Thomas Mull's retirement after 34 years. Vance, then a mainland fisherman's son, applied and was accepted by the lighthouse authority.",
+                consequences="Vance became the defining presence of the island. Eleanor was born on the island six years later.",
                 legacy_effects=(
-                    "Silas kept the lighthouse for 43 years. His logbooks — meticulous, opinionated, "
+                    "Vance kept the lighthouse for 43 years. His logbooks — meticulous, opinionated, "
                     "occasionally cryptic — are the primary source of island history from 1971 onward. "
                     "The gaps in those logbooks are what the Visitor has come to investigate."
                 ),
@@ -2031,6 +2032,45 @@ def seed_demo_story():  # noqa: PLR0915
                         "subtlety": "moderate",
                     },
                 ],
+            )
+        )
+
+        # ── Reader knowledge (doc 12 P7) ───────────────────────────────────
+        # Two moments in the reader's understanding of the Visitor, both in "Knock at the
+        # Door", so Twists › "What the reader knows" has something to show: the cover story
+        # planted, and the slip that tells the reader (not Eleanor) she has been here before.
+        # That gap is the dramatic irony.
+        db.flush()
+        visitor_twist = db.query(Twist).filter_by(story_id=story.id, name="The Visitor Has Been Here Before").one()
+        planted = ReaderKnowledgeEvent(
+            story_id=story.id,
+            node_id=scene2.id,
+            twist_id=visitor_twist.id,
+            knowledge_type="misdirection_planted",
+            subject="The Visitor is a historian caught by the storm",
+            detail="She arrives as a stranger with a research project, on her first visit to the island.",
+            reader_knows=True,
+            characters_who_know=[eleanor.id],
+            is_truth=False,
+        )
+        db.add(planted)
+        db.flush()
+        db.add(
+            ReaderKnowledgeEvent(
+                story_id=story.id,
+                node_id=scene2.id,
+                twist_id=visitor_twist.id,
+                knowledge_type="reader_only",
+                subject="She already knows Eleanor's name",
+                detail=(
+                    "“You’re Eleanor Vance,” the visitor said, as if confirming a fact. She looks at "
+                    "Eleanor like a landmark she has navigated by for years. The reader notices; "
+                    "Eleanor lets it pass."
+                ),
+                reader_knows=True,
+                characters_who_know=[visitor.id],
+                is_truth=True,
+                supersedes_id=planted.id,
             )
         )
 

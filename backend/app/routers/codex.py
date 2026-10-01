@@ -21,8 +21,7 @@ from ..models.user import User
 from ..services.codex.embeddings import DEFAULT_EMBED_MODEL, embed_base_url_for, embed_model_for, search_backend
 from ..services.codex.index import build_chunks, embed_pending, index_stats
 from ..services.codex.presence import derive_facts, derive_presence, set_presence
-from ..services.codex.queue import SuggestionOut, pending_suggestions
-from ..services.codex.suggest import review, suggest_for_story
+from ..services.codex.suggest import suggest_for_story
 from ..services.codex.sync import sync_story
 from ..services.job_queue import enqueue, handler
 
@@ -318,64 +317,6 @@ def queue_index(story_id: str, db: Session = Depends(get_db), user: User = Depen
         params={"embed_model": embed_model_for(user)},
     )
     return {"job_id": job.id}
-
-
-class ReviewRequest(BaseModel):
-    ids: list[str]
-
-
-@router.get("/stories/{story_id}/codex/suggestions", response_model=list[SuggestionOut])
-def list_suggestions(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """The review queue: everything the model proposed and the author has not answered."""
-    _story_or_404(story_id, db, user)
-    return pending_suggestions(story_id, db)
-
-
-@router.post("/stories/{story_id}/codex/suggest", status_code=202)
-def queue_suggest(
-    story_id: str,
-    node_ids: list[str] | None = None,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """Queue the suggestion pass over the manuscript, or over particular scenes."""
-    story = _story_or_404(story_id, db, user)
-    job = enqueue(
-        db,
-        kind="codex-suggest",
-        user_id=user.id,
-        story_id=story_id,
-        label=f"Codex suggestions — {story.title}",
-        params={"node_ids": node_ids or []},
-    )
-    return {"job_id": job.id}
-
-
-@router.post("/stories/{story_id}/codex/suggestions/confirm")
-def confirm_suggestions(
-    story_id: str,
-    body: ReviewRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """
-    Accept proposals. Each one becomes a real authored row — a "who is here" answer or a
-    reader-knowledge event — so the graph never holds the only copy of it.
-    """
-    _story_or_404(story_id, db, user)
-    return review(story_id, db, body.ids, accept=True)
-
-
-@router.post("/stories/{story_id}/codex/suggestions/reject")
-def reject_suggestions(
-    story_id: str,
-    body: ReviewRequest,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """Discard proposals. A no is not a record worth keeping."""
-    _story_or_404(story_id, db, user)
-    return review(story_id, db, body.ids, accept=False)
 
 
 class EdgeDetail(BaseModel):
