@@ -3,6 +3,7 @@ import { api } from "../../api/client";
 import type { TimelineFilter } from "../../api/chronicle";
 import { jobsApi } from "../../api/jobs";
 import { useTimeline } from "../../hooks/useTimeline";
+import { featureLabel, useRunFeatures } from "./runFeatures";
 import type { ActivityLog } from "../../types";
 import TimelineRow from "./TimelineRow";
 import { groupByDay } from "./timelineFormat";
@@ -13,6 +14,7 @@ const FILTERS: { id: TimelineFilter; label: string; hint: string; ai?: boolean }
   { id: "all", label: "Everything", hint: "Every call, job and analysis, newest first" },
   { id: "problems", label: "Problems", hint: "Calls and jobs that failed or were stopped" },
   { id: "results", label: "Results", hint: "Summaries, analyses and brainstorms worth keeping", ai: true },
+  { id: "analyses", label: "Analyses", hint: "Every check and analysis that ran, kept in full" },
   { id: "starred", label: "Starred", hint: "Rows you starred" },
 ];
 
@@ -20,17 +22,21 @@ const EMPTY: Record<TimelineFilter, string> = {
   all: "Nothing has happened in this story yet. AI calls, background jobs and analyses will appear here as they run.",
   problems: "No problems. Nothing failed and nothing was stopped.",
   results: "No summaries or analyses yet.",
+  analyses: "No checks have run yet. Findings runs them, and every run is kept here.",
   starred: "Nothing starred. Star a row to keep it here.",
 };
 
 interface Props {
   storyId: string;
   filter: TimelineFilter;
+  /** Under Analyses: one check's runs only. */
+  feature: string;
   q: string;
   aiAvailable: boolean;
   selected: ChronicleItem | null;
   onSelect: (kind: "job" | "log", id: string) => void;
   onFilter: (filter: TimelineFilter) => void;
+  onFeature: (feature: string | null) => void;
 }
 
 /**
@@ -40,18 +46,22 @@ interface Props {
 export default function ActivityView({
   storyId,
   filter,
+  feature,
   q,
   aiAvailable,
   selected,
   onSelect,
   onFilter,
+  onFeature,
 }: Props) {
   const { entries, total, hasMore, loadMore, reload } = useTimeline({
     story_id: storyId,
     filter,
+    feature: filter === "analyses" && feature ? feature : undefined,
     q: q || undefined,
     exclude_ai: !aiAvailable,
   });
+  const checks = useRunFeatures(storyId, filter === "analyses", !aiAvailable);
 
   async function star(log: ActivityLog) {
     await api.updateActivityLog(log.id, { starred: !log.starred });
@@ -83,6 +93,32 @@ export default function ActivityView({
           </span>
         )}
       </div>
+
+      {filter === "analyses" && checks.length > 1 && (
+        <div className={styles.filters} role="radiogroup" aria-label="Which check">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={!feature}
+            className={`${styles.filter} ${!feature ? styles.filterOn : ""}`}
+            onClick={() => onFeature(null)}
+          >
+            Every check
+          </button>
+          {checks.map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="radio"
+              aria-checked={feature === f}
+              className={`${styles.filter} ${feature === f ? styles.filterOn : ""}`}
+              onClick={() => onFeature(f)}
+            >
+              {featureLabel(f)}
+            </button>
+          ))}
+        </div>
+      )}
 
       {entries === null ? (
         <p className={styles.empty}>Loading…</p>

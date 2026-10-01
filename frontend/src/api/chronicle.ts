@@ -2,7 +2,7 @@ import { BASE, getToken, request } from "./request";
 import type { AIJob } from "./jobs";
 import type { ActivityLog } from "../types";
 
-export type TimelineFilter = "all" | "problems" | "results" | "starred";
+export type TimelineFilter = "all" | "problems" | "results" | "analyses" | "starred";
 
 export interface TimelineQuery {
   story_id?: string;
@@ -10,6 +10,8 @@ export interface TimelineQuery {
   /** Writer mode: no AI calls, no jobs. */
   exclude_ai?: boolean;
   q?: string;
+  /** One feature's rows only ("pacing-analysis"). */
+  feature?: string;
   /** Rows to fetch from the top; "load more" raises it. */
   limit?: number;
 }
@@ -130,6 +132,7 @@ export const chronicleApi = {
     if (params.filter && params.filter !== "all") q.set(params.filter, "true");
     if (params.exclude_ai) q.set("exclude_ai", "true");
     if (params.q) q.set("q", params.q);
+    if (params.feature) q.set("feature", params.feature);
     q.set("page_size", String(params.limit ?? 50));
     return request<{ entries: TimelineEntry[]; total: number }>(`/chronicle/timeline?${q}`);
   },

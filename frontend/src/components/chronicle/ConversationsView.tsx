@@ -20,6 +20,7 @@ import AIOnly from "../ai/AIOnly";
 import { CONTEXT_LABELS, sessionTitle, useResumeSession } from "./sessions";
 import styles from "./Conversations.module.css";
 import timeline from "./Timeline.module.css";
+import { toast } from "../../stores/toastStore";
 
 const CONTEXT_ICONS: Record<string, React.ReactNode> = {
   scene: <BookOpen size={12} />,
@@ -96,7 +97,7 @@ export default function ConversationsView({ storyId, q, selectedId, onSelect }: 
       );
       setPicked(new Set());
     } catch {
-      window.alert(`Some conversations could not be ${action === "archive" ? "archived" : "deleted"}.`);
+      toast.error(`Some conversations could not be ${action === "archive" ? "archived" : "deleted"}.`);
     } finally {
       setWorking(false);
       setVersion((v) => v + 1);

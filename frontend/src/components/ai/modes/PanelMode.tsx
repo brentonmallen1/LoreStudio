@@ -12,6 +12,7 @@ import { useAIModeState } from "../../../hooks/useAIModeState";
 import AIModeWrapper from "../AIModeWrapper";
 import MentionComposer from "../shared/MentionComposer";
 import styles from "./PanelMode.module.css";
+import { toast } from "../../../stores/toastStore";
 
 interface Props {
   session: AISession;
@@ -95,7 +96,7 @@ export default function PanelMode({ session }: Props) {
     try {
       setLocalMessages((await conversationsApi.compactPanel(panelId)).messages);
     } catch {
-      window.alert("The history could not be compacted. It is unchanged.");
+      toast.error("The history could not be compacted. It is unchanged.");
     } finally {
       setWorking(false);
     }

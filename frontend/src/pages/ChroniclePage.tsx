@@ -41,7 +41,7 @@ const WRITER_ACTIVITY_BLURB = "Analyses and checks run on this story. Open a row
 export default function ChroniclePage({ section = "activity" }: { section?: string }) {
   const { storyId } = useParams<{ storyId: string }>();
   const aiAvailable = useAIAvailable();
-  const { item, filter, q, update } = useChronicleParams();
+  const { item, filter, q, feature, update } = useChronicleParams();
   const views = VIEWS.filter((v) => aiAvailable || !v.ai);
   const view = views.find((v) => v.id === section)?.id ?? "activity";
   const searchable = views.find((v) => v.id === view)?.searchable ?? false;
@@ -90,11 +90,13 @@ export default function ChroniclePage({ section = "activity" }: { section?: stri
             <ActivityView
               storyId={storyId}
               filter={filter}
+              feature={feature}
               q={q}
               aiAvailable={aiAvailable}
               selected={item}
               onSelect={open}
-              onFilter={(f) => update({ filter: f, item: null }, { replace: true })}
+              onFilter={(f) => update({ filter: f, feature: null, item: null }, { replace: true })}
+              onFeature={(f) => update({ feature: f, item: null }, { replace: true })}
             />
           )}
           {view === "conversations" && (

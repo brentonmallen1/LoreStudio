@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AlertCircle, History, Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import Modal from "../../common/Modal";
 import type { StorySnapshot } from "../../../types";
 import { relativeTime } from "../../../utils/relativeTime";
 import DeltaSummaryLine from "./DeltaSummaryLine";
@@ -18,36 +19,35 @@ export function RestoreDialog({
 }) {
   const [safetyBackup, setSafetyBackup] = useState(true);
   return (
-    <div className={styles.dialogOverlay}>
-      <div className={styles.dialog}>
-        <div className={styles.dialogHeader}>
-          <AlertCircle size={16} className={styles.dialogWarnIcon} />
-          <h3 className={styles.dialogTitle}>
-            Restore to {snapshot.name ? `"${snapshot.name}"` : formatAbsoluteDate(snapshot.created_at)}?
-          </h3>
-        </div>
-        <p className={styles.dialogBody}>
-          This will revert your story to how it was on {formatAbsoluteDate(snapshot.created_at)}.
-        </p>
-        {snapshot.delta_summary && (
-          <div className={styles.dialogChangelog}>
-            <DeltaSummaryLine d={snapshot.delta_summary} />
-          </div>
-        )}
-        <label className={styles.dialogCheckbox}>
-          <input type="checkbox" checked={safetyBackup} onChange={(e) => setSafetyBackup(e.target.checked)} />
-          <span>Create a backup of current state first</span>
-        </label>
-        <div className={styles.dialogActions}>
+    <Modal
+      isOpen
+      onClose={onCancel}
+      size="sm"
+      title={`Restore to ${snapshot.name ? `“${snapshot.name}”` : formatAbsoluteDate(snapshot.created_at)}?`}
+      footer={
+        <>
           <button className={styles.dialogCancel} onClick={onCancel}>
             Cancel
           </button>
           <button className={styles.dialogConfirm} onClick={() => onConfirm(safetyBackup)}>
             Restore
           </button>
+        </>
+      }
+    >
+      <p className={styles.dialogBody}>
+        This will revert your story to how it was on {formatAbsoluteDate(snapshot.created_at)}.
+      </p>
+      {snapshot.delta_summary && (
+        <div className={styles.dialogChangelog}>
+          <DeltaSummaryLine d={snapshot.delta_summary} />
         </div>
-      </div>
-    </div>
+      )}
+      <label className={styles.dialogCheckbox}>
+        <input type="checkbox" checked={safetyBackup} onChange={(e) => setSafetyBackup(e.target.checked)} />
+        <span>Create a backup of current state first</span>
+      </label>
+    </Modal>
   );
 }
 
@@ -63,38 +63,36 @@ export function CreateSnapshotDialog({
 }) {
   const [name, setName] = useState("");
   return (
-    <div className={styles.dialogOverlay}>
-      <div className={styles.dialog}>
-        <div className={styles.dialogHeader}>
-          <History size={16} />
-          <h3 className={styles.dialogTitle}>Create Snapshot</h3>
-          <button className={styles.dialogClose} onClick={onCancel}>
-            <X size={14} />
-          </button>
-        </div>
-        <p className={styles.dialogBody}>Save the current story state as a named checkpoint.</p>
-        <input
-          className={styles.dialogInput}
-          placeholder='Name (optional) e.g. "Before Act 2 restructure"'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") onConfirm(name);
-            if (e.key === "Escape") onCancel();
-          }}
-          autoFocus
-        />
-        <div className={styles.dialogActions}>
+    <Modal
+      isOpen
+      onClose={onCancel}
+      size="sm"
+      title="Create snapshot"
+      footer={
+        <>
           <button className={styles.dialogCancel} onClick={onCancel}>
             Cancel
           </button>
           <button className={styles.dialogConfirm} onClick={() => onConfirm(name)} disabled={loading}>
             {loading ? <Loader2 size={13} className={styles.spinning} /> : null}
-            Create Snapshot
+            Create snapshot
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <p className={styles.dialogBody}>Save the story as it is now, as a checkpoint you can come back to.</p>
+      <input
+        className={styles.dialogInput}
+        placeholder="Name (optional), e.g. Before Act 2 restructure"
+        aria-label="Snapshot name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") onConfirm(name);
+        }}
+        autoFocus
+      />
+    </Modal>
   );
 }
 
@@ -111,34 +109,21 @@ export function ComparePicker({
   onCancel: () => void;
 }) {
   return (
-    <>
-      <div className={styles.comparePickBanner}>
-        <span>
-          Select another snapshot to compare with{" "}
-          <strong>{snapshot.name ?? relativeTime(snapshot.created_at)}</strong>
-        </span>
-        <button className={styles.comparePickCancel} onClick={onCancel}>
-          <X size={14} />
-        </button>
-      </div>
-      <div className={styles.comparePickOverlay}>
-        <div className={styles.comparePickList}>
-          <div className={styles.comparePickHeader}>
-            <span>Select a snapshot to compare</span>
-            <button onClick={onCancel}>
-              <X size={14} />
+    <Modal
+      isOpen
+      onClose={onCancel}
+      title={`Compare ${snapshot.name ? `“${snapshot.name}”` : relativeTime(snapshot.created_at)} with…`}
+    >
+      <div className={styles.comparePickItems}>
+        {snapshots
+          .filter((s) => s.id !== snapshot.id)
+          .map((snap) => (
+            <button key={snap.id} className={styles.comparePickItem} onClick={() => onPick(snap)}>
+              <span className={styles.snapName}>{snap.name ?? relativeTime(snap.created_at)}</span>
+              <span className={styles.snapTimestamp}>{formatAbsoluteDate(snap.created_at)}</span>
             </button>
-          </div>
-          {snapshots
-            .filter((s) => s.id !== snapshot.id)
-            .map((snap) => (
-              <button key={snap.id} className={styles.comparePickItem} onClick={() => onPick(snap)}>
-                <span className={styles.snapName}>{snap.name ?? relativeTime(snap.created_at)}</span>
-                <span className={styles.snapTimestamp}>{formatAbsoluteDate(snap.created_at)}</span>
-              </button>
-            ))}
-        </div>
+          ))}
       </div>
-    </>
+    </Modal>
   );
 }

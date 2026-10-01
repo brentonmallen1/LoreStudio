@@ -5,9 +5,9 @@ import type { TimelineFilter } from "../../api/chronicle";
 /** What is open in the detail panel: `job:<id>`, `log:<id>` or `session:<id>`. */
 export type ChronicleItem = { kind: "job" | "log" | "session"; id: string };
 
-type Key = "item" | "filter" | "q";
+type Key = "item" | "filter" | "q" | "feature";
 
-const FILTERS: TimelineFilter[] = ["all", "problems", "results", "starred"];
+const FILTERS: TimelineFilter[] = ["all", "problems", "results", "analyses", "starred"];
 
 export function itemParam(kind: ChronicleItem["kind"], id: string): string {
   return `${kind}:${id}`;
@@ -48,6 +48,7 @@ export function useChronicleParams() {
     item: parseItem(params.get("item")),
     filter: rawFilter && FILTERS.includes(rawFilter) ? rawFilter : ("all" as TimelineFilter),
     q: params.get("q") ?? "",
+    feature: params.get("feature") ?? "",
     update,
   };
 }

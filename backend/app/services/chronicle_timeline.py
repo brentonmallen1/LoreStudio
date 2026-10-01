@@ -23,6 +23,11 @@ from ..models.ai_job import AIJob
 
 #: Features whose output is worth keeping: summaries, analyses, brainstorms. The
 #: "Results" filter, which replaced the Summaries tab.
+#: Where every analysis is logged, whole (findings/runs.py reads the same rows).
+RUN_EVENTS = ("analysis_run", "editorial_pass")
+#: Analyses made on this machine, without a model: what Writer mode's Analyses lists.
+LOCAL_FEATURES = ("prose-analysis", "editorial-consistency", "entity-suggestions")
+
 RESULT_FEATURES = [
     "story-summary",
     "scene-summary",
@@ -45,6 +50,10 @@ class TimelineFilters:
     problems: bool = False
     starred: bool = False
     results: bool = False
+    #: Every check and analysis that ran, kept whole (doc 13 P6): Story Health's old Reports.
+    analyses: bool = False
+    #: One feature's runs only ("pacing-analysis").
+    feature: str | None = None
     #: Writer mode: nothing AI-made — no AI calls, no jobs.
     exclude_ai: bool = False
     text: str | None = None
@@ -52,7 +61,7 @@ class TimelineFilters:
     @property
     def nested(self) -> bool:
         """Calls sit inside their jobs only when nothing narrows the list."""
-        return not (self.problems or self.starred or self.results)
+        return not (self.problems or self.starred or self.results or self.analyses or self.feature)
 
 
 @dataclass
@@ -83,6 +92,13 @@ def _logs(db: Session, user_id: str, f: TimelineFilters) -> Query:
         q = q.filter(ActivityLog.starred.is_(True))
     if f.results:
         q = q.filter(ActivityLog.metadata_["feature"].as_string().in_(RESULT_FEATURES))
+    if f.analyses:
+        q = q.filter(ActivityLog.event_type.in_(RUN_EVENTS))
+        if f.exclude_ai:
+            # An Assistant check is logged as an analysis too; Writer mode shows the local ones.
+            q = q.filter(ActivityLog.metadata_["feature"].as_string().in_(LOCAL_FEATURES))
+    if f.feature:
+        q = q.filter(ActivityLog.metadata_["feature"].as_string() == f.feature)
     if f.text:
         q = q.filter(ActivityLog.description.ilike(f"%{f.text}%"))
     return q
@@ -90,7 +106,7 @@ def _logs(db: Session, user_id: str, f: TimelineFilters) -> Query:
 
 def _jobs(db: Session, user_id: str, f: TimelineFilters) -> Query | None:
     """Jobs appear unfiltered, or as problems when they failed or were stopped."""
-    if f.exclude_ai or f.starred or f.results:
+    if f.exclude_ai or f.starred or f.results or f.analyses or f.feature:
         return None
     q = db.query(AIJob).filter(AIJob.user_id == user_id)
     if f.story_id:

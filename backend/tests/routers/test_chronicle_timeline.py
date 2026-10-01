@@ -210,3 +210,35 @@ def test_one_activity_row_opens_by_id_for_its_owner_only(client, db_session, tes
     db_session.commit()
     assert client.get(f"/api/chronicle/activity/{mine.id}").json()["description"] == "mine"
     assert client.get(f"/api/chronicle/activity/{theirs.id}").status_code == 404
+
+
+def test_analyses_lists_every_run_and_narrows_by_feature(client, db_session, test_user):
+    """doc 13 P6: Story Health's Reports, back as a Chronicle filter."""
+    from app.models.activity_log import ActivityLog
+    from app.models.story import Story
+
+    story = Story(user_id=test_user.id, title="Runs")
+    db_session.add(story)
+    db_session.flush()
+    for event, feature, category in [
+        ("analysis_run", "prose-analysis", "health"),
+        ("analysis_run", "pacing-analysis", "health"),
+        ("editorial_pass", "editorial-pass", "health"),
+        ("ai_chat", "chat", "ai"),
+    ]:
+        db_session.add(
+            ActivityLog(
+                user_id=test_user.id, story_id=story.id, event_type=event, category=category,
+                description=feature, metadata_={"feature": feature},
+            )
+        )  # fmt: skip
+    db_session.commit()
+
+    def rows(**params):
+        r = client.get("/api/chronicle/timeline", params={"story_id": story.id, **params}).json()
+        return sorted(e["log"]["description"] for e in r["entries"])
+
+    assert rows(analyses=True) == ["editorial-pass", "pacing-analysis", "prose-analysis"]
+    assert rows(analyses=True, feature="pacing-analysis") == ["pacing-analysis"]
+    # Writer mode: the checks made on this machine only.
+    assert rows(analyses=True, exclude_ai=True) == ["prose-analysis"]

@@ -1,0 +1,78 @@
+/* Toasts (doc 13 P6): bottom centre, above the page, never over a dialog's buttons. */
+.stack {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.region {
+  display: contents;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: min(32rem, calc(100vw - 32px));
+  padding: 0.5rem 0.5rem 0.5rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: rise 180ms var(--ease-out-expo);
+}
+
+.toast[data-tone="success"] {
+  border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+}
+
+.toast[data-tone="error"] {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

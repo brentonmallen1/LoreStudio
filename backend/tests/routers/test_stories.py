@@ -20,3 +20,24 @@ def test_overview_carries_goals_and_open_threads(client, db_session, test_user):
     assert (ov["goals_done"], ov["goals_total"], ov["next_goal"]) == (1, 2, "Name the father")
     assert ov["open_threads"] == ["The logs"]
     assert "planned" in ov["scenes_by_status"]
+
+
+def test_lately_leaves_assistant_calls_and_analysis_runs_to_the_chronicle(client, db_session, test_user):
+    """doc 13 P6: the Overview's Lately read "Entity scan: 6 character(s)" as news."""
+    from app.models.activity_log import ActivityLog
+
+    sid = client.post("/api/stories", json={"title": "Lately"}).json()["id"]
+    for category, event, text in [
+        ("worldbuilding", "location_created", "Added The Shoals"),
+        ("health", "analysis_run", "Entity scan: 6 character(s)"),
+        ("ai", "ai_chat", "What happens next?"),
+        ("research", "editorial_pass", "Editorial pass"),
+    ]:
+        db_session.add(
+            ActivityLog(user_id=test_user.id, story_id=sid, category=category, event_type=event, description=text)
+        )
+    db_session.commit()
+
+    lately = [a["description"] for a in client.get(f"/api/stories/{sid}/overview").json()["recent_activity"]]
+
+    assert lately == ["Added The Shoals"]

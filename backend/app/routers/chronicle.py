@@ -405,6 +405,8 @@ def list_timeline(
     problems: bool = Query(False, description="Failed or stopped calls and jobs"),
     starred: bool = Query(False),
     results: bool = Query(False, description="Summaries, analyses and brainstorms"),
+    analyses: bool = Query(False, description="Every check and analysis run, kept whole"),
+    feature: str | None = Query(None, description="One feature's rows, e.g. pacing-analysis"),
     exclude_ai: bool = Query(False, description="Writer mode: no AI calls or jobs"),
     q: str | None = Query(None, description="Text in a row's description or a job's label"),
     page: int = Query(1, ge=1),
@@ -418,6 +420,8 @@ def list_timeline(
         problems=problems,
         starred=starred,
         results=results,
+        analyses=analyses,
+        feature=feature or None,
         exclude_ai=exclude_ai,
         text=(q or "").strip() or None,
     )

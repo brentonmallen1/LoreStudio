@@ -4,8 +4,11 @@
  * backup settings (in a modal behind the toolbar's gear button).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GitBranch, History, List, Loader2, Plus, Settings, Upload } from "lucide-react";
+import { History, Loader2, Plus, Settings, Upload } from "lucide-react";
 import { api } from "../../../api/client";
+import { toast } from "../../../stores/toastStore";
+import Modal from "../../common/Modal";
+import PageHeader from "../../layout/PageHeader";
 import type { BackupSettings, SnapshotDiff as Diff, StorySnapshot } from "../../../types";
 import BackupSettingsDialog from "./BackupSettingsDialog";
 import SnapshotDiff from "./SnapshotDiff";
@@ -21,6 +24,7 @@ type DialogState =
   | { type: "create" }
   | { type: "restore"; snapshot: StorySnapshot }
   | { type: "compare-pick"; snapshot: StorySnapshot }
+  | { type: "delete"; snapshot: StorySnapshot }
   | { type: "compare-result"; a: StorySnapshot; b: StorySnapshot; diff: Diff };
 
 export default function VersionsSection({ storyId }: { storyId: string }) {
@@ -31,15 +35,18 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [dialog, setDialog] = useState<DialogState>({ type: "none" });
-  const [toast, setToast] = useState<string | null>(null);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
   const closeDialog = () => setDialog({ type: "none" });
 
-  function showToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
+  /** Run an action and say what went wrong if it fails: these used to fail in silence. */
+  async function attempt(what: string, fn: () => Promise<void>) {
+    try {
+      await fn();
+    } catch (e) {
+      toast.error(`${what} failed${e instanceof Error && e.message ? `: ${e.message}` : ""}`);
+    }
   }
 
   const load = useCallback(async () => {
@@ -49,6 +56,8 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
       const [snaps, cfg] = await Promise.all([api.listSnapshots(storyId), api.getBackupSettings(storyId)]);
       setSnapshots(snaps);
       setSettings(cfg);
+    } catch {
+      toast.error("The version history could not be loaded");
     } finally {
       setLoading(false);
     }
@@ -63,6 +72,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         setSnapshots(snaps);
         setSettings(cfg);
       })
+      .catch(() => toast.error("The version history could not be loaded"))
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
@@ -73,44 +83,47 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   async function handleCreate(name: string) {
     setCreating(true);
-    try {
+    await attempt("Creating the snapshot", async () => {
       const snap = await api.createSnapshot(storyId, name || undefined);
       setSnapshots((prev) => [snap, ...prev]);
       closeDialog();
-      showToast("Snapshot created");
-    } finally {
-      setCreating(false);
-    }
+      toast.success("Snapshot created");
+    });
+    setCreating(false);
   }
 
   async function handleRestore(snapshot: StorySnapshot, safetyBackup: boolean) {
     closeDialog();
-    try {
+    await attempt("Restoring", async () => {
       await api.restoreSnapshot(storyId, snapshot.id, safetyBackup);
-      showToast("Story restored to this snapshot");
-      load();
-    } catch (e: unknown) {
-      showToast((e as Error).message ?? "Restore failed");
-    }
+      toast.success("Story restored to this snapshot");
+      void load();
+    });
   }
 
   async function handleDelete(snapshot: StorySnapshot) {
-    await api.deleteSnapshot(storyId, snapshot.id);
-    setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
-    showToast("Snapshot deleted");
+    closeDialog();
+    await attempt("Deleting the snapshot", async () => {
+      await api.deleteSnapshot(storyId, snapshot.id);
+      setSnapshots((prev) => prev.filter((s) => s.id !== snapshot.id));
+      toast.success("Snapshot deleted");
+    });
   }
 
   async function handleRename(snapshot: StorySnapshot, name: string) {
-    const updated = await api.renameSnapshot(storyId, snapshot.id, name || null);
-    setSnapshots((prev) => prev.map((s) => (s.id === snapshot.id ? updated : s)));
+    await attempt("Renaming", async () => {
+      const updated = await api.renameSnapshot(storyId, snapshot.id, name || null);
+      setSnapshots((prev) => prev.map((s) => (s.id === snapshot.id ? updated : s)));
+    });
   }
 
   async function handleExport(snapshot: StorySnapshot) {
+    await attempt("Exporting", () => download(snapshot));
+  }
+
+  async function download(snapshot: StorySnapshot) {
     const res = await api.exportSnapshot(storyId, snapshot.id);
-    if (!res.ok) {
-      showToast("Export failed");
-      return;
-    }
+    if (!res.ok) throw new Error(res.statusText);
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -126,15 +139,16 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
       const diff = await api.diffSnapshots(storyId, older.id, newer.id);
       setDialog({ type: "compare-result", a: older, b: newer, diff });
     } catch (e: unknown) {
-      showToast((e as Error).message ?? "Compare failed");
+      toast.error(`Comparing failed${e instanceof Error && e.message ? `: ${e.message}` : ""}`);
       closeDialog();
     }
   }
 
   async function handleSettingsChange(patch: Partial<BackupSettings>) {
     if (!settings) return;
-    const updated = await api.updateBackupSettings(storyId, patch);
-    setSettings(updated);
+    await attempt("Saving the backup settings", async () => {
+      setSettings(await api.updateBackupSettings(storyId, patch));
+    });
   }
 
   function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -148,13 +162,12 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
     if (!pendingImportFile) return;
     const file = pendingImportFile;
     setPendingImportFile(null);
-    const res = await api.importIntoStory(storyId, file, true);
-    if (!res.ok) {
-      showToast("Import failed");
-      return;
-    }
-    showToast("Import complete");
-    load();
+    await attempt("Importing", async () => {
+      const res = await api.importIntoStory(storyId, file, true);
+      if (!res.ok) throw new Error(res.statusText);
+      toast.success("Import complete");
+      void load();
+    });
   }
 
   if (loading) {
@@ -177,63 +190,44 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
 
   return (
     <div className={styles.page}>
-      {toast && <div className={styles.toast}>{toast}</div>}
-
-      <div className={styles.pageHeader}>
-        <div className={styles.pageHeaderLeft}>
-          <History size={18} className={styles.pageHeaderIcon} />
-          <div>
-            <h1 className={styles.pageTitle}>Version History</h1>
-            <p className={styles.pageSubtitle}>{versionsSubtitle(snapshots)}</p>
-          </div>
-        </div>
-        <div className={styles.pageHeaderRight}>
-          <div className={styles.viewToggle}>
+      <PageHeader
+        title="Versions"
+        summary={versionsSubtitle(snapshots)}
+        views={[
+          { id: "list", label: "List" },
+          { id: "graph", label: "Graph" },
+        ]}
+        view={viewMode}
+        onView={(id) => setViewMode(id as ViewMode)}
+        primary={{ label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
+        aside={
+          <>
+            <input
+              type="file"
+              accept=".zip,.lorestudio.zip"
+              ref={importRef}
+              onChange={handleImport}
+              style={{ display: "none" }}
+            />
             <button
-              className={`${styles.viewBtn} ${viewMode === "list" ? styles.viewBtnActive : ""}`}
-              onClick={() => setViewMode("list")}
-              title="List view"
-              aria-label="List view"
+              className={styles.headerBtn}
+              onClick={() => importRef.current?.click()}
+              title="Import from file"
             >
-              <List size={14} />
+              <Upload size={14} /> Import
             </button>
             <button
-              className={`${styles.viewBtn} ${viewMode === "graph" ? styles.viewBtnActive : ""}`}
-              onClick={() => setViewMode("graph")}
-              title="Graph view"
-              aria-label="Graph view"
+              className={`${styles.headerBtn} ${settingsOpen ? styles.headerBtnActive : ""}`}
+              onClick={() => setSettingsOpen(true)}
+              title="Backup settings"
+              aria-label="Backup settings"
+              disabled={!settings}
             >
-              <GitBranch size={14} />
+              <Settings size={14} />
             </button>
-          </div>
-          <input
-            type="file"
-            accept=".zip,.lorestudio.zip"
-            ref={importRef}
-            onChange={handleImport}
-            style={{ display: "none" }}
-          />
-          <button
-            className={styles.headerBtn}
-            onClick={() => importRef.current?.click()}
-            title="Import from file"
-          >
-            <Upload size={14} /> Import
-          </button>
-          <button
-            className={`${styles.headerBtn} ${settingsOpen ? styles.headerBtnActive : ""}`}
-            onClick={() => setSettingsOpen(true)}
-            title="Backup settings"
-            aria-label="Backup settings"
-            disabled={!settings}
-          >
-            <Settings size={14} />
-          </button>
-          <button className={styles.createBtn} onClick={() => setDialog({ type: "create" })}>
-            <Plus size={14} /> Create Snapshot
-          </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {pendingImportFile && (
         <div className={styles.importConfirm}>
@@ -276,7 +270,12 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
       ) : viewMode === "list" ? (
         <SnapshotList snapshots={snapshots} {...actions} />
       ) : (
-        <SnapshotGraph snapshots={snapshots} {...actions} />
+        // The graph has no room for the list's inline confirm, so it asks in a dialog.
+        <SnapshotGraph
+          snapshots={snapshots}
+          {...actions}
+          onDelete={(snap) => setDialog({ type: "delete", snapshot: snap })}
+        />
       )}
 
       {dialog.type === "compare-pick" && (
@@ -296,6 +295,29 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
           onConfirm={(safety) => handleRestore(dialog.snapshot, safety)}
           onCancel={closeDialog}
         />
+      )}
+      {dialog.type === "delete" && (
+        <Modal
+          isOpen
+          onClose={closeDialog}
+          title="Delete this snapshot?"
+          size="sm"
+          footer={
+            <>
+              <button className={styles.dialogCancel} onClick={closeDialog}>
+                Keep it
+              </button>
+              <button className={styles.dialogDanger} onClick={() => void handleDelete(dialog.snapshot)}>
+                Delete
+              </button>
+            </>
+          }
+        >
+          <p className={styles.dialogBody}>
+            {dialog.snapshot.name ? `“${dialog.snapshot.name}”` : "This snapshot"} goes for good; the story as
+            it is now is not touched.
+          </p>
+        </Modal>
       )}
       {dialog.type === "compare-result" && (
         <SnapshotDiff diff={dialog.diff} snapA={dialog.a} snapB={dialog.b} onClose={closeDialog} />

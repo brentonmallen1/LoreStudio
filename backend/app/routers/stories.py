@@ -147,6 +147,11 @@ def delete_story(story_id: str, db: Session = Depends(get_db), current_user: Use
     db.commit()
 
 
+#: Activity the Overview leaves to the Chronicle: Assistant calls and analysis runs.
+SYSTEM_CATEGORIES = ("ai", "health")
+SYSTEM_EVENTS = ("analysis_run", "editorial_pass")
+
+
 @router.get("/{story_id}/overview", response_model=StoryOverview)
 def get_story_overview(
     story_id: str,
@@ -188,10 +193,16 @@ def get_story_overview(
         reverse=True,
     )[:5]
 
-    # Recent activity logs
+    # What the author did lately (doc 13 P6): not every Assistant call and analysis run,
+    # which the Chronicle keeps, only things done to the story.
     recent_logs = (
         db.query(ActivityLog)
-        .filter(ActivityLog.story_id == story_id, ActivityLog.user_id == current_user.id)
+        .filter(
+            ActivityLog.story_id == story_id,
+            ActivityLog.user_id == current_user.id,
+            ActivityLog.category.notin_(SYSTEM_CATEGORIES),
+            ActivityLog.event_type.notin_(SYSTEM_EVENTS),
+        )
         .order_by(ActivityLog.created_at.desc())
         .limit(8)
         .all()

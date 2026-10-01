@@ -1,4 +1,5 @@
-import { GitCompare, X } from "lucide-react";
+import { GitCompare } from "lucide-react";
+import Modal from "../../common/Modal";
 import type { SnapshotDiff as Diff, SnapshotDiffEntity, StorySnapshot } from "../../../types";
 import { formatAbsoluteDate } from "./versionsModel";
 import styles from "./Versions.module.css";
@@ -34,55 +35,51 @@ export default function SnapshotDiff({
   onClose: () => void;
 }) {
   return (
-    <div className={styles.dialogOverlay}>
-      <div className={`${styles.dialog} ${styles.dialogWide}`}>
-        <div className={styles.dialogHeader}>
-          <GitCompare size={16} />
-          <h3 className={styles.dialogTitle}>Comparing versions</h3>
-          <button className={styles.dialogClose} onClick={onClose}>
-            <X size={14} />
-          </button>
+    <Modal
+      isOpen
+      onClose={onClose}
+      size="lg"
+      title="Comparing versions"
+      footer={
+        <button className={styles.dialogCancel} onClick={onClose}>
+          Close
+        </button>
+      }
+    >
+      <div className={styles.diffMeta}>
+        <div className={styles.diffMetaSnap}>
+          <span className={styles.diffLabel}>A</span>
+          <span className={styles.diffSnapName}>{snapA.name ?? formatAbsoluteDate(snapA.created_at)}</span>
         </div>
-        <div className={styles.diffMeta}>
-          <div className={styles.diffMetaSnap}>
-            <span className={styles.diffLabel}>A</span>
-            <span className={styles.diffSnapName}>{snapA.name ?? formatAbsoluteDate(snapA.created_at)}</span>
-          </div>
-          <GitCompare size={14} className={styles.diffArrow} />
-          <div className={styles.diffMetaSnap}>
-            <span className={styles.diffLabel}>B</span>
-            <span className={styles.diffSnapName}>{snapB.name ?? formatAbsoluteDate(snapB.created_at)}</span>
-          </div>
-        </div>
-        <div className={styles.diffSummaryRow}>
-          <span className={styles.diffWordCount}>
-            {diff.word_count_delta >= 0 ? "+" : ""}
-            {diff.word_count_delta.toLocaleString()} words
-          </span>
-          <span className={styles.diffStat}>
-            A: {diff.summary.a.scene_count} scenes, {diff.summary.a.word_count.toLocaleString()} words
-          </span>
-          <span className={styles.diffStat}>
-            B: {diff.summary.b.scene_count} scenes, {diff.summary.b.word_count.toLocaleString()} words
-          </span>
-        </div>
-        <div className={styles.diffSections}>
-          <EntitySection label="Scenes" data={diff.structure_nodes} />
-          <EntitySection label="Characters" data={diff.characters} />
-          <EntitySection label="Plot Threads" data={diff.plot_threads} />
-          <EntitySection label="Twists" data={diff.twists} />
-          <EntitySection label="Locations" data={diff.locations} />
-          <EntitySection label="World Systems" data={diff.world_systems} />
-          <EntitySection label="Cultures" data={diff.cultures} />
-          <EntitySection label="Eras" data={diff.eras} />
-          <EntitySection label="Outline Items" data={diff.outline_items} />
-        </div>
-        <div className={styles.dialogActions}>
-          <button className={styles.dialogCancel} onClick={onClose}>
-            Close
-          </button>
+        <GitCompare size={14} className={styles.diffArrow} />
+        <div className={styles.diffMetaSnap}>
+          <span className={styles.diffLabel}>B</span>
+          <span className={styles.diffSnapName}>{snapB.name ?? formatAbsoluteDate(snapB.created_at)}</span>
         </div>
       </div>
-    </div>
+      <div className={styles.diffSummaryRow}>
+        <span className={styles.diffWordCount}>
+          {diff.word_count_delta >= 0 ? "+" : ""}
+          {diff.word_count_delta.toLocaleString()} words
+        </span>
+        <span className={styles.diffStat}>
+          A: {diff.summary.a.scene_count} scenes, {diff.summary.a.word_count.toLocaleString()} words
+        </span>
+        <span className={styles.diffStat}>
+          B: {diff.summary.b.scene_count} scenes, {diff.summary.b.word_count.toLocaleString()} words
+        </span>
+      </div>
+      <div className={styles.diffSections}>
+        <EntitySection label="Scenes" data={diff.structure_nodes} />
+        <EntitySection label="Characters" data={diff.characters} />
+        <EntitySection label="Plot Threads" data={diff.plot_threads} />
+        <EntitySection label="Twists" data={diff.twists} />
+        <EntitySection label="Locations" data={diff.locations} />
+        <EntitySection label="World Systems" data={diff.world_systems} />
+        <EntitySection label="Cultures" data={diff.cultures} />
+        <EntitySection label="Eras" data={diff.eras} />
+        <EntitySection label="Outline Items" data={diff.outline_items} />
+      </div>
+    </Modal>
   );
 }

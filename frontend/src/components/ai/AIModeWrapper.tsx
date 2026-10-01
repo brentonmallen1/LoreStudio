@@ -12,6 +12,7 @@ import SummarizePreviewModal from "./shared/SummarizePreviewModal";
 import { api } from "../../api/client";
 import type { ContextOptions } from "../../types";
 import styles from "./AIModeWrapper.module.css";
+import { toast } from "../../stores/toastStore";
 
 const SUMMARIZE_THRESHOLD = 8;
 
@@ -101,7 +102,7 @@ export default function AIModeWrapper({
       const { summary, keep } = await sessionType.compactHistory(session.backendSessionId);
       applySummary(session.id, summary, keep);
     } catch {
-      window.alert("The history could not be compacted. It is unchanged.");
+      toast.error("The history could not be compacted. It is unchanged.");
     } finally {
       setCompacting(false);
     }
