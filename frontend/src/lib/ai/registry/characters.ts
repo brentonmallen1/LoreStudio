@@ -9,7 +9,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Structural position in the narrative",
     fullDescription:
       "Classifies a character by their structural position: Protagonist (main character), Deuteragonist (secondary lead), Antagonist (opposition), Love Interest, Confidant (trusted keeper of secrets), Foil (highlights the protagonist through contrast), or Tertiary (background). " +
-      "Role affects health warnings — tertiary characters are not flagged for infrequent appearances.",
+      "Role affects health warnings: tertiary characters are not flagged for infrequent appearances.",
     contextSources: ["Character role field"],
   },
   "character-type-classification": {
@@ -19,7 +19,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Development & complexity classification",
     fullDescription:
       "Classifies a character by how they're developed: Round (complex, multi-dimensional), Flat (defined by one or two consistent traits), Dynamic (changes throughout the story), Static (remains fundamentally unchanged), Stock (a recognizable conventional type), or Symbolic (represents an idea or theme more than a realistic individual). " +
-      "These terms come from literary theory — Round/Flat from E.M. Forster, Dynamic/Static from standard narrative analysis.",
+      "These terms come from literary theory: Round/Flat from E.M. Forster, Dynamic/Static from standard narrative analysis.",
     contextSources: ["Character type field"],
   },
   "character-jungian-archetype": {
@@ -72,7 +72,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Analyze character voice distinctness in dialogue",
     fullDescription:
-      "Uses NLP to assess how distinctive this character's dialogue voice is — vocabulary patterns, sentence rhythm, and how easily their lines could be mistaken for another character.",
+      "Uses NLP to assess how distinctive this character's dialogue voice is: vocabulary patterns, sentence rhythm, and how easily their lines could be mistaken for another character.",
     contextSources: ["Character's dialogue lines (extracted from all scenes)"],
   },
   "dialogue-prose": {
@@ -81,7 +81,7 @@ export const CHARACTERS_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Prose quality analysis for character dialogue",
     fullDescription:
-      "Analyzes the prose quality of this character's dialogue — said-bookisms, adverbs, and other craft markers specific to their lines.",
+      "Analyzes the prose quality of this character's dialogue: said-bookisms, adverbs, and other craft markers specific to their lines.",
     contextSources: ["Character's dialogue lines (extracted from all scenes)"],
   },
   "character-tag-dialogue": {

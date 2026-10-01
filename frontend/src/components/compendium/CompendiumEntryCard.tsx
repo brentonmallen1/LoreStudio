@@ -29,78 +29,67 @@ export default function CompendiumEntryCard({
   onConfirmDelete,
   onCancelDelete,
 }: Props) {
-  const icon =
-    entry.entry_type === "note" ? (
-      <FileText size={15} className={`${styles.cardIcon} ${styles.cardIconNote}`} />
-    ) : entry.entry_type === "url" ? (
-      <Link size={15} className={`${styles.cardIcon} ${styles.cardIconUrl}`} />
-    ) : (
-      <File size={15} className={`${styles.cardIcon} ${styles.cardIconDoc}`} />
-    );
+  const Icon = entry.entry_type === "note" ? FileText : entry.entry_type === "url" ? Link : File;
+  const sub =
+    entry.entry_type === "url" && entry.url
+      ? entry.url_title && entry.url_title !== entry.title
+        ? entry.url_title
+        : urlDomain(entry.url)
+      : entry.preview;
 
+  // A row like the Compendium's index (doc 13 P7): the same entries looked like other
+  // objects as cards on one page and rows on the next.
   return (
-    <div className={styles.card} onClick={onClick}>
-      <div className={styles.cardTop}>
-        {icon}
-        <span className={styles.cardTitle}>{entry.title}</span>
-      </div>
-
-      {entry.entry_type === "url" && entry.url && (
-        <div className={styles.cardUrl}>
-          {entry.url_title && entry.url_title !== entry.title ? entry.url_title : urlDomain(entry.url)}
-        </div>
-      )}
-
-      {entry.preview && <p className={styles.cardPreview}>{entry.preview}</p>}
-
-      {entry.tags.length > 0 && (
-        <div className={styles.cardTags}>
-          {entry.tags.slice(0, 4).map((t) => (
-            <span key={t} className={styles.tag}>
-              {t}
+    <li className={styles.row}>
+      <button type="button" className={styles.rowMain} onClick={onClick}>
+        <span className={styles.rowIcon} aria-hidden>
+          <Icon size={15} />
+        </span>
+        <span className={styles.rowBody}>
+          <span className={styles.rowTitle}>{entry.title}</span>
+          {sub && <span className={styles.rowPreview}>{sub}</span>}
+        </span>
+        <span className={styles.rowMeta}>
+          {entry.tags.length > 0 && <span>{entry.tags.slice(0, 3).join(", ")}</span>}
+          {entry.attachment_count > 0 && (
+            <span className={styles.attachBadge}>
+              <Paperclip size={11} aria-hidden />
+              {entry.attachment_count}
             </span>
-          ))}
-          {entry.tags.length > 4 && <span className={styles.tag}>+{entry.tags.length - 4}</span>}
-        </div>
-      )}
-
-      <div className={styles.cardFooter}>
-        {entry.attachment_count > 0 ? (
-          <span className={styles.attachBadge}>
-            <Paperclip size={11} />
-            {entry.attachment_count}
-          </span>
-        ) : (
-          <span />
-        )}
-        <div className={styles.cardActions}>
-          {isPendingDelete ? (
-            <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-              <button className={styles.deleteConfirmYes} onClick={onConfirmDelete}>
-                Delete
-              </button>
-              <button
-                className={styles.deleteConfirmNo}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCancelDelete?.();
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <>
-              <button className={styles.actionBtn} onClick={onEdit} title="Edit">
-                <Pencil size={13} />
-              </button>
-              <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={onDelete} title="Delete">
-                <Trash2 size={13} />
-              </button>
-            </>
           )}
-        </div>
+        </span>
+      </button>
+      <div className={styles.cardActions}>
+        {isPendingDelete ? (
+          <div className={styles.deleteConfirm}>
+            <button className={styles.deleteConfirmYes} onClick={onConfirmDelete}>
+              Delete
+            </button>
+            <button className={styles.deleteConfirmNo} onClick={() => onCancelDelete?.()}>
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              className={styles.actionBtn}
+              onClick={onEdit}
+              title="Edit"
+              aria-label={`Edit ${entry.title}`}
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+              onClick={onDelete}
+              title="Delete"
+              aria-label={`Delete ${entry.title}`}
+            >
+              <Trash2 size={13} />
+            </button>
+          </>
+        )}
       </div>
-    </div>
+    </li>
   );
 }

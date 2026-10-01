@@ -119,7 +119,7 @@ export default function SceneAssistantMode({ session }: Props) {
               value={nodeId}
               onChange={(e) => updateSessionContext(session.id, { nodeId: e.target.value || undefined })}
             >
-              <option value="">— pick a scene —</option>
+              <option value="">Pick a scene</option>
               {flatNodes.map((n) => (
                 <option key={n.id} value={n.id}>
                   {"  ".repeat(n.depth)}
@@ -180,7 +180,7 @@ export default function SceneAssistantMode({ session }: Props) {
           <Feather size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Scene Assistant</p>
           <p className={styles.emptyHint}>
-            Ask anything about this scene — consistency, character motivation, narrative purpose.
+            Ask anything about this scene: consistency, character motivation, narrative purpose.
           </p>
           <div className={styles.starters}>
             {STARTER_PROMPTS.map((p) => (

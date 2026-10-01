@@ -192,7 +192,7 @@ export default function OutlineItem({
         <button
           className={`${styles.beatDot} ${beatClass}`}
           onClick={cycleBeatType}
-          title={item.beat_type ? item.beat_type : "No type — click to set"}
+          title={item.beat_type ? item.beat_type : "No type. Click to set"}
           tabIndex={-1}
         />
 
@@ -270,7 +270,7 @@ export default function OutlineItem({
               }}
               onBlur={() => setShowScenePicker(false)}
             >
-              <option value="">— unlink —</option>
+              <option value="">Unlink</option>
               {sceneNodes.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.title || "Untitled"}

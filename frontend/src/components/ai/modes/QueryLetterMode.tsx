@@ -40,7 +40,7 @@ export default function QueryLetterMode({ session }: Props) {
           <p className={styles.emptyTitle}>Query Letter</p>
           <p className={styles.emptyHint}>
             {storyId
-              ? "Draft and refine a professional query letter following genre conventions — hook, summary, comps, and bio placeholder."
+              ? "Draft and refine a professional query letter following genre conventions: hook, summary, comps, and bio placeholder."
               : "Add a story to context to draft a query letter."}
           </p>
           {storyId && (

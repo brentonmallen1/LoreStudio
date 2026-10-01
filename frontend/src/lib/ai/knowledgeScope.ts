@@ -10,8 +10,8 @@ import type { KnowledgeScope } from "../../types";
 export const FIXED_SCOPES: { value: KnowledgeScope; label: string; hint: string }[] = [
   {
     value: "profile",
-    label: "Profile only — outside the story",
-    hint: "They are themselves — history, voice, what they want — and know none of the plot.",
+    label: "Profile only: outside the story",
+    hint: "They are themselves (history, voice, what they want) and know none of the plot.",
   },
   {
     value: "present",
@@ -20,7 +20,7 @@ export const FIXED_SCOPES: { value: KnowledgeScope; label: string; hint: string 
   },
   {
     value: "omniscient",
-    label: "Sees the whole manuscript — hypothetical",
+    label: "Sees the whole manuscript (hypothetical)",
     hint: "Shows them scenes they were never in, so you can ask how they would have handled them. They are told plainly which parts they did not live.",
   },
 ];

@@ -7,6 +7,11 @@
   /* Reading width for form pages (Story Identity, World Building detail): long lines of
      field text were hard to read at full window width. */
   --page-width-form: 54rem;
+  /* Every page's measure (doc 13 P7): the page header and the content under it share it,
+     so a title and the first row start at the same left edge. */
+  --page-measure: 64rem;
+  /* Native checkboxes, radios and ranges in the palette's accent, not the browser's blue. */
+  accent-color: var(--color-accent);
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);

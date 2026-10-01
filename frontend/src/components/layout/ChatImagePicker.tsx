@@ -227,7 +227,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
           {mode === "upload" && (
             <div className={styles.uploadMode}>
               <p className={styles.uploadHint}>
-                Upload a new image — it will be saved to your story's media library and attached to this
+                Upload a new image. It will be saved to your story's media library and attached to this
                 message.
               </p>
               <button

@@ -8,7 +8,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "AI-guided scene planning before you write",
     fullDescription:
-      "Helps you plan a scene before writing it — proposing purpose, character goals, entry/exit states, and key beats based on your story context.",
+      "Helps you plan a scene before writing it, proposing purpose, character goals, entry/exit states, and key beats based on your story context.",
     contextSources: [
       "Scene title & synopsis",
       "Adjacent scenes",
@@ -24,7 +24,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Brainstorm directions for this scene or next scene",
     fullDescription:
-      "A brainstorming partner that suggests narrative directions, complications, and next moves based on where the scene currently stands — without writing the prose for you.",
+      "A brainstorming partner that suggests narrative directions, complications, and next moves based on where the scene currently stands, without writing the prose for you.",
     contextSources: [
       "Scene synopsis & purpose",
       "Current scene prose",
@@ -58,7 +58,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Generate a structured outline from written scenes",
     fullDescription:
-      "Analyzes the written prose to extract a structured outline — scene titles, synopses, and key events — helping authors who drafted first and want to build structure after.",
+      "Analyzes the written prose to extract a structured outline (scene titles, synopses, and key events), helping authors who drafted first and want to build structure after.",
     contextSources: ["Scene prose text (all scenes)", "Story title & genre"],
     backendFeatureId: "extract-outline",
   },
@@ -78,7 +78,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Generate a concise summary of everything written so far",
     fullDescription:
-      "Reads all written scenes and generates a concise narrative summary — useful for catching up after a break or sharing story progress.",
+      "Reads all written scenes and generates a concise narrative summary, useful for catching up after a break or sharing story progress.",
     contextSources: ["All scene prose text", "Story title and narrative intent"],
     backendFeatureId: "story-summary",
   },
@@ -102,7 +102,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Conversational guide to help you articulate your story's identity",
     fullDescription:
-      "A Socratic dialogue tool that asks questions to help you discover and articulate your story's logline, premise, themes, narrative intent, and central conflict. The AI never writes content for you — it asks questions, surfaces observations, and prompts deeper thinking so the words remain entirely yours.",
+      "A Socratic dialogue tool that asks questions to help you discover and articulate your story's logline, premise, themes, narrative intent, and central conflict. The AI never writes content for you; it asks questions, surfaces observations, and prompts deeper thinking so the words remain entirely yours.",
     contextSources: [
       "Story title, genre, tone, and existing identity fields",
       "Character names, roles, and motivations",
@@ -126,7 +126,7 @@ export const SCENES_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Where the manuscript has drifted from the outline",
     fullDescription:
-      "Compares outline items against what the scenes actually do, and reports drift in both directions — outline items with no scene, scenes with no outline item.",
+      "Compares outline items against what the scenes actually do, and reports drift in both directions: outline items with no scene, scenes with no outline item.",
     contextSources: ["Outline items", "Scene synopses", "Story structure"],
     backendFeatureId: "outline-alignment",
   },

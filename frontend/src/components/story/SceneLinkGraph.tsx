@@ -285,7 +285,7 @@ export default function SceneLinkGraph() {
         {!loading && sceneNodes.length === 0 && <div className={styles.overlay}>No scenes yet.</div>}
         {!loading && sceneNodes.length > 0 && links.length === 0 && (
           <div className={styles.emptyHint}>
-            No scene links yet — add links via the Notes panel in any scene.
+            No scene links yet. Add links via the Notes panel in any scene.
           </div>
         )}
 
@@ -339,7 +339,7 @@ export default function SceneLinkGraph() {
 
               const typeInfo = LINK_TYPES.find((t) => t.value === link.link_type);
               const labelText = typeInfo?.label ?? link.link_type;
-              const noteText = link.note ? ` — ${trunc(link.note, 20)}` : "";
+              const noteText = link.note ? `: ${trunc(link.note, 20)}` : "";
               const fullLabel = labelText + noteText;
               const labelW = Math.min(fullLabel.length * 5.8 + 12, 180);
 

@@ -351,7 +351,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 6px 0 6px 12px;
-  border-left: 2px solid var(--color-border-light);
+  border-left: 1px solid var(--color-border-light);
 }
 
 .line {
@@ -634,17 +634,17 @@
 
 .severityIssue {
   background: color-mix(in srgb, var(--color-danger) 8%, var(--color-bg));
-  border-left: 3px solid var(--color-danger);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
 }
 
 .severityWarning {
   background: color-mix(in srgb, var(--color-warning) 8%, var(--color-bg));
-  border-left: 3px solid var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-border));
 }
 
 .severityInfo {
   background: color-mix(in srgb, var(--color-ai) 6%, var(--color-bg));
-  border-left: 3px solid var(--color-ai);
+  border: 1px solid color-mix(in srgb, var(--color-ai) 45%, var(--color-border));
 }
 
 .findingExcerpt {
@@ -684,7 +684,9 @@
   color: var(--color-text-muted);
   margin: 0.2rem 0 0;
   padding-left: 0.5rem;
-  border-left: 2px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  border: 1px solid
+    color-mix(in srgb, color-mix(in srgb, var(--color-success) 50%, transparent) 45%, var(--color-border));
+  background: color-mix(in srgb, color-mix(in srgb, var(--color-success) 50%, transparent) 6%, transparent);
 }
 
 .fidelityRecommendations {

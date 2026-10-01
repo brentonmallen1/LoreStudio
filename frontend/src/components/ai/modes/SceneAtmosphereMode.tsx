@@ -65,7 +65,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
       });
       if (error) throw new Error(error);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Generation failed — try again.");
+      setError(e instanceof Error ? e.message : "Generation failed. Try again.");
     } finally {
       setGenerating(false);
     }

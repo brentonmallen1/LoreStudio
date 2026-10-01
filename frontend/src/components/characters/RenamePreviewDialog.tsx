@@ -53,7 +53,7 @@ export default function RenamePreviewDialog({ characterId, preview, onApplied, o
   const footer = (
     <>
       <button className={styles.skipBtn} onClick={onSkip} disabled={applying}>
-        Skip — rename only
+        Skip, rename only
       </button>
       <button className={styles.applyBtn} onClick={handleApply} disabled={applying || selected.size === 0}>
         {applying ? "Applying…" : `Update ${selected.size} scene${selected.size !== 1 ? "s" : ""}`}

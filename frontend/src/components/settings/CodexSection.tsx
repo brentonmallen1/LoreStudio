@@ -120,8 +120,8 @@ export default function CodexSection() {
         </div>
         <p className={styles.hint}>
           Turns your prose into vectors so the Codex can find passages by meaning rather than by keyword. It
-          runs on your Ollama, like everything else. Changing the model does not re-embed anything on its own
-          — vectors remember which model made them, and the next index run replaces the ones that no longer
+          runs on your Ollama, like everything else. Changing the model does not re-embed anything on its own:
+          vectors remember which model made them, and the next index run replaces the ones that no longer
           match.
         </p>
         <div className={styles.groundTruth}>
@@ -200,7 +200,7 @@ export default function CodexSection() {
           </button>
           {running.length > 0 && (
             <span className={styles.running}>
-              <Loader2 size={12} className={styles.spin} /> {running[0].label} — {running[0].progress}/
+              <Loader2 size={12} className={styles.spin} /> {running[0].label}: {running[0].progress}/
               {running[0].total || "?"}
             </span>
           )}

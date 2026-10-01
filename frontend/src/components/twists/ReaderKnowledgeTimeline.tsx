@@ -373,7 +373,7 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
           value={form.node_id ?? ""}
           onChange={(e) => set({ node_id: e.target.value || null })}
         >
-          <option value="">— No scene —</option>
+          <option value="">No scene</option>
           {nodes.map((n) => (
             <option key={n.id} value={n.id}>
               {"  ".repeat(n.level)}

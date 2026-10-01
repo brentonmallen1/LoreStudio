@@ -24,7 +24,7 @@ const FORMATS: {
   { key: "docx", label: "DOCX", sublabel: "Microsoft Word", icon: FileType2 },
   {
     key: "docx_manuscript",
-    label: "DOCX — Manuscript",
+    label: "DOCX (Manuscript)",
     sublabel: "Standard manuscript format",
     icon: FileType2,
   },
@@ -216,7 +216,7 @@ export default function ExportPanel({ storyId }: Props) {
       )}
       {format === "txt" && (
         <p className={styles.hint}>
-          Plain text strips all formatting — suitable for manuscript submission portals.
+          Plain text strips all formatting, suitable for manuscript submission portals.
         </p>
       )}
     </div>

@@ -57,7 +57,7 @@ export default function QuotesField({ activeNode }: { activeNode: StructureNode 
       <p className={styles.overviewHint}>
         {report.total.straight.toLocaleString()} straight · {report.total.curly.toLocaleString()} curly across
         the story
-        {report.mixed ? " — mixed styles; pick one:" : ""}
+        {report.mixed ? ". Mixed styles; pick one:" : ""}
       </p>
       <div className={actions.actions}>
         <button

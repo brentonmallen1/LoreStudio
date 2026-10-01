@@ -68,7 +68,7 @@
   bottom: 0.75rem;
   right: 3rem;
   font-size: 0.7rem;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-ui);
   color: var(--color-text-subtle);
   background: var(--color-surface);
   border: 1px solid var(--color-border);

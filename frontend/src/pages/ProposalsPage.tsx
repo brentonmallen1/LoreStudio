@@ -123,7 +123,7 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
         more={more}
       />
       <div className={styles.scroll}>
-        <div className={styles.column}>
+        <div className={styles.column} data-mixed={new Set(shown.map((p) => p.source)).size > 1 || undefined}>
           {notice && (
             <p className={styles.notice} role="status">
               {notice.text}

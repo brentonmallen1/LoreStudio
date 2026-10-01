@@ -57,12 +57,8 @@ UNDEFINED: dict[str, int] = {}
 HARDCODED: dict[str, int] = {
     "frontend/src/components/help/MICEGuide.module.css": 9,
     "frontend/src/components/characters/relationships/RelationshipMatrixView.module.css": 4,
-    "frontend/src/components/twists/ReaderKnowledgeTimeline.module.css": 4,
-    "frontend/src/components/ai/modes/AudienceAdherenceMode.module.css": 3,
-    "frontend/src/components/ai/modes/ShowDontTellMode.module.css": 3,
     "frontend/src/components/characters/relationships/ValidationWarnings.module.css": 3,
     "frontend/src/components/compendium/CompendiumEntryDetail.module.css": 3,
-    "frontend/src/components/compendium/CompendiumPanel.module.css": 3,
     "frontend/src/components/editor/SceneEditor.module.css": 1,
     "frontend/src/components/import/StructureReviewStep.module.css": 3,
     "frontend/src/components/story/TodoListView.module.css": 3,

@@ -41,7 +41,7 @@ async def ollama_status(current_user: User = Depends(get_current_user)):
             if not model_responsive:
                 error = err
         else:
-            error = f"Model '{model}' not found in Ollama — run: ollama pull {model}"
+            error = f"Model '{model}' not found in Ollama. Run: ollama pull {model}"
 
     return {
         "connected": connected,

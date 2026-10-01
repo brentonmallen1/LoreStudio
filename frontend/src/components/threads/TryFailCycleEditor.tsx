@@ -10,10 +10,10 @@ interface Props {
 }
 
 const OUTCOMES: { value: TryFailOutcome; label: string; hint: string }[] = [
-  { value: "fail_disaster", label: "Fail — Disaster", hint: "Fails and makes things worse" },
-  { value: "fail_setback", label: "Fail — Setback", hint: "Fails but doesn't worsen things" },
-  { value: "success_cost", label: "Success — With Cost", hint: "Succeeds but at a price" },
-  { value: "success_clean", label: "Success — Clean", hint: "Succeeds without cost" },
+  { value: "fail_disaster", label: "Fail: Disaster", hint: "Fails and makes things worse" },
+  { value: "fail_setback", label: "Fail: Setback", hint: "Fails but doesn't worsen things" },
+  { value: "success_cost", label: "Success: With Cost", hint: "Succeeds but at a price" },
+  { value: "success_clean", label: "Success: Clean", hint: "Succeeds without cost" },
 ];
 
 function newCycle(): TryFailCycle {
@@ -87,7 +87,7 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
                       value={cycle.node_id ?? ""}
                       onChange={(e) => updateCycle(cycle.id, { node_id: e.target.value || null })}
                     >
-                      <option value="">— scene —</option>
+                      <option value="">No scene</option>
                       {nodes.map((n) => (
                         <option key={n.id} value={n.id}>
                           {n.title || `Untitled ${n.level_type}`}

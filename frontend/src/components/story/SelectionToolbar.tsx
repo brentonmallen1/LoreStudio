@@ -61,7 +61,7 @@ export default function SelectionToolbar({
           <button
             className={`${styles.btn} ${styles.coachBtn}`}
             onClick={onOpenCoach}
-            title={`Writing Coach — feedback and alternative directions (${formatCombo(SHORTCUTS.writingCoach.combo)})`}
+            title={`Writing Coach: feedback and alternative directions (${formatCombo(SHORTCUTS.writingCoach.combo)})`}
           >
             <Feather size={12} />
             Writing Coach
@@ -114,7 +114,7 @@ export default function SelectionToolbar({
           <button
             className={styles.btn}
             onClick={onClicheCoach}
-            title="Cliche Coach — discuss and address clichés in this passage"
+            title="Cliche Coach: discuss and address clichés in this passage"
           >
             <Feather size={12} />
             Cliche

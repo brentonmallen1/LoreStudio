@@ -32,7 +32,9 @@ export default function AssistantTab() {
           onClick={() => activate("assistant")}
         >
           <Feather size={14} />
-          <span className={`${styles.aiBadge} ${selected ? styles.aiBadgeOn : ""}`}>{count}</span>
+          {count > 0 && (
+            <span className={`${styles.aiBadge} ${selected ? styles.aiBadgeOn : ""}`}>{count}</span>
+          )}
         </button>
       </div>
     </>

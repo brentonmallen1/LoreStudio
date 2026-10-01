@@ -37,6 +37,7 @@ from ..services.llm.prompts.editorial import (
     build_priorities_prompt,
     build_voice_prompt,
 )
+from ..services.wording import count
 
 router = APIRouter()
 
@@ -421,7 +422,7 @@ async def run_editorial_pass(  # noqa: C901, PLR0912, PLR0915
     scope_label = {
         "story": "whole story",
         "chapters": f"{len(body.scope_ids)} chapter(s)",
-        "scenes": f"{len(body.scope_ids)} scene(s)",
+        "scenes": count(len(body.scope_ids), "scene"),
     }.get(body.scope_type, body.scope_type)
 
     log = ActivityLog(
@@ -430,7 +431,7 @@ async def run_editorial_pass(  # noqa: C901, PLR0912, PLR0915
         story_id=story_id,
         event_type="editorial_pass",
         category="health",
-        description=f"Editorial pass — {scope_label} ({body.context_level} context)",
+        description=f"Editorial pass: {scope_label} ({body.context_level} context)",
         metadata_=report_meta.model_dump(),
     )
     db.add(log)

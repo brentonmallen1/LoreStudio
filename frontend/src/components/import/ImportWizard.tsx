@@ -57,7 +57,7 @@ export default function ImportWizard({ onClose }: Props) {
     4: "Confirm & Create",
   };
 
-  const title = `Import Document — ${stepLabels[step]}`;
+  const title = `Import Document: ${stepLabels[step]}`;
 
   return (
     <Modal isOpen onClose={onClose} title={title} icon={<FileInput size={15} />} size="lg">

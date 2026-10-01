@@ -8,10 +8,16 @@
   gap: 0.4rem;
   padding: 0.18rem 0.55rem;
   border-radius: 99px;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   line-height: 1.4;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+/* Saved is the quiet state: the word alone. The dot is for what needs noticing (doc 13 P7). */
+.pill_saved .dot,
+.pill_idle .dot {
+  display: none;
 }
 
 .pill_unsaved,

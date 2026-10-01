@@ -48,16 +48,20 @@
 
 /* Per-type accent border */
 .milieu {
-  border-left: 3px solid var(--mice-milieu);
+  border: 1px solid color-mix(in srgb, var(--mice-milieu) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--mice-milieu) 6%, transparent);
 }
 .idea {
-  border-left: 3px solid var(--mice-idea);
+  border: 1px solid color-mix(in srgb, var(--mice-idea) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--mice-idea) 6%, transparent);
 }
 .character {
-  border-left: 3px solid var(--mice-character);
+  border: 1px solid color-mix(in srgb, var(--mice-character) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--mice-character) 6%, transparent);
 }
 .event {
-  border-left: 3px solid var(--mice-event);
+  border: 1px solid color-mix(in srgb, var(--mice-event) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--mice-event) 6%, transparent);
 }
 
 .typeHeader {

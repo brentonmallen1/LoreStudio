@@ -83,6 +83,7 @@
 
 /* ── E-ink theme · dark mode ───────────────────── */
 [data-theme="e-ink"].dark {
+  color-scheme: dark;
   --color-bg: #1a1814;
   --color-surface: #242018;
   --color-surface-2: #2c2820;

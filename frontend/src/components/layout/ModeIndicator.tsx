@@ -33,8 +33,8 @@ export default function ModeIndicator() {
       disabled={saving}
       title={
         writer
-          ? "Writer mode — no AI features are shown. Click to switch to Studio."
-          : "Studio mode — everything, including AI. Click to switch to Writer."
+          ? "Writer mode: no AI features are shown. Click to switch to Studio."
+          : "Studio mode: everything, including AI. Click to switch to Writer."
       }
       aria-label={`Interface mode: ${writer ? "Writer" : "Studio"}. Click to switch.`}
     >

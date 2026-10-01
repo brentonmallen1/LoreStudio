@@ -70,7 +70,7 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${pageLabel} — AI & NLP Features`}
+      title={`${pageLabel}: AI & NLP Features`}
       icon={<Cpu size={15} />}
       size="lg"
       footer={footer}
@@ -84,7 +84,7 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
           <section className={styles.group}>
             <div className={styles.groupHeader}>
               <span className={styles.groupDot} style={{ background: "var(--color-nlp)" }} />
-              <span className={styles.groupLabel}>Local NLP — fast, no AI required</span>
+              <span className={styles.groupLabel}>Local NLP: fast, no AI required</span>
             </div>
             {nlpFeatures.map((f) => (
               <FeatureCard
@@ -102,7 +102,7 @@ export default function AIFeatureInfoModal({ isOpen, onClose, pageId }: Props) {
           <section className={styles.group}>
             <div className={styles.groupHeader}>
               <span className={styles.groupDot} style={{ background: "var(--color-ai)" }} />
-              <span className={styles.groupLabel}>AI — requires Ollama</span>
+              <span className={styles.groupLabel}>AI: requires Ollama</span>
             </div>
             {aiFeatures.map((f) => (
               <FeatureCard
@@ -168,7 +168,7 @@ function FeatureCard({ feature, prompt, expanded, onToggle }: CardProps) {
               <span className={styles.detailLabel}>
                 Behavioral prompt
                 {feature.backendFeatureId ? null : (
-                  <span className={styles.noPromptNote}> — built into the feature, not customizable</span>
+                  <span className={styles.noPromptNote}> (built into the feature, not customizable)</span>
                 )}
               </span>
               {prompt ? (

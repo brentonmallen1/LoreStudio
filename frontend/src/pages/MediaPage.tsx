@@ -1,13 +1,14 @@
 import { parseServerDate } from "../lib/serverDate";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus, GitBranch, ImageIcon, Trash2, Network } from "lucide-react";
+import { Plus, GitBranch, Trash2, Network } from "lucide-react";
 import { api } from "../api/client";
 import { sectionPath } from "../lib/routes";
 import type { StoryAsset, Diagram, DiagramSummary } from "../types";
 import MediaLibrary from "../components/media/MediaLibrary";
 import DiagramEditor from "../components/media/DiagramEditor";
 import ImageSheet from "../components/media/ImageSheet";
+import PageHeader from "../components/layout/PageHeader";
 import styles from "./MediaPage.module.css";
 
 type Tab = "media" | "diagrams";
@@ -113,13 +114,19 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>
-          {tab === "media" ? <ImageIcon size={15} /> : <Network size={15} />}
-          {tab === "media" ? "Images" : "Diagrams"}
-          <span className={styles.tabCount}>{tab === "media" ? assets.length : diagrams.length}</span>
-        </h2>
-      </div>
+      <PageHeader
+        title={tab === "media" ? "Images" : "Diagrams"}
+        summary={
+          tab === "media"
+            ? `${assets.length} ${assets.length === 1 ? "file" : "files"} · pictures and documents the story uses`
+            : `${diagrams.length} ${diagrams.length === 1 ? "diagram" : "diagrams"} · mindmaps and flowcharts`
+        }
+        primary={
+          tab === "diagrams"
+            ? { label: "New diagram", icon: Plus, onClick: () => setCreating(true) }
+            : undefined
+        }
+      />
 
       <div className={styles.content}>
         {tab === "media" && storyId && (
@@ -166,11 +173,7 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
                     Cancel
                   </button>
                 </div>
-              ) : (
-                <button onClick={() => setCreating(true)} className={styles.newDiagramBtn}>
-                  <Plus size={13} /> New Diagram
-                </button>
-              )}
+              ) : null}
             </div>
 
             {loadingDiagrams ? (

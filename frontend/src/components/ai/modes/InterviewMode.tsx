@@ -275,7 +275,7 @@ export default function InterviewMode({ session }: Props) {
               <button
                 className={styles.refreshBtn}
                 onClick={() => setShowKnowledge((v) => !v)}
-                title="The scenes this character was present for — the same list the interview prompt receives"
+                title="The scenes this character was present for, the same list the interview prompt receives"
               >
                 <Eye size={10} /> What they know
               </button>

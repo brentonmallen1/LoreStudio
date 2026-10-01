@@ -88,7 +88,7 @@ export default function SnapshotCard({
             )}
             {isNamed && (
               <span className={styles.snapTimestamp}>
-                {relativeTime(snapshot.created_at)} — {formatAbsoluteDate(snapshot.created_at)}
+                {relativeTime(snapshot.created_at)} ({formatAbsoluteDate(snapshot.created_at)})
               </span>
             )}
           </div>

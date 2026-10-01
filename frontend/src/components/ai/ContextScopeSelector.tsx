@@ -11,7 +11,7 @@ interface Props {
 export default function ContextScopeSelector({ scope, allowedScopes, onChange }: Props) {
   if (allowedScopes.length <= 1) return null;
   return (
-    <div className={styles.wrapper} title="Context scope — how much of your story the AI sees">
+    <div className={styles.wrapper} title="Context scope: how much of your story the AI sees">
       <select
         className={styles.select}
         value={scope}

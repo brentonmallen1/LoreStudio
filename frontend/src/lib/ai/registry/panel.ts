@@ -8,7 +8,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Talk directly to your character as themselves",
     fullDescription:
-      "The character's full profile becomes the AI's persona — you're talking to the character, not asking about them. Great for uncovering backstory and voice.",
+      "The character's full profile becomes the AI's persona: you're talking to the character, not asking about them. Great for uncovering backstory and voice.",
     contextSources: [
       "Full character profile (name, personality, motivation, background, appearance, traits)",
       "Arc notes",
@@ -50,7 +50,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Broad story-level discussion with full context",
     fullDescription:
-      "A collaborator with access to the whole story — for high-level questions about plot, structure, and themes.",
+      "A collaborator with access to the whole story, for high-level questions about plot, structure, and themes.",
     contextSources: [
       "Full story structure",
       "All scene synopses",
@@ -66,7 +66,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Craft and prose feedback on a specific scene",
     fullDescription:
-      "Reviews the scene's prose for craft — sentence-level feedback on voice, pacing, clarity, and style.",
+      "Reviews the scene's prose for craft: sentence-level feedback on voice, pacing, clarity, and style.",
     contextSources: ["Scene prose text", "Story tone & genre", "Scene context"],
     backendFeatureId: "writing-coach",
   },
@@ -96,7 +96,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Generate questions to deepen your story understanding",
     fullDescription:
-      "Generates targeted questions designed to surface gaps in your story's logic, motivation, and world — things an author should know but may not have articulated yet.",
+      "Generates targeted questions designed to surface gaps in your story's logic, motivation, and world: things an author should know but may not have articulated yet.",
     contextSources: ["Story intent & premise", "Character profiles", "Plot threads", "Lorebook"],
     backendFeatureId: "discovery-questions",
   },
@@ -126,7 +126,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Draft back-cover copy for your book",
     fullDescription:
-      "Helps draft a compelling back-cover description — the hook, character stakes, and tease — drawing from your story's existing metadata.",
+      "Helps draft a compelling back-cover description (the hook, character stakes, and tease), drawing from your story's existing metadata.",
     contextSources: ["Story title, genre, logline, premise", "Main characters", "Central conflict", "Themes"],
     backendFeatureId: "book-description",
   },
@@ -151,7 +151,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Analyze scene mood, setting, and sensory tone",
     fullDescription:
-      "Examines the atmospheric qualities of a scene — lighting, sensory details, mood, and emotional tone — and offers suggestions for deepening the atmosphere.",
+      "Examines the atmospheric qualities of a scene (lighting, sensory details, mood, and emotional tone) and offers suggestions for deepening the atmosphere.",
     contextSources: ["Scene prose text", "Scene purpose & setting", "Story tone"],
     backendFeatureId: "scene-atmosphere",
   },
@@ -161,7 +161,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Condense an interview into what it revealed",
     fullDescription:
-      "Summarises a character interview: new backstory, motivations uncovered, and contradictions with the profile. Compression only — nothing invented.",
+      "Summarises a character interview: new backstory, motivations uncovered, and contradictions with the profile. Compression only: nothing invented.",
     contextSources: ["The interview transcript"],
     backendFeatureId: "interview-summary",
   },
@@ -181,7 +181,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Published books your story sits beside, and why",
     fullDescription:
-      "Suggests comparable titles for a query letter or pitch, each with the reason it is comparable. Suggestions to check, not facts — verify before you send them.",
+      "Suggests comparable titles for a query letter or pitch, each with the reason it is comparable. Suggestions to check, not facts. Verify before you send them.",
     contextSources: ["Genre, audience & tone", "Logline & premise", "Themes"],
     backendFeatureId: "comp-titles",
   },

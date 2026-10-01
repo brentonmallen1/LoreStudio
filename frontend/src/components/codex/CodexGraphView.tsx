@@ -132,7 +132,7 @@ export default function CodexGraphView({ graph, selectedId, onSelect, emptyActio
               >
                 <title>
                   {edgeLabel(edge.kind)}
-                  {isProposal(edge.source) ? " (suggested — not confirmed)" : ""}
+                  {isProposal(edge.source) ? " (suggested, not confirmed)" : ""}
                 </title>
               </line>
             );

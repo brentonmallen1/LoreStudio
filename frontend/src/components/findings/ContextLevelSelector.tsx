@@ -12,17 +12,17 @@ const LEVELS: { value: ContextLevel; label: string; description: string }[] = [
   {
     value: "full",
     label: "Full Manuscript",
-    description: "Sends all prose — best quality for voice consistency and comparative analysis",
+    description: "Sends all prose: best quality for voice consistency and comparative analysis",
   },
   {
     value: "summaries",
     label: "With Summaries",
-    description: "Uses scene summaries as compressed context — good balance for most analyses",
+    description: "Uses scene summaries as compressed context: good balance for most analyses",
   },
   {
     value: "section",
     label: "Section Only",
-    description: "Scoped content only, no cross-reference — fastest, may miss continuity patterns",
+    description: "Scoped content only, no cross-reference: fastest, may miss continuity patterns",
   },
 ];
 

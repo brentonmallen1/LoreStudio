@@ -189,7 +189,9 @@ class CommandRegistry {
       const s = score(action, query);
       if (s > 0) results.push({ action, score: s });
     }
-    results.sort((a, b) => b.score - a.score);
+    // Equal scores: the shorter label is the closer match ("Go to Findings" before
+    // "Colour the Strip by Findings" for "findings").
+    results.sort((a, b) => b.score - a.score || a.action.label.length - b.action.label.length);
     return results.map((r) => r.action);
   }
 

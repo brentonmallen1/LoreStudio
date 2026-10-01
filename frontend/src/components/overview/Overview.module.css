@@ -7,9 +7,10 @@
   background: var(--color-bg);
 }
 
+/* The page header's measure, so title and cards share one left edge. */
 .column {
   box-sizing: content-box;
-  max-width: 60rem;
+  max-width: var(--page-measure);
   margin: 0 auto;
   padding: 1.9rem 1.25rem 3rem;
   display: flex;
@@ -23,15 +24,14 @@
 }
 
 .label {
-  font-size: 0.68rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-section-title);
 }
 
+/* The warning is the dot beside it; the word stays readable. */
 .label[data-tone="warning"] {
-  color: var(--color-warning);
+  color: var(--color-section-title);
 }
 
 .label[data-tone="ai"] {
@@ -183,10 +183,14 @@
 
 /* ── Vitals ── */
 
+/* One ledger, not four tiles (doc 13 P7): the figures read across a single band. */
 .vitals {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
-  gap: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
 }
 
 .vital {
@@ -194,21 +198,23 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  padding: 0.75rem 1rem;
   color: var(--color-text);
   text-decoration: none;
 }
 
+.vital + .vital {
+  border-left: 1px solid var(--color-border-light);
+}
+
 .vital:hover {
-  border-color: var(--color-border-hover);
+  background: color-mix(in srgb, var(--color-surface-2) 55%, var(--color-surface));
 }
 
 .vitalValue {
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-family: var(--font-editor);
+  font-size: 1.15rem;
+  font-weight: 400;
 }
 
 .vitalSub {
@@ -268,7 +274,7 @@
   min-width: 0;
   padding: 0.95rem 1.1rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
 

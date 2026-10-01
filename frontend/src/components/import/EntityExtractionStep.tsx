@@ -173,11 +173,11 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
       <div className={styles.legend}>
         <span className={styles.legendItem}>
           <span className={styles.legendDot} style={{ background: "var(--color-nlp)" }} />
-          Local NLP — fast, no AI required
+          Local NLP: fast, no AI required
         </span>
         <span className={styles.legendItem}>
           <span className={styles.legendDot} style={{ background: "var(--color-ai)" }} />
-          AI Analysis — requires Ollama
+          AI Analysis: requires Ollama
         </span>
       </div>
 
@@ -185,7 +185,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
       <div className={`${styles.phase} ${styles.phaseNlp}`}>
         <div className={styles.phaseHeader}>
           <span className={styles.phaseDot} style={{ background: "var(--color-nlp)" }} />
-          <span className={styles.phaseTitle}>Phase 1 — Find Names with NLP</span>
+          <span className={styles.phaseTitle}>Phase 1: Find Names with NLP</span>
           {nlpDone && <span className={styles.phaseDone}>✓ {nlpCandidates.length} found</span>}
         </div>
 
@@ -274,7 +274,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
         <div className={`${styles.phase} ${styles.phaseAi} ${!aiAvailable ? styles.phaseDisabled : ""}`}>
           <div className={styles.phaseHeader}>
             <span className={styles.phaseDot} style={{ background: "var(--color-ai)" }} />
-            <span className={styles.phaseTitle}>Phase 2 — Extract Details with AI</span>
+            <span className={styles.phaseTitle}>Phase 2: Extract Details with AI</span>
             {aiDone && <span className={styles.phaseDone}>✓ enriched</span>}
             {!aiAvailable && <span className={styles.unavailableTag}>Ollama unavailable</span>}
           </div>
@@ -343,7 +343,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
         <div className={styles.results}>
           <div className={styles.resultsHeader}>
             <span className={styles.resultsTitle}>
-              {aiDone ? "Enriched candidates" : "Candidates"} — select which to add to Lorebook
+              {aiDone ? "Enriched candidates" : "Candidates"}: select which to add to Lorebook
             </span>
             <div className={styles.selectActions}>
               <button className={styles.selectAllBtn} onClick={selectAll}>

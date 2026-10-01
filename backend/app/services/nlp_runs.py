@@ -22,6 +22,7 @@ from ..schemas.nlp_analysis import (
     SceneNLPAnalysis,
 )
 from .nlp_analysis_service import ALL_CHECKS, analyze_scene, analyze_scene_editorial, extract_unknown_entities
+from .wording import count
 
 
 def _scenes(story_id: str, db: Session, node_ids: list[str] | None) -> list[StructureNode]:
@@ -54,7 +55,7 @@ def run_prose_analysis(
             story_id=story_id,
             event_type="analysis_run",
             category="health",
-            description=f"Prose analysis: {len(scenes)} scene(s), {warning_count} warning(s)",
+            description=f"Prose analysis: {count(len(scenes), 'scene')}, {count(warning_count, 'warning')}",
             metadata_={
                 "feature": "prose-analysis",
                 "result": result.model_dump(),
@@ -88,7 +89,8 @@ def run_editorial_consistency(
             event_type="analysis_run",
             category="health",
             description=(
-                f"Editorial consistency: {len(scenes)} scene(s), {total_tense} tense shift(s), {total_pov} POV flag(s)"
+                f"Editorial consistency: {count(len(scenes), 'scene')}, {count(total_tense, 'tense shift')}, "
+                f"{count(total_pov, 'point-of-view flag')}"
             ),
             metadata_={
                 "feature": "editorial-consistency",
@@ -115,7 +117,7 @@ def run_entity_scan(story_id: str, user_id: str, db: Session) -> EntitySuggestio
             story_id=story_id,
             event_type="analysis_run",
             category="health",
-            description=f"Entity scan: {chars} character(s), {locs} location(s) found",
+            description=f"Name scan: {count(chars, 'character')}, {count(locs, 'place')} found",
             metadata_={
                 "feature": "entity-suggestions",
                 "result": result.model_dump(),

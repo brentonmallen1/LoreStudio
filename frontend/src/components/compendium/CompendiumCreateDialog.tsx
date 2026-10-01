@@ -174,7 +174,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
                 onChange={(e) => setSelectedAssetId(e.target.value)}
                 required
               >
-                <option value="">— Select an asset —</option>
+                <option value="">Select an asset</option>
                 {assets.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.original_filename} ({(a.size_bytes / 1024).toFixed(0)} KB)
@@ -188,7 +188,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
         {/* Title */}
         <div className={styles.field}>
           <label className={styles.label}>
-            Title {tab === "note" ? "*" : "(optional — auto-filled if blank)"}
+            Title {tab === "note" ? "*" : "(optional, auto-filled if blank)"}
           </label>
           <input
             className={styles.input}

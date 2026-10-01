@@ -5,7 +5,7 @@
   --color-surface: #ffffff;
   --color-surface-2: #f0efe9;
   --color-surface-3: #e8e7e0;
-  --color-border: #e0ded7;
+  --color-border: #d8d6cf;
   --color-border-light: #ebe9e2;
   --color-text: #1a1916;
   --color-text-muted: #6b6860;
@@ -89,13 +89,14 @@
 
 /* ── Zen theme · dark mode ─────────────────────── */
 [data-theme="zen"].dark {
+  color-scheme: dark;
   --color-bg: #111110;
   --color-surface: #1c1b18;
   --color-surface-2: #242320;
   --color-surface-3: #2c2b27;
   --color-surface-raised: #201f1c;
-  --color-border: #2e2d29;
-  --color-border-light: #272622;
+  --color-border: #363531;
+  --color-border-light: #2b2a26;
   --color-text: #f0ede6;
   --color-text-muted: #a8a6a0;
   --color-text-subtle: #858379;

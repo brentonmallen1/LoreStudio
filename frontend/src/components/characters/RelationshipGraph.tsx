@@ -349,7 +349,7 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
         <button
           className={`${styles.filterToggle} ${showHidden ? styles.filterToggleActive : ""}`}
           onClick={() => setShowHidden((v) => !v)}
-          title="Relationships marked 'hidden' (not visible to other story characters) — toggling this shows or hides them on the graph"
+          title="Relationships marked 'hidden' (not visible to other story characters). Toggling this shows or hides them on the graph"
         >
           {showHidden ? <Eye size={13} /> : <EyeOff size={13} />}
           {showHidden ? "Showing hidden" : "Show hidden"}
@@ -591,7 +591,7 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
                     {trunc(char.name, 20)}
                   </text>
                   <title>
-                    {char.name} — {char.role}
+                    {char.name}: {char.role}
                   </title>
                 </g>
               );

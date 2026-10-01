@@ -8,7 +8,7 @@ export const IMPORTING_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Detect character names via named entity recognition",
     fullDescription:
-      "Uses spaCy's named entity recognition to identify PERSON entities throughout your manuscript. Fast and fully local — no AI or internet required. Found names become character candidates you can review before adding to the Lorebook.",
+      "Uses spaCy's named entity recognition to identify PERSON entities throughout your manuscript. Fast and fully local: no AI or internet required. Found names become character candidates you can review before adding to the Lorebook.",
     contextSources: ["Imported manuscript text (all paragraphs)"],
   },
   "import-ner-locations": {
@@ -17,7 +17,7 @@ export const IMPORTING_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Detect location names via named entity recognition",
     fullDescription:
-      "Uses spaCy's named entity recognition to identify GPE (geopolitical places) and LOC (locations) entities in your manuscript. Fast and fully local — no AI required. Found names become location candidates you can review before adding to the Lorebook.",
+      "Uses spaCy's named entity recognition to identify GPE (geopolitical places) and LOC (locations) entities in your manuscript. Fast and fully local: no AI required. Found names become location candidates you can review before adding to the Lorebook.",
     contextSources: ["Imported manuscript text (all paragraphs)"],
   },
   "import-ai-character-details": {

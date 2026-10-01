@@ -11,7 +11,7 @@ type Tab = (typeof TABS)[number];
 const STATUS_TEXT: Record<string, string> = {
   error: "This call failed",
   cancelled: "You stopped this call",
-  "schema-fallback": "The model would not take the response schema — the answer was unconstrained",
+  "schema-fallback": "The model would not take the response schema, so the answer was unconstrained",
   "invalid-json": "The response was not valid JSON",
   "schema-invalid": "The response did not match the expected shape",
 };

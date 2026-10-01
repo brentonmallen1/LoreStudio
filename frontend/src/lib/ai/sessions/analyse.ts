@@ -79,7 +79,7 @@ registerSessionType({
   id: "discovery-questions",
   label: "Discovery Questions",
   contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Discovery — ${names.storyTitle}` : "Discovery Questions",
+    names.storyTitle ? `Discovery: ${names.storyTitle}` : "Discovery Questions",
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Compass,
   accentVar: "--color-ai",
@@ -116,7 +116,7 @@ registerSessionType({
 registerSessionType({
   id: "analysis-result",
   label: "Analysis",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `Analysis — ${names.storyTitle}` : "Analysis"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Analysis: ${names.storyTitle}` : "Analysis"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Analysis",
   icon: Compass,
   accentVar: "--color-ai",

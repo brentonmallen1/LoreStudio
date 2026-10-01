@@ -15,6 +15,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..services import change_log
+from ..services.text_utils import html_to_text
 
 router = APIRouter()
 
@@ -22,9 +23,12 @@ EXCERPT_LEN = 120
 
 
 def _excerpt(text: str, query: str) -> str:
-    """Return a short snippet around the first match of query in text."""
+    """Return a short snippet around the first match of query in text. Prose is stored as
+    HTML; the snippet is read as words, so the tags go first (doc 13 P7)."""
     if not text:
         return ""
+    if "<" in text:
+        text = html_to_text(text)
     lower = text.lower()
     idx = lower.find(query.lower())
     if idx == -1:

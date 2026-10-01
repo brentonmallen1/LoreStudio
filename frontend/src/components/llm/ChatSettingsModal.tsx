@@ -20,11 +20,11 @@ interface Props {
 
 const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
   { value: 0, label: "None (text only)" },
-  { value: 70, label: "70 — Fast (classification, quick captioning)" },
-  { value: 140, label: "140 — Light (general thumbnails)" },
-  { value: 280, label: "280 — Balanced (recommended default)" },
-  { value: 560, label: "560 — Detailed (document analysis)" },
-  { value: 1120, label: "1120 — High detail (OCR, fine text)" },
+  { value: 70, label: "70: Fast (classification, quick captioning)" },
+  { value: 140, label: "140: Light (general thumbnails)" },
+  { value: 280, label: "280: Balanced (recommended default)" },
+  { value: 560, label: "560: Detailed (document analysis)" },
+  { value: 1120, label: "1120: High detail (OCR, fine text)" },
 ];
 
 export default function ChatSettingsModal({
@@ -176,7 +176,7 @@ export default function ChatSettingsModal({
           <div className={styles.toggleLabel}>
             <label className={styles.label}>Thinking Mode</label>
             <span className={styles.hint}>
-              Gemma 4 reasons before responding — improves accuracy, increases latency.
+              Gemma 4 reasons before responding: improves accuracy, increases latency.
             </span>
           </div>
           <label className={styles.toggle}>

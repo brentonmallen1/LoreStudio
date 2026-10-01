@@ -290,8 +290,8 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
       {showingNotesForm && (
         <div className={styles.notesForm}>
           <p className={styles.notesIntro}>
-            I'll suggest ideas for how this scene might work — synopsis, purpose, entry &amp; exit state, key
-            events — based on your story's context.
+            I'll suggest ideas for how this scene might work (synopsis, purpose, entry &amp; exit state, key
+            events), based on your story's context.
           </p>
           <p className={styles.notesIntro} style={{ marginTop: "2px" }}>
             These are starting points for your own thinking, not instructions. Share what you already have in

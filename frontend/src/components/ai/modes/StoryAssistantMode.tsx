@@ -72,7 +72,7 @@ export default function StoryAssistantMode({ session }: Props) {
             value={storyId}
             onChange={(e) => updateSessionContext(session.id, { storyId: e.target.value || undefined })}
           >
-            <option value="">— pick a story —</option>
+            <option value="">Pick a story</option>
             {stories.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.title}
@@ -108,7 +108,7 @@ export default function StoryAssistantMode({ session }: Props) {
           <BookOpen size={22} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Story Assistant</p>
           <p className={styles.emptyHint}>
-            Ask about your story — themes, arcs, plot holes, character motivations, or what comes next.
+            Ask about your story: themes, arcs, plot holes, character motivations, or what comes next.
           </p>
           <div className={styles.starters}>
             {STARTER_PROMPTS.map((p) => (

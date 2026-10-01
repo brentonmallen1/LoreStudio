@@ -342,7 +342,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                     onClick={() => goToNode(flat[col])}
                   >
                     <title>
-                      {thread.name} — {flat[col].node.title}
+                      {thread.name}: {flat[col].node.title}
                     </title>
                   </circle>
                 ))}

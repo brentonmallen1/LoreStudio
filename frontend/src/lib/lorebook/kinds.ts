@@ -101,7 +101,7 @@ export const KINDS: Record<LoreKind, KindSpec> = {
       {
         key: "flaws",
         label: "Flaws",
-        hint: "What gets in their way — the fault they cannot see…",
+        hint: "What gets in their way: the fault they cannot see…",
         compact: true,
       },
       { key: "background", label: "Background", hint: "Where they come from…" },

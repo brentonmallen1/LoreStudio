@@ -46,7 +46,7 @@ export const WORLD_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "What are the present-day ripples of this historical event?",
     fullDescription:
-      "Analyzes a historical event to surface its present-day effects — physical remnants, cultural legacy, political consequences, and inherited attitudes.",
+      "Analyzes a historical event to surface its present-day effects: physical remnants, cultural legacy, political consequences, and inherited attitudes.",
     contextSources: ["Historical event details", "Era context", "Associated cultures and world systems"],
     backendFeatureId: "historical-implications",
   },

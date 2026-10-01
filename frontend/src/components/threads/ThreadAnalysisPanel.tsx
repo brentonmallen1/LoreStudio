@@ -224,7 +224,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className={styles.section} style={{ borderLeftColor: color }}>
+    <div className={styles.section} style={{ "--section-color": color } as React.CSSProperties}>
       <div className={styles.sectionHeader}>
         <span className={styles.sectionIcon} style={{ color }}>
           {icon}

@@ -62,6 +62,7 @@ from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
 from ..services.word_count import WORD_COUNT_RANGES
+from ..services.wording import count
 
 router = APIRouter()
 
@@ -383,7 +384,7 @@ async def recap_last_session(
 
     # ── Nothing to recap ──
     if not recent_scenes and not recent_logs and not recent_interviews:
-        return sse_message("Nothing to recap yet — no scenes, activity, or interviews recorded for this story.")
+        return sse_message("Nothing to recap yet: no scenes, activity or interviews recorded for this story.")
 
     feature_prompt = build_session_recap_prompt(
         story_title=story.title,
@@ -1696,7 +1697,7 @@ async def analyze_all_character_dimensionality(
         story_id=story_id,
         event_type="analysis_run",
         category="health",
-        description=f"Character depth: {len(characters)} character(s) assessed",
+        description=f"Character depth: {count(len(characters), 'character')} assessed",
         metadata_={
             "feature": "character-dimensionality",
             "result": result.model_dump() if hasattr(result, "model_dump") else result,

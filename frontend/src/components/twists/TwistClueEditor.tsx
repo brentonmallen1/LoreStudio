@@ -56,7 +56,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
         <div className={styles.body}>
           {clues.length === 0 && (
             <p className={styles.empty}>
-              No clues yet. Add hints you've planted — or plan to plant — in the story.
+              No clues yet. Add hints you've planted (or plan to plant) in the story.
             </p>
           )}
           {clues.map((clue) => (
@@ -107,7 +107,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                       value={clue.node_id ?? ""}
                       onChange={(e) => updateClue(clue.id, { node_id: e.target.value || null })}
                     >
-                      <option value="">— scene —</option>
+                      <option value="">No scene</option>
                       {nodes.map((n) => (
                         <option key={n.id} value={n.id}>
                           {n.title || `Untitled ${n.level_type}`}

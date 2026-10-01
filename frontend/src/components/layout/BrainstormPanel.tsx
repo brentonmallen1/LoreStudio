@@ -79,7 +79,7 @@ function IntentForm({ onStart }: IntentFormProps) {
   return (
     <div className={styles.intentForm}>
       <p className={styles.intentLabel}>
-        Before we brainstorm — a few quick questions. These are optional, but the more you share, the more
+        Before we brainstorm, a few quick questions. These are optional, but the more you share, the more
         targeted the directions.
       </p>
 

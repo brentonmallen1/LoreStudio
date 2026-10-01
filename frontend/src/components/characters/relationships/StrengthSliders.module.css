@@ -79,7 +79,6 @@
 .leftFill {
   height: 100%;
   border-radius: 3px 0 0 3px;
-  transition: width 300ms ease;
 }
 
 .centerTick {
@@ -101,7 +100,6 @@
 .rightFill {
   height: 100%;
   border-radius: 0 3px 3px 0;
-  transition: width 300ms ease;
 }
 
 /* ── Slider row ── */

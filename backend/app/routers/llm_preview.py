@@ -89,7 +89,7 @@ def _sources_from(assembled: AssembledContext) -> list[ContextSource]:
     return [
         ContextSource(
             source=block.key,
-            label=f"{block.label} — {block.why}" if block.why else block.label,
+            label=f"{block.label} ({block.why})" if block.why else block.label,
             included=block.included,
         )
         for block in assembled.blocks + assembled.retrieved

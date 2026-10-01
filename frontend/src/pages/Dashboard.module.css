@@ -17,6 +17,7 @@
 }
 
 .greeting {
+  font-family: var(--font-editor);
   font-size: var(--text-xl);
   font-weight: 400;
   color: var(--color-text);
@@ -187,9 +188,11 @@
   }
 }
 
+/* A story's name is an entity name: the serif (DESIGN.md). */
 .storyTitle {
+  font-family: var(--font-editor);
   font-size: var(--text-md);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--color-text);
   line-height: 1.4;
   margin-bottom: 0.5rem;

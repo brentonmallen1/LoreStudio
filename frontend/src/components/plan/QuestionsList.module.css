@@ -184,6 +184,15 @@
   margin-top: 0.4rem;
 }
 
+/* Inside a sheet card: rows, not cards in a card (doc 13 P7). */
 .compact .item {
-  padding: 0.4rem 0.5rem;
+  padding: 0.45rem 0;
+  border: none;
+  border-bottom: 1px solid var(--color-border-light);
+  border-radius: 0;
+  background: transparent;
+}
+
+.compact .item:last-child {
+  border-bottom: none;
 }

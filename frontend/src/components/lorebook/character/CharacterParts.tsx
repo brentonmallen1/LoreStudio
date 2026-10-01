@@ -60,6 +60,32 @@ export function ArcMilestones({ character, onSaved }: { character: Character; on
   const navigate = useNavigate();
   const scenes = sceneLeaves(structure, activeTemplate);
   const milestones = character.arc_milestones ?? [];
+  const scenePicker = (m: (typeof milestones)[number]) => (
+    <select
+      className={styles.quietSelect}
+      aria-label={`Scene for “${m.text}”`}
+      value={m.scene_id ?? ""}
+      onChange={async (e) => {
+        const node = scenes.find((n) => n.id === e.target.value);
+        onSaved(
+          await api.updateMilestone(character.id, m.id, {
+            text: m.text,
+            completed: m.completed,
+            scene_id: e.target.value || null,
+            scene_title: node ? node.title : null,
+          }),
+        );
+      }}
+    >
+      <option value="">{m.scene_id ? "Unlink scene" : "Link a scene…"}</option>
+      {scenes.map((n) => (
+        <option key={n.id} value={n.id}>
+          {n.title || "Untitled scene"}
+        </option>
+      ))}
+    </select>
+  );
+
   return (
     <div className={styles.rows}>
       {milestones.length === 0 && (
@@ -87,41 +113,24 @@ export function ArcMilestones({ character, onSaved }: { character: Character; on
           </button>
           <div className={styles.milestoneBody}>
             <span className={styles.milestoneText}>{m.text}</span>
-            <div className={styles.milestoneMeta}>
-              {m.scene_id && (
-                <button
-                  type="button"
-                  className={styles.linkBtn}
-                  onClick={() => navigate(`/stories/${character.story_id}/write/${m.scene_id}`)}
-                >
-                  {m.scene_title ?? "Linked scene"} →
-                </button>
-              )}
-              <select
-                className={styles.quietSelect}
-                aria-label={`Scene for “${m.text}”`}
-                value={m.scene_id ?? ""}
-                onChange={async (e) => {
-                  const node = scenes.find((n) => n.id === e.target.value);
-                  onSaved(
-                    await api.updateMilestone(character.id, m.id, {
-                      text: m.text,
-                      completed: m.completed,
-                      scene_id: e.target.value || null,
-                      scene_title: node ? node.title : null,
-                    }),
-                  );
-                }}
-              >
-                <option value="">{m.scene_id ? "Unlink scene" : "Link a scene…"}</option>
-                {scenes.map((n) => (
-                  <option key={n.id} value={n.id}>
-                    {n.title || "Untitled scene"}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {m.scene_id && (
+              <div className={styles.milestoneMeta}>
+                {
+                  <button
+                    type="button"
+                    className={styles.linkBtn}
+                    onClick={() => navigate(`/stories/${character.story_id}/write/${m.scene_id}`)}
+                  >
+                    {m.scene_title ?? "Linked scene"} →
+                  </button>
+                }
+                {scenePicker(m)}
+              </div>
+            )}
           </div>
+          {/* Unlinked: the picker waits beside the row, shown on hover, so it holds no line of
+              its own (doc 13 P7: each unlinked milestone used to carry an empty row). */}
+          {!m.scene_id && scenePicker(m)}
           <button
             type="button"
             className={styles.iconBtn}

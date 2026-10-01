@@ -73,7 +73,7 @@ export default function AttributeGeneratorDialog({ character, onClose }: Props) 
     <Modal
       isOpen
       onClose={onClose}
-      title={`Suggest Attributes — ${character.name}`}
+      title={`Suggest Attributes: ${character.name}`}
       icon={<Wand2 size={15} />}
       size="sm"
       footer={footer}

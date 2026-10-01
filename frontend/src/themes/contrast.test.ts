@@ -80,6 +80,13 @@ const PAIRS: [string, string, number, string][] = [
     3,
     `${s} state on cards`,
   ]),
+  // Region edges (doc 13 P7): the rules between header, strip, index, page and panel. Not
+  // text, so not WCAG's 3:1, but under these the dividers vanished and the screen read as
+  // one slab, worst in dark mode.
+  ["--color-border", "--color-surface", 1.35, "rules on cards and the header"],
+  ["--color-border", "--color-surface-2", 1.25, "rules on the strip and raised surfaces"],
+  ["--color-border", "--color-bg", 1.3, "rules on the page"],
+  ["--color-border-light", "--color-surface", 1.15, "hairlines between rows on cards"],
 ];
 
 /** Tokens every palette must define in hex, light and dark, or the pairs above are silently skipped. */

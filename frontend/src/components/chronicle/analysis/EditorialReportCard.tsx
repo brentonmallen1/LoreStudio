@@ -120,9 +120,7 @@ function IntentGapsSection({
   data: { gaps: unknown[]; sections_aligned: string[]; summary: string };
 }) {
   if (!data.gaps?.length && !data.summary)
-    return (
-      <p className={styles.empty}>No intent gaps found — strong alignment between plan and execution.</p>
-    );
+    return <p className={styles.empty}>No intent gaps found: strong alignment between plan and execution.</p>;
   return (
     <div className={styles.sectionBody}>
       {data.summary && <p className={styles.summary}>{data.summary}</p>}

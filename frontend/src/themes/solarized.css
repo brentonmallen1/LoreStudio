@@ -77,12 +77,13 @@
 
 /* ── Solarized theme · dark mode ───────────────── */
 [data-theme="solarized"].dark {
+  color-scheme: dark;
   --color-bg: #002b36;
   --color-surface: #073642;
   --color-surface-2: #0d3f4c;
   --color-surface-3: #1a4b57;
   --color-surface-raised: #0b3a46;
-  --color-border: #1a4b57;
+  --color-border: #1f4e5a;
   --color-border-light: #0f4250;
   --color-text: #91a0a2;
   --color-text-muted: #8b9b9f;

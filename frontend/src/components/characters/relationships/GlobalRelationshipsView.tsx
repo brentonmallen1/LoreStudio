@@ -243,7 +243,7 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
       ) : groups.length === 0 ? (
         <div className={styles.empty}>
           {relationships.length === 0
-            ? "No relationships yet — use Suggest relationships to get started."
+            ? "No relationships yet. Use Suggest relationships to get started."
             : "No characters match the search."}
         </div>
       ) : (

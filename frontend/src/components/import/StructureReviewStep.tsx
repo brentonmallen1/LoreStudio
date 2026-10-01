@@ -244,7 +244,7 @@ export default function StructureReviewStep({
             onClick={handleAiAnalyze}
             disabled={aiLoading}
             className={styles.aiBtn}
-            title="Ask AI to detect scene breaks (positions only — your text is never changed)"
+            title="Ask AI to detect scene breaks (positions only; your text is never changed)"
           >
             <Compass size={12} />
             {aiLoading ? "Analyzing…" : "Auto-segment"}

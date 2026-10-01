@@ -53,8 +53,8 @@ export default function PrivacySection() {
       </p>
       <ul className={styles.plainList}>
         <li>
-          <strong>Ollama</strong> —{" "}
-          {aiAvailable ? (ollamaUrl ?? "not configured") : "not contacted — AI is off"}.
+          <strong>Ollama</strong>:{" "}
+          {aiAvailable ? (ollamaUrl ?? "not configured") : "not contacted (AI is off)"}.
           {aiAvailable && (
             <>
               {" "}
@@ -64,19 +64,18 @@ export default function PrivacySection() {
           )}
         </li>
         <li>
-          <strong>Telemetry, analytics, update checks</strong> — none. The app makes no other network
-          requests.
+          <strong>Telemetry, analytics, update checks</strong>: none. The app makes no other network requests.
         </li>
       </ul>
       <p className={styles.sectionHint}>
         Every AI call is recorded in Chronicle › AI activity: the prompt, the messages, the options sent and
-        the raw response — including calls that failed or that you stopped. Every data change is recorded in
+        the raw response, including calls that failed or that you stopped. Every data change is recorded in
         Chronicle › Changes.
       </p>
       <p className={styles.sectionHint}>
         Prompts and responses are kept for the number of days set by <code>AI_PAYLOAD_RETENTION_DAYS</code>{" "}
-        (90 by default), then pruned automatically. The summary of each call — feature, model, tokens, status
-        — is kept, so the history of what ran stays complete either way.
+        (90 by default), then pruned automatically. The summary of each call (feature, model, tokens, status)
+        is kept, so the history of what ran stays complete either way.
       </p>
       <button className={styles.dangerBtn} onClick={purge} disabled={purging}>
         {purging ? "Deleting…" : "Delete stored prompts and responses now"}

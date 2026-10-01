@@ -7,6 +7,7 @@ import PerspectiveSummaryPanel from "../analysis/PerspectiveSummaryPanel";
 import StorySummaryPanel from "./StorySummaryPanel";
 import BeatSheetSelector from "./BeatSheetSelector";
 import { SectionCard } from "../common";
+import PageHeader from "../layout/PageHeader";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import type { StoryGoal } from "../../types";
 import { CharCount, CompletionDots, GroupLabel, HeroStats, WorkshopBtn } from "./StoryIdentityBits";
@@ -318,22 +319,18 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div className={styles.panelTitleLine}>
-          <h2 className={styles.panelTitle}>Story Identity</h2>
-          <AIFeatureInfoTrigger pageId="story-identity" />
-        </div>
-        <p className={styles.panelSubtitle}>{activeStory.title}</p>
-        <HeroStats storyId={storyId} />
-      </div>
+      <PageHeader
+        title="Story identity"
+        summary={<HeroStats storyId={storyId} />}
+        aside={<AIFeatureInfoTrigger pageId="story-identity" />}
+      />
 
       <div className={styles.scrollArea}>
         {/* ── Foundation ── */}
         <GroupLabel label="Foundation" description="What is this story?" />
 
         <SectionCard
-          title="Core Identity"
-          variant="accent"
+          title="Core identity"
           collapsed={!!collapsed.identity}
           onToggle={() => toggle("identity")}
           badge={foundationFields > 0 ? <CompletionDots filled={foundationFields} total={2} /> : undefined}
@@ -351,11 +348,12 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               One sentence: who wants what, against what obstacle, with what at stake.
             </p>
             <p className={styles.fieldPattern}>[Protagonist] must [goal] despite [obstacle], or [stakes]</p>
-            <input
+            <textarea
               value={fields.logline}
               onChange={(e) => update("logline", e.target.value)}
               placeholder="Elena must find the lighthouse keeper before…"
-              className={styles.input}
+              className={styles.textarea}
+              rows={2}
             />
             <div className={styles.fieldMeta}>
               <CharCount value={fields.logline} max={150} />
@@ -392,16 +390,14 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         </SectionCard>
 
         <SectionCard
-          title="Narrative Intent"
-          variant="intent"
+          title="Narrative intent"
           collapsed={!!collapsed.intent}
           onToggle={() => toggle("intent")}
         >
           <div className={styles.fieldLabelRow}>
-            <p className={styles.subFieldLabel}>Narrative Intent</p>
             <WorkshopBtn
               label="Workshop intent"
-              message="I'm trying to figure out what my story is really about — help me think through my narrative intent."
+              message="I'm trying to figure out what my story is really about. Help me think through my narrative intent."
               storyId={storyId}
             />
           </div>
@@ -519,7 +515,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         <GroupLabel label="Substance" description="What's it really about?" />
 
         <SectionCard
-          title="Themes & Conflict"
+          title="Themes and conflict"
           collapsed={!!collapsed.themes}
           onToggle={() => toggle("themes")}
         >
@@ -576,7 +572,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         <GroupLabel label="Compass" description="Where are you going?" />
 
         <SectionCard
-          title="Story Goals"
+          title="Story goals"
           collapsed={!!collapsed.goals}
           onToggle={() => toggle("goals")}
           badge={

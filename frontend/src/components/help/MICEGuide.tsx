@@ -23,7 +23,7 @@ const MICE_TYPES = [
     label: "Idea",
     icon: <HelpCircle size={14} />,
     tagline: "A question demands an answer",
-    opens: "A question is raised — who did it? what is happening? what does this mean?",
+    opens: "A question is raised: who did it? what is happening? what does this mean?",
     closes: "The question is answered",
     examples: ["Mystery", "Thriller", "Puzzle stories", "Whodunits"],
     note: "Every unanswered question is a promise to the reader. Answer them.",
@@ -43,10 +43,10 @@ const MICE_TYPES = [
     label: "Event",
     icon: <Zap size={14} />,
     tagline: "The world is out of balance",
-    opens: "The status quo is disrupted — a disaster, an invasion, a revelation",
+    opens: "The status quo is disrupted: a disaster, an invasion, a revelation",
     closes: "A new equilibrium is established (not necessarily the old one)",
     examples: ["Disaster stories", "Revolutions", "Power vacuums", "Upheaval narratives"],
-    note: "The new equilibrium doesn't have to be better — just stable.",
+    note: "The new equilibrium doesn't have to be better, just stable.",
   },
 ];
 
@@ -56,7 +56,7 @@ export function MICEContent() {
       <div className={styles.intro}>
         <p>
           The <strong>MICE Quotient</strong> is a framework for understanding what kind of story you're
-          telling — and when it's over. Every story thread belongs to one of four types. Tagging your threads
+          telling, and when it's over. Every story thread belongs to one of four types. Tagging your threads
           helps you ensure every question you open gets answered, and that nested threads close in the right
           order.
         </p>
@@ -100,13 +100,13 @@ export function MICEContent() {
           <div className={styles.sectionContent}>
             <p>
               When you open multiple MICE threads in a story, they must close in{" "}
-              <strong>reverse order</strong> — last opened, first closed. This is sometimes called the "LIFO"
+              <strong>reverse order</strong>: last opened, first closed. This is sometimes called the "LIFO"
               rule (Last In, First Out).
             </p>
             <p>
-              Readers hold open threads in their heads like a mental stack. Crossing threads — where an inner
-              thread outlasts an outer one — creates a feeling of structural instability, even if readers
-              can't name why.
+              Readers hold open threads in their heads like a mental stack. Crossing threads (where an inner
+              thread outlasts an outer one) creates a feeling of structural instability, even if readers can't
+              name why.
             </p>
             <div className={styles.nestingDiagram}>
               <div className={styles.diagramLabel}>Correct nesting:</div>
@@ -135,7 +135,7 @@ export function MICEContent() {
             </div>
             <p className={styles.tip}>
               <strong>Tip:</strong> Short stories usually have 1-2 threads. Each additional thread requires
-              more word count to open and close cleanly — this is why flash fiction almost always has a single
+              more word count to open and close cleanly. This is why flash fiction almost always has a single
               MICE element.
             </p>
           </div>
@@ -144,7 +144,7 @@ export function MICEContent() {
         <CollapsibleSection title="Short Fiction Economy">
           <div className={styles.sectionContent}>
             <p>
-              Short fiction is ruthless about scope. Every element must earn its place — there is no room for
+              Short fiction is ruthless about scope. Every element must earn its place; there is no room for
               setup that doesn't pay off within the word budget.
             </p>
             <table className={styles.economyTable}>
@@ -193,28 +193,28 @@ export function MICEContent() {
         <CollapsibleSection title="Try/Fail Cycles">
           <div className={styles.sectionContent}>
             <p>
-              Before a protagonist resolves a MICE thread, they should try and fail at least once — often two
+              Before a protagonist resolves a MICE thread, they should try and fail at least once, often two
               or three times. Each failure raises the stakes and earns the eventual resolution.
             </p>
             <div className={styles.outcomesGrid}>
               <div className={styles.outcomeCard}>
-                <div className={`${styles.outcomeBadge} ${styles.outcomeDisaster}`}>Fail — Disaster</div>
+                <div className={`${styles.outcomeBadge} ${styles.outcomeDisaster}`}>Fail: Disaster</div>
                 <p>
                   The attempt fails <em>and makes things worse</em>. New problems are created.
                 </p>
               </div>
               <div className={styles.outcomeCard}>
-                <div className={`${styles.outcomeBadge} ${styles.outcomeSetback}`}>Fail — Setback</div>
+                <div className={`${styles.outcomeBadge} ${styles.outcomeSetback}`}>Fail: Setback</div>
                 <p>The attempt fails but doesn't worsen the situation. A dead end, not a catastrophe.</p>
               </div>
               <div className={styles.outcomeCard}>
                 <div className={`${styles.outcomeBadge} ${styles.outcomeSuccessCost}`}>
-                  Success — With Cost
+                  Success: With Cost
                 </div>
-                <p>The attempt succeeds but at a price — something lost, sacrificed, or damaged.</p>
+                <p>The attempt succeeds but at a price: something lost, sacrificed, or damaged.</p>
               </div>
               <div className={styles.outcomeCard}>
-                <div className={`${styles.outcomeBadge} ${styles.outcomeClean}`}>Success — Clean</div>
+                <div className={`${styles.outcomeBadge} ${styles.outcomeClean}`}>Success: Clean</div>
                 <p>The attempt succeeds without significant cost. Best saved for the final resolution.</p>
               </div>
             </div>

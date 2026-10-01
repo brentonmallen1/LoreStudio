@@ -200,33 +200,23 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
         view={viewMode}
         onView={(id) => setViewMode(id as ViewMode)}
         primary={{ label: "Create snapshot", icon: Plus, onClick: () => setDialog({ type: "create" }) }}
-        aside={
-          <>
-            <input
-              type="file"
-              accept=".zip,.lorestudio.zip"
-              ref={importRef}
-              onChange={handleImport}
-              style={{ display: "none" }}
-            />
-            <button
-              className={styles.headerBtn}
-              onClick={() => importRef.current?.click()}
-              title="Import from file"
-            >
-              <Upload size={14} /> Import
-            </button>
-            <button
-              className={`${styles.headerBtn} ${settingsOpen ? styles.headerBtnActive : ""}`}
-              onClick={() => setSettingsOpen(true)}
-              title="Backup settings"
-              aria-label="Backup settings"
-              disabled={!settings}
-            >
-              <Settings size={14} />
-            </button>
-          </>
-        }
+        more={[
+          { label: "Import from a file…", icon: Upload, onSelect: () => importRef.current?.click() },
+          {
+            label: "Backup settings…",
+            icon: Settings,
+            onSelect: () => setSettingsOpen(true),
+            disabled: !settings,
+          },
+        ]}
+      />
+
+      <input
+        type="file"
+        accept=".zip,.lorestudio.zip"
+        ref={importRef}
+        onChange={handleImport}
+        style={{ display: "none" }}
       />
 
       {pendingImportFile && (

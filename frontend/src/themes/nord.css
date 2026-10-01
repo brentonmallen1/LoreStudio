@@ -5,8 +5,8 @@
   --color-surface-2: #d8dee9;
   --color-surface-3: #cad1de;
   --color-surface-raised: #ced5e2;
-  --color-border: #d0d8e8;
-  --color-border-light: #dde4ef;
+  --color-border: #bdc4d4;
+  --color-border-light: #d2d9e4;
   --color-text: #2e3440;
   --color-text-muted: #4c566a;
   --color-text-subtle: #6f7d99;
@@ -77,12 +77,13 @@
 
 /* ── Nord theme · dark mode ────────────────────── */
 [data-theme="nord"].dark {
+  color-scheme: dark;
   --color-bg: #2e3440;
   --color-surface: #3b4252;
   --color-surface-2: #434c5e;
   --color-surface-3: #4c566a;
   --color-surface-raised: #424b5e;
-  --color-border: #3e4758;
+  --color-border: #535b6b;
   --color-border-light: #434c5e;
   --color-text: #eceff4;
   --color-text-muted: #d8dee9;

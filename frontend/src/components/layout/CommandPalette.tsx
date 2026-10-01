@@ -37,7 +37,7 @@ const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
 const TYPE_LABELS: Record<SearchResult["type"], string> = {
   story: "Stories",
   character: "Characters",
-  scene: "Scenes",
+  scene: "Manuscript",
   setting: "Settings",
   thread: "Threads",
 };

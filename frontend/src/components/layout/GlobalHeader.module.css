@@ -5,7 +5,9 @@
   justify-content: space-between;
   padding: 0 1rem;
   height: 40px;
-  background: var(--color-surface);
+  /* The frame (doc 13 P7): header, strip and the panel's tab bar are one vellum L that the
+     pages sit inside, on paper and parchment. */
+  background: var(--color-surface-2);
   border-bottom: 1px solid var(--color-border);
   position: fixed;
   top: 0;
@@ -82,7 +84,7 @@
 }
 
 .backToStories:hover {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 
@@ -190,8 +192,8 @@
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
-  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-family: inherit;
   cursor: pointer;
@@ -232,12 +234,12 @@
 }
 
 .iconBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
   color: var(--color-text-muted);
 }
 
 .iconBtnActive {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
   color: var(--color-text-muted);
 }
 
@@ -268,11 +270,11 @@
 }
 
 .userBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
 }
 
 .userBtnActive {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
 }
 
 .userAvatar {
@@ -526,7 +528,7 @@
 }
 
 .backupIndicator:hover {
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 
@@ -547,8 +549,9 @@
   flex-shrink: 0;
 }
 
+/* A fresh backup is the normal state and needs no colour (doc 13 P7). */
 .dotFresh {
-  background: var(--color-success);
+  display: none;
 }
 .dotStale {
   background: var(--color-warning);

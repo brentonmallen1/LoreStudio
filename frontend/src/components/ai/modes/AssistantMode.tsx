@@ -75,7 +75,7 @@ export default function AssistantMode({ session }: Props) {
           <p className={styles.emptyTitle}>AI Assistant</p>
           <p className={styles.emptyHint}>
             {storyId
-              ? "Ask anything about your story — themes, characters, narrative arcs, or what to write next."
+              ? "Ask anything about your story: themes, characters, narrative arcs, or what to write next."
               : "Add a story to context above, then ask anything."}
           </p>
           {storyId && (

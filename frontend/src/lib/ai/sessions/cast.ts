@@ -88,7 +88,7 @@ registerSessionType({
 registerSessionType({
   id: "panel",
   label: "Panel Interview",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `Panel — ${names.storyTitle}` : "Panel Interview"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Panel: ${names.storyTitle}` : "Panel Interview"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Users,
   accentVar: "--color-accent",

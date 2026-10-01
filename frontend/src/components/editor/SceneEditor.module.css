@@ -79,9 +79,11 @@
   flex-shrink: 0;
 }
 
+/* The scene's name is an entity name: the serif, and the strongest thing in the bar. */
 .nodeTitle {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-family: var(--font-editor);
+  font-size: var(--text-lg);
+  font-weight: 400;
   color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -95,9 +97,9 @@
 }
 
 .nodeTitleInput {
-  font-size: 0.9rem;
-  font-weight: 500;
-  font-family: inherit;
+  font-size: var(--text-lg);
+  font-weight: 400;
+  font-family: var(--font-editor);
   color: var(--color-text);
   background: var(--color-surface);
   border: 1px solid var(--color-accent);
@@ -153,7 +155,7 @@
 
 .wordCount {
   font-size: 0.75rem;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
   padding: 0 0.375rem;
 }
@@ -165,7 +167,8 @@
   gap: 0.3rem;
   padding: 0.3rem 0.55rem;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
+  /* Quiet until reached: fourteen bordered boxes beside the prose was a toolbar, not a desk. */
+  border: 1px solid transparent;
   background: transparent;
   color: var(--color-text-muted);
   font-size: 0.75rem;
@@ -180,17 +183,19 @@
 
 .topbarBtn:hover {
   background: var(--color-surface-2);
+  border-color: var(--color-border);
   color: var(--color-text);
 }
 
+/* On is pressed in, not green: forest is for the author's actions, not a toggle's state. */
 .topbarBtnActive {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  color: var(--color-accent);
-  border-color: color-mix(in srgb, var(--color-accent) 25%, transparent);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 
 .topbarBtnActive:hover {
-  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  background: var(--color-surface-3);
 }
 
 /* AI feature variant — purple border at rest */
@@ -320,9 +325,9 @@
   z-index: 200;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   padding: 0.25rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
@@ -385,10 +390,8 @@
 }
 
 .overviewLabel {
-  font-size: 0.72rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
   color: var(--color-section-title);
   display: flex;
   align-items: center;
@@ -401,13 +404,19 @@
   font-family: inherit;
   line-height: 1.6;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  /* Fields read as text until reached (DESIGN.md): no box on every value. */
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--color-text);
   outline: none;
   resize: none;
   transition: border-color var(--transition);
   box-sizing: border-box;
+}
+
+.overviewTextarea:hover,
+.overviewSelect:hover {
+  border-color: var(--color-border);
 }
 
 .overviewTextarea:focus {
@@ -421,8 +430,8 @@
   font-size: 0.84rem;
   font-family: inherit;
   border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
   outline: none;
@@ -435,8 +444,8 @@
 }
 
 .overviewHint {
-  font-size: 0.71rem;
-  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
   line-height: 1.5;
 }
 
@@ -1002,7 +1011,7 @@
   margin-top: 1.75em;
   margin-bottom: 0.5em;
   color: var(--color-text);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-ui);
   letter-spacing: -0.01em;
 }
 
@@ -1012,7 +1021,7 @@
   margin-top: 1.5em;
   margin-bottom: 0.4em;
   color: var(--color-text-muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-ui);
   letter-spacing: 0.01em;
 }
 

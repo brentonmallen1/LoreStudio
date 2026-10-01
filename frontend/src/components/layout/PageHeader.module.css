@@ -2,7 +2,7 @@
 
 .header {
   flex-shrink: 0;
-  padding: 1.1rem max(1.25rem, calc((100% - 64rem) / 2)) 0.85rem;
+  padding: 1.1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 0.85rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -80,7 +80,8 @@
   height: 32px;
   padding: 0 0.95rem;
   border: none;
-  border-radius: 999px;
+  /* Buttons are 6px; pills are for the view switch and chips (DESIGN.md). */
+  border-radius: var(--radius);
   background: var(--color-accent);
   color: var(--color-accent-fg);
   font: inherit;
@@ -110,4 +111,36 @@
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.75rem;
+}
+
+/* Filter chips, one style for every page (doc 13 P7). Pages pass <button className={chip}>. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 28px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--color-border-hover);
+}
+
+.chip[aria-pressed="true"],
+.chip[aria-checked="true"] {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-bg);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }

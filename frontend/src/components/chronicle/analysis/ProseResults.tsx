@@ -192,7 +192,7 @@ export function EditorialResultDisplay({ result }: { result: EditorialConsistenc
             {tenseIssues.length > 0 && (
               <div className={styles.checkGroup}>
                 <span className={styles.checkLabel}>
-                  Tense Shifts ({tenseIssues.length}) — dominant: {scene.tense_consistency?.dominant_tense}
+                  Tense Shifts ({tenseIssues.length}), dominant: {scene.tense_consistency?.dominant_tense}
                 </span>
                 {tenseIssues.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>

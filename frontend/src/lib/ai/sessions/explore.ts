@@ -12,7 +12,7 @@ import { useStoryStore } from "../../../stores/storyStore";
 registerSessionType({
   id: "whatif",
   label: "What-If Simulator",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `What If — ${names.storyTitle}` : "What-If Simulator"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `What If: ${names.storyTitle}` : "What-If Simulator"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Shuffle,
   accentVar: "--color-accent-secondary",
@@ -48,7 +48,7 @@ registerSessionType({
 registerSessionType({
   id: "scene-atmosphere",
   label: "Scene Atmosphere",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `Atmosphere — ${names.storyTitle}` : "Scene Atmosphere"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Atmosphere: ${names.storyTitle}` : "Scene Atmosphere"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Images,
   accentVar: "--color-ai",

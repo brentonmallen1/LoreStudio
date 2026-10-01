@@ -58,7 +58,7 @@ export default function UploadStep({ onUploaded }: Props) {
   return (
     <div className={styles.root}>
       <p className={styles.hint}>
-        Import a document and map it to your story's structure. Your writing is never altered — the import
+        Import a document and map it to your story's structure. Your writing is never altered; the import
         wizard only decides where the breaks go.
       </p>
 

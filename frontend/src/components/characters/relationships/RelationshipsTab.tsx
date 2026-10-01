@@ -178,7 +178,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
       {suggested.length > 0 && (
         <div className={styles.suggestionBanner}>
           <span className={styles.suggestionText}>
-            {suggested.length} AI-suggested relationship{suggested.length > 1 ? "s" : ""} below — review and
+            {suggested.length} AI-suggested relationship{suggested.length > 1 ? "s" : ""} below. Review and
             accept or delete.
           </span>
         </div>

@@ -568,11 +568,11 @@ export default function SettingsPage() {
                       className={styles.selectInput}
                     >
                       <option value={0}>None (text only)</option>
-                      <option value={70}>70 — Fast (classification, quick captioning)</option>
-                      <option value={140}>140 — Light (general thumbnails)</option>
-                      <option value={280}>280 — Balanced (recommended default)</option>
-                      <option value={560}>560 — Detailed (document analysis)</option>
-                      <option value={1120}>1120 — High detail (OCR, fine text)</option>
+                      <option value={70}>70: Fast (classification, quick captioning)</option>
+                      <option value={140}>140: Light (general thumbnails)</option>
+                      <option value={280}>280: Balanced (recommended default)</option>
+                      <option value={560}>560: Detailed (document analysis)</option>
+                      <option value={1120}>1120: High detail (OCR, fine text)</option>
                     </select>
                     <p className={styles.paramHint}>
                       Controls image resolution when using Gemma 4 multimodal features. Higher budgets use

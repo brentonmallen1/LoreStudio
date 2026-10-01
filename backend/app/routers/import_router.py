@@ -259,7 +259,7 @@ async def ai_analyze_structure(
     if ai_breaks is None:
         raise HTTPException(
             status_code=503,
-            detail=ai_error or "AI analysis unavailable — is Ollama running?",
+            detail=ai_error or "AI analysis unavailable. Is Ollama running?",
         )
 
     # Merge with heuristic breaks already in the preview

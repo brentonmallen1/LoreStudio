@@ -64,7 +64,7 @@ export function useAIModeState(session: AISession, contextBreakdown?: TokenBreak
   async function saveToNotes(content: string): Promise<void> {
     const storyId = session.context.storyId;
     if (!storyId) return;
-    const title = `${getSessionType(session.type)?.label ?? "AI"} — ${new Date().toLocaleDateString()}`;
+    const title = `${getSessionType(session.type)?.label ?? "AI"}: ${new Date().toLocaleDateString()}`;
     await api.createCompendiumNote(storyId, { title, content, category: "AI note" });
   }
 

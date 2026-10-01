@@ -93,7 +93,7 @@ export default function AnalysisResultMode({ session }: { session: AISession }) 
             state.callLookup,
           )
         }
-        emptyText="Ask about any of this — why it was flagged, what to do about it, what it missed."
+        emptyText="Ask about any of this: why it was flagged, what to do about it, what it missed."
       />
 
       <MentionComposer

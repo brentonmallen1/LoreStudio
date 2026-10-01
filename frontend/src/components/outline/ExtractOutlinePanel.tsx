@@ -56,7 +56,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
       .extractOutlineFromProse(storyId)
       .then((result: StructuredResult) => {
         if (!result.success || !result.data) {
-          setError(result.raw_text ?? "Extraction failed — no structured output returned.");
+          setError(result.raw_text ?? "Extraction failed: no structured output returned.");
           return;
         }
         const data = result.data as { items: ExtractedItem[]; suggested_name: string };

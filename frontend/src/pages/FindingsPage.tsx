@@ -129,7 +129,7 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
         more={more}
       />
       <div className={styles.scroll}>
-        <div className={styles.column}>
+        <div className={styles.column} data-mixed={new Set(shown.map((f) => f.source)).size > 1 || undefined}>
           {data && groups.length === 0 && (
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>

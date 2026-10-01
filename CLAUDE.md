@@ -116,6 +116,11 @@ components/       — Feature components organized by domain
                     lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/
   story/          — CorkboardView, StoryboardView, StorySummaryPanel, StoryIdentityPanel
   overview/       — The Overview's cards: vitals, needs your eye, words by chapter, cast, lately
+  numbers/        — The Numbers page: words, pacing, thread lanes, who is on the page, dialogue,
+                    prose (GET /stories/{id}/numbers; the per-scene charts come from /scene-cast)
+  compendium/     — Research entries and the Everything index (lib/compendium); media/ has images
+  common/         — Modal (focus trap), PopoverMenu, Toaster (stores/toastStore: report failures
+                    with toast.error, never window.alert)
   characters/     — Character parts the Lorebook sheet uses: dialogue, arc, relationships, graph
   threads/        — ThreadVisualization (the Lorebook's thread map)
   panels/         — Group interview (multi-character panel)

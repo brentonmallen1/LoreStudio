@@ -152,12 +152,13 @@
 .timelineGroup {
   position: relative;
   padding-left: 20px;
-  border-left: 2px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
   margin-bottom: 4px;
 }
 
 .timelineGroup:last-child {
-  border-left-color: transparent;
+  border-color: color-mix(in srgb, transparent 45%, var(--color-border));
+  background: color-mix(in srgb, transparent 6%, transparent);
 }
 
 .groupHeader {
@@ -227,19 +228,24 @@
 }
 
 .type_truth {
-  border-left: 3px solid var(--color-success);
+  border: 1px solid color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success) 6%, transparent);
 }
 .type_misdirect {
-  border-left: 3px solid #c83c3c;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
 }
 .type_clue {
-  border-left: 3px solid var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
 }
 .type_char {
-  border-left: 3px solid var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
 }
 .type_reader {
-  border-left: 3px solid var(--color-ai);
+  border: 1px solid color-mix(in srgb, var(--color-ai) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-ai) 6%, transparent);
 }
 
 .eventCardHeader {
@@ -272,7 +278,7 @@
 }
 .badge_misdirect {
   background: rgba(200, 60, 60, 0.12);
-  color: #c83c3c;
+  color: var(--color-danger);
 }
 .badge_clue {
   background: rgba(196, 122, 30, 0.12);
@@ -293,7 +299,7 @@
   padding: 2px 5px;
   border-radius: 100px;
   background: rgba(200, 60, 60, 0.08);
-  color: #c83c3c;
+  color: var(--color-danger);
   border: 1px dashed rgba(200, 60, 60, 0.4);
 }
 
@@ -341,7 +347,7 @@
 }
 
 .deleteBtn:hover {
-  color: #c83c3c;
+  color: var(--color-danger);
   background: rgba(200, 60, 60, 0.1);
 }
 

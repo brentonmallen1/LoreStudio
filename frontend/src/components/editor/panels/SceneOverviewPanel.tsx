@@ -169,7 +169,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
             value={activeNode.beat_id ?? ""}
             onChange={(e) => patch({ beat_id: e.target.value || null })}
           >
-            <option value="">— None —</option>
+            <option value="">None</option>
             {beatSheet.beats.map((beat) => (
               <option key={beat.id} value={beat.id}>
                 {beat.position_pct}% · {beat.name}
@@ -199,7 +199,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
             <option value="">
               {activeStory.pov_character_id
                 ? `Story default (${characters.find((c) => c.id === activeStory.pov_character_id)?.name ?? "Unknown"})`
-                : "— Story default (none) —"}
+                : "Story default (none)"}
             </option>
             {characters.map((c) => (
               <option key={c.id} value={c.id}>

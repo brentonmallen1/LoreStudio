@@ -9,7 +9,7 @@ import styles from "./AssistantMode.module.css";
 
 const EXAMPLE_PROMPTS = [
   "Help me figure out what my story is really about",
-  "I know the plot but not the meaning — where do I start?",
+  "I know the plot but not the meaning. Where do I start?",
   "I'm struggling to articulate my central conflict",
   "What questions should I be asking about my premise?",
   "Help me think through my story's themes",
@@ -40,7 +40,7 @@ export default function StoryIdentityWorkshopMode({ session }: Props) {
           <p className={styles.emptyTitle}>Story Identity Workshop</p>
           <p className={styles.emptyHint}>
             {storyId
-              ? "A guide to help you articulate what your story is and why it exists. The AI asks questions — you do the writing."
+              ? "A guide to help you articulate what your story is and why it exists. The AI asks questions; you do the writing."
               : "Add a story to context to begin."}
           </p>
           {storyId && (

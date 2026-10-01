@@ -7,6 +7,7 @@ import { isProposal } from "../../../lib/graph/codexVocabulary";
 import { useAIAvailable } from "../../../lib/mode";
 import CodexGraphView from "../../codex/CodexGraphView";
 import CodexNodePanel from "../../codex/CodexNodePanel";
+import PageHeader from "../../layout/PageHeader";
 import styles from "./Connections.module.css";
 
 const BUILD_JOB = "codex-sync";
@@ -62,49 +63,61 @@ export default function ConnectionsSection({ storyId }: { storyId: string }) {
   const failed = lastBuild?.status === "error" ? lastBuild.error : null;
 
   return (
-    <div className={styles.graphLayout}>
-      <div className={styles.graphMain}>
-        {graph === null ? (
-          <p className={styles.loading}>Loading the graph…</p>
-        ) : (
-          <>
-            {!empty && (
-              <div className={styles.toolbar}>
-                <button className={styles.bulkBtn} onClick={build} disabled={!!building} type="button">
-                  <RefreshCw size={12} aria-hidden />
-                  {buildLabel}
-                </button>
-                <BuildStatus building={building} failed={failed} />
-              </div>
-            )}
-            <CodexGraphView
-              graph={graph}
-              selectedId={selectedNode}
+    <div className={styles.page}>
+      <PageHeader
+        title="Connections"
+        summary={
+          graph && !empty
+            ? `${graph.nodes.length} things · ${graph.edges.length} connections, built from what you have written`
+            : "What the story's people, places and scenes are to each other"
+        }
+        aside={
+          !empty && graph ? (
+            <>
+              <BuildStatus building={building} failed={failed} />
+              <button className={styles.bulkBtn} onClick={build} disabled={!!building} type="button">
+                <RefreshCw size={12} aria-hidden />
+                {buildLabel}
+              </button>
+            </>
+          ) : undefined
+        }
+      />
+      <div className={styles.graphLayout}>
+        <div className={styles.graphMain}>
+          {graph === null ? (
+            <p className={styles.loading}>Loading the graph…</p>
+          ) : (
+            <>
+              <CodexGraphView
+                graph={graph}
+                selectedId={selectedNode}
+                onSelect={setSelectedNode}
+                emptyAction={
+                  <div className={styles.emptyBuild}>
+                    <button className={styles.buildBtn} onClick={build} disabled={!!building} type="button">
+                      <Network size={13} aria-hidden />
+                      {buildLabel}
+                    </button>
+                    <BuildStatus building={building} failed={failed} />
+                  </div>
+                }
+              />
+            </>
+          )}
+        </div>
+        {selectedNode && (
+          <aside className={styles.graphSide}>
+            <CodexNodePanel
+              storyId={storyId}
+              showAI={aiAvailable}
+              nodeId={selectedNode}
               onSelect={setSelectedNode}
-              emptyAction={
-                <div className={styles.emptyBuild}>
-                  <button className={styles.buildBtn} onClick={build} disabled={!!building} type="button">
-                    <Network size={13} aria-hidden />
-                    {buildLabel}
-                  </button>
-                  <BuildStatus building={building} failed={failed} />
-                </div>
-              }
+              onClose={() => setSelectedNode(null)}
             />
-          </>
+          </aside>
         )}
       </div>
-      {selectedNode && (
-        <aside className={styles.graphSide}>
-          <CodexNodePanel
-            storyId={storyId}
-            showAI={aiAvailable}
-            nodeId={selectedNode}
-            onSelect={setSelectedNode}
-            onClose={() => setSelectedNode(null)}
-          />
-        </aside>
-      )}
     </div>
   );
 }

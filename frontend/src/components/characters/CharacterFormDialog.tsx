@@ -26,18 +26,18 @@ const ROLES: ClassificationOption[] = [
   {
     value: "protagonist",
     label: "Protagonist",
-    description: "Main character — the narrative follows their choices and growth.",
+    description: "Main character: the narrative follows their choices and growth.",
   },
   {
     value: "deuteragonist",
     label: "Deuteragonist",
-    description: "Secondary lead — a close companion or ally whose path intertwines with the protagonist's.",
+    description: "Secondary lead: a close companion or ally whose path intertwines with the protagonist's.",
     sub: "e.g. Ron Weasley, Samwise Gamgee",
   },
   {
     value: "antagonist",
     label: "Antagonist",
-    description: "Opposes the protagonist — through villainy, rivalry, or conflicting values.",
+    description: "Opposes the protagonist through villainy, rivalry, or conflicting values.",
   },
   {
     value: "love_interest",
@@ -48,17 +48,17 @@ const ROLES: ClassificationOption[] = [
   {
     value: "confidant",
     label: "Confidant",
-    description: "The character the protagonist trusts with their doubts and fears — they carry secrets.",
+    description: "The character the protagonist trusts with their doubts and fears; they carry secrets.",
   },
   {
     value: "foil",
     label: "Foil",
-    description: "Contrasts the protagonist's qualities to highlight them — the cautious to their bold.",
+    description: "Contrasts the protagonist's qualities to highlight them: the cautious to their bold.",
   },
   {
     value: "tertiary",
     label: "Tertiary",
-    description: "Background character who populates the world — real, but not central to the main plot.",
+    description: "Background character who populates the world: real, but not central to the main plot.",
   },
 ];
 
@@ -66,33 +66,32 @@ const CHARACTER_TYPES: ClassificationOption[] = [
   {
     value: "round",
     label: "Round",
-    description: "Complex and multi-dimensional — contradictory, capable of surprising even themselves.",
+    description: "Complex and multi-dimensional: contradictory, capable of surprising even themselves.",
   },
   {
     value: "flat",
     label: "Flat",
-    description: "Defined by one or two clear traits — reliable and consistent, but not deeply layered.",
+    description: "Defined by one or two clear traits: reliable and consistent, but not deeply layered.",
   },
   {
     value: "dynamic",
     label: "Dynamic",
-    description: "Changes or grows throughout the story — the arc is built into who they are.",
+    description: "Changes or grows throughout the story; the arc is built into who they are.",
   },
   {
     value: "static",
     label: "Static",
-    description: "Fundamentally unchanged — a fixed point that can be an anchor or a limitation.",
+    description: "Fundamentally unchanged: a fixed point that can be an anchor or a limitation.",
   },
   {
     value: "stock",
     label: "Stock",
-    description: "A recognizable type — the wise elder, the loyal friend — shaped by convention.",
+    description: "A recognizable type (the wise elder, the loyal friend), shaped by convention.",
   },
   {
     value: "symbolic",
     label: "Symbolic",
-    description:
-      "Represents something larger — an idea, a theme, a force — more than a realistic individual.",
+    description: "Represents something larger (an idea, a theme, a force), more than a realistic individual.",
   },
 ];
 
@@ -100,7 +99,7 @@ const JUNGIAN_ARCHETYPES: ClassificationOption[] = [
   {
     value: "lover",
     label: "Lover",
-    description: "Guided by the heart — passionate, humane, and connected.",
+    description: "Guided by the heart: passionate, humane, and connected.",
     sub: "Strengths: humanism, passion · Weaknesses: naivety, irrationality",
   },
   {
@@ -112,61 +111,61 @@ const JUNGIAN_ARCHETYPES: ClassificationOption[] = [
   {
     value: "magician",
     label: "Magician",
-    description: "Masters the underlying forces — knowledge as power.",
+    description: "Masters the underlying forces: knowledge as power.",
     sub: "Strengths: omniscience, discipline · Weaknesses: corruptibility, arrogance",
   },
   {
     value: "outlaw",
     label: "Outlaw",
-    description: "Defies convention — independent, skeptical, willing to break rules.",
+    description: "Defies convention: independent, skeptical, willing to break rules.",
     sub: "Strengths: independence, skepticism · Weaknesses: self-involvement, criminality",
   },
   {
     value: "explorer",
     label: "Explorer",
-    description: "Driven to discover — restless, curious, always seeking what's next.",
+    description: "Driven to discover: restless, curious, always seeking what's next.",
     sub: "Strengths: curiosity, self-improvement · Weaknesses: restlessness, never settled",
   },
   {
     value: "sage",
     label: "Sage",
-    description: "Guided by wisdom and long experience — insightful but cautious.",
+    description: "Guided by wisdom and long experience: insightful but cautious.",
     sub: "Strengths: wisdom, insight · Weaknesses: hesitant to act, overly cautious",
   },
   {
     value: "innocent",
     label: "Innocent",
-    description: "Morally pure — sincerely good, but vulnerable and naive.",
+    description: "Morally pure: sincerely good, but vulnerable and naive.",
     sub: "Strengths: kindness, sincerity · Weaknesses: vulnerability, lack of skill",
   },
   {
     value: "creator",
     label: "Creator",
-    description: "A driven visionary — builds things, holds a strong conviction.",
+    description: "A driven visionary: builds things, holds a strong conviction.",
     sub: "Strengths: creativity, willpower · Weaknesses: self-involved, single-minded",
   },
   {
     value: "ruler",
     label: "Ruler",
-    description: "Carries authority — natural command, status, and resources.",
+    description: "Carries authority: natural command, status, and resources.",
     sub: "Strengths: power, status · Weaknesses: aloof, perceived as out of touch",
   },
   {
     value: "caregiver",
     label: "Caregiver",
-    description: "Lives in service to others — selfless, loyal, and reliable.",
+    description: "Lives in service to others: selfless, loyal, and reliable.",
     sub: "Strengths: selflessness, loyalty · Weaknesses: lacks ambition, may lack self-worth",
   },
   {
     value: "everyman",
     label: "Everyman",
-    description: "Grounded and relatable — no special powers, just ordinary humanity.",
+    description: "Grounded and relatable: no special powers, just ordinary humanity.",
     sub: "Strengths: relatable, grounded · Weaknesses: unprepared for the extraordinary",
   },
   {
     value: "jester",
     label: "Jester",
-    description: "Finds truth through humor — disarming, funny, and often perceptive.",
+    description: "Finds truth through humor: disarming, funny, and often perceptive.",
     sub: "Strengths: insight, disarming · Weaknesses: obnoxious, avoids real feeling",
   },
 ];
@@ -175,42 +174,42 @@ const NARRATIVE_ARCHETYPES: ClassificationOption[] = [
   {
     value: "hero",
     label: "Hero",
-    description: "Central figure on a transformative journey — the story follows their arc.",
+    description: "Central figure on a transformative journey; the story follows their arc.",
   },
   {
     value: "mentor",
     label: "Mentor",
-    description: "Wise guide who prepares the hero — with knowledge, challenge, or example.",
+    description: "Wise guide who prepares the hero with knowledge, challenge, or example.",
   },
   {
     value: "threshold_guardian",
     label: "Threshold Guardian",
-    description: "Tests the hero before they can progress — ensures only the ready pass.",
+    description: "Tests the hero before they can progress. Ensures only the ready pass.",
   },
   {
     value: "herald",
     label: "Herald",
-    description: "Announces that change is coming — their arrival sets the story in motion.",
+    description: "Announces that change is coming; their arrival sets the story in motion.",
   },
   {
     value: "shapeshifter",
     label: "Shapeshifter",
-    description: "Uncertain loyalty — keeps the hero and reader guessing about their allegiance.",
+    description: "Uncertain loyalty: keeps the hero and reader guessing about their allegiance.",
   },
   {
     value: "shadow",
     label: "Shadow",
-    description: "Dark mirror — represents what the hero fears becoming; the antagonist.",
+    description: "Dark mirror: represents what the hero fears becoming; the antagonist.",
   },
   {
     value: "trickster",
     label: "Trickster",
-    description: "Disrupts through humor or chaos — often reveals uncomfortable truths.",
+    description: "Disrupts through humor or chaos. Often reveals uncomfortable truths.",
   },
   {
     value: "ally",
     label: "Ally",
-    description: "Walks alongside the hero — loyal, capable, essential to the journey.",
+    description: "Walks alongside the hero: loyal, capable, essential to the journey.",
   },
 ];
 
@@ -528,7 +527,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
           <div className={styles.grid2}>
             <div className={styles.field}>
               <label className={styles.label}>Jungian Archetype</label>
-              <p className={styles.hint}>Core identity — from Carl Jung's 12 personality archetypes</p>
+              <p className={styles.hint}>Core identity, from Carl Jung's 12 personality archetypes</p>
               <select
                 value={jungianArchetype}
                 onChange={(e) => setJungianArchetype(e.target.value)}
@@ -559,7 +558,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Narrative Archetype</label>
-              <p className={styles.hint}>Story function — from the Hero's Journey framework</p>
+              <p className={styles.hint}>Story function, from the Hero's Journey framework</p>
               <select
                 value={narrativeArchetype}
                 onChange={(e) => setNarrativeArchetype(e.target.value)}
@@ -604,7 +603,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
             value={motivation}
             onChange={setMotivation}
             rows={2}
-            hint="What drives them — their core need or goal"
+            hint="What drives them: their core need or goal"
           />
           <TextField
             label="Background"

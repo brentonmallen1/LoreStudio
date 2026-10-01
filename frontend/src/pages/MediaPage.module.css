@@ -6,30 +6,6 @@
   padding: 0;
 }
 
-.header {
-  padding: 16px 20px 0;
-  flex-shrink: 0;
-}
-
-.title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 12px;
-}
-
-.tabCount {
-  background: var(--color-surface-raised);
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
 .content {
   flex: 1;
   overflow: hidden;
@@ -56,25 +32,6 @@
 
 .diagramsToolbar {
   flex-shrink: 0;
-}
-
-.newDiagramBtn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--color-accent);
-  color: var(--color-bg);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.newDiagramBtn:hover {
-  opacity: 0.85;
 }
 
 .createForm {

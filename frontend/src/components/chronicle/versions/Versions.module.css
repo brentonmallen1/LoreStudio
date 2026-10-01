@@ -122,7 +122,7 @@
 .snapList {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem max(1.25rem, calc((100% - 64rem) / 2)) 2rem;
+  padding: 1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 2rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -140,7 +140,7 @@
      runs down to the anchor snapshot below */
   margin-left: 1.25rem;
   padding-left: 0.75rem;
-  border-left: 2px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
   border-bottom-left-radius: 0;
   display: flex;
   flex-direction: column;
@@ -176,7 +176,7 @@
 }
 
 .snapCardNamed {
-  border-left: 3px solid var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
 }
 
 /* Compact variant for auto backups nested under anchor */
@@ -473,7 +473,7 @@
 .graphList {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem max(1.25rem, calc((100% - 64rem) / 2)) 2rem;
+  padding: 1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 2rem;
   display: flex;
   flex-direction: column;
 }
@@ -543,7 +543,7 @@
 }
 
 .graphCardNamed {
-  border-left: 3px solid var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
   background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
 }
 

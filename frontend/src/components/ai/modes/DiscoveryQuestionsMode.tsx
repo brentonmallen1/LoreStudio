@@ -130,7 +130,7 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
       if (res.success && res.data) {
         setResult(res.data as unknown as DiscoveryQuestionsResponse);
       } else {
-        setError(res.raw_text || "Generation failed — try again.");
+        setError(res.raw_text || "Generation failed. Try again.");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

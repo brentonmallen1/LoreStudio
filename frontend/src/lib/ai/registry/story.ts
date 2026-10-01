@@ -9,7 +9,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     shortDescription: "Propose who was in a scene and what it establishes, quoting the line",
     fullDescription:
       "The Codex works out who is in a scene from point of view, dialogue tags and names in the prose. " +
-      'Good writing defeats all three — you write "the keeper", not "Elena". This reads your scenes and ' +
+      'Good writing defeats all three: you write "the keeper", not "Elena". This reads your scenes and ' +
       "proposes what those signals missed, and what each scene establishes as true, quoting the words it " +
       "read that from. It never proposes what should happen next and never invents a character. Nothing " +
       "it finds counts until you confirm it, and confirming writes a real Lorebook row.",
@@ -26,7 +26,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Review clue quality, distribution, and reveal effectiveness",
     fullDescription:
-      "Reviews foreshadowing clue quality, clue distribution across the story, and how effectively the twist's reveal is set up — rating each dimension from needs-work to excellent.",
+      "Reviews foreshadowing clue quality, clue distribution across the story, and how effectively the twist's reveal is set up, rating each dimension from needs-work to excellent.",
     contextSources: [
       "Twist name, description, and type",
       "Linked clues (scene, placement, subtlety)",
@@ -60,7 +60,7 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Review thread progression, key moments, and narrative quality",
     fullDescription:
-      "Reviews a plot thread's progression through the story — assessing try/fail cycles, key turning points, opening/closing balance, and overall narrative quality.",
+      "Reviews a plot thread's progression through the story, assessing try/fail cycles, key turning points, opening/closing balance, and overall narrative quality.",
     contextSources: [
       "Thread name, type, and description",
       "Scenes tagged to this thread",

@@ -106,7 +106,7 @@ export default function MentionComposer({ sessionId, ...props }: ChatInputProps 
             <span
               key={`${r.kind}:${r.id}`}
               className={styles.chip}
-              title={`${r.label} — ${KIND_LABEL[r.kind]}, @mentioned`}
+              title={`${r.label} (${KIND_LABEL[r.kind]}, @mentioned)`}
             >
               <span
                 className={styles.dot}

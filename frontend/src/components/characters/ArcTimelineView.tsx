@@ -149,7 +149,7 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
       {/* Legend */}
       <div className={styles.legendRow}>
         <span className={styles.legendHint}>
-          Each dot is a scene where {characterName} appears — click to open it
+          Each dot is a scene where {characterName} appears. Click to open it
         </span>
         <div className={styles.legendItems}>
           {Object.entries(STATUS_COLORS).map(([status, color]) => (
@@ -294,7 +294,7 @@ export default function ArcTimelineView({ characterId, characterName }: Props) {
                       }}
                       title="Link to scene"
                     >
-                      <option value="">— link to scene —</option>
+                      <option value="">Link to scene</option>
                       {sceneNodes.map((n) => (
                         <option key={n.id} value={n.id}>
                           {n.title || "Untitled"}

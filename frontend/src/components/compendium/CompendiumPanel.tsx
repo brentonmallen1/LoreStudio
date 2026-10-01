@@ -182,7 +182,7 @@ export default function CompendiumPanel({ storyId }: Props) {
             </p>
           </div>
         ) : (
-          <div className={styles.grid}>
+          <ul className={styles.list}>
             {displayed.map((entry) => (
               <CompendiumEntryCard
                 key={entry.id}
@@ -198,7 +198,7 @@ export default function CompendiumPanel({ storyId }: Props) {
                 onCancelDelete={() => setPendingDeleteId(null)}
               />
             ))}
-          </div>
+          </ul>
         )}
       </div>
 

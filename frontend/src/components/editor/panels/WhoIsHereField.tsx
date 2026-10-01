@@ -116,7 +116,7 @@ export default function WhoIsHereField({
       </div>
       {here.length === 0 ? (
         <p className={styles.overviewHint}>
-          Nobody yet. The Codex reads point of view, dialogue and names in the prose — if you write around
+          Nobody yet. The Codex reads point of view, dialogue and names in the prose. If you write around
           names, add people here so their interviews know they were in this scene.
         </p>
       ) : (

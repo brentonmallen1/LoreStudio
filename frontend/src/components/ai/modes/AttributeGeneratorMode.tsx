@@ -55,7 +55,7 @@ export default function AttributeGeneratorMode({ session }: Props) {
       const r = await api.generateAttributes(characterId, type);
       setResult(r);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Generation failed — try again.");
+      setError(e instanceof Error ? e.message : "Generation failed. Try again.");
     } finally {
       setLoading(false);
     }

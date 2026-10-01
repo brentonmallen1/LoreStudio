@@ -59,6 +59,11 @@
   padding: 1rem 1.75rem 2rem;
 }
 
+/* With nothing open beside it, the list keeps the page header's measure (doc 13 P7). */
+.body:not([data-detail]) .list {
+  padding: 1rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 2rem;
+}
+
 .detail {
   position: relative;
   min-width: 0;

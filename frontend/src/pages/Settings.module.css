@@ -3,8 +3,9 @@
 }
 
 .pageTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-family: var(--font-editor);
+  font-size: 1.45rem;
+  font-weight: 400;
   color: var(--color-text);
   padding: 2rem 2rem 0;
   max-width: 520px;
@@ -94,10 +95,12 @@
   color: var(--color-text);
 }
 
+/* Chosen: ringed in the accent, not filled (three solid green blocks on one screen). */
 .themeOption.active {
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
+  background: var(--color-surface);
+  color: var(--color-text);
   border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
 }
 
 .themeOption:disabled {
@@ -618,6 +621,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+/* A radio group's options have hints of different lengths: line them up at the top. */
+.fieldRow:has([role="radiogroup"]) {
+  align-items: flex-start;
 }
 
 .fieldRow .label {

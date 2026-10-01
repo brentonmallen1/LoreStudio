@@ -40,7 +40,7 @@ export default function SceneSummaryField({
   const indicatorTitle = !hasAny
     ? "Not generated"
     : activeNode.summary_stale
-      ? "Stale — content has changed"
+      ? "Stale: content has changed"
       : "Fresh";
 
   return (

@@ -60,7 +60,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
           <div className={styles.intro}>
             <BookOpen size={20} className={styles.introIcon} />
             <p className={styles.introText}>
-              Suggest published books similar to yours in genre, tone, and themes — for use in query letters
+              Suggest published books similar to yours in genre, tone, and themes, for use in query letters
               and pitch materials.
             </p>
             <button className={styles.runBtn} onClick={handleRun}>

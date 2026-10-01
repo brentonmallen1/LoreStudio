@@ -114,7 +114,7 @@ export default function DialogueIsolationView({
     <div className={styles.dialogueIsolationView}>
       <div className={styles.dialogueIsolationHeader}>
         <Quote size={13} />
-        Dialogue only —{" "}
+        Dialogue only,{" "}
         <button className={styles.dialogueIsolationExit} onClick={onExit}>
           back to prose
         </button>
@@ -122,7 +122,7 @@ export default function DialogueIsolationView({
           {studio && (
             <button
               className={`${styles.dialogueIsolationBtn} ${styles.dialogueIsolationBtnAI} ${loading ? styles.dialogueIsolationBtnLoading : ""}`}
-              title={loading ? "Cancel" : "Auto-Tag — use AI to infer speakers for unattributed dialogue"}
+              title={loading ? "Cancel" : "Auto-Tag: use AI to infer speakers for unattributed dialogue"}
               onClick={suggest}
             >
               <Compass size={11} className={loading ? styles.spinIcon : ""} />
@@ -131,7 +131,7 @@ export default function DialogueIsolationView({
           )}
           <button
             className={styles.dialogueIsolationBtn}
-            title="Tag Suggestions — review heuristic speaker proposals for untagged quotes"
+            title="Tag Suggestions: review heuristic speaker proposals for untagged quotes"
             onClick={onOpenAutoTag}
           >
             <Tag size={11} />

@@ -5,7 +5,7 @@
   --color-surface-2: #ccd0da;
   --color-surface-3: #bcc0cc;
   --color-surface-raised: #c6cad5;
-  --color-border: #c5cad5;
+  --color-border: #b4b9c6;
   --color-border-light: #d1d5de;
   --color-text: #4c4f69;
   --color-text-muted: #5c5f77;
@@ -77,12 +77,13 @@
 
 /* ── Catppuccin theme · Macchiato (dark) ───────── */
 [data-theme="catppuccin"].dark {
+  color-scheme: dark;
   --color-bg: #24273a;
   --color-surface: #1e2030;
   --color-surface-2: #363a4f;
   --color-surface-3: #494d64;
   --color-surface-raised: #3f4359;
-  --color-border: #363a4f;
+  --color-border: #454960;
   --color-border-light: #2d3145;
   --color-text: #cad3f5;
   --color-text-muted: #b8c0e0;

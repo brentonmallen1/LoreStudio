@@ -42,7 +42,7 @@ export function groupByDay<T extends { at: string }>(rows: T[], now: Date = new 
 
 /** "14:02" in the reader's own clock. */
 export function clockTime(iso: string): string {
-  return parseServerDate(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return parseServerDate(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
 // ── Activity rows ──────────────────────────────────────────────────────

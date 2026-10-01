@@ -91,7 +91,7 @@ export default function DiscoverySettings({ storyId }: { storyId: string }) {
 
       {/* Confidence threshold */}
       <div className={`${styles.section} ${!enabled ? styles.disabled : ""}`}>
-        <p className={styles.sectionTitle}>Minimum confidence — {confidenceLabel}</p>
+        <p className={styles.sectionTitle}>Minimum confidence: {confidenceLabel}</p>
         <div className={styles.confidenceRow}>
           <input
             type="range"

@@ -12,7 +12,7 @@ export function DialogueSyntaxContent() {
     <>
       <div className={styles.intro}>
         <p>
-          LoreStudio can track <strong>who says what</strong> across your story — enabling dialogue stats,
+          LoreStudio can track <strong>who says what</strong> across your story, enabling dialogue stats,
           character voice analysis, and future audio playback. Attribution is always optional: write naturally
           and the system will do its best to infer speakers, or use explicit syntax for precision.
         </p>
@@ -21,11 +21,11 @@ export function DialogueSyntaxContent() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <Quote size={14} />
-          <span>Explicit attribution — attach speaker directly to the quote</span>
+          <span>Explicit attribution: attach speaker directly to the quote</span>
         </div>
         <p className={styles.sectionDesc}>
           Add <code>&lt;CharacterName&gt;</code> immediately after the closing quote. This ties the speaker
-          directly to that specific line — unambiguous even when multiple characters are mentioned in the same
+          directly to that specific line, unambiguous even when multiple characters are mentioned in the same
           sentence.
         </p>
         <div className={styles.exampleBox}>
@@ -62,7 +62,7 @@ export function DialogueSyntaxContent() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <AtSign size={14} />
-          <span>Natural prose — inferred automatically</span>
+          <span>Natural prose: inferred automatically</span>
         </div>
         <p className={styles.sectionDesc}>
           If you use <code>@CharacterName</code> mentions in prose, the system still detects nearby quoted
@@ -86,7 +86,7 @@ export function DialogueSyntaxContent() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <MessageCircle size={14} />
-          <span>Rapid exchanges — alternation inference</span>
+          <span>Rapid exchanges: alternation inference</span>
         </div>
         <p className={styles.sectionDesc}>
           Once two speakers are established in a paragraph, the system infers alternating dialogue for
@@ -129,13 +129,13 @@ export function DialogueSyntaxContent() {
           <div className={styles.shortcutRow}>
             <kbd>^</kbd>
             <span>
-              Open speaker picker — inserts <code>""&lt;Name&gt;</code> with cursor between quotes
+              Open speaker picker: inserts <code>""&lt;Name&gt;</code> with cursor between quotes
             </span>
           </div>
           <div className={styles.shortcutRow}>
             <kbd>/dialogue</kbd>
             <span>
-              Same as <kbd>^</kbd> — type at start of a line to pick a speaker
+              Same as <kbd>^</kbd>: type at start of a line to pick a speaker
             </span>
           </div>
           <div className={styles.shortcutRow}>

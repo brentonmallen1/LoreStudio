@@ -113,7 +113,7 @@ def seed_lighthouse_chronicle(
         user_id=user.id,
         story_id=story.id,
         kind="scene-summaries",
-        label=f"Scene summaries — {story.title}",
+        label=f"Scene summaries: {story.title}",
         status="done",
         params={"force_refresh": False},
         progress=len(summarised),

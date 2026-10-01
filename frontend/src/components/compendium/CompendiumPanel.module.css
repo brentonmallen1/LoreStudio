@@ -12,7 +12,7 @@
   overflow-y: auto;
   box-sizing: border-box;
   width: 100%;
-  padding: 1.5rem max(1.25rem, calc((100% - 64rem) / 2)) 2.5rem;
+  padding: 1.5rem max(1.25rem, calc((100% - var(--page-measure)) / 2)) 2.5rem;
 }
 
 /* ── Filter chips and search, in the page header ── */
@@ -26,7 +26,7 @@
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: var(--color-surface);
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font: inherit;
   font-size: 0.78rem;
   cursor: pointer;
@@ -80,13 +80,6 @@
   border-color: var(--color-accent);
 }
 
-/* ── Card grid ── */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.875rem;
-}
-
 /* ── Empty state ── */
 .empty {
   text-align: center;
@@ -111,57 +104,6 @@
   line-height: 1.5;
 }
 
-/* ── Entry card ── */
-.card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 1rem;
-  cursor: pointer;
-  transition:
-    border-color var(--transition),
-    box-shadow var(--transition);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.card:hover {
-  border-color: var(--color-accent);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-
-.cardTop {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-}
-
-.cardIcon {
-  flex-shrink: 0;
-  color: var(--color-text-subtle);
-  margin-top: 1px;
-}
-
-.cardIconNote {
-  color: #7c6f5a;
-}
-.cardIconUrl {
-  color: #4a7c8c;
-}
-.cardIconDoc {
-  color: #7a5c7c;
-}
-
-.cardTitle {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-text);
-  line-height: 1.3;
-  flex: 1;
-  word-break: break-word;
-}
-
 .cardMeta {
   font-size: 0.75rem;
   color: var(--color-text-subtle);
@@ -170,50 +112,9 @@
   text-overflow: ellipsis;
 }
 
-.cardUrl {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* The start of the entry, so the list says what each one holds. */
-.cardPreview {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.cardTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.tag {
-  font-size: 0.68rem;
-  padding: 0.1rem 0.45rem;
-  background: var(--color-surface-2);
-  border-radius: 999px;
-  color: var(--color-text-muted);
-}
-
-.cardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
 .attachBadge {
   font-size: 0.7rem;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -226,7 +127,8 @@
   transition: opacity var(--transition);
 }
 
-.card:hover .cardActions {
+.row:hover .cardActions,
+.row:focus-within .cardActions {
   opacity: 1;
 }
 
@@ -283,4 +185,89 @@
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: inherit;
+}
+
+/* ── Entries as rows, as on the Compendium index (doc 13 P7) ── */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 0.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--color-surface);
+}
+
+.rowMain:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.rowBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.rowTitle {
+  overflow: hidden;
+  font-size: var(--text-md);
+  color: var(--color-text);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rowPreview {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.rowMeta {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
 }

@@ -73,7 +73,7 @@ export default function ShowDontTellMode({ session }: Props) {
       if (res.success && res.data) {
         setResult(res.data as unknown as ShowDontTellAnalysisResponse);
       } else {
-        setError(res.raw_text || "Analysis failed — try again.");
+        setError(res.raw_text || "Analysis failed. Try again.");
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -176,7 +176,7 @@ export default function ShowDontTellMode({ session }: Props) {
           {result.instances.length === 0 && (
             <div className={styles.noIssues}>
               <Eye size={16} />
-              <span>This prose shows well — no telling patterns flagged.</span>
+              <span>This prose shows well: no telling patterns flagged.</span>
             </div>
           )}
 

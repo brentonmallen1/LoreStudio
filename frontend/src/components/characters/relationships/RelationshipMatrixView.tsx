@@ -247,7 +247,7 @@ export default function RelationshipMatrixView({
                       <td
                         key={colChar.id}
                         className={styles.filledCell}
-                        title={`${rel.relationship_type}${rel.visibility === "hidden" ? " (hidden)" : ""} — click to edit`}
+                        title={`${rel.relationship_type}${rel.visibility === "hidden" ? " (hidden)" : ""}. Click to edit`}
                         onClick={() => onEditRelationship(rel)}
                       >
                         {renderCell(rel)}

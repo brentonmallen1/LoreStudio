@@ -169,7 +169,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
                 {journey.is_stale && (
                   <div className={styles.staleWarning}>
                     <Feather size={11} />
-                    Context may be outdated — scene summaries have changed. Refresh for accuracy.
+                    Context may be outdated: scene summaries have changed. Refresh for accuracy.
                   </div>
                 )}
 

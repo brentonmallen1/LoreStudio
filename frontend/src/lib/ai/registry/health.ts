@@ -8,7 +8,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Passive voice, adverbs, said-bookisms, repeated words",
     fullDescription:
-      "Scans every scene for passive voice, excessive adverbs, said-bookisms, repeated words, and sentence variety. Runs locally — no AI or internet required.",
+      "Scans every scene for passive voice, excessive adverbs, said-bookisms, repeated words, and sentence variety. Runs locally: no AI or internet required.",
     contextSources: ["Scene prose text (all scenes)"],
   },
   "entity-discovery": {
@@ -17,7 +17,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Find character & location names not yet in Lorebook",
     fullDescription:
-      "Uses named entity recognition to find characters and locations mentioned in your prose that aren't yet tracked in the Lorebook. Runs locally — no AI required.",
+      "Uses named entity recognition to find characters and locations mentioned in your prose that aren't yet tracked in the Lorebook. Runs locally: no AI required.",
     contextSources: ["Scene prose text (all scenes)", "Existing Lorebook entries"],
   },
   "editorial-consistency": {
@@ -26,7 +26,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     type: "nlp",
     shortDescription: "Tense consistency and POV drift, no AI required",
     fullDescription:
-      "Detects tense shifts and point-of-view drift across scenes. Deterministic rule-based analysis — runs locally with no AI required.",
+      "Detects tense shifts and point-of-view drift across scenes. Deterministic rule-based analysis that runs locally with no AI required.",
     contextSources: ["Scene prose text (all scenes)"],
   },
   "economy-analysis": {
@@ -150,7 +150,7 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     type: "ai",
     shortDescription: "Fresh-eyes read: priorities, intent gaps, marginal notes",
     fullDescription:
-      "A developmental read of the manuscript against the intent you recorded: what to fix first, where the prose and the plan disagree, voice notes, and margin comments. Comments only — it never rewrites.",
+      "A developmental read of the manuscript against the intent you recorded: what to fix first, where the prose and the plan disagree, voice notes, and margin comments. Comments only: it never rewrites.",
     contextSources: ["Scene prose text", "Scene purpose & intent", "Story identity"],
     backendFeatureId: "editorial-pass",
   },

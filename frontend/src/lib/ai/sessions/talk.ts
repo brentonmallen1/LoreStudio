@@ -13,7 +13,7 @@ import { useStoryStore } from "../../../stores/storyStore";
 registerSessionType({
   id: "assistant",
   label: "Assistant",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `Assistant — ${names.storyTitle}` : "Assistant"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Assistant: ${names.storyTitle}` : "Assistant"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Assistant",
   icon: Feather,
   accentVar: "--color-ai",
@@ -344,7 +344,7 @@ registerSessionType({
   id: "story-identity-workshop",
   label: "Identity Workshop",
   contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Identity Workshop — ${names.storyTitle}` : "Story Identity Workshop",
+    names.storyTitle ? `Identity Workshop: ${names.storyTitle}` : "Story Identity Workshop",
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Map,
   accentVar: "--color-ai",

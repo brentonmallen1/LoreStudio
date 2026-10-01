@@ -77,13 +77,14 @@
 
 /* ── Gruvbox theme · dark mode ─────────────────── */
 [data-theme="gruvbox"].dark {
+  color-scheme: dark;
   --color-bg: #282828;
   --color-surface: #3c3836;
   --color-surface-2: #504945;
   --color-surface-3: #665c54;
   --color-surface-raised: #575250;
-  --color-border: #504945;
-  --color-border-light: #3c3836;
+  --color-border: #605850;
+  --color-border-light: #46423d;
   --color-text: #ebdbb2;
   --color-text-muted: #d5c4a1;
   --color-text-subtle: #a89984;

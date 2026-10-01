@@ -186,7 +186,7 @@ export default function StructuredResponseRenderer({ result, schema, onApply, ap
   if (!result.success && result.raw_data) {
     return (
       <div className={styles.root}>
-        <FallbackWarning message="Some sections couldn't be validated — showing partial results." />
+        <FallbackWarning message="Some sections couldn't be validated. Showing partial results." />
         {schema.map((config) => renderSection(config, result.raw_data!, onApply, applyLabel))}
       </div>
     );

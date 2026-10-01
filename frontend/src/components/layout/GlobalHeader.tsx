@@ -261,7 +261,7 @@ export default function GlobalHeader() {
           >
             <Database size={12} />
             {backupStatus?.last_backup_at ? (
-              <span>{relativeTime(backupStatus.last_backup_at)}</span>
+              <span>Backed up {relativeTime(backupStatus.last_backup_at)}</span>
             ) : !backupStatus ? null : (
               <span>Not backed up yet</span>
             )}

@@ -216,8 +216,8 @@ export default function RelationshipSuggestionsModal({
         {/* Subtitle + select controls */}
         <div className={styles.controls}>
           <p className={styles.subtitle}>
-            Review suggestions. Suggestions for existing relationships show current vs. AI values — check
-            which fields to accept.
+            Review suggestions. Suggestions for existing relationships show current vs. AI values. Check which
+            fields to accept.
           </p>
           <div className={styles.selectControls}>
             <button className={styles.bulkBtn} onClick={selectAll} disabled={allSelected}>

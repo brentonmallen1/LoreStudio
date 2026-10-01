@@ -65,7 +65,7 @@ def look_again(
             kind="codex-suggest",
             user_id=user.id,
             story_id=story_id,
-            label=f"Codex suggestions — {story.title}",
+            label=f"Codex suggestions: {story.title}",
             params={"node_ids": []},
         )
         job_id = job.id

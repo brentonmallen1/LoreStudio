@@ -13,7 +13,7 @@ registerSessionType({
   id: "book-description",
   label: "Book Description",
   contextTitle: (_ctx, names) =>
-    names.storyTitle ? `Book Description — ${names.storyTitle}` : "Book Description",
+    names.storyTitle ? `Book Description: ${names.storyTitle}` : "Book Description",
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Feather,
   accentVar: "--color-ai",
@@ -55,7 +55,7 @@ registerSessionType({
 registerSessionType({
   id: "query-letter",
   label: "Query Letter",
-  contextTitle: (_ctx, names) => (names.storyTitle ? `Query Letter — ${names.storyTitle}` : "Query Letter"),
+  contextTitle: (_ctx, names) => (names.storyTitle ? `Query Letter: ${names.storyTitle}` : "Query Letter"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
   icon: Feather,
   accentVar: "--color-ai",
@@ -92,7 +92,7 @@ registerSessionType({
   id: "attribute-generator",
   label: "Attribute Suggestions",
   contextTitle: (_ctx, names) =>
-    names.characterName ? `Attributes — ${names.characterName}` : "Attribute Suggestions",
+    names.characterName ? `Attributes: ${names.characterName}` : "Attribute Suggestions",
   contextItemLabel: (_, names) => names.characterName ?? "Character",
   icon: Wand2,
   accentVar: "--color-ai",

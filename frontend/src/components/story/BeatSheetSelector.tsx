@@ -33,7 +33,7 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
           value={value ?? ""}
           onChange={(e) => onChange(e.target.value || null)}
         >
-          <option value="">— None —</option>
+          <option value="">None</option>
           {sheets.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}

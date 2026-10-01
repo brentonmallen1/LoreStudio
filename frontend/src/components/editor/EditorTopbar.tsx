@@ -277,7 +277,7 @@ export default function EditorTopbar(p: Props) {
                       {
                         label: "MICE Guide",
                         icon: <Layers size={13} />,
-                        title: "Understand the MICE Quotient — Milieu, Idea, Character, Event",
+                        title: "Understand the MICE Quotient: Milieu, Idea, Character, Event",
                         run: () => p.onOpenGuides("mice"),
                       },
                       {
@@ -329,7 +329,7 @@ export default function EditorTopbar(p: Props) {
         <button
           onClick={p.onToggleDialogue}
           className={`${styles.topbarBtn} ${p.dialogueIsolation ? styles.topbarBtnActive : ""}`}
-          title="Dialogue view — show only the dialogue (toggle)"
+          title="Dialogue view: show only the dialogue (toggle)"
         >
           <Quote size={13} />
           <span>Dialogue</span>

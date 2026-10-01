@@ -11,7 +11,7 @@ const STARTERS = [
   "Draft a dramatic, high-stakes description",
   "Write a literary, character-focused description",
   "Make it feel mysterious and intriguing",
-  "Write something short and punchy — under 100 words",
+  "Write something short and punchy, under 100 words",
   "Focus on the central conflict and stakes",
 ];
 
@@ -40,7 +40,7 @@ export default function BookDescriptionMode({ session }: Props) {
           <p className={styles.emptyTitle}>Book Jacket Copy</p>
           <p className={styles.emptyHint}>
             {storyId
-              ? "Draft and refine back-cover copy — hook, body paragraph, and tagline. Tell me what tone you're going for, or pick a style below."
+              ? "Draft and refine back-cover copy: hook, body paragraph, and tagline. Tell me what tone you're going for, or pick a style below."
               : "Add a story to context to draft book jacket copy."}
           </p>
           {storyId && (

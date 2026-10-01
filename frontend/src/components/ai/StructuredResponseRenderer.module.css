@@ -6,9 +6,9 @@
 
 /* Section card */
 .section {
-  border-left: 3px solid var(--section-color, var(--color-accent));
+  border: 1px solid color-mix(in srgb, var(--section-color, var(--color-accent)) 45%, var(--color-border));
   background: var(--color-surface-2);
-  border-radius: 0 6px 6px 0;
+  border-radius: 6px;
   overflow: hidden;
 }
 

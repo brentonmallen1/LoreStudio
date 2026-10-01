@@ -51,8 +51,8 @@ export default function CharacterKnowledgeDrawer({
 
       {data?.mode === "profile" && (
         <p className={styles.summary}>
-          This interview happens outside the story. {characterName} is themselves — history, voice, what they
-          want — but knows none of the plot, and will say so if you ask about it.
+          This interview happens outside the story. {characterName} is themselves (history, voice, what they
+          want), but knows none of the plot, and will say so if you ask about it.
         </p>
       )}
 

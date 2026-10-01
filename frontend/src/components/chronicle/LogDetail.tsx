@@ -54,7 +54,7 @@ export default function LogDetail({ logId, onOpenJob }: Props) {
         </span>
         {jobId && (
           <button type="button" className={styles.linkBtn} onClick={() => onOpenJob(jobId)}>
-            Made by a job — open it
+            Made by a job: open it
           </button>
         )}
         <button

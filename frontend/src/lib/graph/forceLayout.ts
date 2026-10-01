@@ -1,4 +1,12 @@
-import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation } from "d3-force";
+import {
+  forceCenter,
+  forceCollide,
+  forceLink,
+  forceManyBody,
+  forceSimulation,
+  forceX,
+  forceY,
+} from "d3-force";
 import type { SimulationLinkDatum, SimulationNodeDatum } from "d3-force";
 
 /**
@@ -61,6 +69,10 @@ export function forceLayout(
         .distance(options.linkDistance ?? 120),
     )
     .force("center", forceCenter(width / 2, height / 2).strength(0.08))
+    // A node with no links has nothing holding it but the centre; without these it drifts
+    // out of the frame and the drawing shrinks to fit it (doc 13 P7).
+    .force("x", forceX<SimNode>(width / 2).strength(0.05))
+    .force("y", forceY<SimNode>(height / 2).strength(0.09))
     .force(
       "collide",
       forceCollide<SimNode>().radius((d) => (d.radius ?? DEFAULT_RADIUS) + 12),
@@ -68,7 +80,14 @@ export function forceLayout(
     .stop()
     .tick(TICKS);
 
-  return new Map(sim.map((n) => [n.id, { x: n.x ?? width / 2, y: n.y ?? height / 2 }]));
+  // Kept inside the frame with room for the label under each dot.
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  return new Map(
+    sim.map((n) => [
+      n.id,
+      { x: clamp(n.x ?? width / 2, 70, width - 70), y: clamp(n.y ?? height / 2, 18, height - 28) },
+    ]),
+  );
 }
 
 /**

@@ -10,7 +10,7 @@
 /* The same measure as the page header above it, so the two line up. */
 .column {
   box-sizing: content-box;
-  max-width: 64rem;
+  max-width: var(--page-measure);
   margin: 0 auto;
   padding: 0.5rem 1.25rem 4rem;
 }

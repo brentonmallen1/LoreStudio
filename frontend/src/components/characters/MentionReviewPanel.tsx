@@ -177,7 +177,7 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
       )}
 
       {data && data.scenes.length === 0 && (
-        <p className={styles.allClear}>No untagged mentions found — all references are linked.</p>
+        <p className={styles.allClear}>No untagged mentions found: all references are linked.</p>
       )}
     </div>
   );

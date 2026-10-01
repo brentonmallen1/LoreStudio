@@ -80,7 +80,7 @@ export default function DashboardPage() {
             <div className={styles.emptyBody}>
               <p className={styles.emptyHeadline}>A thinking space for writers.</p>
               <p className={styles.emptySubhead}>
-                LoreStudio helps you plan, organize, and understand your story — characters, structure, plot,
+                LoreStudio helps you plan, organize, and understand your story: characters, structure, plot,
                 and the ideas connecting them. You do the writing; LoreStudio keeps the threads straight.
               </p>
               <ul className={styles.emptyFeatures} aria-label="Key features">

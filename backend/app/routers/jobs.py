@@ -112,6 +112,6 @@ def queue_scene_summaries(
         kind="scene-summaries",
         user_id=user.id,
         story_id=story_id,
-        label=f"Scene summaries — {story.title}",
+        label=f"Scene summaries: {story.title}",
         params={"force_refresh": force_refresh, "up_to_node_id": up_to_node_id},
     )

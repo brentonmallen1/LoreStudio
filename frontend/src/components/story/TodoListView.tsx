@@ -282,7 +282,7 @@ function AddTodoForm({ nodeId, onAdd, onCancel, structure }: AddTodoFormProps) {
         value={selectedNodeId ?? ""}
         onChange={(e) => setSelectedNodeId(e.target.value || null)}
       >
-        <option value="">— No scene (story-level) —</option>
+        <option value="">No scene (story-level)</option>
         {flatNodes.map(({ node, depth }) => (
           <option key={node.id} value={node.id}>
             {"  ".repeat(depth)}

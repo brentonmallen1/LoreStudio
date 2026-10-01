@@ -20,6 +20,7 @@ from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.reader_knowledge import (
     build_reader_knowledge_scan_prompt,
 )
+from ..services.wording import count
 
 router = APIRouter()
 
@@ -224,7 +225,7 @@ async def scan_for_knowledge_events(
             story_id=story_id,
             event_type="analysis_run",
             category="health",
-            description=f"Reader knowledge scan: {len(events)} event(s) proposed",
+            description=f"Reader knowledge scan: {count(len(events), 'event')} proposed",
             metadata_={"feature": "reader-knowledge-scan", "result": {"events": events}},
         )
     )

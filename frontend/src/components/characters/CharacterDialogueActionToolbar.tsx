@@ -62,7 +62,7 @@ const ANALYSES: AnalysisDef[] = [
       const fidelity = f?.data?.overall_fidelity;
       if (fidelity === "excellent") return "Excellent fidelity";
       if (fidelity === "good") return "Good fidelity";
-      if (fidelity === "fair") return "Fair — some inconsistencies";
+      if (fidelity === "fair") return "Fair: some inconsistencies";
       if (fidelity === "needs_work") return "Needs work";
       return log.description;
     },
@@ -171,7 +171,7 @@ export default function CharacterDialogueActionToolbar({
         if (err instanceof Error && err.name === "AbortError") return;
         if (!controller.signal.aborted) {
           setErrors((prev) => new Set(prev).add(analysis.id));
-          onError(analysis.id, "Analysis failed — ensure the character has attributed dialogue.");
+          onError(analysis.id, "Analysis failed. Ensure the character has attributed dialogue.");
         }
       } finally {
         setRunning((prev) => {

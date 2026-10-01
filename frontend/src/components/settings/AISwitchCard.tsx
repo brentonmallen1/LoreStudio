@@ -4,11 +4,11 @@ import { setAIEnabled, useAIAvailable } from "../../lib/mode";
 import styles from "../../pages/Settings.module.css";
 
 const CEILINGS = [
-  { value: 0, label: "No ceiling — use what the model allows" },
-  { value: 8192, label: "8K — small VRAM" },
+  { value: 0, label: "No ceiling: use what the model allows" },
+  { value: 8192, label: "8K (small VRAM)" },
   { value: 16384, label: "16K" },
   { value: 32768, label: "32K" },
-  { value: 65536, label: "64K — large VRAM" },
+  { value: 65536, label: "64K (large VRAM)" },
 ];
 
 /**
@@ -68,7 +68,7 @@ export default function AISwitchCard() {
         <p className={styles.sectionHint}>
           {enabled === false
             ? "AI is off. No AI surface is shown anywhere, and the server refuses AI calls even if one is requested. Your manuscript tools, checks and exports are unaffected."
-            : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools — checks, quote normalisation, NLP analyses, export — keep working."}
+            : "When this is off, every AI surface disappears and the server refuses AI calls. Non-AI tools (checks, quote normalisation, NLP analyses, export) keep working."}
           {available ? "" : " Writer mode also hides AI; this switch is separate."}
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function AISwitchCard() {
           ))}
         </select>
         <p className={styles.sectionHint}>
-          Each feature asks for the window it needs — a whole-manuscript analysis asks for more than a scene
+          Each feature asks for the window it needs: a whole-manuscript analysis asks for more than a scene
           chat. This caps every request, whatever the model would allow, for machines where a large window
           does not fit in VRAM.
         </p>

@@ -67,7 +67,7 @@ export default function AudienceAdherenceMode({ session }: Props) {
       if (res.success && res.data) {
         setResult(res.data as unknown as AudienceAdherenceResponse);
       } else {
-        setError(res.raw_text || "Analysis failed — try again.");
+        setError(res.raw_text || "Analysis failed. Try again.");
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Something went wrong.";
