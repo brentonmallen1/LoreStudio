@@ -937,7 +937,7 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>She was not panicked. That was the thing Eleanor kept returning to later. Most people, arriving at a stranger's door in a storm like this, would be apologetic, breathless, grateful. This woman looked at Eleanor the way someone looks at a landmark they've been navigating by for years.</p>"
                 # Deliberately mixed quote styles and one misspelt name: the Checks and
                 # Quote style tools in the scene Notes panel have something to find here.
-                "<p>“You’re Elenor Vance,” the visitor said, as if confirming a fact.</p>"
+                "<p>“You’re Eleanor Vance,” the visitor said, as if confirming a fact.</p>"
                 '<p>"Ms. Vance," she said. "I\'m sorry to impose."</p>'
                 "<p>Eleanor stepped back. Later she would wonder why. At the time it felt like the only sensible thing to do.</p>"
             ),
@@ -998,7 +998,7 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>@Eleanor Vance had not shown them to anyone. They were not secret, exactly. They were simply not the sort of thing one shared. A record of weather and maintenance and minor incident: the language of [[The Lighthouse]], addressed to no one and everyone who might need to know what the sea had been doing on a particular night.</p>"
                 '<p>"Historians use records like these all the time," the Visitor said, standing in the middle of [[The Keeper\'s Cottage]] with her canvas bag still over one shoulder, as if she hadn\'t yet decided to stay. "Shipping patterns. Storm records. I\'m not here to examine anything personal."</p>'
                 "<p>Eleanor looked at the cabinet. She thought about her father's handwriting — the entries from the years before she came back, the years she'd spent elsewhere, not asking questions. She thought about [[Harrow Island]] in winter, and how the logs were the closest thing to a conversation she still had with him.</p>"
-                '<p>"All right," she said. She got the key from the hook by the door.</p>'
+                '<p>"All right,"&lt;Eleanor Vance&gt; she said. She got the key from the hook by the door.</p>'
             ),
             word_count=198,
         )
@@ -1177,9 +1177,9 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>The storm broke at dawn.</p>"
                 "<p>@Eleanor Vance had been awake for it — had watched the sky go from black to grey to a pale, exhausted blue, the clouds pulling apart like something defeated. The sea was still rough, but the violence had gone out of it. What remained was just the ordinary churn of aftermath.</p>"
                 "<p>The Visitor stood at the window of [[The Keeper's Cottage]], looking out at the water. She had not slept either.</p>"
-                '<p>"I\'m not here for the Foundation," she said. "Not really. Not anymore."</p>'
+                '<p>"I\'m not here for the Foundation,"&lt;Calder&gt; she said. "Not really. Not anymore."</p>'
                 "<p>Eleanor waited. She had been waiting all night. A few more minutes made no difference.</p>"
-                '<p>"My brother was the captain of the <em>Ardent</em>." The words came out steady, rehearsed. "James Calder. He sent a distress signal at 11:47 PM on September 14th. The weather was bad — not as bad as last night, but bad enough. His engine had failed. He was drifting toward the rocks."</p>'
+                '<p>"My brother was the captain of the <em>Ardent</em>."&lt;Calder&gt; The words came out steady, rehearsed. "James Calder. He sent a distress signal at 11:47 PM on September 14th. The weather was bad — not as bad as last night, but bad enough. His engine had failed. He was drifting toward the rocks."</p>'
                 "<p>Eleanor closed her eyes. She could see it: the lamp room, the log book open, her father's careful hand recording wind speed, visibility, wave height. Everything in its proper place.</p>"
                 '<p>"@Thomas Vance logged a routine night," the Visitor — Calder, her name was Calder — continued. "No signals observed. No vessels in distress. His entry for September 14th says: <em>Clear. Light wind. No incidents.</em>"</p>'
                 '<p>"That\'s not possible." Eleanor\'s voice cracked on the last word. "He would never — "</p>'
@@ -1240,13 +1240,13 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>@Eleanor Vance picked up the one with the gap — five years ago, the missing months, the silence where her father's guilt should have been recorded. She held it for a long moment, feeling its wrongness, its incompleteness.</p>"
                 "<p>Calder waited. She had put on her coat but made no move toward the door.</p>"
                 '<p>"I could burn them," Eleanor said. "The whole set. No one would ever know what they don\'t contain."</p>'
-                '<p>"You could."</p>'
+                '<p>"You could."&lt;Calder&gt;</p>'
                 '<p>"Or I could give them to you. Let your Foundation have them. Let them write their report, close their file, decide what my father was."</p>'
                 '<p>"Is that what you want?"</p>'
                 "<p>Eleanor looked at the photograph again. Her father's hand on her shoulder. His face turned toward the camera with an expression she had always read as pride. She wondered now if it was something else. Relief, maybe. Or the beginning of a long apology he never found the words for.</p>"
                 '<p>"What I want," she said slowly, "is to have never opened that door. What I want is for the barometer to have told me to stay in bed. What I want is to go back to not knowing." She set the logbook down. "But I don\'t get that. And neither did you."</p>'
                 "<p>She crossed to the cabinet and opened it. The remaining volumes sat in their places, patient, indifferent. She took out the one from thirty years ago — the year her mother left — and the one from fifteen years ago — the year she'd gotten her first cartography commission and called to tell her father she was never coming back to [[Harrow Island]].</p>"
-                '<p>"He kept everything," she said. "Except the one thing that mattered. That tells you something."</p>'
+                '<p>"He kept everything,"&lt;Eleanor Vance&gt; she said. "Except the one thing that mattered. That tells you something."</p>'
                 '<p>"What does it tell you?"</p>'
                 "<p>Eleanor put the books back. Closed the cabinet. Turned the key.</p>"
                 '<p>"That he knew what he did. That he couldn\'t live with it. That the two months I spent here with him, watching him fade — " Her voice caught. She let it. "He wasn\'t just dying. He was waiting. For someone to ask the right questions. For someone to make him answer."</p>'
@@ -1351,7 +1351,7 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>@Margaret Holt came by on Wednesday, same as always.</p>"
                 "<p>She brought eggs from her chickens, a jar of preserved tomatoes, and the particular silence of a woman who had lived long enough to know when not to ask questions. @Eleanor Vance traded coffee and lamp oil and a silence of her own, and for a while they sat at the kitchen table like they always did, saying nothing about anything that mattered.</p>"
                 '<p>"Heard you had a visitor," Margaret said finally. She was looking out the window at [[Harrow Island]]\'s small harbor, where the fishing boat had come and gone. "During the storm."</p>'
-                '<p>"Word travels fast."</p>'
+                '<p>"Word travels fast."&lt;Eleanor Vance&gt;</p>'
                 '<p>"Small island." Margaret shrugged. "Nothing else to talk about."</p>'
                 "<p>Eleanor poured more coffee. The photograph on the mantle seemed to watch them — her father's face, caught in a moment she no longer trusted.</p>"
                 '<p>"She was asking about the logs," Eleanor said. "The ones from five years ago."</p>'
@@ -1368,7 +1368,7 @@ def seed_demo_story():  # noqa: PLR0915
                 '<p>Eleanor\'s breath caught. "You never told anyone."</p>'
                 '<p>"Who would I tell? @Thomas Vance was the keeper. If the lamp was out, he\'d have had a reason. That\'s what I told myself." Margaret stood, gathering her empty jar and her coat. "I\'ve told myself a lot of things over the years. Gets easier with practice."</p>'
                 "<p>At the door, she paused.</p>"
-                '<p>"Your father was a good man, Eleanor. Whatever else he was, he was that too. Don\'t let the one thing make you forget all the others."</p>'
+                '<p>"Your father was a good man, Eleanor. Whatever else he was, he was that too. Don\'t let the one thing make you forget all the others."&lt;Margaret Holt&gt;</p>'
                 '<p>"I\'m trying not to."</p>'
                 '<p>"Good." Margaret stepped out into the pale afternoon light. "That\'s all any of us can do. Try not to."</p>'
             ),

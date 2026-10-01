@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from statistics import median
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..models.dialogue import DialogueBlock
@@ -76,11 +77,20 @@ def _by_words(share: SpeakerShare) -> int:
 
 
 def dialogue(view: StoryView, db: Session) -> NumbersDialogue:
-    """Who speaks and how much. Lines nobody has been given to are counted, and left out of
-    the shares: 74 untagged lines would otherwise be the loudest voice in the book."""
+    """Who speaks and how much, out loud: a thought is nobody's line. Lines nobody has been
+    given to are counted, and left out of the shares, or "unknown" would be the loudest voice."""
     sync_story_dialogue(view.story.id, db)
     titles = {n.id: n.title or "" for n in view.leaves}
-    blocks = db.query(DialogueBlock).filter(DialogueBlock.scene_id.in_(list(titles))).all() if titles else []
+    blocks = (
+        db.query(DialogueBlock)
+        .filter(
+            DialogueBlock.scene_id.in_(list(titles)),
+            or_(DialogueBlock.dialogue_type.is_(None), DialogueBlock.dialogue_type != "thought"),
+        )
+        .all()
+        if titles
+        else []
+    )
     spoken = [b for b in blocks if b.attribution_method != "unattributed" and b.speaker_name]
 
     # A character is one speaker however the line named them ("Calder", "The Visitor").

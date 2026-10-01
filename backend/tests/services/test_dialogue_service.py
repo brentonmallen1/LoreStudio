@@ -215,8 +215,54 @@ def test_a_plain_name_tag_attributes_the_line():
     assert speakers[-1][2] != "inferred"
 
 
-def test_a_name_that_is_not_a_speech_tag_attributes_nothing():
+def test_the_character_acting_in_a_paragraph_speaks_it():
     from app.services.dialogue_service import extract_dialogue
 
     [block] = extract_dialogue('<p>"Close the door." Eleanor looked at the sea.</p>', names=["Eleanor"])
+    assert (block["speaker_name"], block["attribution_method"]) == ("Eleanor", "inferred")
+
+
+def test_a_name_the_narration_only_looks_at_attributes_nothing():
+    from app.services.dialogue_service import extract_dialogue
+
+    [block] = extract_dialogue('<p>"Close the door." She looked at Eleanor.</p>', names=["Eleanor"])
     assert (block["speaker_name"], block["attribution_method"]) == ("", "unattributed")
+
+
+def test_two_characters_acting_leave_the_line_open():
+    from app.services.dialogue_service import extract_dialogue
+
+    [block] = extract_dialogue('<p>"Close the door." Eleanor sat. Calder stood.</p>', names=["Eleanor", "Calder"])
+    assert block["attribution_method"] == "unattributed"
+
+
+def test_a_split_line_is_one_speakers():
+    from app.services.dialogue_service import extract_dialogue
+
+    blocks = extract_dialogue(
+        '<p>"I could burn them," Eleanor said. "The whole set."</p>'
+        '<p>"You could."&lt;Calder&gt;</p>'
+        '<p>"What I want," she said, "is quiet."</p>',
+        names=["Eleanor", "Calder"],
+    )
+    assert [b["speaker_name"] for b in blocks] == ["Eleanor", "Eleanor", "Calder", "Eleanor", "Eleanor"]
+
+
+def test_a_quote_beside_an_explicit_tag_shares_it():
+    from app.services.dialogue_service import extract_dialogue
+
+    blocks = extract_dialogue('<p>"Not here,"&lt;Calder&gt; she said. "Not now."</p>', names=["Calder"])
+    assert [(b["content"], b["speaker_name"]) for b in blocks] == [("Not here,", "Calder"), ("Not now.", "Calder")]
+
+
+def test_a_mention_inside_the_quote_is_not_the_speaker():
+    from app.services.dialogue_service import extract_dialogue
+
+    [block] = extract_dialogue('<p>"@Thomas logged a quiet night," Calder said.</p>', names=["Thomas", "Calder"])
+    assert block["speaker_name"] == "Calder"
+
+
+def test_scare_quotes_are_not_dialogue():
+    from app.services.dialogue_service import extract_dialogue
+
+    assert extract_dialogue('<p>They called it an "official inquiry" and left.</p>', names=[]) == []

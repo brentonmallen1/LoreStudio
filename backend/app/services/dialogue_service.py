@@ -121,23 +121,27 @@ def _extract_from_paragraph(
         )
         explicit_matches.add(m.start())
 
-    if results:
-        # If we found explicit markers, don't try inference on this paragraph
-        return results
+    # Quotes beside an explicit marker are read on, so that '"…"<Calder> she said. "…"' gives
+    # its second half to Calder through the paragraph rule below.
 
     # Pass 2: inferred — build candidate quote list and nearby @mentions
     # Collect all quotes with positions
     quotes: list[tuple[int, int, str]] = []  # (start_pos, end_pos, content)
     for m in _STANDALONE_QUOTE_RE.finditer(text):
         content = (m.group(1) or m.group(2) or "").strip()
-        if content and len(content) >= 2:
+        if content and len(content) >= 2 and not _is_scare_quote(content):
             quotes.append((m.start(), m.end(), content))
 
     if not quotes:
         return results
 
     # Find all @mentions with positions
-    mentions: list[tuple[int, str]] = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(text)]
+    # A name inside the quote is who the line is about, not who says it.
+    mentions: list[tuple[int, str]] = [
+        (m.start(), m.group(1).strip())
+        for m in _MENTION_RE.finditer(text)
+        if not any(a <= m.start() < b for a, b, _ in quotes)
+    ]
 
     for q_pos, q_end, q_content in quotes:
         best_speaker = None
@@ -175,7 +179,43 @@ def _extract_from_paragraph(
             }
         )
 
+    # A paragraph is one speaker's: in '"I could burn them," Eleanor said. "The whole set."'
+    # the second half is Eleanor's too, though only the first sits beside her name.
+    named = {r["speaker_name"] for r in results if r["speaker_name"]}
+    if len(named) == 1:
+        speaker = next(iter(named))
+        for r in results:
+            if not r["speaker_name"]:
+                r.update(speaker_name=speaker, attribution_method="inferred", confidence=0.75)
+
     return results
+
+
+def _is_scare_quote(content: str) -> bool:
+    """A word or two held at arm's length ('an "inspection"'), not a line anyone says."""
+    return len(content.split()) <= 3 and content[0].islower() and not re.search(r"[.,!?;:\u2014-]$", content)
+
+
+def _beat_speaker(para: str, forms: list[str], canonical: Callable[[str], str]) -> str | None:
+    """The one character a paragraph's narration names, outside its quotes.
+
+    '"I don't need parts." Eleanor looked at the wreck.' is Eleanor's line: by convention the
+    character acting in a speaker's paragraph is the speaker. Two characters named, or none,
+    and the line is left for alternation or the author.
+    """
+    # Quotes become a mark, so '"…," the Visitor said' still opens a sentence after it.
+    narration = _STANDALONE_QUOTE_RE.sub(" \u00b6", para)
+    taken: list[tuple[int, int]] = []
+    named: set[str] = set()
+    for form in forms:  # longest first, so "Eleanor Vance" is not also a stray "Vance"
+        # Only a name that opens a sentence acts: "Eleanor met her eyes", not "She looked at Eleanor".
+        subject = rf"(?:^|[.!?\u00b6]\s*,?)\s*@?({re.escape(form)})(?!\w)"
+        for m in re.finditer(subject, narration, _case(form)):
+            if any(a < m.end(1) and m.start(1) < b for a, b in taken):
+                continue
+            taken.append((m.start(1), m.end(1)))
+            named.add(canonical(form))
+    return next(iter(named)) if len(named) == 1 else None
 
 
 def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
@@ -185,9 +225,13 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
     """
     last_two: list[str] = []  # most recent speakers (up to 2)
     prev = ""  # who spoke the line before this one
+    prev_para = -1
     for block in raw_blocks:
         method = block["attribution_method"]
-        if method in ("explicit", "inferred") and block["speaker_name"]:
+        if method == "unattributed" and prev and block["paragraph_index"] == prev_para:
+            # The second half of '"What I want," she said, "is…"' is the same turn, not the next.
+            block.update(speaker_name=prev, attribution_method="alternating", confidence=0.6)
+        elif method in ("explicit", "inferred") and block["speaker_name"]:
             name = block["speaker_name"]
             if name in last_two:
                 last_two.remove(name)
@@ -201,6 +245,7 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
             block["attribution_method"] = "alternating"
             block["confidence"] = 0.6
         prev = block["speaker_name"]
+        prev_para = block["paragraph_index"]
 
     return raw_blocks
 
@@ -253,6 +298,11 @@ def extract_dialogue(
     all_blocks = []
     for i, para in enumerate(paragraphs):
         blocks = _extract_from_paragraph(para, i + para_index_offset, known_names=set(), forms=forms)
+        if blocks and not any(b["speaker_name"] for b in blocks):
+            beat = _beat_speaker(para, forms, speaker or (lambda n: n))
+            for b in blocks:
+                if beat:
+                    b.update(speaker_name=beat, attribution_method="inferred", confidence=0.6)
         all_blocks.extend(blocks)
     if speaker:
         for b in all_blocks:
@@ -363,11 +413,16 @@ def _rows(db: Session, scene_id: str, *, fresh: bool = False) -> list[DialogueBl
     return q.order_by(DialogueBlock.paragraph_index, DialogueBlock.position_in_paragraph).all()
 
 
-def _sync(node: StructureNode, story: Story | None, characters: list[Character], db: Session) -> list[DialogueBlock]:
+def plan_scene(node: StructureNode, story: Story | None, characters: list[Character]) -> list[dict]:
+    """Every line in the scene's prose as the reader attributes it, before any hand correction."""
     pov_id = node.pov_character_id or (story.pov_character_id if story else None)
     first_person = bool(story and story.narrative_perspective in _FIRST_PERSON_PERSPECTIVES)
     pov_char = next((c for c in characters if c.id == pov_id), None) if first_person else None
-    planned = _plan(node.content or "", characters, pov_char)
+    return _plan(node.content or "", characters, pov_char)
+
+
+def _sync(node: StructureNode, story: Story | None, characters: list[Character], db: Session) -> list[DialogueBlock]:
+    planned = plan_scene(node, story, characters)
 
     rows = _rows(db, node.id)
     if not any(_reconcile(rows, planned)):

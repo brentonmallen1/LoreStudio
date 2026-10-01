@@ -14,7 +14,7 @@ from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...schemas.proposals import Proposal, ProposalAction, ProposalKind
 from ..codex.queue import pending_suggestions
-from ..dialogue_tagging import suggest_tags
+from ..dialogue_service import sync_scene_dialogue
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
 from ..text_utils import html_to_text
@@ -118,14 +118,18 @@ def relationships(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
 
 
 def unattributed(story_id: str, db: Session, titles: dict[str, str]) -> list[Proposal]:
-    """Dialogue with no speaker, one proposal per scene, counted by the tagger's own
-    detector (doc 13 P4): "Tag them" opens on exactly these lines."""
-    chars = {c.name.lower(): c for c in db.query(Character).filter(Character.story_id == story_id)}
+    """Spoken lines nobody can tell the speaker of, one proposal per scene: the lines Numbers
+    counts as having no speaker (doc 14 Q6). "Tag them" opens on the scene, where the tagger
+    also offers its guesses for the rest."""
     out = []
     for scene in db.query(StructureNode).filter(
         StructureNode.story_id == story_id, StructureNode.content.isnot(None), StructureNode.content != ""
     ):
-        lines = suggest_tags(scene, chars)
+        lines = [
+            b
+            for b in sync_scene_dialogue(scene, db)
+            if b.attribution_method == "unattributed" and b.dialogue_type != "thought"
+        ]
         if not lines:
             continue
         n = len(lines)
@@ -135,7 +139,7 @@ def unattributed(story_id: str, db: Session, titles: dict[str, str]) -> list[Pro
                 kind="dialogue",
                 source="local",
                 text=f"{n} {'line' if n == 1 else 'lines'} of dialogue with no speaker",
-                evidence=lines[0].quote_content[:200],
+                evidence=lines[0].content[:200],
                 node_id=scene.id,
                 where=titles.get(scene.id, ""),
                 actions=[ProposalAction(id="tag", label="Tag them", primary=True)],

@@ -154,7 +154,7 @@ def suggest_dialogue_tags(
         return []
 
     characters = db.query(Character).filter(Character.story_id == node.story_id).all()
-    return suggest_tags(node, {c.name.lower(): c for c in characters})
+    return suggest_tags(node, db.get(Story, node.story_id), characters)
 
 
 @router.post("/scenes/{scene_id}/dialogue/ai-suggest", response_model=list[ProposedDialogueTag])
@@ -495,9 +495,8 @@ def suggest_dialogue_tags_story_wide(
     current_user: User = Depends(get_current_user),
 ):
     """Batch-suggest dialogue tags across all scenes in a story."""
-    _get_story(story_id, db, current_user)
+    story = _get_story(story_id, db, current_user)
     characters = db.query(Character).filter(Character.story_id == story_id).all()
-    char_by_name = {c.name.lower(): c for c in characters}
 
     scenes = (
         db.query(StructureNode)
@@ -512,7 +511,7 @@ def suggest_dialogue_tags_story_wide(
 
     result_scenes: list[SceneWithDialogueProposals] = []
     for scene in scenes:
-        proposals = suggest_tags(scene, char_by_name)
+        proposals = suggest_tags(scene, story, characters)
         if proposals:
             result_scenes.append(
                 SceneWithDialogueProposals(
@@ -543,7 +542,6 @@ def suggest_dialogue_tags_for_character(
         raise HTTPException(status_code=404, detail="Character not found")
 
     characters = db.query(Character).filter(Character.story_id == char.story_id).all()
-    char_by_name = {c.name.lower(): c for c in characters}
 
     scenes = (
         db.query(StructureNode)
@@ -560,7 +558,7 @@ def suggest_dialogue_tags_for_character(
     for scene in scenes:
         # Return ALL untagged quotes — the UI in character mode lets the user
         # confirm which quotes belong to this character (speaker is fixed to char name).
-        proposals = suggest_tags(scene, char_by_name)
+        proposals = suggest_tags(scene, story, characters)
         if proposals:
             result_scenes.append(
                 SceneWithDialogueProposals(

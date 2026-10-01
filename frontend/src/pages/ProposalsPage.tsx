@@ -92,7 +92,7 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
           data
             ? [
                 proposals.length === 1 ? "1 waiting" : `${proposals.length} waiting`,
-                `names last looked for ${ago(data.last_scan)}`,
+                data.last_scan ? `names last looked for ${ago(data.last_scan)}` : "names not looked for yet",
               ].join(" · ")
             : "Reading the story…"
         }
