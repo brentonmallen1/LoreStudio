@@ -13,6 +13,7 @@ import TwistAnalysisPanel from "../../twists/TwistAnalysisPanel";
 import TwistClueEditor from "../../twists/TwistClueEditor";
 import TwistImpactPanel from "../../twists/TwistImpactPanel";
 import AssistantRow from "../AssistantRow";
+import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -157,6 +158,7 @@ export default function TwistsSection() {
             more={[{ label: "Delete twist", icon: Trash2, danger: true, onSelect: () => setDeleting(twist) }]}
             side={
               <>
+                <HealthCard anchor="twist_id" id={twist.id} storyId={storyId} />
                 <SheetCard title="Shape">
                   <div className={styles.rowEdit}>
                     <select

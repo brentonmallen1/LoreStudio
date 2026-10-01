@@ -1,6 +1,6 @@
 import type { AIFeatureInfo } from "./types";
 
-/** Story Health — the whole-manuscript reports, deterministic (NLP) and AI. */
+/** Findings (was Story Health): the whole-manuscript checks, local (NLP) and Assistant. */
 export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
   "prose-nlp": {
     id: "prose-nlp",

@@ -26,6 +26,7 @@ import AssetPicker from "../../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../../media/PortraitEditor";
 import QuestionsList from "../../plan/QuestionsList";
 import AssistantRow from "../AssistantRow";
+import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -182,6 +183,7 @@ export default function CharactersSection() {
             side={
               view === "overview" ? (
                 <>
+                  <HealthCard anchor="character_id" id={character.id} storyId={storyId} />
                   <SheetCard title="Portrait">
                     <PortraitEditor
                       storyId={storyId}

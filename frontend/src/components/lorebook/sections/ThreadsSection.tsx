@@ -15,6 +15,7 @@ import ThreadAnalysisPanel from "../../threads/ThreadAnalysisPanel";
 import ThreadVisualization from "../../threads/ThreadVisualization";
 import TryFailCycleEditor from "../../threads/TryFailCycleEditor";
 import AssistantRow from "../AssistantRow";
+import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -137,6 +138,7 @@ export default function ThreadsSection() {
             ]}
             side={
               <>
+                <HealthCard anchor="thread_id" id={thread.id} storyId={storyId} />
                 <SheetCard title="Shape">
                   <div className={styles.rowEdit}>
                     <select

@@ -4,6 +4,9 @@ import { api } from "../../api/client";
 import { parseServerDate } from "../../lib/serverDate";
 import type { ActivityLog } from "../../types";
 import AICallDetail from "./AICallDetail";
+import AnalysisResult, { FEATURE_META } from "./analysis/AnalysisResult";
+import AskAboutAnalysis from "./analysis/AskAboutAnalysis";
+import { EditorialReportCard } from "./analysis/EditorialReportCard";
 import { clockTime, logTitle, plainText } from "./timelineFormat";
 import styles from "./Timeline.module.css";
 
@@ -14,7 +17,9 @@ interface Props {
 
 /**
  * One activity row, opened. For an AI call that is the full record — prompt, response,
- * thinking, options — and, when a job made it, the way back to that job.
+ * thinking, options — and, when a job made it, the way back to that job. For an analysis
+ * run or an editorial pass it is the whole result, which is where the findings feed
+ * points for "read the run" (doc 12 P4).
  */
 export default function LogDetail({ logId, onOpenJob }: Props) {
   const [log, setLog] = useState<ActivityLog | null>(null);
@@ -64,6 +69,23 @@ export default function LogDetail({ logId, onOpenJob }: Props) {
       </p>
       {log.category === "ai" ? (
         <AICallDetail logId={logId} />
+      ) : log.event_type === "analysis_run" ? (
+        <>
+          <p className={styles.sentence}>{plainText(log.description)}</p>
+          <AskAboutAnalysis
+            log={log}
+            label={FEATURE_META[(log.metadata_?.feature as string) ?? ""]?.label ?? "this analysis"}
+          />
+          <AnalysisResult log={log} />
+        </>
+      ) : log.event_type === "editorial_pass" ? (
+        <EditorialReportCard
+          log={log}
+          onDelete={async (id) => {
+            if (log.story_id) await api.deleteEditorialReport(log.story_id, id);
+            setMissing(true);
+          }}
+        />
       ) : (
         <>
           <p className={styles.sentence}>{plainText(log.description)}</p>

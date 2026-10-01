@@ -22,7 +22,7 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   panels: lazy(() => import("../components/panels/PanelInterviewPanel")),
   codex: lazy(() => import("./CodexPage")),
   discoveries: lazy(() => import("./DiscoveryQueuePage")),
-  health: lazy(() => import("./StoryHealthPage")),
+  health: lazy(() => import("./FindingsPage")),
   publish: lazy(() => import("./PublishPage")),
 };
 

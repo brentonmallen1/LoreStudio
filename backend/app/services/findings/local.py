@@ -120,6 +120,29 @@ def from_prose_run(view: StoryView, log: ActivityLog) -> list[Finding]:
     return out
 
 
+def _pov_slips(view: StoryView, node, pov: dict) -> tuple[list[str], dict] | None:
+    """The other characters a scene's perspective verbs slip to, and the first such line.
+
+    spaCy names every subject of a perspective verb: "people", "everyone", and the scene's
+    own point of view. Only another character is a slip; anything else is noise, and
+    reporting it named the wrong head ("slips into Eleanor's" in Eleanor's own scene).
+    """
+    own = {(pov.get("dominant_subject") or "").lower()}
+    pov_id = node.pov_character_id or view.story.pov_character_id
+    for c in view.characters:
+        if c.id == pov_id:
+            own |= {part.lower() for part in (c.name or "").split()}
+    names = {part.lower() for c in view.characters for part in (c.name or "").split() if len(part) > 2} - own
+    first: dict | None = None
+    found: set[str] = set()
+    for f in pov.get("findings", []):
+        hits = {s for s in f.get("subjects", []) if s.lower() in names}
+        if hits and view.still_there(node, f.get("sentence", "")):
+            found |= hits
+            first = first or f
+    return (sorted(found), first) if first else None
+
+
 def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
     out: list[Finding] = []
     for scene in result_of(log).get("scenes", []):
@@ -144,23 +167,19 @@ def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
                 )
             )
         pov = scene.get("pov_drift") or {}
-        drifts = [f for f in pov.get("findings", []) if view.still_there(node, f.get("sentence", ""))]
-        if drifts:
-            # spaCy's subjects include "people" and "everyone"; only a character is a POV.
-            names = {part.lower() for c in view.characters for part in (c.name or "").split()}
-            subjects = sorted({s for f in drifts for s in f.get("subjects", []) if s.lower() in names})
-            whose = f" into {', '.join(subjects)}'s head" if subjects else ""
+        slipped = _pov_slips(view, node, pov)
+        if slipped:
+            subjects, first = slipped
             out.append(
                 make(
                     "pov_drift",
                     "prose",
                     "mid",
                     "local",
-                    f"Point of view slips{whose}",
+                    f"Point of view slips into {', '.join(subjects)}'s head",
                     anchor=FindingAnchor(node_id=node.id),
                     key="pov_drift",
-                    evidence=drifts[0].get("sentence", ""),
-                    suggestion=drifts[0].get("explanation", ""),
+                    evidence=first.get("sentence", ""),
                     **_run_fields(log, node),
                 )
             )

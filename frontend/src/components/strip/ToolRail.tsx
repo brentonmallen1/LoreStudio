@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDiscoveryStore } from "../../stores/discoveryStore";
-import { useHealthStore } from "../../stores/healthStore";
+import { useOpenFindings } from "../../stores/findingsStore";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { TOOL_ICONS } from "../panel/toolIcons";
@@ -39,17 +39,14 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   const { tabs, activeTabId, openTool } = usePanelStore();
   const discoveryEnabled = useStoryStore((s) => s.activeStory?.discovery_enabled);
   const { pendingCount, refreshCount } = useDiscoveryStore();
-  const { alertCount, refreshAlerts } = useHealthStore();
+  const openFindings = useOpenFindings().length;
   const badges: Record<string, number | undefined> = {
-    health: alertCount || undefined,
+    health: openFindings || undefined,
     discoveries: pendingCount || undefined,
   };
   useEffect(() => {
     if (storyId && discoveryEnabled) refreshCount(storyId);
   }, [storyId, discoveryEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (storyId) refreshAlerts(storyId);
-  }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
   const badgeTotal = Object.values(badges).reduce<number>((n, b) => n + (b ?? 0), 0);
   const [moreOpen, setMoreOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

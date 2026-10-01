@@ -881,11 +881,6 @@ export const api = {
   // Story Health
   getStoryHealth: (storyId: string) => request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
 
-  getHealthAlerts: (storyId: string) =>
-    request<{ count: number; absent_characters: string[]; mice_violation_count: number }>(
-      `/stories/${storyId}/health/alerts`,
-    ),
-
   // Story Overview
   getStoryOverview: (storyId: string) =>
     request<import("../types").StoryOverview>(`/stories/${storyId}/overview`),

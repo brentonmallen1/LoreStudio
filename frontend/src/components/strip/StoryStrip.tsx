@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronsLeft, ChevronsRight, Home } from "lucide-react";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
+import { useOpenFindings } from "../../stores/findingsStore";
 import { buildLine, nextWidth, type ColourContext, type StripWidth } from "../../lib/strip/stripModel";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -36,10 +37,12 @@ export default function StoryStrip() {
   );
   // A flat outline has no chapters to show: that width falls through to the tree.
   const width: StripWidth = !line.hasStations && stripWidth === "chapters" ? "scenes" : stripWidth;
+  const findings = useOpenFindings();
   const ctx: ColourContext = {
     characters,
     threads,
     beatSheet: beatSheets.find((b) => b.id === activeStory?.beat_sheet_id) ?? null,
+    findings,
   };
   const cycle = () => setStripWidth(nextWidth(width, line.hasStations));
 

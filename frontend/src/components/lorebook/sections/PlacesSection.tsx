@@ -14,6 +14,7 @@ import AssetPicker from "../../media/AssetPicker";
 import PortraitEditor from "../../media/PortraitEditor";
 import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
 import AssistantRow from "../AssistantRow";
+import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
@@ -124,6 +125,7 @@ export default function PlacesSection() {
             ]}
             side={
               <>
+                <HealthCard anchor="location_id" id={place.id} storyId={storyId} />
                 <SheetCard title="Image">
                   <PortraitEditor
                     storyId={storyId}

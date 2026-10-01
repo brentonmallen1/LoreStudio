@@ -85,7 +85,10 @@ def test_editorial_run_gives_tense_and_pov_findings(db_session, test_user):
             {
                 "scene_id": lamp.id,
                 "tense_consistency": {"dominant_tense": "past", "findings": [{"sentence": "Elenor lit the lamp"}]},
-                "pov_drift": {"findings": [{"sentence": "listened to the sea", "subjects": ["Margaret", "people"]}]},
+                "pov_drift": {
+                    "dominant_subject": "Eleanor",
+                    "findings": [{"sentence": "listened to the sea", "subjects": ["Margaret", "people", "Eleanor"]}],
+                },
             }
         ]
     }
@@ -95,6 +98,26 @@ def test_editorial_run_gives_tense_and_pov_findings(db_session, test_user):
         "tense_shift": "Slips out of past tense once",
         "pov_drift": "Point of view slips into Margaret's head",
     }
+
+
+def test_pov_drift_needs_another_character(db_session, test_user):
+    story, nodes = build_findings_story(db_session, test_user)
+    lamp = nodes["The Lamp"]
+
+    def run(subjects):
+        scene = {
+            "scene_id": lamp.id,
+            "pov_drift": {
+                "dominant_subject": "Eleanor",
+                "findings": [{"sentence": "lit the lamp", "subjects": subjects}],
+            },
+        }
+        log = _log(story, test_user, "editorial-consistency", {"scenes": [scene]})
+        return [f.text for f in from_editorial_run(load_view(story, db_session), log)]
+
+    # "people" and the scene's own point of view are not a slip.
+    assert run(["people", "Eleanor"]) == []
+    assert run(["Margaret"]) == ["Point of view slips into Margaret's head"]
 
 
 def test_scene_titles_resolve_exactly_or_when_quoted(db_session, test_user):

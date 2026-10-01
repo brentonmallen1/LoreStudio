@@ -1,8 +1,8 @@
-"""Non-AI manuscript tools: quote normalisation and consistency checks."""
+"""Non-AI manuscript tools: quote normalisation. Consistency checks are in the findings feed."""
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,6 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..services import change_log
-from ..services.consistency import run_checks
 from ..services.text_utils import count_quote_styles, normalize_quotes_html
 
 router = APIRouter()
@@ -87,16 +86,3 @@ def normalize_quotes(
     if scenes and not req.dry_run:
         db.commit()
     return {"style": req.style, "dry_run": req.dry_run, "changed_chars": changed_chars, "scenes": scenes}
-
-
-@router.get("/stories/{story_id}/consistency")
-def consistency(
-    story_id: str,
-    node_id: str | None = Query(default=None),
-    include_pov: bool = Query(default=True),
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """Deterministic character-consistency findings (name drift, unknown speakers, POV drift)."""
-    _story(story_id, db, user)
-    return {"findings": run_checks(story_id, db, node_id=node_id, include_pov=include_pov)}

@@ -16,7 +16,6 @@ import {
   Users,
   Compass,
   Eye,
-  Activity,
   Search,
   Quote,
   BookMarked,
@@ -29,6 +28,7 @@ import { commandRegistry } from "./registry";
 import "./planning";
 import "./panel";
 import "./strip";
+import "./findings";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";
@@ -508,20 +508,7 @@ commandRegistry.register({
   },
 });
 
-// ── Story Health ──────────────────────────────────────────────────────────────
-
-commandRegistry.register({
-  id: "health-run-all",
-  label: "Story Health Dashboard",
-  keywords: ["health", "analysis", "run all", "check", "pacing", "prose"],
-  icon: Activity,
-  group: "Health",
-  when: () => !!useStoryStore.getState().activeStory,
-  action: () => {
-    const story = useStoryStore.getState().activeStory;
-    if (story) navigateTo(`/stories/${story.id}/health`);
-  },
-});
+// ── Discoveries ──────────────────────────────────────────────────────────────
 
 commandRegistry.register({
   id: "health-discoveries",

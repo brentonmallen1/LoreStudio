@@ -40,7 +40,7 @@ const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 const WRITER_ENTRY_POINTS = [
   "src/pages/StoryOverviewPage.tsx",
   "src/pages/MediaPage.tsx",
-  "src/pages/StoryHealthPage.tsx",
+  "src/pages/FindingsPage.tsx",
   "src/pages/ChroniclePage.tsx",
   "src/pages/VersionsPage.tsx",
   "src/components/story/StoryboardView.tsx",

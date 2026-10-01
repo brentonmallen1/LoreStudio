@@ -1,8 +1,8 @@
 import { Compass } from "lucide-react";
-import { useAIStore } from "../../stores/aiStore";
-import { useAIAvailable } from "../../lib/mode";
-import type { ActivityLog } from "../../types";
-import styles from "./ReportCard.module.css";
+import { useAIStore } from "../../../stores/aiStore";
+import { useAIAvailable } from "../../../lib/mode";
+import type { ActivityLog } from "../../../types";
+import styles from "./Analysis.module.css";
 
 /**
  * Takes a finished analysis into the AI panel as a session, so it can be asked about

@@ -1,14 +1,4 @@
-// Types for the non-AI manuscript tools (consistency checks, quote normalisation).
-
-export interface ConsistencyFinding {
-  kind: "name_drift" | "unknown_speaker" | "pov_drift" | string;
-  node_id: string;
-  node_title: string;
-  text: string;
-  suggestion: string;
-  excerpt: string;
-  severity: "info" | "warn";
-}
+// Types for the non-AI manuscript tools (quote normalisation).
 
 export interface QuoteStyleReport {
   total: { straight: number; curly: number };

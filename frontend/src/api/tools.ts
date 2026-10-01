@@ -1,6 +1,6 @@
 import { request } from "./request";
 import type { User } from "../types";
-import type { ConsistencyFinding, QuoteStyleReport } from "../types/tools";
+import type { QuoteStyleReport } from "../types/tools";
 
 /** Non-AI manuscript tools and per-user settings. Kept out of client.ts (size budget). */
 export interface UndoState {
@@ -44,10 +44,6 @@ export const toolsApi = {
     ),
   updateMe: (body: { display_name?: string; settings?: Record<string, unknown> }) =>
     request<User>("/auth/me", { method: "PATCH", body: JSON.stringify(body) }),
-  consistencyChecks: (storyId: string, nodeId?: string) =>
-    request<{ findings: ConsistencyFinding[] }>(
-      `/stories/${storyId}/consistency${nodeId ? `?node_id=${encodeURIComponent(nodeId)}` : ""}`,
-    ),
   quoteStyles: (storyId: string) => request<QuoteStyleReport>(`/stories/${storyId}/quotes`),
   normalizeQuotes: (
     storyId: string,

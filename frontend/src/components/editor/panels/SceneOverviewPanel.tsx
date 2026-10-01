@@ -118,6 +118,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
 
   return (
     <div className={styles.overviewPanel}>
+      <ChecksField activeNode={activeNode} />
       <TextField
         label="Synopsis"
         value={synopsis}
@@ -212,7 +213,6 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
       {studio && activeStory && <WhoIsHereField activeNode={activeNode} storyId={activeStory.id} />}
       {studio && <SceneSummaryField activeNode={activeNode} setActiveNode={setActiveNode} />}
       {notes && <InlineNotesField notes={notes} />}
-      <ChecksField activeNode={activeNode} />
       <QuotesField activeNode={activeNode} />
       {activeStory && (
         <SceneLinksField

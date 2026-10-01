@@ -54,23 +54,19 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 OVER_BUDGET: dict[str, int] = {
     "backend/app/routers/analysis.py": 1555,
     "frontend/src/types/index.ts": 1648,
-    "frontend/src/api/client.ts": 1366,
+    "frontend/src/api/client.ts": 1362,
     "backend/app/services/llm/prompts/analysis.py": 1249,
-    "frontend/src/components/health/ReportCard.tsx": 1025,
     "frontend/src/pages/VersionsPage.tsx": 1019,
     "backend/app/services/import_service.py": 878,
     "frontend/src/components/layout/CommandPalette.tsx": 594,
     "frontend/src/components/outline/OutlineManager.tsx": 680,
     "frontend/src/pages/Settings.tsx": 585,
-    "frontend/src/pages/StoryHealthPage.tsx": 590,
     "frontend/src/components/characters/RelationshipGraph.tsx": 633,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 621,
     "frontend/src/components/story/StoryIdentityPanel.tsx": 556,
     "frontend/src/components/story/TodoListView.tsx": 545,
-    "frontend/src/components/health/StoryProgressionGraph.tsx": 533,
     "frontend/src/components/characters/CharacterDialogueTab.tsx": 519,
     "frontend/src/components/story/StoryboardView.tsx": 516,
-    "frontend/src/components/health/ActionToolbar.tsx": 505,
 }
 
 _PY_NON_CODE_TOKENS = frozenset(

@@ -40,7 +40,7 @@ def test_levenshtein_and_name_drift():
     assert all(f.text != "Then" for f in findings)
 
 
-def test_quote_and_consistency_endpoints(client):
+def test_quote_endpoints_and_name_drift_in_the_feed(client):
     sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
     client.post(f"/api/stories/{sid}/characters", json={"name": "Mara"})
     node = client.post(
@@ -55,8 +55,10 @@ def test_quote_and_consistency_endpoints(client):
     real = client.post(f"/api/stories/{sid}/quotes/normalize", json={"style": "curly"}).json()
     assert real["changed_chars"] == 2
     assert "“Go,”" in client.get(f"/api/structure/{node['id']}").json()["content"]
-    checks = client.get(f"/api/stories/{sid}/consistency", params={"include_pov": "false"}).json()["findings"]
-    assert any(f["kind"] == "name_drift" and f["text"] == "Marra" for f in checks)
+    feed = client.get(f"/api/stories/{sid}/findings").json()["findings"]
+    assert any(
+        f["check"] == "name_drift" and f["fix"] == {"kind": "rename", "old": "Marra", "new": "Mara"} for f in feed
+    )
 
 
 def test_patch_me_merges_settings(client):

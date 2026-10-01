@@ -1,20 +1,21 @@
 """Deterministic character-consistency checks over the manuscript. No model involved.
 
 Findings are hints ("check this"), never corrections. Each carries the node it
-was found in and an excerpt so the editor can jump to it.
+was found in and an excerpt so the editor can jump to it. The findings feed
+(`services/findings/local.py`) runs these on every read; point of view is checked
+by the editorial-consistency pass instead.
 """
 
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 from sqlalchemy.orm import Session
 
 from ..models.character import Character
 from ..models.dialogue import DialogueBlock
 from ..models.structure import StructureNode
-from .dialogue_service import sync_story_dialogue
 from .text_utils import html_to_text
 
 _WORD = re.compile(r"\b[A-Z][a-z]{3,}\b")
@@ -183,56 +184,3 @@ def unknown_speakers(nodes: list[StructureNode], characters: list[Character], db
             )
         )
     return findings
-
-
-def pov_drift(nodes: list[StructureNode], characters: list[Character]) -> list[Finding]:
-    """Scenes with a POV character where another character's perspective verbs dominate."""
-    try:
-        from .nlp_analysis_service import check_pov_drift, get_nlp
-
-        nlp = get_nlp()
-    except Exception:
-        return []
-    by_id = {c.id: c for c in characters}
-    findings: list[Finding] = []
-    for node in nodes:
-        if not node.pov_character_id or node.pov_character_id not in by_id or not node.content:
-            continue
-        pov_name = (by_id[node.pov_character_id].name or "").split()[0] if by_id[node.pov_character_id].name else ""
-        text = html_to_text(node.content)
-        if len(text) < 200:
-            continue
-        result = check_pov_drift(nlp(text))
-        for f in getattr(result, "findings", []) or []:
-            subject = getattr(f, "subject", "") or ""
-            if subject and pov_name and subject.lower() != pov_name.lower():
-                findings.append(
-                    Finding(
-                        kind="pov_drift",
-                        node_id=node.id,
-                        node_title=node.title,
-                        text=subject,
-                        suggestion=f"POV is {pov_name}; this line reads from {subject}'s head",
-                        excerpt=getattr(f, "sentence", "")[:120],
-                    )
-                )
-                break
-    return findings
-
-
-def run_checks(
-    story_id: str, db: Session, node_id: str | None = None, include_pov: bool = True, sync: bool = True
-) -> list[dict]:
-    """``sync=False`` reads the dialogue rows as they are: a read that must not write
-    (the findings feed) relies on saves keeping them in step, as they do."""
-    q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
-    if node_id:
-        q = q.filter(StructureNode.id == node_id)
-    if sync:
-        sync_story_dialogue(story_id, db)
-    nodes = [n for n in q.all() if n.content and n.content.strip()]
-    characters = db.query(Character).filter(Character.story_id == story_id).all()
-    findings = name_drift(nodes, characters) + unknown_speakers(nodes, characters, db)
-    if include_pov:
-        findings += pov_drift(nodes, characters)
-    return [asdict(f) for f in findings]

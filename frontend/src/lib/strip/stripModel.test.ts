@@ -133,6 +133,26 @@ describe("colours and shapes", () => {
     expect(legendFor("status", line.stops, ctx).map((s) => s.label)).toEqual(["Draft", "Revised", "Final"]);
   });
 
+  it("colours a stop by its findings, worst first, at most four", () => {
+    const anchor = { node_id: "s1", character_id: null, location_id: null, thread_id: null, twist_id: null };
+    const f = (id: string, severity: "high" | "mid" | "low") =>
+      ({ id, severity, text: id, anchor }) as unknown as import("../../types/findings").Finding;
+    const findings = [f("a", "low"), f("b", "high"), f("c", "mid"), f("d", "low"), f("e", "low")];
+    const withFindings = { ...ctx, findings };
+    expect(colourFor("findings", s1, withFindings).map((s) => s.color)).toEqual([
+      "var(--color-danger)",
+      "var(--color-warning)",
+      "var(--color-text-subtle)",
+      "var(--color-text-subtle)",
+    ]);
+    expect(colourFor("findings", line.stops[1], withFindings)).toEqual([]);
+    expect(legendFor("findings", line.stops, withFindings).map((s) => s.label)).toEqual([
+      "Look at these first",
+      "Worth a look",
+      "Small things",
+    ]);
+  });
+
   it("counts in roman", () => {
     expect([1, 4, 12, 13].map(roman)).toEqual(["I", "IV", "XII", "13"]);
   });

@@ -1,4 +1,4 @@
-import type { ColourMode, StripWidth } from "../lib/strip/stripModel";
+import { COLOUR_MODES, type ColourMode, type StripWidth } from "../lib/strip/stripModel";
 import { create } from "zustand";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
@@ -380,9 +380,8 @@ export const useUIStore = create<UIState>((set) => ({
     localStorage.setItem("ls_strip_width", width);
     set({ stripWidth: width });
   },
-  stripColourMode: (["none", "cast", "threads", "status", "beat"].includes(
-    localStorage.getItem("ls_strip_colour") ?? "",
-  )
+  // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
+  stripColourMode: (COLOUR_MODES.some((m) => m.id === localStorage.getItem("ls_strip_colour"))
     ? localStorage.getItem("ls_strip_colour")
     : "none") as ColourMode,
   setStripColourMode: (mode) => {

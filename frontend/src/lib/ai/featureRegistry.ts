@@ -39,7 +39,7 @@ export default FEATURES;
  * Used by AIFeatureInfoModal to know which features to show.
  */
 export const PAGE_FEATURES: Record<string, string[]> = {
-  "story-health": [
+  findings: [
     "prose-nlp",
     "entity-discovery",
     "editorial-consistency",
@@ -141,7 +141,7 @@ export function visibleFeatures(pageId: string, mode: UIMode): AIFeatureInfo[] {
  * Human-readable page labels shown in the modal title.
  */
 export const PAGE_LABELS: Record<string, string> = {
-  "story-health": "Story Health",
+  findings: "Findings",
   "ai-panel": "AI Assistant",
   "character-sheet": "Character Sheet",
   worldbuilding: "World Building",

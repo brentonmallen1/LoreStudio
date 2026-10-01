@@ -1,4 +1,4 @@
-import { parseServerDate } from "../../lib/serverDate";
+import { parseServerDate } from "../../../lib/serverDate";
 import { useState } from "react";
 import {
   ChevronDown,
@@ -14,7 +14,7 @@ import {
   MinusCircle,
   ArrowDownCircle,
 } from "lucide-react";
-import type { ActivityLog } from "../../types";
+import type { ActivityLog } from "../../../types";
 import styles from "./EditorialReportCard.module.css";
 
 interface Props {

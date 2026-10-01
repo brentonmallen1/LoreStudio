@@ -105,9 +105,12 @@ api/client.ts     — Single fetch wrapper + every API method
 stores/           — Zustand: authStore, uiStore, storyStore
 pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
-  layout/         — GlobalHeader, breadcrumb navigator, back bar, ModeGate
+  layout/         — GlobalHeader, breadcrumb navigator, PageHeader, ModeGate
   strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
+  findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
+                    (data in stores/findingsStore; the server computes every finding)
+  chronicle/      — Activity, conversations, changes; analysis/ draws any past run in full
   lorebook/       — The Lorebook browser: one EntitySheet for every kind (fields from
                     lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/
   story/          — SceneEditor, CorkboardView, StorySummaryPanel, LorebookPanel

@@ -6,7 +6,7 @@ import {
   Eye,
   Fingerprint,
   GitBranch,
-  HeartPulse,
+  ScanEye,
   Landmark,
   History,
   Home,
@@ -264,11 +264,21 @@ export const STORY_ROUTES: StoryRoute[] = [
   {
     id: "health",
     path: "/health",
-    label: "Story Health",
-    icon: HeartPulse,
+    label: "Findings",
+    icon: ScanEye,
     domain: "system",
     modes: BOTH,
-    keywords: ["report", "analysis", "checks", "check"],
+    // Story Health was this page's name until doc 12 P4; people will still look for it.
+    keywords: [
+      "story health",
+      "health",
+      "what needs my eye",
+      "issues",
+      "problems",
+      "report",
+      "analysis",
+      "checks",
+    ],
   },
   {
     id: "chronicle",

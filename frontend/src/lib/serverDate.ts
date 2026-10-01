@@ -21,3 +21,17 @@ export function parseServerDate(value: string): Date {
 export function serverTime(value: string): number {
   return parseServerDate(value).getTime();
 }
+
+/** "just now", "12 min ago", "3 h ago", "yesterday", "4 days ago", then the date. */
+export function ago(value: string | null | undefined, now = Date.now()): string {
+  if (!value) return "never";
+  const min = Math.max(0, Math.round((now - serverTime(value)) / 60000));
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h} h ago`;
+  const d = Math.round(h / 24);
+  if (d === 1) return "yesterday";
+  if (d < 14) return `${d} days ago`;
+  return parseServerDate(value).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}

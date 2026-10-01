@@ -1,5 +1,7 @@
 import type { BeatSheet, Character, PlotThread, StoryStructureTemplate, StructureNode } from "../../types";
+import type { Finding } from "../../types/findings";
 import type { SceneCast, SceneCastEntry } from "../../types/panel";
+import { bySeverity, SEVERITY_LABELS } from "../findings/group";
 import { slotVar } from "../colorSlots";
 import { sceneLeaves } from "../planning/methods";
 
@@ -18,6 +20,7 @@ export const COLOUR_MODES = [
   { id: "threads", label: "Plot threads", short: "Threads", sub: "Every thread the scene carries" },
   { id: "status", label: "Draft status", short: "Status", sub: "Planned, draft, revised, final" },
   { id: "beat", label: "Story beat", short: "Beats", sub: "The beat sheet beat it carries" },
+  { id: "findings", label: "Findings", short: "Findings", sub: "What needs your eye, worst first" },
 ] as const;
 export type ColourMode = (typeof COLOUR_MODES)[number]["id"];
 
@@ -192,7 +195,17 @@ export interface ColourContext {
   characters: Character[];
   threads: PlotThread[];
   beatSheet: BeatSheet | null;
+  /** The open findings, for the Findings mode. */
+  findings?: Finding[];
 }
+
+const SEVERITY_COLOUR = {
+  high: "var(--color-danger)",
+  mid: "var(--color-warning)",
+  low: "var(--color-text-subtle)",
+};
+/** A stop shows at most this many findings as pips; the peek card and the page say the rest. */
+const MAX_PIPS = 4;
 
 export interface Swatch {
   color: string;
@@ -201,6 +214,14 @@ export interface Swatch {
 
 /** The colours a stop shows in a mode: none, one, or several (a scene carrying several threads). */
 export function colourFor(mode: ColourMode, stop: Stop, ctx: ColourContext): Swatch[] {
+  if (mode === "findings") {
+    // A planned scene can carry findings too (an empty chapter); the planned skip is for prose modes.
+    return (ctx.findings ?? [])
+      .filter((f) => f.anchor.node_id === stop.node.id)
+      .sort(bySeverity)
+      .slice(0, MAX_PIPS)
+      .map((f) => ({ color: SEVERITY_COLOUR[f.severity], label: SEVERITY_LABELS[f.severity] }));
+  }
   if (stop.planned || mode === "none") return [];
   if (mode === "status") return [{ color: `var(--status-${stop.status})`, label: stop.status }];
   if (mode === "cast") {
@@ -221,6 +242,12 @@ export function colourFor(mode: ColourMode, stop: Stop, ctx: ColourContext): Swa
 
 /** Every colour the mode uses across the book, once each, for the key. */
 export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): Swatch[] {
+  if (mode === "findings") {
+    const present = new Set(stops.flatMap((stop) => colourFor(mode, stop, ctx).map((s) => s.label)));
+    return (["high", "mid", "low"] as const)
+      .filter((sev) => present.has(SEVERITY_LABELS[sev]))
+      .map((sev) => ({ color: SEVERITY_COLOUR[sev], label: SEVERITY_LABELS[sev] }));
+  }
   if (mode === "status") {
     return [
       { color: "var(--status-draft)", label: "Draft" },
