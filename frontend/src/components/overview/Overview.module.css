@@ -409,24 +409,8 @@
 
 /* ── Recap ── */
 
-.recapTrigger {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--color-ai-border);
-  border-radius: 999px;
-  background: var(--color-ai-subtle);
+.headLink[data-tone="ai"] {
   color: var(--color-ai);
-  font: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.recapTrigger:hover {
-  background: var(--color-ai-hover);
-  color: var(--color-ai-fg);
 }
 
 .recapCard {

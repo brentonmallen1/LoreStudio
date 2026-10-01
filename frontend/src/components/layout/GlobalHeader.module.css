@@ -38,15 +38,20 @@
   cursor: default;
 }
 
+/* The title side gives way and the controls never do: at 1100px the controls were pushed
+   off the edge, the account menu with them (doc 14 review). */
 .left {
   display: flex;
   align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .right {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  flex-shrink: 0;
 }
 
 /* ── Wordmark ── */
@@ -131,6 +136,8 @@
 
 .storyTitle {
   max-width: 22rem;
+  min-width: 3rem;
+  flex-shrink: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

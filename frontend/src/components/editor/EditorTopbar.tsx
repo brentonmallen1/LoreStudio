@@ -14,6 +14,8 @@ import SaveStatusPill from "./SaveStatusPill";
 import TodayCounter from "./TodayCounter";
 import { useUIStore } from "../../stores/uiStore";
 import EditorMoreMenu from "./EditorMoreMenu";
+import PopoverMenu from "../common/PopoverMenu";
+import { toast } from "../../stores/toastStore";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -32,7 +34,13 @@ interface Props {
   onOpenGuides: (tab: WritingGuideTab) => void;
 }
 
-const STATUS_CYCLE: StructureNode["status"][] = ["draft", "revised", "final"];
+const STATUSES: StructureNode["status"][] = ["planned", "draft", "revised", "final"];
+const STATUS_LABEL: Record<string, string> = {
+  planned: "Planned",
+  draft: "Draft",
+  revised: "Revised",
+  final: "Final",
+};
 
 function segmentStyle(levelType: string) {
   const color = segmentColor(levelType);
@@ -51,12 +59,16 @@ export default function EditorTopbar(p: Props) {
   const sides = useSides();
   const sprintActive = useUIStore((st) => st.sprintActive);
 
-  async function cycleStatus() {
-    const idx = STATUS_CYCLE.indexOf(activeNode.status);
-    const updated = await api.updateNode(activeNode.id, {
-      status: STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length],
-    });
-    setActiveNode({ ...activeNode, status: updated.status });
+  // A menu of the four states, not a blind cycle: "planned" was unreachable and going back
+  // meant going round (doc 14 review). Failures say so instead of doing nothing.
+  async function setStatus(status: StructureNode["status"]) {
+    if (status === activeNode.status) return;
+    try {
+      const updated = await api.updateNode(activeNode.id, { status });
+      setActiveNode({ ...activeNode, status: updated.status });
+    } catch {
+      toast.error("The status did not change. Try again in a moment.");
+    }
   }
 
   // The type is what the node is (an Opening, a Try / Fail beat), not how deep it sits.
@@ -64,7 +76,13 @@ export default function EditorTopbar(p: Props) {
   // top level, every beat showed as "Opening", and choosing a type moved the node down
   // the tree. Depth is changed by moving the node; this only changes its type.
   async function changeType(levelType: string) {
-    const updated = await api.updateNode(activeNode.id, { level_type: levelType });
+    let updated: StructureNode;
+    try {
+      updated = await api.updateNode(activeNode.id, { level_type: levelType });
+    } catch {
+      toast.error("The type did not change. Try again in a moment.");
+      return;
+    }
     const patch = (nodes: StructureNode[]): StructureNode[] =>
       nodes.map((n) =>
         n.id === activeNode.id
@@ -82,7 +100,12 @@ export default function EditorTopbar(p: Props) {
     setEditingTitle(false);
     const trimmed = titleValue.trim();
     if (!trimmed || trimmed === activeNode.title) return;
-    await api.updateNode(activeNode.id, { title: trimmed });
+    try {
+      await api.updateNode(activeNode.id, { title: trimmed });
+    } catch {
+      toast.error("The title did not save. Try again in a moment.");
+      return;
+    }
     const patch = (nodes: StructureNode[]): StructureNode[] =>
       nodes.map((n) =>
         n.id === activeNode.id ? { ...n, title: trimmed } : { ...n, children: patch(n.children ?? []) },
@@ -140,28 +163,25 @@ export default function EditorTopbar(p: Props) {
             onBlur={saveTitle}
           />
         ) : (
-          <span
+          <button
+            type="button"
             className={styles.nodeTitle}
             onClick={() => {
               setTitleValue(activeNode.title);
               setEditingTitle(true);
             }}
-            title="Click to rename"
+            title="Rename"
           >
             {activeNode.title}
-          </span>
+          </button>
         )}
-        <button
-          className={`${styles.statusBadge} ${statusClass}`}
-          onClick={cycleStatus}
-          title={
-            activeNode.status === "planned"
-              ? "Planned: becomes a draft when you start writing (or click)"
-              : "Click to cycle: draft → revised → final"
-          }
-        >
-          {activeNode.status}
-        </button>
+        <PopoverMenu
+          label={`Status: ${STATUS_LABEL[activeNode.status] ?? activeNode.status}. Change it`}
+          trigger={STATUS_LABEL[activeNode.status] ?? activeNode.status}
+          triggerClassName={`${styles.statusBadge} ${statusClass}`}
+          align="start"
+          items={STATUSES.map((st) => ({ label: STATUS_LABEL[st], onSelect: () => void setStatus(st) }))}
+        />
       </div>
       <div className={styles.metaGroup}>
         {activeStory && (

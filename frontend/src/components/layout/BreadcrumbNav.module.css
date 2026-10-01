@@ -26,6 +26,7 @@
 
 .crumbBtn {
   max-width: 180px;
+  min-width: 2.5rem;
   height: 26px;
   padding: 0 0.4rem;
   border: none;
@@ -195,4 +196,11 @@
   font: inherit;
   font-size: 0.78rem;
   cursor: pointer;
+}
+
+/* A narrow window keeps the scene; the strip already shows its act and chapter. */
+@media (max-width: 1240px) {
+  .crumb:not(:last-child) {
+    display: none;
+  }
 }

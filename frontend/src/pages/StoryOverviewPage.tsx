@@ -9,7 +9,8 @@ import {
   Vitals,
   WordsByChapter,
 } from "../components/overview/OverviewCards";
-import Recap from "../components/overview/Recap";
+import { RecapCard, RecapTrigger } from "../components/overview/Recap";
+import { useRecap } from "../components/overview/useRecap";
 import StartPaths from "../components/overview/StartPaths";
 import PlanNextStep from "../components/plan/PlanNextStep";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
@@ -39,9 +40,18 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
   const { activeStory: story, structure } = useStoryStore();
   const aiAvailable = useAIAvailable();
   const [ov, setOv] = useState<StoryOverview | null>(null);
-  const load = () => api.getStoryOverview(storyId).then(setOv);
+  const [failed, setFailed] = useState(false);
+  const recap = useRecap(storyId);
+  const load = () =>
+    api.getStoryOverview(storyId).then(
+      (o) => {
+        setOv(o);
+        setFailed(false);
+      },
+      () => setFailed(true),
+    );
   useEffect(() => {
-    void load().catch(() => {});
+    void load();
   }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
   useReloadOnUndo(["structure_node", "plot_thread", "story", "character"], load);
 
@@ -108,12 +118,22 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
                   >
                     <Download size={12} aria-hidden /> Export
                   </button>
+                  {aiAvailable && <RecapTrigger recap={recap} />}
                 </div>
               )}
             </div>
           )}
         </header>
+        {hasContent && aiAvailable && <RecapCard recap={recap} />}
 
+        {failed && !ov && (
+          <p className={styles.quiet} role="alert">
+            The story's figures did not load.{" "}
+            <button type="button" className={styles.headLink} onClick={() => void load()}>
+              Try again
+            </button>
+          </p>
+        )}
         {ov && hasContent && <Vitals storyId={storyId} ov={ov} />}
         {ov && hasContent && (
           <div className={styles.grid} data-wide>
@@ -122,7 +142,6 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
           </div>
         )}
         <PlanNextStep storyId={storyId} />
-        {hasContent && aiAvailable && <Recap storyId={storyId} />}
         {ov && hasContent && (
           <div className={styles.grid}>
             <CastAndPlaces storyId={storyId} />

@@ -20,4 +20,4 @@ A story is a tree. The **structure template** names the levels (Act → Chapter 
 
 ## Status
 
-Click the status badge in the top bar to cycle draft → revised → final. A scene added from the Plan page starts as **planned** (italic in the tree) and becomes a draft when you write in it. Exports can filter by status.
+The status badge in the top bar opens a short menu: planned, draft, revised or final. A scene added from the Plan page starts as **planned** (italic in the tree) and becomes a draft when you write in it. Exports can filter by status.
