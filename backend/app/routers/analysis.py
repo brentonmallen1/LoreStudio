@@ -35,8 +35,6 @@ from ..schemas.nlp_analysis import (
     EditorialConsistencyResponse,
     EntitySuggestionsResponse,
     ProseNLPResponse,
-    SceneEditorialAnalysis,
-    SceneNLPAnalysis,
 )
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import (
@@ -61,12 +59,8 @@ from ..services.llm.prompts.analysis import (
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
-from ..services.nlp_analysis_service import (
-    ALL_CHECKS,
-    analyze_scene,
-    analyze_scene_editorial,
-    extract_unknown_entities,
-)
+from ..services.nlp_analysis_service import extract_unknown_entities
+from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
 from ..services.word_count import WORD_COUNT_RANGES
 
@@ -754,62 +748,7 @@ def analyze_prose_nlp(
     node_ids=null runs all scenes; checks=null runs all checks.
     """
     _get_story(story_id, db, current_user)
-
-    if node_ids:
-        nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
-    else:
-        nodes = (
-            db.query(StructureNode)
-            .filter(
-                StructureNode.story_id == story_id,
-                StructureNode.content.isnot(None),
-                StructureNode.content != "",
-            )
-            .all()
-        )
-
-    checks_set = set(checks) & ALL_CHECKS if checks else ALL_CHECKS
-
-    scenes: list[SceneNLPAnalysis] = []
-    for node in nodes:
-        if not node.content or not node.content.strip():
-            continue
-        analysis = analyze_scene(node.content, checks_set)
-        scenes.append(
-            SceneNLPAnalysis(
-                scene_id=node.id,
-                scene_title=node.title or "",
-                **analysis,
-            )
-        )
-
-    result = ProseNLPResponse(
-        scenes=scenes,
-        checks_run=sorted(checks_set),
-    )
-
-    # Count findings across all scenes for the summary
-    warning_count = 0
-    for s in scenes:
-        for check in checks_set:
-            analysis_obj = getattr(s, check, None)
-            if analysis_obj and hasattr(analysis_obj, "findings"):
-                warning_count += sum(1 for f in (analysis_obj.findings or []) if f.severity in ("warning", "issue"))
-
-    log = ActivityLog(
-        user_id=current_user.id,
-        story_id=story_id,
-        event_type="analysis_run",
-        category="health",
-        description=f"Prose analysis: {len(scenes)} scene(s), {warning_count} warning(s)",
-        metadata_={
-            "feature": "prose-analysis",
-            "result": result.model_dump(),
-            "scene_count": len(scenes),
-            "warning_count": warning_count,
-        },
-    )
-    db.add(log)
+    result = run_prose_analysis(story_id, current_user.id, db, node_ids, checks)
     db.commit()
     return result
 
@@ -890,58 +829,7 @@ def analyze_editorial_consistency(
     node_ids=null runs all scenes.
     """
     _get_story(story_id, db, current_user)
-
-    if node_ids:
-        nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
-    else:
-        nodes = (
-            db.query(StructureNode)
-            .filter(
-                StructureNode.story_id == story_id,
-                StructureNode.content.isnot(None),
-                StructureNode.content != "",
-            )
-            .all()
-        )
-
-    scenes: list[SceneEditorialAnalysis] = []
-    for node in nodes:
-        if not node.content or not node.content.strip():
-            continue
-        analysis = analyze_scene_editorial(node.content)
-        scenes.append(
-            SceneEditorialAnalysis(
-                scene_id=node.id,
-                scene_title=node.title or "",
-                **analysis,
-            )
-        )
-
-    total_tense = sum((s.tense_consistency.shift_count if s.tense_consistency else 0) for s in scenes)
-    total_pov = sum(len(s.pov_drift.findings) if s.pov_drift else 0 for s in scenes)
-
-    result = EditorialConsistencyResponse(
-        scenes=scenes,
-        checks_run=["tense_consistency", "pov_drift"],
-        total_tense_shifts=total_tense,
-        total_pov_flags=total_pov,
-    )
-
-    log = ActivityLog(
-        user_id=current_user.id,
-        story_id=story_id,
-        event_type="analysis_run",
-        category="health",
-        description=f"Editorial consistency: {len(scenes)} scene(s), {total_tense} tense shift(s), {total_pov} POV flag(s)",
-        metadata_={
-            "feature": "editorial-consistency",
-            "result": result.model_dump(),
-            "scene_count": len(scenes),
-            "tense_shift_count": total_tense,
-            "pov_flag_count": total_pov,
-        },
-    )
-    db.add(log)
+    result = run_editorial_consistency(story_id, current_user.id, db, node_ids)
     db.commit()
     return result
 

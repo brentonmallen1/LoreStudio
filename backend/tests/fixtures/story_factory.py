@@ -27,6 +27,7 @@ from app.models import (
     DialogueBlock,
     DiscoveredElement,
     Era,
+    FindingDismissal,
     HistoricalEvent,
     Location,
     LocationTravel,
@@ -134,6 +135,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(StoryTodo(id=_uid(), story_id=sid, node_id=scene1.id, content="fix pacing"))
     db.add(SceneLink(id=_uid(), story_id=sid, source_node_id=scene1.id, target_node_id=scene2.id, link_type="callback"))
     db.add(DiscoveredElement(id=_uid(), story_id=sid, source_node_id=scene1.id, element_type="character", name="Gull"))
+    db.add(FindingDismissal(id=_uid(), story_id=sid, fingerprint="fp-intended", node_content_hash=None))
     db.add(Diagram(id=_uid(), story_id=sid, title="Map"))
     db.add(PanelInterview(id=_uid(), story_id=sid))
 

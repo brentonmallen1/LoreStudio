@@ -14,6 +14,7 @@ from .culture import Culture
 from .diagram import Diagram
 from .dialogue import DialogueBlock
 from .discovered_element import DiscoveredElement
+from .finding_dismissal import FindingDismissal
 from .historical_event import Era, HistoricalEvent
 from .interview import CharacterInterview
 from .location import Location, ScenePresence, SceneSetting
@@ -54,6 +55,7 @@ __all__ = [
     "CodexEdge",
     "CodexNode",
     "ActivityLog",
+    "FindingDismissal",
     "AICallPayload",
     "AIJob",
     "CompendiumEntry",

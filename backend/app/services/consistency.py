@@ -220,11 +220,16 @@ def pov_drift(nodes: list[StructureNode], characters: list[Character]) -> list[F
     return findings
 
 
-def run_checks(story_id: str, db: Session, node_id: str | None = None, include_pov: bool = True) -> list[dict]:
+def run_checks(
+    story_id: str, db: Session, node_id: str | None = None, include_pov: bool = True, sync: bool = True
+) -> list[dict]:
+    """``sync=False`` reads the dialogue rows as they are: a read that must not write
+    (the findings feed) relies on saves keeping them in step, as they do."""
     q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
     if node_id:
         q = q.filter(StructureNode.id == node_id)
-    sync_story_dialogue(story_id, db)
+    if sync:
+        sync_story_dialogue(story_id, db)
     nodes = [n for n in q.all() if n.content and n.content.strip()]
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     findings = name_drift(nodes, characters) + unknown_speakers(nodes, characters, db)

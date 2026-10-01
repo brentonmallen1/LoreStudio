@@ -31,6 +31,7 @@ from .routers.dialogue import router as dialogue_router
 from .routers.discoveries import router as discoveries_router
 from .routers.editorial import router as editorial_router
 from .routers.export import router as export_router
+from .routers.findings import router as findings_router
 from .routers.health import router as health_router
 from .routers.history import router as history_router
 from .routers.import_router import router as import_router
@@ -160,6 +161,7 @@ app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
 app.include_router(scene_cast_router, prefix="/api", tags=["scene-cast"])
+app.include_router(findings_router, prefix="/api", tags=["findings"])
 app.include_router(search_router, prefix="/api", tags=["search"])
 app.include_router(media_router, prefix="/api", tags=["media"])
 app.include_router(diagrams_router, prefix="/api", tags=["diagrams"])

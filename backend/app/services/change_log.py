@@ -27,6 +27,7 @@ from ..models.character import Character, CharacterRelationship
 from ..models.compendium import CompendiumAttachment, CompendiumEntry
 from ..models.culture import Culture
 from ..models.dialogue import DialogueBlock
+from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, SceneSetting
@@ -59,6 +60,7 @@ ENTITY_MODELS: dict[str, type] = {
     "twist": Twist,
     "plot_thread": PlotThread,
     "plot_thread_appearance": PlotThreadAppearance,
+    "finding_dismissal": FindingDismissal,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -84,6 +86,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "compendium_entries": CompendiumEntry,
     "compendium_attachments": CompendiumAttachment,
     "twists": Twist,
+    "finding_dismissals": FindingDismissal,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000

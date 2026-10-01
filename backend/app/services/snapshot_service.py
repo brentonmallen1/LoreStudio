@@ -22,6 +22,7 @@ from ..models.culture import Culture
 from ..models.diagram import Diagram
 from ..models.dialogue import DialogueBlock
 from ..models.discovered_element import DiscoveredElement
+from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
@@ -110,6 +111,7 @@ _DELTA_ENTITY_KEYS = [
     "location_travel",
     "asset_attachments",
     "discovered_elements",
+    "finding_dismissals",
     "dialogue_blocks",
     "compendium_attachments",
     "character_journey_summaries",
@@ -145,6 +147,7 @@ SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
     "story_todos": "todos",
     "reader_knowledge_events": "reader_knowledge_events",
     "discovered_elements": "discovered_elements",
+    "finding_dismissals": "finding_dismissals",
 }
 
 #: Story-owned tables that have no story_id column of their own.
@@ -410,6 +413,9 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     ]
     data["discovered_elements"] = [
         _model_to_dict(e) for e in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id).all()
+    ]
+    data["finding_dismissals"] = [
+        _model_to_dict(d) for d in db.query(FindingDismissal).filter(FindingDismissal.story_id == story_id).all()
     ]
     data["location_travel"] = (
         [
@@ -873,10 +879,8 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
     _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
     _bulk_delete(CompendiumAttachment, CompendiumAttachment.entry_id, entry_ids)
-    _delete_by_story(SceneLink)
-    _delete_by_story(StoryTodo)
-    _delete_by_story(ReaderKnowledgeEvent)
-    _delete_by_story(DiscoveredElement)
+    for model in (SceneLink, StoryTodo, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal):
+        _delete_by_story(model)
 
     if _has("interviews"):
         _bulk_delete(CharacterInterview, CharacterInterview.character_id, char_ids)
@@ -979,6 +983,7 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
     _insert_all(StoryTodo, state.get("todos", []))
     _insert_all(ReaderKnowledgeEvent, state.get("reader_knowledge_events", []))
     _insert_all(DiscoveredElement, state.get("discovered_elements", []))
+    _insert_all(FindingDismissal, state.get("finding_dismissals", []))
     _insert_all(LocationTravel, state.get("location_travel", []))
     _insert_all(DialogueBlock, state.get("dialogue_blocks", []))
     _insert_all(CharacterJourneySummary, state.get("character_journey_summaries", []))

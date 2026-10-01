@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from .culture import Culture
     from .diagram import Diagram
     from .discovered_element import DiscoveredElement
+    from .finding_dismissal import FindingDismissal
     from .historical_event import Era, HistoricalEvent
     from .location import Location
     from .media import StoryAsset
@@ -161,3 +162,6 @@ class Story(Base):
         "StoryAsset", back_populates="story", cascade="all, delete-orphan"
     )
     ai_jobs: Mapped[list["AIJob"]] = relationship("AIJob", back_populates="story", cascade="all, delete-orphan")
+    finding_dismissals: Mapped[list["FindingDismissal"]] = relationship(
+        "FindingDismissal", back_populates="story", cascade="all, delete-orphan"
+    )

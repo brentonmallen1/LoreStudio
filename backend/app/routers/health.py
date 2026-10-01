@@ -27,14 +27,14 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..services.codex.presence import name_patterns
+from ..services.findings import collect
+from ..services.findings import data as finding_data
+from ..services.findings.data import RECENT_SCENE_WINDOW
+from ..services.findings.view import load_view
 from ..services.mice_validation import validate_thread_nesting
 from ..services.word_count import get_word_count_status
 
 router = APIRouter()
-
-RECENT_SCENE_WINDOW = 5  # "absent" = not in last N leaf scenes
-# Tertiary characters are intentionally background-only — don't flag their absence
-SIGNIFICANT_ROLES = {"protagonist", "deuteragonist", "antagonist", "love_interest", "confidant", "foil"}
 
 
 def _get_story(story_id: str, db: Session, user: User) -> Story:
@@ -124,7 +124,6 @@ def story_health(
     recent_leaves = leaves[-RECENT_SCENE_WINDOW:] if len(leaves) >= RECENT_SCENE_WINDOW else leaves
 
     char_screen_time: list[dict[str, Any]] = []
-    absent_characters = []
 
     # The Codex's name forms: "Eleanor" for Eleanor Vance, either half of "The Visitor
     # (Calder)", and no form two characters share. Matching the full label found almost
@@ -156,16 +155,6 @@ def story_health(
                 "arc_pct": arc_pct,
             }
         )
-
-        # Flag as absent if they have content scenes but haven't appeared recently
-        written_leaves = [n for n in leaves if n.word_count > 0]
-        if (
-            len(written_leaves) >= RECENT_SCENE_WINDOW
-            and scene_count > 0
-            and recent_count == 0
-            and c.role in SIGNIFICANT_ROLES
-        ):
-            absent_characters.append(c.name)
 
     # Sort by total appearances descending
     char_screen_time.sort(key=lambda x: x["scene_appearances"], reverse=True)
@@ -227,7 +216,7 @@ def story_health(
         },
         "pacing": pacing,
         "characters": char_screen_time,
-        "absent_characters": absent_characters,
+        "absent_characters": [c.name for c, _ in finding_data.absent_characters(load_view(story, db))],
         "threads": thread_health,
         "goals": {
             "total": goals_total,
@@ -244,51 +233,13 @@ def story_health_alerts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Lightweight endpoint returning only health alert counts for sidebar badge."""
-    _get_story(story_id, db, current_user)
-
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    characters = db.query(Character).filter(Character.story_id == story_id).all()
-    threads = db.query(PlotThread).filter(PlotThread.story_id == story_id).all()
-
-    children_map: dict[str, list[StructureNode]] = {}
-    roots: list[StructureNode] = []
-    for n in all_nodes:
-        if n.parent_id:
-            children_map.setdefault(n.parent_id, []).append(n)
-        else:
-            roots.append(n)
-    leaves = _flatten_leaves(roots, children_map)
-
-    recent_leaves = leaves[-RECENT_SCENE_WINDOW:] if len(leaves) >= RECENT_SCENE_WINDOW else leaves
-    written_leaves = [n for n in leaves if n.word_count > 0]
-
-    absent_characters = []
-    # The Codex's name forms: "Eleanor" for Eleanor Vance, either half of "The Visitor
-    # (Calder)", and no form two characters share. Matching the full label found almost
-    # nobody — the Visitor was in 0 scenes of a story she drives.
-    patterns = name_patterns({c.id: c.name for c in characters})
-
-    def appears(c_id: str, node) -> bool:
-        return bool(node.content) and any(p.search(node.content) for p in patterns.get(c_id, []))
-
-    for c in characters:
-        scene_count = sum(1 for n in leaves if appears(c.id, n))
-        recent_count = sum(1 for n in recent_leaves if appears(c.id, n))
-        if (
-            len(written_leaves) >= RECENT_SCENE_WINDOW
-            and scene_count > 0
-            and recent_count == 0
-            and c.role in SIGNIFICANT_ROLES
-        ):
-            absent_characters.append(c.name)
-
-    leaf_order = [n.id for n in leaves]
-    mice_violations = validate_thread_nesting(threads, leaf_order)
-
-    count = len(absent_characters) + len(mice_violations)
+    """The rail's badge: how many findings are open (doc 12 P3), so the badge and the
+    feed always agree. The two older fields stay until the Findings page replaces Story
+    Health."""
+    story = _get_story(story_id, db, current_user)
+    view = load_view(story, db)
     return {
-        "count": count,
-        "absent_characters": absent_characters,
-        "mice_violation_count": len(mice_violations),
+        "count": collect(story, db).open_count,
+        "absent_characters": [c.name for c, _ in finding_data.absent_characters(view)],
+        "mice_violation_count": len(finding_data.mice_violations(view)),
     }
