@@ -45,7 +45,7 @@ export interface RouteSection {
   /** Narrower than the page's modes (Twists is Studio only inside a both-modes Lorebook). */
   modes?: UIMode[];
   ai?: boolean;
-  /** The URL parameter of an entry page under the section (`/lorebook/characters/:characterId`). */
+  /** The URL parameter of an entry under the section (`/lorebook/characters/:entryId`). */
   detailParam?: string;
 }
 
@@ -120,7 +120,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         label: "Characters",
         icon: Users,
         keywords: ["cast", "people", "personae", "persona", "relationships", "who"],
-        detailParam: "characterId",
+        detailParam: "entryId",
       },
       {
         id: "places",
@@ -128,13 +128,14 @@ export const STORY_ROUTES: StoryRoute[] = [
         label: "Places",
         icon: MapPin,
         keywords: ["locations", "settings", "setting", "world building", "worldbuilding", "where"],
-        detailParam: "locationId",
+        detailParam: "entryId",
       },
       {
         id: "threads",
         path: "/threads",
         label: "Plot Threads",
         icon: GitBranch,
+        detailParam: "entryId",
         keywords: ["mice", "arcs", "plot", "subplot", "threads"],
       },
       {
@@ -142,6 +143,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/twists",
         label: "Twists",
         icon: Eye,
+        detailParam: "entryId",
         modes: STUDIO,
         keywords: ["reveal", "clues", "reader knowledge", "surprise", "dramatic irony"],
       },
@@ -150,6 +152,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/systems",
         label: "Systems",
         icon: Zap,
+        detailParam: "entryId",
         keywords: ["magic", "technology", "rules", "world building", "worldbuilding"],
       },
       {
@@ -157,6 +160,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/cultures",
         label: "Cultures",
         icon: Landmark,
+        detailParam: "entryId",
         keywords: ["peoples", "customs", "religion", "world building", "worldbuilding"],
       },
       {
@@ -164,6 +168,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/history",
         label: "History",
         icon: Clock,
+        detailParam: "entryId",
         keywords: ["timeline", "eras", "events", "world building", "worldbuilding"],
       },
       {
@@ -171,6 +176,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/calendars",
         label: "Calendars",
         icon: CalendarDays,
+        detailParam: "entryId",
         keywords: ["dates", "months", "seasons", "world building", "worldbuilding"],
       },
       {
@@ -178,6 +184,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/travel",
         label: "Travel",
         icon: ArrowLeftRight,
+        detailParam: "entryId",
         keywords: ["distances", "routes", "journeys", "world building", "worldbuilding"],
       },
     ],
@@ -339,8 +346,8 @@ export function routesFor(mode: UIMode): StoryRoute[] {
  */
 export const STORY_REDIRECTS: { from: string; to: string }[] = [
   { from: "/characters", to: "/lorebook/characters" },
-  { from: "/characters/:characterId", to: "/lorebook/characters/:characterId" },
-  { from: "/locations/:locationId", to: "/lorebook/places/:locationId" },
+  { from: "/characters/:entryId", to: "/lorebook/characters/:entryId" },
+  { from: "/locations/:entryId", to: "/lorebook/places/:entryId" },
   { from: "/worldbuilding", to: "/lorebook/places" },
   { from: "/threads", to: "/lorebook/threads" },
   { from: "/twists", to: "/lorebook/twists" },

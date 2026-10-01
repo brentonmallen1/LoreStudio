@@ -3,7 +3,10 @@ import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { openScene, sceneTitle } from "../../lib/panel/openScene";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Location } from "../../types";
-import AutosaveTextarea from "./AutosaveTextarea";
+import { KINDS } from "../../lib/lorebook/kinds";
+import FieldList from "../lorebook/FieldList";
+
+const COMPACT_FIELDS = KINDS.location.fields.filter((f) => f.compact);
 import SlotPicker from "../common/SlotPicker";
 import styles from "./Panel.module.css";
 
@@ -13,8 +16,6 @@ export default function CompactLocationSheet({ location }: { location: Location 
   useReloadOnUndo(["location"], () => {
     if (activeStory) api.listLocationsFlat(activeStory.id).then(setLocations);
   });
-  const save = (key: keyof Location) => (value: string) =>
-    api.updateLocation(location.id, { [key]: value }).then(upsertLocation);
   const scenes = (sceneCast?.scenes ?? []).filter((s) => s.location_ids.includes(location.id));
 
   return (
@@ -25,26 +26,15 @@ export default function CompactLocationSheet({ location }: { location: Location 
           value={location.color_slot}
           onChange={(slot) => api.updateLocation(location.id, { color_slot: slot }).then(upsertLocation)}
         />
-        <AutosaveTextarea
-          key={`${location.id}:description`}
-          label="Description"
-          initial={location.description ?? ""}
-          placeholder="What is there…"
-          save={save("description")}
-        />
-        <AutosaveTextarea
-          key={`${location.id}:atmosphere`}
-          label="Atmosphere"
-          initial={location.atmosphere ?? ""}
-          placeholder="How it feels to be there…"
-          save={save("atmosphere")}
-        />
-        <AutosaveTextarea
-          key={`${location.id}:significance`}
-          label="Significance"
-          initial={location.significance ?? ""}
-          placeholder="Why the story needs this place…"
-          save={save("significance")}
+        <FieldList
+          entityKey={location.id}
+          fields={COMPACT_FIELDS}
+          values={location as unknown as Record<string, unknown>}
+          save={(key, value) =>
+            api
+              .updateLocation(location.id, { [key]: value, ...(location.is_stub ? { is_stub: false } : {}) })
+              .then(upsertLocation)
+          }
         />
       </section>
       <section className={styles.section}>

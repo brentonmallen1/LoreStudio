@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STORY_REDIRECTS, STORY_ROUTES, fillParams, flatRoutes } from "../lib/routes";
-import { DETAIL_ELEMENTS, ROUTE_ELEMENTS, SECTION_ELEMENTS } from "./routeElements";
+import { ROUTE_ELEMENTS, SECTION_ELEMENTS } from "./routeElements";
 
 describe("story routes", () => {
   it("has a page for every route without sections, and nothing else", () => {
@@ -16,14 +16,6 @@ describe("story routes", () => {
       .map((e) => e.key)
       .sort();
     expect(Object.keys(SECTION_ELEMENTS).sort()).toEqual(keys);
-  });
-
-  it("has an entry page for every section that names one, and nothing else", () => {
-    const keys = flatRoutes()
-      .filter((e) => e.section?.detailParam)
-      .map((e) => e.key)
-      .sort();
-    expect(Object.keys(DETAIL_ELEMENTS).sort()).toEqual(keys);
   });
 
   it("gives every grouped page a first section at its own path", () => {

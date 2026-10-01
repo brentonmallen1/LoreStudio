@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import { sceneCastApi } from "../api/sceneCast";
 import { loadStoryIntoStores } from "../lib/story/loadStory";
@@ -7,9 +7,9 @@ import { findNode } from "../components/layout/structureTreeMeta";
 import { rememberScene, sceneToResume } from "../lib/resumeScene";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useStoryStore } from "../stores/storyStore";
+import { usePanelStore } from "../stores/panelStore";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
-import PageBackBar from "../components/layout/PageBackBar";
 import StoryStrip from "../components/strip/StoryStrip";
 import StoryPanel from "../components/panel/StoryPanel";
 import StorySearchPanel from "../components/story/StorySearchPanel";
@@ -27,8 +27,17 @@ export default function StoryWorkspacePage() {
   const [stripRevealed, setStripRevealed] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // `navigate` changes identity whenever the location does; reading it through a ref keeps
+  // this effect to "the story changed". Depending on it reloaded the whole story, and
+  // remounted every page, on each navigation inside the story.
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    navigateRef.current = navigate;
+  });
+
   useEffect(() => {
     if (!storyId) return;
+    const navigate = navigateRef.current;
     setLoading(true);
     loadStoryIntoStores(storyId)
       .then((structure) => {
@@ -42,7 +51,16 @@ export default function StoryWorkspacePage() {
       })
       .catch(() => navigate("/"))
       .finally(() => setLoading(false));
-  }, [storyId, setActiveNode, navigate]);
+  }, [storyId, setActiveNode]);
+
+  // The panel remembers open or collapsed separately for the prose and for every other page
+  // (doc 12 P2): part of the desk while writing, a reference you call up elsewhere.
+  const { pathname } = useLocation();
+  const setPanelSide = usePanelStore((s) => s.setSide);
+  const writing = pathname.includes("/write");
+  useEffect(() => {
+    setPanelSide(writing ? "writing" : "pages");
+  }, [writing, setPanelSide]);
 
   // Remember the open scene per story, so the Write page reopens it next time.
   const activeNode = useStoryStore((s) => s.activeNode);
@@ -139,7 +157,6 @@ export default function StoryWorkspacePage() {
       )}
 
       <main className={styles.main}>
-        <PageBackBar />
         <Suspense fallback={<div className={styles.loading}>Loading…</div>}>
           <StoryRoutes />
         </Suspense>

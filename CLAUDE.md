@@ -108,8 +108,10 @@ components/       — Feature components organized by domain
   layout/         — GlobalHeader, breadcrumb navigator, back bar, ModeGate
   strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
+  lorebook/       — The Lorebook browser: one EntitySheet for every kind (fields from
+                    lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/
   story/          — SceneEditor, CorkboardView, StorySummaryPanel, LorebookPanel
-  characters/     — CharacterSheet, CharacterList, RelationshipGraph
+  characters/     — Character parts the Lorebook sheet uses: dialogue, arc, relationships, graph
   threads/        — PlotThreadManager, ThreadVisualization
   panels/         — Group interview (multi-character panel)
   analysis/       — Perspective summaries

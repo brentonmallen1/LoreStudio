@@ -147,7 +147,7 @@ export default function ThreadVisualization({ storyId }: Props) {
 
   function goToNode(fn: FlatNode) {
     setActiveNode(fn.node);
-    navigate(`/stories/${storyId}`);
+    navigate(`/stories/${storyId}/write/${fn.node.id}`);
   }
 
   return (

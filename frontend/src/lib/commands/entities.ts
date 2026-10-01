@@ -95,7 +95,7 @@ export function useEntityCommands() {
           t.id,
           t.name,
           activeStory.id,
-          `${base}/lorebook/threads`,
+          `${base}/lorebook/threads/${t.id}`,
           GitBranch,
           "Threads",
         );

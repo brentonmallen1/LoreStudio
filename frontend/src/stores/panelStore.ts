@@ -9,6 +9,13 @@ import { entityTabId, toolTabId, type EntityKind, type PanelTab, type ToolId } f
  */
 export type PanelFrameMode = "docked" | "floating" | "window";
 
+/**
+ * Which side of the app the author is on (doc 12 P2). Writing, the panel is part of the
+ * desk and opens by default; on any other page it is a reference you call up, so it starts
+ * as the collapsed rail. Each side remembers its own choice.
+ */
+export type PanelSide = "writing" | "pages";
+
 export interface Highlight {
   kind: EntityKind;
   id: string;
@@ -19,13 +26,18 @@ interface PanelState {
   storyId: string | null;
   tabs: PanelTab[];
   activeTabId: string;
+  /** Open on the side the author is on now: `openBySide[side]`. */
   open: boolean;
+  side: PanelSide;
+  openBySide: Record<PanelSide, boolean>;
   /** Docked in the workspace row, floating over the page, or popped out to its own window. */
   frame: PanelFrameMode;
   /** The entity whose mentions light up in the prose and on the strip. */
   highlight: Highlight | null;
 
   loadForStory: (storyId: string) => void;
+  /** Called when the route changes between the prose and every other page. */
+  setSide: (side: PanelSide) => void;
   openEntity: (kind: EntityKind, id: string, label: string) => void;
   openTool: (tool: ToolId) => void;
   activate: (id: string) => void;
@@ -44,7 +56,8 @@ interface PanelState {
 }
 
 const SCENE_TAB: PanelTab = { id: "scene", kind: "scene" };
-const OPEN_KEY = "ls_panel_open";
+const OPEN_KEYS: Record<PanelSide, string> = { writing: "ls_panel_open", pages: "ls_panel_open_pages" };
+const OPEN_DEFAULTS: Record<PanelSide, boolean> = { writing: true, pages: false };
 const FRAME_KEY = "ls_panel_frame";
 const tabsKey = (storyId: string) => `ls_panel:${storyId}`;
 
@@ -75,127 +88,136 @@ function persistTabs(storyId: string | null, tabs: PanelTab[], activeTabId: stri
   write(tabsKey(storyId), { tabs: tabs.filter((t) => t.kind !== "scene"), activeTabId });
 }
 
-export const usePanelStore = create<PanelState>((set, get) => ({
-  storyId: null,
-  tabs: [SCENE_TAB],
-  activeTabId: "scene",
-  open: read<boolean>(OPEN_KEY, true),
-  // "window" is never restored: a pop-out that is not there any more would leave a strip and no panel.
-  frame: read<PanelFrameMode>(FRAME_KEY, "docked") === "floating" ? "floating" : "docked",
-  highlight: null,
+const initialOpen: Record<PanelSide, boolean> = {
+  writing: read<boolean>(OPEN_KEYS.writing, OPEN_DEFAULTS.writing),
+  pages: read<boolean>(OPEN_KEYS.pages, OPEN_DEFAULTS.pages),
+};
 
-  loadForStory: (storyId) => {
-    if (get().storyId === storyId) return;
-    const saved = read<{ tabs: PanelTab[]; activeTabId: string }>(tabsKey(storyId), {
-      tabs: [],
-      activeTabId: "scene",
-    });
-    const tabs = [SCENE_TAB, ...saved.tabs.filter((t) => t.kind !== "scene")];
-    const activeTabId =
-      saved.activeTabId === "assistant" || tabs.some((t) => t.id === saved.activeTabId)
-        ? saved.activeTabId
-        : "scene";
-    // The tab you left open comes back lit, the way it was when you left.
-    const active = tabs.find((t) => t.id === activeTabId);
-    set({
-      storyId,
-      tabs,
-      activeTabId,
-      highlight: highlightOf(active),
-    });
-  },
+export const usePanelStore = create<PanelState>((set, get) => {
+  /** Open or collapse the panel on the current side, and remember it for that side. */
+  function openOnSide(open: boolean): Pick<PanelState, "open" | "openBySide"> {
+    const { side, openBySide } = get();
+    write(OPEN_KEYS[side], open);
+    return { open, openBySide: { ...openBySide, [side]: open } };
+  }
 
-  openEntity: (kind, id, label) => {
-    const tabId = entityTabId(kind, id);
-    const { tabs, storyId } = get();
-    const next = tabs.some((t) => t.id === tabId)
-      ? tabs
-      : [...tabs, { id: tabId, kind: "entity" as const, entityKind: kind, entityId: id, label }];
-    persistTabs(storyId, next, tabId);
-    set({ tabs: next, activeTabId: tabId, open: true, highlight: { kind, id, name: label } });
-    write(OPEN_KEY, true);
-  },
+  return {
+    storyId: null,
+    tabs: [SCENE_TAB],
+    activeTabId: "scene",
+    side: "writing",
+    openBySide: initialOpen,
+    open: initialOpen.writing,
+    // "window" is never restored: a pop-out that is not there any more would leave a strip and no panel.
+    frame: read<PanelFrameMode>(FRAME_KEY, "docked") === "floating" ? "floating" : "docked",
+    highlight: null,
 
-  openTool: (tool) => {
-    const tabId = toolTabId(tool);
-    const { tabs, storyId } = get();
-    const next = tabs.some((t) => t.id === tabId)
-      ? tabs
-      : [...tabs, { id: tabId, kind: "tool" as const, tool }];
-    persistTabs(storyId, next, tabId);
-    set({ tabs: next, activeTabId: tabId, open: true });
-    write(OPEN_KEY, true);
-  },
+    loadForStory: (storyId) => {
+      if (get().storyId === storyId) return;
+      const saved = read<{ tabs: PanelTab[]; activeTabId: string }>(tabsKey(storyId), {
+        tabs: [],
+        activeTabId: "scene",
+      });
+      const tabs = [SCENE_TAB, ...saved.tabs.filter((t) => t.kind !== "scene")];
+      const activeTabId =
+        saved.activeTabId === "assistant" || tabs.some((t) => t.id === saved.activeTabId)
+          ? saved.activeTabId
+          : "scene";
+      // The tab you left open comes back lit, the way it was when you left.
+      const active = tabs.find((t) => t.id === activeTabId);
+      set({
+        storyId,
+        tabs,
+        activeTabId,
+        highlight: highlightOf(active),
+      });
+    },
 
-  activate: (id) => {
-    const { tabs, storyId } = get();
-    if (id === "assistant") return get().openAssistant();
-    const tab = tabs.find((t) => t.id === id);
-    if (!tab) return;
-    persistTabs(storyId, tabs, id);
-    set({
-      activeTabId: id,
-      open: true,
-      highlight: highlightOf(tab),
-    });
-    write(OPEN_KEY, true);
-  },
+    setSide: (side) => {
+      if (get().side === side) return;
+      set({ side, open: get().openBySide[side] });
+    },
 
-  close: (id) => {
-    if (id === "scene") return;
-    if (id === "assistant") return get().activate("scene");
-    const { tabs, activeTabId, storyId } = get();
-    const index = tabs.findIndex((t) => t.id === id);
-    if (index < 0) return;
-    const next = tabs.filter((t) => t.id !== id);
-    // Closing the open tab lands on its neighbour, the way browser tabs do.
-    const nextActive =
-      activeTabId === id ? (next[Math.min(index, next.length - 1)]?.id ?? "scene") : activeTabId;
-    persistTabs(storyId, next, nextActive);
-    const active = next.find((t) => t.id === nextActive);
-    set({
-      tabs: next,
-      activeTabId: nextActive,
-      highlight: highlightOf(active),
-    });
-  },
+    openEntity: (kind, id, label) => {
+      const tabId = entityTabId(kind, id);
+      const { tabs, storyId } = get();
+      const next = tabs.some((t) => t.id === tabId)
+        ? tabs
+        : [...tabs, { id: tabId, kind: "entity" as const, entityKind: kind, entityId: id, label }];
+      persistTabs(storyId, next, tabId);
+      set({ tabs: next, activeTabId: tabId, highlight: { kind, id, name: label }, ...openOnSide(true) });
+    },
 
-  setOpen: (open) => {
-    write(OPEN_KEY, open);
-    set({ open });
-  },
-  toggle: () => get().setOpen(!get().open),
+    openTool: (tool) => {
+      const tabId = toolTabId(tool);
+      const { tabs, storyId } = get();
+      const next = tabs.some((t) => t.id === tabId)
+        ? tabs
+        : [...tabs, { id: tabId, kind: "tool" as const, tool }];
+      persistTabs(storyId, next, tabId);
+      set({ tabs: next, activeTabId: tabId, ...openOnSide(true) });
+    },
 
-  setFrame: (frame) => {
-    if (frame !== "window") write(FRAME_KEY, frame);
-    set({ frame, open: true });
-    write(OPEN_KEY, true);
-  },
-  toggleFloating: () => get().setFrame(get().frame === "floating" ? "docked" : "floating"),
+    activate: (id) => {
+      const { tabs, storyId } = get();
+      if (id === "assistant") return get().openAssistant();
+      const tab = tabs.find((t) => t.id === id);
+      if (!tab) return;
+      persistTabs(storyId, tabs, id);
+      set({ activeTabId: id, highlight: highlightOf(tab), ...openOnSide(true) });
+    },
 
-  openAssistant: () => {
-    const { tabs, storyId } = get();
-    persistTabs(storyId, tabs, "assistant");
-    set({ activeTabId: "assistant", open: true, highlight: null });
-    write(OPEN_KEY, true);
-  },
-  toggleAssistant: () => {
-    const { open, activeTabId } = get();
-    if (open && activeTabId === "assistant") get().activate("scene");
-    else get().openAssistant();
-  },
+    close: (id) => {
+      if (id === "scene") return;
+      if (id === "assistant") return get().activate("scene");
+      const { tabs, activeTabId, storyId } = get();
+      const index = tabs.findIndex((t) => t.id === id);
+      if (index < 0) return;
+      const next = tabs.filter((t) => t.id !== id);
+      // Closing the open tab lands on its neighbour, the way browser tabs do.
+      const nextActive =
+        activeTabId === id ? (next[Math.min(index, next.length - 1)]?.id ?? "scene") : activeTabId;
+      persistTabs(storyId, next, nextActive);
+      const active = next.find((t) => t.id === nextActive);
+      set({
+        tabs: next,
+        activeTabId: nextActive,
+        highlight: highlightOf(active),
+      });
+    },
 
-  setHighlight: (highlight) => set({ highlight }),
+    setOpen: (open) => set(openOnSide(open)),
+    toggle: () => get().setOpen(!get().open),
 
-  prune: (exists) => {
-    const { tabs, activeTabId, storyId } = get();
-    const next = tabs.filter((t) => t.kind !== "entity" || exists(t));
-    if (next.length === tabs.length) return;
-    const nextActive = next.some((t) => t.id === activeTabId) ? activeTabId : "scene";
-    persistTabs(storyId, next, nextActive);
-    set({ tabs: next, activeTabId: nextActive });
-  },
-}));
+    setFrame: (frame) => {
+      if (frame !== "window") write(FRAME_KEY, frame);
+      set({ frame, ...openOnSide(true) });
+    },
+    toggleFloating: () => get().setFrame(get().frame === "floating" ? "docked" : "floating"),
+
+    openAssistant: () => {
+      const { tabs, storyId } = get();
+      persistTabs(storyId, tabs, "assistant");
+      set({ activeTabId: "assistant", highlight: null, ...openOnSide(true) });
+    },
+    toggleAssistant: () => {
+      const { open, activeTabId } = get();
+      if (open && activeTabId === "assistant") get().activate("scene");
+      else get().openAssistant();
+    },
+
+    setHighlight: (highlight) => set({ highlight }),
+
+    prune: (exists) => {
+      const { tabs, activeTabId, storyId } = get();
+      const next = tabs.filter((t) => t.kind !== "entity" || exists(t));
+      if (next.length === tabs.length) return;
+      const nextActive = next.some((t) => t.id === activeTabId) ? activeTabId : "scene";
+      persistTabs(storyId, next, nextActive);
+      set({ tabs: next, activeTabId: nextActive });
+    },
+  };
+});
 
 /** The highlighted entity's name, for code outside React (the editor's decorations). */
 export function currentHighlight(): Highlight | null {

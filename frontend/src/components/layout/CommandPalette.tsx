@@ -218,7 +218,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}/lorebook`);
         break;
       case "thread":
-        navigate(`/stories/${result.story_id}/lorebook/threads`);
+        navigate(`/stories/${result.story_id}/lorebook/threads/${result.id}`);
         break;
     }
     close();

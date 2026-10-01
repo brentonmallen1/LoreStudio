@@ -26,22 +26,25 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   publish: lazy(() => import("./PublishPage")),
 };
 
-const WorldBuildingHub = lazy(() => import("../components/worldbuilding/WorldBuildingHub"));
+const world = () => import("../components/lorebook/sections/WorldSections");
+/** One named export of the world sections, as a lazy page. */
+const worldSection = (name: "SystemsSection" | "CulturesSection" | "CalendarsSection" | "TravelSection") =>
+  lazy<ComponentType<PageProps>>(() => world().then((m) => ({ default: m[name] })));
 const MediaPage = lazy(() => import("./MediaPage"));
 const ChroniclePage = lazy(() => import("./ChroniclePage"));
 
 /** One body per section, keyed `route.section`. Several sections may share a body. */
 export const SECTION_ELEMENTS: Record<string, Page> = {
   "lorebook.identity": lazy(() => import("../components/story/StoryIdentityPanel")),
-  "lorebook.characters": lazy(() => import("../components/characters/CharacterList")),
-  "lorebook.places": WorldBuildingHub,
-  "lorebook.threads": lazy(() => import("../components/threads/PlotThreadManager")),
-  "lorebook.twists": lazy(() => import("../components/twists/TwistManager")),
-  "lorebook.systems": WorldBuildingHub,
-  "lorebook.cultures": WorldBuildingHub,
-  "lorebook.history": WorldBuildingHub,
-  "lorebook.calendars": WorldBuildingHub,
-  "lorebook.travel": WorldBuildingHub,
+  "lorebook.characters": lazy(() => import("../components/lorebook/sections/CharactersSection")),
+  "lorebook.places": lazy(() => import("../components/lorebook/sections/PlacesSection")),
+  "lorebook.threads": lazy(() => import("../components/lorebook/sections/ThreadsSection")),
+  "lorebook.twists": lazy(() => import("../components/lorebook/sections/TwistsSection")),
+  "lorebook.systems": worldSection("SystemsSection"),
+  "lorebook.cultures": worldSection("CulturesSection"),
+  "lorebook.history": lazy(() => import("../components/lorebook/sections/HistorySection")),
+  "lorebook.calendars": worldSection("CalendarsSection"),
+  "lorebook.travel": worldSection("TravelSection"),
   "compendium.research": lazy(() => import("../components/compendium/CompendiumPanel")),
   "compendium.images": MediaPage,
   "compendium.diagrams": MediaPage,
@@ -49,10 +52,4 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "chronicle.conversations": ChroniclePage,
   "chronicle.changes": ChroniclePage,
   "chronicle.versions": lazy(() => import("./VersionsPage")),
-};
-
-/** The entry page under a section with a `detailParam` (a character's sheet under Characters). */
-export const DETAIL_ELEMENTS: Record<string, Page> = {
-  "lorebook.characters": lazy(() => import("../components/characters/CharacterSheet")),
-  "lorebook.places": lazy(() => import("./LocationSheet")),
 };

@@ -4,7 +4,7 @@ import BrowserShell from "../components/layout/shapes/BrowserShell";
 import ModeGate from "../components/layout/ModeGate";
 import { useAIAvailable, useMode } from "../lib/mode";
 import { sectionModes, sectionPath, type RouteSection, type StoryRoute } from "../lib/routes";
-import { DETAIL_ELEMENTS, SECTION_ELEMENTS, type PageProps } from "./routeElements";
+import { SECTION_ELEMENTS, type PageProps } from "./routeElements";
 import styles from "./StoryWorkspace.module.css";
 
 type Body = LazyExoticComponent<ComponentType<PageProps>>;
@@ -13,8 +13,8 @@ type Body = LazyExoticComponent<ComponentType<PageProps>>;
 const GAP_BEFORE = new Set(["lorebook.systems", "compendium.images", "chronicle.versions"]);
 
 /**
- * A grouped page (doc 12 P1): the index of its sections, and the open section's body
- * (or an entry's page under it). A section outside the current mode is not listed; its
+ * A grouped page (doc 12 P1): the index of its sections, and the open section's body,
+ * which reads the entry it shows from the address. A section outside the current mode is not listed; its
  * address still answers, with the mode notice, so a link never dead-ends.
  */
 export default function SectionedPage({ route, storyId }: { route: StoryRoute; storyId: string }) {
@@ -48,23 +48,18 @@ export default function SectionedPage({ route, storyId }: { route: StoryRoute; s
         {sections.map((s) => {
           const key = `${route.id}.${s.id}`;
           const Body = SECTION_ELEMENTS[key] as Body;
-          const Detail = DETAIL_ELEMENTS[key] as Body | undefined;
           const rel = s.path.replace(/^\//, "");
-          return [
+          // One route per section, the entry optional (`places/:entryId?`): moving from the list
+          // to an entry, or between entries, keeps the section mounted and its state with it.
+          const path = s.detailParam ? `${rel ? `${rel}/` : ""}:${s.detailParam}?` : rel || undefined;
+          return (
             <Route
               key={key}
-              index={rel === "" ? true : undefined}
-              path={rel === "" ? undefined : rel}
+              index={!path ? true : undefined}
+              path={path}
               element={gate(s, <Body storyId={storyId} section={s.id} />)}
-            />,
-            Detail && s.detailParam ? (
-              <Route
-                key={`${key}.detail`}
-                path={`${rel}/:${s.detailParam}`}
-                element={gate(s, <Detail storyId={storyId} section={s.id} />)}
-              />
-            ) : null,
-          ];
+            />
+          );
         })}
         <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
       </Routes>

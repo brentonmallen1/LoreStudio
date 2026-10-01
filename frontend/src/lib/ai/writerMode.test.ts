@@ -38,7 +38,6 @@ const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 
 /** The story routes and sections open in writer mode (lib/routes.ts), as their components. */
 const WRITER_ENTRY_POINTS = [
-  "src/pages/LocationSheet.tsx",
   "src/pages/StoryOverviewPage.tsx",
   "src/pages/MediaPage.tsx",
   "src/pages/StoryHealthPage.tsx",
@@ -47,12 +46,13 @@ const WRITER_ENTRY_POINTS = [
   "src/components/story/StoryboardView.tsx",
   "src/components/story/SummaryOverviewView.tsx",
   "src/components/story/StoryIdentityPanel.tsx",
-  "src/components/characters/CharacterList.tsx",
-  "src/components/characters/CharacterSheet.tsx",
+  "src/components/lorebook/sections/CharactersSection.tsx",
+  "src/components/lorebook/sections/PlacesSection.tsx",
+  "src/components/lorebook/sections/ThreadsSection.tsx",
+  "src/components/lorebook/sections/WorldSections.tsx",
+  "src/components/lorebook/sections/HistorySection.tsx",
   "src/components/compendium/CompendiumPanel.tsx",
-  "src/components/worldbuilding/WorldBuildingHub.tsx",
   "src/components/plan/PlanPage.tsx",
-  "src/components/threads/PlotThreadManager.tsx",
 ];
 
 function resolveImport(from: string, spec: string): string | null {
