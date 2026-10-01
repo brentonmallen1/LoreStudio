@@ -80,9 +80,9 @@ export function NeedsYourEye({ storyId }: { storyId: string }) {
   return (
     <section className={styles.card} aria-label="Needs your eye">
       <div className={styles.cardHead}>
-        <span className={styles.label} data-tone="warning">
+        <h2 className={styles.label} data-tone="warning">
           Needs your eye
-        </span>
+        </h2>
         {route && findings.length > 0 && (
           <Link to={storyPath(storyId, route)} className={styles.headLink}>
             {findings.length === 1 ? "The finding →" : `All ${findings.length} findings →`}
@@ -114,7 +114,7 @@ export function WordsByChapter({ storyId, ov }: { storyId: string; ov: StoryOver
   return (
     <section className={styles.card} aria-label="Where the words are">
       <div className={styles.cardHead}>
-        <span className={styles.label}>Where the words are</span>
+        <h2 className={styles.label}>Where the words are</h2>
         <span className={styles.rowMeta}>by {kind}</span>
       </div>
       <div className={styles.bars}>
@@ -153,7 +153,7 @@ export function CastAndPlaces({ storyId }: { storyId: string }) {
   return (
     <section className={styles.card} aria-label="Cast and places">
       <div className={styles.cardHead}>
-        <span className={styles.label}>Cast and places</span>
+        <h2 className={styles.label}>Cast and places</h2>
         <Link to={sectionPath(storyId, "lorebook", "characters")} className={styles.headLink}>
           Lorebook →
         </Link>
@@ -218,7 +218,7 @@ export function Lately({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
   return (
     <section className={styles.card} aria-label="Lately">
       <div className={styles.cardHead}>
-        <span className={styles.label}>Lately</span>
+        <h2 className={styles.label}>Lately</h2>
         <Link to={`/stories/${storyId}/chronicle`} className={styles.headLink}>
           Chronicle →
         </Link>

@@ -523,6 +523,15 @@
     background var(--transition),
     color var(--transition);
   margin-right: 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* A narrow window keeps the icon and its dot; the words are in the tooltip. */
+@media (max-width: 1100px) {
+  .backupIndicator > span:not([class]) {
+    display: none;
+  }
 }
 
 .backupIndicator:hover {

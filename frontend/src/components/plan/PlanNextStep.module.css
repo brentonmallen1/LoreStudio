@@ -1,11 +1,10 @@
+/* A section of the Overview like its neighbours: a heading over a rule, no box (doc 14 Q4). */
 .card {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .head {
@@ -21,7 +20,7 @@
 
 .title {
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-section-title);
 }
 
 .count {
@@ -44,15 +43,14 @@
   background: var(--color-accent);
 }
 
-/* Not a box in a box: the next step sits under a hairline (doc 13 P7). */
+/* The next step reads under the progress line. */
 .next {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.6rem 0.2rem 0.1rem;
+  padding: 0.3rem 0 0;
   border: none;
-  border-top: 1px solid var(--color-border-light);
   border-radius: 0;
   background: transparent;
   color: var(--color-text);

@@ -175,7 +175,7 @@ def seed_lighthouse_chronicle(
         user_id=user.id,
         story_id=story.id,
         kind="codex-suggest",
-        label=f"Codex suggestions — {story.title}",
+        label=f"Codex suggestions: {story.title}",
         status="error",
         params={},
         progress=0,
