@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { slotVar } from "../../lib/colorSlots";
 import { bySeverity } from "../../lib/findings/group";
 import { findRoute, sectionPath, storyPath } from "../../lib/routes";
@@ -59,6 +61,7 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
       {items.map((v) => (
         <Link key={v.label} to={v.to} className={styles.vital}>
           <span className={styles.label}>{v.label}</span>
+          <ChevronRight size={14} className={styles.vitalGo} aria-hidden />
           <span className={styles.vitalValue}>{v.value}</span>
           <span className={styles.vitalSub}>{v.sub}</span>
           {"bar" in v && v.bar !== null && v.bar !== undefined && (
@@ -99,6 +102,7 @@ export function NeedsYourEye({ storyId }: { storyId: string }) {
             <span className={styles.rowMeta} data-ai={f.source === "ai" || undefined}>
               {f.where || (f.source === "ai" ? "Assistant" : "")}
             </span>
+            <ChevronRight size={14} className={styles.rowGo} aria-hidden />
           </button>
         ))
       )}
@@ -108,33 +112,48 @@ export function NeedsYourEye({ storyId }: { storyId: string }) {
 
 export function WordsByChapter({ storyId, ov }: { storyId: string; ov: StoryOverview }) {
   const activeNode = useStoryStore((s) => s.activeNode);
+  // The caption names the bar under the pointer, or the one you are in (doc 14 Overview):
+  // the values were only in tooltips, which a keyboard or a touch never shows.
+  const [pointed, setPointed] = useState<string | null>(null);
   const max = Math.max(1, ...ov.distribution.map((d) => d.word_count));
   const kind = ov.distribution[0]?.level_type || "section";
   if (ov.distribution.length < 2) return null;
+  const isHere = (id: string) => id === activeNode?.id || id === activeNode?.parent_id;
+  const shown = ov.distribution.find((d) => d.id === pointed) ?? ov.distribution.find((d) => isHere(d.id));
   return (
     <section className={styles.card} aria-label="Where the words are">
       <div className={styles.cardHead}>
         <h2 className={styles.label}>Where the words are</h2>
         <span className={styles.rowMeta}>by {kind}</span>
       </div>
-      <div className={styles.bars}>
+      <div className={styles.bars} onMouseLeave={() => setPointed(null)}>
         {ov.distribution.map((d) => (
           <Link
             key={d.id}
             to={`/stories/${storyId}/write/${d.id}`}
             className={styles.bar}
             data-planned={d.word_count === 0 || undefined}
-            data-current={d.id === activeNode?.id || d.id === activeNode?.parent_id || undefined}
+            data-current={isHere(d.id) || undefined}
             style={{ height: `${Math.max(6, (d.word_count / max) * 100)}%` }}
-            title={`${d.title} · ${d.word_count ? `${d.word_count.toLocaleString()} words` : "planned"}`}
+            onMouseEnter={() => setPointed(d.id)}
+            onFocus={() => setPointed(d.id)}
+            onBlur={() => setPointed(null)}
             aria-label={`${d.title}, ${d.word_count ? `${d.word_count} words` : "planned"}`}
           />
         ))}
       </div>
-      <div className={styles.barsAxis}>
-        <span>{ov.distribution[0].title}</span>
-        <span>{ov.distribution[ov.distribution.length - 1].title}</span>
-      </div>
+      <p className={styles.barsCaption}>
+        {shown ? (
+          <>
+            <span className={styles.barsName}>{shown.title}</span>
+            {" · "}
+            {shown.word_count ? plural(shown.word_count, "word") : "planned"}
+            {isHere(shown.id) && !pointed && " · where you are"}
+          </>
+        ) : (
+          `${ov.distribution.length} ${kind}s; point at one for its words`
+        )}
+      </p>
     </section>
   );
 }
@@ -232,6 +251,7 @@ export function Lately({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
             <span className={styles.rowMeta} data-ai={r.ai || undefined}>
               {r.meta}
             </span>
+            <ChevronRight size={14} className={styles.rowGo} aria-hidden />
           </Link>
         ))
       )}

@@ -119,8 +119,58 @@
 
 .heroLinks {
   display: flex;
-  gap: 1rem;
-  padding: 0 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Secondary actions look like buttons, because they are (doc 14 Overview). */
+.heroAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 28px;
+  padding: 0 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-xs);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.heroAction:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface-2);
+}
+
+.heroAction[data-tone="ai"] {
+  border-color: var(--color-ai-border);
+  color: var(--color-ai);
+}
+
+.heroAction[data-tone="ai"]:hover {
+  background: var(--color-ai-subtle);
+}
+
+/* What the story is: read, not pressed. */
+.facts {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.inlineLink {
+  margin-left: 0.6rem;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ── Chips ── */
@@ -148,6 +198,7 @@
 
 .chip:hover {
   border-color: var(--color-border-hover);
+  background: var(--color-surface-2);
 }
 
 .chip[data-quiet] {
@@ -200,8 +251,25 @@
   text-decoration: none;
 }
 
-.vital:first-child {
-  padding-left: 0;
+.vital {
+  position: relative;
+}
+
+/* Each figure opens where it is measured; the chevron says so before the hover does. */
+.vitalGo {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.75rem;
+  color: var(--color-text-subtle);
+  transition:
+    color var(--transition),
+    transform var(--transition);
+}
+
+.vital:hover .vitalGo,
+.vital:focus-visible .vitalGo {
+  color: var(--color-accent);
+  transform: translateX(2px);
 }
 
 .vital + .vital {
@@ -251,21 +319,24 @@
 
 /* ── Sections ── */
 
-/* Typeset sections, not a card grid (doc 14 Q4): a heading over a rule, the content set
-   on the page itself. Two columns on a wide page, one on a narrow one. */
-.grid {
+/* Typeset sections, not a card grid (doc 14 Q4), in two columns with a job each: what to
+   act on, and what to know. One column on a narrow page. */
+.columns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 1.75rem 2.75rem;
+  align-items: start;
 }
 
-.grid[data-wide] {
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
-  .grid,
-  .grid[data-wide] {
+  .columns {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -296,7 +367,8 @@
   padding: 0;
   border: none;
   background: none;
-  color: var(--color-text-muted);
+  color: var(--color-accent);
+  font-weight: 500;
   font: inherit;
   font-size: 0.78rem;
   text-decoration: none;
@@ -304,7 +376,8 @@
 }
 
 .headLink:hover {
-  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .quiet {
@@ -313,13 +386,16 @@
   color: var(--color-text-muted);
 }
 
+/* A row you can open: a fill on hover and a chevron at its end (doc 14 Overview). */
 .rowLink {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  min-height: 30px;
-  padding: 0;
+  min-height: 34px;
+  margin: 0 -0.5rem;
+  padding: 0.2rem 0.5rem;
   border: none;
+  border-radius: var(--radius);
   background: none;
   color: var(--color-text);
   font: inherit;
@@ -329,9 +405,18 @@
   cursor: pointer;
 }
 
-.rowLink:hover .rowText {
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.rowLink:hover {
+  background: var(--color-surface-2);
+}
+
+.rowGo {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+.rowLink:hover .rowGo,
+.rowLink:focus-visible .rowGo {
+  color: var(--color-accent);
 }
 
 .rowText {
@@ -399,12 +484,18 @@
   border-bottom: none;
 }
 
-.barsAxis {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.7rem;
+.barsCaption {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barsName {
+  color: var(--color-text);
 }
 
 /* ── Recap ── */

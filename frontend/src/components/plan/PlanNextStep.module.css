@@ -43,20 +43,25 @@
   background: var(--color-accent);
 }
 
-/* The next step reads under the progress line. */
+/* The next step reads under the progress line, a row you can open like the Overview's others. */
 .next {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 100%;
-  padding: 0.3rem 0 0;
+  width: calc(100% + 1rem);
+  margin: 0 -0.5rem;
+  padding: 0.4rem 0.5rem;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--color-text);
   font: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.next:hover {
+  background: var(--color-surface-2);
 }
 
 .next:hover .nextLabel {
@@ -79,4 +84,13 @@
 .nextWhy {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
+}
+
+.go {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+.next:hover .go {
+  color: var(--color-accent);
 }

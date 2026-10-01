@@ -5,7 +5,7 @@ import styles from "./Overview.module.css";
 /** The trigger sits with the hero's other links (doc 14 review), not loose in the page. */
 export function RecapTrigger({ recap }: { recap: RecapState }) {
   return (
-    <button type="button" className={styles.headLink} data-tone="ai" onClick={recap.fetch}>
+    <button type="button" className={styles.heroAction} data-tone="ai" onClick={recap.fetch}>
       <Compass size={12} aria-hidden /> Remind me where I left off
     </button>
   );

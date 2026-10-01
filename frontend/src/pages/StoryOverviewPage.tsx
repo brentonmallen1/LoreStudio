@@ -15,6 +15,7 @@ import StartPaths from "../components/overview/StartPaths";
 import PlanNextStep from "../components/plan/PlanNextStep";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
+import { sectionPath } from "../lib/routes";
 import { ago } from "../lib/serverDate";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -70,6 +71,12 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
     return walk(structure, "") || "";
   };
   const line = story.logline || story.premise || story.narrative_intent;
+  // What the story is, as facts to read rather than chips to press (doc 14 Overview).
+  const facts = [
+    story.genre,
+    story.tone,
+    LENGTH_LABELS[story.intended_length ?? ""] ?? story.intended_length,
+  ].filter((f): f is string => !!f);
 
   return (
     <div className={styles.page}>
@@ -78,15 +85,14 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
           <div className={styles.heroText}>
             <h1 className={styles.title}>{story.title}</h1>
             {line && <p className={styles.logline}>{line}</p>}
-            <div className={styles.chips}>
-              {[story.genre, story.tone, LENGTH_LABELS[story.intended_length ?? ""] ?? story.intended_length]
-                .filter(Boolean)
-                .map((t) => (
-                  <Link key={t} to={`/stories/${storyId}/lorebook`} className={styles.chip}>
-                    {t}
-                  </Link>
-                ))}
-            </div>
+            {facts.length > 0 && (
+              <p className={styles.facts}>
+                {facts.join(" · ")}
+                <Link to={sectionPath(storyId, "lorebook", "identity")} className={styles.inlineLink}>
+                  Edit
+                </Link>
+              </p>
+            )}
           </div>
           {ov && (
             <div className={styles.heroSide}>
@@ -108,12 +114,12 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
               </Link>
               {hasContent && (
                 <div className={styles.heroLinks}>
-                  <Link to={`/stories/${storyId}/publish`} className={styles.headLink}>
+                  <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
                     <BookOpen size={12} aria-hidden /> Read it through
                   </Link>
                   <button
                     type="button"
-                    className={styles.headLink}
+                    className={styles.heroAction}
                     onClick={() => useUIStore.getState().setExportOpen(true)}
                   >
                     <Download size={12} aria-hidden /> Export
@@ -135,18 +141,22 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
           </p>
         )}
         {ov && hasContent && <Vitals storyId={storyId} ov={ov} />}
-        {ov && hasContent && (
-          <div className={styles.grid} data-wide>
-            <NeedsYourEye storyId={storyId} />
-            <WordsByChapter storyId={storyId} ov={ov} />
+        {ov && hasContent ? (
+          // Two columns with a job each (doc 14 Overview): on the left what to act on, on
+          // the right what to know.
+          <div className={styles.columns}>
+            <div className={styles.col} aria-label="What to do next">
+              <NeedsYourEye storyId={storyId} />
+              <PlanNextStep storyId={storyId} />
+              <Lately storyId={storyId} ov={ov} />
+            </div>
+            <div className={styles.col} aria-label="The story at a glance">
+              <WordsByChapter storyId={storyId} ov={ov} />
+              <CastAndPlaces storyId={storyId} />
+            </div>
           </div>
-        )}
-        <PlanNextStep storyId={storyId} />
-        {ov && hasContent && (
-          <div className={styles.grid}>
-            <CastAndPlaces storyId={storyId} />
-            <Lately storyId={storyId} ov={ov} />
-          </div>
+        ) : (
+          <PlanNextStep storyId={storyId} />
         )}
         {ov && !hasContent && <StartPaths storyId={storyId} />}
       </div>
