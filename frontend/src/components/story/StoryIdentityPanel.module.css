@@ -138,18 +138,6 @@
   margin: 0 0 0.375rem;
 }
 
-/* ── Field label row (label + workshop button, always inline) ── */
-.fieldLabelRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.375rem;
-}
-
-.fieldLabelRow .subFieldLabel {
-  margin: 0;
-}
-
 /* ── Completion dots ── */
 .completionDots {
   display: flex;
@@ -217,29 +205,6 @@
 
 .textarea:focus {
   border-color: var(--color-accent);
-}
-
-/* ── Workshop launcher button (Compass + text, opens AI chat panel) ── */
-.workshopBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.8rem;
-  font-family: inherit;
-  font-weight: 500;
-  border-radius: var(--radius);
-  border: none;
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    opacity var(--transition);
-}
-
-.workshopBtn:hover {
-  background: var(--color-ai-hover);
 }
 
 /* ── Theme tags ── */

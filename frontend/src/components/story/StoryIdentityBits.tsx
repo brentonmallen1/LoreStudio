@@ -1,7 +1,5 @@
-import { Check, Feather, FileText, Users } from "lucide-react";
+import { Check, FileText, Users } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
-import { useAIStore } from "../../stores/aiStore";
-import { useAIAvailable } from "../../lib/mode";
 import styles from "./StoryIdentityPanel.module.css";
 
 // Small presentational pieces used by StoryIdentityPanel.
@@ -80,33 +78,5 @@ export function HeroStats(_props: { storyId: string }) {
         </>
       )}
     </div>
-  );
-}
-
-// ── Workshop launcher button ───────────────────────────────────────────────
-export function WorkshopBtn({
-  label,
-  message,
-  storyId,
-}: {
-  label: string;
-  message: string;
-  storyId: string;
-}) {
-  const { createSession, sendMessage } = useAIStore();
-  const aiAvailable = useAIAvailable();
-
-  async function launch() {
-    const session = await createSession("story-identity-workshop", { storyId });
-    sendMessage(session.id, message);
-  }
-
-  if (!aiAvailable) return null;
-
-  return (
-    <button className={styles.workshopBtn} onClick={launch}>
-      <Feather size={12} />
-      {label}
-    </button>
   );
 }

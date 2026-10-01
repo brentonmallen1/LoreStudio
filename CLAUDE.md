@@ -223,8 +223,10 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 **`AIFeatureInfoTrigger` is mandatory** on any panel or page that exposes AI features. It renders the `Cpu` icon button that opens `AIFeatureInfoModal`. Place it in the panel header next to the title.
 
-**Assistant actions on a Lorebook sheet** fold into its one `AssistantRow`; on a page they sit in the
-header's ⋯ menu (AI colour, Compass), never as buttons across the page.
+**Assistant actions on a Lorebook sheet or a Plan step** fold into its one `AssistantRow` (a single
+action makes the row itself the button); on a page they sit in the header's ⋯ menu (AI colour,
+Compass, or Feather for a conversation), never as buttons across the page. A tool's own toolbar
+inside a page (the outline's tab bar, the twists timeline) may carry its Assistant action.
 
 **`LLMTransparencyTrigger`** (`ShieldCheck`) must appear next to AI-generated content so the author can inspect what was sent to the model. Use the `useLLMTransparency` hook.
 

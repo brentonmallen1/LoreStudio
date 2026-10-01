@@ -13,13 +13,26 @@ export interface AssistantAction {
 }
 
 /**
- * The Assistant's actions for a sheet, folded into one row (doc 12: purple on results, not
- * spread across headers). Absent in Writer mode and with AI switched off.
+ * The Assistant's actions for a sheet or a Plan step, folded into one row (doc 12: purple on
+ * results, not spread across headers). Absent in Writer mode and with AI switched off.
  */
 export default function AssistantRow({ actions }: { actions: AssistantAction[] }) {
   const aiAvailable = useAIAvailable();
   const [open, setOpen] = useState(false);
   if (!aiAvailable || actions.length === 0) return null;
+  if (actions.length === 1) {
+    // One action needs no unfolding: the row is the button (a Plan step's guidance, doc 14 Q2).
+    const [a] = actions;
+    return (
+      <section className={styles.assistantRow}>
+        <button type="button" className={styles.assistantToggle} title={a.title} onClick={a.onRun}>
+          {a.chat ? <Feather size={13} aria-hidden /> : <Compass size={13} aria-hidden />}
+          <span className={styles.assistantTitle}>Assistant</span>
+          <span className={styles.assistantHint}>{a.label}</span>
+        </button>
+      </section>
+    );
+  }
   return (
     <section className={styles.assistantRow} data-open={open || undefined}>
       <button

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle2, Circle, Compass, Plus } from "lucide-react";
+import { CheckCircle2, Circle, Plus } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
@@ -12,7 +12,7 @@ import {
   type PlanStep,
 } from "../../lib/planning/methods";
 import { humanize } from "../../lib/labels";
-import AIOnly from "../ai/AIOnly";
+import AssistantRow from "../lorebook/AssistantRow";
 import PlanGuidance from "./PlanGuidance";
 import { useAutosaveField } from "./useAutosaveField";
 import styles from "./Plan.module.css";
@@ -80,16 +80,16 @@ function CharacterFields({
       {step.target.fields.map((f) => (
         <CharacterField key={f} character={character} field={f} rows={firstPerson ? 12 : 2} />
       ))}
-      {step.guidanceLayer && (
-        <AIOnly>
-          <div className={styles.fieldFooter}>
-            <span />
-            <button className={styles.guidanceBtn} onClick={() => setGuidance((g) => !g)}>
-              <Compass size={13} />
-              {guidance ? "Hide guidance" : "Get guidance"}
-            </button>
-          </div>
-        </AIOnly>
+      {step.guidanceLayer && !guidance && (
+        <AssistantRow
+          actions={[
+            {
+              label: "Get guidance on this answer",
+              title: "The Assistant reads what you have written here and asks what it leaves open",
+              onRun: () => setGuidance(true),
+            },
+          ]}
+        />
       )}
       {guidance && step.guidanceLayer && (
         <PlanGuidance

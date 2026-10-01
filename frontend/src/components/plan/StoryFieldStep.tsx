@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Compass } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Story } from "../../types";
 import type { PlanStep, StoryPlanField } from "../../lib/planning/methods";
-import AIOnly from "../ai/AIOnly";
+import AssistantRow from "../lorebook/AssistantRow";
 import PlanGuidance from "./PlanGuidance";
 import { countWords, useAutosaveField } from "./useAutosaveField";
 import styles from "./Plan.module.css";
@@ -65,15 +64,18 @@ export default function StoryFieldStep({ story, step }: Props) {
         <span className={styles.wordCount}>
           {words} {words === 1 ? "word" : "words"}
         </span>
-        {step.guidanceLayer && (
-          <AIOnly>
-            <button className={styles.guidanceBtn} onClick={() => setGuidance((g) => !g)}>
-              <Compass size={13} />
-              {guidance ? "Hide guidance" : "Get guidance"}
-            </button>
-          </AIOnly>
-        )}
       </div>
+      {step.guidanceLayer && !guidance && (
+        <AssistantRow
+          actions={[
+            {
+              label: "Get guidance on this answer",
+              title: "The Assistant reads what you have written here and asks what it leaves open",
+              onRun: () => setGuidance(true),
+            },
+          ]}
+        />
+      )}
       {guidance && step.guidanceLayer && (
         <PlanGuidance
           storyId={story.id}

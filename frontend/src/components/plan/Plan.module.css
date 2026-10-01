@@ -337,26 +337,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.guidanceBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.875rem;
-  font: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border-radius: var(--radius);
-  border: none;
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
-  cursor: pointer;
-  transition: background var(--transition);
-}
-
-.guidanceBtn:hover {
-  background: var(--color-ai-hover);
-}
-
 .charField {
   display: flex;
   flex-direction: column;

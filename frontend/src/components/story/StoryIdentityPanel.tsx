@@ -10,7 +10,8 @@ import { SectionCard } from "../common";
 import PageHeader from "../layout/PageHeader";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import type { StoryGoal } from "../../types";
-import { CharCount, CompletionDots, GroupLabel, HeroStats, WorkshopBtn } from "./StoryIdentityBits";
+import { CharCount, CompletionDots, GroupLabel, HeroStats } from "./StoryIdentityBits";
+import { useWorkshopMenu } from "./useWorkshopMenu";
 import styles from "./StoryIdentityPanel.module.css";
 
 const LENGTH_OPTIONS = [
@@ -240,6 +241,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
   const { activeStory, setActiveStory, characters } = useStoryStore();
   const navigate = useNavigate();
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const workshop = useWorkshopMenu(storyId);
 
   const [fields, setFields] = useState({
     logline: "",
@@ -323,6 +325,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
         title="Story identity"
         summary={<HeroStats storyId={storyId} />}
         aside={<AIFeatureInfoTrigger pageId="story-identity" />}
+        more={workshop}
       />
 
       <div className={styles.scrollArea}>
@@ -336,14 +339,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           badge={foundationFields > 0 ? <CompletionDots filled={foundationFields} total={2} /> : undefined}
         >
           <div>
-            <div className={styles.fieldLabelRow}>
-              <p className={styles.subFieldLabel}>Logline</p>
-              <WorkshopBtn
-                label="Workshop logline"
-                message="I want to work on my logline."
-                storyId={storyId}
-              />
-            </div>
+            <p className={styles.subFieldLabel}>Logline</p>
             <p className={styles.fieldHint}>
               One sentence: who wants what, against what obstacle, with what at stake.
             </p>
@@ -394,13 +390,6 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           collapsed={!!collapsed.intent}
           onToggle={() => toggle("intent")}
         >
-          <div className={styles.fieldLabelRow}>
-            <WorkshopBtn
-              label="Workshop intent"
-              message="I'm trying to figure out what my story is really about. Help me think through my narrative intent."
-              storyId={storyId}
-            />
-          </div>
           <p className={styles.fieldHint}>
             What is this story about (meaning, not plot)? What question does it ask? What should the reader
             feel at the end?
@@ -520,26 +509,12 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
           onToggle={() => toggle("themes")}
         >
           <div>
-            <div className={styles.fieldLabelRow}>
-              <p className={styles.subFieldLabel}>Themes</p>
-              <WorkshopBtn
-                label="Explore themes"
-                message="I want to explore the themes in my story."
-                storyId={storyId}
-              />
-            </div>
+            <p className={styles.subFieldLabel}>Themes</p>
             <p className={styles.fieldHint}>Recurring ideas and motifs. Press Enter or comma to add.</p>
             <ThemeInput themes={fields.themes} onChange={(t) => update("themes", t)} />
           </div>
           <div>
-            <div className={styles.fieldLabelRow}>
-              <p className={styles.subFieldLabel}>Central Conflict</p>
-              <WorkshopBtn
-                label="Workshop conflict"
-                message="Help me think through my central conflict."
-                storyId={storyId}
-              />
-            </div>
+            <p className={styles.subFieldLabel}>Central Conflict</p>
             <p className={styles.fieldPattern}>
               [Character]'s need for [want] vs. [opposing force or internal flaw]
             </p>
