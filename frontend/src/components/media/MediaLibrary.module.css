@@ -342,3 +342,15 @@
   max-height: 200px;
   overflow-y: auto;
 }
+
+/* Where an image is used (doc 12 P6). */
+.usedBy {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.usedBy a {
+  color: var(--color-text);
+}

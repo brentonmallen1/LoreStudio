@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "re
 import ModeGate from "../components/layout/ModeGate";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { sceneToResume } from "../lib/resumeScene";
+import SessionLauncher from "./SessionLauncher";
 import { STORY_REDIRECTS, STORY_ROUTES, fillParams } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
@@ -105,6 +106,9 @@ export default function StoryRoutes() {
         <Route key={from} path={from} element={<MovedTo to={to} />} />
       ))}
       <Route path="/outline" element={<OutlineRedirect storyId={storyId} />} />
+      {/* Conversations now, not pages (doc 12 P6). */}
+      <Route path="/whatif" element={<SessionLauncher storyId={storyId} type="whatif" />} />
+      <Route path="/panels" element={<SessionLauncher storyId={storyId} type="panel" />} />
       <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
     </Routes>
   );

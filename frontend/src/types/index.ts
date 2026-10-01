@@ -751,35 +751,6 @@ export interface BrainstormIntent {
 
 // ── Story Health ──
 
-export interface PacingEntry {
-  id: string;
-  title: string;
-  word_count: number;
-  status: string;
-  level_type: string;
-  beat_id: string | null;
-  character_names: string[];
-}
-
-export interface CharacterHealth {
-  id: string;
-  name: string;
-  role: string;
-  scene_appearances: number;
-  recent_appearances: number;
-  arc_milestones_total: number;
-  arc_milestones_done: number;
-  arc_pct: number | null;
-}
-
-export interface ThreadGroup {
-  id: string;
-  name: string;
-  description: string;
-  mice_type: MICEType | null;
-  try_fail_cycle_count: number;
-}
-
 export interface WordCountTarget {
   min: number | null;
   max: number;
@@ -787,48 +758,6 @@ export interface WordCountTarget {
   current: number;
   pct: number;
   warning_level: "normal" | "approaching" | "exceeded";
-}
-
-export interface MICEViolation {
-  thread_id: string;
-  thread_name: string;
-  message: string;
-  conflicting_thread_id: string | null;
-  conflicting_thread_name: string | null;
-}
-
-export interface StoryHealth {
-  intended_length: string;
-  word_count: {
-    total: number;
-    by_status: Record<string, number>;
-    target: WordCountTarget | null;
-  };
-  scenes: {
-    total: number;
-    by_status: Record<string, number>;
-  };
-  scene_summaries: {
-    total: number;
-    fresh: number;
-    stale: number;
-    missing: number;
-    last_updated: string | null;
-  };
-  pacing: PacingEntry[];
-  characters: CharacterHealth[];
-  absent_characters: string[];
-  threads: {
-    open: ThreadGroup[];
-    developing: ThreadGroup[];
-    resolved: ThreadGroup[];
-  };
-  goals: {
-    total: number;
-    done: number;
-    items: { id: string; text: string; completed: boolean }[];
-  };
-  mice_violations: MICEViolation[];
 }
 
 export interface RecentScene {
@@ -844,6 +773,8 @@ export interface RecentActivity {
   event_type: string;
   description: string;
   created_at: string;
+  /** "ai" for an Assistant call, so the Overview can colour it. */
+  category?: string;
 }
 
 export interface RecentInterview {
@@ -874,6 +805,10 @@ export interface StoryOverview {
   recent_activity: RecentActivity[];
   recent_interviews: RecentInterview[];
   distribution: DistributionEntry[];
+  goals_done: number;
+  goals_total: number;
+  next_goal: string;
+  open_threads: string[];
 }
 
 // ── Manuscript & Export ──

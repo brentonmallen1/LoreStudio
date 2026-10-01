@@ -4,6 +4,7 @@ import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy, Zo
 import { api } from "../../api/client";
 import type { StoryAsset } from "../../types";
 import Lightbox from "./Lightbox";
+import UsedBy from "./UsedBy";
 import styles from "./MediaLibrary.module.css";
 import AIOnly from "../ai/AIOnly";
 
@@ -124,6 +125,7 @@ function AssetCard({
             <p className={styles.meta}>
               {formatBytes(asset.size_bytes)} · {asset.mime_type}
             </p>
+            <UsedBy attachments={asset.attachments ?? []} />
           </>
         )}
 

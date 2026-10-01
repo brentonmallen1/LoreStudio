@@ -100,6 +100,7 @@ class RecentActivity(BaseModel):
     event_type: str
     description: str
     created_at: datetime
+    category: str = ""
 
 
 class RecentInterview(BaseModel):
@@ -130,6 +131,12 @@ class StoryOverview(BaseModel):
     recent_activity: list[RecentActivity]
     recent_interviews: list[RecentInterview]
     distribution: list[DistributionEntry]
+    #: The Overview's vitals (doc 12 P6): goals met of set, the next one, and the threads
+    #: still open by name, so the numbers can say which.
+    goals_done: int = 0
+    goals_total: int = 0
+    next_goal: str = ""
+    open_threads: list[str] = []
 
 
 class StoryGoalCreate(BaseModel):

@@ -43,7 +43,7 @@ const WRITER_ENTRY_POINTS = [
   "src/pages/FindingsPage.tsx",
   "src/pages/ProposalsPage.tsx",
   "src/pages/ChroniclePage.tsx",
-  "src/pages/VersionsPage.tsx",
+  "src/components/chronicle/versions/VersionsSection.tsx",
   "src/components/story/StoryboardView.tsx",
   "src/components/story/SummaryOverviewView.tsx",
   "src/components/story/StoryIdentityPanel.tsx",

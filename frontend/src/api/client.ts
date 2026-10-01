@@ -878,9 +878,6 @@ export const api = {
       body: JSON.stringify({ travel_id: travelId }),
     }),
 
-  // Story Health
-  getStoryHealth: (storyId: string) => request<import("../types").StoryHealth>(`/stories/${storyId}/health`),
-
   // Story Overview
   getStoryOverview: (storyId: string) =>
     request<import("../types").StoryOverview>(`/stories/${storyId}/overview`),

@@ -131,12 +131,8 @@
   filter: brightness(1.08);
 }
 
-/* ── Settings panel ── */
+/* ── Backup settings (body of the settings modal) ── */
 .settingsPanel {
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

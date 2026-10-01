@@ -18,8 +18,6 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   overview: lazy(() => import("./StoryOverviewPage")),
   write: lazy(() => import("../components/editor/SceneEditor")),
   plan: lazy(() => import("../components/plan/PlanPage")),
-  whatif: lazy(() => import("./WhatIfPage")),
-  panels: lazy(() => import("../components/panels/PanelInterviewPanel")),
   proposals: lazy(() => import("./ProposalsPage")),
   health: lazy(() => import("./FindingsPage")),
   publish: lazy(() => import("./PublishPage")),
@@ -51,5 +49,5 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "chronicle.activity": ChroniclePage,
   "chronicle.conversations": ChroniclePage,
   "chronicle.changes": ChroniclePage,
-  "chronicle.versions": lazy(() => import("./VersionsPage")),
+  "chronicle.versions": lazy(() => import("../components/chronicle/versions/VersionsSection")),
 };

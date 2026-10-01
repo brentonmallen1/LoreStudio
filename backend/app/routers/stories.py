@@ -169,9 +169,11 @@ def get_story_overview(
 
     # Word count
     total_words = sum(n.word_count for n in all_nodes)
-    scenes_by_status: dict[str, int] = {"draft": 0, "revised": 0, "final": 0}
+    scenes_by_status: dict[str, int] = {"planned": 0, "draft": 0, "revised": 0, "final": 0}
     for n in leaf_nodes:
         scenes_by_status[n.status] = scenes_by_status.get(n.status, 0) + 1
+
+    goals = story.goals or []
 
     # Thread counts
     thread_counts: dict[str, int] = {"open": 0, "developing": 0, "resolved": 0}
@@ -272,6 +274,7 @@ def get_story_overview(
                 "event_type": log.event_type,
                 "description": log.description,
                 "created_at": log.created_at,
+                "category": log.category,
             }
             for log in recent_logs
         ],
@@ -286,6 +289,10 @@ def get_story_overview(
             for iv in recent_interviews_raw
         ],
         distribution=distribution,
+        goals_done=sum(1 for g in goals if g.get("completed")),
+        goals_total=len(goals),
+        next_goal=next((g.get("text", "") for g in goals if not g.get("completed")), ""),
+        open_threads=[t.name for t in sorted(threads, key=lambda t: t.created_at) if t.status != "resolved"],
     )
 
 

@@ -6,7 +6,6 @@ import { jobsApi } from "../api/jobs";
 import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import FindingRow from "../components/findings/FindingRow";
 import RunChecksMenu from "../components/findings/RunChecksMenu";
-import Vitals from "../components/findings/Vitals";
 import PageHeader from "../components/layout/PageHeader";
 import type { MenuItem } from "../components/common/PopoverMenu";
 import { groupByPlace, groupByUrgency, KIND_LABELS, type GroupBy } from "../lib/findings/group";
@@ -131,7 +130,6 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
       />
       <div className={styles.scroll}>
         <div className={styles.column}>
-          <Vitals storyId={storyId} />
           {data && groups.length === 0 && (
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>
