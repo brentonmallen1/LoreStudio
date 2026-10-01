@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Plus, Search, BookOpen, FileText, Link, File } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
@@ -7,6 +8,7 @@ import CompendiumEntryCard from "./CompendiumEntryCard";
 import CompendiumCreateDialog from "./CompendiumCreateDialog";
 import CompendiumEntryDetail from "./CompendiumEntryDetail";
 import PageHeader from "../layout/PageHeader";
+import { sectionPath } from "../../lib/routes";
 import styles from "./CompendiumPanel.module.css";
 
 interface Props {
@@ -26,8 +28,15 @@ export default function CompendiumPanel({ storyId }: Props) {
   const [entries, setEntries] = useState<CompendiumEntrySummary[]>([]);
   const [filter, setFilter] = useState<FilterType>("all");
   const [search, setSearch] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<CompendiumEntry | null>(null);
+  // The open entry is in the address (doc 13 P5), so the index and the side panel link to it.
+  const { entryId } = useParams<{ entryId?: string }>();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const [creating, setCreating] = useState(params.get("new") === "1");
+  const [loadedEntry, setSelectedEntry] = useState<CompendiumEntry | null>(null);
+  const selectedEntry = entryId && loadedEntry?.id === entryId ? loadedEntry : null;
+  const open = (id: string | null) =>
+    navigate(sectionPath(storyId, "compendium", "research", id ?? undefined));
   const [editingEntry, setEditingEntry] = useState<CompendiumEntry | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
@@ -40,6 +49,15 @@ export default function CompendiumPanel({ storyId }: Props) {
   useEffect(() => {
     load();
   }, [storyId, filter]);
+
+  useEffect(() => {
+    if (!entryId) return;
+    api.getCompendiumEntry(entryId).then(setSelectedEntry, () => open(null));
+  }, [entryId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (params.get("new")) setParams({}, { replace: true });
+  }, [params, setParams]);
 
   useReloadOnUndo(["compendium_entry", "compendium_attachment"], () => {
     load();
@@ -62,7 +80,7 @@ export default function CompendiumPanel({ storyId }: Props) {
     setPendingDeleteId(null);
     await api.deleteCompendiumEntry(id);
     setEntries((prev) => prev.filter((en) => en.id !== id));
-    if (selectedEntry?.id === id) setSelectedEntry(null);
+    if (selectedEntry?.id === id) open(null);
   }
 
   async function handleEdit(id: string, e: React.MouseEvent) {
@@ -71,15 +89,15 @@ export default function CompendiumPanel({ storyId }: Props) {
     setEditingEntry(full);
   }
 
-  async function handleCardClick(id: string) {
-    const full = await api.getCompendiumEntry(id);
-    setSelectedEntry(full);
+  function handleCardClick(id: string) {
+    open(id);
   }
 
   function handleCreated(entry: CompendiumEntry) {
     setEntries((prev) => [{ ...entry, attachment_count: 0, preview: previewOf(entry) }, ...prev]);
     setCreating(false);
     setSelectedEntry(entry);
+    open(entry.id);
   }
 
   function handleUpdated(updated: CompendiumEntry) {
@@ -98,12 +116,12 @@ export default function CompendiumPanel({ storyId }: Props) {
     return (
       <CompendiumEntryDetail
         entry={selectedEntry}
-        onBack={() => setSelectedEntry(null)}
+        onBack={() => open(null)}
         onEdit={() => setEditingEntry(selectedEntry)}
         onDelete={async () => {
           await api.deleteCompendiumEntry(selectedEntry.id);
           setEntries((prev) => prev.filter((e) => e.id !== selectedEntry.id));
-          setSelectedEntry(null);
+          open(null);
         }}
         onUpdated={(updated) => {
           setSelectedEntry(updated);

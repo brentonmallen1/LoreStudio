@@ -182,7 +182,9 @@
   gap: 4px;
 }
 
+/* The name opens the image's own page (doc 13 P5). */
 .fileName {
+  display: block;
   font-size: 12px;
   font-weight: 500;
   color: var(--color-text);
@@ -190,6 +192,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   margin: 0;
+  text-decoration: none;
+}
+
+.fileName:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
 }
 
 .altText {

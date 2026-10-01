@@ -115,7 +115,7 @@ export default function CommandPalette() {
       when: hasStory,
       action: () => {
         const sid = _useStoryStoreForNav.getState().activeStory?.id;
-        if (sid) navigate(`/stories/${sid}/compendium`);
+        if (sid) navigate(`/stories/${sid}/compendium/research?new=1`);
       },
     });
     commandRegistry.update({

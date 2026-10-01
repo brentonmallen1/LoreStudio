@@ -7,20 +7,21 @@ import { sectionPath } from "../lib/routes";
 import type { StoryAsset, Diagram, DiagramSummary } from "../types";
 import MediaLibrary from "../components/media/MediaLibrary";
 import DiagramEditor from "../components/media/DiagramEditor";
+import ImageSheet from "../components/media/ImageSheet";
 import styles from "./MediaPage.module.css";
 
 type Tab = "media" | "diagrams";
 
 /** The Compendium's Images and Diagrams sections (doc 12 P1): the tabs became index entries. */
 export default function MediaPage({ section = "images" }: { section?: string }) {
-  const { storyId } = useParams<{ storyId: string }>();
+  const { storyId, entryId } = useParams<{ storyId: string; entryId?: string }>();
   const navigate = useNavigate();
   const tab: Tab = section === "diagrams" ? "diagrams" : "media";
-  const setTab = (next: Tab) =>
-    storyId && navigate(sectionPath(storyId, "compendium", next === "diagrams" ? "diagrams" : "images"));
   const [assets, setAssets] = useState<StoryAsset[]>([]);
   const [diagrams, setDiagrams] = useState<DiagramSummary[]>([]);
-  const [activeDiagram, setActiveDiagram] = useState<Diagram | null>(null);
+  const [loadedDiagram, setLoadedDiagram] = useState<Diagram | null>(null);
+  const activeDiagram = tab === "diagrams" && entryId && loadedDiagram?.id === entryId ? loadedDiagram : null;
+  const setActiveDiagram = setLoadedDiagram;
   const [loadingDiagrams, setLoadingDiagrams] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -47,10 +48,14 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
     }
   }
 
-  async function openDiagram(id: string) {
-    const d = await api.getDiagram(id);
-    setActiveDiagram(d);
+  // An image or a diagram has its own address (doc 13 P5): the index and links open it.
+  function openDiagram(id: string) {
+    if (storyId) navigate(sectionPath(storyId, "compendium", "diagrams", id));
   }
+  const closeDiagram = () => storyId && navigate(sectionPath(storyId, "compendium", "diagrams"));
+  useEffect(() => {
+    if (tab === "diagrams" && entryId) api.getDiagram(entryId).then(setLoadedDiagram, () => closeDiagram());
+  }, [tab, entryId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function createDiagram() {
     if (!storyId || !newTitle.trim()) return;
@@ -58,15 +63,13 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
     setDiagrams((prev) => [d, ...prev]);
     setNewTitle("");
     setCreating(false);
-    const full = await api.getDiagram(d.id);
-    setActiveDiagram(full);
-    setTab("diagrams");
+    openDiagram(d.id);
   }
 
   async function deleteDiagram(id: string) {
     await api.deleteDiagram(id);
     setDiagrams((prev) => prev.filter((d) => d.id !== id));
-    if (activeDiagram?.id === id) setActiveDiagram(null);
+    if (activeDiagram?.id === id) closeDiagram();
     setConfirmDelete(null);
   }
 
@@ -84,10 +87,27 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
                 ),
               );
             }}
-            onClose={() => setActiveDiagram(null)}
+            onClose={closeDiagram}
           />
         </div>
       </div>
+    );
+  }
+
+  const asset = tab === "media" && entryId ? assets.find((a) => a.id === entryId) : undefined;
+  if (asset && storyId) {
+    return (
+      <ImageSheet
+        storyId={storyId}
+        asset={asset}
+        onChange={(next) => {
+          setAssets((prev) =>
+            next ? prev.map((a) => (a.id === next.id ? next : a)) : prev.filter((a) => a.id !== asset.id),
+          );
+          // A deleted image's address has nothing left to show: back to the list.
+          if (!next) navigate(sectionPath(storyId, "compendium", "images"), { replace: true });
+        }}
+      />
     );
   }
 

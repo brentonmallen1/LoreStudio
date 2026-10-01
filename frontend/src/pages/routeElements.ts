@@ -44,6 +44,7 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "lorebook.calendars": worldSection("CalendarsSection"),
   "lorebook.travel": worldSection("TravelSection"),
   "lorebook.connections": lazy(() => import("../components/lorebook/sections/ConnectionsSection")),
+  "compendium.everything": lazy(() => import("../components/compendium/CompendiumIndex")),
   "compendium.research": lazy(() => import("../components/compendium/CompendiumPanel")),
   "compendium.images": MediaPage,
   "compendium.diagrams": MediaPage,

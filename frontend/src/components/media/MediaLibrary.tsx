@@ -1,7 +1,9 @@
 import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useCallback } from "react";
 import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy, ZoomIn } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "../../api/client";
+import { sectionPath } from "../../lib/routes";
 import type { StoryAsset } from "../../types";
 import Lightbox from "./Lightbox";
 import UsedBy from "./UsedBy";
@@ -117,9 +119,13 @@ function AssetCard({
           </div>
         ) : (
           <>
-            <p className={styles.fileName} title={asset.original_filename}>
+            <Link
+              to={sectionPath(asset.story_id, "compendium", "images", asset.id)}
+              className={styles.fileName}
+              title={`Open ${asset.original_filename}`}
+            >
               {asset.original_filename}
-            </p>
+            </Link>
             {asset.alt_text && <p className={styles.altText}>{asset.alt_text}</p>}
             {asset.description && <p className={styles.desc}>{asset.description}</p>}
             <p className={styles.meta}>

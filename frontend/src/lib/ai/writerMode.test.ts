@@ -55,6 +55,7 @@ const WRITER_ENTRY_POINTS = [
   "src/components/lorebook/sections/HistorySection.tsx",
   "src/components/lorebook/sections/ConnectionsSection.tsx",
   "src/components/compendium/CompendiumPanel.tsx",
+  "src/components/compendium/CompendiumIndex.tsx",
   "src/components/plan/PlanPage.tsx",
 ];
 
@@ -126,6 +127,7 @@ describe("the story routes this test walks", () => {
       "chronicle.versions",
       "compendium",
       "compendium.diagrams",
+      "compendium.everything",
       "compendium.images",
       "compendium.research",
       "findings",

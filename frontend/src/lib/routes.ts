@@ -9,6 +9,7 @@ import {
   GitBranch,
   ScanEye,
   Landmark,
+  Library,
   History,
   Home,
   Images,
@@ -208,10 +209,19 @@ export const STORY_ROUTES: StoryRoute[] = [
     keywords: ["research", "references", "notes"],
     sections: [
       {
-        id: "research",
+        // Everything in the Compendium in one list (doc 13 P5).
+        id: "everything",
         path: "",
+        label: "Everything",
+        icon: Library,
+        keywords: ["index", "all", "search compendium"],
+      },
+      {
+        id: "research",
+        path: "/research",
         label: "Research",
         icon: NotebookText,
+        detailParam: "entryId",
         keywords: ["notes", "links", "documents", "references", "sources"],
       },
       {
@@ -219,6 +229,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/images",
         label: "Images",
         icon: Images,
+        detailParam: "entryId",
         keywords: ["media", "pictures", "assets", "attachments", "portraits"],
       },
       {
@@ -226,6 +237,7 @@ export const STORY_ROUTES: StoryRoute[] = [
         path: "/diagrams",
         label: "Diagrams",
         icon: Network,
+        detailParam: "entryId",
         keywords: ["media", "mindmap", "flowchart", "charts"],
       },
     ],

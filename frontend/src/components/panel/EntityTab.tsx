@@ -68,7 +68,7 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
           ? `${base}/lorebook/threads/${tab.entityId}`
           : tab.entityKind === "twist"
             ? `${base}/lorebook/twists/${tab.entityId}`
-            : `${base}/compendium`;
+            : `${base}/compendium/research/${tab.entityId}`;
 
   return (
     <div style={{ "--tab-color": color } as React.CSSProperties}>
