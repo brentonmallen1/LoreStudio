@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUIStore } from "../../stores/uiStore";
-import { Timer, X, Zap } from "lucide-react";
+import { Timer, X } from "lucide-react";
 import styles from "./SprintTimer.module.css";
 
 interface Props {
@@ -8,23 +8,12 @@ interface Props {
 }
 
 export default function SprintTimer({ currentWordCount }: Props) {
-  const {
-    sprintActive,
-    sprintStartTime,
-    sprintDuration,
-    sprintGoalWords,
-    sprintStartWordCount,
-    startSprint,
-    endSprint,
-  } = useUIStore();
+  const { sprintActive, sprintStartTime, sprintDuration, sprintGoalWords, sprintStartWordCount, endSprint } =
+    useUIStore();
 
-  const [showSetup, setShowSetup] = useState(false);
-  const [duration, setDuration] = useState(25);
-  const [goalWords, setGoalWords] = useState(500);
   const [elapsed, setElapsed] = useState(0);
   const [completed, setCompleted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const setupRef = useRef<HTMLDivElement>(null);
 
   // A duration of 0 is an open-ended sprint: it counts up and never ends by itself.
   const openEnded = sprintDuration === 0;
@@ -57,31 +46,12 @@ export default function SprintTimer({ currentWordCount }: Props) {
     };
   }, [sprintActive, sprintStartTime, totalSeconds, openEnded, endSprint]);
 
-  // Close setup popover on outside click
-  useEffect(() => {
-    if (!showSetup) return;
-    function handleClick(e: MouseEvent) {
-      if (setupRef.current && !setupRef.current.contains(e.target as Node)) {
-        setShowSetup(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [showSetup]);
-
   function formatTime(secs: number) {
     const m = Math.floor(secs / 60)
       .toString()
       .padStart(2, "0");
     const s = (secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
-  }
-
-  function handleStart() {
-    startSprint(duration, goalWords, currentWordCount);
-    setShowSetup(false);
-    setElapsed(0);
-    setCompleted(false);
   }
 
   function handleStop() {
@@ -111,54 +81,58 @@ export default function SprintTimer({ currentWordCount }: Props) {
     );
   }
 
-  return (
-    <div className={styles.root} ref={setupRef}>
-      <button
-        className={`${styles.startBtn} ${showSetup ? styles.startBtnActive : ""}`}
-        onClick={() => setShowSetup((s) => !s)}
-        title="Start a writing sprint"
-      >
-        <Zap size={13} />
-        <span>Sprint</span>
-      </button>
+  return null;
+}
 
-      {showSetup && (
-        <div className={styles.setup}>
-          <div className={styles.setupSection}>
-            <span className={styles.setupLabel}>Duration</span>
-            <div className={styles.durationRow}>
-              {[5, 10, 15, 25, 30, 0].map((d) => (
-                <button
-                  key={d}
-                  className={`${styles.durationBtn} ${duration === d ? styles.durationBtnActive : ""}`}
-                  onClick={() => setDuration(d)}
-                  title={d === 0 ? "No time limit: count up until you stop" : undefined}
-                >
-                  {d === 0 ? "Open" : `${d}m`}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className={styles.setupSection}>
-            <label className={styles.setupLabel} htmlFor="sprint-goal">
-              Word goal
-            </label>
-            <input
-              id="sprint-goal"
-              type="number"
-              min={0}
-              step={50}
-              value={goalWords || ""}
-              onChange={(e) => setGoalWords(Number(e.target.value))}
-              className={styles.goalInput}
-              placeholder="optional"
-            />
-          </div>
-          <button className={styles.goBtn} onClick={handleStart}>
-            Start Sprint
-          </button>
+/**
+ * Choosing a sprint: a pane of the editor's menu (doc 14 Q1). The running sprint shows in
+ * the top bar; until then it takes no room there.
+ */
+export function SprintSetup({ currentWordCount, onStarted }: Props & { onStarted: () => void }) {
+  const startSprint = useUIStore((s) => s.startSprint);
+  const [duration, setDuration] = useState(25);
+  const [goalWords, setGoalWords] = useState(500);
+  return (
+    <div className={styles.setup}>
+      <div className={styles.setupSection}>
+        <span className={styles.setupLabel}>Duration</span>
+        <div className={styles.durationRow}>
+          {[5, 10, 15, 25, 30, 0].map((d) => (
+            <button
+              key={d}
+              className={`${styles.durationBtn} ${duration === d ? styles.durationBtnActive : ""}`}
+              onClick={() => setDuration(d)}
+              title={d === 0 ? "No time limit: count up until you stop" : undefined}
+            >
+              {d === 0 ? "Open" : `${d}m`}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
+      <div className={styles.setupSection}>
+        <label className={styles.setupLabel} htmlFor="sprint-goal">
+          Word goal
+        </label>
+        <input
+          id="sprint-goal"
+          type="number"
+          min={0}
+          step={50}
+          value={goalWords || ""}
+          onChange={(e) => setGoalWords(Number(e.target.value))}
+          className={styles.goalInput}
+          placeholder="optional"
+        />
+      </div>
+      <button
+        className={styles.goBtn}
+        onClick={() => {
+          startSprint(duration, goalWords, currentWordCount);
+          onStarted();
+        }}
+      >
+        Start sprint
+      </button>
     </div>
   );
 }

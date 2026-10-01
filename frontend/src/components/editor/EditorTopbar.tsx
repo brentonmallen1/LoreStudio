@@ -1,15 +1,5 @@
-import { createElement, useEffect, useRef, useState } from "react";
-import {
-  BookMarked,
-  BookOpen,
-  Columns3,
-  ImageIcon,
-  Layers,
-  Link,
-  Quote,
-  StickyNote,
-  Tag,
-} from "lucide-react";
+import { createElement, useState } from "react";
+import { Columns3, Quote, StickyNote } from "lucide-react";
 import { useSides } from "../../lib/layout/useSides";
 import { api } from "../../api/client";
 import type { StructureNode } from "../../types";
@@ -17,14 +7,13 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "../story/SprintTimer";
-import FontPicker from "../story/FontPicker";
-import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
 import TodayCounter from "./TodayCounter";
-import { useAIAvailable } from "../../lib/mode";
+import { useUIStore } from "../../stores/uiStore";
+import EditorMoreMenu from "./EditorMoreMenu";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -45,31 +34,6 @@ interface Props {
 
 const STATUS_CYCLE: StructureNode["status"][] = ["draft", "revised", "final"];
 
-function GuideItem({
-  label,
-  icon,
-  title,
-  active = false,
-  onSelect,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  title: string;
-  active?: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      onClick={onSelect}
-      className={`${styles.guideMenuItem} ${active ? styles.guideMenuItemActive : ""}`}
-      title={title}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
 function segmentStyle(levelType: string) {
   const color = segmentColor(levelType);
   return {
@@ -84,19 +48,8 @@ export default function EditorTopbar(p: Props) {
   const { activeStory, activeTemplate, structure, setStructure, setActiveNode } = useStoryStore();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
-  const [guideOpen, setGuideOpen] = useState(false);
-  const studio = useAIAvailable();
   const sides = useSides();
-  const guideRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!guideOpen) return;
-    function onMouseDown(e: MouseEvent) {
-      if (guideRef.current && !guideRef.current.contains(e.target as Node)) setGuideOpen(false);
-    }
-    document.addEventListener("mousedown", onMouseDown);
-    return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [guideOpen]);
+  const sprintActive = useUIStore((st) => st.sprintActive);
 
   async function cycleStatus() {
     const idx = STATUS_CYCLE.indexOf(activeNode.status);
@@ -216,20 +169,16 @@ export default function EditorTopbar(p: Props) {
             <SceneThreadBadges storyId={activeStory.id} nodeId={activeNode.id} />
           </div>
         )}
-        <TodayCounter
-          storyId={p.activeNode.story_id}
-          nodeId={p.activeNode.id}
-          savedWords={p.activeNode.word_count ?? 0}
-        />
-        <span className={styles.wordCount}>{p.wordCount.toLocaleString()} words</span>
+        <span className={styles.wordCount}>
+          {p.wordCount.toLocaleString()} words
+          <TodayCounter
+            storyId={p.activeNode.story_id}
+            nodeId={p.activeNode.id}
+            savedWords={p.activeNode.word_count ?? 0}
+          />
+        </span>
         <SaveStatusPill autosave={p.autosave} />
-        <button
-          onClick={p.onOpenImagePicker}
-          className={styles.topbarBtn}
-          title={`Insert image into prose (${formatCombo(SHORTCUTS.insertImage.combo)})`}
-        >
-          <ImageIcon size={13} />
-        </button>
+        <span className={styles.topbarRule} aria-hidden />
         <button
           onClick={p.onToggleNotes}
           className={`${styles.topbarBtn} ${p.showNotes ? styles.topbarBtnActive : ""}`}
@@ -241,104 +190,32 @@ export default function EditorTopbar(p: Props) {
           <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
         </button>
         <button
-          onClick={sides.toggle}
-          className={`${styles.topbarBtn} ${sides.collapsed ? styles.topbarBtnActive : ""}`}
-          aria-pressed={sides.collapsed}
-          aria-label={sides.collapsed ? "Restore both sides" : "Collapse both sides"}
-          title={`${sides.collapsed ? "Restore both sides" : "Collapse both sides"} (${formatCombo(SHORTCUTS.collapseSides.combo)})`}
-        >
-          <Columns3 size={13} />
-          <span>{sides.collapsed ? "Restore sides" : "Collapse sides"}</span>
-        </button>
-        {activeStory && (
-          <div className={styles.guideMenuWrap} ref={guideRef}>
-            <button
-              onClick={() => setGuideOpen((v) => !v)}
-              className={`${styles.topbarBtn} ${guideOpen ? styles.topbarBtnActive : ""}`}
-              title="Writing guides and scene tools"
-            >
-              <BookOpen size={13} />
-              <span>Guide</span>
-            </button>
-            {guideOpen && (
-              <div className={styles.guideMenu}>
-                {/* Guides to read, then tools that scan this scene: they were one list
-                    headed "Reference", which the tools are not. */}
-                {[
-                  {
-                    heading: "Guides",
-                    items: [
-                      {
-                        label: "Dialogue Guide",
-                        icon: <Quote size={13} />,
-                        title: "Learn how to attribute dialogue to characters",
-                        run: () => p.onOpenGuides("dialogue"),
-                      },
-                      {
-                        label: "MICE Guide",
-                        icon: <Layers size={13} />,
-                        title: "Understand the MICE Quotient: Milieu, Idea, Character, Event",
-                        run: () => p.onOpenGuides("mice"),
-                      },
-                      {
-                        label: "6 Essential Questions",
-                        icon: <BookMarked size={13} />,
-                        title: "The 6 Essential Questions every story needs to answer",
-                        run: () => p.onOpenGuides("essential"),
-                      },
-                    ],
-                  },
-                  {
-                    heading: "Tools for this scene",
-                    items: [
-                      {
-                        label: "Tag Suggestions",
-                        icon: <Tag size={13} />,
-                        title: "Scan for untagged quotes and propose speaker attribution",
-                        run: p.onOpenAutoTag,
-                      },
-                      {
-                        label: "Link Mentions",
-                        icon: <Link size={13} />,
-                        title: "Scan for unlinked character and location mentions",
-                        run: p.onOpenAutoLink,
-                      },
-                    ],
-                  },
-                ].map((group) => (
-                  <div key={group.heading}>
-                    <div className={styles.guideMenuLabel}>{group.heading}</div>
-                    {group.items.map((item) => (
-                      <GuideItem
-                        key={item.label}
-                        label={item.label}
-                        icon={item.icon}
-                        title={item.title}
-                        onSelect={() => {
-                          item.run();
-                          setGuideOpen(false);
-                        }}
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        <button
           onClick={p.onToggleDialogue}
           className={`${styles.topbarBtn} ${p.dialogueIsolation ? styles.topbarBtnActive : ""}`}
-          title="Dialogue view: show only the dialogue (toggle)"
+          aria-pressed={p.dialogueIsolation}
+          title="Dialogue view: show only the dialogue"
         >
           <Quote size={13} />
           <span>Dialogue</span>
         </button>
-        <div className={styles.sprintTimerWrap}>
-          <SprintTimer currentWordCount={p.wordCount} />
-        </div>
-        <FontPicker />
-        {studio && <AIFeatureInfoTrigger pageId="scene-editor" size="sm" />}
+        {sprintActive && <SprintTimer currentWordCount={p.wordCount} />}
+        <button
+          onClick={sides.toggle}
+          className={`${styles.topbarIconBtn} ${sides.collapsed ? styles.topbarBtnActive : ""}`}
+          aria-pressed={sides.collapsed}
+          aria-label={sides.collapsed ? "Restore both sides" : "Collapse both sides"}
+          title={`${sides.collapsed ? "Restore both sides" : "Collapse both sides"} (${formatCombo(SHORTCUTS.collapseSides.combo)})`}
+        >
+          <Columns3 size={14} />
+        </button>
+        <EditorMoreMenu
+          wordCount={p.wordCount}
+          sprintRunning={sprintActive}
+          onInsertImage={p.onOpenImagePicker}
+          onOpenGuides={p.onOpenGuides}
+          onOpenAutoTag={p.onOpenAutoTag}
+          onOpenAutoLink={p.onOpenAutoLink}
+        />
       </div>
     </div>
   );

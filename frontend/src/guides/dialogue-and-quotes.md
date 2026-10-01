@@ -10,7 +10,7 @@ Three ways, all producing `"…"<Name>` in the prose:
 2. Select spoken text and press **{{key:attributeDialogue}}** (or _Attribute_ in the selection toolbar).
 3. After a closing quote type `<` and the speaker's name; the picker completes it.
 
-Unattributed quotes are still detected. The **Dialogue** view (top bar) shows every line as a bubble, marks inferred and unattributed speakers, and lets you fix them in bulk with _Tag Suggestions_ (heuristic, no AI).
+Unattributed quotes are still detected. The **Dialogue** view (top bar) shows every line as a bubble, marks inferred and unattributed speakers, and lets you fix them in bulk with _Tag the dialogue_ in the top bar's ⋯ menu (heuristic, no AI).
 
 ## Quote style
 

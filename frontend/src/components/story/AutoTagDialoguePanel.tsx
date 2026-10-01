@@ -223,7 +223,7 @@ export default function AutoTagDialoguePanel({
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <Tag size={15} />
-            <span className={styles.title}>Tag Suggestions</span>
+            <span className={styles.title}>Tag the dialogue</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={15} />

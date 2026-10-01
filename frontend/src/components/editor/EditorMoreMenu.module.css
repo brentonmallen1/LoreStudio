@@ -1,0 +1,118 @@
+/* The editor top bar's ⋯ menu (doc 14 Q1). */
+
+.wrap {
+  position: relative;
+}
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.trigger:hover,
+.triggerOpen {
+  background: var(--color-surface-2);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.trigger:focus-visible,
+.item:focus-visible,
+.back:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 220px;
+  padding: 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.item svg {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.item:hover,
+.item:focus-visible {
+  background: var(--color-surface-2);
+}
+
+.itemLabel {
+  flex: 1;
+}
+
+.hint {
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.label {
+  padding: 0.4rem 0.55rem 0.15rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-section-title);
+}
+
+.divider {
+  height: 1px;
+  margin: 0.25rem 0.35rem;
+  background: var(--color-border-light);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  padding: 0.3rem 0.45rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.back:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}

@@ -1,12 +1,11 @@
 .today {
-  font-size: 0.72rem;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
 /* The editor's width, not the window's: the tree and sidebar take their share first. */
-@container (max-width: 1180px) {
+@container (max-width: 860px) {
   .today {
     display: none;
   }

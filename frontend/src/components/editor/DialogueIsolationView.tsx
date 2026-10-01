@@ -131,11 +131,11 @@ export default function DialogueIsolationView({
           )}
           <button
             className={styles.dialogueIsolationBtn}
-            title="Tag Suggestions: review heuristic speaker proposals for untagged quotes"
+            title="Tag the dialogue: review suggested speakers for untagged quotes"
             onClick={onOpenAutoTag}
           >
             <Tag size={11} />
-            Tag Suggestions
+            Tag the dialogue
           </button>
         </div>
       </div>

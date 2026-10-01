@@ -1,51 +1,10 @@
-.root {
-  position: relative;
-}
-
-/* ── Trigger button ── */
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
-}
-
-.btn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-}
-
-.btnActive {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-  border-color: var(--color-border);
-}
-
 /* ── Picker panel ── */
 .picker {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 200;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 0.75rem;
-  min-width: 200px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  padding: 0.35rem 0.4rem 0.25rem;
+  min-width: 200px;
 }
 
 .section {
@@ -55,11 +14,9 @@
 }
 
 .sectionLabel {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--color-text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--color-section-title);
   font-family: inherit;
 }
 
