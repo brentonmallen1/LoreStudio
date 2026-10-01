@@ -89,7 +89,7 @@ export default function ClicheCoachMode({ session }: Props) {
             disabled={session.isStreaming}
           >
             <Feather size={13} />
-            Discuss with Coach
+            Discuss with coach
           </button>
         </div>
       )}

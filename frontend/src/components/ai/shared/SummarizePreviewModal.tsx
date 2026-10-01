@@ -78,7 +78,7 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
         Cancel
       </button>
       <button className={styles.applyBtn} onClick={handleApply} disabled={!summary.trim() || streaming}>
-        Apply Summary
+        Apply summary
       </button>
     </div>
   );
@@ -87,7 +87,7 @@ export default function SummarizePreviewModal({ isOpen, onClose, messages, story
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Summarize Conversation"
+      title="Summarize conversation"
       icon={<FoldVertical size={15} />}
       size="md"
       footer={footer}

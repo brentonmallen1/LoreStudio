@@ -31,7 +31,7 @@ export default function WritingGuidesModal({ isOpen, onClose, initialTab = "dial
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Writing Reference"
+      title="Writing reference"
       icon={<BookOpen size={15} />}
       size="lg"
       footer={

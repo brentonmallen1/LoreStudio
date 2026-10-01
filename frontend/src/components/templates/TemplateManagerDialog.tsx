@@ -157,7 +157,7 @@ export default function TemplateManagerDialog({ onClose, onTemplatesChanged }: P
     <Modal
       isOpen
       onClose={onClose}
-      title="Structure Templates"
+      title="Structure templates"
       icon={<LayoutTemplate size={15} />}
       size="md"
       footer={footer}

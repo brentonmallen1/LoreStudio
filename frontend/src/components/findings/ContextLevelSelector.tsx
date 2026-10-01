@@ -16,12 +16,12 @@ const LEVELS: { value: ContextLevel; label: string; description: string }[] = [
   },
   {
     value: "summaries",
-    label: "With Summaries",
+    label: "With summaries",
     description: "Uses scene summaries as compressed context: good balance for most analyses",
   },
   {
     value: "section",
-    label: "Section Only",
+    label: "Section only",
     description: "Scoped content only, no cross-reference: fastest, may miss continuity patterns",
   },
 ];
@@ -52,7 +52,7 @@ export function ContextLevelSelector({ value, onChange }: Props) {
           <span>
             Full Manuscript requires a model with a large context window (128K+ tokens) and sufficient
             hardware. The analysis may fail if your model cannot handle the full text. If it fails, try{" "}
-            <strong>With Summaries</strong> instead.
+            <strong>With summaries</strong> instead.
           </span>
         </div>
       )}

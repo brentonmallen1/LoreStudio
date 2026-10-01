@@ -175,7 +175,7 @@ export default function RelationshipEditor({
       <div className={styles.header}>
         <div className={styles.headerTitle}>
           <Layers size={14} />
-          <span>{isNew ? "New Relationship" : "Edit Relationship"}</span>
+          <span>{isNew ? "New relationship" : "Edit relationship"}</span>
           {!isNew && targetChar && selfChar && (
             <span className={styles.direction}>
               {selfChar.name} → {targetChar.name}
@@ -191,7 +191,7 @@ export default function RelationshipEditor({
         {/* Target character (create mode only) */}
         {isNew && (
           <div className={styles.field}>
-            <label className={styles.label}>Target Character *</label>
+            <label className={styles.label}>Target character *</label>
             <select className={styles.select} value={targetId} onChange={(e) => setTargetId(e.target.value)}>
               <option value="">Select a character…</option>
               {availableTargets.map((c) => (
@@ -219,7 +219,7 @@ export default function RelationshipEditor({
 
         {/* Relationship type */}
         <div className={styles.field}>
-          <label className={styles.label}>Relationship Type</label>
+          <label className={styles.label}>Relationship type</label>
           <select className={styles.select} value={type} onChange={(e) => setType(e.target.value)}>
             {RELATIONSHIP_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -270,13 +270,13 @@ export default function RelationshipEditor({
 
         {/* Narrative purpose */}
         <div className={styles.field}>
-          <label className={styles.label}>Narrative Purpose *</label>
+          <label className={styles.label}>Narrative purpose *</label>
           <NarrativePurposeTags value={purposes} onChange={setPurposes} error={purposeError} />
         </div>
 
         {/* Description */}
         <div className={styles.field}>
-          <label className={styles.label}>Brief Description</label>
+          <label className={styles.label}>Brief description</label>
           <input
             className={styles.input}
             placeholder="One-line summary of the relationship…"
@@ -287,7 +287,7 @@ export default function RelationshipEditor({
 
         {/* Notes — first-class */}
         <div className={styles.field}>
-          <label className={styles.label}>Author Notes</label>
+          <label className={styles.label}>Author notes</label>
           <p className={styles.hint}>
             Nuance, subtext, or anything not captured above. Available for AI context.
           </p>

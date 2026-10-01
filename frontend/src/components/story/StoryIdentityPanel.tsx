@@ -27,12 +27,12 @@ const LENGTH_OPTIONS = [
 
 const LENGTH_LABELS: Record<string, string> = {
   "": "Not specified",
-  flash_fiction: "Flash Fiction (<1K words)",
-  short_story: "Short Story (1K–7.5K words)",
+  flash_fiction: "Flash fiction (<1K words)",
+  short_story: "Short story (1K–7.5K words)",
   novelette: "Novelette (7.5K–17.5K words)",
   novella: "Novella (17.5K–40K words)",
   novel: "Novel (40K–100K words)",
-  epic_saga: "Epic / Saga (100K+ words)",
+  epic_saga: "Epic / saga (100K+ words)",
   series: "Series (multi-book)",
 };
 
@@ -428,7 +428,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             </div>
           </div>
           <div>
-            <p className={styles.subFieldLabel}>Narrative Perspective</p>
+            <p className={styles.subFieldLabel}>Narrative perspective</p>
             <p className={styles.fieldHint}>
               Point of view for the story. Guides AI tools on voice and perspective.
             </p>
@@ -438,16 +438,16 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
               className={styles.input}
             >
               <option value="">Not specified</option>
-              <option value="first_person">First Person</option>
-              <option value="third_limited">Third Person Limited</option>
-              <option value="third_omniscient">Third Person Omniscient</option>
-              <option value="second_person">Second Person</option>
+              <option value="first_person">First person</option>
+              <option value="third_limited">Third person limited</option>
+              <option value="third_omniscient">Third person omniscient</option>
+              <option value="second_person">Second person</option>
               <option value="multiple_pov">Multiple POV</option>
             </select>
             {(fields.narrative_perspective === "first_person" ||
               fields.narrative_perspective === "third_limited") && (
               <div className={styles.subField}>
-                <p className={styles.subFieldLabel}>POV Character</p>
+                <p className={styles.subFieldLabel}>POV character</p>
                 <select
                   value={fields.pov_character_id}
                   onChange={(e) => updatePovCharacter(e.target.value)}
@@ -470,7 +470,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
 
         <SectionCard title="Structure" collapsed={!!collapsed.structure} onToggle={() => toggle("structure")}>
           <div>
-            <p className={styles.subFieldLabel}>Intended Length</p>
+            <p className={styles.subFieldLabel}>Intended length</p>
             <p className={styles.fieldHint}>
               Target form and word count range. Used by Findings, Numbers and the Assistant.
             </p>
@@ -487,7 +487,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             </select>
           </div>
           <div>
-            <p className={styles.subFieldLabel}>Beat Sheet</p>
+            <p className={styles.subFieldLabel}>Beat sheet</p>
             <p className={styles.fieldHint}>
               Optional story structure framework. Helps track where key beats fall relative to your word
               count.
@@ -514,7 +514,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             <ThemeInput themes={fields.themes} onChange={(t) => update("themes", t)} />
           </div>
           <div>
-            <p className={styles.subFieldLabel}>Central Conflict</p>
+            <p className={styles.subFieldLabel}>Central conflict</p>
             <p className={styles.fieldPattern}>
               [Character]'s need for [want] vs. [opposing force or internal flaw]
             </p>
@@ -527,7 +527,7 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             />
           </div>
           <div>
-            <p className={styles.subFieldLabel}>Target Audience</p>
+            <p className={styles.subFieldLabel}>Target audience</p>
             <select
               value={fields.target_audience}
               onChange={(e) => update("target_audience", e.target.value)}
@@ -535,9 +535,9 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             >
               <option value="">Not specified</option>
               <option value="kids">Kids (6–8)</option>
-              <option value="middle_grade">Middle Grade (8–12)</option>
-              <option value="young_adult">Young Adult (12–18)</option>
-              <option value="new_adult">New Adult (18–25)</option>
+              <option value="middle_grade">Middle grade (8–12)</option>
+              <option value="young_adult">Young adult (12–18)</option>
+              <option value="new_adult">New adult (18–25)</option>
               <option value="adult">Adult</option>
             </select>
           </div>

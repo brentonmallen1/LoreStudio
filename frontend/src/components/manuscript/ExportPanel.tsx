@@ -30,7 +30,7 @@ const FORMATS: {
   },
   { key: "epub", label: "ePub", sublabel: "E-reader format", icon: BookOpen },
   { key: "markdown", label: "Markdown", sublabel: "Plain text with formatting", icon: FileCode },
-  { key: "txt", label: "Plain Text", sublabel: "For submission systems", icon: FileText },
+  { key: "txt", label: "Plain text", sublabel: "For submission systems", icon: FileText },
   { key: "html", label: "HTML", sublabel: "Web / print to PDF", icon: FileText },
   { key: "odt", label: "ODT", sublabel: "LibreOffice / OpenDocument", icon: FileType2 },
   { key: "pdf", label: "PDF", sublabel: "Print-ready document", icon: FileText },
@@ -41,7 +41,7 @@ const PDF_LAYOUTS: { key: PdfLayout; label: string; desc: string }[] = [
   { key: "novel", label: "Novel", desc: "Georgia serif, generous margins, indented paragraphs" },
   { key: "manuscript", label: "Manuscript", desc: "Courier, double-spaced, industry standard" },
   { key: "compact", label: "Compact", desc: "Sans-serif, tighter leading, for screen reading" },
-  { key: "dark", label: "Dark Mode", desc: "Dark background, warm text" },
+  { key: "dark", label: "Dark mode", desc: "Dark background, warm text" },
 ];
 
 const SCENE_BREAKS = ["* * *", "---", "###", ""];

@@ -30,7 +30,7 @@ export default function LinkedTwistsField({
       <div className={styles.linkedHeader}>
         <label className={styles.overviewLabel}>
           <Eye size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />
-          Linked Twists
+          Linked twists
         </label>
         <button className={styles.addLinkBtn} onClick={go} title="Manage twists">
           Manage

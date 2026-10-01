@@ -213,14 +213,14 @@ export default function SummaryOverviewView() {
     <div className={styles.container}>
       <div className={styles.toolbar}>
         <div className={styles.toolbarLeft}>
-          <h2 className={styles.heading}>Summary Overview</h2>
+          <h2 className={styles.heading}>Summary overview</h2>
         </div>
         <div className={styles.toolbarRight}>
           <button className={styles.toolbarBtn} onClick={expandAll}>
-            Expand All
+            Expand all
           </button>
           <button className={styles.toolbarBtn} onClick={collapseAll}>
-            Collapse All
+            Collapse all
           </button>
           <AIOnly>
             <button
@@ -229,7 +229,7 @@ export default function SummaryOverviewView() {
               disabled={batchRunning}
             >
               <Compass size={11} />
-              {batchRunning ? "Generating…" : "Generate All Missing"}
+              {batchRunning ? "Generating…" : "Generate all missing"}
             </button>
           </AIOnly>
         </div>

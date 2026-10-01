@@ -131,7 +131,7 @@ export default function SettingsAIPage() {
   if (loading) {
     return (
       <div className={styles.page}>
-        <h1 className={styles.pageTitle}>AI Prompts</h1>
+        <h1 className={styles.pageTitle}>AI prompts</h1>
         <div className={styles.main}>
           <p className={styles.loadingText}>Loading…</p>
         </div>
@@ -141,7 +141,7 @@ export default function SettingsAIPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.pageTitle}>AI Prompts</h1>
+      <h1 className={styles.pageTitle}>AI prompts</h1>
 
       <main className={styles.main}>
         <p className={styles.intro}>

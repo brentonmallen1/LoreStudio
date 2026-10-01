@@ -41,14 +41,14 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: "ai", label: "AI / LLM", icon: Cpu, modes: ["studio"], keywords: ["ollama", "model", "assistant"] },
   {
     id: "model-parameters",
-    label: "Model Parameters",
+    label: "Model parameters",
     icon: Sliders,
     modes: ["studio"],
     keywords: ["temperature", "thinking", "top_p"],
   },
   {
     id: "ai-prompts",
-    label: "AI Prompts",
+    label: "AI prompts",
     icon: Cpu,
     modes: ["studio"],
     path: "/settings/ai-prompts",

@@ -279,7 +279,7 @@ export default function AutoTagPanel({
       <div className={styles.toolbar}>
         <button onClick={scan} disabled={scanning || applying} className={styles.scanBtn}>
           {scanning ? <Loader size={12} className={styles.spinner} /> : <Compass size={12} />}
-          {scanning ? "Scanning…" : data ? "Rescan" : "Find Dialogue to Tag"}
+          {scanning ? "Scanning…" : data ? "Rescan" : "Find dialogue to tag"}
         </button>
 
         {data && data.total_proposals > 0 && (

@@ -21,7 +21,7 @@ interface Props {
 type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
-  needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
+  needs_work: { label: "Needs work", className: styles.ratingNeedsWork },
   fair: { label: "Fair", className: styles.ratingFair },
   good: { label: "Good", className: styles.ratingGood },
   excellent: { label: "Excellent", className: styles.ratingExcellent },
@@ -30,7 +30,7 @@ const RATING_LABELS: Record<string, { label: string; className: string }> = {
 const MOMENT_TYPE_LABELS: Record<string, string> = {
   inciting: "Inciting",
   complication: "Complication",
-  turning_point: "Turning Point",
+  turning_point: "Turning point",
   climax: "Climax",
   resolution: "Resolution",
 };
@@ -131,7 +131,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           {asList(data.moment_discoveries).length > 0 && (
             <Section
               icon={<Map size={12} />}
-              title="Key Moments Found"
+              title="Key moments found"
               color="var(--segment-chapter, #7c3aed)"
             >
               <p className={styles.sectionSubtitle}>Significant scenes discovered in your prose</p>
@@ -158,7 +158,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           {!!data.quality && (
             <Section
               icon={<BarChart2 size={12} />}
-              title="Quality Assessment"
+              title="Quality assessment"
               color="var(--color-accent-secondary, #0d9488)"
             >
               {!!asRecord(data.quality).summary && (
@@ -176,7 +176,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           {asStringList(data.unlinked_cycles).length > 0 && (
             <Section
               icon={<AlertCircle size={12} />}
-              title="Unlinked Cycles"
+              title="Unlinked cycles"
               color="var(--color-warning, #f59e0b)"
             >
               <p className={styles.sectionSubtitle}>Try/fail cycles with no scene assigned</p>

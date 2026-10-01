@@ -100,7 +100,7 @@ export default function StartInterviewDialog({ character, onStarted, onClose }: 
       </button>
       <button onClick={handleStart} disabled={starting} className={styles.startBtn}>
         <MessageSquare size={13} />
-        {starting ? "Starting…" : "Start Interview"}
+        {starting ? "Starting…" : "Start interview"}
       </button>
     </>
   );

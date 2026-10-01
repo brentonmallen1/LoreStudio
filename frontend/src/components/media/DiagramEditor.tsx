@@ -149,7 +149,7 @@ function makeNodeId() {
 function defaultNodesForType(type: string): RFNode[] {
   if (type === "mindmap") {
     return [
-      { id: "central", type: "central", position: { x: 300, y: 200 }, data: { label: "Central Idea" } },
+      { id: "central", type: "central", position: { x: 300, y: 200 }, data: { label: "Central idea" } },
     ];
   }
   return [{ id: "start", type: "mindmap", position: { x: 100, y: 200 }, data: { label: "Start" } }];

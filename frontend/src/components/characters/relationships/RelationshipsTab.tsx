@@ -156,13 +156,13 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
               title="Use AI to suggest relationships based on character profiles"
             >
               <Compass size={13} />
-              {discovering ? "Discovering…" : "Discover Relationships"}
+              {discovering ? "Discovering…" : "Discover relationships"}
             </button>
           </AIOnly>
           {discoverError && <span className={styles.discoverError}>{discoverError}</span>}
           <button className={styles.addBtn} onClick={() => openCreate()}>
             <Plus size={14} />
-            Add Relationship
+            Add relationship
           </button>
         </div>
       </div>

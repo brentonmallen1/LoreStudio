@@ -72,13 +72,13 @@ export default function SnapshotDiff({
       <div className={styles.diffSections}>
         <EntitySection label="Scenes" data={diff.structure_nodes} />
         <EntitySection label="Characters" data={diff.characters} />
-        <EntitySection label="Plot Threads" data={diff.plot_threads} />
+        <EntitySection label="Plot threads" data={diff.plot_threads} />
         <EntitySection label="Twists" data={diff.twists} />
         <EntitySection label="Locations" data={diff.locations} />
-        <EntitySection label="World Systems" data={diff.world_systems} />
+        <EntitySection label="World systems" data={diff.world_systems} />
         <EntitySection label="Cultures" data={diff.cultures} />
         <EntitySection label="Eras" data={diff.eras} />
-        <EntitySection label="Outline Items" data={diff.outline_items} />
+        <EntitySection label="Outline items" data={diff.outline_items} />
       </div>
     </Modal>
   );

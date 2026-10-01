@@ -47,7 +47,7 @@ export default function SceneSummaryField({
     <div className={styles.overviewField}>
       <div className={styles.linkedHeader}>
         <label className={styles.overviewLabel}>
-          AI Summary
+          AI summary
           <span className={indicator} title={indicatorTitle} />
           {activeNode.summary_stale && summary && <span className={styles.staleBadge}>Stale</span>}
           {hasAny && activeNode.summary_updated_at && (

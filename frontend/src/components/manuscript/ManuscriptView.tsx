@@ -30,7 +30,7 @@ interface Props {
 
 const STATUS_FILTER_LABELS: Record<StatusFilter, string> = {
   all: "All scenes",
-  revised_final: "Revised & Final",
+  revised_final: "Revised & final",
   final: "Final only",
 };
 
@@ -200,7 +200,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 title="Publication preparation tools"
               >
                 <Feather size={13} />
-                Publish Prep
+                Publish prep
               </button>
             )}
             <button

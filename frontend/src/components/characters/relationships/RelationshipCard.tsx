@@ -72,7 +72,7 @@ export default function RelationshipCard({
           className={styles.suggestionBadge}
           style={{ background: "var(--color-ai-subtle)", borderColor: "var(--color-ai-border)" }}
         >
-          <span className={styles.suggestionLabel}>AI Suggestion</span>
+          <span className={styles.suggestionLabel}>AI suggestion</span>
           {onAccept && (
             <button
               className={styles.acceptBtn}

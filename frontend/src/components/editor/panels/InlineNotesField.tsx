@@ -7,14 +7,14 @@ export default function InlineNotesField({ notes }: { notes: InlineNotesState })
   return (
     <div className={styles.overviewField}>
       <div className={styles.linkedHeader}>
-        <label className={styles.overviewLabel}>Inline Notes</label>
+        <label className={styles.overviewLabel}>Inline notes</label>
         <button
           className={styles.addLinkBtn}
           onClick={notes.triggerAdd}
           title="Select text in the editor, then click to annotate it"
         >
           <Plus size={11} />
-          Add Note
+          Add note
         </button>
       </div>
       <div className={styles.noteLegend}>

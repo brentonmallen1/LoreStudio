@@ -18,7 +18,7 @@ function severityLabel(severity: string): string {
 }
 
 function ratingLabel(rating: string): string {
-  if (rating === "needs_work") return "Needs Work";
+  if (rating === "needs_work") return "Needs work";
   if (rating === "fair") return "Fair";
   if (rating === "good") return "Good";
   return "Excellent";

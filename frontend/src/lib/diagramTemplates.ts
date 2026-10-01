@@ -26,7 +26,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "inc",
         type: "mindmap",
         position: { x: 280, y: 100 },
-        data: { label: "Inciting Incident", color: "#6a7a3a" },
+        data: { label: "Inciting incident", color: "#6a7a3a" },
       },
       {
         id: "act2",
@@ -44,7 +44,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "low",
         type: "mindmap",
         position: { x: 580, y: 280 },
-        data: { label: "Dark Moment", color: "#a84a4a" },
+        data: { label: "Dark moment", color: "#a84a4a" },
       },
       {
         id: "act3",
@@ -78,7 +78,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
   },
   {
     id: "character-web",
-    name: "Character Relationship Web",
+    name: "Character relationship web",
     description: "Central protagonist with supporting cast",
     type: "mindmap",
     nodes: [
@@ -110,7 +110,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "love",
         type: "mindmap",
         position: { x: 400, y: 440 },
-        data: { label: "Love Interest", color: "#8b6aa8" },
+        data: { label: "Love interest", color: "#8b6aa8" },
       },
       {
         id: "trickster",
@@ -129,7 +129,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
   },
   {
     id: "plot-timeline",
-    name: "Plot Timeline",
+    name: "Plot timeline",
     description: "Linear sequence of key story events",
     type: "flowchart",
     nodes: [
@@ -148,7 +148,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
   },
   {
     id: "mystery-clue-map",
-    name: "Mystery Clue Map",
+    name: "Mystery clue map",
     description: "Central mystery with suspects, clues, and red herrings",
     type: "mindmap",
     nodes: [
@@ -156,13 +156,13 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "mystery",
         type: "central",
         position: { x: 360, y: 220 },
-        data: { label: "The Mystery", color: "#a84a4a" },
+        data: { label: "The mystery", color: "#a84a4a" },
       },
       {
         id: "truth",
         type: "central",
         position: { x: 700, y: 100 },
-        data: { label: "The Truth", color: "#6a8a4a" },
+        data: { label: "The truth", color: "#6a8a4a" },
       },
       {
         id: "s1",
@@ -186,7 +186,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "red1",
         type: "mindmap",
         position: { x: 550, y: 360 },
-        data: { label: "Red Herring", color: "#a88a2a" },
+        data: { label: "Red herring", color: "#a88a2a" },
       },
       {
         id: "wit",
@@ -206,7 +206,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
   },
   {
     id: "subplot-tracker",
-    name: "Subplot Tracker",
+    name: "Subplot tracker",
     description: "Main plot with parallel subplots and intersections",
     type: "mindmap",
     nodes: [
@@ -214,7 +214,7 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
         id: "main",
         type: "central",
         position: { x: 360, y: 220 },
-        data: { label: "Main Plot", color: "#c26a3a" },
+        data: { label: "Main plot", color: "#c26a3a" },
       },
       {
         id: "sub1",

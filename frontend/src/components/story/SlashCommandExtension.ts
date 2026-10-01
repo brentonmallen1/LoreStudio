@@ -25,7 +25,7 @@ export interface SlashCommandDef {
 export const SLASH_COMMANDS: SlashCommandDef[] = [
   {
     name: "dialogue",
-    label: "Insert Dialogue Line",
+    label: "Insert dialogue line",
     description: "Insert a dialogue block with speaker attribution",
   },
   {

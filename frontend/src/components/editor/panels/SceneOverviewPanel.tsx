@@ -140,21 +140,21 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         hint="Consider: Where are things at the start? Where should they be at the end? What key events need to happen?"
       />
       <TextField
-        label="Entry State"
+        label="Entry state"
         value={entryState}
         onChange={setEntryState}
         onBlur={() => patch({ entry_state: entryState })}
         placeholder={`Who is ${povName ?? "your point-of-view character"} before this scene begins? What do they believe?`}
       />
       <TextField
-        label="Exit State"
+        label="Exit state"
         value={exitState}
         onChange={setExitState}
         onBlur={() => patch({ exit_state: exitState })}
         placeholder="How has the character or situation changed by the end of this scene?"
       />
       <TextField
-        label="Key Events"
+        label="Key events"
         value={keyEvents}
         onChange={setKeyEvents}
         onBlur={() => patch({ key_events: keyEvents })}
@@ -186,7 +186,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
 
       {showPov && activeStory && (
         <div className={styles.overviewField}>
-          <label className={styles.overviewLabel}>POV Character</label>
+          <label className={styles.overviewLabel}>POV character</label>
           <p className={styles.overviewHint}>
             Override the story-level narrator for this scene. Use for multiple-POV stories with alternating
             perspectives.
@@ -263,7 +263,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
             storyId={activeStory.id}
             objectType="structure_node"
             objectId={activeNode.id}
-            label="Images & References"
+            label="Images & references"
           />
         </div>
       )}

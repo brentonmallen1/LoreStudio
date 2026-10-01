@@ -109,7 +109,7 @@ export default function CompendiumCreateDialog({ storyId, editing, onClose, onCr
     <Modal
       isOpen
       onClose={onClose}
-      title={isEditing ? "Edit Entry" : "Add to Compendium"}
+      title={isEditing ? "Edit entry" : "Add to Compendium"}
       size="md"
       footer={
         <div className={styles.footer}>

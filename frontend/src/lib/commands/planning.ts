@@ -18,7 +18,7 @@ function showSceneTab() {
 
 commandRegistry.register({
   id: "plan-capture-idea",
-  label: "Capture an Idea",
+  label: "Capture an idea",
   keywords: ["idea", "brain dump", "note", "thought", "sort", "plan"],
   icon: Lightbulb,
   group: "Manuscript",
@@ -28,7 +28,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "plan-open-questions",
-  label: "Open Questions",
+  label: "Open questions",
   keywords: ["question", "undecided", "unknown", "decide", "plan"],
   icon: CircleHelp,
   group: "Manuscript",
@@ -38,7 +38,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-show-scene-notes",
-  label: "Show Scene Notes",
+  label: "Show scene notes",
   keywords: ["notes", "synopsis", "purpose", "entry", "exit", "panel"],
   icon: FileText,
   group: "Editor",
@@ -48,7 +48,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-show-story-plan",
-  label: "Show Story Plan",
+  label: "Show story plan",
   description: "The logline, who is here and what they want, under the scene's notes",
   keywords: ["plan", "logline", "goal", "conflict", "who is here", "outline", "panel"],
   icon: MapIcon,

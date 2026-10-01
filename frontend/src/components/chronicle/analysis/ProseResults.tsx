@@ -207,7 +207,7 @@ export function EditorialResultDisplay({ result }: { result: EditorialConsistenc
             )}
             {povIssues.length > 0 && (
               <div className={styles.checkGroup}>
-                <span className={styles.checkLabel}>POV Drift ({povIssues.length})</span>
+                <span className={styles.checkLabel}>POV drift ({povIssues.length})</span>
                 {povIssues.slice(0, 3).map((f, i) => (
                   <div key={i} className={styles.finding}>
                     <AlertTriangle size={11} className={styles.iconWarning} />

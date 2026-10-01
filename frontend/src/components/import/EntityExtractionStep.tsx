@@ -163,7 +163,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <h3 className={styles.title}>Extract Entities</h3>
+          <h3 className={styles.title}>Extract entities</h3>
           <p className={styles.subtitle}>Populate your Lorebook from the imported manuscript</p>
         </div>
         <AIFeatureInfoTrigger pageId="import" size="md" />

@@ -179,7 +179,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
           <div className={styles.result}>
             <div className={styles.resultHeader}>
               <span className={styles.resultLabel}>
-                {mode === "structure" ? "Section Summary" : "Character Arc Status"}
+                {mode === "structure" ? "Section summary" : "Character arc status"}
               </span>
               <button onClick={copy} className={styles.copyBtn}>
                 {copied ? <Check size={12} /> : <Copy size={12} />}

@@ -151,7 +151,7 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
               className={styles.docLink}
             >
               <File size={14} />
-              View / Download
+              View / download
               <ExternalLink size={12} />
             </a>
           </div>

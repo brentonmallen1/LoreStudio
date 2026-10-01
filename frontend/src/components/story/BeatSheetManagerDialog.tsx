@@ -70,7 +70,7 @@ function EditView({
           className={styles.input}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="My Beat Sheet"
+          placeholder="My beat sheet"
           autoFocus
         />
       </div>
@@ -140,7 +140,7 @@ function EditView({
         </button>
         <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
           <Check size={13} />
-          {saving ? "Saving…" : "Save Beat Sheet"}
+          {saving ? "Saving…" : "Save beat sheet"}
         </button>
       </div>
     </div>
@@ -182,7 +182,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
     <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={styles.dialog}>
         <div className={styles.dialogHeader}>
-          <h2 className={styles.dialogTitle}>Custom Beat Sheets</h2>
+          <h2 className={styles.dialogTitle}>Custom beat sheets</h2>
           <button className={styles.closeBtn} onClick={onClose}>
             <X size={15} />
           </button>
@@ -238,7 +238,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
               </div>
             )}
             <button className={styles.newBtn} onClick={() => setEditing("new")}>
-              <Plus size={13} /> New Beat Sheet
+              <Plus size={13} /> New beat sheet
             </button>
           </div>
         )}

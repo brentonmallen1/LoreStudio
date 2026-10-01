@@ -96,7 +96,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
           {affectedThreads.length > 0 && (
             <ImpactSection
               icon={<GitBranch size={12} />}
-              title="Affected Plot Threads"
+              title="Affected plot threads"
               color="var(--color-accent)"
             >
               {affectedThreads.map((t, i) => (
@@ -112,7 +112,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
           {affectedArcs.length > 0 && (
             <ImpactSection
               icon={<User size={12} />}
-              title="Character Arc Changes"
+              title="Character arc changes"
               color="var(--color-accent-secondary, #0d9488)"
             >
               {affectedArcs.map((a, i) => (
@@ -126,7 +126,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Scenes to review */}
           {scenesToReview.length > 0 && (
-            <ImpactSection icon={<Film size={12} />} title="Scenes to Review" color="var(--color-warning)">
+            <ImpactSection icon={<Film size={12} />} title="Scenes to review" color="var(--color-warning)">
               {scenesToReview.map((s, i) => (
                 <div key={i} className={styles.impactRow}>
                   <span className={styles.impactName}>{str(s.scene_title)}</span>
@@ -140,7 +140,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
           {rippleEffects.length > 0 && (
             <ImpactSection
               icon={<Zap size={12} />}
-              title="Ripple Effects"
+              title="Ripple effects"
               color="var(--segment-beat, #a855f7)"
             >
               {rippleEffects.map((r, i) => (
@@ -154,7 +154,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Loose ends */}
           {looseEnds.length > 0 && (
-            <ImpactSection icon={<AlertTriangle size={12} />} title="Loose Ends" color="#c83c3c">
+            <ImpactSection icon={<AlertTriangle size={12} />} title="Loose ends" color="#c83c3c">
               <ul className={styles.looseEndList}>
                 {looseEnds.map((end, i) => (
                   <li key={i} className={styles.looseEndItem}>

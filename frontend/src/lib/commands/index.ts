@@ -331,7 +331,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-show-dont-tell",
-  label: "Show/Tell Analysis",
+  label: "Show/tell analysis",
   keywords: ["show", "tell", "show dont tell", "analysis", "prose"],
   icon: Compass,
   group: "Editor",
@@ -361,7 +361,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-scene-search",
-  label: "Find in Scene",
+  label: "Find in scene",
   keywords: ["find", "search", "replace", "scene"],
   icon: Search,
   group: "Editor",
@@ -388,7 +388,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-story-search",
-  label: "Find in Story",
+  label: "Find in story",
   keywords: ["find", "search", "replace", "story", "all scenes"],
   icon: Search,
   group: "Editor",
@@ -413,7 +413,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "toggle-ai-panel",
-  label: "Show or Hide the Assistant",
+  label: "Show or hide the Assistant",
   keywords: ["ai", "panel", "assistant", "toggle", "hide", "show"],
   icon: Feather,
   group: "AI",
@@ -425,7 +425,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "float-ai-panel",
-  label: "Float or Dock the Side Panel",
+  label: "Float or dock the side panel",
   keywords: ["panel", "float", "dock", "undock", "window", "detach", "tabs"],
   icon: PanelRight,
   group: "View",
@@ -437,7 +437,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-story-summary",
-  label: "Story So Far",
+  label: "Story so far",
   keywords: ["summary", "story", "so far", "recap", "catch up"],
   icon: Compass,
   group: "AI",
@@ -461,7 +461,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-dialogue-insert",
-  label: "Insert Dialogue Line",
+  label: "Insert dialogue line",
   keywords: ["dialogue", "dialog", "speaker", "insert", "quote", "attribution"],
   icon: Quote,
   group: "Editor",
@@ -474,7 +474,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-dialogue-guide",
-  label: "Dialogue Guide",
+  label: "Dialogue guide",
   keywords: ["dialogue", "dialog", "guide", "syntax", "attribution", "speaker", "help"],
   icon: Quote,
   group: "Editor",
@@ -486,7 +486,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-mice-guide",
-  label: "MICE Quotient Guide",
+  label: "MICE Quotient guide",
   keywords: ["mice", "milieu", "idea", "character", "event", "guide", "quotient", "threads"],
   icon: BookOpen,
   group: "Editor",
@@ -498,7 +498,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "editor-essential-questions-guide",
-  label: "6 Essential Questions Guide",
+  label: "6 Essential Questions guide",
   keywords: ["essential", "questions", "guide", "protagonist", "stakes", "conflict", "arc"],
   icon: BookMarked,
   group: "Editor",

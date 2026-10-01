@@ -65,7 +65,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
             </p>
             <button className={styles.runBtn} onClick={handleRun}>
               <Compass size={13} />
-              Suggest Comp Titles
+              Suggest comp titles
             </button>
           </div>
         )}

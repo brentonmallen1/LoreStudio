@@ -84,7 +84,7 @@ export default function CommandPalette() {
     // Creation commands
     commandRegistry.update({
       id: "create-character",
-      label: "New Character",
+      label: "New character",
       keywords: ["new", "create", "add", "character"],
       icon: UserPlus,
       group: "Create",
@@ -108,7 +108,7 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-compendium-entry",
-      label: "New Compendium Entry",
+      label: "New Compendium entry",
       keywords: ["new", "create", "add", "compendium", "research", "note"],
       icon: Scroll,
       group: "Create",
@@ -120,7 +120,7 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-thread",
-      label: "New Plot Thread",
+      label: "New plot thread",
       keywords: ["new", "create", "add", "thread", "plot", "subplot"],
       icon: GitBranch,
       group: "Create",
@@ -132,7 +132,7 @@ export default function CommandPalette() {
     });
     commandRegistry.update({
       id: "create-story",
-      label: "New Story",
+      label: "New story",
       keywords: ["new", "create", "add", "story"],
       icon: Plus,
       group: "Create",

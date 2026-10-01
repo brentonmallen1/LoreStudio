@@ -72,7 +72,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
       <div className={styles.panel}>
         <div className={styles.header}>
           <BookOpen size={14} className={styles.icon} />
-          <h3 className={styles.title}>The Story So Far</h3>
+          <h3 className={styles.title}>The story so far</h3>
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}
             onClick={() =>

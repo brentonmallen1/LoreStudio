@@ -41,7 +41,7 @@ const ROLES: ClassificationOption[] = [
   },
   {
     value: "love_interest",
-    label: "Love Interest",
+    label: "Love interest",
     description:
       "A character whose romantic or emotional connection to the protagonist adds stakes and complexity.",
   },
@@ -183,7 +183,7 @@ const NARRATIVE_ARCHETYPES: ClassificationOption[] = [
   },
   {
     value: "threshold_guardian",
-    label: "Threshold Guardian",
+    label: "Threshold guardian",
     description: "Tests the hero before they can progress. Ensures only the ready pass.",
   },
   {
@@ -429,7 +429,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     <Modal
       isOpen
       onClose={onClose}
-      title={isEditing ? `Edit ${character!.name}` : "New Character"}
+      title={isEditing ? `Edit ${character!.name}` : "New character"}
       icon={<UserRound size={15} />}
       size="lg"
       footer={footer}
@@ -466,7 +466,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
           </div>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Character Type</label>
+              <label className={styles.label}>Character type</label>
               <select
                 value={characterType}
                 onChange={(e) => setCharacterType(e.target.value)}
@@ -526,7 +526,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
           </p>
           <div className={styles.grid2}>
             <div className={styles.field}>
-              <label className={styles.label}>Jungian Archetype</label>
+              <label className={styles.label}>Jungian archetype</label>
               <p className={styles.hint}>Core identity, from Carl Jung's 12 personality archetypes</p>
               <select
                 value={jungianArchetype}
@@ -557,7 +557,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                 })()}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Narrative Archetype</label>
+              <label className={styles.label}>Narrative archetype</label>
               <p className={styles.hint}>Story function, from the Hero's Journey framework</p>
               <select
                 value={narrativeArchetype}
@@ -583,7 +583,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
         </SectionCard>
 
         {/* ── Character Depth ── */}
-        <SectionCard title="Character Depth">
+        <SectionCard title="Character depth">
           <TextField
             label="Goal"
             value={missionStatement}
@@ -615,10 +615,10 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
         </SectionCard>
 
         {/* ── Presentation & Arc ── */}
-        <SectionCard title="Presentation & Arc">
+        <SectionCard title="Presentation & arc">
           <TextField label="Appearance" value={appearance} onChange={setAppearance} rows={2} />
           <TextField
-            label="Arc Notes"
+            label="Arc notes"
             value={arcNotes}
             onChange={setArcNotes}
             rows={2}
@@ -627,7 +627,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
         </SectionCard>
 
         {/* ── Interview Setup ── */}
-        <SectionCard title="Interview Setup" variant="ai">
+        <SectionCard title="Interview setup" variant="ai">
           <p className={styles.sectionHint}>Suggested questions to ask when you interview this character</p>
           <div className={styles.promptList}>
             {interviewPrompts.map((prompt, i) => (

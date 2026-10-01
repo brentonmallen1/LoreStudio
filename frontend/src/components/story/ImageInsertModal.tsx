@@ -42,7 +42,7 @@ export default function ImageInsertModal({ storyId, onInsert, onClose }: Props) 
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Insert Image</span>
+          <span className={styles.title}>Insert image</span>
           <div className={styles.headerActions}>
             <label className={styles.uploadBtn} title={uploading ? "Uploading…" : "Upload new image"}>
               <Upload size={12} />

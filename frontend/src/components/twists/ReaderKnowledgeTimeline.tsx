@@ -202,7 +202,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <Brain size={15} className={styles.headerIcon} />
-          <h3 className={styles.headerTitle}>{ironyOnly ? "Dramatic Irony" : "Reader Knowledge Timeline"}</h3>
+          <h3 className={styles.headerTitle}>{ironyOnly ? "Dramatic irony" : "Reader knowledge timeline"}</h3>
           <span className={styles.eventCount}>{displayedEvents.length}</span>
         </div>
         <div className={styles.headerRight}>

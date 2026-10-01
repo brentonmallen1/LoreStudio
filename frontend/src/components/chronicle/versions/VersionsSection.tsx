@@ -254,7 +254,7 @@ export default function VersionsSection({ storyId }: { storyId: string }) {
             once they run.
           </p>
           <button className={styles.createBtn} onClick={() => setDialog({ type: "create" })}>
-            <Plus size={14} /> Create First Snapshot
+            <Plus size={14} /> Create first snapshot
           </button>
         </div>
       ) : viewMode === "list" ? (

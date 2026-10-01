@@ -28,7 +28,7 @@ export default function TypographySection() {
   return (
     <>
       <div className={styles.settingGroup}>
-        <p className={styles.settingGroupLabel}>Editor Font</p>
+        <p className={styles.settingGroupLabel}>Editor font</p>
         <select
           className={styles.fontSelect}
           value={editorFontFamily}
@@ -48,7 +48,7 @@ export default function TypographySection() {
       </div>
 
       <div className={styles.settingGroup}>
-        <p className={styles.settingGroupLabel}>Editor Font Size</p>
+        <p className={styles.settingGroupLabel}>Editor font size</p>
         <div className={styles.themeRow}>
           {FONT_SIZES.map(({ value, label }) => (
             <button
@@ -63,7 +63,7 @@ export default function TypographySection() {
       </div>
 
       <div className={styles.settingGroup}>
-        <p className={styles.settingGroupLabel}>Line Width</p>
+        <p className={styles.settingGroupLabel}>Line width</p>
         <div className={styles.themeRow}>
           {LINE_WIDTHS.map(({ value, label }) => (
             <button

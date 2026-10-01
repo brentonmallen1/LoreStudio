@@ -14,7 +14,7 @@ const inStory = () => !!useStoryStore.getState().activeStory;
 
 commandRegistry.register({
   id: "strip-cycle-width",
-  label: "Widen or Narrow the Story Strip",
+  label: "Widen or narrow the story strip",
   keywords: ["tree", "outline", "chapters", "scenes", "strip", "sidebar", "structure"],
   icon: PanelLeft,
   group: "View",
@@ -31,7 +31,7 @@ commandRegistry.register({
 for (const mode of COLOUR_MODES) {
   commandRegistry.register({
     id: `strip-colour-${mode.id}`,
-    label: `Colour the Strip by ${mode.short}`,
+    label: `Colour the strip by ${mode.short}`,
     description: mode.label,
     keywords: ["strip", "colour", "color", "tree", mode.id, mode.short.toLowerCase()],
     icon: Palette,

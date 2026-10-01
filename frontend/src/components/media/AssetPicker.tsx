@@ -17,7 +17,7 @@ export default function AssetPicker({
   storyId,
   objectType,
   objectId,
-  label = "Reference Images",
+  label = "Reference images",
   onAttachmentsChange,
 }: Props) {
   const [attachments, setAttachments] = useState<AssetAttachment[]>([]);

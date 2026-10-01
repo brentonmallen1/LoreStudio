@@ -52,12 +52,12 @@ export default function ImportWizard({ onClose }: Props) {
 
   const stepLabels: Record<Step, string> = {
     1: "Upload",
-    2: "Review Structure",
-    3: "Extract Entities",
-    4: "Confirm & Create",
+    2: "Review structure",
+    3: "Extract entities",
+    4: "Confirm & create",
   };
 
-  const title = `Import Document: ${stepLabels[step]}`;
+  const title = `Import document: ${stepLabels[step]}`;
 
   return (
     <Modal isOpen onClose={onClose} title={title} icon={<FileInput size={15} />} size="lg">

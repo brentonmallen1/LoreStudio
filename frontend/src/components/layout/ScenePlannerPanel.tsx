@@ -51,7 +51,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   { key: "purpose", label: "Purpose", icon: Target, color: "var(--color-warning)", type: "text" },
   {
     key: "entry_state",
-    label: "Entry State",
+    label: "Entry state",
     icon: LogIn,
     color: "var(--segment-part)",
     type: "text",
@@ -59,7 +59,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "exit_state",
-    label: "Exit State",
+    label: "Exit state",
     icon: LogOut,
     color: "var(--segment-beat)",
     type: "text",
@@ -67,7 +67,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "key_events",
-    label: "Key Events",
+    label: "Key events",
     icon: List,
     color: "var(--segment-scene)",
     type: "list",
@@ -75,7 +75,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "characters_to_feature",
-    label: "Characters to Feature",
+    label: "Characters to feature",
     icon: Users,
     color: "var(--color-success)",
     type: "sublist",
@@ -84,7 +84,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "threads_to_advance",
-    label: "Threads to Advance",
+    label: "Threads to advance",
     icon: GitBranch,
     color: "var(--color-ai)",
     type: "sublist",
@@ -93,7 +93,7 @@ const SCENE_PLAN_SCHEMA: SectionConfig[] = [
   },
   {
     key: "questions",
-    label: "Worth Deciding",
+    label: "Worth deciding",
     icon: HelpCircle,
     color: "var(--color-text-muted)",
     type: "list",

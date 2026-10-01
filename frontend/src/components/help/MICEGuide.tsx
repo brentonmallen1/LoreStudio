@@ -96,7 +96,7 @@ export function MICEContent() {
       </div>
 
       <div className={styles.sections}>
-        <CollapsibleSection title="Nesting Rules (LIFO)" defaultOpen>
+        <CollapsibleSection title="Nesting rules (LIFO)" defaultOpen>
           <div className={styles.sectionContent}>
             <p>
               When you open multiple MICE threads in a story, they must close in{" "}
@@ -141,7 +141,7 @@ export function MICEContent() {
           </div>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Short Fiction Economy">
+        <CollapsibleSection title="Short fiction economy">
           <div className={styles.sectionContent}>
             <p>
               Short fiction is ruthless about scope. Every element must earn its place; there is no room for
@@ -151,7 +151,7 @@ export function MICEContent() {
               <thead>
                 <tr>
                   <th>Form</th>
-                  <th>Word Count</th>
+                  <th>Word count</th>
                   <th>Typical MICE Threads</th>
                   <th>Subplots</th>
                 </tr>

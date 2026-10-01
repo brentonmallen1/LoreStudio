@@ -55,7 +55,7 @@ export default function DashboardPage() {
         <div className={styles.pageHead}>
           <div>
             <h1 className={styles.greeting}>
-              {user?.display_name ? `Good to see you, ${user.display_name.split(" ")[0]}` : "Your Stories"}
+              {user?.display_name ? `Good to see you, ${user.display_name.split(" ")[0]}` : "Your stories"}
             </h1>
             <p className={styles.subtitle}>
               {stories.length === 0
@@ -70,7 +70,7 @@ export default function DashboardPage() {
             </button>
             <button onClick={() => setCreating(true)} className={styles.createBtn}>
               <Plus size={15} />
-              New Story
+              New story
             </button>
           </div>
         </div>

@@ -22,7 +22,7 @@ interface Props {
 type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
-  needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
+  needs_work: { label: "Needs work", className: styles.ratingNeedsWork },
   fair: { label: "Fair", className: styles.ratingFair },
   good: { label: "Good", className: styles.ratingGood },
   excellent: { label: "Excellent", className: styles.ratingExcellent },
@@ -125,7 +125,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Clue Verification */}
           {!!data.clue_verification && (
-            <Section icon={<Pin size={12} />} title="Clue Verification" color="var(--color-accent)">
+            <Section icon={<Pin size={12} />} title="Clue verification" color="var(--color-accent)">
               {!!asRecord(data.clue_verification).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.clue_verification).summary)}</p>
               )}
@@ -160,7 +160,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
           {!!data.distribution && (
             <Section
               icon={<BarChart2 size={12} />}
-              title="Clue Distribution"
+              title="Clue distribution"
               color="var(--twist-accent, #7c3aed)"
             >
               {!!asRecord(data.distribution).summary && (
@@ -186,7 +186,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
           {!!data.reveal && (
             <Section
               icon={<Eye size={12} />}
-              title="Reveal Assessment"
+              title="Reveal assessment"
               color="var(--color-accent-secondary, #0d9488)"
             >
               {!!asRecord(data.reveal).summary && (
@@ -219,7 +219,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
           {!!data.misdirection_strength && (
             <Section
               icon={<Shuffle size={12} />}
-              title="Misdirection Strength"
+              title="Misdirection strength"
               color="var(--color-warning, #f59e0b)"
             >
               {!!asRecord(data.misdirection_strength).summary && (

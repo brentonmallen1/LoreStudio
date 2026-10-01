@@ -15,19 +15,19 @@ const inStory = () => !!useStoryStore.getState().activeStory;
 const TOOLS: { tool: ToolId; label: string; keywords: string[]; icon: typeof Users }[] = [
   {
     tool: "characters",
-    label: "Characters Beside the Page",
+    label: "Characters beside the page",
     keywords: ["cast", "people", "panel"],
     icon: Users,
   },
   {
     tool: "places",
-    label: "Places Beside the Page",
+    label: "Places beside the page",
     keywords: ["locations", "settings", "panel"],
     icon: MapPin,
   },
   {
     tool: "threads",
-    label: "Threads Beside the Page",
+    label: "Threads beside the page",
     keywords: ["plot", "mice", "subplot", "panel"],
     icon: GitBranch,
   },
@@ -47,7 +47,7 @@ for (const t of TOOLS) {
 
 commandRegistry.register({
   id: "panel-toggle",
-  label: "Show or Hide the Side Panel",
+  label: "Show or hide the side panel",
   keywords: ["panel", "notes", "sidebar", "tabs", "hide", "show"],
   icon: PanelRight,
   group: "View",
@@ -58,7 +58,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "panel-close-tab",
-  label: "Close This Tab",
+  label: "Close this tab",
   keywords: ["panel", "tab", "close"],
   icon: X,
   group: "View",
@@ -71,7 +71,7 @@ commandRegistry.register({
 
 commandRegistry.register({
   id: "view-collapse-sides",
-  label: "Collapse or Restore Both Sides",
+  label: "Collapse or restore both sides",
   keywords: ["sides", "strip", "panel", "hide", "wide", "room", "collapse"],
   icon: Columns3,
   group: "View",

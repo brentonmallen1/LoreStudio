@@ -24,7 +24,7 @@ export default function AIActivityIndicator() {
     <div className={styles.indicator}>
       <div className={styles.header}>
         <span className={styles.pulse} aria-hidden />
-        <span className={styles.label}>AI Working</span>
+        <span className={styles.label}>AI working</span>
       </div>
       {streams.map((req) => (
         <div key={req.id} className={styles.item}>

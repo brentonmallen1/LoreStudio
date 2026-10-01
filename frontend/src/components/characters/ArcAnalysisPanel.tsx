@@ -12,7 +12,7 @@ interface Props {
 type AnyRecord = Record<string, unknown>;
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
-  needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
+  needs_work: { label: "Needs work", className: styles.ratingNeedsWork },
   fair: { label: "Fair", className: styles.ratingFair },
   good: { label: "Good", className: styles.ratingGood },
   excellent: { label: "Excellent", className: styles.ratingExcellent },
@@ -111,7 +111,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
           {asList(data.moment_discoveries).length > 0 && (
             <Section
               icon={<Map size={12} />}
-              title="Key Moments Found"
+              title="Key moments found"
               color="var(--segment-chapter, #7c3aed)"
             >
               <p className={styles.sectionSubtitle}>Significant character moments discovered in your prose</p>
@@ -138,7 +138,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
           {!!data.drift_analysis && (
             <Section
               icon={<AlertTriangle size={12} />}
-              title="Drift Analysis"
+              title="Drift analysis"
               color="var(--color-warning, #f59e0b)"
             >
               {!!asRecord(data.drift_analysis).summary && (
@@ -156,7 +156,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
           {!!data.health && (
             <Section
               icon={<Heart size={12} />}
-              title="Arc Health"
+              title="Arc health"
               color="var(--color-accent-secondary, #0d9488)"
             >
               {!!asRecord(data.health).summary && (
@@ -174,7 +174,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
           {asStringList(data.unlinked_milestones).length > 0 && (
             <Section
               icon={<XCircle size={12} />}
-              title="Unlinked Milestones"
+              title="Unlinked milestones"
               color="var(--color-danger, #ef4444)"
             >
               <p className={styles.sectionSubtitle}>Milestones with no clear scene fulfilling them yet</p>

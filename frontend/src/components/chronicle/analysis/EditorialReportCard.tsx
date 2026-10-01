@@ -25,11 +25,11 @@ interface Props {
 type Section = "fresh-eyes" | "priorities" | "intent-gaps" | "voice" | "marginal";
 
 const SECTIONS: { key: Section; label: string; Icon: React.ElementType; countKey: string }[] = [
-  { key: "fresh-eyes", label: "Fresh Eyes", Icon: Eye, countKey: "fresh_eyes_count" },
+  { key: "fresh-eyes", label: "Fresh eyes", Icon: Eye, countKey: "fresh_eyes_count" },
   { key: "priorities", label: "Priorities", Icon: ListOrdered, countKey: "priorities_count" },
-  { key: "intent-gaps", label: "Intent vs Execution", Icon: GitCompare, countKey: "intent_gaps_count" },
+  { key: "intent-gaps", label: "Intent vs execution", Icon: GitCompare, countKey: "intent_gaps_count" },
   { key: "voice", label: "Voice", Icon: Mic, countKey: "voice_notes_count" },
-  { key: "marginal", label: "Marginal Notes", Icon: StickyNote, countKey: "marginal_notes_count" },
+  { key: "marginal", label: "Marginal notes", Icon: StickyNote, countKey: "marginal_notes_count" },
 ];
 
 function ImpactBadge({ impact }: { impact: string }) {
@@ -249,7 +249,7 @@ export function EditorialReportCard({ log, onDelete }: Props) {
 
   const scopeLabel =
     scopeType === "story"
-      ? "Whole Story"
+      ? "Whole story"
       : scopeType === "chapters"
         ? `${scopeIds?.length ?? 0} chapter(s)`
         : `${scopeIds?.length ?? 0} scene(s)`;
@@ -258,8 +258,8 @@ export function EditorialReportCard({ log, onDelete }: Props) {
     contextLevel === "full"
       ? "Full Manuscript"
       : contextLevel === "summaries"
-        ? "With Summaries"
-        : "Section Only";
+        ? "With summaries"
+        : "Section only";
 
   const timestamp = parseServerDate(log.created_at).toLocaleString(undefined, {
     month: "short",

@@ -33,7 +33,7 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
 
   const scopeLabel =
     value.type === "story"
-      ? "Whole Story"
+      ? "Whole story"
       : `${value.ids.length} ${value.type === "chapters" ? "chapter" : "scene"}${value.ids.length !== 1 ? "s" : ""}`;
 
   return (
@@ -53,12 +53,12 @@ export function ScopeSelector({ structure, value, onChange }: Props) {
               setExpanded(false);
             }}
           >
-            Whole Story
+            Whole story
           </button>
 
           {(secondLevel.length > 0 || leaves.length > 0) && (
             <>
-              <div className={styles.groupLabel}>Chapters / Sections</div>
+              <div className={styles.groupLabel}>Chapters / sections</div>
               {(secondLevel.length > 0 ? secondLevel : topLevel).map((n) => (
                 <label key={n.id} className={styles.checkRow}>
                   <input

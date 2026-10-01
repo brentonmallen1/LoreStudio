@@ -46,7 +46,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
   const [items, setItems] = useState<ExtractedItem[]>([]);
   const [editedTexts, setEditedTexts] = useState<Record<number, string>>({});
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [suggestedName, setSuggestedName] = useState("Extracted Outline");
+  const [suggestedName, setSuggestedName] = useState("Extracted outline");
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
         }
         const data = result.data as { items: ExtractedItem[]; suggested_name: string };
         setItems(data.items ?? []);
-        setSuggestedName(data.suggested_name ?? "Extracted Outline");
+        setSuggestedName(data.suggested_name ?? "Extracted outline");
         setSelected(new Set((data.items ?? []).map((_, i) => i)));
       })
       .catch((e: Error) => setError(e.message ?? "Extraction failed."))

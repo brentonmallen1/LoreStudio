@@ -185,7 +185,7 @@ function AssetCard({
         {showAnalysis && (
           <div className={styles.analysisBox}>
             <div className={styles.analysisHeader}>
-              <span>AI Analysis</span>
+              <span>AI analysis</span>
               <button onClick={() => setShowAnalysis(false)} className={styles.cancelBtn}>
                 <X size={11} />
               </button>

@@ -22,7 +22,7 @@ function asStringList(v: unknown): string[] {
 }
 
 const RATING_LABELS: Record<string, { label: string; className: string }> = {
-  needs_work: { label: "Needs Work", className: styles.ratingNeedsWork },
+  needs_work: { label: "Needs work", className: styles.ratingNeedsWork },
   fair: { label: "Fair", className: styles.ratingFair },
   good: { label: "Good", className: styles.ratingGood },
   excellent: { label: "Excellent", className: styles.ratingExcellent },
@@ -138,7 +138,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Contradictions */}
           {!!entry.contradictions && (
-            <Section icon={<GitBranch size={12} />} title="Contradictions & Tensions" color="var(--color-ai)">
+            <Section icon={<GitBranch size={12} />} title="Contradictions & tensions" color="var(--color-ai)">
               <p className={styles.prose}>{entry.contradictions}</p>
             </Section>
           )}
@@ -147,7 +147,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
           {!!entry.relationship_depth && (
             <Section
               icon={<Users size={12} />}
-              title="Relationship Depth"
+              title="Relationship depth"
               color="var(--segment-chapter, #7c3aed)"
             >
               <p className={styles.prose}>{entry.relationship_depth}</p>

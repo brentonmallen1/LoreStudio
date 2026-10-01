@@ -95,7 +95,7 @@ export default function ScratchPadDrawer() {
         <div className={styles.drawerHeader}>
           <div className={styles.titleRow}>
             <PenLine size={14} className={styles.titleIcon} />
-            <span className={styles.title}>Scratch Pad</span>
+            <span className={styles.title}>Scratch pad</span>
           </div>
           <div className={styles.headerActions}>
             <button className={styles.iconBtn} onClick={copyToClipboard} title="Copy to clipboard">
@@ -113,7 +113,7 @@ export default function ScratchPadDrawer() {
               className={`${styles.tab} ${tab === "story" ? styles.tabActive : ""}`}
               onClick={() => setTab("story")}
             >
-              This Story
+              This story
               {hasStoryContent && tab !== "story" && <span className={styles.dot} />}
             </button>
             <button

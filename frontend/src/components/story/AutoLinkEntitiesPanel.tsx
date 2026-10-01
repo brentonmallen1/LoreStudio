@@ -98,7 +98,7 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <Link size={15} />
-            <span className={styles.title}>Link Mentions</span>
+            <span className={styles.title}>Link mentions</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <X size={15} />

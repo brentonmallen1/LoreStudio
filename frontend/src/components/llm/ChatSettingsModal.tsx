@@ -93,7 +93,7 @@ export default function ChatSettingsModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="AI Parameters"
+      title="AI parameters"
       icon={<Settings2 size={15} />}
       size="sm"
       footer={footer}
@@ -151,7 +151,7 @@ export default function ChatSettingsModal({
 
         {/* Image token budget */}
         <div className={styles.field}>
-          <label className={styles.label}>Image Token Budget</label>
+          <label className={styles.label}>Image token budget</label>
           <select
             value={tokenBudget}
             onChange={(e) => setTokenBudget(parseInt(e.target.value, 10) as ImageTokenBudget | 0)}
@@ -174,7 +174,7 @@ export default function ChatSettingsModal({
         {/* Thinking mode */}
         <div className={styles.toggleRow}>
           <div className={styles.toggleLabel}>
-            <label className={styles.label}>Thinking Mode</label>
+            <label className={styles.label}>Thinking mode</label>
             <span className={styles.hint}>
               Gemma 4 reasons before responding: improves accuracy, increases latency.
             </span>

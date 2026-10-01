@@ -101,7 +101,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
       <Modal
         isOpen
         onClose={onClose}
-        title="New Story"
+        title="New story"
         icon={<BookOpen size={15} />}
         size="sm"
         footer={footer}

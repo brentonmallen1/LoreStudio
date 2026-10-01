@@ -12,7 +12,7 @@ import { useAIAvailable } from "../../lib/mode";
 const REL_SCHEMA: SectionConfig[] = [
   {
     key: "suggestions",
-    label: "Suggested Relationships",
+    label: "Suggested relationships",
     icon: Link,
     color: "var(--color-ai)",
     type: "sublist",

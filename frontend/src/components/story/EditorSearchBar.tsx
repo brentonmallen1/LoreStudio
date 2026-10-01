@@ -168,7 +168,7 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
             }
             disabled={resultCount === 0}
           >
-            Replace All
+            Replace all
           </button>
         </div>
       )}

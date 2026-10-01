@@ -403,7 +403,7 @@ export default function SettingsPage() {
             </div>
 
             <div className={styles.settingGroup}>
-              <p className={styles.settingGroupLabel}>Color Mode</p>
+              <p className={styles.settingGroupLabel}>Color mode</p>
               <div className={styles.themeRow}>
                 {colorModeOptions.map(({ value, label, Icon }) => {
                   const isDisabled = value === "light" && THEME_META[themeName].darkOnly;
@@ -467,7 +467,7 @@ export default function SettingsPage() {
                       type="button"
                     >
                       {connStatus === "loading" ? <Loader2 size={13} className={styles.spin} /> : null}
-                      {connStatus === "loading" ? "Testing…" : "Test Connection"}
+                      {connStatus === "loading" ? "Testing…" : "Test connection"}
                     </button>
                     {ollamaSaveState === "saving" && (
                       <span className={styles.autoSaving}>
@@ -496,7 +496,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <Link to="/settings/ai-prompts" className={styles.subpageLink}>
-                  AI Prompts
+                  AI prompts
                   <ChevronRight size={14} />
                 </Link>
               </section>
@@ -559,7 +559,7 @@ export default function SettingsPage() {
 
                   {/* Image token budget */}
                   <div className={styles.field}>
-                    <label className={styles.label}>Image Token Budget</label>
+                    <label className={styles.label}>Image token budget</label>
                     <select
                       value={llmTokenBudget}
                       onChange={(e) =>
@@ -583,7 +583,7 @@ export default function SettingsPage() {
                   {/* Thinking mode */}
                   <div className={styles.toggleRow}>
                     <div className={styles.toggleLabel}>
-                      <label className={styles.label}>Thinking Mode</label>
+                      <label className={styles.label}>Thinking mode</label>
                       <span className={styles.toggleHint}>
                         Gemma 4 reasons before responding. Improves accuracy, increases latency.
                       </span>

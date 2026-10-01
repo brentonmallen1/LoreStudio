@@ -108,7 +108,7 @@ export default function WritingCoachMode({ session }: Props) {
             disabled={session.isStreaming}
           >
             <Compass size={13} />
-            Get Coaching
+            Get coaching
           </button>
         </div>
       )}

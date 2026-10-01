@@ -25,7 +25,7 @@ interface AnalysisDef {
 const ANALYSES: AnalysisDef[] = [
   {
     id: "voice-distinctness",
-    label: "Voice Distinctness",
+    label: "Voice distinctness",
     description: "Vocabulary richness · signature words · how distinct this voice is vs other characters",
     type: "nlp",
     Icon: Waves,
@@ -40,7 +40,7 @@ const ANALYSES: AnalysisDef[] = [
   },
   {
     id: "dialogue-prose",
-    label: "Prose Quality",
+    label: "Prose quality",
     description: "Adverbs · said-bookisms · sentence variety in this character's dialogue",
     type: "nlp",
     Icon: AlignLeft,

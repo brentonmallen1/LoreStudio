@@ -10,7 +10,7 @@ export const STRENGTH_DIMS: {
   color: string;
 }[] = [
   { key: "trust", label: "Trust", negLabel: "Distrust", posLabel: "Trust", color: "#7898c9" },
-  { key: "power", label: "Power Balance", negLabel: "Submits", posLabel: "Dominates", color: "#c9a060" },
+  { key: "power", label: "Power balance", negLabel: "Submits", posLabel: "Dominates", color: "#c9a060" },
   { key: "affection", label: "Affection", negLabel: "Hostile", posLabel: "Bonded", color: "#c97878" },
   { key: "tension", label: "Tension", negLabel: "Harmony", posLabel: "Conflict", color: "#a06090" },
   { key: "openness", label: "Openness", negLabel: "Guarded", posLabel: "Vulnerable", color: "#609878" },

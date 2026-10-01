@@ -257,7 +257,7 @@ export default function AutoTagDialoguePanel({
                   title="Use AI to re-analyze speakers for this scene"
                 >
                   {aiRefining ? <Loader size={11} className={styles.spinner} /> : <BrainCircuit size={11} />}
-                  {aiRefining ? "Refining…" : "AI Refine"}
+                  {aiRefining ? "Refining…" : "AI refine"}
                 </button>
                 <span className={styles.count}>
                   {proposals.length} proposal{proposals.length !== 1 ? "s" : ""}

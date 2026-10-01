@@ -171,7 +171,7 @@ export default function SceneAssistantMode({ session }: Props) {
               Continue
             </button>
             <button className={styles.resumeFreshBtn} onClick={() => discardPendingResume(session.id)}>
-              Start Fresh
+              Start fresh
             </button>
           </div>
         </div>

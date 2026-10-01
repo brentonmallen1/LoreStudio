@@ -478,7 +478,7 @@ export default function TodoListView() {
         <>
           {orderedKeys.map((key) => {
             const node = key ? findNode(structure, key) : null;
-            const label = node?.title || (key ? "Unknown Scene" : "General (no scene)");
+            const label = node?.title || (key ? "Unknown scene" : "General (no scene)");
             const items = groups.get(key) ?? [];
             return (
               <GroupSection

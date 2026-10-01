@@ -293,7 +293,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
       {proseResult && showProse && (
         <div ref={prosePanelRef} className={styles.voicePanel}>
           <div className={styles.voicePanelHeader}>
-            <span className={styles.voiceTitle}>Dialogue Prose Analysis</span>
+            <span className={styles.voiceTitle}>Dialogue prose analysis</span>
             <button onClick={() => setShowProse(false)} className={styles.voiceClose}>
               <ChevronUp size={12} />
             </button>
@@ -519,7 +519,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
             <div className={styles.subtextSection}>
               <button className={styles.subtextSectionHeader} onClick={() => setShowSubtextNotes((v) => !v)}>
                 <StickyNote size={13} className={styles.subtextSectionIcon} />
-                <span>Subtext Notes</span>
+                <span>Subtext notes</span>
                 <span className={styles.subtextSectionCount}>
                   {blocks.filter((b) => getSubtext(b)).length}
                 </span>

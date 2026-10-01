@@ -435,7 +435,7 @@ export default function GlobalHeader() {
                   }}
                   className={styles.allSettingsBtn}
                 >
-                  All Settings
+                  All settings
                 </button>
               </div>
             )}

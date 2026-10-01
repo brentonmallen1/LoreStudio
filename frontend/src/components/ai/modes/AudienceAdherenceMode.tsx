@@ -12,10 +12,10 @@ interface Props {
 }
 
 function fitLabel(fit: string): string {
-  if (fit === "poor") return "Poor Fit";
+  if (fit === "poor") return "Poor fit";
   if (fit === "fair") return "Fair";
-  if (fit === "good") return "Good Fit";
-  return "Excellent Fit";
+  if (fit === "good") return "Good fit";
+  return "Excellent fit";
 }
 
 function IssueCard({ issue }: { issue: AudienceIssue }) {

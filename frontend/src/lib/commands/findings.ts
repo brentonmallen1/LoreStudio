@@ -10,7 +10,7 @@ import { useStoryStore } from "../../stores/storyStore";
 
 commandRegistry.register({
   id: "findings-run-local",
-  label: "Check Prose, Tense and Point of View",
+  label: "Check prose, tense and point of view",
   description: "The local checks: no model, a second or two",
   keywords: ["findings", "check", "prose", "tense", "pov", "passive", "adverbs", "health", "run checks"],
   icon: ScanEye,

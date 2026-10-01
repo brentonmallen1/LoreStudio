@@ -232,11 +232,11 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
             </>
           ) : result ? (
             <>
-              <RefreshCw size={13} /> Generate More
+              <RefreshCw size={13} /> Generate more
             </>
           ) : (
             <>
-              <Compass size={13} /> Generate Questions
+              <Compass size={13} /> Generate questions
             </>
           )}
         </button>

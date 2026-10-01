@@ -172,7 +172,7 @@ export default function DialogueSyntaxGuide({ onClose }: Props) {
     <Modal
       isOpen
       onClose={onClose}
-      title="Dialogue Attribution"
+      title="Dialogue attribution"
       icon={<Quote size={15} />}
       size="lg"
       footer={

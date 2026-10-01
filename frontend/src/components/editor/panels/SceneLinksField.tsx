@@ -114,7 +114,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
   return (
     <div className={styles.overviewField}>
       <div className={styles.linkedHeader}>
-        <label className={styles.overviewLabel}>Linked Scenes</label>
+        <label className={styles.overviewLabel}>Linked scenes</label>
         <button
           className={styles.addLinkBtn}
           onClick={() => {
@@ -123,7 +123,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
           }}
         >
           <Plus size={11} />
-          Add Link
+          Add link
         </button>
       </div>
       {links.length === 0 ? (
@@ -166,7 +166,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
         <div className={styles.modalOverlay} onClick={() => setAdding(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <span className={styles.modalTitle}>Add Scene Link</span>
+              <span className={styles.modalTitle}>Add scene link</span>
               <button className={styles.modalClose} onClick={() => setAdding(false)}>
                 <X size={14} />
               </button>
@@ -208,7 +208,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
                 Cancel
               </button>
               <button className={styles.modalSave} onClick={create} disabled={!form.target}>
-                Add Link
+                Add link
               </button>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
         <div className={styles.modalOverlay} onClick={() => setEditing(null)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <span className={styles.modalTitle}>Edit Scene Link</span>
+              <span className={styles.modalTitle}>Edit scene link</span>
               <button className={styles.modalClose} onClick={() => setEditing(null)}>
                 <X size={14} />
               </button>
