@@ -24,7 +24,7 @@ Switch in **Settings › Appearance › Mode**. Everything in Writer mode works 
 1. **New Story** from the dashboard, or **Import** a manuscript (DOCX, Markdown, text).
 2. Pick a structure template (Act → Chapter → Scene, or freeform). Add a chapter and a scene in the tree.
 3. Write. The pill in the top bar says _Saved_ within a second of each pause.
-4. Open the **Notes** panel (top bar) for synopsis, purpose, inline notes, checks and quote style.
+4. The side panel's **This scene** tab holds the synopsis, purpose, checks and quote style; notes on passages sit in the margin beside the prose. **Collapse sides** in the top bar (⌘⇧L) folds both sides away when you want the page to yourself.
 5. Press **⌘K** at any time: every page and action is in the command palette. Press **?** for shortcuts.
 
 ## Where to look when something feels off

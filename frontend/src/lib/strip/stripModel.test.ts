@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { BeatSheet, Character, PlotThread, StoryStructureTemplate, StructureNode } from "../../types";
 import type { SceneCast } from "../../types/panel";
-import { buildLine, colourFor, legendFor, nextWidth, roman, stopShape } from "./stripModel";
+import {
+  buildLine,
+  colourFor,
+  legendFor,
+  nextWidth,
+  roman,
+  snapWidth,
+  stepWidth,
+  stopShape,
+} from "./stripModel";
 
 const node = (
   id: string,
@@ -79,6 +88,27 @@ describe("buildLine", () => {
     expect(line.readout).toEqual({ top: "Sc 2", bottom: "of 2 · 50%" });
     expect(nextWidth("strip", false)).toBe("scenes");
     expect(nextWidth("strip", true)).toBe("chapters");
+  });
+});
+
+describe("dragging and stepping the width", () => {
+  it("snaps a drag to the nearest width", () => {
+    expect(snapWidth(20, true)).toBe("strip");
+    expect(snapWidth(150, true)).toBe("strip");
+    expect(snapWidth(170, true)).toBe("chapters");
+    expect(snapWidth(290, true)).toBe("scenes");
+    expect(snapWidth(900, true)).toBe("scenes");
+  });
+
+  it("skips the chapter rows when there are no chapters", () => {
+    expect(snapWidth(240, false)).toBe("scenes");
+    expect(stepWidth("strip", false, 1)).toBe("scenes");
+  });
+
+  it("steps one width at a time and stops at the ends", () => {
+    expect(stepWidth("strip", true, 1)).toBe("chapters");
+    expect(stepWidth("scenes", true, 1)).toBe("scenes");
+    expect(stepWidth("strip", true, -1)).toBe("strip");
   });
 });
 

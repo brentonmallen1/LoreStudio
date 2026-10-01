@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { usePanelStore } from "../../stores/panelStore";
 import type { HoverCardState } from "./useMentionHoverCard";
@@ -19,7 +20,9 @@ export default function MentionHoverCard({
   if (!card.open) return null;
   const top = Math.max(8, card.rect.top - 12);
   const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
-  return (
+  // Portalled: the editor's container is a size container, which would make it the box a
+  // fixed card is placed in and clip it (doc 13 P2).
+  return createPortal(
     <div
       ref={cardRef}
       className={styles.hoverCard}
@@ -84,6 +87,7 @@ export default function MentionHoverCard({
           <span className={styles.hoverCardNotFoundBadge}>Not found</span>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

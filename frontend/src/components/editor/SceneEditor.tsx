@@ -39,7 +39,7 @@ import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker, TodoInputPopup } from "./SlashPicker";
-import InlineNotePopover from "./InlineNotePopover";
+import NoteMargin from "./NoteMargin";
 import MentionHoverCard from "./MentionHoverCard";
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
@@ -75,9 +75,8 @@ export default function SceneEditor() {
   } = useUIStore();
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
-  // The scene's notes live in the side panel now (doc 11); the topbar button shows or hides it.
-  const panelOpen = usePanelStore((s) => s.open);
-  const togglePanel = usePanelStore((s) => s.toggle);
+  // Notes sit in the prose's left margin (doc 13 P2); the topbar button shows or hides it.
+  const [notesMargin, setNotesMargin] = useState(readNotesMargin);
   const activateTab = usePanelStore((s) => s.activate);
   const openEntity = usePanelStore((s) => s.openEntity);
   const setBridgeNotes = useEditorBridge((s) => s.setNotes);
@@ -253,8 +252,9 @@ export default function SceneEditor() {
         activeNode={activeNode}
         wordCount={autosave.wordCount}
         autosave={autosave}
-        showOverview={panelOpen}
-        onToggleOverview={togglePanel}
+        showNotes={notesMargin}
+        noteCount={notes.notes.length}
+        onToggleNotes={() => setNotesMargin(saveNotesMargin(!notesMargin))}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
@@ -314,6 +314,14 @@ export default function SceneEditor() {
                 <EditorContent editor={editor} />
               </div>
             )}
+            {!dialogueIsolation && (
+              <NoteMargin
+                notes={notes}
+                scrollAreaRef={scrollAreaRef}
+                marginRef={notePopoverRef}
+                visible={notesMargin}
+              />
+            )}
             <MentionGutter scrollAreaRef={scrollAreaRef} />
           </div>
         </div>
@@ -359,7 +367,6 @@ export default function SceneEditor() {
         showAI={aiAvailable}
       />
 
-      <InlineNotePopover notes={notes} popoverRef={notePopoverRef} />
       <MentionHoverCard hover={hover} cardRef={hoverCardRef} storyId={activeStory?.id} />
       <SlashPicker slash={slash} />
       <TodoInputPopup todo={todoInput} />
@@ -377,4 +384,23 @@ export default function SceneEditor() {
       )}
     </div>
   );
+}
+
+const NOTES_MARGIN_KEY = "ls_notes_margin";
+
+function readNotesMargin(): boolean {
+  try {
+    return localStorage.getItem(NOTES_MARGIN_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+function saveNotesMargin(on: boolean): boolean {
+  try {
+    localStorage.setItem(NOTES_MARGIN_KEY, on ? "on" : "off");
+  } catch {
+    /* a private window keeps the choice for this visit only */
+  }
+  return on;
 }

@@ -261,9 +261,30 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
   return [...seen.values()];
 }
 
-/** The next width when the handle is used: strip → chapters → scenes → strip; a flat template has no chapters stop. */
+/** The strip's three widths, in pixels. */
+export const WIDTH_PX: Record<StripWidth, number> = { strip: 64, chapters: 248, scenes: 304 };
+
+function widthsFor(hasStations: boolean): StripWidth[] {
+  return hasStations ? ["strip", "chapters", "scenes"] : ["strip", "scenes"];
+}
+
+/** The next width when the shortcut is used: strip → chapters → scenes → strip; a flat template has no chapters stop. */
 export function nextWidth(width: StripWidth, hasStations: boolean): StripWidth {
-  const order: StripWidth[] = hasStations ? ["strip", "chapters", "scenes"] : ["strip", "scenes"];
+  const order = widthsFor(hasStations);
   const i = order.indexOf(width);
   return order[(i + 1) % order.length];
+}
+
+/** One width wider or narrower, stopping at either end (the edge's arrow keys). */
+export function stepWidth(width: StripWidth, hasStations: boolean, dir: 1 | -1): StripWidth {
+  const order = widthsFor(hasStations);
+  const i = Math.max(0, order.indexOf(width));
+  return order[Math.min(order.length - 1, Math.max(0, i + dir))];
+}
+
+/** Where a drag of the strip's edge lands: the nearest of its widths (doc 13 P2). */
+export function snapWidth(px: number, hasStations: boolean): StripWidth {
+  return widthsFor(hasStations).reduce((best, w) =>
+    Math.abs(WIDTH_PX[w] - px) < Math.abs(WIDTH_PX[best] - px) ? w : best,
+  );
 }

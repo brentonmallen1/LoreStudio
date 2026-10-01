@@ -1069,30 +1069,6 @@
   background: color-mix(in srgb, var(--color-note-marker) 28%, transparent);
 }
 
-/* ── Note gutter marker ── */
-.editorWrap :global(.note-gutter-marker) {
-  position: absolute;
-  left: -1.6rem;
-  top: 0.35em;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: none;
-  background: var(--color-note-marker);
-  opacity: 0.65;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    opacity var(--transition),
-    transform var(--transition);
-  flex-shrink: 0;
-}
-
-.editorWrap :global(.note-gutter-marker:hover) {
-  opacity: 1;
-  transform: scale(1.2);
-}
-
 /* ── Editorial note highlight ── */
 .editorWrap :global(.ProseMirror .note-anchor--editorial) {
   background: var(--color-editorial-highlight);
@@ -1103,24 +1079,8 @@
   background: color-mix(in srgb, var(--color-editorial-marker) 28%, transparent);
 }
 
-/* ── Editorial gutter marker (diamond) ── */
-.editorWrap :global(.note-gutter-marker--editorial) {
-  background: transparent;
-  border-radius: 0;
-  /* Diamond via clip-path */
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  background: var(--color-editorial-marker);
-  left: -1.75rem;
-}
-
-.editorWrap :global(.note-gutter-marker--editorial.note-gutter-marker:hover) {
-  opacity: 1;
-  transform: scale(1.2);
-}
-
 /* ── Hide editorial notes ── */
-.hideEditorialNotes :global(.note-anchor--editorial),
-.hideEditorialNotes :global(.note-gutter-marker--editorial) {
+.hideEditorialNotes :global(.note-anchor--editorial) {
   display: none !important;
 }
 
@@ -1294,165 +1254,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-}
-
-/* ── Note popover ── */
-.notePopover {
-  position: fixed;
-  width: 284px;
-  min-width: 200px;
-  min-height: 140px;
-  resize: both;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  z-index: 200;
-}
-
-.notePopoverHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.625rem 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.notePopoverTitle {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.notePopoverActions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.notePopoverDelete {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.notePopoverDelete:hover {
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  color: var(--color-danger);
-}
-
-.notePopoverEdit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.notePopoverEdit:hover {
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-  color: var(--color-accent);
-}
-
-.notePopoverClose {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.notePopoverClose:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text-muted);
-}
-
-.notePopoverBody {
-  padding: 0.625rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-  overflow: hidden;
-}
-
-.notePopoverAnchor {
-  font-size: 0.76rem;
-  font-style: italic;
-  color: var(--color-note-marker);
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.notePopoverNoteText {
-  font-size: 0.82rem;
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.notePopoverInput {
-  width: 100%;
-  flex: 1;
-  padding: 0.4rem 0.5rem;
-  font-size: 0.82rem;
-  font-family: inherit;
-  line-height: 1.5;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  outline: none;
-  resize: none;
-  box-sizing: border-box;
-  transition: border-color var(--transition);
-}
-
-.notePopoverInput:focus {
-  border-color: var(--color-note-marker);
-  background: var(--color-surface);
-}
-
-.notePopoverFooter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem 0.625rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 /* ── @mention inline decorations (applied via ProseMirror DecorationSet) ── */

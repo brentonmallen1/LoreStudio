@@ -60,6 +60,11 @@ const _cb: SlashCallbacks = {
   onExecute: () => {},
 };
 
+/** Whether the slash picker is open (an Escape in the prose closes it first). */
+export function slashIsOpen(): boolean {
+  return _isOpen;
+}
+
 export function setSlashIsOpen(v: boolean) {
   _isOpen = v;
 }

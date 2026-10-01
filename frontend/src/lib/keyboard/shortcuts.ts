@@ -65,6 +65,14 @@ export const SHORTCUTS = {
     modes: ["studio"],
     commandId: "toggle-ai-panel",
   },
+  collapseSides: {
+    combo: "mod+shift+l",
+    label: "Collapse or restore both sides",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "view-collapse-sides",
+  },
   togglePanel: {
     combo: "mod+.",
     label: "Show or hide the side panel",

@@ -68,6 +68,11 @@ export function isMentionAttributionMode(): boolean {
 
 export const FORCE_MENTION_KEY = "forceMentionRebuild";
 
+/** Whether the @-mention picker is open (an Escape in the prose closes it first). */
+export function mentionIsOpen(): boolean {
+  return _isOpen;
+}
+
 export function setMentionIsOpen(open: boolean) {
   _isOpen = open;
 }

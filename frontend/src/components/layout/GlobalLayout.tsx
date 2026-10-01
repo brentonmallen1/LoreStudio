@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Outlet } from "react-router-dom";
 import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
+import FocusExit from "./FocusExit";
+import { mentionIsOpen } from "../story/MentionDropdown";
+import { slashIsOpen } from "../story/SlashCommandExtension";
 import { useUIStore } from "../../stores/uiStore";
 import { useAIAvailable } from "../../lib/mode";
 import { commandRegistry } from "../../lib/commands/registry";
@@ -9,6 +12,8 @@ import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shor
 import { startAISync } from "../../lib/ai/aiSync";
 import { startPanelSync } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
+import { useStoryStore } from "../../stores/storyStore";
+import { toggleBothSides } from "../../lib/layout/useSides";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -54,6 +59,10 @@ export default function GlobalLayout() {
         e.preventDefault();
         usePanelStore.getState().toggle();
       }
+      if (matchesCombo(e, SHORTCUTS.collapseSides.combo) && useStoryStore.getState().activeStory) {
+        e.preventDefault();
+        toggleBothSides();
+      }
       if (matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
         e.preventDefault();
         usePanelStore.getState().toggleFloating();
@@ -63,13 +72,35 @@ export default function GlobalLayout() {
     return () => window.removeEventListener("keydown", onKey);
   }, [aiAvailable]);
 
+  // Escape leaves focus mode, from the prose too (doc 13 P2). Caught before anything else
+  // sees it, since ProseMirror cancels every Escape; anything open on the page keeps it.
+  useEffect(() => {
+    function onEscape(e: KeyboardEvent) {
+      if (e.key !== "Escape" || useUIStore.getState().viewState !== "focus" || somethingOpen(e)) return;
+      useUIStore.getState().setViewState("normal");
+    }
+    window.addEventListener("keydown", onEscape, true);
+    return () => window.removeEventListener("keydown", onEscape, true);
+  }, []);
+
   return (
     <div className={styles.shell}>
       <GlobalHeader />
       <div className={`${styles.content} ${isFocused ? styles.contentFocused : styles.contentNormal}`}>
         <Outlet />
       </div>
+      {isFocused && <FocusExit />}
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
+  );
+}
+
+/** A field, dialog, menu or picker that Escape should close before it leaves focus mode. */
+function somethingOpen(e: KeyboardEvent): boolean {
+  const target = e.target as HTMLElement | null;
+  if (target?.closest("input, textarea, select")) return true;
+  if (mentionIsOpen() || slashIsOpen()) return true;
+  return !!document.querySelector(
+    '[role="dialog"], [role="menu"], [role="listbox"], [aria-modal="true"], [data-card-id][data-active]',
   );
 }

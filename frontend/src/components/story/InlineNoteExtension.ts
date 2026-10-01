@@ -1,7 +1,5 @@
 import { Mark, mergeAttributes } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { Decoration, DecorationSet } from "@tiptap/pm/view";
-import type { Node as PMNode } from "@tiptap/pm/model";
 
 export interface InlineNoteCallbacks {
   onNoteActivate: (noteId: string, rect: DOMRect) => void;
@@ -19,54 +17,7 @@ export function setInlineNoteCallbacks(cb: Partial<InlineNoteCallbacks>) {
   if (cb.onAddNote !== undefined) _cb.onAddNote = cb.onAddNote;
 }
 
-function buildGutterDecos(doc: PMNode): DecorationSet {
-  const decos: Decoration[] = [];
-  doc.descendants((node, pos) => {
-    if (!node.isBlock) return;
-    let firstAuthorNoteId: string | null = null;
-    let firstEditorialNoteId: string | null = null;
-    node.forEach((inline) => {
-      const m = inline.marks.find((mk) => mk.type.name === "inlineNote");
-      if (m) {
-        const noteType = m.attrs.noteType as string | null;
-        if (noteType === "editorial" && !firstEditorialNoteId) {
-          firstEditorialNoteId = m.attrs.noteId as string;
-        } else if (noteType !== "editorial" && !firstAuthorNoteId) {
-          firstAuthorNoteId = m.attrs.noteId as string;
-        }
-      }
-    });
-
-    if (firstAuthorNoteId) {
-      const noteId = firstAuthorNoteId;
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = "note-gutter-marker";
-      el.setAttribute("aria-label", "View note");
-      el.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        _cb.onNoteActivate(noteId, el.getBoundingClientRect());
-      });
-      decos.push(Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:author` }));
-    }
-
-    if (firstEditorialNoteId) {
-      const noteId = firstEditorialNoteId;
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = "note-gutter-marker note-gutter-marker--editorial";
-      el.setAttribute("aria-label", "View editorial note");
-      el.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        _cb.onNoteActivate(noteId, el.getBoundingClientRect());
-      });
-      decos.push(Decoration.widget(pos + 1, el, { side: -1, key: `g:${pos}:editorial` }));
-    }
-  });
-  return DecorationSet.create(doc, decos);
-}
-
-const gutterKey = new PluginKey<DecorationSet>("noteGutter");
+const clickKey = new PluginKey("noteClick");
 
 export const InlineNoteExtension = Mark.create({
   name: "inlineNote",
@@ -113,13 +64,9 @@ export const InlineNoteExtension = Mark.create({
   addProseMirrorPlugins() {
     return [
       new Plugin({
-        key: gutterKey,
-        state: {
-          init: (_, state) => buildGutterDecos(state.doc),
-          apply: (tr, old) => (tr.docChanged ? buildGutterDecos(tr.doc) : old.map(tr.mapping, tr.doc)),
-        },
+        key: clickKey,
         props: {
-          decorations: (state) => gutterKey.getState(state),
+          // A click on the noted words opens the note's card in the margin (doc 13 P2).
           handleClick(_view, _pos, event) {
             const target = event.target as HTMLElement;
             const noteEl = target.closest(".note-anchor[data-note-id]") as HTMLElement | null;

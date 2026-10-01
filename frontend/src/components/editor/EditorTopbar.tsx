@@ -1,5 +1,16 @@
 import { createElement, useEffect, useRef, useState } from "react";
-import { BookMarked, BookOpen, FileText, ImageIcon, Layers, Link, Quote, Tag } from "lucide-react";
+import {
+  BookMarked,
+  BookOpen,
+  Columns3,
+  ImageIcon,
+  Layers,
+  Link,
+  Quote,
+  StickyNote,
+  Tag,
+} from "lucide-react";
+import { useSides } from "../../lib/layout/useSides";
 import { api } from "../../api/client";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
@@ -20,8 +31,10 @@ interface Props {
   activeNode: StructureNode;
   wordCount: number;
   autosave: AutosaveState;
-  showOverview: boolean;
-  onToggleOverview: () => void;
+  /** The notes margin beside the prose (doc 13 P2), and how many notes the scene has. */
+  showNotes: boolean;
+  noteCount: number;
+  onToggleNotes: () => void;
   dialogueIsolation: boolean;
   onToggleDialogue: () => void;
   onOpenImagePicker: () => void;
@@ -73,6 +86,7 @@ export default function EditorTopbar(p: Props) {
   const [titleValue, setTitleValue] = useState("");
   const [guideOpen, setGuideOpen] = useState(false);
   const studio = useAIAvailable();
+  const sides = useSides();
   const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -217,12 +231,24 @@ export default function EditorTopbar(p: Props) {
           <ImageIcon size={13} />
         </button>
         <button
-          onClick={p.onToggleOverview}
-          className={`${styles.topbarBtn} ${p.showOverview ? styles.topbarBtnActive : ""}`}
-          title="Synopsis &amp; purpose"
+          onClick={p.onToggleNotes}
+          className={`${styles.topbarBtn} ${p.showNotes ? styles.topbarBtnActive : ""}`}
+          aria-pressed={p.showNotes}
+          aria-label="Notes in the margin"
+          title={p.showNotes ? "Hide the notes margin" : "Show notes in the margin"}
         >
-          <FileText size={13} />
-          <span>Notes</span>
+          <StickyNote size={13} />
+          <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
+        </button>
+        <button
+          onClick={sides.toggle}
+          className={`${styles.topbarBtn} ${sides.collapsed ? styles.topbarBtnActive : ""}`}
+          aria-pressed={sides.collapsed}
+          aria-label={sides.collapsed ? "Restore both sides" : "Collapse both sides"}
+          title={`${sides.collapsed ? "Restore both sides" : "Collapse both sides"} (${formatCombo(SHORTCUTS.collapseSides.combo)})`}
+        >
+          <Columns3 size={13} />
+          <span>{sides.collapsed ? "Restore sides" : "Collapse sides"}</span>
         </button>
         {activeStory && (
           <div className={styles.guideMenuWrap} ref={guideRef}>

@@ -110,7 +110,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                     className={`${styles.row} ${styles.rowStop}`}
                     onClick={() => go(stop.node.id)}
                     onMouseEnter={(e) => peekAt(e, { kind: "stop", stop })}
-                    aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}`}
+                    aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
                     aria-current={current ? "page" : undefined}
                     data-stop={stop.index}
                   >
@@ -156,6 +156,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                       <span
                         className={styles.presence}
                         style={{ background: entityColor(highlight.kind, highlight.id) }}
+                        title={`${highlight.name} is in this scene`}
                       />
                     )}
                   </button>

@@ -2,7 +2,7 @@
 
 ## Inline notes
 
-Select text in the editor and press **⌘⇧N** (or _Note_ in the selection toolbar). The passage is marked; the note lives in the Notes panel and opens on click. Editorial notes created by an AI editorial pass (Studio) show as diamonds and can be hidden with one toggle.
+Select text in the editor and press **⌘⇧N** (or _Note_ in the selection toolbar). The passage is marked and the note sits in the margin to the left of the prose, level with the words it is about, like a comment in a document. Click the words or the note to open it, edit it or delete it; Esc closes it. When the window is too narrow for the margin, each note is a dot beside its line, and opens just under the words. **Notes** in the top bar shows or hides the margin, and the side panel's _This scene_ tab lists every note in the scene. Editorial notes left by an editorial pass (Studio) are marked in teal and can be hidden with one toggle.
 
 ## TODOs
 

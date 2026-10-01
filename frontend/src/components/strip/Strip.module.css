@@ -11,34 +11,42 @@
   transition: width var(--transition-md);
 }
 
-.handle {
+/* The right edge (doc 13 P2): a drag line, not a button. */
+.edge {
   position: absolute;
-  right: -7px;
-  top: 50%;
-  width: 14px;
-  height: 56px;
-  margin-top: -28px;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 7px;
-  background: var(--color-surface);
-  cursor: pointer;
+  top: 0;
+  right: -4px;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
   z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  touch-action: none;
 }
 
-.handle::after {
+.edge::after {
   content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
   width: 2px;
-  height: 24px;
-  border-radius: 1px;
-  background: var(--color-text-subtle);
+  background: transparent;
+  transition: background var(--transition);
 }
 
-.handle:hover {
-  border-color: var(--color-accent);
+.edge:hover::after,
+.edge[data-dragging]::after,
+.edge:focus-visible::after {
+  background: var(--color-accent);
+}
+
+.edge:focus-visible {
+  outline: none;
+}
+
+.strip[data-dragging] {
+  transition: none;
+  user-select: none;
 }
 
 /* ── Header ── */

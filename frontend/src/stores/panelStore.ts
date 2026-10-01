@@ -94,6 +94,12 @@ const initialOpen: Record<PanelSide, boolean> = {
 };
 
 export const usePanelStore = create<PanelState>((set, get) => {
+  /** What an open panel lights: its active entity tab. A shut panel lights nothing. */
+  function lit(open: boolean): Highlight | null {
+    const { tabs, activeTabId } = get();
+    return open ? highlightOf(tabs.find((t) => t.id === activeTabId)) : null;
+  }
+
   /** Open or collapse the panel on the current side, and remember it for that side. */
   function openOnSide(open: boolean): Pick<PanelState, "open" | "openBySide"> {
     const { side, openBySide } = get();
@@ -129,13 +135,14 @@ export const usePanelStore = create<PanelState>((set, get) => {
         storyId,
         tabs,
         activeTabId,
-        highlight: highlightOf(active),
+        highlight: get().open ? highlightOf(active) : null,
       });
     },
 
     setSide: (side) => {
       if (get().side === side) return;
-      set({ side, open: get().openBySide[side] });
+      const open = get().openBySide[side];
+      set({ side, open, highlight: lit(open) });
     },
 
     openEntity: (kind, id, label) => {
@@ -186,7 +193,8 @@ export const usePanelStore = create<PanelState>((set, get) => {
       });
     },
 
-    setOpen: (open) => set(openOnSide(open)),
+    // A shut panel lights nothing: the strip's dots and the prose's marks follow an open tab.
+    setOpen: (open) => set({ ...openOnSide(open), highlight: lit(open) }),
     toggle: () => get().setOpen(!get().open),
 
     setFrame: (frame) => {
