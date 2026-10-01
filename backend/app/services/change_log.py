@@ -30,10 +30,12 @@ from ..models.dialogue import DialogueBlock
 from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
-from ..models.location import Location, SceneSetting
+from ..models.location import Location, ScenePresence, SceneSetting
+from ..models.location_travel import LocationTravel
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
+from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -63,6 +65,10 @@ ENTITY_MODELS: dict[str, type] = {
     "plot_thread_appearance": PlotThreadAppearance,
     "finding_dismissal": FindingDismissal,
     "proposal_decline": ProposalDecline,
+    "scene_presence": ScenePresence,
+    "reader_knowledge_event": ReaderKnowledgeEvent,
+    "scene_setting": SceneSetting,
+    "location_travel": LocationTravel,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -90,6 +96,9 @@ BUNDLE_MODELS: dict[str, type] = {
     "twists": Twist,
     "finding_dismissals": FindingDismissal,
     "proposal_declines": ProposalDecline,
+    # Answers to the Codex's proposals (doc 13 P4): who is here, and what the reader learns.
+    "scene_presence": ScenePresence,
+    "reader_knowledge_events": ReaderKnowledgeEvent,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000
@@ -294,8 +303,20 @@ def capture_location(location: Location, db: Session) -> dict[str, list[dict]]:
     }
 
 
-def record_update(db: Session, obj, data: dict, *, entity_type: str, story_id: str, label: str, actor_id, client_id):
-    """Diff ``data`` against ``obj`` and record an update if anything changes. Returns the after-dict."""
+def record_update(
+    db: Session,
+    obj,
+    data: dict,
+    *,
+    entity_type: str,
+    story_id: str,
+    label: str,
+    actor_id,
+    client_id,
+    batch_id: str | None = None,
+):
+    """Diff ``data`` against ``obj`` and record an update if anything changes. Returns the after-dict.
+    Changes sharing a ``batch_id`` undo together."""
     before, after = diff_fields(obj, data)
     if before:
         record(
@@ -309,12 +330,22 @@ def record_update(db: Session, obj, data: dict, *, entity_type: str, story_id: s
             label=label.replace("{fields}", ", ".join(sorted(after))),  # not format(): names may hold braces
             actor_id=actor_id,
             client_id=client_id,
+            batch_id=batch_id,
         )
     return after
 
 
 def record_row_delete(
-    db: Session, obj, table: str, *, entity_type: str, story_id: str, label: str, actor_id, client_id
+    db: Session,
+    obj,
+    table: str,
+    *,
+    entity_type: str,
+    story_id: str,
+    label: str,
+    actor_id,
+    client_id,
+    batch_id: str | None = None,
 ):
     """Record the deletion of one row that has no dependants."""
     record(
@@ -328,6 +359,7 @@ def record_row_delete(
         label=label,
         actor_id=actor_id,
         client_id=client_id,
+        batch_id=batch_id,
     )
 
 

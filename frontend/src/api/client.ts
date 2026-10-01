@@ -499,9 +499,7 @@ export const api = {
   deleteReaderKnowledgeEvent: (eventId: string) =>
     request<void>(`/reader-knowledge/${eventId}`, { method: "DELETE" }),
   scanReaderKnowledgeEvents: (storyId: string) =>
-    request<import("../types").ReaderKnowledgeEvent[]>(`/stories/${storyId}/reader-knowledge/scan`, {
-      method: "POST",
-    }),
+    request<{ proposed: number }>(`/stories/${storyId}/reader-knowledge/scan`, { method: "POST" }),
   analyzeTwistImpact: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
 

@@ -15,6 +15,7 @@ import AssetPicker from "../../media/AssetPicker";
 import PortraitEditor from "../../media/PortraitEditor";
 import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
 import AssistantRow from "../AssistantRow";
+import SameAsPicker from "../SameAsPicker";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
 import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
@@ -115,6 +116,9 @@ export default function PlacesSection() {
               <>
                 {place.is_stub && <Badge tone="warning">Found in your prose</Badge>}
                 {parent && <Badge>Part of {parent.name}</Badge>}
+                {place.aliases && place.aliases.length > 0 && (
+                  <Badge>Also called {place.aliases.join(", ")}</Badge>
+                )}
               </>
             }
             presence={presenceLine(scenes, total, "Set")}
@@ -219,6 +223,11 @@ export default function PlacesSection() {
                 >
                   Keep it
                 </button>
+                <SameAsPicker
+                  stubId={place.id}
+                  className={styles.quietBtn}
+                  onMerged={(into) => select(into, { replace: true })}
+                />
               </div>
             )}
             <FieldList

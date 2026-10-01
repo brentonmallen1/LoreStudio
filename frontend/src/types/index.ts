@@ -1304,6 +1304,8 @@ export interface Location {
   story_id: string;
   parent_id: string | null;
   name: string;
+  /** Other names the prose uses for it: a found place merged in leaves its name here. */
+  aliases?: string[];
   color_slot: number;
   location_type: string;
   climate: string;

@@ -19,13 +19,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from ...models.codex import CodexEdge, CodexNode
-from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...models.user import User
 from ..llm.gateway import AICallContext, ai_gateway
 from ..llm.prompts.codex_suggest import build_codex_suggest_prompt
 from ..text_utils import html_to_text
-from .presence import derive_facts, derive_presence, set_presence
 
 logger = logging.getLogger(__name__)
 
@@ -235,80 +233,3 @@ async def suggest_for_story(
         "skipped": total.skipped,
         **({"errors": total.errors[:5]} if total.errors else {}),
     }
-
-
-def _confirm_presence(edge: CodexEdge, db: Session, chars: dict[str, CodexNode], scenes: dict[str, CodexNode]) -> bool:
-    """A confirmed presence proposal becomes the author's "who is here" answer."""
-    character = chars.get(edge.src_id)
-    scene = scenes.get(edge.dst_id)
-    if not character or not scene:
-        return False
-    set_presence(scene.ref_id, character.ref_id, (edge.props or {}).get("role") or "participant", db)
-    db.delete(edge)
-    return True
-
-
-def _confirm_fact(fact: CodexNode, db: Session, scenes: dict[str, CodexNode]) -> bool:
-    """
-    A confirmed fact becomes a reader-knowledge event — a real row in the Lorebook.
-
-    The graph never holds the only copy of something the author agreed to. Once it is an
-    event, `derive_facts` picks it up like any other, and who knows it follows from who
-    was present rather than from what a model guessed.
-    """
-    established = (
-        db.query(CodexEdge).filter(CodexEdge.src_id == fact.id, CodexEdge.kind == "established_in").one_or_none()
-    )
-    scene = scenes.get(established.dst_id) if established else None
-    db.add(
-        ReaderKnowledgeEvent(
-            story_id=fact.story_id,
-            node_id=scene.ref_id if scene else None,
-            subject=fact.label,
-            detail=(fact.props or {}).get("quote", ""),
-            knowledge_type="character_learns",
-        )
-    )
-    if established:
-        db.delete(established)
-    db.delete(fact)
-    return True
-
-
-def review(story_id: str, db: Session, ids: list[str], *, accept: bool) -> dict:
-    """
-    Confirm or reject proposals, then rebuild what depends on them.
-
-    Rejecting deletes: a proposal the author said no to is not a record worth keeping, and
-    leaving it around would mean showing it again on the next review.
-    """
-    chars = {n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id, CodexNode.kind == "character")}
-    scenes = {n.id: n for n in _scene_nodes(story_id, db).values()}
-    done = 0
-
-    edges = db.query(CodexEdge).filter(CodexEdge.story_id == story_id, CodexEdge.id.in_(ids), CodexEdge.source == "llm")
-    for edge in edges.all():
-        if not accept:
-            db.delete(edge)
-            done += 1
-        elif edge.kind == "present_in" and _confirm_presence(edge, db, chars, scenes):
-            done += 1
-
-    facts = db.query(CodexNode).filter(
-        CodexNode.story_id == story_id, CodexNode.id.in_(ids), CodexNode.source == "llm", CodexNode.kind == "fact"
-    )
-    for fact in facts.all():
-        if accept:
-            _confirm_fact(fact, db, scenes)
-        else:
-            db.query(CodexEdge).filter(CodexEdge.src_id == fact.id).delete(synchronize_session=False)
-            db.delete(fact)
-        done += 1
-
-    db.commit()
-    if accept and done:
-        # What a character knows changed, so the derived layers catch up now rather than
-        # at the next sync — the author confirmed it to use it.
-        derive_presence(story_id, db)
-        derive_facts(story_id, db)
-    return {"reviewed": done}

@@ -155,7 +155,14 @@ export default function ProposalsPage({ storyId }: { storyId: string }) {
                 <span className={styles.groupSub}>{g.items.length}</span>
               </h2>
               {g.items.map((p) => (
-                <ProposalRow key={p.id} proposal={p} storyId={storyId} onAct={onAct} onDecline={decline} />
+                <ProposalRow
+                  key={p.id}
+                  proposal={p}
+                  storyId={storyId}
+                  onAct={onAct}
+                  onDecline={decline}
+                  onMerged={() => useProposalsStore.getState().refetch()}
+                />
               ))}
             </section>
           ))}

@@ -1,10 +1,11 @@
 """
-The review queue: what a proposal is worth before and after the author answers it.
+The Codex's proposals: what one is worth before and after the author answers it.
 
 The rule the whole design rests on — a suggestion counts for nothing until confirmed — is
 tested in test_codex_context.py and test_character_knowledge.py. What is tested here is
-what happens when the author *does* answer: a confirmed proposal becomes a real authored
-row, and the graph stops being the only place it lives.
+what happens when the author *does* answer, in Proposals: a yes becomes a real authored
+row, recorded so Undo takes it back and the proposal returns (doc 13 P4); a no is a
+decline, kept with the others.
 """
 
 from app.models.character import Character
@@ -13,9 +14,11 @@ from app.models.location import ScenePresence
 from app.models.reader_knowledge import ReaderKnowledgeEvent
 from app.models.story import Story
 from app.models.structure import StructureNode
+from app.services.change_log import undo_latest
 from app.services.codex.presence import derive_facts, derive_presence
-from app.services.codex.suggest import review
 from app.services.codex.sync import sync_story
+from app.services.proposals import find, gather
+from app.services.proposals.act import act, decline
 
 
 def _story(db, user):
@@ -85,40 +88,63 @@ def _propose_fact(db, story, scene, statement="The lamp has not been lit since t
     return fact
 
 
+def _yes(db, story, ref):
+    act(story.id, find(story.id, db, f"codex:{ref}"), "confirm", db, story.user_id, None)
+
+
+def _pending(db, story) -> set[str]:
+    return {p.id for p in gather(story.id, db) if p.id.startswith("codex:")}
+
+
 def test_confirming_presence_writes_the_authors_answer_not_a_blessed_guess(db_session, test_user):
     """It lands in scene_presence, where snapshots, exports and undo can reach it."""
     story, elena, scene = _story(db_session, test_user)
     edge = _propose_presence(db_session, story, elena, scene)
+    assert _pending(db_session, story) == {f"codex:{edge.id}"}
 
-    assert review(story.id, db_session, [edge.id], accept=True) == {"reviewed": 1}
+    _yes(db_session, story, edge.id)
     row = db_session.query(ScenePresence).one()
     assert (row.node_id, row.character_id, row.role) == (scene.id, elena.id, "participant")
-    # The proposal is gone: the answer is authored data now, not a suggestion.
-    assert db_session.query(CodexEdge).filter(CodexEdge.source == "llm").count() == 0
+    # Answered: the proposal leaves the inbox.
+    assert _pending(db_session, story) == set()
+
+
+def test_undoing_a_yes_brings_the_proposal_back(db_session, test_user):
+    story, elena, scene = _story(db_session, test_user)
+    edge = _propose_presence(db_session, story, elena, scene)
+    fact = _propose_fact(db_session, story, scene)
+    _yes(db_session, story, edge.id)
+    _yes(db_session, story, fact.id)
+
+    assert undo_latest(db_session, story.id, test_user.id, None) is not None
+    assert undo_latest(db_session, story.id, test_user.id, None) is not None
+
+    assert db_session.query(ScenePresence).count() == 0
+    assert db_session.query(ReaderKnowledgeEvent).count() == 0
+    assert _pending(db_session, story) == {f"codex:{edge.id}", f"codex:{fact.id}"}
 
 
 def test_a_confirmed_presence_reaches_the_derived_graph_immediately(db_session, test_user):
     story, elena, scene = _story(db_session, test_user)
     edge = _propose_presence(db_session, story, elena, scene)
-    review(story.id, db_session, [edge.id], accept=True)
+    _yes(db_session, story, edge.id)
 
-    present = db_session.query(CodexEdge).filter(CodexEdge.kind == "present_in").all()
-    assert len(present) == 1
-    assert present[0].props == {"basis": "manual", "role": "participant"}
-    assert present[0].source == "author"
+    authored = db_session.query(CodexEdge).filter(CodexEdge.kind == "present_in", CodexEdge.source == "author").all()
+    assert len(authored) == 1
+    assert authored[0].props == {"basis": "manual", "role": "participant"}
 
 
 def test_confirming_a_fact_makes_it_a_reader_knowledge_event(db_session, test_user):
     story, elena, scene = _story(db_session, test_user)
     fact = _propose_fact(db_session, story, scene)
 
-    review(story.id, db_session, [fact.id], accept=True)
+    _yes(db_session, story, fact.id)
     event = db_session.query(ReaderKnowledgeEvent).one()
     assert event.subject == "The lamp has not been lit since the storm"
     assert event.node_id == scene.id
-    # The llm node is gone; the fact that replaced it is derived from the author's row.
-    assert db_session.query(CodexNode).filter(CodexNode.source == "llm").count() == 0
-    assert db_session.query(CodexNode).filter(CodexNode.kind == "fact").one().source == "author"
+    # The authored fact is derived from the author's row; the proposal stays, answered.
+    assert db_session.query(CodexNode).filter(CodexNode.kind == "fact", CodexNode.source == "author").count() == 1
+    assert _pending(db_session, story) == set()
 
 
 def test_a_confirmed_fact_is_known_by_whoever_was_in_the_scene(db_session, test_user):
@@ -129,21 +155,22 @@ def test_a_confirmed_fact_is_known_by_whoever_was_in_the_scene(db_session, test_
     derive_presence(story.id, db_session)
 
     fact = _propose_fact(db_session, story, scene)
-    review(story.id, db_session, [fact.id], accept=True)
+    _yes(db_session, story, fact.id)
 
     knows = db_session.query(CodexEdge).filter(CodexEdge.kind == "knows").all()
     assert len(knows) == 1
     assert db_session.get(CodexNode, knows[0].src_id).label == "Elena"
 
 
-def test_rejecting_leaves_nothing_behind(db_session, test_user):
+def test_a_no_is_remembered_and_writes_nothing(db_session, test_user):
     story, elena, scene = _story(db_session, test_user)
     edge = _propose_presence(db_session, story, elena, scene)
     fact = _propose_fact(db_session, story, scene)
 
-    assert review(story.id, db_session, [edge.id, fact.id], accept=False) == {"reviewed": 2}
-    assert db_session.query(CodexEdge).filter(CodexEdge.source == "llm").count() == 0
-    assert db_session.query(CodexNode).filter(CodexNode.source == "llm").count() == 0
+    for ref in (edge.id, fact.id):
+        decline(story.id, find(story.id, db_session, f"codex:{ref}"), db_session, test_user.id, None)
+
+    assert _pending(db_session, story) == set()
     assert db_session.query(ScenePresence).count() == 0
     assert db_session.query(ReaderKnowledgeEvent).count() == 0
 
@@ -207,8 +234,8 @@ def test_a_proposal_can_upgrade_a_character_the_prose_only_names(db_session, tes
     assert derived.props["role"] == "mentioned"
 
     proposal = _propose_presence(db_session, story, elena, scene)  # would raise IntegrityError before
-    review(story.id, db_session, [proposal.id], accept=True)
+    _yes(db_session, story, proposal.id)
 
     row = db_session.query(ScenePresence).filter(ScenePresence.character_id == elena.id).one()
     assert row.role == "participant"
-    assert db_session.query(CodexEdge).filter(CodexEdge.source == "llm").count() == 0
+    assert _pending(db_session, story) == set()

@@ -31,6 +31,7 @@ from ..services.dialogue_service import (
     sync_scene_dialogue,
     sync_story_dialogue,
 )
+from ..services.dialogue_tagging import ProposedDialogueTag, suggest_tags
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
 
@@ -63,15 +64,6 @@ class DialogueBlockPatch(BaseModel):
     speaker_name: str | None = None
     character_id: str | None = None
     subtext: str | None = None
-
-
-class ProposedDialogueTag(BaseModel):
-    id: str
-    quote_content: str
-    inferred_speaker: str | None
-    character_id: str | None
-    confidence: float
-    source_excerpt: str
 
 
 class ApplyTagRequest(BaseModel):
@@ -161,62 +153,8 @@ def suggest_dialogue_tags(
     if not node.content:
         return []
 
-    # Resolve characters for this story to match inferred names → IDs
     characters = db.query(Character).filter(Character.story_id == node.story_id).all()
-    char_by_name = {c.name.lower(): c for c in characters}
-
-    # Parse plain text paragraphs from the HTML
-    from ..services.dialogue_service import _MENTION_RE, _STANDALONE_QUOTE_RE, _html_to_paragraphs
-
-    paragraphs = _html_to_paragraphs(node.content)
-
-    proposals: list[ProposedDialogueTag] = []
-    for para in paragraphs:
-        # Skip paragraphs that already have explicit <Name> attribution
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
-            continue
-
-        mentions = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(para)]
-        for m in _STANDALONE_QUOTE_RE.finditer(para):
-            content = (m.group(1) or m.group(2) or "").strip()
-            if not content or len(content) < 2:
-                continue
-
-            q_pos = m.start()
-            best_speaker: str | None = None
-            best_dist = 999
-
-            for m_pos, m_name in mentions:
-                dist = abs(q_pos - m_pos)
-                if dist < best_dist and dist <= 150:
-                    best_dist = dist
-                    best_speaker = m_name
-
-            confidence = round(max(0.0, 1.0 - (best_dist / 150)), 2) if best_speaker else 0.0
-
-            # Build source excerpt (~50 chars around the quote start)
-            excerpt_start = max(0, q_pos - 25)
-            excerpt_end = min(len(para), q_pos + len(content) + 30)
-            excerpt = para[excerpt_start:excerpt_end]
-            if excerpt_start > 0:
-                excerpt = "…" + excerpt
-            if excerpt_end < len(para):
-                excerpt = excerpt + "…"
-
-            char = char_by_name.get(best_speaker.lower()) if best_speaker else None
-
-            proposals.append(
-                ProposedDialogueTag(
-                    id=str(uuid.uuid4()),
-                    quote_content=content,
-                    inferred_speaker=best_speaker,
-                    character_id=char.id if char else None,
-                    confidence=confidence,
-                    source_excerpt=excerpt,
-                )
-            )
-
-    return proposals
+    return suggest_tags(node, {c.name.lower(): c for c in characters})
 
 
 @router.post("/scenes/{scene_id}/dialogue/ai-suggest", response_model=list[ProposedDialogueTag])
@@ -550,58 +488,6 @@ def get_scenes_with_unattributed_dialogue(
 # ---------------------------------------------------------------------------
 
 
-def _run_heuristic_suggestions(scene: StructureNode, char_by_name: dict) -> list[ProposedDialogueTag]:
-    """Run heuristic speaker inference for a scene and return proposals."""
-    from ..services.dialogue_service import _MENTION_RE, _STANDALONE_QUOTE_RE, _html_to_paragraphs
-
-    paragraphs = _html_to_paragraphs(scene.content or "")
-    proposals: list[ProposedDialogueTag] = []
-    for para in paragraphs:
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
-            continue
-
-        mentions = [(m.start(), m.group(1).strip()) for m in _MENTION_RE.finditer(para)]
-        for m in _STANDALONE_QUOTE_RE.finditer(para):
-            content = (m.group(1) or m.group(2) or "").strip()
-            if not content or len(content) < 2:
-                continue
-
-            q_pos = m.start()
-            best_speaker: str | None = None
-            best_dist = 999
-
-            for m_pos, m_name in mentions:
-                dist = abs(q_pos - m_pos)
-                if dist < best_dist and dist <= 150:
-                    best_dist = dist
-                    best_speaker = m_name
-
-            confidence = round(max(0.0, 1.0 - (best_dist / 150)), 2) if best_speaker else 0.0
-
-            excerpt_start = max(0, q_pos - 25)
-            excerpt_end = min(len(para), q_pos + len(content) + 30)
-            excerpt = para[excerpt_start:excerpt_end]
-            if excerpt_start > 0:
-                excerpt = "…" + excerpt
-            if excerpt_end < len(para):
-                excerpt = excerpt + "…"
-
-            char = char_by_name.get(best_speaker.lower()) if best_speaker else None
-
-            proposals.append(
-                ProposedDialogueTag(
-                    id=str(uuid.uuid4()),
-                    quote_content=content,
-                    inferred_speaker=best_speaker,
-                    character_id=char.id if char else None,
-                    confidence=confidence,
-                    source_excerpt=excerpt,
-                )
-            )
-
-    return proposals
-
-
 @router.post("/stories/{story_id}/dialogue/suggest-tags-batch", response_model=BatchSuggestResponse)
 def suggest_dialogue_tags_story_wide(
     story_id: str,
@@ -626,7 +512,7 @@ def suggest_dialogue_tags_story_wide(
 
     result_scenes: list[SceneWithDialogueProposals] = []
     for scene in scenes:
-        proposals = _run_heuristic_suggestions(scene, char_by_name)
+        proposals = suggest_tags(scene, char_by_name)
         if proposals:
             result_scenes.append(
                 SceneWithDialogueProposals(
@@ -674,7 +560,7 @@ def suggest_dialogue_tags_for_character(
     for scene in scenes:
         # Return ALL untagged quotes — the UI in character mode lets the user
         # confirm which quotes belong to this character (speaker is fixed to char name).
-        proposals = _run_heuristic_suggestions(scene, char_by_name)
+        proposals = suggest_tags(scene, char_by_name)
         if proposals:
             result_scenes.append(
                 SceneWithDialogueProposals(

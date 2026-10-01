@@ -49,7 +49,15 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
               role: c.role,
               slot: c.color_slot,
             })),
-            ...flatLocations.map((s) => ({ type: "setting" as const, name: s.name, slot: s.color_slot })),
+            ...flatLocations.flatMap((s) => [
+              { type: "setting" as const, name: s.name, slot: s.color_slot },
+              ...(s.aliases ?? []).map((a) => ({
+                type: "setting" as const,
+                name: a,
+                slot: s.color_slot,
+                aliasOf: s.name,
+              })),
+            ]),
           ]
         : [],
     [activeStory, characters, flatLocations],
@@ -84,6 +92,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
     const characterOnly = dialogueMode || attributionMode;
     const base = allItems.filter(
       (item) =>
+        !item.aliasOf &&
         item.name.toLowerCase().startsWith(query.toLowerCase()) &&
         (!characterOnly || item.type === "character"),
     );

@@ -18,7 +18,8 @@ from .runs import result_of
 from .view import StoryView
 
 #: Runs that are not findings: proposals (P5) and summaries.
-NOT_FINDINGS = {"entity-suggestions", *LOCAL_FEATURES}
+# Runs whose results are proposals, not findings (doc 12 P5, doc 13 P4).
+NOT_FINDINGS = {"entity-suggestions", "reader-knowledge-scan", *LOCAL_FEATURES}
 
 
 class _Run:

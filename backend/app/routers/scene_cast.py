@@ -56,7 +56,10 @@ def get_scene_cast(story_id: str, db: Session = Depends(get_db), current_user: U
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     patterns = name_patterns({c.id: c.name or "" for c in characters})
     locations = db.query(Location).filter(Location.story_id == story_id).all()
-    location_by_name = {loc.name.strip().lower(): loc.id for loc in locations if loc.name}
+    # A place answers to its name and to its aliases (a found place merged into it, doc 13 P4).
+    location_by_name = {
+        name.strip().lower(): loc.id for loc in locations for name in [loc.name, *(loc.aliases or [])] if name
+    }
 
     authored: dict[str, list[ScenePresence]] = {}
     for row in db.query(ScenePresence).filter(ScenePresence.node_id.in_(scene_ids)).all() if scene_ids else []:

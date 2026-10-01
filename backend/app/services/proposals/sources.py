@@ -4,19 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import re
-from collections import Counter
 
 from sqlalchemy.orm import Session
 
 from ...models.character import Character, CharacterRelationship
-from ...models.dialogue import DialogueBlock
 from ...models.discovered_element import DiscoveredElement
 from ...models.location import Location
+from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...schemas.proposals import Proposal, ProposalAction, ProposalKind
 from ..codex.queue import pending_suggestions
+from ..dialogue_tagging import suggest_tags
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
+from ..text_utils import html_to_text
 
 
 def name_key(kind: str, name: str) -> str:
@@ -117,31 +118,26 @@ def relationships(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
 
 
 def unattributed(story_id: str, db: Session, titles: dict[str, str]) -> list[Proposal]:
-    """Dialogue with no speaker, one proposal per scene. Read as the rows are: saves keep
-    them in step with the prose."""
-    scene_ids = list(titles)
-    if not scene_ids:
-        return []
-    blocks = (
-        db.query(DialogueBlock)
-        .filter(DialogueBlock.scene_id.in_(scene_ids), DialogueBlock.attribution_method == "unattributed")
-        .all()
-    )
-    per_scene = Counter(b.scene_id for b in blocks)
-    first = {}
-    for b in sorted(blocks, key=lambda b: (b.paragraph_index, b.position_in_paragraph)):
-        first.setdefault(b.scene_id, b)
+    """Dialogue with no speaker, one proposal per scene, counted by the tagger's own
+    detector (doc 13 P4): "Tag them" opens on exactly these lines."""
+    chars = {c.name.lower(): c for c in db.query(Character).filter(Character.story_id == story_id)}
     out = []
-    for scene_id, n in per_scene.items():
+    for scene in db.query(StructureNode).filter(
+        StructureNode.story_id == story_id, StructureNode.content.isnot(None), StructureNode.content != ""
+    ):
+        lines = suggest_tags(scene, chars)
+        if not lines:
+            continue
+        n = len(lines)
         out.append(
             Proposal(
-                id=f"dialogue:{scene_id}",
+                id=f"dialogue:{scene.id}",
                 kind="dialogue",
                 source="local",
                 text=f"{n} {'line' if n == 1 else 'lines'} of dialogue with no speaker",
-                evidence=(first[scene_id].content or "")[:200],
-                node_id=scene_id,
-                where=titles.get(scene_id, ""),
+                evidence=lines[0].quote_content[:200],
+                node_id=scene.id,
+                where=titles.get(scene.id, ""),
                 actions=[ProposalAction(id="tag", label="Tag them", primary=True)],
                 decline="Leave them",
             )
@@ -160,6 +156,7 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
     known |= {loc.name for loc in db.query(Location).filter(Location.story_id == story_id)}
     known |= {d.name for d in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id)}
     known_words = {w for name in known for w in _words(name)}
+    lowercase = _lowercase_words(story_id, db)
     out = []
     found: tuple[tuple[str, ProposalKind, str], ...] = (
         ("character_suggestions", "person", "Add as a character"),
@@ -175,6 +172,10 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
                 continue
             scenes = s.get("scene_ids") or []
             n = s.get("occurrences", 1)
+            # One capitalised word is often just a word at the start of a sentence: drop it
+            # when the prose also uses it in lower case ("barometer"), or uses it only once.
+            if len(words) == 1 and (words[0] in lowercase or n < 2):
+                continue
             out.append(
                 Proposal(
                     id=name_key(kind, name),
@@ -192,6 +193,62 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
 
 
 _WORD = re.compile(r"[^\W\d_][\w'’]*")
+_LOWER = re.compile(r"(?<![\w'’])[a-z][a-z'’]+")
+
+
+def _lowercase_words(story_id: str, db: Session) -> set[str]:
+    """Every word the prose writes in lower case somewhere."""
+    out: set[str] = set()
+    for (content,) in db.query(StructureNode.content).filter(StructureNode.story_id == story_id):
+        out.update(_LOWER.findall(html_to_text(content or "")))
+    return out
+
+
+KNOWLEDGE_LABELS = {
+    "truth_revealed": "The reader learns",
+    "misdirection_planted": "A misdirection",
+    "clue_planted": "A clue",
+    "character_learns": "A character learns",
+    "reader_only": "Only the reader knows",
+}
+
+
+def knowledge_key(event: dict) -> str:
+    raw = f"{event.get('node_id') or ''}|{(event.get('subject') or '').strip().lower()}"
+    return f"rk:{hashlib.sha1(raw.encode()).hexdigest()[:12]}"
+
+
+def scanned_knowledge(story_id: str, db: Session, titles: dict[str, str]) -> list[Proposal]:
+    """What the Assistant's reader-knowledge scan found, waiting for a yes (doc 13 P4). An
+    event the author already has (same scene, same subject) is not proposed again."""
+    run = latest_runs(story_id, db).get("reader-knowledge-scan")
+    if run is None:
+        return []
+    have = {
+        (e.node_id, e.subject.strip().lower())
+        for e in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id)
+    }
+    out = []
+    for ev in result_of(run).get("events", []):
+        subject = (ev.get("subject") or "").strip()
+        node_id = ev.get("node_id") if ev.get("node_id") in titles else None
+        if not subject or (node_id, subject.lower()) in have:
+            continue
+        out.append(
+            Proposal(
+                id=knowledge_key({**ev, "node_id": node_id}),
+                kind="fact",
+                source="ai",
+                text=f"{KNOWLEDGE_LABELS.get(ev.get('knowledge_type', ''), 'The reader learns')}: {subject}",
+                subject=subject,
+                evidence=(ev.get("detail") or "")[:240],
+                node_id=node_id,
+                where=titles.get(node_id or "", ""),
+                actions=[ProposalAction(id="add", label="Add to what the reader knows", primary=True)],
+                created_at=run.created_at,
+            )
+        )
+    return out
 
 
 def _words(name: str) -> list[str]:
@@ -230,4 +287,4 @@ def scene_hashes(story_id: str, db: Session) -> dict[str, str]:
     return {n.id: content_hash(n.content) for n in db.query(StructureNode).filter(StructureNode.story_id == story_id)}
 
 
-SOURCES = (stubs, discoveries, codex, relationships, unattributed, scanned_names)
+SOURCES = (stubs, discoveries, codex, relationships, unattributed, scanned_names, scanned_knowledge)

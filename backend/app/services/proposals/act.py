@@ -9,14 +9,18 @@ from datetime import UTC, datetime
 from sqlalchemy.orm import Session
 
 from ...models.character import Character, CharacterRelationship
+from ...models.codex import CodexEdge, CodexNode
 from ...models.discovered_element import DiscoveredElement
-from ...models.location import Location
+from ...models.location import Location, ScenePresence
 from ...models.proposal_decline import ProposalDecline
+from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...schemas.proposals import ActResult, Proposal
 from .. import change_log
-from ..codex.suggest import review
+from ..codex.presence import derive_facts, derive_presence
 from ..findings.fingerprint import content_hash
+from ..findings.runs import latest_runs, result_of
+from .sources import knowledge_key
 
 
 class CannotAct(Exception):
@@ -68,8 +72,10 @@ def act(story_id: str, p: Proposal, action: str, db: Session, actor: str, client
         return result
 
     if source == "codex":
-        review(story_id, db, [ref], accept=True)
-        return ActResult()
+        return _answer_codex(story_id, ref, db, actor, client)
+
+    if source == "rk":
+        return _add_knowledge(story_id, p, db, actor, client)
 
     if source == "rel":
         rel = db.get(CharacterRelationship, ref)
@@ -102,6 +108,102 @@ def act(story_id: str, p: Proposal, action: str, db: Session, actor: str, client
     raise CannotAct("Unknown proposal")
 
 
+def _answer_codex(story_id: str, ref: str, db: Session, actor: str, client: str | None) -> ActResult:
+    """Yes to a Codex proposal writes the authored row it proposed, recorded so Undo takes it
+    back and the proposal returns (doc 13 P4). The proposal itself is left as it was."""
+    edge = db.get(CodexEdge, ref)
+    if edge is not None and edge.kind == "present_in":
+        character, scene = db.get(CodexNode, edge.src_id), db.get(CodexNode, edge.dst_id)
+        if character is None or scene is None:
+            raise CannotAct("That scene or character is gone")
+        row = ScenePresence(
+            id=str(uuid.uuid4()),
+            node_id=scene.ref_id,
+            character_id=character.ref_id,
+            role=(edge.props or {}).get("role") or "participant",
+        )
+        _create(
+            db,
+            row,
+            "scene_presence",
+            "scene_presence",
+            story_id,
+            f"{character.label} is in {scene.label}",
+            actor,
+            client,
+        )
+        db.commit()
+        derive_presence(story_id, db)
+        return ActResult(entity_type="character", entity_id=character.ref_id)
+
+    fact = db.get(CodexNode, ref)
+    if fact is None or fact.kind != "fact":
+        raise CannotAct("Unknown proposal")
+    established = (
+        db.query(CodexEdge).filter(CodexEdge.src_id == fact.id, CodexEdge.kind == "established_in").one_or_none()
+    )
+    scene = db.get(CodexNode, established.dst_id) if established else None
+    event = ReaderKnowledgeEvent(
+        id=str(uuid.uuid4()),
+        story_id=story_id,
+        node_id=scene.ref_id if scene else None,
+        subject=fact.label,
+        detail=(fact.props or {}).get("quote", ""),
+        knowledge_type="character_learns",
+    )
+    _create(
+        db,
+        event,
+        "reader_knowledge_events",
+        "reader_knowledge_event",
+        story_id,
+        f"The reader learns: {fact.label}",
+        actor,
+        client,
+    )
+    db.commit()
+    derive_facts(story_id, db)
+    return ActResult()
+
+
+def _add_knowledge(story_id: str, p: Proposal, db: Session, actor: str, client: str | None) -> ActResult:
+    """Yes to something the reader-knowledge scan found: the event, as it proposed it."""
+    run = latest_runs(story_id, db).get("reader-knowledge-scan")
+    ev = next(
+        (
+            e
+            for e in (result_of(run).get("events", []) if run else [])
+            if knowledge_key({**e, "node_id": p.node_id}) == p.id
+        ),
+        None,
+    )
+    if ev is None:
+        raise CannotAct("That scan has been replaced; look at the new one")
+    event = ReaderKnowledgeEvent(
+        id=str(uuid.uuid4()),
+        story_id=story_id,
+        node_id=p.node_id,
+        knowledge_type=ev.get("knowledge_type") or "truth_revealed",
+        subject=p.subject,
+        detail=ev.get("detail") or "",
+        reader_knows=ev.get("reader_knows", True),
+        characters_who_know=ev.get("characters_who_know") or [],
+        is_truth=ev.get("is_truth", True),
+    )
+    _create(
+        db,
+        event,
+        "reader_knowledge_events",
+        "reader_knowledge_event",
+        story_id,
+        f"The reader learns: {p.subject}",
+        actor,
+        client,
+    )
+    db.commit()
+    return ActResult()
+
+
 def decline(story_id: str, p: Proposal, db: Session, actor: str, client: str | None) -> None:
     source, _, ref = p.id.partition(":")
     if source == "stub":
@@ -117,9 +219,6 @@ def decline(story_id: str, p: Proposal, db: Session, actor: str, client: str | N
         d = db.get(DiscoveredElement, ref)
         assert d is not None
         d.status, d.reviewed_at = "rejected", datetime.now(UTC)
-    elif source == "codex":
-        review(story_id, db, [ref], accept=False)
-        return
     elif source == "rel":
         rel = db.get(CharacterRelationship, ref)
         assert rel is not None

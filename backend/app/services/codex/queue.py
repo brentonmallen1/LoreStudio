@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ...models.codex import CodexEdge, CodexNode
+from ...models.location import ScenePresence
+from ...models.reader_knowledge import ReaderKnowledgeEvent
 
 
 class SuggestionOut(BaseModel):
@@ -24,8 +26,20 @@ class SuggestionOut(BaseModel):
 
 
 def pending_suggestions(story_id: str, db: Session) -> list[SuggestionOut]:
+    """A proposal is pending until the author has written the row it proposes (doc 13 P4):
+    a presence answer for that scene and character, or a reader-knowledge event. Undoing
+    the answer brings the proposal back; a "no" is a decline, kept with the others."""
     nodes = {n.id: n for n in db.query(CodexNode).filter(CodexNode.story_id == story_id)}
     out: list[SuggestionOut] = []
+    answered = {
+        (p.node_id, p.character_id)
+        for p in db.query(ScenePresence)
+        .join(CodexNode, CodexNode.ref_id == ScenePresence.node_id)
+        .filter(CodexNode.story_id == story_id)
+    }
+    known = {
+        (e.node_id, e.subject) for e in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id)
+    }
 
     for edge in db.query(CodexEdge).filter(
         CodexEdge.story_id == story_id,
@@ -34,7 +48,7 @@ def pending_suggestions(story_id: str, db: Session) -> list[SuggestionOut]:
         CodexEdge.confirmed_at.is_(None),
     ):
         character, scene = nodes.get(edge.src_id), nodes.get(edge.dst_id)
-        if not character or not scene:
+        if not character or not scene or (scene.ref_id, character.ref_id) in answered:
             continue
         out.append(
             SuggestionOut(
@@ -56,6 +70,8 @@ def pending_suggestions(story_id: str, db: Session) -> list[SuggestionOut]:
         CodexNode.story_id == story_id, CodexNode.kind == "fact", CodexNode.source == "llm"
     ):
         scene = nodes.get(established[fact.id].dst_id) if fact.id in established else None
+        if (scene.ref_id if scene else None, fact.label) in known:
+            continue
         out.append(
             SuggestionOut(
                 id=fact.id,

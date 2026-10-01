@@ -21,12 +21,15 @@ export default function PopoverMenu({
   trigger,
   items,
   align = "end",
+  triggerClassName,
 }: {
   /** The button's accessible name and tooltip ("More actions"). */
   label: string;
   trigger: ReactNode;
   items: MenuItem[];
   align?: "start" | "end";
+  /** A worded trigger ("Same as…") in place of the round icon button. */
+  triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -67,7 +70,7 @@ export default function PopoverMenu({
       <button
         ref={button}
         type="button"
-        className={styles.trigger}
+        className={triggerClassName ?? styles.trigger}
         aria-label={label}
         title={label}
         aria-haspopup="menu"

@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -47,6 +47,8 @@ class Location(Base):
     parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("locations.id"), nullable=True)
 
     name: Mapped[str] = mapped_column(String, nullable=False)
+    #: Other names the prose uses for this place; a found place merged into it leaves its name here.
+    aliases: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     location_type: Mapped[str] = mapped_column(String, default="")  # predefined or custom freeform
     climate: Mapped[str] = mapped_column(String, default="")
     terrain: Mapped[str] = mapped_column(Text, default="")

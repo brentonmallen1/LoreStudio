@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Compass, Brain, Plus, Trash2, X, ChevronDown, ChevronRight, Check } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ReaderKnowledgeEvent, KnowledgeType, StructureNode } from "../../types";
 import styles from "./ReaderKnowledgeTimeline.module.css";
@@ -100,6 +101,8 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  /** How many events the last scan proposed; -1 when it failed. */
+  const [scanNote, setScanNote] = useState<number | null>(null);
   const [addingToNode, setAddingToNode] = useState<string | null>(null);
   const [addForm, setAddForm] = useState({
     subject: "",
@@ -145,16 +148,15 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
     orderedNodeIds.push({ id: null, title: "Not linked to a scene" });
   }
 
+  // The Assistant proposes; the author says yes in Proposals, where it can be undone (doc 13 P4).
   async function handleScan() {
     setScanning(true);
+    setScanNote(null);
     try {
-      const newEvents = await api.scanReaderKnowledgeEvents(storyId);
-      setEvents((prev) => {
-        const existingIds = new Set(prev.map((e) => e.id));
-        return [...prev, ...newEvents.filter((e) => !existingIds.has(e.id))];
-      });
-    } catch (e) {
-      console.error("Scan failed", e);
+      const { proposed } = await api.scanReaderKnowledgeEvents(storyId);
+      setScanNote(proposed);
+    } catch {
+      setScanNote(-1);
     } finally {
       setScanning(false);
     }
@@ -209,10 +211,10 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
               className={styles.scanBtn}
               onClick={handleScan}
               disabled={scanning}
-              title="Analyze scene synopses to auto-detect truth reveals, misdirections, clues, and knowledge gaps"
+              title="The Assistant reads the scene synopses for reveals, misdirections and clues; what it finds waits in Proposals"
             >
               <Compass size={12} className={scanning ? styles.scanSpin : undefined} />
-              {scanning ? "Detecting…" : "Auto-detect Events"}
+              {scanning ? "Reading…" : "Find what the reader learns"}
             </button>
           )}
           {!ironyOnly && (
@@ -223,6 +225,21 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
           )}
         </div>
       </div>
+
+      {scanNote !== null && (
+        <p className={styles.ironyHint} role="status">
+          {scanNote < 0 ? (
+            "The Assistant could not read the scenes just now."
+          ) : scanNote === 0 ? (
+            "Nothing new found."
+          ) : (
+            <>
+              {scanNote} {scanNote === 1 ? "event waits" : "events wait"} for a yes in{" "}
+              <Link to={`/stories/${storyId}/proposals?kind=fact`}>Proposals</Link>.
+            </>
+          )}
+        </p>
+      )}
 
       {ironyOnly && (
         <p className={styles.ironyHint}>
@@ -248,7 +265,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
           <p>
             {ironyOnly
               ? "No dramatic irony moments found. Add reader knowledge events where readers know more than the characters."
-              : 'No knowledge events yet. Use "Scan with AI" to auto-detect from scene synopses, or add manually.'}
+              : 'No knowledge events yet. "Find what the reader learns" asks the Assistant to propose some, or add them yourself.'}
           </p>
         </div>
       )}

@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -1691,6 +1692,19 @@ def seed_demo_story():  # noqa: PLR0915
             position=1,
         )
         db.add(cottage)
+
+        # Found in the prose: "What Thomas Knew" calls the cottage [[The Keeper's Cottage]]. It
+        # waits in Proposals, where "Same as…" folds it into Keeper's Cottage (doc 13 P4).
+        db.add(
+            Location(
+                story_id=story.id,
+                name="The Keeper's Cottage",
+                is_stub=True,
+                discovered_at=datetime.now(UTC),
+                description="Named in the prose; not yet in Places.",
+                position=9,
+            )
+        )
 
         shoals = Location(
             story_id=story.id,

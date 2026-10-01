@@ -46,6 +46,7 @@ class LocationCreate(BaseModel):
 
 class LocationUpdate(BaseModel):
     name: str | None = None
+    aliases: list[str] | None = None
     parent_id: str | None = None
     location_type: str | None = None
     climate: str | None = None
@@ -70,6 +71,7 @@ class LocationOut(BaseModel):
     story_id: str
     parent_id: str | None
     name: str
+    aliases: list[str] = []
     location_type: str
     climate: str
     terrain: str
@@ -100,3 +102,8 @@ class LocationTree(LocationOut):
     children: list[LocationTree] = []
 
     model_config = {"from_attributes": True}
+
+
+class LocationMerge(BaseModel):
+    #: The place the found one is the same as.
+    into: str

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Eye, GitBranch, Lightbulb, MapPin, MessageSquareQuote, User } from "lucide-react";
 import type { Proposal, ProposalKind } from "../../types/proposals";
+import SameAsPicker from "../lorebook/SameAsPicker";
 import styles from "../findings/Findings.module.css";
 
 export const KIND_ICONS: Record<ProposalKind, typeof User> = {
@@ -22,11 +23,14 @@ export default function ProposalRow({
   storyId,
   onAct,
   onDecline,
+  onMerged,
 }: {
   proposal: Proposal;
   storyId: string;
   onAct: (p: Proposal, action: string) => Promise<void>;
   onDecline: (p: Proposal) => Promise<void>;
+  /** After "Same as…" folded a found place into another. */
+  onMerged?: () => Promise<void> | void;
 }) {
   const [busy, setBusy] = useState(false);
   const Icon = KIND_ICONS[p.kind];
@@ -67,6 +71,13 @@ export default function ProposalRow({
           {a.label}
         </button>
       ))}
+      {p.id.startsWith("stub:") && (
+        <SameAsPicker
+          stubId={p.id.slice("stub:".length)}
+          className={styles.verb}
+          onMerged={() => void onMerged?.()}
+        />
+      )}
       <button
         type="button"
         className={styles.no}

@@ -12,6 +12,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.location import (
     LocationCreate,
+    LocationMerge,
     LocationOut,
     LocationTree,
     LocationUpdate,
@@ -20,6 +21,7 @@ from ..schemas.location import (
 )
 from ..services import change_log
 from ..services.color_slots import next_slot
+from ..services.location_merge import CannotMerge, merge_location
 
 router = APIRouter()
 
@@ -185,6 +187,24 @@ def delete_location(
     )
     db.delete(location)
     db.commit()
+
+
+@router.post("/locations/{location_id}/merge", response_model=LocationOut)
+def merge_into(
+    location_id: str,
+    body: LocationMerge,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """ "Same as…" (doc 13 P4): this place is another one; its scenes, routes and the places
+    inside it move over, its name stays as an alias, and it goes. One Undo reverses it."""
+    stub = _verify_location_access(location_id, db, current_user)
+    into = _verify_location_access(body.into, db, current_user)
+    try:
+        return merge_location(stub, into, db, current_user.id, client_id)
+    except CannotMerge as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 # --- Settings Migration ---

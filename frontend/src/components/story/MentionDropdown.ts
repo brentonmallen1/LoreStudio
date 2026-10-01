@@ -9,6 +9,8 @@ export interface MentionItem {
   role?: string;
   /** Palette slot 1..8 (doc 11 P2), painted on the decoration as data-slot. */
   slot?: number;
+  /** Another name for a place (doc 13 P4): decorated as that place, never offered in the picker. */
+  aliasOf?: string;
 }
 
 export interface MentionCallbacks {
@@ -152,8 +154,11 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
             from,
             to,
             {
-              class: setting.name === _highlightName ? "mention-setting mention-hl" : "mention-setting",
-              "data-mention-name": setting.name,
+              class:
+                (setting.aliasOf ?? setting.name) === _highlightName
+                  ? "mention-setting mention-hl"
+                  : "mention-setting",
+              "data-mention-name": setting.aliasOf ?? setting.name,
               "data-mention-type": "setting",
               ...(setting.slot ? { "data-slot": String(setting.slot) } : {}),
             },

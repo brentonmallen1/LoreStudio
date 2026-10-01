@@ -262,6 +262,9 @@ export default function AutoTagPanel({
   }, [sceneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentScene = data?.scenes[sceneIndex];
+  // Opened for one scene that has nothing left to tag: say so, rather than quietly
+  // showing another scene as if it were the one asked for (doc 13 P4).
+  const askedScene = sceneId && data && !data.scenes.some((sc) => sc.scene_id === sceneId);
   const totalSelected = Object.values(selected).reduce((sum, s) => sum + s.size, 0);
   const autoCount = data
     ? data.scenes.reduce(
@@ -293,6 +296,11 @@ export default function AutoTagPanel({
           </>
         )}
 
+        {askedScene && (
+          <span className={styles.countBadge} role="status">
+            Every line in that scene has a speaker now.
+          </span>
+        )}
         {data && (
           <span className={styles.countBadge}>
             {data.total_proposals === 0
