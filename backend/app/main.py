@@ -42,6 +42,7 @@ from .routers.llm_settings import router as llm_settings_router
 from .routers.location_travel import router as location_travel_router
 from .routers.locations import router as locations_router
 from .routers.media import router as media_router
+from .routers.numbers import router as numbers_router
 from .routers.ollama import router as ollama_router
 from .routers.outlines import router as outlines_router
 from .routers.panel_interviews import router as panel_interviews_router
@@ -163,6 +164,7 @@ app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
 app.include_router(scene_cast_router, prefix="/api", tags=["scene-cast"])
 app.include_router(findings_router, prefix="/api", tags=["findings"])
+app.include_router(numbers_router, prefix="/api", tags=["numbers"])
 app.include_router(proposals_router, prefix="/api", tags=["proposals"])
 app.include_router(search_router, prefix="/api", tags=["search"])
 app.include_router(media_router, prefix="/api", tags=["media"])

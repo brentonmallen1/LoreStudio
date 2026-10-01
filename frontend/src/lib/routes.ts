@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  BarChart3,
   BookOpen,
   CalendarDays,
   Clock,
@@ -258,6 +259,25 @@ export const STORY_ROUTES: StoryRoute[] = [
     modes: BOTH,
     // Story Health was this page's name until doc 12 P4; people will still look for it.
     keywords: ["story health", "what needs my eye", "issues", "problems", "report", "analysis", "checks"],
+  },
+  {
+    // What Story Health measured, back on a page of its own (doc 13 P3, D5).
+    id: "numbers",
+    path: "/numbers",
+    label: "Numbers",
+    icon: BarChart3,
+    domain: "system",
+    modes: BOTH,
+    keywords: [
+      "stats",
+      "statistics",
+      "metrics",
+      "pacing",
+      "screen time",
+      "dialogue",
+      "word count",
+      "progress",
+    ],
   },
   {
     id: "chronicle",

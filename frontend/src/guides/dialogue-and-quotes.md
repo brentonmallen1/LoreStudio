@@ -18,7 +18,7 @@ Straight `"…"` and curly `“…”` quotes mixed in one manuscript is the mos
 
 ## Voice
 
-**Story Health › Dialogue** compares speakers: line length, favourite words, questions, contractions. Distinct characters should read distinctly; the report says when two blur together.
+**Numbers › Dialogue** shows who talks and how much: each speaker's share of the words, how evenly the talking is shared, which characters talk to each other, and the scenes where one voice takes over.
 
 ## Checks
 

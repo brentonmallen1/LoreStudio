@@ -20,6 +20,7 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   plan: lazy(() => import("../components/plan/PlanPage")),
   proposals: lazy(() => import("./ProposalsPage")),
   findings: lazy(() => import("./FindingsPage")),
+  numbers: lazy(() => import("./NumbersPage")),
   publish: lazy(() => import("./PublishPage")),
 };
 

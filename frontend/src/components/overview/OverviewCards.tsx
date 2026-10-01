@@ -30,18 +30,21 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
       sub: target ? `${Math.round(target.pct)}% of ${target.max.toLocaleString()}` : "no target length set",
       bar: target ? Math.min(100, target.pct) : null,
       warn: target?.warning_level,
-      to: `/stories/${storyId}/write`,
+      // The figures open the page that measures them (doc 13 P3).
+      to: `/stories/${storyId}/numbers`,
     },
     {
       label: "Scenes",
       value: String(ov.scene_count),
       sub: states || "none yet",
-      to: `/stories/${storyId}/write`,
+      to: `/stories/${storyId}/numbers`,
     },
     {
       label: "Threads",
       value: `${ov.open_threads.length} open`,
-      sub: ov.open_threads.join(" · ") || "none open",
+      sub:
+        ov.open_threads.join(" · ") ||
+        (ov.thread_counts.resolved ? `${ov.thread_counts.resolved} resolved, none open` : "none open"),
       to: sectionPath(storyId, "lorebook", "threads"),
     },
     {
