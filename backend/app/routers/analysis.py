@@ -59,8 +59,7 @@ from ..services.llm.prompts.analysis import (
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
-from ..services.nlp_analysis_service import extract_unknown_entities
-from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
+from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
 from ..services.word_count import WORD_COUNT_RANGES
 
@@ -767,44 +766,7 @@ def analyze_entity_suggestions(
     Returns character (PERSON) and location (GPE/LOC) suggestions.
     """
     _get_story(story_id, db, current_user)
-
-    # Gather known entities from Lorebook
-    characters = db.query(Character).filter(Character.story_id == story_id).all()
-    locations = db.query(Location).filter(Location.story_id == story_id).all()
-    known_characters = {c.name for c in characters}
-    known_locations = {loc.name for loc in locations}
-
-    # Gather all scene content
-    nodes = (
-        db.query(StructureNode)
-        .filter(
-            StructureNode.story_id == story_id,
-            StructureNode.content.isnot(None),
-            StructureNode.content != "",
-        )
-        .all()
-    )
-
-    scene_tuples = [(n.id, n.title or "", n.content) for n in nodes if n.content and n.content.strip()]
-
-    result = extract_unknown_entities(scene_tuples, known_characters, known_locations)
-    char_count = len(result.character_suggestions)
-    loc_count = len(result.location_suggestions)
-
-    log = ActivityLog(
-        user_id=current_user.id,
-        story_id=story_id,
-        event_type="analysis_run",
-        category="health",
-        description=f"Entity scan: {char_count} character(s), {loc_count} location(s) found",
-        metadata_={
-            "feature": "entity-suggestions",
-            "result": result.model_dump(),
-            "character_count": char_count,
-            "location_count": loc_count,
-        },
-    )
-    db.add(log)
+    result = run_entity_scan(story_id, current_user.id, db)
     db.commit()
     return result
 

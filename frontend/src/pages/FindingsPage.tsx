@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Eraser, ScrollText, Search, Tag } from "lucide-react";
+import { Eraser, ScrollText } from "lucide-react";
 import { api } from "../api/client";
 import { jobsApi } from "../api/jobs";
 import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
-import Modal from "../components/common/Modal";
 import FindingRow from "../components/findings/FindingRow";
-import MaintenanceView from "../components/findings/MaintenanceView";
 import RunChecksMenu from "../components/findings/RunChecksMenu";
 import Vitals from "../components/findings/Vitals";
 import PageHeader from "../components/layout/PageHeader";
@@ -64,16 +62,7 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
         .join(" · ")
     : "Reading the story…";
 
-  const [tagging, setTagging] = useState(false);
-  const more: MenuItem[] = [
-    // Until Proposals (P5) takes these in: unattributed dialogue and unlinked names.
-    { label: "Tag dialogue and mentions…", icon: Tag, onSelect: () => setTagging(true) },
-    {
-      label: "Scan the prose for new names",
-      icon: Search,
-      onSelect: () => void api.analyzeEntitySuggestions(storyId),
-    },
-  ];
+  const more: MenuItem[] = [];
   if (aiAvailable) {
     more.push(
       {
@@ -180,11 +169,6 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
           )}
         </div>
       </div>
-      {tagging && (
-        <Modal isOpen onClose={() => setTagging(false)} title="Tag dialogue and mentions" size="lg">
-          <MaintenanceView storyId={storyId} />
-        </Modal>
-      )}
     </div>
   );
 }

@@ -15,7 +15,6 @@ import {
   BookOpen,
   Users,
   Compass,
-  Eye,
   Search,
   Quote,
   BookMarked,
@@ -505,21 +504,6 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openWritingGuides("essential");
-  },
-});
-
-// ── Discoveries ──────────────────────────────────────────────────────────────
-
-commandRegistry.register({
-  id: "health-discoveries",
-  label: "NLP Discoveries",
-  keywords: ["nlp", "discovery", "entities", "auto-link"],
-  icon: Eye,
-  group: "Health",
-  when: () => !!useStoryStore.getState().activeStory,
-  action: () => {
-    const story = useStoryStore.getState().activeStory;
-    if (story) navigateTo(`/stories/${story.id}/discoveries`);
   },
 });
 

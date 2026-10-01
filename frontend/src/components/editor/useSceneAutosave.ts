@@ -4,7 +4,7 @@ import type { Editor } from "@tiptap/react";
 import { api, ApiError } from "../../api/client";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
-import { useDiscoveryStore } from "../../stores/discoveryStore";
+import { useProposalsStore } from "../../stores/proposalsStore";
 import { clearDraft, loadDraft, saveDraft, type Draft } from "../../lib/draftBuffer";
 import { countWordsClean } from "./segmentMeta";
 import { SCENES_REWRITTEN_EVENT } from "../../lib/sceneEvents";
@@ -23,7 +23,7 @@ const RETRY_DELAYS_MS = [5_000, 15_000, 30_000];
  */
 export function useSceneAutosave(editor: Editor | null) {
   const { activeNode, activeStory, setActiveNode } = useStoryStore();
-  const { runDiscovery } = useDiscoveryStore();
+  const discoverIn = useProposalsStore((s) => s.discoverIn);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [conflict, setConflict] = useState<StructureNode | null>(null);
   const [pendingDraft, setPendingDraft] = useState<Draft | null>(null);
@@ -112,7 +112,7 @@ export function useSceneAutosave(editor: Editor | null) {
       if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
       savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), SAVED_FLASH_MS);
       if (activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
-        runDiscovery(node.story_id, nodeId).catch(() => {});
+        discoverIn(node.story_id, nodeId).catch(() => {});
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

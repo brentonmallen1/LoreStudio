@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from .outline import Outline
     from .panel_interview import PanelInterview
     from .plot_thread import PlotThread
+    from .proposal_decline import ProposalDecline
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
     from .setting import Setting
@@ -164,4 +165,7 @@ class Story(Base):
     ai_jobs: Mapped[list["AIJob"]] = relationship("AIJob", back_populates="story", cascade="all, delete-orphan")
     finding_dismissals: Mapped[list["FindingDismissal"]] = relationship(
         "FindingDismissal", back_populates="story", cascade="all, delete-orphan"
+    )
+    proposal_declines: Mapped[list["ProposalDecline"]] = relationship(
+        "ProposalDecline", back_populates="story", cascade="all, delete-orphan"
     )

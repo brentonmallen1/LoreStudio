@@ -24,6 +24,7 @@ from .note import StoryNote
 from .outline import Outline, OutlineItem
 from .panel_interview import PanelInterview
 from .plot_thread import PlotThread, PlotThreadAppearance
+from .proposal_decline import ProposalDecline
 from .reader_knowledge import ReaderKnowledgeEvent
 from .scene_link import SceneLink
 from .setting import Setting
@@ -56,6 +57,7 @@ __all__ = [
     "CodexNode",
     "ActivityLog",
     "FindingDismissal",
+    "ProposalDecline",
     "AICallPayload",
     "AIJob",
     "CompendiumEntry",

@@ -17,6 +17,7 @@ since it needs access to the Lorebook's known characters and locations.
 
 from __future__ import annotations
 
+import re
 import statistics
 from collections import defaultdict
 from typing import Any
@@ -601,6 +602,16 @@ def _iter_text_chunks(text: str, chunk_size: int = _NLP_CHUNK_SIZE) -> list[str]
     return chunks
 
 
+_ATTRIBUTION = re.compile(r"<([^<>\n]{1,60})>")
+_MENTION = re.compile(r"@(?=\w)")
+
+
+def _without_markup(text: str) -> str:
+    """The prose as a reader sees it: "<Thomas Vance>" speaker tags and "@Eleanor" mentions
+    are the author's markup, and read as names they came back as "Vance>" and "@Thomas"."""
+    return _MENTION.sub("", _ATTRIBUTION.sub(r"\1", text))
+
+
 def extract_unknown_entities(
     scenes: list[tuple[str, str, str]],  # (scene_id, scene_title, scene_html)
     known_characters: set[str],
@@ -626,7 +637,7 @@ def extract_unknown_entities(
     # Most scenes produce a single chunk; very large scenes produce multiple.
     pipe_items: list[tuple[str, str, str]] = []
     for scene_id, scene_title, scene_html in scenes:
-        text = html_to_text(scene_html)
+        text = _without_markup(html_to_text(scene_html))
         if not text.strip():
             continue
         for chunk in _iter_text_chunks(text):

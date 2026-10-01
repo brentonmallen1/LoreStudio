@@ -29,6 +29,6 @@ class FindingDismissal(Base):
     )
     fingerprint: Mapped[str] = mapped_column(String, nullable=False)
     node_content_hash: Mapped[str | None] = mapped_column(String, nullable=True)
-    dismissed_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    dismissed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
 
     story: Mapped["Story"] = relationship("Story", back_populates="finding_dismissals")

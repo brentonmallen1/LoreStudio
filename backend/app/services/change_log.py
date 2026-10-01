@@ -33,6 +33,7 @@ from ..models.interview import CharacterInterview
 from ..models.location import Location, SceneSetting
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.proposal_decline import ProposalDecline
 from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -61,6 +62,7 @@ ENTITY_MODELS: dict[str, type] = {
     "plot_thread": PlotThread,
     "plot_thread_appearance": PlotThreadAppearance,
     "finding_dismissal": FindingDismissal,
+    "proposal_decline": ProposalDecline,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -87,6 +89,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "compendium_attachments": CompendiumAttachment,
     "twists": Twist,
     "finding_dismissals": FindingDismissal,
+    "proposal_declines": ProposalDecline,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000

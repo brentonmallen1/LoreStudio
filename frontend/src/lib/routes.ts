@@ -19,7 +19,7 @@ import {
   PenLine,
   Send,
   Shuffle,
-  Telescope,
+  Inbox,
   Undo2,
   Users,
   Zap,
@@ -187,6 +187,16 @@ export const STORY_ROUTES: StoryRoute[] = [
         detailParam: "entryId",
         keywords: ["distances", "routes", "journeys", "world building", "worldbuilding"],
       },
+      {
+        // The Codex graph (doc 12 P5): what the story's things are to each other.
+        id: "connections",
+        path: "/connections",
+        label: "Connections",
+        icon: Network,
+        modes: STUDIO,
+        ai: true,
+        keywords: ["codex", "knowledge graph", "graph", "network", "relationships map"],
+      },
     ],
   },
   {
@@ -242,24 +252,24 @@ export const STORY_ROUTES: StoryRoute[] = [
     keywords: ["panel", "interview", "group"],
   },
   {
-    id: "codex",
-    path: "/codex",
-    label: "Codex Review",
-    icon: Network,
-    domain: "codex",
-    modes: STUDIO,
-    ai: true,
-    keywords: ["suggestions", "knowledge graph", "who is here", "confirm", "review queue"],
-  },
-  {
-    id: "discoveries",
-    path: "/discoveries",
-    label: "Discoveries",
-    icon: Telescope,
-    domain: "codex",
-    modes: STUDIO,
-    ai: true,
-    keywords: ["extracted", "suggestions", "nlp", "entities"],
+    // Doc 12 P5: what the app noticed and the author has not decided, in one inbox.
+    id: "proposals",
+    path: "/proposals",
+    label: "Proposals",
+    icon: Inbox,
+    domain: "lorebook",
+    modes: BOTH,
+    keywords: [
+      "discoveries",
+      "nlp discoveries",
+      "codex review",
+      "review queue",
+      "suggestions",
+      "new names",
+      "stubs",
+      "found in your prose",
+      "unattributed dialogue",
+    ],
   },
   {
     id: "health",
@@ -363,6 +373,8 @@ export const STORY_REDIRECTS: { from: string; to: string }[] = [
   { from: "/twists", to: "/lorebook/twists" },
   { from: "/media", to: "/compendium/images" },
   { from: "/versions", to: "/chronicle/versions" },
+  { from: "/codex", to: "/lorebook/connections" },
+  { from: "/discoveries", to: "/proposals" },
 ];
 
 /** Fill `:name` segments of a redirect target from the matched params. */

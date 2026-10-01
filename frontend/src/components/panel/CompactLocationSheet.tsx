@@ -6,9 +6,11 @@ import type { Location } from "../../types";
 import { KINDS } from "../../lib/lorebook/kinds";
 import FieldList from "../lorebook/FieldList";
 
-const COMPACT_FIELDS = KINDS.location.fields.filter((f) => f.compact);
 import SlotPicker from "../common/SlotPicker";
+import { Link } from "react-router-dom";
 import styles from "./Panel.module.css";
+
+const COMPACT_FIELDS = KINDS.location.fields.filter((f) => f.compact);
 
 /** A place beside the prose: how it feels, why it matters, and the scenes set there. */
 export default function CompactLocationSheet({ location }: { location: Location }) {
@@ -20,6 +22,12 @@ export default function CompactLocationSheet({ location }: { location: Location 
 
   return (
     <>
+      {location.is_stub && activeStory && (
+        <p className={styles.empty}>
+          Found in your prose ·{" "}
+          <Link to={`/stories/${activeStory.id}/proposals?kind=place`}>review in Proposals</Link>
+        </p>
+      )}
       <section className={styles.section}>
         <SlotPicker
           size="sm"

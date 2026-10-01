@@ -41,6 +41,7 @@ const WRITER_ENTRY_POINTS = [
   "src/pages/StoryOverviewPage.tsx",
   "src/pages/MediaPage.tsx",
   "src/pages/FindingsPage.tsx",
+  "src/pages/ProposalsPage.tsx",
   "src/pages/ChroniclePage.tsx",
   "src/pages/VersionsPage.tsx",
   "src/components/story/StoryboardView.tsx",
@@ -138,6 +139,7 @@ describe("the story routes this test walks", () => {
       "lorebook.travel",
       "overview",
       "plan",
+      "proposals",
       "write",
     ]);
   });

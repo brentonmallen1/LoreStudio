@@ -4,7 +4,7 @@ import { Telescope } from "lucide-react";
 import { api } from "../../../api/client";
 import type { Character, DiagramSummary, Location, Story, StructureNode } from "../../../types";
 import { useStoryStore } from "../../../stores/storyStore";
-import { useDiscoveryStore } from "../../../stores/discoveryStore";
+import { useProposalsStore } from "../../../stores/proposalsStore";
 import DiagramThumbnail from "../../media/DiagramThumbnail";
 import AssetPicker from "../../media/AssetPicker";
 import type { InlineNotesState } from "../useInlineNotes";
@@ -77,7 +77,8 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
   const povId = activeNode.pov_character_id ?? activeStory?.pov_character_id;
   const povName = characters.find((c) => c.id === povId)?.name;
   const { setActiveNode, structure, beatSheets, activeTemplate: _t } = useStoryStore();
-  const { runDiscovery, isAnalyzing } = useDiscoveryStore();
+  const discoverIn = useProposalsStore((s) => s.discoverIn);
+  const isAnalyzing = useProposalsStore((s) => s.discovering);
   const navigate = useNavigate();
   const studio = useAIAvailable();
   // Seeded once per node: the parent renders this panel with key={activeNode.id}.
@@ -244,7 +245,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         <div className={styles.overviewField}>
           <button
             className={styles.analyzeBtn}
-            onClick={() => runDiscovery(activeNode.story_id, activeNode.id).catch(() => {})}
+            onClick={() => discoverIn(activeNode.story_id, activeNode.id).catch(() => {})}
             disabled={isAnalyzing}
             title="Analyze this scene for new characters, settings, and other story elements"
           >

@@ -8,7 +8,7 @@ import { rememberScene, sceneToResume } from "../lib/resumeScene";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useStoryStore } from "../stores/storyStore";
 import { usePanelStore } from "../stores/panelStore";
-import { useFindingsSync } from "../stores/findingsStore";
+import { useFeedSync } from "../stores/findingsStore";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
 import StoryStrip from "../components/strip/StoryStrip";
@@ -27,7 +27,7 @@ export default function StoryWorkspacePage() {
   const isFocused = viewState === "focus";
   const [stripRevealed, setStripRevealed] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useFindingsSync(storyId);
+  useFeedSync(storyId);
 
   // `navigate` changes identity whenever the location does; reading it through a ref keeps
   // this effect to "the story changed". Depending on it reloaded the whole story, and

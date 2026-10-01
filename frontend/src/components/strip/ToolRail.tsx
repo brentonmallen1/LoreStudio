@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useDiscoveryStore } from "../../stores/discoveryStore";
 import { useOpenFindings } from "../../stores/findingsStore";
+import { useOpenProposals } from "../../stores/proposalsStore";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { TOOL_ICONS } from "../panel/toolIcons";
@@ -8,7 +8,6 @@ import { useMode } from "../../lib/mode";
 import { useAIAvailable } from "../../lib/mode";
 import { routesFor, sectionModes, sectionPath, storyPath, type Domain } from "../../lib/routes";
 import { usePanelStore } from "../../stores/panelStore";
-import { useStoryStore } from "../../stores/storyStore";
 import { toolTabId, type ToolId } from "../../types/panel";
 import styles from "./Strip.module.css";
 
@@ -37,16 +36,12 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   const mode = useMode();
   const aiAvailable = useAIAvailable();
   const { tabs, activeTabId, openTool } = usePanelStore();
-  const discoveryEnabled = useStoryStore((s) => s.activeStory?.discovery_enabled);
-  const { pendingCount, refreshCount } = useDiscoveryStore();
   const openFindings = useOpenFindings().length;
+  const openProposals = useOpenProposals().length;
   const badges: Record<string, number | undefined> = {
     health: openFindings || undefined,
-    discoveries: pendingCount || undefined,
+    proposals: openProposals || undefined,
   };
-  useEffect(() => {
-    if (storyId && discoveryEnabled) refreshCount(storyId);
-  }, [storyId, discoveryEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
   const badgeTotal = Object.values(badges).reduce<number>((n, b) => n + (b ?? 0), 0);
   const [moreOpen, setMoreOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -67,9 +62,7 @@ export default function ToolRail({ wide }: { wide: boolean }) {
     };
   }, [moreOpen]);
 
-  const routes = routesFor(mode).filter(
-    (r) => r.id !== "write" && (r.id !== "discoveries" || discoveryEnabled) && (!r.ai || aiAvailable),
-  );
+  const routes = routesFor(mode).filter((r) => r.id !== "write" && (!r.ai || aiAvailable));
   const openIds = new Set(tabs.map((t) => t.id));
 
   return (

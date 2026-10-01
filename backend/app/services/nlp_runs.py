@@ -1,6 +1,7 @@
-"""The two spaCy passes over the manuscript, callable without a request (doc 12 P3).
+"""The spaCy passes over the manuscript, callable without a request (doc 12 P3, P5).
 
-The analysis endpoints and "Run checks → Local" on the findings feed both run these. Each
+The analysis endpoints, "Run checks → Local" on the findings feed and "Look again" on the
+Proposals inbox run these. Each
 logs an ``analysis_run`` with its whole result, which is where the findings feed reads
 them back from. No model is involved; the caller commits.
 """
@@ -10,14 +11,17 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from ..models.activity_log import ActivityLog
+from ..models.character import Character
+from ..models.location import Location
 from ..models.structure import StructureNode
 from ..schemas.nlp_analysis import (
     EditorialConsistencyResponse,
+    EntitySuggestionsResponse,
     ProseNLPResponse,
     SceneEditorialAnalysis,
     SceneNLPAnalysis,
 )
-from .nlp_analysis_service import ALL_CHECKS, analyze_scene, analyze_scene_editorial
+from .nlp_analysis_service import ALL_CHECKS, analyze_scene, analyze_scene_editorial, extract_unknown_entities
 
 
 def _scenes(story_id: str, db: Session, node_ids: list[str] | None) -> list[StructureNode]:
@@ -92,6 +96,31 @@ def run_editorial_consistency(
                 "scene_count": len(scenes),
                 "tense_shift_count": total_tense,
                 "pov_flag_count": total_pov,
+            },
+        )
+    )
+    return result
+
+
+def run_entity_scan(story_id: str, user_id: str, db: Session) -> EntitySuggestionsResponse:
+    """Proper nouns in the prose the Lorebook does not have (people; places)."""
+    known_characters = {c.name for c in db.query(Character).filter(Character.story_id == story_id)}
+    known_locations = {loc.name for loc in db.query(Location).filter(Location.story_id == story_id)}
+    scenes = [(n.id, n.title or "", n.content) for n in _scenes(story_id, db, None)]
+    result = extract_unknown_entities(scenes, known_characters, known_locations)
+    chars, locs = len(result.character_suggestions), len(result.location_suggestions)
+    db.add(
+        ActivityLog(
+            user_id=user_id,
+            story_id=story_id,
+            event_type="analysis_run",
+            category="health",
+            description=f"Entity scan: {chars} character(s), {locs} location(s) found",
+            metadata_={
+                "feature": "entity-suggestions",
+                "result": result.model_dump(),
+                "character_count": chars,
+                "location_count": locs,
             },
         )
     )

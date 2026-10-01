@@ -3,11 +3,11 @@ import { useStoryStore } from "../../stores/storyStore";
 import styles from "./DiscoverySettings.module.css";
 
 const ELEMENT_TYPE_OPTIONS = [
-  { value: "character", label: "👤 Characters" },
-  { value: "setting", label: "📍 Settings" },
-  { value: "relationship", label: "🔗 Relationships" },
-  { value: "theme", label: "💡 Themes" },
-  { value: "object", label: "📦 Objects" },
+  { value: "character", label: "Characters" },
+  { value: "setting", label: "Places" },
+  { value: "relationship", label: "Relationships" },
+  { value: "theme", label: "Themes" },
+  { value: "object", label: "Objects" },
 ];
 
 export default function DiscoverySettings({ storyId }: { storyId: string }) {

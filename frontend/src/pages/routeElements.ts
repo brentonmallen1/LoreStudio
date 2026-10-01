@@ -20,8 +20,7 @@ export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   plan: lazy(() => import("../components/plan/PlanPage")),
   whatif: lazy(() => import("./WhatIfPage")),
   panels: lazy(() => import("../components/panels/PanelInterviewPanel")),
-  codex: lazy(() => import("./CodexPage")),
-  discoveries: lazy(() => import("./DiscoveryQueuePage")),
+  proposals: lazy(() => import("./ProposalsPage")),
   health: lazy(() => import("./FindingsPage")),
   publish: lazy(() => import("./PublishPage")),
 };
@@ -45,6 +44,7 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "lorebook.history": lazy(() => import("../components/lorebook/sections/HistorySection")),
   "lorebook.calendars": worldSection("CalendarsSection"),
   "lorebook.travel": worldSection("TravelSection"),
+  "lorebook.connections": lazy(() => import("../components/lorebook/sections/ConnectionsSection")),
   "compendium.research": lazy(() => import("../components/compendium/CompendiumPanel")),
   "compendium.images": MediaPage,
   "compendium.diagrams": MediaPage,

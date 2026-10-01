@@ -110,6 +110,7 @@ components/       — Feature components organized by domain
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
                     (data in stores/findingsStore; the server computes every finding)
+  proposals/      — The Proposals inbox row (stores/proposalsStore; gathered server-side)
   chronicle/      — Activity, conversations, changes; analysis/ draws any past run in full
   lorebook/       — The Lorebook browser: one EntitySheet for every kind (fields from
                     lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/

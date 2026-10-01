@@ -32,6 +32,7 @@ from ..models.note import StoryNote
 from ..models.outline import Outline, OutlineItem
 from ..models.panel_interview import PanelInterview
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
+from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.setting import Setting
@@ -112,6 +113,7 @@ _DELTA_ENTITY_KEYS = [
     "asset_attachments",
     "discovered_elements",
     "finding_dismissals",
+    "proposal_declines",
     "dialogue_blocks",
     "compendium_attachments",
     "character_journey_summaries",
@@ -148,6 +150,7 @@ SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
     "reader_knowledge_events": "reader_knowledge_events",
     "discovered_elements": "discovered_elements",
     "finding_dismissals": "finding_dismissals",
+    "proposal_declines": "proposal_declines",
 }
 
 #: Story-owned tables that have no story_id column of their own.
@@ -416,6 +419,9 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     ]
     data["finding_dismissals"] = [
         _model_to_dict(d) for d in db.query(FindingDismissal).filter(FindingDismissal.story_id == story_id).all()
+    ]
+    data["proposal_declines"] = [
+        _model_to_dict(d) for d in db.query(ProposalDecline).filter(ProposalDecline.story_id == story_id).all()
     ]
     data["location_travel"] = (
         [
@@ -879,7 +885,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
     _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
     _bulk_delete(CompendiumAttachment, CompendiumAttachment.entry_id, entry_ids)
-    for model in (SceneLink, StoryTodo, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal):
+    for model in (SceneLink, StoryTodo, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal, ProposalDecline):
         _delete_by_story(model)
 
     if _has("interviews"):
@@ -984,6 +990,7 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
     _insert_all(ReaderKnowledgeEvent, state.get("reader_knowledge_events", []))
     _insert_all(DiscoveredElement, state.get("discovered_elements", []))
     _insert_all(FindingDismissal, state.get("finding_dismissals", []))
+    _insert_all(ProposalDecline, state.get("proposal_declines", []))
     _insert_all(LocationTravel, state.get("location_travel", []))
     _insert_all(DialogueBlock, state.get("dialogue_blocks", []))
     _insert_all(CharacterJourneySummary, state.get("character_journey_summaries", []))

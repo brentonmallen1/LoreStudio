@@ -550,3 +550,93 @@ button.runItem:focus-visible {
     margin-left: calc(9px + 0.75rem);
   }
 }
+
+/* ── Proposals (doc 12 P5): the same rows, with a yes and a no ── */
+
+.kindIcon {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+  color: var(--color-text-muted);
+}
+
+.whereLink {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.whereLink:hover {
+  color: var(--color-text);
+}
+
+.yes {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 0.8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.yes:hover {
+  background: var(--color-accent-hover);
+}
+
+.no {
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 0.55rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.no:hover {
+  color: var(--color-text);
+}
+
+.yes:focus-visible,
+.no:focus-visible,
+.whereLink:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.yes:disabled,
+.no:disabled,
+.verb:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-2);
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+
+.notice a {
+  color: var(--color-text);
+}
+
+@media (max-width: 720px) {
+  .yes,
+  .no {
+    margin-left: calc(14px + 0.75rem);
+  }
+}

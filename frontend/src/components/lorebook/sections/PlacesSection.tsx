@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapPin, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "../../../api/client";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { locationFields, typeLabel, typeValue } from "../../../lib/lorebook/kinds";
@@ -208,15 +209,15 @@ export default function PlacesSection() {
             {place.is_stub && (
               <div className={styles.banner} role="status">
                 <span className={styles.bannerText}>
-                  Found in your prose{scenes.length ? `, in ${scenes[0].title}` : ""}. Describe it, or mark it
-                  reviewed to keep it as it is.
+                  Found in your prose{scenes.length ? `, in ${scenes[0].title}` : ""}. Describing it keeps it;
+                  it also waits in <Link to={`/stories/${storyId}/proposals?kind=place`}>Proposals</Link>.
                 </span>
                 <button
                   type="button"
                   className={styles.quietBtn}
                   onClick={() => void save({ is_stub: false })}
                 >
-                  Mark reviewed
+                  Keep it
                 </button>
               </div>
             )}

@@ -5,6 +5,7 @@ import { MUTATION_EVENT, type MutationEventDetail } from "../api/request";
 import { UNDO_APPLIED_EVENT } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { announceScenesRewritten } from "../lib/sceneEvents";
+import { useProposalsStore } from "./proposalsStore";
 import type { Finding, FindingsOut } from "../types/findings";
 
 /**
@@ -95,6 +96,8 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
 
 /** The open findings, minus any dismissed a moment ago. Writer mode has no Assistant, so
  * no Assistant findings either. */
+const EMPTY: Finding[] = [];
+
 export function useOpenFindings(): Finding[] {
   const data = useFindingsStore((s) => s.data);
   const hidden = useFindingsStore((s) => s.hidden);
@@ -108,24 +111,32 @@ export function useOpenFindings(): Finding[] {
   );
 }
 
-const EMPTY: Finding[] = [];
 /** Saves land in bursts (autosave, a sheet's fields); one read after they settle. */
 const SETTLE_MS = 1500;
 
-/** Mounted once by the story workspace: load the feed and keep it current. */
-export function useFindingsSync(storyId: string | undefined) {
+/**
+ * Mounted once by the story workspace: load the findings and the proposals, and keep both
+ * current. Each is computed by the server from the story, so after any save they are read
+ * again rather than patched here.
+ */
+export function useFeedSync(storyId: string | undefined) {
   useEffect(() => {
     if (!storyId) return;
-    const { load, refetch } = useFindingsStore.getState();
-    void load(storyId);
+    const refetch = () => {
+      void useFindingsStore.getState().refetch();
+      void useProposalsStore.getState().refetch();
+    };
+    void useFindingsStore.getState().load(storyId);
+    void useProposalsStore.getState().load(storyId);
     let timer: number | undefined;
     const soon = () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => void refetch(), SETTLE_MS);
+      timer = window.setTimeout(refetch, SETTLE_MS);
     };
     const onMutation = (e: Event) => {
-      // The store's own calls refetch themselves.
-      if (!(e as CustomEvent<MutationEventDetail>).detail?.path.includes("/findings")) soon();
+      // The stores' own calls refetch themselves.
+      const path = (e as CustomEvent<MutationEventDetail>).detail?.path ?? "";
+      if (!path.includes("/findings") && !path.includes("/proposals")) soon();
     };
     window.addEventListener(MUTATION_EVENT, onMutation);
     window.addEventListener(UNDO_APPLIED_EVENT, soon);

@@ -26,6 +26,8 @@ interface Props {
   characterName?: string; // display label for mode="character"
   characterNames?: string[];
   onApplied?: () => void;
+  /** Open on this scene: scan at once and step to it (a Proposals "Tag them", doc 12 P5). */
+  sceneId?: string;
 }
 
 function ConfidenceDots({ value }: { value: number }) {
@@ -103,6 +105,7 @@ export default function AutoTagPanel({
   characterName,
   characterNames = [],
   onApplied,
+  sceneId,
 }: Props) {
   const [scanning, setScanning] = useState(false);
   const [applying, setApplying] = useState(false);
@@ -120,7 +123,7 @@ export default function AutoTagPanel({
           ? await api.suggestDialogueTagsForCharacter(characterId)
           : await api.suggestDialogueTagsStoryWide(storyId);
       setData(result);
-      setSceneIndex(0);
+      setSceneIndex(Math.max(0, sceneId ? result.scenes.findIndex((s) => s.scene_id === sceneId) : 0));
       // In character mode pre-select all proposals (already filtered to this character).
       // In story mode pre-select only high-confidence ones.
       const scanThreshold = mode === "character" ? 0 : AUTO_CONFIDENCE_THRESHOLD;
@@ -249,6 +252,14 @@ export default function AutoTagPanel({
   // In character mode every proposal is already confirmed as this character's dialogue,
   // so apply all of them regardless of confidence. In story mode keep the threshold.
   const autoThreshold = mode === "character" ? 0 : AUTO_CONFIDENCE_THRESHOLD;
+
+  // Opened for one scene: scan straight away rather than waiting for the button.
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!sceneId || opened.current) return;
+    opened.current = true;
+    void scan();
+  }, [sceneId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentScene = data?.scenes[sceneIndex];
   const totalSelected = Object.values(selected).reduce((sum, s) => sum + s.size, 0);
