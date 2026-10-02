@@ -324,3 +324,16 @@
   outline: 2px solid var(--color-accent);
   outline-offset: 1px;
 }
+
+/* A dot's preview (doc 15 polish): read-only, so the pointer passes through it. */
+.card[data-peek] {
+  pointer-events: none;
+  cursor: default;
+}
+
+.peekHint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

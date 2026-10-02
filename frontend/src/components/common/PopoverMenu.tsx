@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { Check, type LucideIcon } from "lucide-react";
 import styles from "./PopoverMenu.module.css";
 
 export interface MenuItem {
@@ -10,6 +10,8 @@ export interface MenuItem {
   ai?: boolean;
   danger?: boolean;
   disabled?: boolean;
+  /** One of a set of choices: the menu marks the current one. */
+  checked?: boolean;
 }
 
 /**
@@ -87,7 +89,8 @@ export default function PopoverMenu({
               <button
                 key={item.label}
                 type="button"
-                role="menuitem"
+                role={item.checked === undefined ? "menuitem" : "menuitemradio"}
+                aria-checked={item.checked}
                 disabled={item.disabled}
                 className={`${styles.item} ${item.ai ? styles.itemAi : ""} ${item.danger ? styles.itemDanger : ""}`}
                 onClick={() => {
@@ -97,6 +100,7 @@ export default function PopoverMenu({
               >
                 {Icon && <Icon size={14} aria-hidden />}
                 {item.label}
+                {item.checked && <Check size={13} className={styles.check} aria-hidden />}
               </button>
             );
           })}

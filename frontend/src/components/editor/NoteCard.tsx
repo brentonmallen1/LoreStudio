@@ -177,6 +177,37 @@ export function NoteCard({
   );
 }
 
+/** A note shown, not opened: the dot's preview on hover (doc 15 polish). */
+export function NotePeek({ note, style }: { note: InlineNote; style: React.CSSProperties }) {
+  const editorial = note.type === "editorial";
+  return (
+    <div
+      className={styles.card}
+      data-kind={note.kind}
+      data-floating
+      data-peek
+      data-done={note.done || undefined}
+      style={style}
+      role="tooltip"
+    >
+      <div className={styles.cardHead}>
+        <span className={styles.kind}>
+          {editorial ? (note.category ?? "Editorial") : KIND_LABEL[note.kind]}
+        </span>
+      </div>
+      <p className={styles.text} data-clamped>
+        {note.note || <em>No note text.</em>}
+      </p>
+      {note.kind === "question" && note.answer && (
+        <p className={styles.answer} data-clamped>
+          {note.answer}
+        </p>
+      )}
+      <span className={styles.peekHint}>Click to open</span>
+    </div>
+  );
+}
+
 export function NewNoteCard({
   notes,
   floating,

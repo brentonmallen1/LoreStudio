@@ -39,6 +39,7 @@ import { useMentionHoverCard } from "./useMentionHoverCard";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
+import { readNotesView, saveNotesView } from "../../lib/notes/view";
 import MentionHoverCard from "./MentionHoverCard";
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
@@ -75,7 +76,7 @@ export default function SceneEditor() {
   const { sessions, createSession, setActiveSession } = useAIStore();
   const aiAvailable = useAIAvailable();
   // Notes sit in the prose's left margin (doc 13 P2); the topbar button shows or hides it.
-  const [notesMargin, setNotesMargin] = useState(readNotesMargin);
+  const [notesView, setNotesView] = useState(readNotesView);
   const activateTab = usePanelStore((s) => s.activate);
   const openEntity = usePanelStore((s) => s.openEntity);
   const setBridgeNotes = useEditorBridge((s) => s.setNotes);
@@ -249,9 +250,9 @@ export default function SceneEditor() {
         activeNode={activeNode}
         wordCount={autosave.wordCount}
         autosave={autosave}
-        showNotes={notesMargin}
+        notesView={notesView}
         noteCount={notes.notes.length}
-        onToggleNotes={() => setNotesMargin(saveNotesMargin(!notesMargin))}
+        onNotesView={(v) => setNotesView(saveNotesView(v))}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}
         onOpenImagePicker={() => setImagePickerOpen(true)}
@@ -316,7 +317,7 @@ export default function SceneEditor() {
                 notes={notes}
                 scrollAreaRef={scrollAreaRef}
                 marginRef={notePopoverRef}
-                visible={notesMargin}
+                view={notesView}
               />
             )}
             <MentionGutter scrollAreaRef={scrollAreaRef} />
@@ -380,23 +381,4 @@ export default function SceneEditor() {
       )}
     </div>
   );
-}
-
-const NOTES_MARGIN_KEY = "ls_notes_margin";
-
-function readNotesMargin(): boolean {
-  try {
-    return localStorage.getItem(NOTES_MARGIN_KEY) !== "off";
-  } catch {
-    return true;
-  }
-}
-
-function saveNotesMargin(on: boolean): boolean {
-  try {
-    localStorage.setItem(NOTES_MARGIN_KEY, on ? "on" : "off");
-  } catch {
-    /* a private window keeps the choice for this visit only */
-  }
-  return on;
 }

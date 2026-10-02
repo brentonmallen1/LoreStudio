@@ -85,3 +85,9 @@
 .itemDanger {
   color: var(--color-danger);
 }
+
+/* The current choice of a set (a view, a mode). */
+.check {
+  margin-left: auto;
+  color: var(--color-accent);
+}

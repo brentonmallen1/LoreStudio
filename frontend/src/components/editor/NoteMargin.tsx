@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
 import { layoutCards, type MarginAnchor } from "../../lib/notes/marginLayout";
-import { NewNoteCard, NoteCard } from "./NoteCard";
+import { NewNoteCard, NoteCard, NotePeek } from "./NoteCard";
+import { KIND_LABEL } from "../notes/kinds";
+import { marginMode, type NotesView } from "../../lib/notes/view";
 import type { InlineNotesState } from "./useInlineNotes";
 import styles from "./NoteMargin.module.css";
 
@@ -40,13 +42,14 @@ export default function NoteMargin({
   notes,
   scrollAreaRef,
   marginRef,
-  visible,
+  view,
 }: {
   notes: InlineNotesState;
   scrollAreaRef: RefObject<HTMLDivElement | null>;
   /** Clicks inside this keep a note open (useInlineNotes closes it on any other click). */
   marginRef: RefObject<HTMLDivElement | null>;
-  visible: boolean;
+  /** Cards, dots or nothing (lib/notes/view). */
+  view: NotesView;
 }) {
   const { popover } = notes;
   const shown = notes.notes.filter((n) => !(notes.hideEditorial && n.type === "editorial"));
@@ -106,7 +109,7 @@ export default function NoteMargin({
       const rect = popover.open && popover.isNew ? popover.rect : null;
       const next: Geometry = {
         pending: rect ? { top: rect.top - areaRect.top + area.scrollTop, height: rect.height } : null,
-        mode: !visible ? "none" : room >= MIN_MARGIN ? "cards" : "markers",
+        mode: marginMode(view, room, MIN_MARGIN),
         proseLeft,
         proseWidth: proseRect.width,
         cardLeft: proseLeft - 24 - cardWidth,
@@ -132,7 +135,7 @@ export default function NoteMargin({
       mo.disconnect();
       ro.disconnect();
     };
-  }, [scrollAreaRef, marginRef, noteKey, visible, popover]);
+  }, [scrollAreaRef, marginRef, noteKey, view, popover]);
 
   // Hovering the words lights the card; the card lights the words through a style rule,
   // so no class is ever set on ProseMirror's own spans.
@@ -177,11 +180,14 @@ export default function NoteMargin({
         } }`,
     )
     .join("\n");
+  // Hidden means hidden: no cards, no dots, and the words lose their highlight too.
   const litRule =
-    kindRules +
-    (lit
-      ? `\n.ProseMirror [data-note-id="${CSS.escape(lit)}"] { background: color-mix(in srgb, var(--note-mark, var(--color-note-marker)) 32%, transparent); }`
-      : "");
+    view === "off"
+      ? ""
+      : kindRules +
+        (lit
+          ? `\n.ProseMirror [data-note-id="${CSS.escape(lit)}"] { background: color-mix(in srgb, var(--note-mark, var(--color-note-marker)) 32%, transparent); }`
+          : "");
 
   if (geo.mode === "cards") {
     const placed = geo.anchors.map((a) => ({ id: a.id, top: a.top }));
@@ -221,6 +227,10 @@ export default function NoteMargin({
   const floatAt = (top: number) => ({ top, left: geo.proseLeft, width: Math.min(320, geo.proseWidth) });
   const active = activeId ? anchorOf(activeId) : undefined;
   const activeNote = activeId ? byId.get(activeId) : undefined;
+  // A dot (or its words) under the pointer shows the note without opening it.
+  const peekId = geo.mode === "markers" && hoverId !== activeId ? hoverId : null;
+  const peek = peekId ? anchorOf(peekId) : undefined;
+  const peekNote = peekId ? byId.get(peekId) : undefined;
   return (
     <div ref={marginRef} className={styles.margin} aria-label="Notes">
       <style>{litRule}</style>
@@ -235,16 +245,18 @@ export default function NoteMargin({
               data-kind={note?.kind}
               data-editorial={note?.type === "editorial" || undefined}
               style={{ top: a.top + a.height / 2 - 5, left: geo.proseLeft - 18 }}
-              title={note?.note || "Note"}
-              aria-label={`Note: ${note?.note || note?.anchor || ""}`}
+              aria-label={`${note ? KIND_LABEL[note.kind] : "Note"}: ${note?.note || note?.anchor || ""}`}
               onMouseEnter={() => setHoverId(a.id)}
               onMouseLeave={() => setHoverId(null)}
+              onFocus={() => setHoverId(a.id)}
+              onBlur={() => setHoverId(null)}
               onClick={() =>
                 notes.setPopover({ open: true, isNew: false, noteId: a.id, rect: null, isEditing: false })
               }
             />
           );
         })}
+      {peek && peekNote && <NotePeek note={peekNote} style={floatAt(peek.top + peek.height + 6)} />}
       {active && activeNote && (
         <NoteCard
           note={activeNote}

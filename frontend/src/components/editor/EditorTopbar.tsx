@@ -13,6 +13,7 @@ import TodayCounter from "./TodayCounter";
 import { useUIStore } from "../../stores/uiStore";
 import EditorMoreMenu from "./EditorMoreMenu";
 import PopoverMenu from "../common/PopoverMenu";
+import { NOTES_VIEWS, type NotesView } from "../../lib/notes/view";
 import { toast } from "../../stores/toastStore";
 import styles from "./SceneEditor.module.css";
 
@@ -20,10 +21,10 @@ interface Props {
   activeNode: StructureNode;
   wordCount: number;
   autosave: AutosaveState;
-  /** The notes margin beside the prose (doc 13 P2), and how many notes the scene has. */
-  showNotes: boolean;
+  /** How the scene's notes show beside the prose (doc 15), and how many are open. */
+  notesView: NotesView;
   noteCount: number;
-  onToggleNotes: () => void;
+  onNotesView: (view: NotesView) => void;
   dialogueIsolation: boolean;
   onToggleDialogue: () => void;
   onOpenImagePicker: () => void;
@@ -196,16 +197,21 @@ export default function EditorTopbar(p: Props) {
         </span>
         <SaveStatusPill autosave={p.autosave} />
         <span className={styles.topbarRule} aria-hidden />
-        <button
-          onClick={p.onToggleNotes}
-          className={`${styles.topbarBtn} ${p.showNotes ? styles.topbarBtnActive : ""}`}
-          aria-pressed={p.showNotes}
-          aria-label="Notes in the margin"
-          title={p.showNotes ? "Hide the notes margin" : "Show notes in the margin"}
-        >
-          <StickyNote size={13} />
-          <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
-        </button>
+        <PopoverMenu
+          label="How notes show"
+          trigger={
+            <>
+              <StickyNote size={13} aria-hidden />
+              <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
+            </>
+          }
+          triggerClassName={`${styles.topbarBtn} ${p.notesView !== "off" ? styles.topbarBtnActive : ""}`}
+          items={NOTES_VIEWS.map((v) => ({
+            label: v.label,
+            checked: p.notesView === v.id,
+            onSelect: () => p.onNotesView(v.id),
+          }))}
+        />
         <button
           onClick={p.onToggleDialogue}
           className={`${styles.topbarBtn} ${p.dialogueIsolation ? styles.topbarBtnActive : ""}`}
