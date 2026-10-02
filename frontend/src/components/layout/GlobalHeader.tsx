@@ -30,7 +30,7 @@ import type {
   EditorLineWidth,
 } from "../../stores/uiStore";
 import { usePanelStore } from "../../stores/panelStore";
-import { hasScratchPadContent } from "../common/ScratchPadDrawer";
+import { scratchPadHasWords, useScratchPadStore } from "../../stores/scratchPadStore";
 import { api } from "../../api/client";
 import { MUTATION_EVENT, type MutationEventDetail } from "../../api/request";
 import type { BackupStatus } from "../../types";
@@ -93,14 +93,16 @@ export default function GlobalHeader() {
 
   const isFocused = viewState === "focus";
   const [revealed, setRevealed] = useState(false);
-  const [scratchHasContent, setScratchHasContent] = useState(false);
-
-  // Refresh scratch pad indicator when drawer closes (content may have changed)
+  // The dot says the scratch pad has words in it; the page loads once, then the drawer keeps it.
+  const scratchHasContent = useScratchPadStore(scratchPadHasWords);
+  const scratchLoaded = useScratchPadStore((s) => s.loaded);
   useEffect(() => {
-    if (!scratchPadOpen) {
-      setScratchHasContent(hasScratchPadContent(storyId ?? null));
-    }
-  }, [scratchPadOpen, storyId]);
+    if (!scratchLoaded)
+      void useScratchPadStore
+        .getState()
+        .load()
+        .catch(() => {});
+  }, [scratchLoaded]);
 
   // Backup status indicator — fetch on load and refresh every 60s
   // (keeps both the data and the relative-time text current)

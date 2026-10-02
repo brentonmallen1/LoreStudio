@@ -8,4 +8,10 @@ export const freewriteApi = {
       method: "PUT",
       body: JSON.stringify({ html }),
     }),
+  /** Plain text to the end of the page, under `day`'s heading (the scratch pad's "Send to a story"). */
+  append: (storyId: string, text: string, day: string) =>
+    request<{ html: string }>(`/stories/${storyId}/freewrite/append`, {
+      method: "POST",
+      body: JSON.stringify({ text, day }),
+    }),
 };

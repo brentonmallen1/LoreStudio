@@ -56,6 +56,7 @@ from .routers.reader_knowledge import router as reader_knowledge_router
 from .routers.scene_cast import router as scene_cast_router
 from .routers.scene_links import router as scene_links_router
 from .routers.scene_planner import router as scene_planner_router
+from .routers.scratch_pad import router as scratch_pad_router
 from .routers.search import router as search_router
 from .routers.snapshots import router as snapshots_router
 from .routers.stories import router as stories_router
@@ -195,6 +196,7 @@ app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
+app.include_router(scratch_pad_router, prefix="/api", tags=["scratch-pad"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])

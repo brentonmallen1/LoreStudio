@@ -2,69 +2,62 @@ import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { X, ClipboardCopy, PenLine } from "lucide-react";
-import { useUIStore } from "../../stores/uiStore";
+import { X, ClipboardCopy, PenLine, Send } from "lucide-react";
+import { api } from "../../api/client";
+import { freewriteApi } from "../../api/freewrite";
+import { dayLabel } from "../../lib/freewrite/day";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
+import { useScratchPadStore } from "../../stores/scratchPadStore";
 import { useStoryStore } from "../../stores/storyStore";
+import { toast } from "../../stores/toastStore";
+import { useUIStore } from "../../stores/uiStore";
+import type { Story } from "../../types";
 import styles from "./ScratchPadDrawer.module.css";
 
-function storageKey(storyId: string | null, tab: "story" | "global") {
-  if (tab === "global" || !storyId) return "ls_scratchpad_global";
-  return `ls_scratchpad_${storyId}`;
-}
+const SAVE_AFTER_MS = 800;
 
-function hasContent(html: string) {
-  return html.replace(/<[^>]*>/g, "").trim().length > 0;
-}
-
-export function hasScratchPadContent(storyId: string | null): boolean {
-  const storyKey = storyId ? `ls_scratchpad_${storyId}` : null;
-  const globalKey = "ls_scratchpad_global";
-  const storyVal = storyKey ? (localStorage.getItem(storyKey) ?? "") : "";
-  const globalVal = localStorage.getItem(globalKey) ?? "";
-  return hasContent(storyVal) || hasContent(globalVal);
-}
-
+/**
+ * The scratch pad (doc 15 N4): one page for anything, belonging to no story and kept with
+ * the account. Words that turn out to belong to a story are sent to its Freewrite page.
+ */
 export default function ScratchPadDrawer() {
   const { scratchPadOpen, closeScratchPad, toggleScratchPad } = useUIStore();
-  const { activeStory } = useStoryStore();
-  const storyId = activeStory?.id ?? null;
-  const [tab, setTab] = useState<"story" | "global">("story");
-  const [hasStoryContent, setHasStoryContent] = useState(false);
-  const [hasGlobalContent, setHasGlobalContent] = useState(false);
-  const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const currentKey = storageKey(storyId, storyId ? tab : "global");
+  const activeStory = useStoryStore((s) => s.activeStory);
+  const { loaded, load, set, save } = useScratchPadStore();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [stories, setStories] = useState<Story[] | null>(null);
+  const [sending, setSending] = useState(false);
 
   const editor = useEditor({
-    extensions: [StarterKit, Placeholder.configure({ placeholder: "Capture a thought, idea, or note…" })],
-    content: localStorage.getItem(currentKey) ?? "",
+    extensions: [
+      StarterKit,
+      Placeholder.configure({ placeholder: "Anything at all, for any story or none…" }),
+    ],
     onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      if (saveRef.current) clearTimeout(saveRef.current);
-      saveRef.current = setTimeout(() => {
-        localStorage.setItem(currentKey, html);
-        setHasStoryContent(hasContent(localStorage.getItem(storageKey(storyId, "story")) ?? ""));
-        setHasGlobalContent(hasContent(localStorage.getItem(storageKey(null, "global")) ?? ""));
-      }, 800);
+      set(editor.getHTML());
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(
+        () => void save().catch(() => toast.error("The scratch pad was not saved.")),
+        SAVE_AFTER_MS,
+      );
     },
   });
 
-  // Load correct content when tab or storyId changes
+  // The page comes from the account the first time the drawer opens.
   useEffect(() => {
-    if (!editor) return;
-    const saved = localStorage.getItem(currentKey) ?? "";
-    editor.commands.setContent(saved);
-  }, [currentKey]);
+    if (!scratchPadOpen || !editor) return;
+    const show = () => editor.commands.setContent(useScratchPadStore.getState().html, false);
+    if (loaded) show();
+    else load().then(show, () => toast.error("The scratch pad did not load."));
+  }, [scratchPadOpen, editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refresh indicators on open
+  // Closing saves straight away.
   useEffect(() => {
-    if (!scratchPadOpen) return;
-    setHasStoryContent(hasContent(localStorage.getItem(storageKey(storyId, "story")) ?? ""));
-    setHasGlobalContent(hasContent(localStorage.getItem(storageKey(null, "global")) ?? ""));
-    // Default to story tab when in a story, global otherwise
-    setTab(storyId ? "story" : "global");
-  }, [scratchPadOpen, storyId]);
+    if (scratchPadOpen || !timer.current) return;
+    clearTimeout(timer.current);
+    timer.current = null;
+    void save().catch(() => {});
+  }, [scratchPadOpen, save]);
 
   // Scratch pad shortcut (see lib/keyboard/shortcuts.ts)
   useEffect(() => {
@@ -74,63 +67,108 @@ export default function ScratchPadDrawer() {
         toggleScratchPad();
       }
       if (e.key === "Escape" && scratchPadOpen) {
-        closeScratchPad();
+        if (stories) setStories(null);
+        else closeScratchPad();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [scratchPadOpen, toggleScratchPad, closeScratchPad]);
+  }, [scratchPadOpen, toggleScratchPad, closeScratchPad, stories]);
+
+  /** The selected words, or the paragraph the cursor is in. */
+  function words(): string {
+    if (!editor) return "";
+    const { from, to, empty, $from } = editor.state.selection;
+    return (empty ? $from.parent.textContent : editor.state.doc.textBetween(from, to, "\n\n")).trim();
+  }
+
+  async function sendTo(story: Story) {
+    const text = words();
+    setStories(null);
+    if (!text) return toast.info("Put the cursor in a paragraph, or select words, to send them.");
+    setSending(true);
+    try {
+      await freewriteApi.append(story.id, text, dayLabel(new Date()));
+      toast.success(`Sent to the Freewrite page of ${story.title}.`);
+    } catch {
+      toast.error("That was not sent.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   function copyToClipboard() {
-    const text = editor?.getText() ?? "";
-    navigator.clipboard.writeText(text).catch(() => {});
+    navigator.clipboard.writeText(editor?.getText() ?? "").catch(() => {});
   }
 
   if (!scratchPadOpen) return null;
 
+  const ordered = stories
+    ? [...stories].sort((a, b) => (a.id === activeStory?.id ? -1 : b.id === activeStory?.id ? 1 : 0))
+    : [];
   return (
     <>
       <div className={styles.backdrop} onClick={closeScratchPad} />
-      <div className={styles.drawer}>
+      <div className={styles.drawer} role="dialog" aria-label="Scratch pad">
         <div className={styles.drawerHeader}>
           <div className={styles.titleRow}>
             <PenLine size={14} className={styles.titleIcon} />
             <span className={styles.title}>Scratch pad</span>
+            <span className={styles.titleNote}>yours, not any story's</span>
           </div>
           <div className={styles.headerActions}>
-            <button className={styles.iconBtn} onClick={copyToClipboard} title="Copy to clipboard">
+            <button
+              className={styles.iconBtn}
+              onClick={copyToClipboard}
+              title="Copy to clipboard"
+              aria-label="Copy to clipboard"
+            >
               <ClipboardCopy size={13} />
             </button>
-            <button className={styles.iconBtn} onClick={closeScratchPad} title="Close (Esc)">
+            <button
+              className={styles.iconBtn}
+              onClick={closeScratchPad}
+              title="Close (Esc)"
+              aria-label="Close"
+            >
               <X size={13} />
             </button>
           </div>
         </div>
-
-        {storyId && (
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${tab === "story" ? styles.tabActive : ""}`}
-              onClick={() => setTab("story")}
-            >
-              This story
-              {hasStoryContent && tab !== "story" && <span className={styles.dot} />}
-            </button>
-            <button
-              className={`${styles.tab} ${tab === "global" ? styles.tabActive : ""}`}
-              onClick={() => setTab("global")}
-            >
-              Global
-              {hasGlobalContent && tab !== "global" && <span className={styles.dot} />}
-            </button>
-          </div>
-        )}
 
         <div className={styles.editorWrap}>
           <EditorContent editor={editor} className={styles.editor} />
         </div>
 
         <div className={styles.drawerFooter}>
+          <div className={styles.sendWrap}>
+            <button
+              type="button"
+              className={styles.sendBtn}
+              disabled={sending}
+              aria-haspopup="menu"
+              aria-expanded={!!stories}
+              onClick={() =>
+                stories
+                  ? setStories(null)
+                  : api.listStories().then(setStories, () => toast.error("No stories to send to."))
+              }
+              title="Send the selected words, or the paragraph at the cursor, to a story's Freewrite page"
+            >
+              <Send size={12} aria-hidden /> Send to a story
+            </button>
+            {stories && (
+              <div className={styles.sendMenu} role="menu" aria-label="Send to">
+                <span className={styles.sendHint}>To the end of its Freewrite page</span>
+                {ordered.map((s) => (
+                  <button key={s.id} type="button" role="menuitem" onClick={() => void sendTo(s)}>
+                    {s.title}
+                    {s.id === activeStory?.id && <span className={styles.sendHere}>open</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <span className={styles.hint}>
             {formatCombo(SHORTCUTS.scratchPad.combo)} to toggle · Esc to close
           </span>
