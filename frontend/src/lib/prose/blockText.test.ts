@@ -44,7 +44,9 @@ describe("blockText", () => {
       '"My brother was the captain of the Ardent."<Calder> The words came out steady.',
       `One\ntwo${LEAF}three`,
     ]);
-    expect(doc.textBetween(quote!.from, quote!.to)).toBe('"My brother was the captain of the Ardent."<Calder>');
+    expect(doc.textBetween(quote!.from, quote!.to)).toBe(
+      '"My brother was the captain of the Ardent."<Calder>',
+    );
   });
 
   it("maps a range that ends on a leaf's neighbour", () => {
