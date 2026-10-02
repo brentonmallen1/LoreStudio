@@ -31,6 +31,7 @@ from app.models import (
     HistoricalEvent,
     Location,
     LocationTravel,
+    Note,
     Outline,
     OutlineItem,
     PanelInterview,
@@ -44,8 +45,6 @@ from app.models import (
     Setting,
     Story,
     StoryAsset,
-    StoryNote,
-    StoryTodo,
     StructureNode,
     Twist,
     WorldSystem,
@@ -84,7 +83,6 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
         content='<p>"We should go," said Mara.</p>',
         pov_character_id=hero.id,
         purpose="setup",
-        inline_notes=[{"id": "n1", "note": "keep"}],
         metadata_={"mice_opens": "q"},
     )
     scene2 = StructureNode(
@@ -132,8 +130,9 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(HistoricalEvent(id=_uid(), story_id=sid, era_id=era.id, name="The Flood"))
     db.add(Calendar(id=_uid(), story_id=sid, name="Tide calendar"))
     db.add(Setting(id=_uid(), story_id=sid, name="Old setting"))
-    db.add(StoryNote(id=_uid(), story_id=sid))
-    db.add(StoryTodo(id=_uid(), story_id=sid, node_id=scene1.id, content="fix pacing"))
+    db.add(Note(id="n1", story_id=sid, node_id=scene1.id, anchor="We should go", content="keep"))
+    db.add(Note(id=_uid(), story_id=sid, kind="todo", node_id=scene1.id, content="fix pacing"))
+    db.add(Note(id=_uid(), story_id=sid, kind="idea", content="a keeper who stayed"))
     db.add(SceneLink(id=_uid(), story_id=sid, source_node_id=scene1.id, target_node_id=scene2.id, link_type="callback"))
     db.add(DiscoveredElement(id=_uid(), story_id=sid, source_node_id=scene1.id, element_type="character", name="Gull"))
     db.add(FindingDismissal(id=_uid(), story_id=sid, fingerprint="fp-intended", node_content_hash=None))

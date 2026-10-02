@@ -14,6 +14,10 @@ from sqlalchemy.orm import Session
 from ..models.story import Story
 from ..models.structure import StructureNode
 
+#: A margin note's mark in the prose (doc 15): <span data-note-id="…" class="note-anchor">.
+#: Only the opening tag is rewritten, so a mark holding other spans keeps its nesting.
+_NOTE_OPEN = re.compile(r"<span\b[^>]*\bdata-note-id=[^>]*>")
+
 
 def _clean_mentions(html: str) -> str:
     """Strip inline mention syntax from TipTap HTML before manuscript rendering.
@@ -21,6 +25,7 @@ def _clean_mentions(html: str) -> str:
     [[Setting Name]] → Setting Name
     "dialogue"<Name> → "dialogue"  (strip speaker suffix)
     @CharacterName   → CharacterName
+    <span data-note-id=… class=note-anchor> → <span>
     """
     html = re.sub(r"\[\[([^\]]+)\]\]", r"\1", html)
     # Remove explicit dialogue speaker suffix stored as entity-encoded angle brackets:
@@ -28,6 +33,8 @@ def _clean_mentions(html: str) -> str:
     html = re.sub(r'([\u201d"])&lt;([^&]+)&gt;', r"\1", html)
     # Negative lookbehind avoids matching email addresses (foo@bar.com)
     html = re.sub(r"(?<!\w)@([A-Za-z]\S*)", r"\1", html)
+    # Margin notes mark their passage with a span; the reader gets the passage alone.
+    html = _NOTE_OPEN.sub("<span>", html)
     return html
 
 

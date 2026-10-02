@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.activity_log import ActivityLog
+from ..models.note import Note
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
@@ -126,8 +127,8 @@ def _apply_editorial_notes(
     db: Session,
 ) -> None:
     """
-    Write editorial notes back as inline notes on StructureNode.metadata_.
-    Clears previous editorial notes with matching source before writing new ones.
+    Write editorial notes as margin notes (note rows, doc 15) on the scenes they are about.
+    Replaces the previous editorial notes on each scene; the author's own stay.
     Source tag: "editorial-{report_id}"
     """
     # Group notes by section title for quick lookup
@@ -148,24 +149,23 @@ def _apply_editorial_notes(
             continue
 
         # Replace previous editorial notes on this node, keep the author's own
-        existing = [n for n in (node.inline_notes or []) if n.get("type") != "editorial"]
-
-        source_tag = f"editorial-{report_id}"
-        new_notes = [
-            {
-                "id": str(uuid.uuid4()),
-                "anchor": n.get("anchor", ""),
-                "note": n.get("note") or n.get("comment") or n.get("question") or n.get("issue", ""),
-                "position": 0,
-                "type": "editorial",
-                "category": n.get("category", "marginal"),
-                "source": source_tag,
-            }
-            for n in notes
-            if n.get("anchor")  # Only create note if we have an anchor passage
-        ]
-
-        node.inline_notes = existing + new_notes
+        db.query(Note).filter(Note.node_id == node.id, Note.source.like("editorial-%")).delete(
+            synchronize_session=False
+        )
+        for n in notes:
+            text = n.get("note") or n.get("comment") or n.get("question") or n.get("issue", "")
+            if n.get("anchor") and text:  # Only create note if we have an anchor passage
+                db.add(
+                    Note(
+                        story_id=node.story_id,
+                        kind="note",
+                        content=text,
+                        node_id=node.id,
+                        anchor=n["anchor"],
+                        category=n.get("category", "marginal"),
+                        source=f"editorial-{report_id}",
+                    )
+                )
 
     db.commit()
 
@@ -465,14 +465,10 @@ def delete_editorial_report(
     if not log:
         raise HTTPException(status_code=404, detail="Report not found")
 
-    # Remove editorial inline notes from all nodes that have this source tag
-    source_tag = f"editorial-{report_id}"
-    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    for node in nodes:
-        notes = node.inline_notes or []
-        filtered = [n for n in notes if n.get("source") != source_tag]
-        if len(filtered) != len(notes):
-            node.inline_notes = filtered
+    # Remove the margin notes this report wrote
+    db.query(Note).filter(Note.story_id == story_id, Note.source == f"editorial-{report_id}").delete(
+        synchronize_session=False
+    )
 
     db.delete(log)
     db.commit()
@@ -487,11 +483,6 @@ def clear_all_editorial_notes(
     """Remove ALL editorial inline notes from every node in the story."""
     _get_story(story_id, db, current_user)
 
-    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    for node in nodes:
-        notes = node.inline_notes or []
-        filtered = [n for n in notes if n.get("type") != "editorial"]
-        if len(filtered) != len(notes):
-            node.inline_notes = filtered
+    db.query(Note).filter(Note.story_id == story_id, Note.source.like("editorial-%")).delete(synchronize_session=False)
 
     db.commit()

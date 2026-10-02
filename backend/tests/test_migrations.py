@@ -101,10 +101,12 @@ def test_0002_copies_purpose_and_notes_out_of_metadata(tmp_path):
         )
         conn.commit()
         command.upgrade(cfg, "head")
-        row = conn.execute(text("SELECT purpose, inline_notes, metadata FROM structure_nodes WHERE id='n'")).one()
+        row = conn.execute(text("SELECT purpose, metadata FROM structure_nodes WHERE id='n'")).one()
+        # 0023: the margin note is a row now, under its own id (the prose's mark names it).
+        note = conn.execute(text("SELECT id, kind, content, node_id, story_id FROM notes")).one()
     assert row[0] == "setup"
-    assert "keep" in row[1]
-    assert "purpose" not in row[2] and "mice_opens" in row[2]
+    assert "purpose" not in row[1] and "mice_opens" in row[1]
+    assert tuple(note) == ("n1", "note", "keep", "n", "s")
 
 
 def _migration_0016():
@@ -177,7 +179,8 @@ def test_0016_moves_snowflake_text_into_the_shared_fields(tmp_path):
         command.upgrade(cfg, "head")
         stories = dict(conn.execute(text("SELECT id, logline FROM stories")).all())
         b = conn.execute(text("SELECT paragraph_summary, synopsis FROM stories WHERE id='b'")).one()
-        note = conn.execute(text("SELECT story_id, content FROM story_notes")).one()
+        # 0023 turned the old story note into an idea
+        note = conn.execute(text("SELECT story_id, content FROM notes WHERE kind = 'idea'")).one()
         c = conn.execute(text("SELECT arc_notes, arc_in_own_words, conflict FROM characters")).one()
     assert stories == {"a": "One line.", "b": "Kept."}
     assert tuple(b) == ("Five sentences.", "A page.")

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from .historical_event import Era, HistoricalEvent
     from .location import Location
     from .media import StoryAsset
-    from .note import StoryNote
+    from .note import Note
     from .outline import Outline
     from .panel_interview import PanelInterview
     from .plot_thread import PlotThread
@@ -30,7 +30,6 @@ if TYPE_CHECKING:
     from .setting import Setting
     from .snapshot import StoryBackupSettings, StorySnapshot
     from .structure import StructureNode
-    from .todo import StoryTodo
     from .twist import Twist
     from .user import User
     from .world_system import WorldSystem
@@ -112,7 +111,7 @@ class Story(Base):
         foreign_keys="Character.story_id",
     )
     settings: Mapped[list["Setting"]] = relationship("Setting", back_populates="story", cascade="all, delete-orphan")
-    notes: Mapped[list["StoryNote"]] = relationship("StoryNote", back_populates="story", cascade="all, delete-orphan")
+    notes: Mapped[list["Note"]] = relationship("Note", back_populates="story", cascade="all, delete-orphan")
     panel_interviews: Mapped[list["PanelInterview"]] = relationship(
         "PanelInterview", back_populates="story", cascade="all, delete-orphan"
     )
@@ -136,7 +135,6 @@ class Story(Base):
     )
     calendars: Mapped[list["Calendar"]] = relationship("Calendar", back_populates="story", cascade="all, delete-orphan")
     twists: Mapped[list["Twist"]] = relationship("Twist", back_populates="story", cascade="all, delete-orphan")
-    todos: Mapped[list["StoryTodo"]] = relationship("StoryTodo", back_populates="story", cascade="all, delete-orphan")
     outlines: Mapped[list["Outline"]] = relationship(
         "Outline",
         back_populates="story",

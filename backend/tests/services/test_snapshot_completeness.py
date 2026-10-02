@@ -55,7 +55,9 @@ def test_snapshot_restore_roundtrip(db_session, test_user):
     story.title = "Changed"
     scene = next(n for n in story.structure_nodes if n.title == "Lamp")
     scene.purpose = "changed"
-    scene.inline_notes = []
+    from app.models import Note
+
+    db_session.query(Note).filter(Note.node_id == scene.id).delete()
     from app.models import Character
 
     db_session.add(Character(story_id=sid, name="Extra"))
@@ -69,7 +71,8 @@ def test_snapshot_restore_roundtrip(db_session, test_user):
     after = _row_counts(db_session, sid)
     assert after == before, {k: (before[k], after[k]) for k in before if before[k] != after[k]}
     scene = next(n for n in restored.structure_nodes if n.title == "Lamp")
-    assert scene.inline_notes == [{"id": "n1", "note": "keep"}]
+    note = db_session.get(Note, "n1")
+    assert (note.node_id, note.content, note.anchor) == (scene.id, "keep", "We should go")
     assert scene.purpose == "setup"
     assert restored.pov_character_id is not None
 

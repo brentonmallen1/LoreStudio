@@ -81,6 +81,7 @@ export interface StoryStructureTemplate {
   flat: boolean;
 }
 
+/** A margin note as the margin draws it: a note row (types/notes) tied to a passage. */
 export interface InlineNote {
   id: string;
   anchor: string;
@@ -91,7 +92,7 @@ export interface InlineNote {
   source?: string; // e.g. "editorial-{report_id}"
 }
 
-/** Free-form per-segment keys. purpose and inline_notes are columns on StructureNode now. */
+/** Free-form per-segment keys. purpose is a column on StructureNode now; margin notes are notes. */
 export type SegmentMeta = Record<string, unknown>;
 
 export interface StructureNode {
@@ -108,7 +109,6 @@ export interface StructureNode {
   /** "planned": a scene in the plan with no prose yet; the first words make it a draft. */
   status: "planned" | "draft" | "revised" | "final";
   purpose: string;
-  inline_notes: InlineNote[];
   metadata_: SegmentMeta;
   entry_state: string;
   exit_state: string;
@@ -577,22 +577,6 @@ export interface ReaderKnowledgeEvent {
   // Denormalized
   node_title?: string | null;
   twist_name?: string | null;
-}
-
-// ── Todos ──
-
-export interface StoryTodo {
-  id: string;
-  story_id: string;
-  node_id: string | null;
-  content: string;
-  done: boolean;
-  position: number;
-  doc_from: number | null;
-  doc_to: number | null;
-  created_at: string;
-  updated_at: string;
-  node_title: string | null;
 }
 
 // ── Outline ──

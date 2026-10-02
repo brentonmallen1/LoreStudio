@@ -1,3 +1,5 @@
+import type { Note } from "./notes";
+
 /** Planning types (refactor doc 10): the brain dump and open questions. */
 
 export type FiledKind =
@@ -11,23 +13,8 @@ export interface IdeaFragment {
   filed: { kind: FiledKind; ref_id: string | null; label: string } | null;
 }
 
-/** Something not decided yet. Shares the TODO table (kind "question"); done means answered. */
-export interface Question {
-  id: string;
-  story_id: string;
-  kind: "question";
-  content: string;
-  answer: string;
-  done: boolean;
-  about_type: "character" | "location" | null;
-  about_id: string | null;
-  /** A question about a scene. */
-  node_id: string | null;
-  node_title: string | null;
-  position: number;
-  created_at: string;
-  updated_at: string;
-}
+/** Something not decided yet: a note of kind "question" (doc 15); done means answered. */
+export type Question = Note & { kind: "question" };
 
 export type QuestionSubject =
   { about_type: "character" | "location"; about_id: string } | { node_id: string } | Record<string, never>;

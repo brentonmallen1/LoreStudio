@@ -13,11 +13,11 @@ if TYPE_CHECKING:
     from .dialogue import DialogueBlock
     from .discovered_element import DiscoveredElement
     from .location import SceneSetting
+    from .note import Note
     from .plot_thread import PlotThreadAppearance
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
     from .story import Story
-    from .todo import StoryTodo
     from .twist import Twist
 
 
@@ -62,10 +62,9 @@ class StructureNode(Base):
     pov_character_id: Mapped[str | None] = mapped_column(
         String, ForeignKey("characters.id"), nullable=True, default=None
     )
-    # Author intent for the segment ("why does this exist?") and anchored inline notes.
-    # Both were keys inside metadata_ until migration 0002; they are first-class now.
+    # Author intent for the segment ("why does this exist?"): a key inside metadata_ until
+    # migration 0002. Its margin notes were a JSON column until 0023; they are rows in notes.
     purpose: Mapped[str] = mapped_column(Text, default="", server_default="")
-    inline_notes: Mapped[list | None] = mapped_column(JSON, nullable=True, default=list)
     metadata_: Mapped[dict] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
@@ -107,9 +106,7 @@ class StructureNode(Base):
     reader_knowledge_events: Mapped[list["ReaderKnowledgeEvent"]] = relationship(
         "ReaderKnowledgeEvent", foreign_keys="ReaderKnowledgeEvent.node_id", back_populates="node"
     )
-    todos: Mapped[list["StoryTodo"]] = relationship(
-        "StoryTodo", foreign_keys="StoryTodo.node_id", back_populates="node"
-    )
+    notes: Mapped[list["Note"]] = relationship("Note", foreign_keys="Note.node_id", back_populates="node")
     discovered_elements: Mapped[list["DiscoveredElement"]] = relationship(
         "DiscoveredElement", back_populates="source_node"
     )

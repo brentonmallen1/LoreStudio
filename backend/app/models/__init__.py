@@ -20,7 +20,7 @@ from .interview import CharacterInterview
 from .location import Location, ScenePresence, SceneSetting
 from .location_travel import LocationTravel
 from .media import AssetAttachment, StoryAsset
-from .note import StoryNote
+from .note import Note
 from .outline import Outline, OutlineItem
 from .panel_interview import PanelInterview
 from .plot_thread import PlotThread, PlotThreadAppearance
@@ -31,7 +31,6 @@ from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from .story import Story
 from .structure import StoryStructureTemplate, StructureNode
-from .todo import StoryTodo
 from .twist import Twist
 from .user import User
 from .world_system import WorldSystem
@@ -45,7 +44,7 @@ __all__ = [
     "CharacterRelationship",
     "Setting",
     "CharacterInterview",
-    "StoryNote",
+    "Note",
     "StoryAsset",
     "AssetAttachment",
     "Diagram",
@@ -86,5 +85,4 @@ __all__ = [
     "DiscoveredElement",
     "Outline",
     "ReaderKnowledgeEvent",
-    "StoryTodo",
 ]

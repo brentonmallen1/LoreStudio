@@ -21,7 +21,6 @@ import {
 import { MentionDropdownExtension, FORCE_MENTION_KEY, setMentionHighlight } from "../story/MentionDropdown";
 import { DialogueExtension } from "../story/DialogueExtension";
 import { SlashCommandExtension } from "../story/SlashCommandExtension";
-import { TodoExtension } from "../story/TodoExtension";
 import { SearchAndReplaceExtension } from "../story/SearchAndReplaceExtension";
 import ImageInsertModal from "../story/ImageInsertModal";
 import WritingGuidesModal, { type WritingGuideTab } from "../help/WritingGuidesModal";
@@ -103,7 +102,6 @@ export default function SceneEditor() {
       MentionDropdownExtension,
       SlashCommandExtension,
       DialogueExtension,
-      TodoExtension,
       SearchAndReplaceExtension,
     ],
     content: activeNode?.content ?? "",

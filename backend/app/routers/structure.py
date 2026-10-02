@@ -80,12 +80,12 @@ def update_node(
         )
     if "metadata_" in data:
         incoming = dict(data["metadata_"])
-        # purpose and inline_notes are columns now; hoist them if an older client sends them here.
-        for key in ("purpose", "inline_notes"):
-            if key in incoming and key not in data:
-                data[key] = incoming.pop(key)
-            else:
-                incoming.pop(key, None)
+        # purpose is a column now; hoist it if an older client sends it here. Margin notes
+        # are note rows (doc 15), so an old client's inline_notes are dropped.
+        if "purpose" in incoming and "purpose" not in data:
+            data["purpose"] = incoming.pop("purpose")
+        incoming.pop("purpose", None)
+        incoming.pop("inline_notes", None)
         # Merge, never replace: different UI surfaces write different keys of the same JSON column.
         merged = {k: v for k, v in (node.metadata_ or {}).items() if k not in ("purpose", "inline_notes")}
         data["metadata_"] = {**merged, **incoming}

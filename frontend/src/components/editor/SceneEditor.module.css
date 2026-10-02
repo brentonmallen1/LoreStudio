@@ -1021,54 +1021,6 @@
   display: none !important;
 }
 
-/* ── TODO gutter marker (right-facing triangle) ── */
-.editorWrap :global(.todo-gutter-marker) {
-  position: absolute;
-  left: -2.5rem;
-  top: 0.3em;
-  width: 0;
-  height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 8px solid var(--color-todo);
-  cursor: pointer;
-  opacity: 0.75;
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  transition: opacity var(--transition);
-}
-
-.editorWrap :global(.todo-gutter-marker:hover) {
-  opacity: 1;
-}
-
-/* Tooltip that appears on hover */
-.editorWrap :global(.todo-gutter-tooltip) {
-  display: none;
-  position: absolute;
-  left: 1.2rem;
-  top: -0.6rem;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem;
-  font-family: var(--font-ui);
-  color: var(--color-text);
-  white-space: pre-wrap;
-  max-width: 220px;
-  min-width: 100px;
-  z-index: 200;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  pointer-events: none;
-  line-height: 1.4;
-}
-
-.editorWrap :global(.todo-gutter-marker:hover .todo-gutter-tooltip) {
-  display: block;
-}
-
 /* ── Inline notes list (overview panel) ── */
 .inlineNoteList {
   display: flex;

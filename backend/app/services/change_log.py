@@ -32,6 +32,7 @@ from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
+from ..models.note import Note
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
@@ -39,7 +40,6 @@ from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.world_system import WorldSystem
 
@@ -52,7 +52,9 @@ ENTITY_MODELS: dict[str, type] = {
     "outline_item": OutlineItem,
     "story": Story,
     "location": Location,
-    "todo": StoryTodo,
+    "note": Note,
+    # Changes recorded before migration 0023 named the row a todo.
+    "todo": Note,
     "culture": Culture,
     "world_system": WorldSystem,
     "era": Era,
@@ -85,7 +87,8 @@ BUNDLE_MODELS: dict[str, type] = {
     "character_interviews": CharacterInterview,
     "outlines": Outline,
     "outline_items": OutlineItem,
-    "story_todos": StoryTodo,
+    "notes": Note,
+    "story_todos": Note,
     "cultures": Culture,
     "world_systems": WorldSystem,
     "calendars": Calendar,

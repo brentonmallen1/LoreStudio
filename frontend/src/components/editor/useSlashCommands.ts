@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { api } from "../../api/client";
-import type { Story, StoryTodo, StructureNode } from "../../types";
-import { useUIStore } from "../../stores/uiStore";
+import { notesApi } from "../../api/notes";
+import type { Story, StructureNode } from "../../types";
 import { setSlashCallbacks, setSlashIsOpen, SLASH_COMMANDS } from "../story/SlashCommandExtension";
-import { setTodoGutterItems, setTodoGutterCallbacks, FORCE_TODO_REBUILD } from "../story/TodoExtension";
 
 interface Args {
   editor: Editor | null;
@@ -15,8 +13,8 @@ interface Args {
 
 /**
  * The `/` command picker and what its two commands drive: the dialogue speaker
- * picker (`/dialogue`) and the inline TODO input (`/todo`), plus the TODO
- * gutter markers for the scene.
+ * picker (`/dialogue`) and the inline to-do input (`/todo`), which adds a to-do
+ * on the scene (doc 15).
  */
 export function useSlashCommands({ editor, activeNode, activeStory, openDialoguePicker }: Args) {
   const [open, setOpen] = useState(false);
@@ -25,47 +23,9 @@ export function useSlashCommands({ editor, activeNode, activeStory, openDialogue
   const [range, setRange] = useState<{ from: number; to: number } | null>(null);
   const [selIdx, setSelIdx] = useState(0);
 
-  const [todosState, setTodosState] = useState<{ nodeId: string | null; todos: StoryTodo[] }>({
-    nodeId: null,
-    todos: [],
-  });
-  const sceneTodos = useMemo(
-    () => (todosState.nodeId === (activeNode?.id ?? null) ? todosState.todos : []),
-    [todosState, activeNode?.id],
-  );
   const [todoInputOpen, setTodoInputOpen] = useState(false);
   const [todoInputPos, setTodoInputPos] = useState({ bottom: 0, left: 0 });
   const [todoInputText, setTodoInputText] = useState("");
-  const [todoInputDocFrom, setTodoInputDocFrom] = useState<number | null>(null);
-
-  // Load scene todos for gutter markers
-  useEffect(() => {
-    if (!activeNode) return;
-    const nodeId = activeNode.id;
-    api
-      .getTodosForScene(nodeId)
-      .then((todos) => setTodosState({ nodeId, todos }))
-      .catch(() => {});
-  }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Sync gutter items whenever todos change and ask the editor to rebuild decorations
-  useEffect(() => {
-    setTodoGutterItems(
-      sceneTodos
-        .filter((t) => t.doc_from != null && !t.done)
-        .map((t) => ({ id: t.id, content: t.content, done: t.done, doc_from: t.doc_from! })),
-    );
-    if (editor) {
-      const { state, dispatch } = editor.view;
-      dispatch(state.tr.setMeta(FORCE_TODO_REBUILD, true));
-    }
-  }, [sceneTodos, editor]);
-
-  useEffect(() => {
-    setTodoGutterCallbacks({
-      onMarkerClick: () => useUIStore.getState().setViewMode("todos"),
-    });
-  }, []);
 
   function close() {
     setOpen(false);
@@ -93,7 +53,6 @@ export function useSlashCommands({ editor, activeNode, activeStory, openDialogue
     }
     if (name === "todo") {
       deleteSlashText();
-      setTodoInputDocFrom(slashFrom);
       setTodoInputText("");
       setTodoInputPos({ bottom: coords.bottom, left: coords.left });
       setTodoInputOpen(true);
@@ -127,18 +86,9 @@ export function useSlashCommands({ editor, activeNode, activeStory, openDialogue
     setTodoInputOpen(false);
     if (!content || !activeNode || !activeStory) return;
     try {
-      const newTodo = await api.createTodo(activeStory.id, {
-        content,
-        node_id: activeNode.id,
-        doc_from: todoInputDocFrom,
-        doc_to: todoInputDocFrom,
-      });
-      setTodosState((prev) => ({
-        nodeId: activeNode.id,
-        todos: [...(prev.nodeId === activeNode.id ? prev.todos : []), newTodo],
-      }));
+      await notesApi.create(activeStory.id, { content, kind: "todo", node_id: activeNode.id });
     } catch {
-      // the todo will still be visible in list view if it was created
+      // the to-do will still be visible in the list if it was created
     }
   }
 

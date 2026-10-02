@@ -28,7 +28,7 @@ from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
 from ..models.media import AssetAttachment, StoryAsset
-from ..models.note import StoryNote
+from ..models.note import Note
 from ..models.outline import Outline, OutlineItem
 from ..models.panel_interview import PanelInterview
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
@@ -39,9 +39,9 @@ from ..models.setting import Setting
 from ..models.snapshot import StoryBackupSettings, StorySnapshot
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.world_system import WorldSystem
+from .snapshot_legacy import legacy_notes
 
 FORMAT_VERSION = 1
 APP_VERSION = "1.0.0"
@@ -137,7 +137,7 @@ SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
     "historical_events": "historical_events",
     "calendars": "calendars",
     "settings": "settings",
-    "story_notes": "notes",
+    "notes": "notes",
     "compendium_entries": "compendium_entries",
     "outlines": "outlines",
     "diagrams": "diagrams",
@@ -146,7 +146,6 @@ SNAPSHOT_KEYS_BY_TABLE: dict[str, str] = {
     "activity_logs": "activity_logs",
     "story_assets": "media_assets",
     "scene_links": "scene_links",
-    "story_todos": "todos",
     "reader_knowledge_events": "reader_knowledge_events",
     "discovered_elements": "discovered_elements",
     "finding_dismissals": "finding_dismissals",
@@ -205,11 +204,11 @@ def _dict_to_model(model_class, data: dict):
         # Snapshots taken before migration 0002 kept purpose/inline_notes inside metadata_.
         meta = dict(data["metadata_"])
         data = {**data, "metadata_": meta}
-        for key in ("purpose", "inline_notes"):
-            if key in meta and not data.get(key):
-                data[key] = meta.pop(key)
-            else:
-                meta.pop(key, None)
+        if "purpose" in meta and not data.get("purpose"):
+            data["purpose"] = meta.pop("purpose")
+        meta.pop("purpose", None)
+        # Margin notes are rows now (legacy_notes reads them from the snapshot).
+        meta.pop("inline_notes", None)
     mapper = sa_inspect(model_class).mapper
     processed = {}
     col_types = {ca.key: ca.columns[0].type for ca in mapper.column_attrs}
@@ -385,8 +384,10 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     # Settings (old-style named settings, distinct from StoryBackupSettings)
     data["settings"] = [_model_to_dict(s) for s in db.query(Setting).filter(Setting.story_id == story_id).all()]
 
-    # Notes
-    data["notes"] = [_model_to_dict(n) for n in db.query(StoryNote).filter(StoryNote.story_id == story_id).all()]
+    # Notes of every kind (doc 15). "todos" stays, empty, so a delta against a snapshot
+    # taken before migration 0023 removes the old to-do rows rather than keeping them.
+    data["notes"] = [_model_to_dict(n) for n in db.query(Note).filter(Note.story_id == story_id).all()]
+    data["todos"] = []
 
     # Compendium (metadata only — no binary assets inline)
     data["compendium_entries"] = [
@@ -409,7 +410,6 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
     data["scene_links"] = [
         _model_to_dict(link) for link in db.query(SceneLink).filter(SceneLink.story_id == story_id).all()
     ]
-    data["todos"] = [_model_to_dict(t) for t in db.query(StoryTodo).filter(StoryTodo.story_id == story_id).all()]
     data["reader_knowledge_events"] = [
         _model_to_dict(e)
         for e in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id).all()
@@ -885,7 +885,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
     _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
     _bulk_delete(CompendiumAttachment, CompendiumAttachment.entry_id, entry_ids)
-    for model in (SceneLink, StoryTodo, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal, ProposalDecline):
+    for model in (SceneLink, Note, ReaderKnowledgeEvent, DiscoveredElement, FindingDismissal, ProposalDecline):
         _delete_by_story(model)
 
     if _has("interviews"):
@@ -915,7 +915,6 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _delete_by_story(CompendiumEntry)
     _delete_by_story(Outline)
     _delete_by_story(Setting)
-    _delete_by_story(StoryNote)
 
     if _has("media_assets"):
         asset_ids = [row[0] for row in db.query(StoryAsset.id).filter(StoryAsset.story_id == story_id).all()]
@@ -980,13 +979,12 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
         _insert_all(AssetAttachment, state.get("asset_attachments", []))
     _insert_all(CompendiumEntry, state.get("compendium_entries", []))
     _insert_all(Setting, state.get("settings", []))
-    _insert_all(StoryNote, state.get("notes", []))
     _insert_all(Diagram, state.get("diagrams", []))
     _insert_all(CharacterInterview, state.get("interviews", []))
     _insert_all(PanelInterview, state.get("panel_interviews", []))
     _insert_all(ActivityLog, state.get("activity_logs", []))
     _insert_all(SceneLink, state.get("scene_links", []))
-    _insert_all(StoryTodo, state.get("todos", []))
+    _insert_all(Note, legacy_notes(state))
     _insert_all(ReaderKnowledgeEvent, state.get("reader_knowledge_events", []))
     _insert_all(DiscoveredElement, state.get("discovered_elements", []))
     _insert_all(FindingDismissal, state.get("finding_dismissals", []))

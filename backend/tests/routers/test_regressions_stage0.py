@@ -177,21 +177,23 @@ def test_delete_single_entities_with_foreign_keys_on(client, db_session, test_us
     assert client.get(f"/api/stories/{sid}").status_code == 200
 
 
-# purpose / inline_notes columns (Stage 1) --------------------------------------
-def test_purpose_and_inline_notes_are_columns_and_legacy_metadata_is_hoisted(client):
+# purpose column (Stage 1); margin notes are note rows since doc 15 ---------------
+def test_purpose_is_a_column_and_legacy_metadata_is_hoisted(client):
     sid = _make_story(client)
     nid = _make_scene(client, sid)["id"]
-    notes = [{"id": "n1", "anchor": "Hello", "note": "keep me", "position": 0}]
-    # new clients write the columns
-    r = client.patch(f"/api/structure/{nid}", json={"purpose": "tension", "inline_notes": notes})
+    r = client.patch(f"/api/structure/{nid}", json={"purpose": "tension"})
     assert r.status_code == 200, r.text
-    body = r.json()
-    assert body["purpose"] == "tension" and body["inline_notes"] == notes
-    # an older client sending them inside metadata_ still lands in the columns, not the JSON
-    r = client.patch(f"/api/structure/{nid}", json={"metadata_": {"purpose": "release", "mice_opens": "x"}})
+    assert r.json()["purpose"] == "tension"
+    # an older client sending them inside metadata_ lands in the column, not the JSON;
+    # its inline_notes are dropped (a margin note is a row in notes now)
+    notes = [{"id": "n1", "anchor": "Hello", "note": "keep me", "position": 0}]
+    r = client.patch(
+        f"/api/structure/{nid}",
+        json={"metadata_": {"purpose": "release", "inline_notes": notes, "mice_opens": "x"}},
+    )
     body = r.json()
     assert body["purpose"] == "release"
-    assert body["inline_notes"] == notes
+    assert "inline_notes" not in body
     assert body["metadata_"] == {"mice_opens": "x"}
 
 

@@ -16,6 +16,7 @@ from ..models.dialogue import DialogueBlock
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.location import Location, SceneSetting
 from ..models.location_travel import LocationTravel
+from ..models.note import Note
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.reader_knowledge import ReaderKnowledgeEvent
@@ -23,7 +24,6 @@ from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
-from ..models.todo import StoryTodo
 from ..models.twist import Twist
 from ..models.user import User
 from ..models.world_system import WorldSystem
@@ -864,14 +864,6 @@ def seed_demo_story():  # noqa: PLR0915
             exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
             key_events="Barometer reading logged; lamp room climb; sight of the unexpected boat in the storm.",
             purpose="Open in Eleanor's element — she is competent and alone by choice. The barometer and the log establish her observational nature and her father's lingering presence. The boat at the end pivots the scene: something is coming that she can't control.",
-            inline_notes=[
-                {
-                    "id": "demo-note-1",
-                    "anchor": "going very still, as if drawing a breath",
-                    "note": "This stillness mirrors Eleanor's internal state — she is also holding her breath, waiting. Consider echoing this image in the Act 3 climax when she finally has to act.",
-                    "position": 180,
-                }
-            ],
             content=(
                 "<p>The barometer had been falling since noon.</p>"
                 "<p>Eleanor noted it in the log — <em>1012, 1008, 1003</em> — each reading a quiet sentence in a language she'd learned to read before she could properly read words. Her father had taught her that. <em>The glass doesn't lie,</em> he'd said. <em>People lie. Weather lies sometimes too, but the glass is always honest about what it knows.</em></p>"
@@ -883,6 +875,16 @@ def seed_demo_story():  # noqa: PLR0915
         )
         db.add(scene1)
         db.flush()
+        db.add(
+            Note(
+                id="demo-note-1",
+                story_id=story.id,
+                kind="note",
+                node_id=scene1.id,
+                anchor="going very still, as if drawing a breath",
+                content="This stillness mirrors Eleanor's internal state — she is also holding her breath, waiting. Consider echoing this image in the Act 3 climax when she finally has to act.",
+            )
+        )
 
         # Link plot threads to scene1
         db.add(
@@ -2320,8 +2322,9 @@ def seed_demo_story():  # noqa: PLR0915
 
         # ── Demo TODOs ──────────────────────────────────────────────────────
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=scene1.id,
                 content="Expand Eleanor's sensory description of the lighthouse at night — smell of salt, creak of the lantern room",
                 done=False,
@@ -2329,8 +2332,9 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=scene1.id,
                 content="Verify the 1953 storm date against the timeline in the logbook references",
                 done=False,
@@ -2338,8 +2342,9 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=scene2.id,
                 content="Strengthen Marcus's dialogue — he's too forthcoming for the mystery tone, soften his reveals",
                 done=False,
@@ -2347,8 +2352,9 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=scene3.id,
                 content="Plant a second foreshadowing detail about the Ardent wreck — currently only one visual cue",
                 done=False,
@@ -2356,8 +2362,9 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=None,
                 content="Decide: does Eleanor know what happened to the Ardent at the start, or does she piece it together? Affects Act I tone",
                 done=False,
@@ -2365,8 +2372,9 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
         db.add(
-            StoryTodo(
+            Note(
                 story_id=story.id,
+                kind="todo",
                 node_id=None,
                 content="Research fog signal patterns for pre-1960 lighthouses — need authentic detail for Ch1",
                 done=True,
@@ -2410,7 +2418,7 @@ def seed_demo_story():  # noqa: PLR0915
             ]
         ):
             db.add(
-                StoryTodo(
+                Note(
                     story_id=story.id,
                     kind="question",
                     content=content,
@@ -2826,14 +2834,6 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             exit_state="An anomalous burst of data has appeared and disappeared. MIRA has flagged it as stellar interference. Yuki is not satisfied.",
             key_events="Routine relay traffic; the anomalous burst; MIRA's dismissal; Yuki's uncertainty.",
             purpose="Open in Yuki's element — she is competent and alone by choice. The array establishes her observational nature and the station's purpose. The burst at the end pivots the scene: something doesn't fit the pattern.",
-            inline_notes=[
-                {
-                    "id": "scifi-note-1",
-                    "anchor": "not quite silence",
-                    "note": "The station is never truly silent — systems hum, the array ticks, MIRA breathes in servo cycles. Yuki has learned to hear the absence of noise within noise. This detail matters when the signal arrives: she hears it before MIRA classifies it.",
-                    "position": 150,
-                }
-            ],
             content=(
                 "<p>The array never slept.</p>"
                 "<p>@Yuki Tanaka had learned this in her first week at [[Waypoint 7 Relay Station]] — that the silence she'd come here for wasn't silence at all, but a specific frequency of noise: the tick of thermal expansion in the relay lattice, the low harmonic of the station's rotation, MIRA's server fans cycling through their maintenance rhythm. After five years she had stopped noticing it the way she'd stopped noticing her own heartbeat. It was just <span data-note-id=\"scifi-note-1\" class=\"note-anchor\">not quite silence</span>, and not quite alone.</p>"
@@ -2854,6 +2854,16 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         )
         db.add(scene1)
         db.flush()
+        db.add(
+            Note(
+                id="scifi-note-1",
+                story_id=story.id,
+                kind="note",
+                node_id=scene1.id,
+                anchor="not quite silence",
+                content="The station is never truly silent — systems hum, the array ticks, MIRA breathes in servo cycles. Yuki has learned to hear the absence of noise within noise. This detail matters when the signal arrives: she hears it before MIRA classifies it.",
+            )
+        )
 
         db.add(
             PlotThreadAppearance(

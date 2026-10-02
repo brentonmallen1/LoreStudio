@@ -34,7 +34,7 @@ export default function QuestionsList({ storyId, subject, compact = false, place
   useEffect(() => {
     void load();
   }, [load]);
-  useReloadOnUndo(["todo"], load);
+  useReloadOnUndo(["note"], load);
 
   const mine = questions.filter((q) => matches(q, subject));
   const open = mine.filter((q) => !q.done);

@@ -1,17 +1,15 @@
 import type { Question, QuestionSubject } from "../types/planning";
+import { notesApi } from "./notes";
 import { request } from "./request";
 
-/** Open questions: TODO rows of kind "question" (refactor doc 10 P3). */
+/** Open questions: notes of kind "question" (doc 15). */
 export const questionsApi = {
-  list: (storyId: string) => request<Question[]>(`/stories/${storyId}/todos?kind=question`),
+  list: (storyId: string) => notesApi.list(storyId, { kind: "question" }) as Promise<Question[]>,
   create: (storyId: string, content: string, subject: QuestionSubject = {}) =>
-    request<Question>(`/stories/${storyId}/todos`, {
-      method: "POST",
-      body: JSON.stringify({ content, kind: "question", ...subject }),
-    }),
+    notesApi.create(storyId, { content, kind: "question", ...subject }) as Promise<Question>,
   update: (id: string, data: Partial<Pick<Question, "content" | "answer" | "done">>) =>
-    request<Question>(`/todos/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-  remove: (id: string) => request<void>(`/todos/${id}`, { method: "DELETE" }),
+    notesApi.update(id, data) as Promise<Question>,
+  remove: (id: string) => notesApi.remove(id),
 };
 
 export interface SuggestedName {

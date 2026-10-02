@@ -44,7 +44,6 @@ class StructureNodeUpdate(BaseModel):
     beat_id: str | None = None
     pov_character_id: str | None = None
     purpose: str | None = None
-    inline_notes: list[dict] | None = None
     metadata_: dict | None = None
     # Optimistic concurrency: the updated_at the client last saw. A mismatch is a 409.
     expected_updated_at: datetime | None = None
@@ -72,7 +71,6 @@ class StructureNodeOut(BaseModel):
     beat_id: str | None = None
     pov_character_id: str | None = None
     purpose: str = ""
-    inline_notes: list[dict] | None = []
     metadata_: dict = {}
     created_at: datetime
     updated_at: datetime

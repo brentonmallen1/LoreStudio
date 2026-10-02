@@ -13,11 +13,12 @@ import {
   X,
   Check,
 } from "lucide-react";
-import { api } from "../../api/client";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
-import type { StoryTodo, StructureNode } from "../../types";
+import type { StructureNode } from "../../types";
+import type { Note as StoryTodo } from "../../types/notes";
+import { notesApi } from "../../api/notes";
 import styles from "./TodoListView.module.css";
 
 // ---------------------------------------------------------------------------
@@ -142,7 +143,7 @@ function TodoItem({ todo, showScene, onToggle, onEdit, onDelete, onNavigate }: T
         <span
           className={styles.todoContent}
           onClick={() => !todo.done && onNavigate(todo)}
-          title={todo.done ? undefined : todo.doc_from != null ? "Jump to scene" : todo.content}
+          title={todo.done ? undefined : todo.node_id ? "Jump to scene" : todo.content}
         >
           {todo.content}
         </span>
@@ -338,8 +339,7 @@ export default function TodoListView() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.listTodos(storyId);
-      setTodos(data);
+      setTodos(await notesApi.list(storyId, { kind: "todo" }));
     } catch {
       setError("Failed to load todos");
     } finally {
@@ -350,7 +350,7 @@ export default function TodoListView() {
   useEffect(() => {
     const onUndo = (e: Event) => {
       const d = (e as CustomEvent).detail as { entity_type?: string } | undefined;
-      if (!d || d.entity_type === "todo") loadTodos();
+      if (!d || d.entity_type === "note") loadTodos();
     };
     window.addEventListener(UNDO_APPLIED_EVENT, onUndo);
     return () => window.removeEventListener(UNDO_APPLIED_EVENT, onUndo);
@@ -363,7 +363,7 @@ export default function TodoListView() {
   const handleToggle = useCallback(async (id: string, done: boolean) => {
     setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done } : t)));
     try {
-      await api.updateTodo(id, { done });
+      await notesApi.update(id, { done });
     } catch {
       setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !done } : t)));
     }
@@ -373,7 +373,7 @@ export default function TodoListView() {
     async (id: string, content: string) => {
       setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, content } : t)));
       try {
-        await api.updateTodo(id, { content });
+        await notesApi.update(id, { content });
       } catch {
         loadTodos();
       }
@@ -385,7 +385,7 @@ export default function TodoListView() {
     async (id: string) => {
       setTodos((prev) => prev.filter((t) => t.id !== id));
       try {
-        await api.deleteTodo(id);
+        await notesApi.remove(id);
       } catch {
         loadTodos();
       }
@@ -409,7 +409,7 @@ export default function TodoListView() {
     async (content: string, nodeId?: string | null) => {
       if (!storyId) return;
       try {
-        const newTodo = await api.createTodo(storyId, { content, node_id: nodeId ?? null });
+        const newTodo = await notesApi.create(storyId, { content, kind: "todo", node_id: nodeId ?? null });
         setTodos((prev) => [...prev, newTodo]);
         setShowAddForm(false);
       } catch {
@@ -423,7 +423,7 @@ export default function TodoListView() {
     if (!storyId) return;
     setDeletingDone(true);
     try {
-      await api.deleteDoneTodos(storyId);
+      await notesApi.clearDone(storyId);
       setTodos((prev) => prev.filter((t) => !t.done));
     } catch {
       // ignore

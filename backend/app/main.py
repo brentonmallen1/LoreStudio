@@ -42,6 +42,7 @@ from .routers.llm_settings import router as llm_settings_router
 from .routers.location_travel import router as location_travel_router
 from .routers.locations import router as locations_router
 from .routers.media import router as media_router
+from .routers.notes import router as notes_router
 from .routers.numbers import router as numbers_router
 from .routers.ollama import router as ollama_router
 from .routers.outlines import router as outlines_router
@@ -60,7 +61,6 @@ from .routers.stories import router as stories_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
 from .routers.templates import router as templates_router
-from .routers.todos import router as todos_router
 from .routers.twists import router as twists_router
 from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
@@ -192,7 +192,7 @@ app.include_router(worldbuilding_ai_router, prefix="/api", tags=["worldbuilding-
 app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
-app.include_router(todos_router, prefix="/api", tags=["todos"])
+app.include_router(notes_router, prefix="/api", tags=["notes"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])

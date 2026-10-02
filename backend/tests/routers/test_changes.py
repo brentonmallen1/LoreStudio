@@ -182,16 +182,17 @@ def test_story_relationship_todo_location_undo(client):
     client.delete(f"/api/characters/relationships/{rel['id']}", headers=H1)
     assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"].startswith("Delete relationship")
     assert len(client.get(f"/api/characters/{a['id']}/relationships").json()) == 1
-    # todos: create, edit, reorder
-    t1 = client.post(f"/api/stories/{sid}/todos", json={"content": "one"}, headers=H1).json()
-    t2 = client.post(f"/api/stories/{sid}/todos", json={"content": "two"}, headers=H1).json()
-    client.post(f"/api/stories/{sid}/todos/reorder", json={"todo_ids": [t2["id"], t1["id"]]}, headers=H1)
-    assert client.get(f"/api/todos/{t1['id']}").json()["position"] == 1
-    assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"] == "Reorder TODOs"
-    assert client.get(f"/api/todos/{t1['id']}").json()["position"] == 0
-    client.patch(f"/api/todos/{t1['id']}", json={"done": True}, headers=H1)
+    # notes: create, edit, reorder
+    todo = {"kind": "todo"}
+    t1 = client.post(f"/api/stories/{sid}/notes", json={"content": "one", **todo}, headers=H1).json()
+    t2 = client.post(f"/api/stories/{sid}/notes", json={"content": "two", **todo}, headers=H1).json()
+    client.post(f"/api/stories/{sid}/notes/reorder", json={"note_ids": [t2["id"], t1["id"]]}, headers=H1)
+    assert client.get(f"/api/notes/{t1['id']}").json()["position"] == 1
+    assert client.post(f"/api/stories/{sid}/undo", headers=H1).json()["label"] == "Reorder notes"
+    assert client.get(f"/api/notes/{t1['id']}").json()["position"] == 0
+    client.patch(f"/api/notes/{t1['id']}", json={"done": True}, headers=H1)
     client.post(f"/api/stories/{sid}/undo", headers=H1)
-    assert client.get(f"/api/todos/{t1['id']}").json()["done"] is False
+    assert client.get(f"/api/notes/{t1['id']}").json()["done"] is False
     # location with a child and a scene setting
     scene = _scene(client, sid, "S")
     parent = client.post(f"/api/stories/{sid}/locations", json={"name": "Island"}, headers=H1).json()

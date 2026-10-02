@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type RefObject } from "react";
 import type { Editor } from "@tiptap/react";
-import { api } from "../../api/client";
+import { notesApi } from "../../api/notes";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import type { InlineNote, StructureNode } from "../../types";
+import type { Note } from "../../types/notes";
 import { setInlineNoteCallbacks } from "../story/InlineNoteExtension";
 
 export type NotePopover =
@@ -16,10 +18,43 @@ interface Args {
   popoverRef: RefObject<HTMLDivElement | null>;
 }
 
+/** A note row as the margin draws it. */
+function toInline(n: Note): InlineNote {
+  const editorial = n.source?.startsWith("editorial-");
+  return {
+    id: n.id,
+    anchor: n.anchor ?? "",
+    note: n.content,
+    position: n.position,
+    type: editorial ? "editorial" : "author",
+    category: n.category ?? undefined,
+    source: n.source ?? undefined,
+  };
+}
+
 /** Inline notes: the anchored marks in the prose and the list in the overview panel. */
-export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }: Args) {
-  // The node is the source of truth for notes; edits update it optimistically.
-  const notes: InlineNote[] = activeNode?.inline_notes ?? [];
+export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
+  // The scene's notes are rows (doc 15); the prose's mark carries each row's id. Edits show
+  // at once and the server's answer replaces them.
+  const nodeId = activeNode?.id;
+  const storyId = activeNode?.story_id;
+  const [loaded, setLoaded] = useState<{ nodeId: string | undefined; rows: Note[] }>({
+    nodeId: undefined,
+    rows: [],
+  });
+  const rows = useMemo(() => (loaded.nodeId === nodeId ? loaded.rows : []), [loaded, nodeId]);
+  const notes: InlineNote[] = useMemo(() => rows.map(toInline), [rows]);
+  const load = useCallback(() => {
+    if (!nodeId || !storyId) return;
+    return notesApi
+      .list(storyId, { node_id: nodeId, kind: "note" })
+      .then((list) => setLoaded({ nodeId, rows: list }));
+  }, [nodeId, storyId]);
+  useEffect(() => {
+    load()?.catch(() => {});
+  }, [load]);
+  useReloadOnUndo(["note"], load);
+  const setRows = (next: Note[]) => setLoaded({ nodeId, rows: next });
   const [hideEditorial, setHideEditorial] = useState(false);
   // A popover belongs to the node it was opened on; switching nodes closes it.
   const [popoverState, setPopoverState] = useState<{ nodeId: string | undefined; value: NotePopover }>({
@@ -67,24 +102,24 @@ export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [popover, popoverRef, setPopover]);
 
-  async function persist(updated: InlineNote[]) {
-    if (!activeNode) return;
-    setActiveNode({ ...activeNode, inline_notes: updated });
-    try {
-      const patched = await api.updateNode(activeNode.id, { inline_notes: updated });
-      setActiveNode({ ...activeNode, inline_notes: patched.inline_notes });
-    } catch {
-      /* the local list stands; the next save retries */
-    }
-  }
-
   async function save() {
-    if (!activeNode || !editor || !popover.open || !popover.isNew) return;
+    if (!activeNode || !storyId || !editor || !popover.open || !popover.isNew) return;
     const { from, to, anchor } = popover;
-    const newNote: InlineNote = { id: crypto.randomUUID(), anchor, note: inputText.trim(), position: from };
-    editor.chain().setTextSelection({ from, to }).setMark("inlineNote", { noteId: newNote.id }).run();
+    const id = crypto.randomUUID();
+    editor.chain().setTextSelection({ from, to }).setMark("inlineNote", { noteId: id }).run();
     setPopover({ open: false });
-    await persist([...notes, newNote]);
+    try {
+      const made = await notesApi.create(storyId, {
+        id,
+        kind: "note",
+        content: inputText.trim(),
+        node_id: activeNode.id,
+        anchor,
+      });
+      setRows([...rows, made]);
+    } catch {
+      /* the mark stays; the next load shows whether the note was kept */
+    }
   }
 
   function markRange(noteId: string): { from: number; to: number } | null {
@@ -106,7 +141,8 @@ export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }
     const range = markRange(noteId);
     if (range) editor.chain().setTextSelection(range).unsetMark("inlineNote").run();
     setPopover({ open: false });
-    await persist(notes.filter((n) => n.id !== noteId));
+    setRows(rows.filter((n) => n.id !== noteId));
+    await notesApi.remove(noteId).catch(() => load());
   }
 
   async function update(noteId: string, newText: string) {
@@ -118,7 +154,8 @@ export function useInlineNotes({ editor, activeNode, setActiveNode, popoverRef }
       rect: popover.open ? popover.rect : null,
       isEditing: false,
     });
-    await persist(notes.map((n) => (n.id === noteId ? { ...n, note: newText } : n)));
+    setRows(rows.map((n) => (n.id === noteId ? { ...n, content: newText } : n)));
+    await notesApi.update(noteId, { content: newText }).catch(() => load());
   }
 
   function scrollTo(noteId: string) {

@@ -503,41 +503,6 @@ export const api = {
   analyzeTwistImpact: (twistId: string) =>
     request<import("../types").StructuredResult>(`/twists/${twistId}/analyze-impact`, { method: "POST" }),
 
-  // Todos
-  listTodos: (storyId: string) => request<import("../types").StoryTodo[]>(`/stories/${storyId}/todos`),
-  getTodosForScene: (nodeId: string) => request<import("../types").StoryTodo[]>(`/structure/${nodeId}/todos`),
-  createTodo: (
-    storyId: string,
-    data: {
-      content: string;
-      node_id?: string | null;
-      done?: boolean;
-      doc_from?: number | null;
-      doc_to?: number | null;
-    },
-  ) =>
-    request<import("../types").StoryTodo>(`/stories/${storyId}/todos`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  updateTodo: (
-    todoId: string,
-    data: {
-      content?: string;
-      node_id?: string | null;
-      done?: boolean;
-      position?: number;
-      doc_from?: number | null;
-      doc_to?: number | null;
-    },
-  ) =>
-    request<import("../types").StoryTodo>(`/todos/${todoId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  deleteTodo: (todoId: string) => request<void>(`/todos/${todoId}`, { method: "DELETE" }),
-  deleteDoneTodos: (storyId: string) => request<void>(`/stories/${storyId}/todos/done`, { method: "DELETE" }),
-
   // Outlines
   listOutlines: (storyId: string) => request<import("../types").Outline[]>(`/stories/${storyId}/outlines`),
   createOutline: (storyId: string, name: string) =>
