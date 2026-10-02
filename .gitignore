@@ -67,6 +67,6 @@ backups/
 .chunkhound.json
 .chunkhound/
 
-notes/
+/notes/
 coverage/
 .coverage
