@@ -252,10 +252,6 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   // A note whose words lost their mark (an undone delete, a paste, an older scene) is marked
   // again where its quoted words still read the same; where they don't, it is "lost" and
   // the scene's list says so. Editorial notes never marked the prose, so they are left be.
-  const [lost, setLost] = useState<{ nodeId: string | undefined; ids: string[] }>({
-    nodeId: undefined,
-    ids: [],
-  });
   useEffect(() => {
     if (!editor || loaded.nodeId !== nodeId || !nodeId) return;
     const marked = new Set<string>();
@@ -264,17 +260,20 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     });
     const markType = editor.schema.marks.inlineNote;
     const tr = editor.state.tr;
-    const missing: string[] = [];
     for (const n of rows) {
       if (!n.anchor || n.done || n.source || marked.has(n.id)) continue;
       const range = findTextRange(tr.doc, n.anchor);
       if (range) tr.addMark(range.from, range.to, markType.create({ noteId: n.id }));
-      else missing.push(n.id);
     }
     if (tr.docChanged) editor.view.dispatch(tr.setMeta("addToHistory", false));
-    setLost({ nodeId, ids: missing });
   }, [editor, rows, loaded.nodeId, nodeId]);
-  const lostIds = lost.nodeId === nodeId ? lost.ids : [];
+  // Read off the prose as it is: the editor renders this hook again on every change.
+  const lostIds =
+    editor && loaded.nodeId === nodeId
+      ? rows
+          .filter((n) => n.anchor && !n.done && !n.source && !findTextRange(editor.state.doc, n.anchor))
+          .map((n) => n.id)
+      : [];
 
   // Arriving from the Notes page with ?note=: show that note beside its words, once.
   const [params, setParams] = useSearchParams();
