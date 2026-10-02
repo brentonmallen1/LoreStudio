@@ -20,7 +20,6 @@ import styles from "./StoryWorkspace.module.css";
  */
 const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
 const StoryboardView = lazy(() => import("../components/story/StoryboardView"));
-const TodoListView = lazy(() => import("../components/story/TodoListView"));
 const ManuscriptView = lazy(() => import("../components/manuscript/ManuscriptView"));
 
 /** `/write` with no node: the alternate views, else the node already open or the one to resume. */
@@ -31,7 +30,6 @@ function WriteIndex({ storyId }: { storyId: string }) {
   const SceneEditor = ROUTE_ELEMENTS.write as LazyExoticComponent<ComponentType>;
   if (viewMode === "storyboard") return <StoryboardView />;
   if (viewMode === "summary") return <SummaryOverviewView />;
-  if (viewMode === "todos") return <TodoListView />;
   if (viewMode === "manuscript") {
     return (
       <ManuscriptView

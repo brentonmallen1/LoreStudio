@@ -46,6 +46,7 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "lorebook.connections": lazy(() => import("../components/lorebook/sections/ConnectionsSection")),
   "compendium.everything": lazy(() => import("../components/compendium/CompendiumIndex")),
   "compendium.research": lazy(() => import("../components/compendium/CompendiumPanel")),
+  "compendium.notes": lazy(() => import("../components/notes/NotesBoard")),
   "compendium.images": MediaPage,
   "compendium.diagrams": MediaPage,
   "chronicle.activity": ChroniclePage,

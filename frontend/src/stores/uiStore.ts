@@ -164,8 +164,8 @@ interface UIState {
   endSprint: () => void;
 
   // Story view mode
-  viewMode: "tree" | "storyboard" | "summary" | "manuscript" | "todos";
-  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript" | "todos") => void;
+  viewMode: "tree" | "storyboard" | "summary" | "manuscript";
+  setViewMode: (mode: "tree" | "storyboard" | "summary" | "manuscript") => void;
 
   // Brainstorm panel ("What's Next?")
   brainstormPanelOpen: boolean;
@@ -447,7 +447,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     }),
   endSprint: () => set({ sprintActive: false, sprintStartTime: null }),
 
-  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript" | "todos",
+  viewMode: "tree" as "tree" | "storyboard" | "summary" | "manuscript",
   setViewMode: (mode) => set({ viewMode: mode }),
 
   brainstormPanelOpen: false,

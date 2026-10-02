@@ -2,7 +2,7 @@ import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
-import QuestionsList from "../plan/QuestionsList";
+import SubjectNotes from "../notes/SubjectNotes";
 import { KINDS } from "../../lib/lorebook/kinds";
 import FieldList from "../lorebook/FieldList";
 import SlotPicker from "../common/SlotPicker";
@@ -39,12 +39,12 @@ export default function CompactCharacterSheet({ character }: { character: Charac
       </section>
       {activeStory && (
         <section className={styles.section}>
-          <h4 className={styles.heading}>Open questions</h4>
-          <QuestionsList
+          <h4 className={styles.heading}>Notes and questions</h4>
+          <SubjectNotes
             storyId={activeStory.id}
-            subject={{ about_type: "character", about_id: character.id }}
-            compact
-            placeholder="Something undecided about them… (Enter)"
+            aboutType="character"
+            aboutId={character.id}
+            name={character.name}
           />
         </section>
       )}

@@ -2364,9 +2364,9 @@ def seed_demo_story():  # noqa: PLR0915
         db.add(
             Note(
                 story_id=story.id,
-                kind="todo",
+                kind="question",
                 node_id=None,
-                content="Decide: does Eleanor know what happened to the Ardent at the start, or does she piece it together? Affects Act I tone",
+                content="Does Eleanor know what happened to the Ardent at the start, or does she piece it together? It decides the tone of Act I.",
                 done=False,
                 position=4,
             )

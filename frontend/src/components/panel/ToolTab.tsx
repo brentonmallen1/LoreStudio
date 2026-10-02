@@ -4,7 +4,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { PanelTab, ToolId } from "../../types/panel";
 import { TOOL_LABELS } from "../../types/panel";
 import IdeaView from "../plan/IdeaView";
-import QuestionsList from "../plan/QuestionsList";
+import NotesBoard from "../notes/NotesBoard";
 import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
@@ -15,17 +15,11 @@ export default function ToolTab({ tab }: { tab: ToolPanelTab }) {
   const { activeStory } = useStoryStore();
   if (!activeStory) return null;
   if (tab.tool === "ideas") return <IdeaView storyId={activeStory.id} />;
-  if (tab.tool === "questions") {
-    return (
-      <section className={styles.section}>
-        <QuestionsList storyId={activeStory.id} />
-      </section>
-    );
-  }
+  if (tab.tool === "notes") return <NotesBoard compact />;
   return <EntityList tool={tab.tool} />;
 }
 
-function EntityList({ tool }: { tool: Exclude<ToolId, "ideas" | "questions"> }) {
+function EntityList({ tool }: { tool: Exclude<ToolId, "ideas" | "notes"> }) {
   const { activeNode, structure, sceneCast, characters, locations, threads } = useStoryStore();
   const { openEntity, setHighlight, tabs } = usePanelStore();
   const openIds = new Set(tabs.filter((t) => t.kind === "entity").map((t) => t.id));

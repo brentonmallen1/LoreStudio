@@ -20,7 +20,7 @@ export interface SceneCast {
 
 export type EntityKind = "character" | "location" | "thread" | "twist" | "compendium";
 
-export type ToolId = "characters" | "places" | "threads" | "ideas" | "questions";
+export type ToolId = "characters" | "places" | "threads" | "ideas" | "notes";
 
 export type PanelTab =
   | { id: "scene"; kind: "scene" }
@@ -32,7 +32,7 @@ export const TOOL_LABELS: Record<ToolId, string> = {
   places: "Places",
   threads: "Threads",
   ideas: "Ideas",
-  questions: "Open questions",
+  notes: "Notes",
 };
 
 export function entityTabId(kind: EntityKind, id: string): string {

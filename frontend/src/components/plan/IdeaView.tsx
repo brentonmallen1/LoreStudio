@@ -8,7 +8,6 @@ import type { Location } from "../../types";
 import type { FiledKind, IdeaFragment } from "../../types/planning";
 import { newFragment, splitIntoFragments, suggestNames } from "../../lib/planning/ideas";
 import { FILE_KINDS, fileFragment, type FileChoice } from "./fileFragment";
-import QuestionsList from "./QuestionsList";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { ideasApi, type SuggestedName } from "../../api/planning";
 import styles from "./IdeaView.module.css";
@@ -186,10 +185,6 @@ export default function IdeaView({ storyId }: { storyId: string }) {
           </details>
         )}
       </div>
-
-      <aside className={styles.side}>
-        <QuestionsList storyId={storyId} />
-      </aside>
     </div>
   );
 }

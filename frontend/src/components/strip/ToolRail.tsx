@@ -16,7 +16,7 @@ const TOOLS: { tool: ToolId; label: string; icon: (typeof TOOL_ICONS)[ToolId] }[
   { tool: "places", label: "Places", icon: TOOL_ICONS.places },
   { tool: "threads", label: "Plot threads", icon: TOOL_ICONS.threads },
   { tool: "ideas", label: "Ideas", icon: TOOL_ICONS.ideas },
-  { tool: "questions", label: "Open questions", icon: TOOL_ICONS.questions },
+  { tool: "notes", label: "Notes", icon: TOOL_ICONS.notes },
 ];
 
 /** Groups of the More menu, divided by a rule: home and plan, canon, research, AI, history, the rest. */

@@ -20,6 +20,7 @@ import {
   Network,
   PenLine,
   Send,
+  StickyNote,
   Inbox,
   Undo2,
   Users,
@@ -223,6 +224,14 @@ export const STORY_ROUTES: StoryRoute[] = [
         icon: NotebookText,
         detailParam: "entryId",
         keywords: ["notes", "links", "documents", "references", "sources"],
+      },
+      {
+        // Notes, questions, to-dos and ideas, wherever they are tied (doc 15 N2).
+        id: "notes",
+        path: "/notes",
+        label: "Notes",
+        icon: StickyNote,
+        keywords: ["to-do", "todo", "questions", "open questions", "ideas", "margin notes", "comments"],
       },
       {
         id: "images",

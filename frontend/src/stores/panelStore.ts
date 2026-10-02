@@ -1,5 +1,12 @@
 import { create } from "zustand";
-import { entityTabId, toolTabId, type EntityKind, type PanelTab, type ToolId } from "../types/panel";
+import {
+  TOOL_LABELS,
+  entityTabId,
+  toolTabId,
+  type EntityKind,
+  type PanelTab,
+  type ToolId,
+} from "../types/panel";
 import { panelStartsOpen } from "../lib/layout/sides";
 
 /**
@@ -128,7 +135,9 @@ export const usePanelStore = create<PanelState>((set, get) => {
         tabs: [],
         activeTabId: "scene",
       });
-      const tabs = [SCENE_TAB, ...saved.tabs.filter((t) => t.kind !== "scene")];
+      // A tool tab saved before its tool was renamed or removed (doc 15: questions → notes).
+      const known = (t: PanelTab) => t.kind !== "scene" && (t.kind !== "tool" || t.tool in TOOL_LABELS);
+      const tabs = [SCENE_TAB, ...saved.tabs.filter(known)];
       const activeTabId =
         saved.activeTabId === "assistant" || tabs.some((t) => t.id === saved.activeTabId)
           ? saved.activeTabId

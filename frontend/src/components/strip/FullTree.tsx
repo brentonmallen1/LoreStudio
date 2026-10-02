@@ -169,7 +169,6 @@ export default function FullTree({ storyId }: { storyId: string | undefined }) {
             <option value="storyboard">Storyboard</option>
             <option value="summary">Summaries</option>
             <option value="manuscript">Manuscript &amp; export</option>
-            <option value="todos">TODOs</option>
           </select>
         </label>
         <div className={tree.addMenuWrap} ref={addMenuRef}>

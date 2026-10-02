@@ -12,6 +12,7 @@ import { useStoryStore } from "../../../stores/storyStore";
 import { useUIStore } from "../../../stores/uiStore";
 import type { Location, LocationTravel } from "../../../types";
 import AssetPicker from "../../media/AssetPicker";
+import SubjectNotes from "../../notes/SubjectNotes";
 import PortraitEditor from "../../media/PortraitEditor";
 import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
 import AssistantRow from "../AssistantRow";
@@ -173,6 +174,9 @@ export default function PlacesSection() {
                     <Plus size={11} aria-hidden />
                     Add a place inside
                   </button>
+                </SheetCard>
+                <SheetCard title="Notes and questions">
+                  <SubjectNotes storyId={storyId} aboutType="location" aboutId={place.id} name={place.name} />
                 </SheetCard>
                 {myRoutes.length > 0 && (
                   <SheetCard title="Routes" meta={myRoutes.length}>

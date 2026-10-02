@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type RefObject } from "react";
 import type { Editor } from "@tiptap/react";
+import { useSearchParams } from "react-router-dom";
 import { notesApi } from "../../api/notes";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { sentenceAround } from "../../lib/notes/sentence";
@@ -225,6 +226,21 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     if (empty) editor.commands.setTextSelection(range);
     beginAdd(range.from, range.to, editor.state.doc.textBetween(range.from, range.to), kind);
   }
+
+  // Arriving from the Notes page with ?note=: show that note beside its words, once.
+  const [params, setParams] = useSearchParams();
+  const wanted = params.get("note");
+  useEffect(() => {
+    if (!wanted || !editor || !rows.some((r) => r.id === wanted)) return;
+    scrollTo(wanted);
+    setParams(
+      (p) => {
+        p.delete("note");
+        return p;
+      },
+      { replace: true },
+    );
+  }, [wanted, editor, rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The shortcut reaches the latest triggerAdd (it closes over this render's rows).
   useEffect(() => setInlineNoteCallbacks({ onShortcut: () => triggerAdd("note") }));

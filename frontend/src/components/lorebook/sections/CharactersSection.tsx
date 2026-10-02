@@ -24,7 +24,7 @@ import GlobalRelationshipsView from "../../characters/relationships/GlobalRelati
 import RelationshipsTab from "../../characters/relationships/RelationshipsTab";
 import AssetPicker from "../../media/AssetPicker";
 import PortraitEditor, { type CharacterImageDescription } from "../../media/PortraitEditor";
-import QuestionsList from "../../plan/QuestionsList";
+import SubjectNotes from "../../notes/SubjectNotes";
 import AssistantRow from "../AssistantRow";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
@@ -203,12 +203,12 @@ export default function CharactersSection() {
                   >
                     <ArcMilestones character={character} onSaved={upsertCharacter} />
                   </SheetCard>
-                  <SheetCard title="Open questions">
-                    <QuestionsList
+                  <SheetCard title="Notes and questions">
+                    <SubjectNotes
                       storyId={storyId}
-                      subject={{ about_type: "character", about_id: character.id }}
-                      compact
-                      placeholder={`Something you don't know yet about ${character.name}… (Enter)`}
+                      aboutType="character"
+                      aboutId={character.id}
+                      name={character.name}
                     />
                   </SheetCard>
                   <AIOnly>
