@@ -13,7 +13,7 @@ import TodayCounter from "./TodayCounter";
 import { useUIStore } from "../../stores/uiStore";
 import EditorMoreMenu from "./EditorMoreMenu";
 import PopoverMenu from "../common/PopoverMenu";
-import { NOTES_VIEWS, type NotesView } from "../../lib/notes/view";
+import type { NotesView } from "../../lib/notes/view";
 import { toast } from "../../stores/toastStore";
 import styles from "./SceneEditor.module.css";
 
@@ -197,21 +197,19 @@ export default function EditorTopbar(p: Props) {
         </span>
         <SaveStatusPill autosave={p.autosave} />
         <span className={styles.topbarRule} aria-hidden />
-        <PopoverMenu
-          label="How notes show"
-          trigger={
-            <>
-              <StickyNote size={13} aria-hidden />
-              <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
-            </>
+        <button
+          onClick={() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards")}
+          className={`${styles.topbarBtn} ${p.notesView === "cards" ? styles.topbarBtnActive : ""}`}
+          aria-pressed={p.notesView === "cards"}
+          title={
+            p.notesView === "cards"
+              ? "Notes beside the text; click for dots"
+              : "Notes as dots; click to show them beside the text"
           }
-          triggerClassName={`${styles.topbarBtn} ${p.notesView !== "off" ? styles.topbarBtnActive : ""}`}
-          items={NOTES_VIEWS.map((v) => ({
-            label: v.label,
-            checked: p.notesView === v.id,
-            onSelect: () => p.onNotesView(v.id),
-          }))}
-        />
+        >
+          <StickyNote size={13} aria-hidden />
+          <span>Notes{p.noteCount > 0 ? ` ${p.noteCount}` : ""}</span>
+        </button>
         <button
           onClick={p.onToggleDialogue}
           className={`${styles.topbarBtn} ${p.dialogueIsolation ? styles.topbarBtnActive : ""}`}

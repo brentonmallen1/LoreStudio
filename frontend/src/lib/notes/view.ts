@@ -1,22 +1,16 @@
 /**
- * How the scene's notes show beside the prose (doc 15 polish): cards in the margin, a dot
- * in the note's colour beside each line (the card opens on a click, a preview on hover),
- * or nothing at all, highlights included, for reading straight through.
+ * How the scene's notes show beside the prose (doc 15 polish): cards in the margin, or a dot
+ * in the note's colour beside each line (the card opens on a click, a preview on hover).
  */
-export type NotesView = "cards" | "dots" | "off";
-
-export const NOTES_VIEWS: { id: NotesView; label: string }[] = [
-  { id: "cards", label: "Beside the text" },
-  { id: "dots", label: "As dots" },
-  { id: "off", label: "Hidden" },
-];
+export type NotesView = "cards" | "dots";
 
 const KEY = "ls_notes_margin";
 
+/** The old "off" (hidden) reads as dots: the quietest view left. */
 export function readNotesView(): NotesView {
   try {
     const v = localStorage.getItem(KEY);
-    return v === "off" || v === "dots" ? v : "cards";
+    return v === "off" || v === "dots" ? "dots" : "cards";
   } catch {
     return "cards";
   }
@@ -32,7 +26,6 @@ export function saveNotesView(view: NotesView): NotesView {
 }
 
 /** Cards need room beside the prose; with too little they fall back to dots. */
-export function marginMode(view: NotesView, room: number, minRoom: number): "cards" | "markers" | "none" {
-  if (view === "off") return "none";
+export function marginMode(view: NotesView, room: number, minRoom: number): "cards" | "markers" {
   return view === "cards" && room >= minRoom ? "cards" : "markers";
 }

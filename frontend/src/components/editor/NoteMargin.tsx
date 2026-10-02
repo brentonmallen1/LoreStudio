@@ -34,7 +34,7 @@ const EMPTY: Geometry = {
 
 /**
  * The scene's notes as comments in the prose's left margin (doc 13 P2, D6), each level with
- * the words it is about. Where the margin is too narrow, or the author has hidden it, a note
+ * the words it is about. Where the margin is too narrow, or the author chose dots, a note
  * opens over the prose just under its words instead. Everything here is measured from the
  * editor's DOM and drawn beside it; ProseMirror's own DOM is never touched.
  */
@@ -48,7 +48,7 @@ export default function NoteMargin({
   scrollAreaRef: RefObject<HTMLDivElement | null>;
   /** Clicks inside this keep a note open (useInlineNotes closes it on any other click). */
   marginRef: RefObject<HTMLDivElement | null>;
-  /** Cards, dots or nothing (lib/notes/view). */
+  /** Cards or dots (lib/notes/view). */
   view: NotesView;
 }) {
   const { popover } = notes;
@@ -180,14 +180,11 @@ export default function NoteMargin({
         } }`,
     )
     .join("\n");
-  // Hidden means hidden: no cards, no dots, and the words lose their highlight too.
   const litRule =
-    view === "off"
-      ? ""
-      : kindRules +
-        (lit
-          ? `\n.ProseMirror [data-note-id="${CSS.escape(lit)}"] { background: color-mix(in srgb, var(--note-mark, var(--color-note-marker)) 32%, transparent); }`
-          : "");
+    kindRules +
+    (lit
+      ? `\n.ProseMirror [data-note-id="${CSS.escape(lit)}"] { background: color-mix(in srgb, var(--note-mark, var(--color-note-marker)) 32%, transparent); }`
+      : "");
 
   if (geo.mode === "cards") {
     const placed = geo.anchors.map((a) => ({ id: a.id, top: a.top }));
