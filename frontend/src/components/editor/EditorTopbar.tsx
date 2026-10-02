@@ -1,13 +1,11 @@
 import { createElement, useState } from "react";
-import { Columns3, Quote, StickyNote } from "lucide-react";
-import { useSides } from "../../lib/layout/useSides";
+import { Quote, StickyNote } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructureNode } from "../../types";
 import { useStoryStore } from "../../stores/storyStore";
 import type { WritingGuideTab } from "../help/WritingGuidesModal";
 import SceneThreadBadges from "../threads/SceneThreadBadges";
 import SprintTimer from "../story/SprintTimer";
-import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { getSegmentIcon, segmentColor } from "./segmentMeta";
 import type { AutosaveState } from "./useSceneAutosave";
 import SaveStatusPill from "./SaveStatusPill";
@@ -56,7 +54,6 @@ export default function EditorTopbar(p: Props) {
   const { activeStory, activeTemplate, structure, setStructure, setActiveNode } = useStoryStore();
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
-  const sides = useSides();
   const sprintActive = useUIStore((st) => st.sprintActive);
 
   // A menu of the four states, not a blind cycle: "planned" was unreachable and going back
@@ -219,15 +216,6 @@ export default function EditorTopbar(p: Props) {
           <span>Dialogue</span>
         </button>
         {sprintActive && <SprintTimer currentWordCount={p.wordCount} />}
-        <button
-          onClick={sides.toggle}
-          className={`${styles.topbarIconBtn} ${sides.collapsed ? styles.topbarBtnActive : ""}`}
-          aria-pressed={sides.collapsed}
-          aria-label={sides.collapsed ? "Restore both sides" : "Collapse both sides"}
-          title={`${sides.collapsed ? "Restore both sides" : "Collapse both sides"} (${formatCombo(SHORTCUTS.collapseSides.combo)})`}
-        >
-          <Columns3 size={14} />
-        </button>
         <EditorMoreMenu
           wordCount={p.wordCount}
           sprintRunning={sprintActive}

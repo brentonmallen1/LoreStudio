@@ -13,8 +13,6 @@ import { SHORTCUTS, yieldsToTyping, matchesCombo } from "../../lib/keyboard/shor
 import { startAISync } from "../../lib/ai/aiSync";
 import { startPanelSync } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
-import { useStoryStore } from "../../stores/storyStore";
-import { toggleBothSides } from "../../lib/layout/useSides";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -59,10 +57,6 @@ export default function GlobalLayout() {
       if (matchesCombo(e, SHORTCUTS.togglePanel.combo)) {
         e.preventDefault();
         usePanelStore.getState().toggle();
-      }
-      if (matchesCombo(e, SHORTCUTS.collapseSides.combo) && useStoryStore.getState().activeStory) {
-        e.preventDefault();
-        toggleBothSides();
       }
       if (matchesCombo(e, SHORTCUTS.floatAIPanel.combo)) {
         e.preventDefault();

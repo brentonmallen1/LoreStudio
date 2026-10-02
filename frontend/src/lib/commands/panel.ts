@@ -2,8 +2,7 @@
  * Side panel commands (refactor doc 11): open a tool as a tab, show or hide the panel,
  * close the tab you are on. Kept apart from index.ts, which is at its size budget.
  */
-import { Columns3, GitBranch, MapPin, PanelRight, Users, X } from "lucide-react";
-import { toggleBothSides } from "../layout/useSides";
+import { GitBranch, MapPin, PanelRight, Users, X } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -67,15 +66,4 @@ commandRegistry.register({
     const { activeTabId, close } = usePanelStore.getState();
     close(activeTabId);
   },
-});
-
-commandRegistry.register({
-  id: "view-collapse-sides",
-  label: "Collapse or restore both sides",
-  keywords: ["sides", "strip", "panel", "hide", "wide", "room", "collapse"],
-  icon: Columns3,
-  group: "View",
-  shortcut: SHORTCUTS.collapseSides.combo,
-  when: inStory,
-  action: toggleBothSides,
 });

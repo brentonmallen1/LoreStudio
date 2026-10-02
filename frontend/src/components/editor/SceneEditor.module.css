@@ -206,25 +206,6 @@
   background: var(--color-surface-3);
 }
 
-/* Icon-only: collapse both sides (doc 14 Q1). */
-.topbarIconBtn {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
-}
-
-.topbarIconBtn:hover {
-  background: var(--color-surface-2);
-  border-color: var(--color-border);
-  color: var(--color-text);
-}
-
 /* Between what the scene is (words, saved) and what you can do with it. */
 .topbarRule {
   width: 1px;
