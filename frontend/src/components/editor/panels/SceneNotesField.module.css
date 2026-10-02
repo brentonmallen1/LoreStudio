@@ -159,8 +159,12 @@
   overflow-wrap: anywhere;
 }
 
-.row[data-kind="todo"][data-done] .text {
+.row[data-done] .text {
   color: var(--color-text-muted);
+}
+
+/* A ticked to-do is crossed off; a resolved note or question is only quieter. */
+.row[data-kind="todo"][data-done] .text {
   text-decoration: line-through;
 }
 
@@ -205,4 +209,30 @@
 .remove:hover {
   color: var(--color-danger);
   background: var(--color-surface-2);
+}
+
+.resolve {
+  flex-shrink: 0;
+  padding: 0.1rem 0.35rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.resolve:hover {
+  background: var(--color-surface-2);
+}
+
+.resolve:focus-visible,
+.toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.toggle {
+  align-self: flex-start;
 }

@@ -289,8 +289,12 @@
   cursor: text;
 }
 
-.item[data-kind="todo"][data-done] .text {
+.item[data-done] .text {
   color: var(--color-text-muted);
+}
+
+/* A ticked to-do is crossed off; a resolved note or question is only quieter. */
+.item[data-kind="todo"][data-done] .text {
   text-decoration: line-through;
 }
 

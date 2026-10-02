@@ -43,7 +43,7 @@ export default function SubjectNotes({
       {done.length > 0 && (
         <>
           <button type="button" className={styles.textBtn} onClick={() => setShowDone((s) => !s)}>
-            {showDone ? "Hide" : "Show"} answered and done ({done.length})
+            {showDone ? "Hide" : "Show"} resolved ({done.length})
           </button>
           {showDone && (
             <ul className={styles.list}>

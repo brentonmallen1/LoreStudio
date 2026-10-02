@@ -121,6 +121,16 @@ export default function NoteItem({
             Answer
           </button>
         )}
+        {note.kind !== "todo" && !(note.kind === "question" && !note.answer && !note.done) && (
+          <button
+            type="button"
+            className={styles.textBtn}
+            onClick={() => void notes.change(note.id, { done: !note.done })}
+            title={note.done ? "Reopen" : "Resolve: done with it"}
+          >
+            {note.done ? "Reopen" : "Resolve"}
+          </button>
+        )}
         {loose && !tying && (
           <button type="button" className={styles.textBtn} onClick={() => setTying(true)}>
             Tie to…

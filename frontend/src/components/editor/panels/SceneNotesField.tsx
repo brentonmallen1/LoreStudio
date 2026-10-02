@@ -65,11 +65,36 @@ export default function SceneNotesField({ notes }: { notes: InlineNotesState }) 
           ).
         </p>
       ) : (
-        <ul className={styles.list}>
-          {rows.map((n) => (
-            <Row key={n.id} note={n} notes={notes} />
-          ))}
-        </ul>
+        <>
+          <ul className={styles.list}>
+            {rows
+              .filter((n) => !n.done)
+              .map((n) => (
+                <Row key={n.id} note={n} notes={notes} />
+              ))}
+          </ul>
+          {rows.some((n) => n.done) && (
+            <>
+              <button
+                type="button"
+                className={styles.toggle}
+                aria-expanded={notes.showResolved}
+                onClick={() => notes.setShowResolved((s) => !s)}
+              >
+                {notes.showResolved ? "Hide" : "Show"} resolved ({rows.filter((n) => n.done).length})
+              </button>
+              {notes.showResolved && (
+                <ul className={styles.list}>
+                  {rows
+                    .filter((n) => n.done)
+                    .map((n) => (
+                      <Row key={n.id} note={n} notes={notes} />
+                    ))}
+                </ul>
+              )}
+            </>
+          )}
+        </>
       )}
     </section>
   );
@@ -102,6 +127,16 @@ function Row({ note, notes }: { note: Note; notes: InlineNotesState }) {
           </button>
         )}
       </span>
+      {note.kind !== "todo" && (
+        <button
+          type="button"
+          className={styles.resolve}
+          onClick={() => void notes.change(note.id, { done: !note.done })}
+          title={note.done ? "Reopen" : "Resolve: done with it"}
+        >
+          {note.done ? "Reopen" : "Resolve"}
+        </button>
+      )}
       <button
         type="button"
         className={styles.remove}

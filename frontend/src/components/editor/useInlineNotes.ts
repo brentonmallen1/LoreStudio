@@ -80,7 +80,12 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   });
   const rows = useMemo(() => (loaded.nodeId === nodeId ? loaded.rows : []), [loaded, nodeId]);
   // The margin's notes: those tied to a passage. The scene's list shows them all.
-  const notes: InlineNote[] = useMemo(() => rows.filter((n) => n.anchor).map(toInline), [rows]);
+  // Resolved notes leave the margin (like resolved comments) unless asked for (doc 15 polish).
+  const [showResolved, setShowResolved] = useState(false);
+  const notes: InlineNote[] = useMemo(
+    () => rows.filter((n) => n.anchor && (showResolved || !n.done)).map(toInline),
+    [rows, showResolved],
+  );
   const load = useCallback(() => {
     if (!nodeId || !storyId) return;
     return notesApi.list(storyId, { node_id: nodeId }).then((list) => setLoaded({ nodeId, rows: list }));
@@ -248,6 +253,8 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   return {
     notes,
     sceneNotes: rows,
+    showResolved,
+    setShowResolved,
     hideEditorial,
     setHideEditorial,
     popover,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pencil, Trash2, X } from "lucide-react";
+import { Check, Pencil, RotateCcw, Trash2, X } from "lucide-react";
 import type { InlineNote } from "../../types";
 import type { NoteKind } from "../../types/notes";
 import { KIND_LABEL } from "../notes/kinds";
@@ -71,6 +71,19 @@ export function NoteCard({
               }}
             >
               <Pencil size={12} />
+            </button>
+            <button
+              type="button"
+              className={styles.iconBtn}
+              title={note.done ? "Reopen" : "Resolve: done with it, out of the margin"}
+              aria-label={note.done ? "Reopen" : "Resolve"}
+              onClick={(e) => {
+                e.stopPropagation();
+                void notes.change(note.id, { done: !note.done });
+                if (!note.done && !notes.showResolved) notes.setPopover({ open: false });
+              }}
+            >
+              {note.done ? <RotateCcw size={12} /> : <Check size={12} />}
             </button>
             <button
               type="button"

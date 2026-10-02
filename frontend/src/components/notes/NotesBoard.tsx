@@ -28,7 +28,7 @@ const PLURAL: Record<NoteKind, string> = {
 };
 const STATUSES: { id: NoteStatus; label: string }[] = [
   { id: "open", label: "Open" },
-  { id: "done", label: "Answered and done" },
+  { id: "done", label: "Resolved" },
   { id: "all", label: "All" },
 ];
 
@@ -133,7 +133,7 @@ export default function NotesBoard({ compact = false }: { compact?: boolean }) {
         </p>
       ) : groups.length === 0 ? (
         <p className={styles.empty}>
-          Nothing {status === "done" ? "answered or done" : "open"}
+          Nothing {status === "done" ? "resolved" : "open"}
           {kind ? ` among the ${PLURAL[kind].toLowerCase()}` : ""}.
         </p>
       ) : (
