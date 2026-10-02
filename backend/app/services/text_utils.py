@@ -56,6 +56,23 @@ def html_to_paragraphs(html: str) -> list[str]:
     return extractor.get_paragraphs()
 
 
+def last_paragraphs(html: str, count: int = 2, max_chars: int = 700) -> list[str]:
+    """The closing paragraphs of a scene, for the Overview's "where you left off" card.
+
+    Keeps the last ``count`` paragraphs; when they run past ``max_chars`` the first is cut
+    from the front at a word and opens with an ellipsis, so the lines nearest the end of
+    the scene, where the writer stopped, are always whole.
+    """
+    paras = html_to_paragraphs(html)[-count:]
+    over = sum(len(p) for p in paras) - max_chars
+    if over > 0 and len(paras) > 1:
+        head = paras[0][over:]
+        cut = head.find(" ")
+        head = head[cut + 1 :] if cut >= 0 else ""
+        paras = ([f"… {head}"] if head else []) + paras[1:]
+    return paras
+
+
 class _EmExtractor(HTMLParser):
     """Extract <em>…</em> text spans with their paragraph index."""
 

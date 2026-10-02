@@ -137,6 +137,9 @@ class StoryOverview(BaseModel):
     goals_total: int = 0
     next_goal: str = ""
     open_threads: list[str] = []
+    #: The last lines of the scene edited last (doc 14 Overview): the "where you left off"
+    #: card shows the writer their own words to pick up from.
+    resume_excerpt: list[str] = []
 
 
 class StoryGoalCreate(BaseModel):

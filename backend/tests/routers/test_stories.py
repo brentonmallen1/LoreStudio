@@ -41,3 +41,37 @@ def test_lately_leaves_assistant_calls_and_analysis_runs_to_the_chronicle(client
     lately = [a["description"] for a in client.get(f"/api/stories/{sid}/overview").json()["recent_activity"]]
 
     assert lately == ["Added The Shoals"]
+
+
+def test_overview_offers_the_last_lines_of_the_scene_edited_last(client, db_session, test_user):
+    """doc 14 Overview: "where you left off" shows the writer's own closing lines."""
+    from app.models.structure import StructureNode
+
+    sid = client.post("/api/stories", json={"title": "Desk"}).json()["id"]
+    db_session.add(
+        StructureNode(
+            story_id=sid,
+            title="The Light",
+            level=0,
+            level_type="scene",
+            position=0,
+            word_count=12,
+            content="<p>First.</p><p>The barometer fell.</p><p>And then she saw the boat.</p>",
+        )
+    )
+    db_session.commit()
+
+    ov = client.get(f"/api/stories/{sid}/overview").json()
+
+    assert ov["resume_excerpt"] == ["The barometer fell.", "And then she saw the boat."]
+
+
+def test_last_paragraphs_trims_the_earlier_one_from_the_front():
+    from app.services.text_utils import last_paragraphs
+
+    html = "<p>" + " ".join(["word"] * 50) + "</p><p>She saw the boat.</p>"
+    out = last_paragraphs(html, max_chars=60)
+
+    assert out[-1] == "She saw the boat."
+    assert out[0].startswith("… word") and len(out[0]) <= 60
+    assert last_paragraphs("") == []

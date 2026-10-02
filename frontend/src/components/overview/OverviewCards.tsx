@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { slotVar } from "../../lib/colorSlots";
 import { bySeverity } from "../../lib/findings/group";
+import { isStepDone, nextStep } from "../../lib/planning/methods";
+import { usePlanData } from "../../lib/planning/usePlanData";
 import { findRoute, sectionPath, storyPath } from "../../lib/routes";
 import { ago } from "../../lib/serverDate";
 import { useOpenFindings } from "../../stores/findingsStore";
@@ -45,7 +47,7 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
       label: "Threads",
       value: `${ov.open_threads.length} open`,
       sub:
-        ov.open_threads.join(" · ") ||
+        ov.open_threads.join(", ") ||
         (ov.thread_counts.resolved ? `${ov.thread_counts.resolved} resolved, none open` : "none open"),
       to: sectionPath(storyId, "lorebook", "threads"),
     },
@@ -60,15 +62,17 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
     <nav className={styles.vitals} aria-label="The story in numbers">
       {items.map((v) => (
         <Link key={v.label} to={v.to} className={styles.vital}>
-          <span className={styles.label}>{v.label}</span>
+          <span className={styles.vitalLabel}>{v.label}</span>
+          <span className={styles.vitalBody}>
+            <span className={styles.vitalValue}>{v.value}</span>
+            {"bar" in v && v.bar !== null && v.bar !== undefined && (
+              <span className={styles.vitalBar} data-warn={v.warn !== "normal" ? v.warn : undefined}>
+                <span style={{ width: `${v.bar}%` }} />
+              </span>
+            )}
+            <span className={styles.vitalSub}>{v.sub}</span>
+          </span>
           <ChevronRight size={14} className={styles.vitalGo} aria-hidden />
-          <span className={styles.vitalValue}>{v.value}</span>
-          <span className={styles.vitalSub}>{v.sub}</span>
-          {"bar" in v && v.bar !== null && v.bar !== undefined && (
-            <span className={styles.vitalBar} data-warn={v.warn !== "normal" ? v.warn : undefined}>
-              <span style={{ width: `${v.bar}%` }} />
-            </span>
-          )}
         </Link>
       ))}
     </nav>
@@ -106,7 +110,27 @@ export function NeedsYourEye({ storyId }: { storyId: string }) {
           </button>
         ))
       )}
+      <PlanRow storyId={storyId} />
     </section>
+  );
+}
+
+/** The plan's one next step, as a row among the things to do (doc 14 Overview). */
+function PlanRow({ storyId }: { storyId: string }) {
+  const { data, method } = usePlanData();
+  if (!data || !method) return null;
+  const next = nextStep(method, data);
+  if (!next) return null;
+  const done = method.steps.filter((s) => isStepDone(s, data)).length;
+  return (
+    <Link to={`/stories/${storyId}/plan?step=${next.id}`} className={styles.rowLink} title={next.why}>
+      <ArrowRight size={12} className={styles.planGo} aria-hidden />
+      <span className={styles.rowText}>Next in the plan: {next.label.toLowerCase()}</span>
+      <span className={styles.rowMeta}>
+        {method.label} · {done} of {method.steps.length} steps
+      </span>
+      <ChevronRight size={14} className={styles.rowGo} aria-hidden />
+    </Link>
   );
 }
 
@@ -169,6 +193,7 @@ export function CastAndPlaces({ storyId }: { storyId: string }) {
   const cast = [...characters].sort((a, b) => scenesOf(b.id) - scenesOf(a.id));
   const places = locations.filter((l) => !l.is_stub && !l.parent_id);
   const SHOWN = 6;
+  const hidden = Math.max(0, cast.length - SHOWN) + Math.max(0, places.length - 3);
   return (
     <section className={styles.card} aria-label="Cast and places">
       <div className={styles.cardHead}>
@@ -177,37 +202,32 @@ export function CastAndPlaces({ storyId }: { storyId: string }) {
           Lorebook →
         </Link>
       </div>
-      {cast.length === 0 ? (
+      {cast.length === 0 && places.length === 0 ? (
         <p className={styles.quiet}>No one yet.</p>
       ) : (
-        <div className={styles.chips}>
+        <>
           {cast.slice(0, SHOWN).map((c) => (
             <Link
               key={c.id}
               to={sectionPath(storyId, "lorebook", "characters", c.id)}
-              className={styles.chip}
-              data-quiet={quiet.has(c.id) || undefined}
+              className={styles.rowLink}
             >
               <span className={styles.slot} style={{ background: slotVar(c.color_slot) }} aria-hidden />
-              {c.name}
-              <span className={styles.chipMeta}>
+              <span className={styles.rowText}>{c.name}</span>
+              <span className={styles.rowMeta} data-quiet={quiet.has(c.id) || undefined}>
                 {quiet.has(c.id) ? "quiet lately" : plural(scenesOf(c.id), "scene")}
               </span>
             </Link>
           ))}
-          {cast.length > SHOWN && <span className={styles.chipMeta}>+{cast.length - SHOWN} more</span>}
-        </div>
-      )}
-      {places.length > 0 && (
-        <div className={styles.chips}>
-          {places.slice(0, SHOWN).map((l) => (
-            <Link key={l.id} to={sectionPath(storyId, "lorebook", "places", l.id)} className={styles.chip}>
+          {places.slice(0, 3).map((l) => (
+            <Link key={l.id} to={sectionPath(storyId, "lorebook", "places", l.id)} className={styles.rowLink}>
               <span className={styles.slot} style={{ background: slotVar(l.color_slot) }} aria-hidden />
-              {l.name}
+              <span className={styles.rowText}>{l.name}</span>
+              <span className={styles.rowMeta}>place</span>
             </Link>
           ))}
-          {places.length > SHOWN && <span className={styles.chipMeta}>+{places.length - SHOWN} more</span>}
-        </div>
+          {hidden > 0 && <p className={styles.quiet}>and {hidden} more in the Lorebook</p>}
+        </>
       )}
     </section>
   );

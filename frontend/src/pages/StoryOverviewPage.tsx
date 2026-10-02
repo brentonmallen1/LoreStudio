@@ -11,12 +11,12 @@ import {
 } from "../components/overview/OverviewCards";
 import { RecapCard, RecapTrigger } from "../components/overview/Recap";
 import { useRecap } from "../components/overview/useRecap";
+import ResumeCard from "../components/overview/ResumeCard";
 import StartPaths from "../components/overview/StartPaths";
 import PlanNextStep from "../components/plan/PlanNextStep";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { sectionPath } from "../lib/routes";
-import { ago } from "../lib/serverDate";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import type { StoryOverview } from "../types";
@@ -38,7 +38,7 @@ const LENGTH_LABELS: Record<string, string> = {
  * header: this page is the story's title page.
  */
 export default function StoryOverviewPage({ storyId }: { storyId: string }) {
-  const { activeStory: story, structure } = useStoryStore();
+  const story = useStoryStore((s) => s.activeStory);
   const aiAvailable = useAIAvailable();
   const [ov, setOv] = useState<StoryOverview | null>(null);
   const [failed, setFailed] = useState(false);
@@ -58,18 +58,6 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
 
   if (!story) return <div className={styles.loading}>Loading…</div>;
   const hasContent = !!ov && (ov.word_count > 0 || ov.scene_count > 0);
-  const recent = ov?.recent_scenes[0];
-  const chapterOf = (id: string) => {
-    const walk = (nodes: typeof structure, parent: string): string | null => {
-      for (const n of nodes) {
-        if (n.id === id) return parent;
-        const found = n.children?.length ? walk(n.children, n.title) : null;
-        if (found !== null) return found;
-      }
-      return null;
-    };
-    return walk(structure, "") || "";
-  };
   const line = story.logline || story.premise || story.narrative_intent;
   // What the story is, as facts to read rather than chips to press (doc 14 Overview).
   const facts = [
@@ -94,39 +82,19 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
               </p>
             )}
           </div>
-          {ov && (
-            <div className={styles.heroSide}>
-              <Link
-                to={recent ? `/stories/${storyId}/write/${recent.id}` : `/stories/${storyId}/write`}
-                className={styles.continue}
-              >
-                <span className={styles.continueLabel}>
-                  {hasContent ? "Continue writing" : "Start writing"}
-                </span>
-                {recent && <span className={styles.continueTitle}>{recent.title || "Untitled scene"}</span>}
-                {recent && (
-                  <span className={styles.continueMeta}>
-                    {[chapterOf(recent.id), `last worked on ${ago(recent.updated_at)}`]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                )}
+          {hasContent && (
+            <div className={styles.heroLinks}>
+              <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
+                <BookOpen size={13} aria-hidden /> Read it through
               </Link>
-              {hasContent && (
-                <div className={styles.heroLinks}>
-                  <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
-                    <BookOpen size={12} aria-hidden /> Read it through
-                  </Link>
-                  <button
-                    type="button"
-                    className={styles.heroAction}
-                    onClick={() => useUIStore.getState().setExportOpen(true)}
-                  >
-                    <Download size={12} aria-hidden /> Export
-                  </button>
-                  {aiAvailable && <RecapTrigger recap={recap} />}
-                </div>
-              )}
+              <button
+                type="button"
+                className={styles.heroAction}
+                onClick={() => useUIStore.getState().setExportOpen(true)}
+              >
+                <Download size={13} aria-hidden /> Export
+              </button>
+              {aiAvailable && <RecapTrigger recap={recap} />}
             </div>
           )}
         </header>
@@ -140,20 +108,20 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
             </button>
           </p>
         )}
-        {ov && hasContent && <Vitals storyId={storyId} ov={ov} />}
         {ov && hasContent ? (
-          // Two columns with a job each (doc 14 Overview): on the left what to act on, on
-          // the right what to know.
-          <div className={styles.columns}>
+          // The desk (doc 14 Overview): on the left, the scene to pick up and what to do;
+          // on the right, the figures and who is in it, quieter so the left leads.
+          <div className={styles.desk}>
             <div className={styles.col} aria-label="What to do next">
+              <ResumeCard storyId={storyId} ov={ov} />
               <NeedsYourEye storyId={storyId} />
-              <PlanNextStep storyId={storyId} />
               <Lately storyId={storyId} ov={ov} />
             </div>
-            <div className={styles.col} aria-label="The story at a glance">
+            <aside className={styles.col} aria-label="The story at a glance">
+              <Vitals storyId={storyId} ov={ov} />
               <WordsByChapter storyId={storyId} ov={ov} />
               <CastAndPlaces storyId={storyId} />
-            </div>
+            </aside>
           </div>
         ) : (
           <PlanNextStep storyId={storyId} />

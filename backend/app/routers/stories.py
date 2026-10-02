@@ -37,6 +37,7 @@ from ..services.llm.prompts.snowflake import LAYER_SPECS, build_snowflake_guidan
 from ..services.llm.prompts.summaries import build_story_summary_prompt
 from ..services.llm.sse import sse_stream
 from ..services.structure_scaffold import scaffold_story
+from ..services.text_utils import last_paragraphs
 from ..services.word_count import get_word_count_status
 
 router = APIRouter()
@@ -265,6 +266,7 @@ def get_story_overview(
     return StoryOverview(
         word_count=total_words,
         word_count_target=get_word_count_status(story.intended_length or "", total_words),
+        resume_excerpt=last_paragraphs(recent_leaves[0].content or "") if recent_leaves else [],
         scene_count=len(leaf_nodes),
         scenes_by_status=scenes_by_status,
         character_count=len(characters),

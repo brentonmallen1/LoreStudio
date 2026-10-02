@@ -790,6 +790,7 @@ export interface StoryOverview {
   goals_total: number;
   next_goal: string;
   open_threads: string[];
+  resume_excerpt?: string[];
 }
 
 // ── Manuscript & Export ──
