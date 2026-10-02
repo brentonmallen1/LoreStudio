@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { ChevronsLeft, ChevronsRight, Home } from "lucide-react";
+import { Book, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useOpenFindings } from "../../stores/findingsStore";
 import {
@@ -82,7 +82,7 @@ export default function StoryStrip() {
       title="Story overview"
       aria-label="Story overview"
     >
-      <Home size={14} />
+      <Book size={14} />
     </button>
   );
 
