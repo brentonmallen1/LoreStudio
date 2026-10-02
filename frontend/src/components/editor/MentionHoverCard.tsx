@@ -1,24 +1,52 @@
-import type { RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { usePanelStore } from "../../stores/panelStore";
 import type { HoverCardState } from "./useMentionHoverCard";
+import MentionFixer from "./MentionFixer";
 import styles from "./SceneEditor.module.css";
 
 export default function MentionHoverCard({
   hover,
   cardRef,
   storyId,
+  onUnlink,
 }: {
   hover: HoverCardState;
   cardRef: RefObject<HTMLDivElement | null>;
   storyId?: string;
+  /** Drop the syntax of a mention that names nobody, keeping its words. */
+  onUnlink?: (type: "character" | "setting", name: string) => void;
 }) {
   const navigate = useNavigate();
   const openEntity = usePanelStore((s) => s.openEntity);
   const card = hover.card;
+  // A click inside keeps the card open (choosing who a mention means takes more than a
+  // glance); it then closes on Escape or a click elsewhere.
+  // Held by the card itself, so a card opened again later starts unpinned.
+  const [pinned, setPinned] = useState<object | null>(null);
+  const isPinned = card.open && pinned === card;
+  const key = card.open ? `${card.type}:${card.name}` : undefined;
+  const { close } = hover;
+  useEffect(() => {
+    if (!isPinned) return;
+    function onDown(e: MouseEvent) {
+      if (!cardRef.current?.contains(e.target as Node)) close();
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") close();
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isPinned, cardRef, close]);
   if (!card.open) return null;
-  const top = Math.max(8, card.rect.top - 12);
+  // Above the words, or below them when they sit near the top of the window.
+  const below = card.rect.top < 280;
+  const top = below ? card.rect.bottom + 8 : Math.max(8, card.rect.top - 12);
   const left = Math.max(8, Math.min(card.rect.left, window.innerWidth - 276));
   // Portalled: the editor's container is a size container, which would make it the box a
   // fixed card is placed in and clip it (doc 13 P2).
@@ -26,9 +54,10 @@ export default function MentionHoverCard({
     <div
       ref={cardRef}
       className={styles.hoverCard}
-      style={{ top, left, transform: "translateY(-100%)" }}
+      style={{ top, left, transform: below ? undefined : "translateY(-100%)" }}
       onMouseEnter={hover.cancelClose}
-      onMouseLeave={hover.close}
+      onMouseLeave={() => !isPinned && hover.close()}
+      onMouseDown={() => setPinned(card)}
     >
       {card.found ? (
         <>
@@ -81,12 +110,16 @@ export default function MentionHoverCard({
             </div>
           )}
         </>
-      ) : (
-        <div className={styles.hoverCardNotFound}>
-          <span className={styles.hoverCardMissingName}>{card.name}</span>
-          <span className={styles.hoverCardNotFoundBadge}>Not found</span>
-        </div>
-      )}
+      ) : storyId ? (
+        <MentionFixer
+          key={key}
+          type={card.type}
+          name={card.name}
+          storyId={storyId}
+          onUnlink={onUnlink && (() => onUnlink(card.type, card.name))}
+          onDone={hover.close}
+        />
+      ) : null}
     </div>,
     document.body,
   );

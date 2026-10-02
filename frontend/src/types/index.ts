@@ -164,6 +164,8 @@ export interface Character {
   narrative_archetype: string;
   mission_statement: string;
   pronouns: string;
+  /** Other names the prose calls them by: mentions of these resolve to them. */
+  aliases?: string[];
   personality: string;
   motivation: string;
   background: string;

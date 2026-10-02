@@ -608,6 +608,8 @@ def seed_demo_story():  # noqa: PLR0915
         thomas = Character(
             story_id=story.id,
             name="Thomas Vance",
+            # Margaret calls him Tom: "@Tom" in her lines finds him (another name).
+            aliases=["Tom"],
             color_slot=5,
             role="foil",
             character_type="symbolic",
@@ -1368,7 +1370,7 @@ def seed_demo_story():  # noqa: PLR0915
                 "<p>Margaret was quiet for a long time. When she spoke again, her voice was careful.</p>"
                 '<p>"The night of the <em>Ardent</em>," she said. "I was up late. Couldn\'t sleep — the weather had me restless. I walked down to the point around midnight, just to clear my head." She looked at Eleanor directly. "The lighthouse lamp was dark. For almost twenty minutes. I watched it."</p>'
                 '<p>Eleanor\'s breath caught. "You never told anyone."</p>'
-                '<p>"Who would I tell? @Thomas Vance was the keeper. If the lamp was out, he\'d have had a reason. That\'s what I told myself." Margaret stood, gathering her empty jar and her coat. "I\'ve told myself a lot of things over the years. Gets easier with practice."</p>'
+                '<p>"Who would I tell? @Tom was the keeper. If the lamp was out, he\'d have had a reason. That\'s what I told myself." Margaret stood, gathering her empty jar and her coat. "I\'ve told myself a lot of things over the years. Gets easier with practice."</p>'
                 "<p>At the door, she paused.</p>"
                 '<p>"Your father was a good man, Eleanor. Whatever else he was, he was that too. Don\'t let the one thing make you forget all the others."&lt;Margaret Holt&gt;</p>'
                 '<p>"I\'m trying not to."</p>'

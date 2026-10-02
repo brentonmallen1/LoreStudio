@@ -1,0 +1,79 @@
+/* A sheet's other names: quiet chips under the name, each removable. */
+
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.label {
+  margin-right: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  height: 22px;
+  padding: 0 0.2rem 0 0.55rem;
+  border-radius: 11px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 0.74rem;
+}
+
+.remove {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: var(--color-border-light);
+  color: var(--color-danger);
+}
+
+.add {
+  height: 22px;
+  padding: 0 0.45rem;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.add:hover {
+  background: var(--color-surface-2);
+}
+
+.input {
+  width: 11rem;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.74rem;
+}
+
+.remove:focus-visible,
+.add:focus-visible,
+.input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}

@@ -36,6 +36,7 @@ from ..llm.prompts.panel import build_panel_character_prompt
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 from .mentions import render_mentions, resolve_mentions, without
+from .presence import known_as
 
 
 class ContextOptions(BaseModel):
@@ -144,7 +145,8 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
 
     mentioned_char_profiles = []
     if opts.include_characters:
-        mentioned_chars = [c for c in all_chars if any(c.name.lower() == n.lower() for n in char_names_mentioned)]
+        said = {n.lower() for n in char_names_mentioned}
+        mentioned_chars = [c for c in all_chars if any(n.lower() in said for n in known_as(c))]
         for c in mentioned_chars:
             profile: dict = {"name": c.name, "role": c.role}
             if c.personality:

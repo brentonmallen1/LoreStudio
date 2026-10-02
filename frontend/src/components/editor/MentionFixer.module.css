@@ -1,0 +1,153 @@
+/* A mention that names nobody, in the hover card: point it at someone, add them, or unlink. */
+
+.fixer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.badge {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.primary,
+.btn,
+.quiet {
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary {
+  flex-basis: 100%;
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  text-align: left;
+}
+
+.btn {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.btn:hover,
+.btn[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+.quiet {
+  margin-left: auto;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--color-text-muted);
+}
+
+.quiet:hover {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+}
+
+.primary:disabled,
+.btn:disabled,
+.quiet:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.find {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  max-height: 11rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.list button {
+  display: block;
+  width: 100%;
+  padding: 0.3rem 0.45rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.list button:hover {
+  background: var(--color-surface-2);
+}
+
+.none {
+  padding: 0.3rem 0.45rem;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.primary:focus-visible,
+.btn:focus-visible,
+.quiet:focus-visible,
+.find:focus-visible,
+.list button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}

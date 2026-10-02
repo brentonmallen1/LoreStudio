@@ -9,7 +9,7 @@ export interface MentionItem {
   role?: string;
   /** Palette slot 1..8 (doc 11 P2), painted on the decoration as data-slot. */
   slot?: number;
-  /** Another name for a place (doc 13 P4): decorated as that place, never offered in the picker. */
+  /** Another name for a character or place: decorated as that entry, never offered in the picker. */
   aliasOf?: string;
 }
 
@@ -108,69 +108,50 @@ function syntaxDecos(from: number, to: number, kind: "character" | "setting"): D
 
 function buildMentionDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
-  const chars = _items.filter((i) => i.type === "character");
-  const settings = _items.filter((i) => i.type === "setting");
+  const known = _items
+    .filter((i) => i.type === "character" || i.type === "setting")
+    .sort((a, b) => b.name.length - a.name.length);
 
   doc.descendants((node, pos) => {
     if (!node.isText || !node.text) return;
     const text = node.text;
     const claimedRanges: Array<[number, number]> = [];
 
-    // Known character mentions — exact name match
-    for (const char of chars) {
-      const re = new RegExp(`@${escapeRe(char.name)}(?=[\\s.,;:!?)"'\\]]|$)`, "g");
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(text)) !== null) {
-        const from = pos + m.index;
-        const to = from + m[0].length;
-        claimedRanges.push([from, to]);
-        decos.push(
-          Decoration.inline(
-            from,
-            to,
-            {
-              class: char.name === _highlightName ? "mention-char mention-hl" : "mention-char",
-              "data-mention-name": char.name,
-              "data-mention-type": "character",
-              ...(char.slot ? { "data-slot": String(char.slot) } : {}),
-            },
-            MENTION_SPEC,
-          ),
-          ...syntaxDecos(from, to, "character"),
-        );
-      }
-    }
-
-    // Known setting mentions — exact name match
-    for (const setting of settings) {
-      const re = new RegExp(`\\[\\[${escapeRe(setting.name)}\\]\\]`, "g");
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(text)) !== null) {
-        const from = pos + m.index;
-        const to = from + m[0].length;
-        claimedRanges.push([from, to]);
-        decos.push(
-          Decoration.inline(
-            from,
-            to,
-            {
-              class:
-                (setting.aliasOf ?? setting.name) === _highlightName
-                  ? "mention-setting mention-hl"
-                  : "mention-setting",
-              "data-mention-name": setting.aliasOf ?? setting.name,
-              "data-mention-type": "setting",
-              ...(setting.slot ? { "data-slot": String(setting.slot) } : {}),
-            },
-            MENTION_SPEC,
-          ),
-          ...syntaxDecos(from, to, "setting"),
-        );
-      }
-    }
-
     function isClaimed(from: number, to: number): boolean {
       return claimedRanges.some(([a, b]) => from < b && to > a);
+    }
+
+    // Known mentions, by name or another name, whatever the case: the longest first, so
+    // "@Eleanor Vance" is Eleanor Vance even when "Eleanor" is someone's other name.
+    for (const item of known) {
+      const kind = item.type === "character" ? "character" : "setting";
+      const re =
+        kind === "character"
+          ? new RegExp(`@${escapeRe(item.name)}(?=[\\s.,;:!?)"'\\]]|$)`, "gi")
+          : new RegExp(`\\[\\[${escapeRe(item.name)}\\]\\]`, "gi");
+      const name = item.aliasOf ?? item.name;
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(text)) !== null) {
+        const from = pos + m.index;
+        const to = from + m[0].length;
+        if (isClaimed(from, to)) continue;
+        claimedRanges.push([from, to]);
+        const cls = kind === "character" ? "mention-char" : "mention-setting";
+        decos.push(
+          Decoration.inline(
+            from,
+            to,
+            {
+              class: name === _highlightName ? `${cls} mention-hl` : cls,
+              "data-mention-name": name,
+              "data-mention-type": kind,
+              ...(item.slot ? { "data-slot": String(item.slot) } : {}),
+            },
+            MENTION_SPEC,
+          ),
+          ...syntaxDecos(from, to, kind),
+        );
+      }
     }
 
     // Unknown @Name mentions (not matched by any known character)

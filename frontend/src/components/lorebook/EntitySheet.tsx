@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { MoreHorizontal, PanelRight } from "lucide-react";
+import { MoreHorizontal, PanelRight, Tag } from "lucide-react";
 import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import SlotPicker from "../common/SlotPicker";
+import AlsoCalled from "./AlsoCalled";
 import type { SceneRef } from "../../lib/lorebook/presence";
 import styles from "./Lorebook.module.css";
 
@@ -25,6 +26,7 @@ export default function EntitySheet({
   dot,
   slot,
   badges,
+  alsoCalled,
   presence,
   scenes = [],
   onOpenBeside,
@@ -47,6 +49,8 @@ export default function EntitySheet({
   /** The entry's palette slot, when it has one: the dot becomes its colour picker. */
   slot?: { value: number; onChange: (slot: number) => void };
   badges?: ReactNode;
+  /** A character's or place's other names, the ones mentions in the prose may use. */
+  alsoCalled?: { names: string[]; onChange: (names: string[]) => void };
   presence?: string;
   scenes?: SceneRef[];
   onOpenBeside?: () => void;
@@ -65,6 +69,10 @@ export default function EntitySheet({
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const shownScenes = scenes.length > 6 ? scenes.slice(0, 5) : scenes;
+  const [addingName, setAddingName] = useState(false);
+  const menu: MenuItem[] = alsoCalled
+    ? [...more, { label: "Add another name…", icon: Tag, onSelect: () => setAddingName(true) }]
+    : more;
 
   return (
     <article className={styles.sheet} aria-label={name}>
@@ -83,6 +91,14 @@ export default function EntitySheet({
             <EditableName key={entityKey} name={name} onRename={onRename} start={startRenaming} />
             {badges}
           </div>
+          {alsoCalled && (
+            <AlsoCalled
+              names={alsoCalled.names}
+              adding={addingName}
+              onAdding={setAddingName}
+              onChange={alsoCalled.onChange}
+            />
+          )}
           {presence && <div className={styles.presence}>{presence}</div>}
           {scenes.length > 0 && (
             <div className={styles.sceneChips}>
@@ -116,7 +132,7 @@ export default function EntitySheet({
             <span className={styles.sheetBtnLabel}>Open beside the page</span>
           </button>
         )}
-        <PopoverMenu label={`More for ${name}`} trigger={<MoreHorizontal size={15} />} items={more} />
+        <PopoverMenu label={`More for ${name}`} trigger={<MoreHorizontal size={15} />} items={menu} />
       </header>
 
       {views && views.length > 1 && (

@@ -16,25 +16,26 @@ from .text_utils import html_to_text as _html_to_text
 
 
 def _mention_pattern(entity_type: Literal["character", "location"], name: str) -> str:
+    # Matched without regard to case, as the editor resolves mentions.
     escaped = re.escape(name)
     if entity_type == "character":
-        return rf'@{escaped}(?=[\s.,;:!?)"\'\\]]|$)'
+        return rf'@{escaped}(?=[\s.,;:!?)"\'\]]|$)'
     else:
         return rf"\[\[{escaped}\]\]"
 
 
 def _attribution_pattern(name: str) -> str:
-    """Dialogue attribution pattern: "..."<Name>"""
+    """Dialogue attribution pattern: "..."<Name>. Stored prose escapes the brackets."""
     escaped = re.escape(name)
-    return rf"(<){escaped}(>)"
+    return rf"(<|&lt;){escaped}(>|&gt;)"
 
 
 def _count_occurrences(entity_type: Literal["character", "location"], name: str, content: str) -> int:
     text = _html_to_text(content)
     pattern = _mention_pattern(entity_type, name)
-    count = len(re.findall(pattern, text))
+    count = len(re.findall(pattern, text, re.IGNORECASE))
     if entity_type == "character":
-        count += len(re.findall(_attribution_pattern(name), text))
+        count += len(re.findall(_attribution_pattern(name), text, re.IGNORECASE))
     return count
 
 
@@ -42,10 +43,10 @@ def _extract_excerpt(entity_type: Literal["character", "location"], name: str, c
     """Return a short context string around the first occurrence."""
     text = _html_to_text(content)
     pattern = _mention_pattern(entity_type, name)
-    m = re.search(pattern, text)
+    m = re.search(pattern, text, re.IGNORECASE)
     if not m:
         if entity_type == "character":
-            m = re.search(_attribution_pattern(name), text)
+            m = re.search(_attribution_pattern(name), text, re.IGNORECASE)
     if not m:
         return ""
     start = max(0, m.start() - 40)
@@ -101,15 +102,18 @@ def apply_entity_rename(
             continue
         new_content = node.content
 
+        # Replacements are functions: a name is text, never a replacement template.
         if entity_type == "character":
             # Replace @OldName mentions
-            new_content = re.sub(pattern, f"@{new_name}", new_content)
+            new_content = re.sub(pattern, lambda _: f"@{new_name}", new_content, flags=re.IGNORECASE)
             # Replace dialogue attribution <OldName> → <NewName>
             attr_pattern = _attribution_pattern(old_name)
-            new_content = re.sub(attr_pattern, rf"\g<1>{re.escape(new_name)}\g<2>", new_content)
+            new_content = re.sub(
+                attr_pattern, lambda m: f"{m.group(1)}{new_name}{m.group(2)}", new_content, flags=re.IGNORECASE
+            )
         else:
             # Replace [[OldName]] → [[NewName]]
-            new_content = re.sub(pattern, f"[[{new_name}]]", new_content)
+            new_content = re.sub(pattern, lambda _: f"[[{new_name}]]", new_content, flags=re.IGNORECASE)
 
         if new_content != node.content:
             node.content = new_content

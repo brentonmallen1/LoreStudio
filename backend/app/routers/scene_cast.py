@@ -23,7 +23,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.scene_cast import SceneCastEntry, SceneCastOut
-from ..services.codex.presence import name_patterns, plain_text
+from ..services.codex.presence import known_as, name_patterns, plain_text
 
 router = APIRouter()
 
@@ -54,7 +54,7 @@ def get_scene_cast(story_id: str, db: Session = Depends(get_db), current_user: U
     scenes = _leaf_scenes(nodes)
     scene_ids = [s.id for s in scenes]
     characters = db.query(Character).filter(Character.story_id == story_id).all()
-    patterns = name_patterns({c.id: c.name or "" for c in characters})
+    patterns = name_patterns({c.id: known_as(c) for c in characters})
     locations = db.query(Location).filter(Location.story_id == story_id).all()
     # A place answers to its name and to its aliases (a found place merged into it, doc 13 P4).
     location_by_name = {

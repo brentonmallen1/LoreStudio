@@ -17,6 +17,7 @@ from collections import Counter
 
 from sqlalchemy.orm import Session
 
+from ...models.character import Character
 from ...models.codex import SYNCED_SOURCES, CodexEdge, CodexNode, settled_edges
 from ...models.location import ScenePresence
 from ...models.reader_knowledge import ReaderKnowledgeEvent
@@ -71,12 +72,21 @@ def _pattern(form: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![\w@])@?{re.escape(form)}(?!\w)", flags)
 
 
-def name_patterns(labels: dict[str, str]) -> dict[str, list[re.Pattern[str]]]:
+def known_as(character) -> list[str]:
+    """A character's name and the other names the prose uses for them."""
+    return [character.name or "", *(character.aliases or [])]
+
+
+def name_patterns(labels: dict[str, str | list[str]]) -> dict[str, list[re.Pattern[str]]]:
     """
-    Patterns per character id. A form that belongs to two characters is evidence for
-    neither — two Vances share a surname, and a shared first name is no better.
+    Patterns per character id, from a label or several (a name and its aliases). A form
+    that belongs to two characters is evidence for neither — two Vances share a surname,
+    and a shared first name is no better.
     """
-    forms = {key: name_forms(label) for key, label in labels.items()}
+    forms = {
+        key: set().union(*(name_forms(label) for label in ([labels] if isinstance(labels, str) else labels)))
+        for key, labels in labels.items()
+    }
     owners = Counter(form.lower() for fs in forms.values() for form in fs)
     return {
         key: [_pattern(form) for form in sorted(fs, key=len, reverse=True) if owners[form.lower()] == 1]
@@ -130,7 +140,8 @@ def derive_presence(story_id: str, db: Session) -> int:
     prose = {
         node.id: plain_text(node.content) for node in db.query(StructureNode).filter(StructureNode.story_id == story_id)
     }
-    patterns = name_patterns({key: node.label or "" for key, node in characters.items()})
+    aliases = {c.id: c.aliases for c in db.query(Character).filter(Character.story_id == story_id)}
+    patterns = name_patterns({key: [node.label or "", *(aliases.get(key) or [])] for key, node in characters.items()})
 
     made = 0
     for scene_ref, scene_node in scenes.items():

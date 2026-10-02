@@ -117,11 +117,9 @@ export default function PlacesSection() {
               <>
                 {place.is_stub && <Badge tone="warning">Found in your prose</Badge>}
                 {parent && <Badge>Part of {parent.name}</Badge>}
-                {place.aliases && place.aliases.length > 0 && (
-                  <Badge>Also called {place.aliases.join(", ")}</Badge>
-                )}
               </>
             }
+            alsoCalled={{ names: place.aliases ?? [], onChange: (aliases) => void save({ aliases }) }}
             presence={presenceLine(scenes, total, "Set")}
             scenes={scenes}
             onOpenBeside={() => openEntity("location", place.id, place.name)}

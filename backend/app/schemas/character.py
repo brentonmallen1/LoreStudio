@@ -87,6 +87,7 @@ class CharacterUpdate(BaseModel):
     epiphany: str | None = None
     arc_in_own_words: str | None = None
     color_slot: int | None = None
+    aliases: list[str] | None = None
 
 
 class CharacterOut(BaseModel):
@@ -118,6 +119,7 @@ class CharacterOut(BaseModel):
     arc_milestones: list[ArcMilestone]
     discovery_notes: list[DiscoveryNote] = []
     color_slot: int = 0
+    aliases: list[str] = []
     created_at: datetime
     updated_at: datetime
 

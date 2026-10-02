@@ -41,6 +41,7 @@ import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
 import { readNotesView, saveNotesView } from "../../lib/notes/view";
 import MentionHoverCard from "./MentionHoverCard";
+import { unlinkMentions } from "../../lib/mentions/unlink";
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
@@ -365,7 +366,15 @@ export default function SceneEditor() {
         showAI={aiAvailable}
       />
 
-      <MentionHoverCard hover={hover} cardRef={hoverCardRef} storyId={activeStory?.id} />
+      <MentionHoverCard
+        hover={hover}
+        cardRef={hoverCardRef}
+        storyId={activeStory?.id}
+        onUnlink={(type, name) => {
+          // Back in the prose, so ⌘Z puts the link back straight away.
+          if (editor && unlinkMentions(editor, type, name)) editor.commands.focus();
+        }}
+      />
       <SlashPicker slash={slash} />
       <MentionDropdown mention={mention} />
 

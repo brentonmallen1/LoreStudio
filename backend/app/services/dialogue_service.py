@@ -23,7 +23,7 @@ from ..models.character import Character
 from ..models.dialogue import DialogueBlock
 from ..models.story import Story
 from ..models.structure import StructureNode
-from .codex.presence import name_forms
+from .codex.presence import known_as, name_forms
 from .text_utils import extract_em_blocks as _extract_em_blocks
 from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
@@ -339,10 +339,10 @@ def _speaker_resolver(characters: list[Character]) -> Callable[[str], Character 
     presence by — a first name, either half of "The Visitor (Calder)" — when exactly one
     character answers to it: a shared first name names nobody.
     """
-    by_name = {c.name.lower(): c for c in characters if c.name}
+    by_name = {" ".join(n.split()).lower(): c for c in characters for n in known_as(c) if n.strip()}
     by_form: dict[str, list[Character]] = defaultdict(list)
     for c in characters:
-        for form in name_forms(c.name or ""):
+        for form in {f for n in known_as(c) for f in name_forms(n)}:
             by_form[form.lower()].append(c)
 
     def resolve(written: str) -> Character | None:
@@ -363,7 +363,7 @@ def _plan(content: str, characters: list[Character], pov_char: Character | None)
         char = resolve(written)
         return char.name if char else written
 
-    forms = [form for c in characters for form in name_forms(c.name or "")]
+    forms = [form for c in characters for n in known_as(c) for form in name_forms(n)]
     speech = extract_dialogue(content, speaker=canonical, names=forms)
     thoughts = extract_thoughts(content)
     if pov_char:

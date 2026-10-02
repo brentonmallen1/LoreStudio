@@ -19,7 +19,7 @@ from ..schemas.location import (
     SceneSettingCreate,
     SceneSettingOut,
 )
-from ..services import change_log
+from ..services import change_log, other_names
 from ..services.color_slots import next_slot
 from ..services.location_merge import CannotMerge, merge_location
 
@@ -148,6 +148,7 @@ def update_location(
 ):
     location = _verify_location_access(location_id, db, current_user)
     data = body.model_dump(exclude_none=True)
+    other_names.settle(location, data, "location", db)
     change_log.record_update(
         db,
         location,

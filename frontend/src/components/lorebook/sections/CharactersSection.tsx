@@ -152,6 +152,7 @@ export default function CharactersSection() {
             dot={slotVar(character.color_slot)}
             slot={{ value: character.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
             badges={badges}
+            alsoCalled={{ names: character.aliases ?? [], onChange: (aliases) => void save({ aliases }) }}
             presence={presenceLine(scenes, total)}
             scenes={scenes}
             onOpenBeside={() => openEntity("character", character.id, character.name)}

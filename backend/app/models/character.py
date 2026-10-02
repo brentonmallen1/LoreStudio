@@ -57,6 +57,9 @@ class Character(Base):
     # Pronouns: he/him, she/her, they/them, or custom
     pronouns: Mapped[str] = mapped_column(String, default="")
 
+    # Other names the prose calls them by ("Tom" for Thomas): mentions of these resolve here.
+    aliases: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+
     # Arc milestones: checkable waypoints for character journey
     arc_milestones: Mapped[list] = mapped_column(JSON, default=list)
 

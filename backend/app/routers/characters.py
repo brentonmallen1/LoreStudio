@@ -33,7 +33,7 @@ from ..schemas.refactoring import (
     PronounRewriteProposal,
     RenamePreviewResponse,
 )
-from ..services import change_log
+from ..services import change_log, other_names
 from ..services.character_journey import (
     build_journey_prompt,
     get_cached_journey,
@@ -82,6 +82,7 @@ def update_character(
 ):
     character = _verify_character_access(character_id, db, current_user)
     data = body.model_dump(exclude_none=True)
+    other_names.settle(character, data, "character", db)
     before, after = change_log.diff_fields(character, data)
     if before:
         change_log.record(
@@ -422,8 +423,11 @@ def apply_character_rename(
     character = _verify_character_access(character_id, db, current_user)
     # Apply prose changes first
     apply_entity_rename("character", body.old_name, body.new_name, body.node_ids, db)
-    # Update character name
-    character.name = body.new_name
+    # Update character name; scenes left out still say the old one, so it stays an alias.
+    data = {"name": body.new_name}
+    other_names.settle(character, data, "character", db)
+    for key, value in data.items():
+        setattr(character, key, value)
     db.commit()
     db.refresh(character)
     return character

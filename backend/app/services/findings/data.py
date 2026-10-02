@@ -9,7 +9,7 @@ from __future__ import annotations
 from ...models.character import Character
 from ...models.structure import StructureNode
 from ...schemas.findings import Finding, FindingAnchor
-from ..codex.presence import name_patterns
+from ..codex.presence import known_as, name_patterns
 from ..mice_validation import validate_thread_nesting
 from ..word_count import get_word_count_status
 from .make import make
@@ -29,7 +29,7 @@ def absent_characters(view: StoryView) -> list[tuple[Character, StructureNode]]:
     if len(written) < RECENT_SCENE_WINDOW:
         return []
     recent = {n.id for n in view.leaves[-RECENT_SCENE_WINDOW:]}
-    patterns = name_patterns({c.id: c.name or "" for c in view.characters})
+    patterns = name_patterns({c.id: known_as(c) for c in view.characters})
     out: list[tuple[Character, StructureNode]] = []
     for c in view.characters:
         if c.role not in SIGNIFICANT_ROLES:
