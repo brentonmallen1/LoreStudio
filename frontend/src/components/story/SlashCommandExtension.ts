@@ -30,8 +30,8 @@ export const SLASH_COMMANDS: SlashCommandDef[] = [
   },
   {
     name: "todo",
-    label: "Add TODO",
-    description: "Mark a TODO at the cursor position",
+    label: "Add a to-do",
+    description: "A to-do in the margin, on the sentence at the cursor",
   },
 ];
 

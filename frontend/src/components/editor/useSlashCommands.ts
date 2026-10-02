@@ -1,31 +1,24 @@
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { notesApi } from "../../api/notes";
-import type { Story, StructureNode } from "../../types";
 import { setSlashCallbacks, setSlashIsOpen, SLASH_COMMANDS } from "../story/SlashCommandExtension";
 
 interface Args {
   editor: Editor | null;
-  activeNode: StructureNode | null;
-  activeStory: Story | null;
   openDialoguePicker: (bottom: number, left: number) => void;
+  /** `/todo`: a to-do in the margin on the sentence at the cursor (doc 15 N1). */
+  addTodo: () => void;
 }
 
 /**
  * The `/` command picker and what its two commands drive: the dialogue speaker
- * picker (`/dialogue`) and the inline to-do input (`/todo`), which adds a to-do
- * on the scene (doc 15).
+ * picker (`/dialogue`) and a margin to-do on the sentence at the cursor (`/todo`).
  */
-export function useSlashCommands({ editor, activeNode, activeStory, openDialoguePicker }: Args) {
+export function useSlashCommands({ editor, openDialoguePicker, addTodo }: Args) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ bottom: 0, left: 0 });
   const [query, setQuery] = useState("");
   const [range, setRange] = useState<{ from: number; to: number } | null>(null);
   const [selIdx, setSelIdx] = useState(0);
-
-  const [todoInputOpen, setTodoInputOpen] = useState(false);
-  const [todoInputPos, setTodoInputPos] = useState({ bottom: 0, left: 0 });
-  const [todoInputText, setTodoInputText] = useState("");
 
   function close() {
     setOpen(false);
@@ -53,9 +46,7 @@ export function useSlashCommands({ editor, activeNode, activeStory, openDialogue
     }
     if (name === "todo") {
       deleteSlashText();
-      setTodoInputText("");
-      setTodoInputPos({ bottom: coords.bottom, left: coords.left });
-      setTodoInputOpen(true);
+      addTodo();
     }
   }
 
@@ -81,29 +72,9 @@ export function useSlashCommands({ editor, activeNode, activeStory, openDialogue
     });
   }, [editor, range, query, selIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function submitTodoInput() {
-    const content = todoInputText.trim();
-    setTodoInputOpen(false);
-    if (!content || !activeNode || !activeStory) return;
-    try {
-      await notesApi.create(activeStory.id, { content, kind: "todo", node_id: activeNode.id });
-    } catch {
-      // the to-do will still be visible in the list if it was created
-    }
-  }
-
   return {
     slash: { open, pos, query, range, selIdx, execute },
-    todoInput: {
-      open: todoInputOpen,
-      pos: todoInputPos,
-      text: todoInputText,
-      setText: setTodoInputText,
-      submit: submitTodoInput,
-      cancel: () => setTodoInputOpen(false),
-    },
   };
 }
 
 export type SlashState = ReturnType<typeof useSlashCommands>["slash"];
-export type TodoInputState = ReturnType<typeof useSlashCommands>["todoInput"];

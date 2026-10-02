@@ -4,7 +4,6 @@ import type { Character, Story, StructureNode } from "../../../types";
 import { nextStep, sceneLeaves } from "../../../lib/planning/methods";
 import { usePlanData } from "../../../lib/planning/usePlanData";
 import { charactersIn } from "../../../lib/planning/whoIsInScene";
-import QuestionsList from "../../plan/QuestionsList";
 import styles from "./StoryPlanPanel.module.css";
 
 interface Props {
@@ -100,16 +99,6 @@ export default function StoryPlanPanel({ node, story, characters }: Props) {
             ))}
           </ul>
         )}
-      </section>
-
-      <section className={styles.section}>
-        <h4 className={styles.heading}>Open questions about this scene</h4>
-        <QuestionsList
-          storyId={story.id}
-          subject={{ node_id: node.id }}
-          compact
-          placeholder="Something undecided here… (Enter)"
-        />
       </section>
 
       <footer className={styles.foot}>

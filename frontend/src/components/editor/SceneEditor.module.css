@@ -995,15 +995,17 @@
 
 /* ── Inline note highlight (mark) ── */
 .editorWrap :global(.ProseMirror .note-anchor) {
-  background: var(--color-note-highlight);
-  border-bottom: 1px solid var(--color-note-marker);
+  /* --note-mark is set per note by NoteMargin's rules (doc 15): a note's words in gold, a
+     question's in blue, a to-do's in green. A mark with no note behind it shows nothing. */
+  background: color-mix(in srgb, var(--note-mark, transparent) 16%, transparent);
+  border-bottom: 1px solid var(--note-mark, transparent);
   border-radius: 2px;
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .editorWrap :global(.ProseMirror .note-anchor:hover) {
-  background: color-mix(in srgb, var(--color-note-marker) 28%, transparent);
+  background: color-mix(in srgb, var(--note-mark, var(--color-note-marker)) 28%, transparent);
 }
 
 /* ── Editorial note highlight ── */
@@ -1019,130 +1021,6 @@
 /* ── Hide editorial notes ── */
 .hideEditorialNotes :global(.note-anchor--editorial) {
   display: none !important;
-}
-
-/* ── Inline notes list (overview panel) ── */
-.inlineNoteList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-top: 0.15rem;
-}
-
-/* ── Note legend ── */
-.noteLegend {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.noteLegendItem {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  color: var(--color-text-subtle);
-}
-
-.noteLegendDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-note-marker);
-  flex-shrink: 0;
-}
-
-.noteLegendDiamond {
-  width: 8px;
-  height: 8px;
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  background: var(--color-editorial-marker);
-  flex-shrink: 0;
-}
-
-.noteLegendToggle {
-  margin-left: auto;
-  font-size: 0.7rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-editorial-border);
-  background: transparent;
-  color: var(--color-editorial);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.noteLegendToggle:hover {
-  background: var(--color-editorial-subtle);
-}
-
-.inlineNoteItem {
-  display: flex;
-  align-items: stretch;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface-2);
-  overflow: hidden;
-}
-
-.inlineNoteItemEditorial {
-  border-color: var(--color-editorial-border);
-  background: var(--color-editorial-surface);
-}
-
-.inlineNoteContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
-  padding: 0.3rem 0.5rem;
-  font-family: inherit;
-  font-size: 0.78rem;
-  text-align: left;
-  border: none;
-  background: transparent;
-  color: var(--color-text);
-  cursor: pointer;
-  min-width: 0;
-  transition: background var(--transition);
-}
-
-.inlineNoteContent:hover {
-  background: color-mix(in srgb, var(--color-note-marker) 10%, transparent);
-}
-
-.inlineNoteAnchor {
-  font-style: italic;
-  color: var(--color-note-marker);
-  font-size: 0.74rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.inlineNoteAnchorEditorial {
-  font-style: italic;
-  color: var(--color-editorial-marker);
-  font-size: 0.74rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.inlineNoteText {
-  color: var(--color-text-muted);
-  font-size: 0.74rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
 }
 
 /* ── @mention inline decorations (applied via ProseMirror DecorationSet) ── */
@@ -1930,88 +1808,6 @@
 
 .dark .editorWrap :global(.ls-search-current) {
   background: rgba(255, 160, 40, 0.45);
-}
-
-/* ── Todo input popup (opened by /todo slash command) ── */
-.todoInputPopup {
-  position: fixed;
-  z-index: 300;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 0.75rem;
-  min-width: 280px;
-  max-width: 340px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.todoInputHint {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-todo);
-  margin: 0;
-}
-
-.todoInputField {
-  width: 100%;
-  padding: 0.45rem 0.6rem;
-  font-size: 0.875rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-bg);
-  color: var(--color-text);
-  outline: none;
-  box-sizing: border-box;
-  font-family: var(--font-ui);
-}
-
-.todoInputField:focus {
-  border-color: var(--color-todo);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-todo) 20%, transparent);
-}
-
-.todoInputActions {
-  display: flex;
-  gap: 0.4rem;
-}
-
-.todoInputSubmit {
-  flex: 1;
-  padding: 0.35rem 0.6rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: var(--color-todo);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm, 4px);
-  cursor: pointer;
-  transition: opacity var(--transition);
-}
-
-.todoInputSubmit:hover {
-  opacity: 0.85;
-}
-.todoInputSubmit:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.todoInputCancel {
-  padding: 0.35rem 0.6rem;
-  font-size: 0.8rem;
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 4px);
-  cursor: pointer;
-  transition: color var(--transition);
-}
-
-.todoInputCancel:hover {
-  color: var(--color-text);
 }
 
 .nlpIcon {

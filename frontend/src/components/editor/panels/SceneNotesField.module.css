@@ -1,0 +1,208 @@
+/* Notes on this scene (doc 15 N1): every kind tied to the scene. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.label {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-section-title);
+}
+
+.toggle {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.add {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kinds {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.kindBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.kindBtn::before,
+.dot {
+  content: "";
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kind-color);
+}
+
+.kindBtn[aria-checked="true"] {
+  border-color: var(--kind-color);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--kind-color) 10%, var(--color-surface));
+}
+
+.kindBtn:focus-visible,
+.input:focus-visible,
+.anchor:focus-visible,
+.remove:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+[data-kind="note"] {
+  --kind-color: var(--note-kind-note);
+}
+
+[data-kind="question"] {
+  --kind-color: var(--note-kind-question);
+}
+
+[data-kind="todo"] {
+  --kind-color: var(--note-kind-todo);
+}
+
+[data-kind="idea"] {
+  --kind-color: var(--note-kind-idea);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.row .dot {
+  margin-top: 0.35rem;
+}
+
+.check {
+  margin: 0.15rem 0 0;
+  accent-color: var(--note-kind-todo);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.kind {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.text {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.row[data-kind="todo"][data-done] .text {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}
+
+.answer {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.answer::before {
+  content: "Answer: ";
+  font-weight: 600;
+}
+
+.anchor {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-family: var(--font-editor);
+  font-size: var(--text-xs);
+  font-style: italic;
+  text-align: left;
+  cursor: pointer;
+}
+
+.anchor:hover {
+  color: var(--color-text);
+}
+
+.remove {
+  display: inline-flex;
+  padding: 0.2rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: var(--color-danger);
+  background: var(--color-surface-2);
+}

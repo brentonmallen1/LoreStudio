@@ -84,8 +84,12 @@ export interface StoryStructureTemplate {
 /** A margin note as the margin draws it: a note row (types/notes) tied to a passage. */
 export interface InlineNote {
   id: string;
+  /** What it is (doc 15): a note, a question to answer, a to-do to tick. */
+  kind: import("./notes").NoteKind;
   anchor: string;
   note: string;
+  answer: string;
+  done: boolean;
   position: number;
   type?: "author" | "editorial";
   category?: string; // e.g. "fresh-eyes", "priority", "voice", "intent-gap"

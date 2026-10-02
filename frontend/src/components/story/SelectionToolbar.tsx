@@ -1,14 +1,16 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Compass, Feather, MessageSquare, Quote } from "lucide-react";
+import { CircleHelp, Compass, Feather, ListTodo, MessageSquare, Quote } from "lucide-react";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
+import type { NoteKind } from "../../types/notes";
 import styles from "./SelectionToolbar.module.css";
 
 interface Props {
   /** DOMRect of the current text selection, or null if nothing is selected */
   selectionRect: DOMRect | null;
   onOpenCoach: () => void;
-  onAddNote: () => void;
+  /** A note, question or to-do on the selected words (doc 15). */
+  onAddNote: (kind: NoteKind) => void;
   onAttributeDialogue?: () => void;
   onAnalyzeShowTell?: () => void;
   onAnalyzeAudience?: () => void;
@@ -71,11 +73,19 @@ export default function SelectionToolbar({
       )}
       <button
         className={styles.btn}
-        onClick={onAddNote}
+        onClick={() => onAddNote("note")}
         title={`Add a note (${formatCombo(SHORTCUTS.inlineNote.combo)})`}
       >
         <MessageSquare size={12} />
         Note
+      </button>
+      <button className={styles.btn} onClick={() => onAddNote("question")} title="Something undecided here">
+        <CircleHelp size={12} />
+        Question
+      </button>
+      <button className={styles.btn} onClick={() => onAddNote("todo")} title="Something to do here">
+        <ListTodo size={12} />
+        To-do
       </button>
       {showAI && onAnalyzeShowTell && (
         <>

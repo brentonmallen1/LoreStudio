@@ -12,7 +12,7 @@ import { flattenStructure } from "../segmentMeta";
 import SceneSettingsField from "./SceneSettingsField";
 import WhoIsHereField from "./WhoIsHereField";
 import SceneSummaryField from "./SceneSummaryField";
-import InlineNotesField from "./InlineNotesField";
+import SceneNotesField from "./SceneNotesField";
 import SceneLinksField from "./SceneLinksField";
 import LinkedTwistsField from "./LinkedTwistsField";
 import ChecksField from "./ChecksField";
@@ -232,7 +232,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
       <SceneSettingsField activeNode={activeNode} locations={locations} />
       {studio && activeStory && <WhoIsHereField activeNode={activeNode} storyId={activeStory.id} />}
       {studio && <SceneSummaryField activeNode={activeNode} setActiveNode={setActiveNode} />}
-      {notes && <InlineNotesField notes={notes} />}
+      {notes && <SceneNotesField notes={notes} />}
       <QuotesField activeNode={activeNode} />
       {activeStory && (
         <SceneLinksField

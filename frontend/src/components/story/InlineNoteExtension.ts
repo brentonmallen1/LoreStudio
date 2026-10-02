@@ -5,17 +5,21 @@ import { SHORTCUTS, editorKey } from "../../lib/keyboard/shortcuts";
 export interface InlineNoteCallbacks {
   onNoteActivate: (noteId: string, rect: DOMRect) => void;
   onAddNote: (from: number, to: number, anchor: string) => void;
+  /** The add-a-note shortcut: on the selection, or the sentence at the cursor (doc 15). */
+  onShortcut: () => void;
 }
 
 // Module-level callbacks — safe since only one SceneEditor exists at a time.
 const _cb: InlineNoteCallbacks = {
   onNoteActivate: () => {},
   onAddNote: () => {},
+  onShortcut: () => {},
 };
 
 export function setInlineNoteCallbacks(cb: Partial<InlineNoteCallbacks>) {
   if (cb.onNoteActivate !== undefined) _cb.onNoteActivate = cb.onNoteActivate;
   if (cb.onAddNote !== undefined) _cb.onAddNote = cb.onAddNote;
+  if (cb.onShortcut !== undefined) _cb.onShortcut = cb.onShortcut;
 }
 
 const clickKey = new PluginKey("noteClick");
@@ -51,13 +55,8 @@ export const InlineNoteExtension = Mark.create({
   addKeyboardShortcuts() {
     return {
       [editorKey(SHORTCUTS.inlineNote.combo)]: () => {
-        const { from, to, empty } = this.editor.state.selection;
-        if (!empty) {
-          const anchor = this.editor.state.doc.textBetween(from, to);
-          _cb.onAddNote(from, to, anchor);
-          return true;
-        }
-        return false;
+        _cb.onShortcut();
+        return true;
       },
     };
   },

@@ -37,7 +37,7 @@ import { useSlashCommands } from "./useSlashCommands";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import MentionDropdown from "./MentionDropdown";
-import { SlashPicker, TodoInputPopup } from "./SlashPicker";
+import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
 import MentionHoverCard from "./MentionHoverCard";
 import MentionGutter from "./MentionGutter";
@@ -129,13 +129,12 @@ export default function SceneEditor() {
   });
 
   const mention = useMentionDropdown({ editor, activeStory, characters, setCharacters });
-  const { slash, todoInput } = useSlashCommands({
-    editor,
-    activeNode,
-    activeStory,
-    openDialoguePicker: mention.openDialoguePicker,
-  });
   const notes = useInlineNotes({ editor, activeNode, setActiveNode, popoverRef: notePopoverRef });
+  const { slash } = useSlashCommands({
+    editor,
+    openDialoguePicker: mention.openDialoguePicker,
+    addTodo: () => notes.triggerAdd("todo"),
+  });
   const hover = useMentionHoverCard(
     scrollAreaRef,
     hoverCardRef,
@@ -357,7 +356,7 @@ export default function SceneEditor() {
       <SelectionToolbar
         selectionRect={selectionRect}
         onOpenCoach={() => openSelectionSession("writing-coach", true)}
-        onAddNote={notes.triggerAdd}
+        onAddNote={(kind) => notes.triggerAdd(kind)}
         onAttributeDialogue={mention.triggerAttributeDialogue}
         onAnalyzeShowTell={() => openSelectionSession("show-dont-tell")}
         onAnalyzeAudience={() => openSelectionSession("audience-adherence")}
@@ -367,7 +366,6 @@ export default function SceneEditor() {
 
       <MentionHoverCard hover={hover} cardRef={hoverCardRef} storyId={activeStory?.id} />
       <SlashPicker slash={slash} />
-      <TodoInputPopup todo={todoInput} />
       <MentionDropdown mention={mention} />
 
       {imagePickerOpen && activeStory && (

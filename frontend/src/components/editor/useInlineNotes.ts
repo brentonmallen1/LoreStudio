@@ -2,13 +2,22 @@ import { useCallback, useEffect, useMemo, useState, type RefObject } from "react
 import type { Editor } from "@tiptap/react";
 import { notesApi } from "../../api/notes";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { sentenceAround } from "../../lib/notes/sentence";
 import type { InlineNote, StructureNode } from "../../types";
-import type { Note } from "../../types/notes";
+import type { Note, NoteKind, NoteUpdate } from "../../types/notes";
 import { setInlineNoteCallbacks } from "../story/InlineNoteExtension";
 
 export type NotePopover =
   | { open: false }
-  | { open: true; isNew: true; from: number; to: number; anchor: string; rect: DOMRect | null }
+  | {
+      open: true;
+      isNew: true;
+      kind: NoteKind;
+      from: number;
+      to: number;
+      anchor: string;
+      rect: DOMRect | null;
+    }
   | { open: true; isNew: false; noteId: string; rect: DOMRect | null; isEditing: boolean };
 
 interface Args {
@@ -23,8 +32,11 @@ function toInline(n: Note): InlineNote {
   const editorial = n.source?.startsWith("editorial-");
   return {
     id: n.id,
+    kind: n.kind,
     anchor: n.anchor ?? "",
     note: n.content,
+    answer: n.answer,
+    done: n.done,
     position: n.position,
     type: editorial ? "editorial" : "author",
     category: n.category ?? undefined,
@@ -32,10 +44,33 @@ function toInline(n: Note): InlineNote {
   };
 }
 
-/** Inline notes: the anchored marks in the prose and the list in the overview panel. */
+/** The document positions of the sentence the cursor is in (`/todo` with nothing selected). */
+function sentenceAtCursor(editor: Editor): { from: number; to: number } | null {
+  const { $from } = editor.state.selection;
+  const block = $from.parent;
+  if (!block.isTextblock || !block.textContent.trim()) return null;
+  const [s, e] = sentenceAround(block.textContent, $from.parentOffset);
+  // Character offsets to positions: walk the block's text, so a mention or an image inside
+  // it does not shift the range.
+  let seen = 0;
+  let from: number | null = null;
+  let to: number | null = null;
+  block.descendants((node, pos) => {
+    if (!node.isText || !node.text) return;
+    const start = $from.start() + pos;
+    if (from === null && s < seen + node.text.length) from = start + (s - seen);
+    if (to === null && e <= seen + node.text.length) to = start + (e - seen);
+    seen += node.text.length;
+  });
+  return from !== null && to !== null && from < to ? { from, to } : null;
+}
+
+/**
+ * The scene's notes (doc 15): every kind tied to the scene, and the ones tied to a passage,
+ * whose mark in the prose carries the note's id. Edits show at once; the server's answer
+ * replaces them.
+ */
 export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
-  // The scene's notes are rows (doc 15); the prose's mark carries each row's id. Edits show
-  // at once and the server's answer replaces them.
   const nodeId = activeNode?.id;
   const storyId = activeNode?.story_id;
   const [loaded, setLoaded] = useState<{ nodeId: string | undefined; rows: Note[] }>({
@@ -43,12 +78,11 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     rows: [],
   });
   const rows = useMemo(() => (loaded.nodeId === nodeId ? loaded.rows : []), [loaded, nodeId]);
-  const notes: InlineNote[] = useMemo(() => rows.map(toInline), [rows]);
+  // The margin's notes: those tied to a passage. The scene's list shows them all.
+  const notes: InlineNote[] = useMemo(() => rows.filter((n) => n.anchor).map(toInline), [rows]);
   const load = useCallback(() => {
     if (!nodeId || !storyId) return;
-    return notesApi
-      .list(storyId, { node_id: nodeId, kind: "note" })
-      .then((list) => setLoaded({ nodeId, rows: list }));
+    return notesApi.list(storyId, { node_id: nodeId }).then((list) => setLoaded({ nodeId, rows: list }));
   }, [nodeId, storyId]);
   useEffect(() => {
     load()?.catch(() => {});
@@ -79,10 +113,10 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   );
 
   const beginAdd = useCallback(
-    (from: number, to: number, anchor: string) => {
+    (from: number, to: number, anchor: string, kind: NoteKind = "note") => {
       const sel = window.getSelection();
       const rect = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).getBoundingClientRect() : null;
-      setPopover({ open: true, isNew: true, from, to, anchor, rect });
+      setPopover({ open: true, isNew: true, kind, from, to, anchor, rect });
       setInputText("");
     },
     [setPopover],
@@ -104,14 +138,14 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
 
   async function save() {
     if (!activeNode || !storyId || !editor || !popover.open || !popover.isNew) return;
-    const { from, to, anchor } = popover;
+    const { from, to, anchor, kind } = popover;
     const id = crypto.randomUUID();
     editor.chain().setTextSelection({ from, to }).setMark("inlineNote", { noteId: id }).run();
     setPopover({ open: false });
     try {
       const made = await notesApi.create(storyId, {
         id,
-        kind: "note",
+        kind,
         content: inputText.trim(),
         node_id: activeNode.id,
         anchor,
@@ -120,6 +154,13 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     } catch {
       /* the mark stays; the next load shows whether the note was kept */
     }
+  }
+
+  /** A note on the scene as a whole, from its tab in the side panel: no passage, no mark. */
+  async function addToScene(kind: NoteKind, content: string) {
+    if (!activeNode || !storyId || !content.trim()) return;
+    const made = await notesApi.create(storyId, { kind, content: content.trim(), node_id: activeNode.id });
+    setRows([...rows, made]);
   }
 
   function markRange(noteId: string): { from: number; to: number } | null {
@@ -137,12 +178,18 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   }
 
   async function remove(noteId: string) {
-    if (!activeNode || !editor) return;
-    const range = markRange(noteId);
-    if (range) editor.chain().setTextSelection(range).unsetMark("inlineNote").run();
+    if (!activeNode) return;
+    const range = editor ? markRange(noteId) : null;
+    if (editor && range) editor.chain().setTextSelection(range).unsetMark("inlineNote").run();
     setPopover({ open: false });
     setRows(rows.filter((n) => n.id !== noteId));
     await notesApi.remove(noteId).catch(() => load());
+  }
+
+  /** Any change to a note: its text, its kind, an answer, a tick. */
+  async function change(noteId: string, data: NoteUpdate) {
+    setRows(rows.map((n) => (n.id === noteId ? { ...n, ...data } : n)));
+    await notesApi.update(noteId, data).catch(() => load());
   }
 
   async function update(noteId: string, newText: string) {
@@ -154,8 +201,7 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
       rect: popover.open ? popover.rect : null,
       isEditing: false,
     });
-    setRows(rows.map((n) => (n.id === noteId ? { ...n, content: newText } : n)));
-    await notesApi.update(noteId, { content: newText }).catch(() => load());
+    await change(noteId, { content: newText });
   }
 
   function scrollTo(noteId: string) {
@@ -170,15 +216,22 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     }, 60);
   }
 
-  function triggerAdd() {
+  /** Add a note of a kind on the selection; with nothing selected, on the sentence at the cursor. */
+  function triggerAdd(kind: NoteKind = "note") {
     if (!editor) return;
     const { from, to, empty } = editor.state.selection;
-    if (!empty) beginAdd(from, to, editor.state.doc.textBetween(from, to));
-    else editor.commands.focus();
+    const range = empty ? sentenceAtCursor(editor) : { from, to };
+    if (!range) return void editor.commands.focus();
+    if (empty) editor.commands.setTextSelection(range);
+    beginAdd(range.from, range.to, editor.state.doc.textBetween(range.from, range.to), kind);
   }
+
+  // The shortcut reaches the latest triggerAdd (it closes over this render's rows).
+  useEffect(() => setInlineNoteCallbacks({ onShortcut: () => triggerAdd("note") }));
 
   return {
     notes,
+    sceneNotes: rows,
     hideEditorial,
     setHideEditorial,
     popover,
@@ -188,7 +241,9 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     editText,
     setEditText,
     save,
+    addToScene,
     remove,
+    change,
     update,
     scrollTo,
     triggerAdd,

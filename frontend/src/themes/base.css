@@ -29,7 +29,13 @@
   --mice-idea: var(--segment-chapter);
   --mice-character: var(--color-ai);
   --mice-event: var(--segment-act);
-  /* ── Todo gutter marker ── */
+  /* ── Note kinds (doc 15): the dot and the underline that say what a note is ── */
+  --note-kind-note: var(--color-note-marker);
+  --note-kind-question: var(--segment-scene);
+  --note-kind-todo: var(--color-success);
+  --note-kind-idea: var(--segment-act);
+  /* A passage's mark colour; NoteMargin sets it per note, so a mark with no note shows nothing. */
+  --note-mark: transparent;
   /* ── Scene Planner panel accent (teal) ── */
   /* Was undefined, so 40 rules fell through to a hardcoded #0d9488 that ignored the
      theme. Riding on --color-nlp keeps the teal and makes it follow the palette. */
