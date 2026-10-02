@@ -13,7 +13,11 @@ A note can be tied to a passage of prose, a scene, a character or a place, or to
 
 ## In the margin
 
-Select words in the editor and choose **Note**, **Question** or **To-do** in the selection toolbar, or press **{{key:inlineNote}}** for a note. Type `/todo` for a to-do on the sentence at the cursor. The words are marked in the note's colour and the note sits in the margin to the left of the prose, level with them. Click the words or the note to open it: answer a question, tick a to-do, edit, delete, or change what kind it is. Esc closes it. When the window is too narrow for the margin, each note is a dot beside its line. **Notes** in the top bar shows or hides the margin.
+Select words in the editor and choose **Note**, **Question** or **To-do** in the selection toolbar, or press **{{key:inlineNote}}** for a note. Type `/todo` for a to-do on the sentence at the cursor. The words are marked in the note's colour and the note sits in the margin to the left of the prose, level with them. Click the words or the note to open it: answer a question, tick a to-do, edit, delete, or change what kind it is. Esc closes it. **{{key:nextNote}}** and **{{key:prevNote}}** move from one note to the next.
+
+**Notes** in the top bar chooses how they show: **beside the text**, **as dots** (a dot in the note's colour beside its line; point at it to read the note, click to open it), or **hidden** (no dots and no highlights, for reading straight through). When the window is too narrow for cards, notes show as dots.
+
+**Resolve** a note when you're done with it: it leaves the margin and its highlight goes, and it stays on the Notes page under _Resolved_, where you can reopen it. Ticking a to-do or answering a question resolves it too. Any note can also be deleted; **Undo** in the message that follows brings it back.
 
 The side panel's _This scene_ tab lists every note on the scene, and adds one to the scene as a whole. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
 

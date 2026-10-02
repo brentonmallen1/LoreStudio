@@ -100,6 +100,22 @@ export const SHORTCUTS = {
     scope: "editor",
     modes: BOTH,
   },
+  nextNote: {
+    combo: "mod+alt+]",
+    label: "Next note in the scene",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "editor-next-note",
+  },
+  prevNote: {
+    combo: "mod+alt+[",
+    label: "Previous note in the scene",
+    group: "Editor",
+    scope: "editor",
+    modes: BOTH,
+    commandId: "editor-prev-note",
+  },
   attributeDialogue: {
     combo: "mod+shift+d",
     label: "Attribute selected dialogue",
@@ -151,6 +167,8 @@ const KEY_CODES: Record<string, string> = Object.fromEntries([
   [".", "Period"],
   ["/", "Slash"],
   ["\\", "Backslash"],
+  ["[", "BracketLeft"],
+  ["]", "BracketRight"],
 ]);
 
 /** The same combo in TipTap's keymap spelling: "mod+alt+m" → "Mod-Alt-m". */

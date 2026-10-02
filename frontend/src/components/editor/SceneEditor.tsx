@@ -251,7 +251,7 @@ export default function SceneEditor() {
         wordCount={autosave.wordCount}
         autosave={autosave}
         notesView={notesView}
-        noteCount={notes.notes.length}
+        noteCount={notes.sceneNotes.filter((n) => !n.done).length}
         onNotesView={(v) => setNotesView(saveNotesView(v))}
         dialogueIsolation={dialogueIsolation}
         onToggleDialogue={() => setDialogueIsolation((v) => !v)}

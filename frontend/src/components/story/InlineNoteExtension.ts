@@ -7,6 +7,8 @@ export interface InlineNoteCallbacks {
   onAddNote: (from: number, to: number, anchor: string) => void;
   /** The add-a-note shortcut: on the selection, or the sentence at the cursor (doc 15). */
   onShortcut: () => void;
+  /** Open the next (1) or previous (-1) note in the scene. */
+  onStep: (dir: 1 | -1) => void;
 }
 
 // Module-level callbacks — safe since only one SceneEditor exists at a time.
@@ -14,12 +16,14 @@ const _cb: InlineNoteCallbacks = {
   onNoteActivate: () => {},
   onAddNote: () => {},
   onShortcut: () => {},
+  onStep: () => {},
 };
 
 export function setInlineNoteCallbacks(cb: Partial<InlineNoteCallbacks>) {
   if (cb.onNoteActivate !== undefined) _cb.onNoteActivate = cb.onNoteActivate;
   if (cb.onAddNote !== undefined) _cb.onAddNote = cb.onAddNote;
   if (cb.onShortcut !== undefined) _cb.onShortcut = cb.onShortcut;
+  if (cb.onStep !== undefined) _cb.onStep = cb.onStep;
 }
 
 const clickKey = new PluginKey("noteClick");
@@ -56,6 +60,14 @@ export const InlineNoteExtension = Mark.create({
     return {
       [editorKey(SHORTCUTS.inlineNote.combo)]: () => {
         _cb.onShortcut();
+        return true;
+      },
+      [editorKey(SHORTCUTS.nextNote.combo)]: () => {
+        _cb.onStep(1);
+        return true;
+      },
+      [editorKey(SHORTCUTS.prevNote.combo)]: () => {
+        _cb.onStep(-1);
         return true;
       },
     };

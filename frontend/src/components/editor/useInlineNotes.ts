@@ -291,7 +291,28 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   }, [wanted, editor, rows]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The shortcut reaches the latest triggerAdd (it closes over this render's rows).
-  useEffect(() => setInlineNoteCallbacks({ onShortcut: () => triggerAdd("note") }));
+  useEffect(() => setInlineNoteCallbacks({ onShortcut: () => triggerAdd("note"), onStep: step }));
+
+  /** Open the next or previous note in the margin, in the order they sit in the prose. */
+  function step(dir: 1 | -1) {
+    const placed = notes
+      .map((n) => ({ id: n.id, at: markRange(n.id)?.from }))
+      .filter((n): n is { id: string; at: number } => n.at !== undefined)
+      .sort((a, b) => a.at - b.at);
+    if (!placed.length || !editor) return;
+    const current = popover.open && !popover.isNew ? placed.findIndex((n) => n.id === popover.noteId) : -1;
+    const here = editor.state.selection.from;
+    const i =
+      current >= 0
+        ? (current + dir + placed.length) % placed.length
+        : dir === 1
+          ? Math.max(
+              0,
+              placed.findIndex((n) => n.at > here),
+            )
+          : (placed.filter((n) => n.at < here).length - 1 + placed.length) % placed.length;
+    scrollTo(placed[i].id);
+  }
 
   return {
     notes,
@@ -315,6 +336,7 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     update,
     scrollTo,
     triggerAdd,
+    step,
   };
 }
 

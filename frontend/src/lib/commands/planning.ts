@@ -7,6 +7,8 @@ import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
 import { usePanelStore } from "../../stores/panelStore";
+import { useEditorBridge } from "../../stores/editorBridge";
+import { SHORTCUTS } from "../keyboard/shortcuts";
 
 /** Show the scene's notes in the side panel, going to the Write page first if need be. */
 function showSceneTab() {
@@ -45,6 +47,22 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: showSceneTab,
 });
+
+for (const [id, dir, key] of [
+  ["editor-next-note", 1, "nextNote"],
+  ["editor-prev-note", -1, "prevNote"],
+] as const) {
+  commandRegistry.register({
+    id,
+    label: SHORTCUTS[key].label,
+    keywords: ["note", "margin", "question", "to-do", dir === 1 ? "next" : "previous"],
+    icon: StickyNote,
+    group: "Editor",
+    shortcut: SHORTCUTS[key].combo,
+    when: () => !!useEditorBridge.getState().notes?.notes.length,
+    action: () => useEditorBridge.getState().notes?.step(dir),
+  });
+}
 
 commandRegistry.register({
   id: "editor-show-story-plan",

@@ -14,6 +14,8 @@ import { sectionPath } from "../../lib/routes";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Note, NoteKind } from "../../types/notes";
 import PageHeader from "../layout/PageHeader";
+import { notesApi } from "../../api/notes";
+import { toast } from "../../stores/toastStore";
 import NoteComposer from "./NoteComposer";
 import NoteItem from "./NoteItem";
 import { useStoryNotes } from "./useStoryNotes";
@@ -44,6 +46,7 @@ export default function NotesBoard({ compact = false }: { compact?: boolean }) {
   const navigate = useNavigate();
   const [kind, setKind] = useState<NoteKind | null>(null);
   const [status, setStatus] = useState<NoteStatus>("open");
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const ctx = useMemo(() => {
     const flat = flattenStructure(structure);
@@ -68,6 +71,18 @@ export default function NotesBoard({ compact = false }: { compact?: boolean }) {
   if (compact && activeNode) {
     const here = groups.find((g) => g.key === activeNode.id);
     if (here) groups = [{ ...here, meta: "This scene" }, ...groups.filter((g) => g !== here)];
+  }
+
+  const ticked = all.filter((n) => n.kind === "todo" && n.done).length;
+  async function clearTicked() {
+    setConfirmClear(false);
+    try {
+      await notesApi.clearDone(storyId!);
+      toast.success(`Deleted ${ticked} ticked to-do${ticked === 1 ? "" : "s"}.`);
+    } catch {
+      toast.error("The ticked to-dos were not deleted.");
+    }
+    void notes.reload();
   }
 
   function openNote(n: Note, group: NoteGroup) {
@@ -126,6 +141,29 @@ export default function NotesBoard({ compact = false }: { compact?: boolean }) {
         initial="idea"
         onAdd={(k, content) => void notes.add({ kind: k, content })}
       />
+
+      {status !== "open" && ticked > 0 && (
+        <div className={styles.clear}>
+          {confirmClear ? (
+            <>
+              <span>
+                Delete {ticked} ticked to-do{ticked === 1 ? "" : "s"}? Undo in the header brings them back one
+                at a time.
+              </span>
+              <button type="button" className={styles.dangerBtn} onClick={() => void clearTicked()}>
+                Delete them
+              </button>
+              <button type="button" className={styles.textBtn} onClick={() => setConfirmClear(false)}>
+                Keep them
+              </button>
+            </>
+          ) : (
+            <button type="button" className={styles.textBtn} onClick={() => setConfirmClear(true)}>
+              Delete ticked to-dos ({ticked})
+            </button>
+          )}
+        </div>
+      )}
 
       {notes.notes === null ? null : all.length === 0 ? (
         <p className={styles.empty}>
