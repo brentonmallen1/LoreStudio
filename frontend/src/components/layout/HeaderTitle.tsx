@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LibraryBig } from "lucide-react";
 import { originLabel } from "../../lib/overlay";
 import { sceneToResume } from "../../lib/resumeScene";
 import { useStoryStore } from "../../stores/storyStore";
@@ -42,7 +42,7 @@ export default function HeaderTitle() {
   return (
     <div className={styles.storyTitleRow}>
       <button className={styles.backToStories} onClick={() => navigate("/")} title="All stories">
-        <ArrowLeft size={14} />
+        <LibraryBig size={15} aria-hidden />
         <span className={styles.srOnly}>All stories</span>
       </button>
       <span className={styles.storyTitle} title={activeStory.title}>

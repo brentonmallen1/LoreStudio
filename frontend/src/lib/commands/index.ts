@@ -18,7 +18,7 @@ import {
   Search,
   Quote,
   BookMarked,
-  SquareLibrary,
+  LibraryBig,
   PenLine,
   Download,
   PanelRight,
@@ -149,7 +149,7 @@ commandRegistry.register({
   id: "nav-dashboard",
   label: "All stories",
   keywords: ["dashboard", "home", "stories", "library"],
-  icon: SquareLibrary,
+  icon: LibraryBig,
   group: "Navigation",
   action: () => navigateTo("/"),
 });
