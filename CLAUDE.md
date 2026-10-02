@@ -119,6 +119,9 @@ components/       — Feature components organized by domain
   numbers/        — The Numbers page: words, pacing, thread lanes, who is on the page, dialogue,
                     prose (GET /stories/{id}/numbers; the per-scene charts come from /scene-cast)
   compendium/     — Research entries and the Everything index (lib/compendium); media/ has images
+  notes/          — Notes of every kind (note, question, to-do, idea): NotesBoard (Compendium › Notes and
+                    the panel tab), NoteItem, SubjectNotes on sheets; the margin is editor/NoteMargin
+  freewrite/      — The Freewrite page and editor, the "Make it" bar (makeFrom), the made mark
   common/         — Modal (focus trap), PopoverMenu, Toaster (stores/toastStore: report failures
                     with toast.error, never window.alert)
   characters/     — Character parts the Lorebook sheet uses: dialogue, arc, relationships, graph

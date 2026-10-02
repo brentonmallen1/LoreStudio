@@ -15,15 +15,13 @@ Every step writes into the story itself, not into the method. The one-sentence s
 
 ## Start from an idea
 
-Not ready for questions? The **Ideas** tab takes everything you know, in any order. Paste a page of notes and it becomes one piece per paragraph (or per line); **{{key:submitText}}** adds what you've typed.
-
-Then sort it. Each piece can be filed as a **character** (new, or a note on one you have), a **place**, a planned **scene**, an open **question**, a **theme**, or the **logline**, **premise** or **central conflict**. Filed pieces move to a folded "Filed" list that links to what they became; the pile gets shorter as the story takes shape. Names the story doesn't know yet are suggested as you go (plain text analysis, no AI).
+Not ready for questions? The **Freewrite** page takes everything you know, in any order, under a heading for each day. When a sentence turns out to be something, select it and make it a **character**, a **place**, a planned **scene**, a **question**, a **theme**, or part of the **logline**, **premise** or **central conflict**. The words stay on the page, dotted, linked to what they became.
 
 New Story asks how you want to begin: **Just write**, **Start from an idea**, or **Plan it out**.
 
 ## Open questions
 
-Write down what you haven't decided yet instead of holding it in your head. Questions live beside the ideas, on a character's sheet (about them) and in the editor's Story plan tab (about the scene). **Answer** one to settle it; the answer stays with it, so you can see later why you decided.
+Write down what you haven't decided yet instead of holding it in your head: a question is a kind of note. Ask it on a passage, a scene, a character's sheet or nowhere in particular; **Compendium › Notes** lists them all. **Answer** one to settle it; the answer stays with it, so you can see later why you decided.
 
 ## The scene list becomes the book
 

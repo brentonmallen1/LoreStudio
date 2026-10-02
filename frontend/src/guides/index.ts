@@ -2,7 +2,7 @@ import gettingStarted from "./getting-started.md?raw";
 import structure from "./structure.md?raw";
 import planning from "./planning.md?raw";
 import dialogue from "./dialogue-and-quotes.md?raw";
-import notes from "./notes-and-todos.md?raw";
+import notes from "./notes-and-freewrite.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
@@ -54,11 +54,11 @@ const GUIDE_LIST: Guide[] = [
     keywords: ["speaker", "attribution", "curly", "straight"],
   },
   {
-    id: "notes-and-todos",
-    title: "Notes, TODOs and the scratch pad",
+    id: "notes-and-freewrite",
+    title: "Notes, Freewrite and the scratch pad",
     body: notes,
     modes: BOTH,
-    keywords: ["inline note", "todo", "scratch"],
+    keywords: ["inline note", "margin", "question", "todo", "to-do", "idea", "freewrite", "scratch"],
   },
   {
     id: "snapshots-and-backups",
