@@ -76,3 +76,24 @@
     animation: none;
   }
 }
+
+/* "Undo" after something that can be taken back. */
+.action {
+  padding: 0.15rem 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: var(--color-surface-2);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}

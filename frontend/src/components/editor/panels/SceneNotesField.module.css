@@ -236,3 +236,9 @@
 .toggle {
   align-self: flex-start;
 }
+
+.lost {
+  font-size: var(--text-xs);
+  font-style: italic;
+  color: var(--color-text-muted);
+}

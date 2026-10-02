@@ -11,11 +11,13 @@ export interface Toast {
   id: number;
   text: string;
   tone: ToastTone;
+  /** One thing to do about it: "Undo". */
+  action?: { label: string; run: () => void };
 }
 
 interface ToastState {
   toasts: Toast[];
-  show: (text: string, tone?: ToastTone, ms?: number) => void;
+  show: (text: string, tone?: ToastTone, ms?: number, action?: Toast["action"]) => void;
   dismiss: (id: number) => void;
 }
 
@@ -24,12 +26,12 @@ const timers = new Map<number, ReturnType<typeof setTimeout>>();
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  show: (text, tone = "info", ms = tone === "error" ? 6000 : 3500) => {
+  show: (text, tone = "info", ms = tone === "error" ? 6000 : 3500, action) => {
     const id = next++;
     // The same message twice in a row is one message, shown again.
     const repeat = get().toasts.find((t) => t.text === text && t.tone === tone);
     if (repeat) get().dismiss(repeat.id);
-    set((s) => ({ toasts: [...s.toasts.slice(-3), { id, text, tone }] }));
+    set((s) => ({ toasts: [...s.toasts.slice(-3), { id, text, tone, action }] }));
     timers.set(
       id,
       setTimeout(() => get().dismiss(id), ms),
@@ -47,4 +49,7 @@ export const toast = {
   info: (text: string) => useToastStore.getState().show(text, "info"),
   success: (text: string) => useToastStore.getState().show(text, "success"),
   error: (text: string) => useToastStore.getState().show(text, "error"),
+  /** Something done that can be taken back for a few seconds: "Note deleted · Undo". */
+  undoable: (text: string, undo: () => void) =>
+    useToastStore.getState().show(text, "info", 7000, { label: "Undo", run: undo }),
 };

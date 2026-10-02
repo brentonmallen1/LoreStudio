@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { notesApi } from "../../api/notes";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { toast } from "../../stores/toastStore";
+import { KIND_LABEL } from "./kinds";
 import type { Note, NoteCreate, NoteFilter, NoteUpdate } from "../../types/notes";
 
 /** A story's notes (doc 15), optionally only those about one thing, kept fresh across undo. */
@@ -39,11 +40,22 @@ export function useStoryNotes(storyId: string | undefined, filter: NoteFilter = 
   }
 
   async function remove(id: string) {
+    const gone = notes?.find((n) => n.id === id);
     setNotes((prev) => prev?.filter((n) => n.id !== id) ?? prev);
-    await notesApi.remove(id).catch(() => {
+    try {
+      await notesApi.remove(id);
+    } catch {
       toast.error("The note was not deleted.");
       void load();
-    });
+      return;
+    }
+    if (gone)
+      toast.undoable(`${KIND_LABEL[gone.kind]} deleted.`, () =>
+        notesApi.restore(gone).then(
+          (back) => setNotes((prev) => [...(prev ?? []), back]),
+          () => toast.error("It could not be brought back."),
+        ),
+      );
   }
 
   return { notes, add, change, remove, reload: load };

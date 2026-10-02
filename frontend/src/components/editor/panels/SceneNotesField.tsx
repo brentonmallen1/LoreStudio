@@ -126,6 +126,9 @@ function Row({ note, notes }: { note: Note; notes: InlineNotesState }) {
             “{note.anchor.length > 48 ? `${note.anchor.slice(0, 48)}…` : note.anchor}”
           </button>
         )}
+        {notes.lostIds.includes(note.id) && (
+          <span className={styles.lost}>Those words have changed, so it is not in the margin.</span>
+        )}
       </span>
       {note.kind !== "todo" && (
         <button

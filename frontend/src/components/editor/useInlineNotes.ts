@@ -3,7 +3,10 @@ import type { Editor } from "@tiptap/react";
 import { useSearchParams } from "react-router-dom";
 import { notesApi } from "../../api/notes";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { findTextRange } from "../../lib/notes/anchor";
 import { sentenceAround } from "../../lib/notes/sentence";
+import { toast } from "../../stores/toastStore";
+import { KIND_LABEL } from "../notes/kinds";
 import type { InlineNote, StructureNode } from "../../types";
 import type { Note, NoteKind, NoteUpdate } from "../../types/notes";
 import { setInlineNoteCallbacks } from "../story/InlineNoteExtension";
@@ -185,11 +188,25 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
 
   async function remove(noteId: string) {
     if (!activeNode) return;
+    const gone = rows.find((n) => n.id === noteId);
     const range = editor ? markRange(noteId) : null;
     if (editor && range) editor.chain().setTextSelection(range).unsetMark("inlineNote").run();
     setPopover({ open: false });
     setRows(rows.filter((n) => n.id !== noteId));
-    await notesApi.remove(noteId).catch(() => load());
+    try {
+      await notesApi.remove(noteId);
+    } catch {
+      void load();
+      return;
+    }
+    // Undo brings the row back; the effect below marks its words again.
+    if (gone)
+      toast.undoable(`${KIND_LABEL[gone.kind]} deleted.`, () =>
+        notesApi.restore(gone).then(
+          () => load(),
+          () => toast.error("It could not be brought back."),
+        ),
+      );
   }
 
   /** Any change to a note: its text, its kind, an answer, a tick. */
@@ -232,6 +249,33 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
     beginAdd(range.from, range.to, editor.state.doc.textBetween(range.from, range.to), kind);
   }
 
+  // A note whose words lost their mark (an undone delete, a paste, an older scene) is marked
+  // again where its quoted words still read the same; where they don't, it is "lost" and
+  // the scene's list says so. Editorial notes never marked the prose, so they are left be.
+  const [lost, setLost] = useState<{ nodeId: string | undefined; ids: string[] }>({
+    nodeId: undefined,
+    ids: [],
+  });
+  useEffect(() => {
+    if (!editor || loaded.nodeId !== nodeId || !nodeId) return;
+    const marked = new Set<string>();
+    editor.state.doc.descendants((node) => {
+      for (const m of node.marks) if (m.type.name === "inlineNote") marked.add(m.attrs.noteId);
+    });
+    const markType = editor.schema.marks.inlineNote;
+    const tr = editor.state.tr;
+    const missing: string[] = [];
+    for (const n of rows) {
+      if (!n.anchor || n.done || n.source || marked.has(n.id)) continue;
+      const range = findTextRange(tr.doc, n.anchor);
+      if (range) tr.addMark(range.from, range.to, markType.create({ noteId: n.id }));
+      else missing.push(n.id);
+    }
+    if (tr.docChanged) editor.view.dispatch(tr.setMeta("addToHistory", false));
+    setLost({ nodeId, ids: missing });
+  }, [editor, rows, loaded.nodeId, nodeId]);
+  const lostIds = lost.nodeId === nodeId ? lost.ids : [];
+
   // Arriving from the Notes page with ?note=: show that note beside its words, once.
   const [params, setParams] = useSearchParams();
   const wanted = params.get("note");
@@ -253,6 +297,8 @@ export function useInlineNotes({ editor, activeNode, popoverRef }: Args) {
   return {
     notes,
     sceneNotes: rows,
+    /** Notes whose quoted words are no longer in the scene. */
+    lostIds,
     showResolved,
     setShowResolved,
     hideEditorial,
