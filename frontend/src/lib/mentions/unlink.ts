@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/core";
+import { forEachBlockText } from "../prose/blockText";
 import { mentionRanges } from "./otherNames";
 
 /**
@@ -8,10 +9,8 @@ import { mentionRanges } from "./otherNames";
  */
 export function unlinkMentions(editor: Editor, type: "character" | "setting", name: string): number {
   const found: { from: number; to: number; words: string }[] = [];
-  editor.state.doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
-    for (const r of mentionRanges(node.text, type, name))
-      found.push({ from: pos + r.from, to: pos + r.to, words: r.words });
+  forEachBlockText(editor.state.doc, ({ text, range }) => {
+    for (const r of mentionRanges(text, type, name)) found.push({ ...range(r.from, r.to), words: r.words });
   });
   if (!found.length) return 0;
   const tr = editor.state.tr;

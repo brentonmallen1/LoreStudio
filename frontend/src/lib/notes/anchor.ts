@@ -1,4 +1,5 @@
 import type { Node as PMNode } from "@tiptap/pm/model";
+import { forEachBlockText } from "../prose/blockText";
 
 /**
  * Where some words are in a document (doc 15 polish): the first place a note's quoted
@@ -9,20 +10,9 @@ export function findTextRange(doc: PMNode, needle: string): { from: number; to: 
   const want = needle.trim();
   if (!want) return null;
   let found: { from: number; to: number } | null = null;
-  doc.descendants((block, blockPos) => {
-    if (found) return false;
-    if (!block.isTextblock) return true;
-    // The block's text, and the document position of each of its characters.
-    let text = "";
-    const at: number[] = [];
-    block.descendants((node, pos) => {
-      if (!node.isText || !node.text) return;
-      for (let i = 0; i < node.text.length; i++) at.push(blockPos + 1 + pos + i);
-      text += node.text;
-    });
-    const i = text.indexOf(want);
-    if (i >= 0) found = { from: at[i], to: at[i + want.length - 1] + 1 };
-    return false;
+  forEachBlockText(doc, ({ text, range }) => {
+    const i = found ? -1 : text.indexOf(want);
+    if (i >= 0) found = range(i, i + want.length);
   });
   return found;
 }

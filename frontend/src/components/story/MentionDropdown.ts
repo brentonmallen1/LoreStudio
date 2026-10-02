@@ -2,6 +2,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
+import { forEachBlockText } from "../../lib/prose/blockText";
 
 export interface MentionItem {
   type: "character" | "setting" | "create";
@@ -112,9 +113,8 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
     .filter((i) => i.type === "character" || i.type === "setting")
     .sort((a, b) => b.name.length - a.name.length);
 
-  doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
-    const text = node.text;
+  // A paragraph at a time: a mention a note's highlight runs through is still one mention.
+  forEachBlockText(doc, ({ text, range }) => {
     const claimedRanges: Array<[number, number]> = [];
 
     function isClaimed(from: number, to: number): boolean {
@@ -132,8 +132,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
       const name = item.aliasOf ?? item.name;
       let m: RegExpExecArray | null;
       while ((m = re.exec(text)) !== null) {
-        const from = pos + m.index;
-        const to = from + m[0].length;
+        const { from, to } = range(m.index, m.index + m[0].length);
         if (isClaimed(from, to)) continue;
         claimedRanges.push([from, to]);
         const cls = kind === "character" ? "mention-char" : "mention-setting";
@@ -158,8 +157,7 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
     const unknownCharRe = /@([A-Za-z]\S*)(?=[\s.,;:!?)"'\]]|$)/g;
     let mu: RegExpExecArray | null;
     while ((mu = unknownCharRe.exec(text)) !== null) {
-      const from = pos + mu.index;
-      const to = from + mu[0].length;
+      const { from, to } = range(mu.index, mu.index + mu[0].length);
       if (!isClaimed(from, to)) {
         decos.push(
           Decoration.inline(
@@ -178,11 +176,10 @@ function buildMentionDecos(doc: PMNode): DecorationSet {
     }
 
     // Unknown [[Setting]] mentions (not matched by any known setting)
-    const unknownSettingRe = /\[\[([^\]]+)\]\]/g;
+    const unknownSettingRe = /\[\[([^\]\n\uFFFC]+)\]\]/g;
     let ms: RegExpExecArray | null;
     while ((ms = unknownSettingRe.exec(text)) !== null) {
-      const from = pos + ms.index;
-      const to = from + ms[0].length;
+      const { from, to } = range(ms.index, ms.index + ms[0].length);
       if (!isClaimed(from, to)) {
         decos.push(
           Decoration.inline(

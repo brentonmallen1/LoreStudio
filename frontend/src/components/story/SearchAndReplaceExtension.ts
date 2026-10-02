@@ -3,6 +3,7 @@
  * Provides inline highlighting of matches and commands for navigation/replace.
  */
 import { Extension } from "@tiptap/core";
+import { forEachBlockText } from "../../lib/prose/blockText";
 import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
@@ -26,14 +27,14 @@ function getMatches(doc: ProseMirrorNode, term: string, caseSensitive: boolean):
   if (!term) return results;
   const needle = caseSensitive ? term : term.toLowerCase();
 
-  doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
-    const text = caseSensitive ? node.text : node.text.toLowerCase();
+  // A paragraph at a time: "the Ardent" is found when Ardent is in italics.
+  forEachBlockText(doc, (block) => {
+    const text = caseSensitive ? block.text : block.text.toLowerCase();
     let start = 0;
     while (true) {
       const idx = text.indexOf(needle, start);
       if (idx === -1) break;
-      results.push({ from: pos + idx, to: pos + idx + needle.length });
+      results.push(block.range(idx, idx + needle.length));
       start = idx + 1;
     }
   });

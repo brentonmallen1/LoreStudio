@@ -15,6 +15,7 @@ import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
+import { forEachBlockText } from "../../lib/prose/blockText";
 
 // ---------------------------------------------------------------------------
 // Dialogue mode state (read by SceneEditor to change insertion behaviour)
@@ -127,9 +128,13 @@ const FORCE_DIALOGUE_KEY = "forceDialogueRebuild";
 function buildDialogueDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
 
-  doc.descendants((node, pos) => {
-    if (!node.isText || !node.text) return;
-    const text = node.text;
+  // A paragraph at a time, not a text node: a quote with an italic word in it is still
+  // one quote (lib/prose/blockText).
+  forEachBlockText(doc, ({ text, range }) => {
+    const inline = (s: number, e: number, attrs: Record<string, string>) => {
+      const r = range(s, e);
+      return Decoration.inline(r.from, r.to, attrs);
+    };
 
     // Explicit
     const explicit = findExplicitQuotes(text);
@@ -138,14 +143,14 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
     for (const [s, e, speaker, tagStart] of explicit) {
       // Quote portion: "dialogue"
       decos.push(
-        Decoration.inline(pos + s, pos + tagStart, {
+        inline(s, tagStart, {
           class: "dialogue-explicit",
           "data-dialogue-speaker": speaker,
         }),
       );
       // Speaker tag portion: <Name>
       decos.push(
-        Decoration.inline(pos + tagStart, pos + e, {
+        inline(tagStart, e, {
           class: "dialogue-speaker-tag",
           "data-dialogue-speaker": speaker,
         }),
@@ -158,7 +163,7 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
 
     for (const [s, e] of inferred) {
       decos.push(
-        Decoration.inline(pos + s, pos + e, {
+        inline(s, e, {
           class: "dialogue-inferred",
         }),
       );
@@ -167,7 +172,7 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
     // Unattributed (standalone quotes with no nearby mention)
     for (const [s, e] of findUnattributedQuotes(text, allClaimed)) {
       decos.push(
-        Decoration.inline(pos + s, pos + e, {
+        inline(s, e, {
           class: "dialogue-unattributed",
         }),
       );
