@@ -314,6 +314,8 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
 
     data: dict[str, Any] = {}
     data["story"] = _model_to_dict(story)
+    # Emptied so a delta against a snapshot from before 0024 drops the old ideas (doc 15).
+    data["story"]["idea_fragments"] = []
 
     # Structure nodes (flat)
     data["structure_nodes"] = [

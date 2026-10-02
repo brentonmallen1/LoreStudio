@@ -2382,30 +2382,41 @@ def seed_demo_story():  # noqa: PLR0915
             )
         )
 
-        # ── Ideas and open questions (doc 10 P2, P3) ────────────────────────
-        # The brain dump the story grew from, part sorted: the filed pieces point at what
-        # they became; the rest are still waiting. Questions: two open, one settled.
-        def fragment(text: str, filed: dict | None = None) -> dict:
-            return {"id": str(uuid.uuid4()), "text": text, "created_at": "2026-09-01T09:00:00", "filed": filed}
-
-        story.idea_fragments = [
-            fragment(
-                "A keeper who stayed when everyone else left the island.",
-                {"kind": "premise", "ref_id": None, "label": "Premise"},
-            ),
-            fragment(
-                "Calder is a historian with a cover story. Her brother was on the Ardent.",
-                {"kind": "character", "ref_id": visitor.id, "label": visitor.name},
-            ),
-            fragment(
-                "The lamp room smells of paraffin, though the light has been electric for decades.",
-                {"kind": "place", "ref_id": lighthouse.id, "label": lighthouse.name},
-            ),
-            fragment("What if Margaret saw the light go dark that night and never said?"),
-            fragment("The ferry stopped running the year before last. Nobody comes to Harrow unless they mean to."),
-            fragment("Keeping a promise to someone who is dead: loyalty, or fear?"),
-            fragment("Maybe the book ends with Eleanor on the Mainland, looking back at the light."),
-        ]
+        # ── Freewrite (doc 15 N3) ───────────────────────────────────────────
+        # The loose writing the story grew from. Some sentences became things: Calder, the
+        # lamp room, a question about Margaret, an idea for the ending, each dotted and
+        # linked; the rest is still just thinking.
+        margaret_question = Note(
+            story_id=story.id,
+            kind="question",
+            content="What if Margaret saw the light go dark that night and never said?",
+            about_type="character",
+            about_id=margaret.id,
+            position=10,
+        )
+        ending_idea = Note(
+            story_id=story.id,
+            kind="idea",
+            content="Maybe the book ends with Eleanor on the Mainland, looking back at the light.",
+            position=11,
+        )
+        db.add_all([margaret_question, ending_idea])
+        db.flush()
+        story.freewrite = (
+            "<h3>Tuesday 1 September</h3>"
+            "<p>A keeper who stayed when everyone else left the island. The ferry stopped running the year"
+            " before last. Nobody comes to Harrow unless they mean to.</p>"
+            f'<p><span data-made="character:{visitor.id}">Calder is a historian with a cover story. Her'
+            " brother was on the Ardent.</span> She would be patient. Too comfortable with silence.</p>"
+            f'<p><span data-made="place:{lighthouse.id}">The lamp room smells of paraffin, though the light'
+            " has been electric for decades.</span></p>"
+            "<h3>Thursday 3 September</h3>"
+            f'<p><span data-made="note:{margaret_question.id}">What if Margaret saw the light go dark that'
+            " night and never said?</span> She would have been young. Does she even know what she saw?</p>"
+            "<p>Keeping a promise to someone who is dead: loyalty, or fear? That might be the whole book.</p>"
+            f'<p><span data-made="note:{ending_idea.id}">Maybe the book ends with Eleanor on the Mainland,'
+            " looking back at the light.</span></p>"
+        )
         for position, (content, about, answer) in enumerate(
             [
                 ("Did Thomas ever tell Margaret why the light went dark?", thomas, ""),

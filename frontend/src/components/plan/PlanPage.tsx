@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { isStepDone, type PlanMethod } from "../../lib/planning/methods";
@@ -7,16 +7,15 @@ import { usePlanData } from "../../lib/planning/usePlanData";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import PageHeader from "../layout/PageHeader";
 import MethodSteps from "./MethodSteps";
-import IdeaView from "./IdeaView";
 import styles from "./Plan.module.css";
 
 const OutlineManager = lazy(() => import("../outline/OutlineManager"));
 
-type View = "ideas" | "method" | "boards";
+type View = "method" | "boards";
 
 function viewFrom(params: URLSearchParams): View {
   if (params.has("tab") || params.get("view") === "boards") return "boards";
-  return params.get("view") === "ideas" ? "ideas" : "method";
+  return "method";
 }
 
 /**
@@ -27,6 +26,7 @@ function viewFrom(params: URLSearchParams): View {
  */
 export default function PlanPage({ storyId }: { storyId: string }) {
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const { activeStory, setActiveStory } = useStoryStore();
   const { data, method, methods, reloadThreads } = usePlanData();
   // Held in state: the outline lists clear the query string once they have read ?tab=.
@@ -50,7 +50,6 @@ export default function PlanPage({ storyId }: { storyId: string }) {
     setChoosing(false);
   }
 
-  const unsortedCount = (activeStory.idea_fragments ?? []).filter((f) => !f.filed).length;
   const doneCount = method ? method.steps.filter((s) => isStepDone(s, data)).length : 0;
 
   return (
@@ -58,7 +57,6 @@ export default function PlanPage({ storyId }: { storyId: string }) {
       <PageHeader
         title="Plan"
         views={[
-          { id: "ideas", label: "Ideas", count: unsortedCount },
           { id: "method", label: method ? method.label : "Method" },
           { id: "boards", label: "Beat boards" },
         ]}
@@ -73,19 +71,13 @@ export default function PlanPage({ storyId }: { storyId: string }) {
                 Change method
               </button>
             </>
-          ) : view === "ideas" ? (
-            "Everything you know, in any order. Sort it into the story when you're ready."
           ) : view === "boards" ? (
             "Loose outlines for brainstorming beats. Turn any beat into a scene."
           ) : undefined
         }
       />
 
-      {view === "ideas" ? (
-        <div className={styles.body}>
-          <IdeaView storyId={storyId} />
-        </div>
-      ) : view === "boards" ? (
+      {view === "boards" ? (
         <Suspense fallback={null}>
           <OutlineManager storyId={storyId} />
         </Suspense>
@@ -94,7 +86,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
           current={method}
           methods={methods}
           onChoose={choose}
-          onIdeas={() => show("ideas")}
+          onIdeas={() => navigate(`/stories/${storyId}/freewrite`)}
           onCancel={method ? () => setChoosing(false) : undefined}
         />
       ) : (
@@ -150,10 +142,10 @@ function MethodPicker({
           <button className={`${styles.methodCard} ${styles.methodCardIdea}`} onClick={onIdeas}>
             <span className={styles.methodName}>Start from an idea</span>
             <span className={styles.methodSummary}>
-              Not ready for questions? Write down everything you know, in any order, then sort it into
-              characters, places, scenes and questions.
+              Not ready for questions? Write whatever you know on the Freewrite page, in any order, and make
+              sentences into characters, places and notes as they come.
             </span>
-            <span className={styles.methodStepsPreview}>Ideas tab · no method needed</span>
+            <span className={styles.methodStepsPreview}>Freewrite · no method needed</span>
           </button>
         </div>
         {beatSheets.length > 0 && (

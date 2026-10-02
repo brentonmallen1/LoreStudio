@@ -16,6 +16,7 @@ import {
   MapIcon,
   MapPin,
   MessageSquareMore,
+  NotebookPen,
   NotebookText,
   Network,
   PenLine,
@@ -90,6 +91,16 @@ export const STORY_ROUTES: StoryRoute[] = [
     domain: "manuscript",
     modes: BOTH,
     keywords: ["editor", "scene", "manuscript", "prose"],
+  },
+  {
+    // Loose writing, a heading for each day; words made into notes and characters (doc 15 N3).
+    id: "freewrite",
+    path: "/freewrite",
+    label: "Freewrite",
+    icon: NotebookPen,
+    domain: "manuscript",
+    modes: BOTH,
+    keywords: ["ideas", "brain dump", "stream of consciousness", "journal", "loose", "capture"],
   },
   {
     id: "plan",

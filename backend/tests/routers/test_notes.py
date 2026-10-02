@@ -138,5 +138,16 @@ def test_an_old_snapshot_brings_its_notes_todos_and_story_notes():
     assert set(rows) == {"s1", "t1", "m1", "m2"}
     assert rows["s1"]["kind"] == "idea" and rows["m1"]["node_id"] == "n" and rows["m2"]["node_id"] == "o"
     assert rows["m1"]["anchor"] == "still"
+    # 0024: the story row's unsorted ideas come back as ideas; sorted ones do not.
+    old = {
+        "story": {
+            "id": "s",
+            "idea_fragments": [
+                {"id": "f1", "text": "A keeper"},
+                {"id": "f2", "text": "x", "filed": {"kind": "character"}},
+            ],
+        }
+    }
+    assert [r["id"] for r in legacy_notes(old)] == ["f1"]
     # A snapshot taken after doc 15 has note rows only, and passes them through.
     assert legacy_notes({"notes": [{"id": "x", "kind": "question", "content": "?"}]})[0]["kind"] == "question"

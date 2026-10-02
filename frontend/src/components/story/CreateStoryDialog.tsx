@@ -53,7 +53,7 @@ export default function CreateStoryDialog({ onClose }: Props) {
         scaffold,
       });
       upsertStory(story);
-      if (begin === "idea") navigate(`/stories/${story.id}/plan?view=ideas`);
+      if (begin === "idea") navigate(`/stories/${story.id}/freewrite`);
       else if (begin === "plan") navigate(`/stories/${story.id}/plan`);
       // Straight into the first scene of the new outline, ready to type.
       else

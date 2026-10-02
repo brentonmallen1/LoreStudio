@@ -44,7 +44,6 @@ export interface Story {
   synopsis: string;
   /** The Plan page's method (lib/planning/methods.ts), "" until chosen. */
   planning_method: string;
-  idea_fragments: import("./planning").IdeaFragment[];
   created_at: string;
   updated_at: string;
 }

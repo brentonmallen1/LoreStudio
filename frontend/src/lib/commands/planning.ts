@@ -1,8 +1,8 @@
 /**
- * Planning commands (refactor doc 10): the Ideas tab, the Notes tab (doc 15), and the side
+ * Planning commands (refactor doc 10): Freewrite and the Notes tab (doc 15), and the side
  * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
-import { FileText, Lightbulb, MapIcon, StickyNote } from "lucide-react";
+import { FileText, MapIcon, NotebookPen, StickyNote } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
@@ -17,13 +17,13 @@ function showSceneTab() {
 }
 
 commandRegistry.register({
-  id: "plan-capture-idea",
-  label: "Capture an idea",
-  keywords: ["idea", "brain dump", "note", "thought", "sort", "plan"],
-  icon: Lightbulb,
+  id: "panel-freewrite",
+  label: "Freewrite beside the page",
+  keywords: ["idea", "brain dump", "note", "thought", "loose", "capture", "stream of consciousness"],
+  icon: NotebookPen,
   group: "Manuscript",
   when: () => !!useStoryStore.getState().activeStory,
-  action: () => usePanelStore.getState().openTool("ideas"),
+  action: () => usePanelStore.getState().openTool("freewrite"),
 });
 
 commandRegistry.register({

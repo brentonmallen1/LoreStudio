@@ -58,6 +58,7 @@ const WRITER_ENTRY_POINTS = [
   "src/components/compendium/CompendiumIndex.tsx",
   "src/components/notes/NotesBoard.tsx",
   "src/components/plan/PlanPage.tsx",
+  "src/components/freewrite/FreewritePage.tsx",
 ];
 
 function resolveImport(from: string, spec: string): string | null {
@@ -133,6 +134,7 @@ describe("the story routes this test walks", () => {
       "compendium.notes",
       "compendium.research",
       "findings",
+      "freewrite",
       "lorebook",
       "lorebook.calendars",
       "lorebook.characters",

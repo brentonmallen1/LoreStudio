@@ -15,7 +15,7 @@ const TOOLS: { tool: ToolId; label: string; icon: (typeof TOOL_ICONS)[ToolId] }[
   { tool: "characters", label: "Characters", icon: TOOL_ICONS.characters },
   { tool: "places", label: "Places", icon: TOOL_ICONS.places },
   { tool: "threads", label: "Plot threads", icon: TOOL_ICONS.threads },
-  { tool: "ideas", label: "Ideas", icon: TOOL_ICONS.ideas },
+  { tool: "freewrite", label: "Freewrite", icon: TOOL_ICONS.freewrite },
   { tool: "notes", label: "Notes", icon: TOOL_ICONS.notes },
 ];
 

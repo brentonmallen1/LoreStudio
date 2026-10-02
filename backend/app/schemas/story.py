@@ -43,7 +43,6 @@ class StoryUpdate(BaseModel):
     paragraph_summary: str | None = None
     synopsis: str | None = None
     planning_method: str | None = None
-    idea_fragments: list[dict] | None = None
 
 
 class StoryOut(BaseModel):
@@ -74,7 +73,6 @@ class StoryOut(BaseModel):
     paragraph_summary: str
     synopsis: str
     planning_method: str
-    idea_fragments: list[dict]
     created_at: datetime
     updated_at: datetime
 

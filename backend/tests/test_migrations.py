@@ -188,3 +188,30 @@ def test_0016_moves_snowflake_text_into_the_shared_fields(tmp_path):
     assert c[0] == "From the Snowflake summary:\nJust prose about her."
     assert c[1] == "I came back."
     assert c[2] == ""
+
+
+def test_0024_turns_unsorted_ideas_into_notes(tmp_path):
+    from alembic.config import Config
+
+    from alembic import command
+    from app.services.db_migrate import BACKEND_DIR
+
+    engine = _engine(tmp_path, "ideas.db")
+    with engine.connect() as conn:
+        cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+        cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+        cfg.attributes["connection"] = conn
+        command.upgrade(cfg, "0023_notes")
+        _insert(conn, "users", id="u", username="u", password_hash="x", display_name="U", is_admin=True, settings={})
+        pieces = [
+            {"id": "f1", "text": "A keeper who stayed.", "created_at": "2026-09-01T09:00:00", "filed": None},
+            {"id": "f2", "text": "Calder", "created_at": "2026-09-01", "filed": {"kind": "character"}},
+            {"id": "f3", "text": "  ", "filed": None},
+        ]
+        _insert(conn, "stories", id="s", user_id="u", title="T", idea_fragments=pieces)
+        conn.commit()
+        command.upgrade(cfg, "head")
+        ideas = conn.execute(text("SELECT id, kind, content, story_id FROM notes")).all()
+        cols = [r[1] for r in conn.execute(text("PRAGMA table_info(stories)"))]
+    assert [tuple(r) for r in ideas] == [("f1", "idea", "A keeper who stayed.", "s")]
+    assert "freewrite" in cols and "idea_fragments" not in cols

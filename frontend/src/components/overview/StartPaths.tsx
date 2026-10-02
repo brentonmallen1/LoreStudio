@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Lightbulb, ListTree, PenLine, Users } from "lucide-react";
+import { ListTree, PenLine, Users, NotebookPen } from "lucide-react";
 import styles from "./Overview.module.css";
 
 /** A story with nothing in it yet: four ways in. */
@@ -12,10 +12,10 @@ export default function StartPaths({ storyId }: { storyId: string }) {
       hint: "Jump straight in. Add structure, characters and details as you go.",
     },
     {
-      to: `/stories/${storyId}/plan?view=ideas`,
-      icon: Lightbulb,
+      to: `/stories/${storyId}/freewrite`,
+      icon: NotebookPen,
       name: "Start from an idea",
-      hint: "Write down everything you know, then sort it into characters, places and scenes.",
+      hint: "Write whatever you know, in any order. Make sentences into characters, places and notes as they come.",
     },
     {
       to: `/stories/${storyId}/lorebook/characters`,

@@ -32,6 +32,7 @@ from .routers.discoveries import router as discoveries_router
 from .routers.editorial import router as editorial_router
 from .routers.export import router as export_router
 from .routers.findings import router as findings_router
+from .routers.freewrite import router as freewrite_router
 from .routers.health import router as health_router
 from .routers.history import router as history_router
 from .routers.import_router import router as import_router
@@ -193,6 +194,7 @@ app.include_router(export_router, prefix="/api", tags=["export"])
 app.include_router(dialogue_router, prefix="/api", tags=["dialogue"])
 app.include_router(twists_router, prefix="/api", tags=["twists"])
 app.include_router(notes_router, prefix="/api", tags=["notes"])
+app.include_router(freewrite_router, prefix="/api", tags=["freewrite"])
 app.include_router(outlines_router, prefix="/api", tags=["outline"])
 app.include_router(snapshots_router, prefix="/api", tags=["snapshots"])
 app.include_router(import_router, prefix="/api", tags=["import"])
