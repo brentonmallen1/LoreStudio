@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass, Loader2, X, AlertTriangle, BookOpen, ExternalLink } from "lucide-react";
+import { Orbit, Loader2, X, AlertTriangle, BookOpen, ExternalLink } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./CompTitlesSuggester.module.css";
@@ -47,7 +47,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.headerIcon} />
+          <Orbit size={13} className={styles.headerIcon} />
           <span className={styles.title}>Comparable Titles</span>
         </div>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
@@ -64,7 +64,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
               and pitch materials.
             </p>
             <button className={styles.runBtn} onClick={handleRun}>
-              <Compass size={13} />
+              <Orbit size={13} />
               Suggest comp titles
             </button>
           </div>
@@ -118,7 +118,7 @@ export default function CompTitlesSuggester({ storyId, onClose }: Props) {
               </div>
             )}
             <button className={styles.rerunBtn} onClick={handleRun}>
-              <Compass size={12} />
+              <Orbit size={12} />
               Re-run
             </button>
           </div>

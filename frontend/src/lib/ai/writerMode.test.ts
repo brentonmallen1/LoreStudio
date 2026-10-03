@@ -14,7 +14,7 @@ import { flatRoutes } from "../routes";
  * Two halves. Reachability: only components writer mode can actually open are checked —
  * a page behind `ModeGate` is already gated, and demanding a second guard there would be
  * noise. Signal: a component is an AI surface when it streams from a model, opens the AI
- * panel, or shows what was sent to one. Icons are not the signal; `Compass` is also used
+ * panel, or shows what was sent to one. Icons are not the signal; `Orbit` is also used
  * for deterministic NLP reports, which stay in both modes on purpose.
  */
 

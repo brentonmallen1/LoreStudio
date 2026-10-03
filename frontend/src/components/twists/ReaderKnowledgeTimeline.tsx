@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Compass, Brain, Plus, Trash2, X, ChevronDown, ChevronRight, Check } from "lucide-react";
+import { Orbit, Brain, Plus, Trash2, X, ChevronDown, ChevronRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ReaderKnowledgeEvent, KnowledgeType, StructureNode } from "../../types";
@@ -214,7 +214,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
               disabled={scanning}
               title="The Assistant reads the scene synopses for reveals, misdirections and clues; what it finds waits in Proposals"
             >
-              <Compass size={12} className={scanning ? styles.scanSpin : undefined} />
+              <Orbit size={12} className={scanning ? styles.scanSpin : undefined} />
               {scanning ? "Reading…" : "Find what the reader learns"}
             </button>
           )}
@@ -262,7 +262,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
       {displayedEvents.length === 0 && (
         <div className={styles.empty}>
-          <Compass size={18} className={styles.emptyIcon} />
+          <Orbit size={18} className={styles.emptyIcon} />
           <p>
             {ironyOnly
               ? "No dramatic irony moments found. Add reader knowledge events where readers know more than the characters."

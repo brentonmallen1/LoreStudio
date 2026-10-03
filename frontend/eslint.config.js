@@ -24,14 +24,14 @@ const LEGACY_WARNINGS = {
 
 /**
  * CLAUDE.md: "Never use the Sparkles icon for AI buttons." Feather opens a
- * chat, Compass triggers an action, Wand2 suggests attributes, Cpu is the
+ * chat, Orbit triggers an action, Wand2 suggests attributes, Cpu is the
  * feature-info trigger, ShieldCheck is transparency.
  */
 const NO_SPARKLES = {
   name: "lucide-react",
   importNames: ["Sparkles"],
   message:
-    "Sparkles is banned for AI UI (CLAUDE.md). Use Feather (open chat), Compass (AI action), Wand2 (attribute suggestion).",
+    "Sparkles is banned for AI UI (CLAUDE.md). Use Feather (open chat), Orbit (AI action), Wand2 (attribute suggestion).",
 };
 
 /**

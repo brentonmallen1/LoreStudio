@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Compass, X, Wand2 } from "lucide-react";
+import { Orbit, X, Wand2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character, StructuredResult } from "../../types";
@@ -102,7 +102,7 @@ export default function AttributeGeneratorPanel({ character, onClose }: Props) {
       />
       <div className={styles.panel}>
         <div className={styles.header}>
-          <Compass size={14} className={styles.icon} />
+          <Orbit size={14} className={styles.icon} />
           <span className={styles.title}>AI Attribute Suggestions</span>
           <LLMTransparencyTrigger
             disabled={!transparency.hasData}

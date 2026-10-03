@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { BookOpen, Copy, Check, Compass, Square } from "lucide-react";
+import { BookOpen, Copy, Check, Orbit, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -120,7 +120,7 @@ export default function StorySummaryPanel({ storyId }: { storyId: string }) {
               className={styles.generateBtn}
               title="Use AI to generate a narrative summary of your story's content to date"
             >
-              <Compass size={12} />
+              <Orbit size={12} />
               Generate
             </button>
           )}

@@ -1,4 +1,4 @@
-import { Compass, RefreshCw } from "lucide-react";
+import { Orbit, RefreshCw } from "lucide-react";
 import type { RecapState } from "./useRecap";
 import styles from "./Overview.module.css";
 
@@ -6,7 +6,7 @@ import styles from "./Overview.module.css";
 export function RecapTrigger({ recap }: { recap: RecapState }) {
   return (
     <button type="button" className={styles.heroAction} data-tone="ai" onClick={recap.fetch}>
-      <Compass size={12} aria-hidden /> Remind me where I left off
+      <Orbit size={12} aria-hidden /> Remind me where I left off
     </button>
   );
 }
@@ -16,7 +16,7 @@ export function RecapCard({ recap }: { recap: RecapState }) {
   return (
     <div className={styles.recapCard}>
       <div className={styles.recapHead}>
-        <Compass size={12} aria-hidden />
+        <Orbit size={12} aria-hidden />
         <span className={styles.label} data-tone="ai">
           Last session
         </span>

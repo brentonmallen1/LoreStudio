@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { LifeBuoy } from "lucide-react";
+import { Compass } from "lucide-react";
 import { GUIDES, guidesFor } from "../guides";
 import { useMode } from "../lib/mode";
 import { formatCombo } from "../lib/keyboard/shortcuts";
@@ -18,7 +18,7 @@ export default function GuidePage() {
     <div className={styles.page}>
       <nav className={styles.nav} aria-label="Guides">
         <p className={styles.navTitle}>
-          <LifeBuoy size={13} /> Guides
+          <Compass size={13} /> Guides
         </p>
         {guides.map((g) => (
           <Link

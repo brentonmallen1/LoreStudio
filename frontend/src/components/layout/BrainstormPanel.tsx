@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, Square, Compass, User2, Brain, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Send, Square, Orbit, User2, Brain, ChevronDown, ChevronUp } from "lucide-react";
 import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import type { ChatMessage, BrainstormIntent } from "../../types";
@@ -272,7 +272,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={14} className={styles.headerIcon} />
+          <Orbit size={14} className={styles.headerIcon} />
           <span className={styles.headerTitle}>What's Next?</span>
           <span className={styles.headerBadge}>Guide</span>
         </div>
@@ -305,7 +305,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
               className={`${styles.message} ${msg.role === "user" ? styles.userMessage : styles.assistantMessage}`}
             >
               <div className={styles.messageAvatar}>
-                {msg.role === "user" ? <User2 size={13} /> : <Compass size={13} />}
+                {msg.role === "user" ? <User2 size={13} /> : <Orbit size={13} />}
               </div>
               <div className={styles.messageContent}>
                 {msg.images && msg.images.length > 0 && (
@@ -332,7 +332,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
           {streaming && streamText && (
             <div className={`${styles.message} ${styles.assistantMessage}`}>
               <div className={styles.messageAvatar}>
-                <Compass size={13} />
+                <Orbit size={13} />
               </div>
               <div className={styles.messageContent}>
                 <MessageContent content={streamText} thinking={streamThinking} s={styles} />
@@ -342,7 +342,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
           {streaming && !streamText && (
             <div className={`${styles.message} ${styles.assistantMessage}`}>
               <div className={styles.messageAvatar}>
-                <Compass size={13} />
+                <Orbit size={13} />
               </div>
               <div className={styles.messageContent}>
                 <span className={styles.cursor}>▋</span>

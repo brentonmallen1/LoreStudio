@@ -1,4 +1,4 @@
-import { Compass } from "lucide-react";
+import { Orbit } from "lucide-react";
 import { useAIStore, type AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { aiFeatureLabel } from "../../../lib/ai/features.generated";
@@ -63,7 +63,7 @@ export default function AnalysisResultMode({ session }: { session: AISession }) 
     <AIModeWrapper
       session={session}
       state={state}
-      icon={Compass}
+      icon={Orbit}
       title={result ? aiFeatureLabel(result.feature) : "Analysis"}
       onTransparencyClick={() =>
         state.transparency.open(

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Compass, ChevronDown, ChevronRight, RefreshCw, Loader2 } from "lucide-react";
+import { Orbit, ChevronDown, ChevronRight, RefreshCw, Loader2 } from "lucide-react";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -145,7 +145,7 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
     <AIModeWrapper
       session={session}
       state={state}
-      icon={Compass}
+      icon={Orbit}
       title="Discovery Questions"
       hideTokenBadge
       hideSettings
@@ -236,7 +236,7 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
             </>
           ) : (
             <>
-              <Compass size={13} /> Generate questions
+              <Orbit size={13} /> Generate questions
             </>
           )}
         </button>
@@ -265,7 +265,7 @@ export default function DiscoveryQuestionsMode({ session }: Props) {
       {/* Empty state */}
       {!result && !loading && !error && (
         <div className={styles.empty}>
-          <Compass size={24} className={styles.emptyIcon} />
+          <Orbit size={24} className={styles.emptyIcon} />
           <p className={styles.emptyTitle}>Discovery Questions</p>
           <p className={styles.emptyHint}>
             Select what you're developing and generate 3–5 tailored questions to help you think more deeply

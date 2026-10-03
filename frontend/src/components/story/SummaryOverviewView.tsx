@@ -2,7 +2,7 @@ import { jobsApi, waitForJob } from "../../api/jobs";
 import { streamAnswer } from "../../lib/ai/eventStream";
 import React, { useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ChevronDown, ChevronRight, Compass, Square } from "lucide-react";
+import { ChevronDown, ChevronRight, Orbit, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
@@ -185,7 +185,7 @@ export default function SummaryOverviewView() {
                       onClick={() => generate(node)}
                       disabled={!!generatingId || !canGenerate}
                     >
-                      <Compass size={10} />
+                      <Orbit size={10} />
                       {hasSummary ? "Regenerate" : "Generate"}
                     </button>
                   </AIOnly>
@@ -228,7 +228,7 @@ export default function SummaryOverviewView() {
               onClick={generateAllMissing}
               disabled={batchRunning}
             >
-              <Compass size={11} />
+              <Orbit size={11} />
               {batchRunning ? "Generating…" : "Generate all missing"}
             </button>
           </AIOnly>

@@ -1,6 +1,6 @@
 import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useEffect } from "react";
-import { Compass, X, Loader } from "lucide-react";
+import { Orbit, X, Loader } from "lucide-react";
 import { api } from "../../api/client";
 import styles from "./PlanGuidance.module.css";
 import { useAIAvailable } from "../../lib/mode";
@@ -69,7 +69,7 @@ export default function PlanGuidance({ storyId, layer, content, characterId, onC
     <div className={styles.panel}>
       <div className={styles.header}>
         <span className={styles.headerLabel}>
-          <Compass size={13} />
+          <Orbit size={13} />
           Guidance
         </span>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close guidance">

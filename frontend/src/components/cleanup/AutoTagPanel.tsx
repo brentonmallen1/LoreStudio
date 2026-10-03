@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
-  Compass,
+  Orbit,
   Tag,
   Loader,
   ChevronLeft,
@@ -278,7 +278,7 @@ export default function AutoTagPanel({
     <div className={styles.root}>
       <div className={styles.toolbar}>
         <button onClick={scan} disabled={scanning || applying} className={styles.scanBtn}>
-          {scanning ? <Loader size={12} className={styles.spinner} /> : <Compass size={12} />}
+          {scanning ? <Loader size={12} className={styles.spinner} /> : <Orbit size={12} />}
           {scanning ? "Scanning…" : data ? "Rescan" : "Find dialogue to tag"}
         </button>
 

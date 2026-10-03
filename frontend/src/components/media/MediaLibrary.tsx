@@ -1,6 +1,6 @@
 import { streamAnswer } from "../../lib/ai/eventStream";
 import { useState, useRef, useCallback } from "react";
-import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Compass, Copy, ZoomIn } from "lucide-react";
+import { Upload, Trash2, Edit2, Check, X, ImageIcon, FileText, Orbit, Copy, ZoomIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { sectionPath } from "../../lib/routes";
@@ -157,7 +157,7 @@ function AssetCard({
                 disabled={analyzing}
                 aria-label="AI: analyze mood & atmosphere"
               >
-                <Compass size={12} />
+                <Orbit size={12} />
               </button>
             </AIOnly>
           )}

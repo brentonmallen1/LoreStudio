@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Compass, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Orbit, AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react";
 import { api } from "../../api/client";
 import type { ImportPreviewTree, ImportPreviewNode, ImportUploadResponse } from "../../types";
 import styles from "./StructureReviewStep.module.css";
@@ -233,7 +233,7 @@ export default function StructureReviewStep({
         <div className={styles.aiBarLeft}>
           {aiReasoning && (
             <p className={styles.aiReasoning}>
-              <Compass size={11} style={{ color: "var(--color-ai)" }} />
+              <Orbit size={11} style={{ color: "var(--color-ai)" }} />
               {aiReasoning}
             </p>
           )}
@@ -246,7 +246,7 @@ export default function StructureReviewStep({
             className={styles.aiBtn}
             title="Ask AI to detect scene breaks (positions only; your text is never changed)"
           >
-            <Compass size={12} />
+            <Orbit size={12} />
             {aiLoading ? "Analyzing…" : "Auto-segment"}
           </button>
         )}

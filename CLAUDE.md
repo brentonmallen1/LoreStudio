@@ -209,12 +209,12 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 ### AI UI component patterns
 
-**Never use the `Sparkles` icon for AI buttons.** ESLint enforces this (`no-restricted-imports` in `frontend/eslint.config.js`). The app has established conventions — use them everywhere, without exception.
+**Never use the `Sparkles` icon for AI buttons.** ESLint enforces this (`no-restricted-imports` in `frontend/eslint.config.js`). `Compass` is not an AI icon either: it is the Guides (help) icon in the header and palette. The app has established conventions — use them everywhere, without exception.
 
 | Element | Icon | When to use |
 |---------|------|-------------|
 | Open AI chat / workshop | `Feather` + text label | Open the AI panel to a chat session (conversation, workshop, guide) |
-| AI action button (idle) | `Compass` + text label | Trigger inline generation, analysis, or drafting |
+| AI action button (idle) | `Orbit` + text label | Trigger inline generation, analysis, or drafting (a one-shot result, not a chat) |
 | AI action button (active) | `Square` + "Cancel" | While streaming, to abort |
 | Attribute generation | `Wand2` + text | Per-field attribute suggestions |
 | Feature info modal trigger | `Cpu` via `AIFeatureInfoTrigger` | In every panel/page header that has AI features |
@@ -228,7 +228,7 @@ To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.t
 
 **Assistant actions on a Lorebook sheet or a Plan step** fold into its one `AssistantRow` (a single
 action makes the row itself the button); on a page they sit in the header's ⋯ menu (AI colour,
-Compass, or Feather for a conversation), never as buttons across the page. A tool's own toolbar
+Orbit, or Feather for a conversation), never as buttons across the page. A tool's own toolbar
 inside a page (the outline's tab bar, the twists timeline) may carry its Assistant action.
 
 **`LLMTransparencyTrigger`** (`ShieldCheck`) must appear next to AI-generated content so the author can inspect what was sent to the model. Use the `useLLMTransparency` hook.

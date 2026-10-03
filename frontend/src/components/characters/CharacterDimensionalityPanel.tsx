@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass, CheckCircle, AlertCircle, GitBranch, Users, Lightbulb } from "lucide-react";
+import { Orbit, CheckCircle, AlertCircle, GitBranch, Users, Lightbulb } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult, CharacterDimensionEntry } from "../../types";
 import styles from "./CharacterDimensionalityPanel.module.css";
@@ -66,7 +66,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.icon} />
+          <Orbit size={13} className={styles.icon} />
           <div>
             <h4 className={styles.title}>Character Depth</h4>
             <p className={styles.subtitle}>
@@ -75,7 +75,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
           </div>
         </div>
         <button onClick={analyze} disabled={generating} className={styles.analyzeBtn}>
-          <Compass size={12} />
+          <Orbit size={12} />
           {generating ? "Assessing…" : result ? "Re-assess" : "Assess"}
         </button>
       </div>

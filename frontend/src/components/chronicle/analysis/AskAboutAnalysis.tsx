@@ -1,4 +1,4 @@
-import { Compass } from "lucide-react";
+import { Orbit } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import { useAIAvailable } from "../../../lib/mode";
 import type { ActivityLog } from "../../../types";
@@ -28,7 +28,7 @@ export default function AskAboutAnalysis({ log, label }: { log: ActivityLog; lab
       }
       title="Open this analysis in the AI panel and ask about it"
     >
-      <Compass size={11} /> Ask about this
+      <Orbit size={11} /> Ask about this
     </button>
   );
 }

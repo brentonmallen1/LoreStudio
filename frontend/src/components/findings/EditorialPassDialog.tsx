@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Compass, Square } from "lucide-react";
+import { Orbit, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import Modal from "../common/Modal";
@@ -61,7 +61,7 @@ export default function EditorialPassDialog({
       isOpen
       onClose={() => (running ? abort.current?.abort() : onClose())}
       title="Editorial pass"
-      icon={<Compass size={16} />}
+      icon={<Orbit size={16} />}
       footer={
         <div className={styles.dialogFooter}>
           {error && <span className={styles.dialogError}>{error}</span>}
@@ -71,7 +71,7 @@ export default function EditorialPassDialog({
             </button>
           ) : (
             <button type="button" className={styles.aiButton} onClick={run}>
-              <Compass size={13} aria-hidden /> Run the editorial pass
+              <Orbit size={13} aria-hidden /> Run the editorial pass
             </button>
           )}
         </div>

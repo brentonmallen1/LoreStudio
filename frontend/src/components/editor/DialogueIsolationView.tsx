@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import { Compass, Quote, Tag } from "lucide-react";
+import { Orbit, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
 import { useAIAvailable } from "../../lib/mode";
@@ -125,7 +125,7 @@ export default function DialogueIsolationView({
               title={loading ? "Cancel" : "Auto-Tag: use AI to infer speakers for unattributed dialogue"}
               onClick={suggest}
             >
-              <Compass size={11} className={loading ? styles.spinIcon : ""} />
+              <Orbit size={11} className={loading ? styles.spinIcon : ""} />
               {loading ? "Cancel" : "Auto-Tag"}
             </button>
           )}
@@ -196,7 +196,7 @@ export default function DialogueIsolationView({
                 </div>
                 {suggestion && (
                   <div className={styles.aiSuggestionRow}>
-                    <Compass size={10} className={styles.aiSuggestionIcon} />
+                    <Orbit size={10} className={styles.aiSuggestionIcon} />
                     <span className={styles.aiSuggestionSpeaker}>{suggestion.inferred_speaker}</span>
                     {suggestion.source_excerpt && (
                       <span className={styles.aiSuggestionReason}>{suggestion.source_excerpt}</span>

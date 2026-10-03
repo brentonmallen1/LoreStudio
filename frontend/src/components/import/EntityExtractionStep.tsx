@@ -9,7 +9,7 @@ import {
   Link2,
   X,
   Cpu,
-  Compass,
+  Orbit,
 } from "lucide-react";
 import { api } from "../../api/client";
 import type {
@@ -328,7 +328,7 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
               {phase === "ai-loading" ? (
                 <Loader2 size={13} className={styles.spinner} />
               ) : (
-                <Compass size={13} />
+                <Orbit size={13} />
               )}
               {phase === "ai-loading" ? "Enriching…" : "Enrich with AI"}
             </button>

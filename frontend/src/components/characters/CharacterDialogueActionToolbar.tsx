@@ -1,6 +1,6 @@
 import { serverTime } from "../../lib/serverDate";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Compass, Loader2, ChevronDown, ChevronRight, Waves, AlignLeft, UserCheck } from "lucide-react";
+import { Orbit, Loader2, ChevronDown, ChevronRight, Waves, AlignLeft, UserCheck } from "lucide-react";
 import { api } from "../../api/client";
 import type {
   ActivityLog,
@@ -260,8 +260,8 @@ export default function CharacterDialogueActionToolbar({
                       )}
                     </div>
                   </div>
-                  {/* Top-right: Compass = structured report (NLP or AI), Feather = conversational AI */}
-                  <Compass size={14} className={styles.typeIndicator} />
+                  {/* Top-right: Orbit = structured report (NLP or AI), Feather = conversational AI */}
+                  <Orbit size={14} className={styles.typeIndicator} />
                 </button>
               );
             })}

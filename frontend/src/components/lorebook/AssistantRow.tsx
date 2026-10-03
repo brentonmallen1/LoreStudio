@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Compass, Feather } from "lucide-react";
+import { ChevronDown, ChevronUp, Orbit, Feather } from "lucide-react";
 import { useAIAvailable } from "../../lib/mode";
 import styles from "./Lorebook.module.css";
 
@@ -7,7 +7,7 @@ export interface AssistantAction {
   label: string;
   /** What it does, for the tooltip. */
   title: string;
-  /** Opens a conversation (Feather) rather than running an analysis (Compass). */
+  /** Opens a conversation (Feather) rather than running an analysis (Orbit). */
   chat?: boolean;
   onRun: () => void;
 }
@@ -26,7 +26,7 @@ export default function AssistantRow({ actions }: { actions: AssistantAction[] }
     return (
       <section className={styles.assistantRow}>
         <button type="button" className={styles.assistantToggle} title={a.title} onClick={a.onRun}>
-          {a.chat ? <Feather size={13} aria-hidden /> : <Compass size={13} aria-hidden />}
+          {a.chat ? <Feather size={13} aria-hidden /> : <Orbit size={13} aria-hidden />}
           <span className={styles.assistantTitle}>Assistant</span>
           <span className={styles.assistantHint}>{a.label}</span>
         </button>
@@ -56,7 +56,7 @@ export default function AssistantRow({ actions }: { actions: AssistantAction[] }
               title={a.title}
               onClick={a.onRun}
             >
-              {a.chat ? <Feather size={12} aria-hidden /> : <Compass size={12} aria-hidden />}
+              {a.chat ? <Feather size={12} aria-hidden /> : <Orbit size={12} aria-hidden />}
               {a.label}
             </button>
           ))}

@@ -1,6 +1,6 @@
 import { streamAnswer } from "../../../lib/ai/eventStream";
 import { useEffect, useRef, useState } from "react";
-import { Archive, ChevronDown, GitFork, Compass, Loader } from "lucide-react";
+import { Archive, ChevronDown, GitFork, Orbit, Loader } from "lucide-react";
 import { api } from "../../../api/client";
 import { useAIStore } from "../../../stores/aiStore";
 import type { AISession } from "../../../stores/aiStore";
@@ -162,7 +162,7 @@ export default function SessionSwitcher({ session, onClose }: Props) {
                 {generatingTitleFor === cs.id ? (
                   <Loader size={10} className={styles.spin} />
                 ) : (
-                  <Compass size={10} />
+                  <Orbit size={10} />
                 )}
               </button>
             )}

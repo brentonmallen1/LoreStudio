@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass } from "lucide-react";
+import { Orbit } from "lucide-react";
 import { api } from "../../../api/client";
 import type { StructureNode } from "../../../types";
 import { useLLMStream } from "../../../hooks/useLLMStream";
@@ -62,7 +62,7 @@ export default function SceneSummaryField({
           disabled={isStreaming || !activeNode.content?.trim()}
           title="Generate/Refresh summary"
         >
-          <Compass size={11} />
+          <Orbit size={11} />
           {!hasAny ? "Generate" : isStreaming ? "Generating…" : "Regenerate"}
         </button>
       </div>

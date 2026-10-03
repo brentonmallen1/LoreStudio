@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Feather, Compass } from "lucide-react";
+import { Feather, Orbit } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import type { AISession } from "../../../stores/aiStore";
 import { useAIModeState } from "../../../hooks/useAIModeState";
@@ -107,7 +107,7 @@ export default function WritingCoachMode({ session }: Props) {
             }}
             disabled={session.isStreaming}
           >
-            <Compass size={13} />
+            <Orbit size={13} />
             Get coaching
           </button>
         </div>

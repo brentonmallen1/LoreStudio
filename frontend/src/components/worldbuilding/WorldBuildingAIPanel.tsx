@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Compass, X, RefreshCw } from "lucide-react";
+import { Orbit, X, RefreshCw } from "lucide-react";
 import {
   Home,
   Leaf,
@@ -358,7 +358,7 @@ export default function WorldBuildingAIPanel() {
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.headerLeft}>
-            <Compass size={13} className={styles.headerIcon} />
+            <Orbit size={13} className={styles.headerIcon} />
             <span className={styles.headerTitle}>{config.title}</span>
           </div>
           <div className={styles.headerRight}>

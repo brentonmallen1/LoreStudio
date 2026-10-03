@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, Check, ChevronDown, ChevronUp, Compass } from "lucide-react";
+import { X, Check, ChevronDown, ChevronUp, Orbit } from "lucide-react";
 import type {
   RelationshipSuggestion,
   Character,
@@ -205,7 +205,7 @@ export default function RelationshipSuggestionsModal({
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <Compass size={15} className={styles.headerIcon} />
+            <Orbit size={15} className={styles.headerIcon} />
             <span className={styles.title}>AI Relationship Suggestions</span>
           </div>
           <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>

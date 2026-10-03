@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { CircleHelp, Compass, Feather, ListTodo, MessageSquare, Quote } from "lucide-react";
+import { CircleHelp, Orbit, Feather, ListTodo, MessageSquare, Quote } from "lucide-react";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import type { NoteKind } from "../../types/notes";
 import styles from "./SelectionToolbar.module.css";
@@ -91,7 +91,7 @@ export default function SelectionToolbar({
         <>
           <div className={styles.divider} />
           <button className={styles.btn} onClick={onAnalyzeShowTell} title="Show Don't Tell analysis">
-            <Compass size={12} />
+            <Orbit size={12} />
             Show/Tell
           </button>
         </>
@@ -100,7 +100,7 @@ export default function SelectionToolbar({
         <>
           <div className={styles.divider} />
           <button className={styles.btn} onClick={onAnalyzeAudience} title="Check target audience fit">
-            <Compass size={12} />
+            <Orbit size={12} />
             Audience
           </button>
         </>

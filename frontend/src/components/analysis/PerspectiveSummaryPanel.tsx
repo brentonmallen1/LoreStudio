@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Layers, Copy, Check, Compass, Square } from "lucide-react";
+import { Layers, Copy, Check, Orbit, Square } from "lucide-react";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import { useLLMTransparency } from "../../hooks/useLLMTransparency";
@@ -167,7 +167,7 @@ export default function PerspectiveSummaryPanel({ storyId }: { storyId: string }
               className={styles.generateBtn}
               title="Use AI to summarize a story section or character arc from a specific narrative perspective"
             >
-              <Compass size={12} />
+              <Orbit size={12} />
               Summarize
             </button>
           )}

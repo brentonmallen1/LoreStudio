@@ -144,7 +144,7 @@ Warm, low-chroma neutrals with a handful of signal colours, each assigned one jo
 
 ### Secondary
 - **Assistant Violet** (#8566a1): every AI surface and only AI surfaces: Assistant buttons
-  (Compass, Feather), the Assistant tab's tint, AI-sourced findings. Never appears in Writer
+  (Orbit, Feather), the Assistant tab's tint, AI-sourced findings. Never appears in Writer
   mode.
 
 ### Tertiary
@@ -240,7 +240,7 @@ popovers, menus, the palette, dialogs, the floating panel, peek cards.
 ### Buttons
 - **Shape:** gently rounded (6px); 32px tall in headers, 28px in rows.
 - **Primary:** forest fill, paper text. One per view at most.
-- **Assistant:** violet fill, `--color-ai-fg` text, Compass or Feather icon plus a text
+- **Assistant:** violet fill, `--color-ai-fg` text, Orbit (runs an action) or Feather (opens a chat) icon plus a text
   label. Studio only.
 - **Ghost / Subtle:** transparent with a rule border (ghost) or none (subtle); vellum on
   hover.

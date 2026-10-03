@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table2, Search, ChevronRight, Compass, ExternalLink } from "lucide-react";
+import { Table2, Search, ChevronRight, Orbit, ExternalLink } from "lucide-react";
 import { api } from "../../../api/client";
 import { useStoryStore } from "../../../stores/storyStore";
 import RelationshipMatrixView from "./RelationshipMatrixView";
@@ -203,7 +203,7 @@ export default function GlobalRelationshipsView({ storyId }: Props) {
           {characters.length >= 2 && (
             <AIOnly>
               <button className={styles.suggestBtn} onClick={() => setShowSuggestDialog(true)}>
-                <Compass size={13} />
+                <Orbit size={13} />
                 Suggest relationships
               </button>
             </AIOnly>

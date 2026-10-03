@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, LayoutGrid, Table2, Compass, Radar } from "lucide-react";
+import { Plus, LayoutGrid, Table2, Orbit, Radar } from "lucide-react";
 import { api } from "../../../api/client";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { CharacterRelationship, RelationshipSuggestion } from "../../../types";
@@ -158,7 +158,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
               disabled={discovering}
               title="Use AI to suggest relationships based on character profiles"
             >
-              <Compass size={13} />
+              <Orbit size={13} />
               {discovering ? "Discovering…" : "Discover relationships"}
             </button>
           </AIOnly>

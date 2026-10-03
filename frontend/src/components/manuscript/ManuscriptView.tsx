@@ -8,7 +8,7 @@
  * The Export panel is built in — click the Export button in the toolbar to reveal it.
  */
 import { useEffect, useState, useCallback } from "react";
-import { BookOpen, RefreshCw, Download, X, Feather, Compass } from "lucide-react";
+import { BookOpen, RefreshCw, Download, X, Feather, Orbit } from "lucide-react";
 import { api } from "../../api/client";
 import type { Manuscript, ManuscriptSection } from "../../types";
 import ExportPanel from "./ExportPanel";
@@ -289,7 +289,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                   className={`${styles.pubPrepBtn} ${showCompTitles ? styles.pubPrepBtnActive : ""}`}
                   onClick={() => setShowCompTitles((v) => !v)}
                 >
-                  <Compass size={14} className={styles.pubPrepBtnIcon} />
+                  <Orbit size={14} className={styles.pubPrepBtnIcon} />
                   <div>
                     <div className={styles.pubPrepBtnLabel}>Comp Titles</div>
                     <div className={styles.pubPrepBtnDesc}>Suggest comparable published books</div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Compass, Cpu, Loader2 } from "lucide-react";
+import { Orbit, Cpu, Loader2 } from "lucide-react";
 import { api } from "../../api/client";
 import { codexApi, type CodexIndexStats, type CodexSettings } from "../../api/codex";
 import { useJobs } from "../../hooks/useJobs";
@@ -195,7 +195,7 @@ export default function CodexSection() {
             disabled={!storyId || running.length > 0}
             type="button"
           >
-            <Compass size={13} />
+            <Orbit size={13} />
             Index story
           </button>
           {running.length > 0 && (

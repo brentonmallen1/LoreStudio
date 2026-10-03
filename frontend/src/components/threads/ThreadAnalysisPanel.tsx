@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Compass,
+  Orbit,
   TrendingUp,
   Map,
   BarChart2,
@@ -76,7 +76,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.icon} />
+          <Orbit size={13} className={styles.icon} />
           <div>
             <h4 className={styles.title}>Thread Analysis</h4>
             <p className={styles.subtitle}>AI review of progression, key moments, and narrative quality</p>
@@ -88,7 +88,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
           className={styles.analyzeBtn}
           title="Review this thread's progression, key moments, try/fail cycles, and narrative quality"
         >
-          <Compass size={12} />
+          <Orbit size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Compass,
+  Orbit,
   Pin,
   BarChart2,
   Eye,
@@ -84,7 +84,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.icon} />
+          <Orbit size={13} className={styles.icon} />
           <div>
             <h4 className={styles.title}>Twist Analysis</h4>
             <p className={styles.subtitle}>
@@ -98,7 +98,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
           className={styles.analyzeBtn}
           title="Review clue quality, foreshadowing distribution, and reveal effectiveness for this twist"
         >
-          <Compass size={12} />
+          <Orbit size={12} />
           {generating ? "Analyzing…" : result ? "Re-analyze" : "Analyze"}
         </button>
       </div>

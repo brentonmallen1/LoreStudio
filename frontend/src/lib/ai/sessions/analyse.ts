@@ -2,7 +2,7 @@
  * Analyse — structured findings about text the author wrote.
  * Registered on import; see ./index.ts.
  */
-import { Users, Eye, Compass } from "lucide-react";
+import { Users, Eye, Orbit } from "lucide-react";
 import { registerSessionType } from "../sessionTypes";
 import { api } from "../../../api/client";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -81,7 +81,7 @@ registerSessionType({
   contextTitle: (_ctx, names) =>
     names.storyTitle ? `Discovery: ${names.storyTitle}` : "Discovery Questions",
   contextItemLabel: (_, names) => names.storyTitle ?? "Story",
-  icon: Compass,
+  icon: Orbit,
   accentVar: "--color-ai",
   backendFeatureId: "discovery-questions",
 
@@ -118,7 +118,7 @@ registerSessionType({
   label: "Analysis",
   contextTitle: (_ctx, names) => (names.storyTitle ? `Analysis: ${names.storyTitle}` : "Analysis"),
   contextItemLabel: (_, names) => names.storyTitle ?? "Analysis",
-  icon: Compass,
+  icon: Orbit,
   accentVar: "--color-ai",
   backendFeatureId: "scene-chat",
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Compass, CheckSquare, Square, Loader2, BookOpen, AlertTriangle } from "lucide-react";
+import { X, Orbit, CheckSquare, Square, Loader2, BookOpen, AlertTriangle } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./ExtractOutlinePanel.module.css";
@@ -120,7 +120,7 @@ export default function ExtractOutlinePanel({ storyId, onClose, onCreated }: Pro
       <div className={styles.panel}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <Compass size={14} className={styles.headerIcon} />
+            <Orbit size={14} className={styles.headerIcon} />
             <span className={styles.title}>Extract Outline from Prose</span>
           </div>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Compass, RefreshCw, GitBranch, User, Film, AlertTriangle, Zap } from "lucide-react";
+import { Orbit, RefreshCw, GitBranch, User, Film, AlertTriangle, Zap } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./TwistImpactPanel.module.css";
@@ -49,7 +49,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.icon} />
+          <Orbit size={13} className={styles.icon} />
           <div>
             <h4 className={styles.title}>Twist Impact</h4>
             <p className={styles.subtitle}>Downstream effects when "{twistName}" resolves</p>
@@ -61,7 +61,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
           disabled={loading}
           title="Trace which threads, character arcs, and scenes are affected when this twist resolves"
         >
-          <Compass size={12} className={loading ? styles.spin : undefined} />
+          <Orbit size={12} className={loading ? styles.spin : undefined} />
           {loading ? "Analyzing…" : result ? "Re-analyze" : "Analyze impact"}
         </button>
       </div>

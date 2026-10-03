@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plus, X, Trash2, BookOpen, Pencil, Compass, CheckSquare } from "lucide-react";
+import { Plus, X, Trash2, BookOpen, Pencil, Orbit, CheckSquare } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
@@ -411,7 +411,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                 onClick={() => setShowAlignment((v) => !v)}
                 title="Analyze alignment against manuscript"
               >
-                <Compass size={13} />
+                <Orbit size={13} />
                 Alignment
               </button>
             </AIOnly>
@@ -712,7 +712,7 @@ export default function OutlineManager({ storyId }: Props) {
               onClick={() => setShowExtractPanel(true)}
               title="AI: Extract outline from manuscript prose"
             >
-              <Compass size={13} />
+              <Orbit size={13} />
               Extract
             </button>
           </AIOnly>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Compass, Loader2, AlertTriangle, CheckCircle, XCircle, MinusCircle } from "lucide-react";
+import { X, Orbit, Loader2, AlertTriangle, CheckCircle, XCircle, MinusCircle } from "lucide-react";
 import { api } from "../../api/client";
 import type { StructuredResult } from "../../types";
 import styles from "./OutlineAlignmentPanel.module.css";
@@ -94,7 +94,7 @@ export default function OutlineAlignmentPanel({ outlineId, onClose }: Props) {
     <div className={styles.panel}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Compass size={13} className={styles.headerIcon} />
+          <Orbit size={13} className={styles.headerIcon} />
           <span className={styles.title}>Outline Alignment</span>
         </div>
         <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
