@@ -430,7 +430,7 @@ def seed_demo_story():  # noqa: PLR0915
             # Planning summaries (the one-sentence summary is the logline), filled with the
             # Snowflake Method on the Plan page
             planning_method="snowflake",
-            paragraph_summary="Eleanor Vance has kept the Last Lighthouse on Harrow Island alone for five years, since returning to care for her dying father and never finding a reason to leave. A storm drives a quiet, methodical stranger to her door — and Eleanor's instinct to turn her away wars with something she can't name. As the storm stretches on, the stranger's careful questions reveal she knows things about Eleanor's father that no historian should know. Eleanor discovers a section of her father's logbook has been torn out — the same fortnight the cargo vessel Ardent went down five years ago, killing all hands. The truth is worse and more forgivable than Eleanor feared: the stranger is the captain's sister, and Eleanor's father saved her life by hiding the very evidence that might have saved others.",
+            paragraph_summary="Eleanor Vance has kept the Last Lighthouse on Harrow Island alone for five years, since returning to care for her dying father and never finding a reason to leave. A storm drives a quiet, methodical stranger to her door — and Eleanor's instinct to turn her away wars with something she can't name. As the storm stretches on, the stranger's careful questions reveal she knows things about Eleanor's father that no historian should know. Eleanor discovers a section of her father's logbook has been torn out — the same fortnight the cargo vessel Ardent went down five years ago, killing all hands. The truth is worse and more forgivable than Eleanor feared: the stranger is the captain's sister, and Eleanor's father, failing in his last years at the light, missed the Ardent's distress call and then destroyed the logs that would have shown it.",
             synopsis="Eleanor Vance has kept the lighthouse running on Harrow Island for five years since her father's death — not because the shipping lanes need it, but because she does. Her life is defined by routine: the log, the light, the long view out to sea. She has shaped her grief into order and her guilt into duty, and she has not spoken to anyone on the mainland in three months. When a storm grounds an unexpected visitor, Eleanor lets her in reluctantly and with conditions — she can stay until the weather clears, she will sleep in the keeper's cottage, she will not ask too many questions.\n\nThe stranger calls herself a maritime historian researching the lighthouse's history. She is patient, precise, and a little too comfortable with silence. Eleanor finds her unsettling in a way she cannot explain, and her suspicion grows as the historian asks questions that have nothing to do with architectural records. She asks about the cargo vessel Ardent. She asks about the fortnight before Thomas Vance's death. She asks nothing directly, but everything she asks points at the same gap.\n\nEleanor goes to the logbooks to prove herself wrong — and finds the pages torn out. The entries covering the week of the Ardent's sinking are gone, cut cleanly, which means her father did it himself. She confronts the historian and for the first time the stranger stops being careful: she is not a historian. She works for the Maritime Heritage Foundation and her name is Calder — her brother James was the captain of the Ardent.\n\nThe truth comes out in pieces. Thomas Vance did not cause the Ardent to founder — he saw the distress signal and diverted to search, but arrived too late. One survivor was picked up clinging to wreckage: a woman traveling under a false name, wanted for financial crimes. Thomas hid her, helped her disappear, and tore out the logbook pages to protect her identity. Calder has spent five years believing her brother's death was covered up out of negligence or corruption, and has been wrong in the worst way.\n\nEleanor gives Calder the one surviving letter her father wrote explaining everything — tucked inside the lighthouse mechanism, never understood. The storm breaks. Calder leaves with the letter and the name of the woman her brother died protecting. Eleanor stands at the light and realizes she has been guarding a secret that was never hers to guard — and that she has been using the island to hide from a life she was too afraid to resume.",
             # Story goals checklist
             goals=[
@@ -797,7 +797,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Missing Logs",
             description="Several entries from five years ago are missing or damaged. What was recorded there — and why were they removed?",
-            status="open",
+            status="resolved",
             color_slot=1,
             mice_type="idea",  # A question raised → answered
         )
@@ -807,7 +807,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Visitor's Identity",
             description="Who is this 'historian' really, and why do they know so much about Harrow Island and the Vance family?",
-            status="developing",
+            status="resolved",
             color_slot=4,
             mice_type="idea",  # Who is she? → answered when Calder's identity is revealed
         )
@@ -817,7 +817,7 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="Eleanor's Father",
             description="What really happened in the final months of Thomas Vance's life? Eleanor's account has gaps she won't examine.",
-            status="open",
+            status="resolved",
             color_slot=2,
             mice_type="character",  # Eleanor's dissatisfaction with her idealized image of her father → acceptance of who he was
         )
@@ -1013,7 +1013,7 @@ def seed_demo_story():  # noqa: PLR0915
             PlotThreadAppearance(
                 thread_id=thread_logs.id,
                 node_id=scene3.id,
-                note="Eleanor retrieves the log volumes from the cabinet; the Visitor's attention sharpens when they reach the records from three years ago.",
+                note="Eleanor retrieves the log volumes from the cabinet; the Visitor's attention sharpens when they reach the records from five years ago.",
             )
         )
         db.add(
@@ -1033,7 +1033,7 @@ def seed_demo_story():  # noqa: PLR0915
             beat_id="midpoint",
             synopsis="Eleanor notices six months of entries missing. The Visitor is not surprised.",
             position=1,
-            timeline_position=1,  # Flashback: chronologically first — represents the period three years ago when Thomas removed these entries
+            timeline_position=1,  # Flashback: chronologically first — represents the period five years ago when Thomas removed these entries
             status="draft",
             entry_state="Eleanor and the Visitor are in the watch room with the logbooks open on the desk.",
             exit_state="The gap is exposed. The Visitor has confirmed they knew about it. Eleanor has asked who the Visitor really is.",
@@ -1504,8 +1504,8 @@ def seed_demo_story():  # noqa: PLR0915
         db.add(
             SceneLink(
                 story_id=story.id,
-                source_node_id=scene2.id,
-                target_node_id=scene6.id,
+                source_node_id=scene6.id,
+                target_node_id=scene2.id,
                 link_type="callback",
                 note="Eleanor letting the Visitor in despite her instincts in 'Knock at the Door' is echoed in 'What Thomas Knew' — both moments turn on a choice to let something unwanted past the threshold.",
             )
@@ -1517,7 +1517,7 @@ def seed_demo_story():  # noqa: PLR0915
                 story_id=story.id,
                 source_node_id=scene1.id,
                 target_node_id=scene10.id,
-                link_type="mirror",
+                link_type="parallel",
                 note="The story opens and closes with Eleanor making a log entry — the first routine and protective, the last deliberate and honest. The ritual is the same; the keeper is not.",
             )
         )
@@ -1526,8 +1526,8 @@ def seed_demo_story():  # noqa: PLR0915
         db.add(
             SceneLink(
                 story_id=story.id,
-                source_node_id=scene2.id,
-                target_node_id=scene8.id,
+                source_node_id=scene8.id,
+                target_node_id=scene2.id,
                 link_type="callback",
                 note="The arrival and departure mirror each other: storm vs calm, stranger vs known quantity, suspicion vs something approaching understanding.",
             )
@@ -1983,7 +1983,7 @@ def seed_demo_story():  # noqa: PLR0915
                 the_truth="Calder visited Harrow Island two weeks before Thomas Vance died. She spoke with him directly. She already knows what happened to the Ardent — she came back to find out whether Eleanor knows too.",
                 the_misdirection="The Visitor is a neutral Maritime Heritage Foundation investigator who arrived for the first time during the storm, driven purely by professional interest in the lighthouse records.",
                 twist_type="identity",
-                status="seeding",
+                status="revealed",
                 revealed_at_node_id=scene6.id,
                 clues=[
                     {
@@ -2022,11 +2022,11 @@ def seed_demo_story():  # noqa: PLR0915
             Twist(
                 story_id=story.id,
                 name="Thomas Vance Falsified the Logs",
-                the_truth="Thomas Vance, Eleanor's father, deliberately falsified the lighthouse logs on the night the Ardent went down. He guided the ship onto the rocks — whether by action or inaction — and then erased the record.",
+                the_truth='On the night the Ardent went down, Thomas Vance did not answer its distress call and logged a quiet night: "Clear. Light wind. No incidents." Afterwards he destroyed six months of entries that would have shown how far his keeping of the light had slipped.',
                 the_misdirection="The missing log entries are a clerical gap or the result of Thomas's illness — the lighthouse records are otherwise reliable and Eleanor has no reason to doubt her father.",
                 twist_type="reveal",
-                status="seeding",
-                revealed_at_node_id=scene7.id,
+                status="revealed",
+                revealed_at_node_id=scene6.id,
                 clues=[
                     {
                         "id": str(uuid.uuid4()),
@@ -2779,7 +2779,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Anomalous Signal",
             description="What is the signal? Where does it come from? Is it alien, human, or something else entirely?",
-            status="open",
+            status="resolved",
             color_slot=3,
             mice_type="idea",  # A question raised → answered
         )
@@ -2789,7 +2789,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Lost Colony",
             description="What happened to the Persephone and its 1,247 colonists? Where have they been for thirty years?",
-            status="developing",
+            status="resolved",
             color_slot=1,
             mice_type="milieu",  # Entering unknown space → understanding achieved
         )
@@ -2799,7 +2799,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="Yuki's Isolation",
             description="Yuki chose solitude as safety. The signal forces her to decide if she will stay hidden or reach out.",
-            status="open",
+            status="resolved",
             color_slot=5,
             mice_type="character",  # Dissatisfaction with isolation → choosing connection
         )
@@ -3510,8 +3510,8 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         db.add(
             SceneLink(
                 story_id=story.id,
-                source_node_id=scene2.id,
-                target_node_id=scene10.id,
+                source_node_id=scene10.id,
+                target_node_id=scene2.id,
                 link_type="callback",
                 note="MIRA calling the burst 'noise' in 'Ghost in the Noise' is echoed when the reply proves it was always a signal — Yuki's insistence on keeping it separate was the right call.",
             )
@@ -3522,7 +3522,7 @@ def seed_scifi_demo_story():  # noqa: PLR0915
                 story_id=story.id,
                 source_node_id=scene1.id,
                 target_node_id=scene10.id,
-                link_type="mirror",
+                link_type="parallel",
                 note="The story opens and closes with Yuki at her console in the observation deck, monitoring the array. The first time, the void is empty. The last time, it answers.",
             )
         )
@@ -3530,8 +3530,8 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         db.add(
             SceneLink(
                 story_id=story.id,
-                source_node_id=scene4.id,
-                target_node_id=scene9.id,
+                source_node_id=scene9.id,
+                target_node_id=scene4.id,
                 link_type="callback",
                 note="Yuki's solitary carrier wave discovery in 'Carrier Wave' becomes the shared starting point in 'Old Friends' — what she found alone, she explains to Priya, and explaining it makes it real in a different way.",
             )
@@ -4117,7 +4117,7 @@ def seed_flash_fiction_demo():
             purpose="Open the Character MICE thread. Lena's dissatisfaction must be clear: she is not living, she is waiting. The thread question is: will she finally allow herself to grieve — and move?",
             metadata_={"mice_opens": "Will Lena let go? — opened here, when Lena arrives for the first time."},
             content=(
-                "<p>The key is the right one. Lena knows this — she&#x27;s used it a thousand times, "
+                "<p>The key is the right one. Lena knows this — she's used it a thousand times, "
                 "back when this house was hers too. And yet her hand won&#x27;t turn.</p>"
                 "<p>She has been sitting in the rental car for fourteen minutes. She knows because she "
                 "checked her phone at the two-minute mark and the twelve-minute mark and she is, if "
@@ -4873,7 +4873,7 @@ def seed_first_person_demo():
         story = Story(
             user_id=admin.id,
             title="Sixty Minutes",
-            description="An investigative journalist sits across from a tech CEO with sixty minutes to get him to say the one thing he doesn&#x27;t want to say.",
+            description="An investigative journalist sits across from a tech CEO with sixty minutes to get him to say the one thing he doesn't want to say.",
             structure_template_id="mice-single",
             intent="A story about the patience required to ask the right question at the right moment.",
             genre="Psychological Thriller",
@@ -4975,7 +4975,7 @@ def seed_first_person_demo():
         thread = PlotThread(
             story_id=story.id,
             name="What is Victor hiding?",
-            description="Event thread: Maya&#x27;s single goal is to get Victor to confirm, on record, what she already knows about the 2019 pilot. The thread opens when she sits down. It closes when he slips.",
+            description="Event thread: Maya's single goal is to get Victor to confirm, on record, what she already knows about the 2019 pilot. The thread opens when she sits down. It closes when he slips.",
             status="resolved",
             color_slot=1,
             mice_type="event",
