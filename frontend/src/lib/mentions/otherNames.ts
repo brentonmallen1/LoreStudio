@@ -1,7 +1,6 @@
 /**
- * Fixing a mention that names nobody: which existing entry the words most likely mean, and
- * where the mention's syntax sits so it can be dropped. "[[The Keeper's Cottage]]" is
- * Keeper's Cottage; "@Nell" is nobody until the author says so.
+ * Fixing a mention that names nobody: which existing entry the words most likely mean.
+ * "[[The Keeper's Cottage]]" is Keeper's Cottage; "@Nell" is nobody until the author says so.
  */
 
 const ARTICLE = /^(the|a|an)\s+/;
@@ -43,25 +42,4 @@ export function rankByName<T extends Named>(written: string, items: T[]): { item
       score: Math.max(...[item.name, ...(item.aliases ?? [])].map((n) => closeness(written, n))),
     }))
     .sort((x, y) => y.score - x.score || x.item.name.localeCompare(y.item.name));
-}
-
-/**
- * Where the mention's syntax is in a run of text: `@name` (a character) or `[[name]]` (a
- * place), whatever its case. Each range is the whole mention, start and end offsets, with
- * the words inside it, so the syntax can be replaced by the words alone.
- */
-export function mentionRanges(
-  text: string,
-  type: "character" | "setting",
-  name: string,
-): { from: number; to: number; words: string }[] {
-  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re =
-    type === "character"
-      ? new RegExp(`@(${esc})(?=[\\s.,;:!?)"'\\]]|$)`, "gi")
-      : new RegExp(`\\[\\[(${esc})\\]\\]`, "gi");
-  const out: { from: number; to: number; words: string }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) out.push({ from: m.index, to: m.index + m[0].length, words: m[1] });
-  return out;
 }

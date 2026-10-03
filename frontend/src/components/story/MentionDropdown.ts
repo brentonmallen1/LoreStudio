@@ -3,6 +3,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
+import { findMentions, makeLexicon, type KnownName, type Lexicon } from "../../lib/prose/syntax";
 
 export interface MentionItem {
   type: "character" | "setting" | "create";
@@ -24,7 +25,6 @@ export interface MentionCallbacks {
 
 // Module-level state — safe since only one SceneEditor exists at a time.
 let _isOpen = false;
-let _items: MentionItem[] = [];
 /** The entity lit up in the prose (doc 11 P2): the one whose tab is open or hovered. */
 let _highlightName: string | null = null;
 export function setMentionHighlight(name: string | null): void {
@@ -80,16 +80,32 @@ export function setMentionIsOpen(open: boolean) {
   _isOpen = open;
 }
 
+let _lexicon: Lexicon = makeLexicon([]);
+let _slots = new Map<string, number>();
+
+/** The names the prose may use, from the picker's items (a name and its other names). */
 export function setMentionItems(items: MentionItem[]) {
-  _items = items;
+  const known = new Map<string, KnownName>();
+  _slots = new Map();
+  for (const item of items) {
+    if (item.type === "create") continue;
+    const kind = item.type === "character" ? "character" : "place";
+    const name = item.aliasOf ?? item.name;
+    const entry = known.get(`${kind}:${name}`) ?? { kind, name, aliases: [] };
+    if (item.aliasOf) entry.aliases!.push(item.name);
+    known.set(`${kind}:${name}`, entry);
+    if (item.slot) _slots.set(`${kind}:${name}`, item.slot);
+  }
+  _lexicon = makeLexicon([...known.values()]);
+}
+
+/** The lexicon the decorations read, for anything else that has to agree with them. */
+export function mentionLexicon(): Lexicon {
+  return _lexicon;
 }
 
 export function setMentionCallbacks(cb: Partial<MentionCallbacks>) {
   Object.assign(_cb, cb);
-}
-
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Spec on every mention decoration, so the reveal plugin can find the one at the cursor. */
@@ -109,95 +125,30 @@ function syntaxDecos(from: number, to: number, kind: "character" | "setting"): D
 
 function buildMentionDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
-  const known = _items
-    .filter((i) => i.type === "character" || i.type === "setting")
-    .sort((a, b) => b.name.length - a.name.length);
-
-  // A paragraph at a time: a mention a note's highlight runs through is still one mention.
+  // A paragraph at a time, by the one grammar (lib/prose/syntax): any capitals, any
+  // apostrophe, other names; "@Nell," is Nell, and me@host.com is an address.
   forEachBlockText(doc, ({ text, range }) => {
-    const claimedRanges: Array<[number, number]> = [];
-
-    function isClaimed(from: number, to: number): boolean {
-      return claimedRanges.some(([a, b]) => from < b && to > a);
-    }
-
-    // Known mentions, by name or another name, whatever the case: the longest first, so
-    // "@Eleanor Vance" is Eleanor Vance even when "Eleanor" is someone's other name.
-    for (const item of known) {
-      const kind = item.type === "character" ? "character" : "setting";
-      const re =
-        kind === "character"
-          ? new RegExp(`@${escapeRe(item.name)}(?=[\\s.,;:!?)"'\\]]|$)`, "gi")
-          : new RegExp(`\\[\\[${escapeRe(item.name)}\\]\\]`, "gi");
-      const name = item.aliasOf ?? item.name;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(text)) !== null) {
-        const { from, to } = range(m.index, m.index + m[0].length);
-        if (isClaimed(from, to)) continue;
-        claimedRanges.push([from, to]);
-        const cls = kind === "character" ? "mention-char" : "mention-setting";
-        decos.push(
-          Decoration.inline(
-            from,
-            to,
-            {
-              class: name === _highlightName ? `${cls} mention-hl` : cls,
-              "data-mention-name": name,
-              "data-mention-type": kind,
-              ...(item.slot ? { "data-slot": String(item.slot) } : {}),
-            },
-            MENTION_SPEC,
-          ),
-          ...syntaxDecos(from, to, kind),
-        );
-      }
-    }
-
-    // Unknown @Name mentions (not matched by any known character)
-    const unknownCharRe = /@([A-Za-z]\S*)(?=[\s.,;:!?)"'\]]|$)/g;
-    let mu: RegExpExecArray | null;
-    while ((mu = unknownCharRe.exec(text)) !== null) {
-      const { from, to } = range(mu.index, mu.index + mu[0].length);
-      if (!isClaimed(from, to)) {
-        decos.push(
-          Decoration.inline(
-            from,
-            to,
-            {
-              class: "mention-missing",
-              "data-mention-name": mu[1],
-              "data-mention-type": "character",
-            },
-            MENTION_SPEC,
-          ),
-          ...syntaxDecos(from, to, "character"),
-        );
-      }
-    }
-
-    // Unknown [[Setting]] mentions (not matched by any known setting)
-    const unknownSettingRe = /\[\[([^\]\n\uFFFC]+)\]\]/g;
-    let ms: RegExpExecArray | null;
-    while ((ms = unknownSettingRe.exec(text)) !== null) {
-      const { from, to } = range(ms.index, ms.index + ms[0].length);
-      if (!isClaimed(from, to)) {
-        decos.push(
-          Decoration.inline(
-            from,
-            to,
-            {
-              class: "mention-missing",
-              "data-mention-name": ms[1],
-              "data-mention-type": "setting",
-            },
-            MENTION_SPEC,
-          ),
-          ...syntaxDecos(from, to, "setting"),
-        );
-      }
+    for (const m of findMentions(text, _lexicon)) {
+      const { from, to } = range(m.start, m.end);
+      const kind = m.kind === "character" ? "character" : "setting";
+      const cls = !m.name ? "mention-missing" : kind === "character" ? "mention-char" : "mention-setting";
+      const slot = m.name ? _slots.get(`${m.kind}:${m.name}`) : undefined;
+      decos.push(
+        Decoration.inline(
+          from,
+          to,
+          {
+            class: m.name && m.name === _highlightName ? `${cls} mention-hl` : cls,
+            "data-mention-name": m.name ?? m.written,
+            "data-mention-type": kind,
+            ...(slot ? { "data-slot": String(slot) } : {}),
+          },
+          MENTION_SPEC,
+        ),
+        ...syntaxDecos(from, to, kind),
+      );
     }
   });
-
   return DecorationSet.create(doc, decos);
 }
 

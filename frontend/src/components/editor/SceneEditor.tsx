@@ -18,7 +18,12 @@ import {
   setInlineImageInsertCallback,
   insertInlineImage,
 } from "../story/InlineImageExtension";
-import { MentionDropdownExtension, FORCE_MENTION_KEY, setMentionHighlight } from "../story/MentionDropdown";
+import {
+  MentionDropdownExtension,
+  FORCE_MENTION_KEY,
+  mentionLexicon,
+  setMentionHighlight,
+} from "../story/MentionDropdown";
 import { DialogueExtension } from "../story/DialogueExtension";
 import { SlashCommandExtension } from "../story/SlashCommandExtension";
 import { SearchAndReplaceExtension } from "../story/SearchAndReplaceExtension";
@@ -372,7 +377,7 @@ export default function SceneEditor() {
         storyId={activeStory?.id}
         onUnlink={(type, name) => {
           // Back in the prose, so ⌘Z puts the link back straight away.
-          if (editor && unlinkMentions(editor, type, name)) editor.commands.focus();
+          if (editor && unlinkMentions(editor, type, name, mentionLexicon())) editor.commands.focus();
         }}
       />
       <SlashPicker slash={slash} />

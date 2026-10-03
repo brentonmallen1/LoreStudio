@@ -16,6 +16,7 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
+import { findSpeakerTags } from "../../lib/prose/syntax";
 
 // ---------------------------------------------------------------------------
 // Dialogue mode state (read by SceneEditor to change insertion behaviour)
@@ -49,26 +50,6 @@ export function setDialogueCallbacks(cb: Partial<DialogueCallbacks>) {
 // ---------------------------------------------------------------------------
 // Decoration patterns
 // ---------------------------------------------------------------------------
-
-// Match "dialogue"<Name> — the entire unit (quote + speaker suffix) is decorated.
-// Returns [start, end, speakerName, tagStart] where tagStart is the index of '<'.
-function findExplicitQuotes(text: string): Array<[number, number, string, number]> {
-  const results: Array<[number, number, string, number]> = [];
-  let m: RegExpExecArray | null;
-  // Straight quotes: "..."<Name>
-  const re = /"([^"]+)"<([^>]+)>/g;
-  while ((m = re.exec(text)) !== null) {
-    const tagStart = m.index + 1 + m[1].length + 1; // after closing "
-    results.push([m.index, m.index + m[0].length, m[2], tagStart]);
-  }
-  // Smart quotes: "…"<Name>
-  const reSmart = /\u201c([^\u201d]+)\u201d<([^>]+)>/g;
-  while ((m = reSmart.exec(text)) !== null) {
-    const tagStart = m.index + 1 + m[1].length + 1; // after closing \u201d
-    results.push([m.index, m.index + m[0].length, m[2], tagStart]);
-  }
-  return results;
-}
 
 function findInferredQuotes(text: string, explicitRanges: Array<[number, number]>): Array<[number, number]> {
   const results: Array<[number, number]> = [];
@@ -136,24 +117,15 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
       return Decoration.inline(r.from, r.to, attrs);
     };
 
-    // Explicit
-    const explicit = findExplicitQuotes(text);
-    const explicitRanges: Array<[number, number]> = explicit.map(([s, e]) => [s, e]);
+    // Tagged lines, by the one grammar (lib/prose/syntax): straight, curly or single
+    // quotes, with or without a space before <Name>.
+    const explicit = findSpeakerTags(text);
+    const explicitRanges: Array<[number, number]> = explicit.map((t) => [t.quoteStart, t.end]);
 
-    for (const [s, e, speaker, tagStart] of explicit) {
-      // Quote portion: "dialogue"
+    for (const t of explicit) {
       decos.push(
-        inline(s, tagStart, {
-          class: "dialogue-explicit",
-          "data-dialogue-speaker": speaker,
-        }),
-      );
-      // Speaker tag portion: <Name>
-      decos.push(
-        inline(tagStart, e, {
-          class: "dialogue-speaker-tag",
-          "data-dialogue-speaker": speaker,
-        }),
+        inline(t.quoteStart, t.quoteEnd, { class: "dialogue-explicit", "data-dialogue-speaker": t.speaker }),
+        inline(t.tagStart, t.end, { class: "dialogue-speaker-tag", "data-dialogue-speaker": t.speaker }),
       );
     }
 

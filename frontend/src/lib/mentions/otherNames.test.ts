@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { closeness, mentionRanges, normalName, rankByName } from "./otherNames";
+import { closeness, normalName, rankByName } from "./otherNames";
 
 describe("other names", () => {
   it("normalises case, quotes and a leading article", () => {
@@ -26,14 +26,5 @@ describe("other names", () => {
       ["Harbour", 1],
       ["The Shoals", 0],
     ]);
-  });
-
-  it("finds a mention's syntax whatever its case", () => {
-    const text = "At [[the cottage]], @Nell and @Nellie met [[The Cottage]].";
-    expect(mentionRanges(text, "setting", "The Cottage")).toEqual([
-      { from: 3, to: 18, words: "the cottage" },
-      { from: 42, to: 57, words: "The Cottage" },
-    ]);
-    expect(mentionRanges(text, "character", "Nell")).toEqual([{ from: 20, to: 25, words: "Nell" }]);
   });
 });
