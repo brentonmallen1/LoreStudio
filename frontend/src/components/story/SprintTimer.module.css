@@ -76,7 +76,7 @@
   border-radius: var(--radius);
   border: none;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-accent-fg);
   font-size: 0.78rem;
   font-family: inherit;
   font-weight: 600;
@@ -113,7 +113,7 @@
 }
 
 .separator {
-  color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  color: var(--color-text-muted);
 }
 
 .words {
@@ -121,7 +121,7 @@
 }
 
 .goal {
-  color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  color: var(--color-text-muted);
 }
 
 .stopBtn {
@@ -131,7 +131,7 @@
   padding: 0.1rem;
   border: none;
   background: transparent;
-  color: color-mix(in srgb, var(--color-accent) 60%, transparent);
+  color: var(--color-accent);
   cursor: pointer;
   border-radius: 3px;
   margin-left: 0.15rem;

@@ -31,10 +31,10 @@
 }
 
 .displayVal.neg {
-  color: #a06090;
+  color: var(--color-danger);
 }
 .displayVal.pos {
-  color: #609878;
+  color: var(--color-success);
 }
 .displayVal.zero {
   color: var(--color-text-subtle);

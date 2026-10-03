@@ -450,9 +450,9 @@ export default function RelationshipSuggestionsModal({
                                 style={{
                                   color:
                                     aiDisplay < 0
-                                      ? "#a06090"
+                                      ? "var(--color-danger)"
                                       : aiDisplay > 0
-                                        ? "#609878"
+                                        ? "var(--color-success)"
                                         : "var(--color-text-subtle)",
                                 }}
                               >

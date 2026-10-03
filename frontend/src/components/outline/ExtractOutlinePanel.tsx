@@ -22,7 +22,7 @@ interface Props {
 const BEAT_TYPE_COLORS: Record<string, string> = {
   plot: "var(--color-accent)",
   character: "var(--color-ai)",
-  theme: "var(--segment-chapter, #7c6fae)",
+  theme: "var(--segment-chapter)",
   setting: "var(--color-nlp)",
 };
 

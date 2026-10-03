@@ -18,17 +18,11 @@ interface Props {
   relationships: CharacterRelationship[];
 }
 
+// Palette slots, then success and warning: ten characters, every theme (doc 17).
 const PALETTE = [
-  "#7898c9",
-  "#c97878",
-  "#c9a060",
-  "#a06090",
-  "#609878",
-  "#c9c060",
-  "#6090a0",
-  "#c090a0",
-  "#90a060",
-  "#a08060",
+  ...Array.from({ length: 8 }, (_, i) => `var(--cat-${i + 1})`),
+  "var(--color-success)",
+  "var(--color-warning)",
 ];
 
 // Recharts radar data: one object per axis dimension
@@ -88,7 +82,12 @@ function CustomTooltip({
             <span
               className={styles.tooltipVal}
               style={{
-                color: display < 0 ? "#a06090" : display > 0 ? "#609878" : "var(--color-text-subtle)",
+                color:
+                  display < 0
+                    ? "var(--color-danger)"
+                    : display > 0
+                      ? "var(--color-success)"
+                      : "var(--color-text-subtle)",
               }}
             >
               {display > 0 ? "+" : ""}

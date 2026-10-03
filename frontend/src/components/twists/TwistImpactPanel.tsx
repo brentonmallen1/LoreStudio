@@ -113,7 +113,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
             <ImpactSection
               icon={<User size={12} />}
               title="Character arc changes"
-              color="var(--color-accent-secondary, #0d9488)"
+              color="var(--color-accent-secondary)"
             >
               {affectedArcs.map((a, i) => (
                 <div key={i} className={styles.impactRow}>
@@ -138,11 +138,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Ripple effects */}
           {rippleEffects.length > 0 && (
-            <ImpactSection
-              icon={<Zap size={12} />}
-              title="Ripple effects"
-              color="var(--segment-beat, #a855f7)"
-            >
+            <ImpactSection icon={<Zap size={12} />} title="Ripple effects" color="var(--segment-beat)">
               {rippleEffects.map((r, i) => (
                 <div key={i} className={styles.impactRow}>
                   <span className={styles.impactName}>{str(r.area)}</span>
@@ -154,7 +150,7 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
 
           {/* Loose ends */}
           {looseEnds.length > 0 && (
-            <ImpactSection icon={<AlertTriangle size={12} />} title="Loose ends" color="#c83c3c">
+            <ImpactSection icon={<AlertTriangle size={12} />} title="Loose ends" color="var(--color-danger)">
               <ul className={styles.looseEndList}>
                 {looseEnds.map((end, i) => (
                   <li key={i} className={styles.looseEndItem}>

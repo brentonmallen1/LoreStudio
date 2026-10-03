@@ -158,11 +158,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Distribution */}
           {!!data.distribution && (
-            <Section
-              icon={<BarChart2 size={12} />}
-              title="Clue distribution"
-              color="var(--twist-accent, #7c3aed)"
-            >
+            <Section icon={<BarChart2 size={12} />} title="Clue distribution" color="var(--twist-accent)">
               {!!asRecord(data.distribution).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.distribution).summary)}</p>
               )}
@@ -184,11 +180,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Reveal */}
           {!!data.reveal && (
-            <Section
-              icon={<Eye size={12} />}
-              title="Reveal assessment"
-              color="var(--color-accent-secondary, #0d9488)"
-            >
+            <Section icon={<Eye size={12} />} title="Reveal assessment" color="var(--color-accent-secondary)">
               {!!asRecord(data.reveal).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.reveal).summary)}</p>
               )}
@@ -217,11 +209,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Misdirection Strength */}
           {!!data.misdirection_strength && (
-            <Section
-              icon={<Shuffle size={12} />}
-              title="Misdirection strength"
-              color="var(--color-warning, #f59e0b)"
-            >
+            <Section icon={<Shuffle size={12} />} title="Misdirection strength" color="var(--color-warning)">
               {!!asRecord(data.misdirection_strength).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.misdirection_strength).summary)}</p>
               )}
@@ -235,7 +223,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Suggestions */}
           {asStringList(data.suggestions).length > 0 && (
-            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
+            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
                   <li key={i} className={styles.suggestionListItem}>

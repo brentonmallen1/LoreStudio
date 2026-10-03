@@ -114,13 +114,13 @@
 }
 
 .iconNote {
-  color: #7c6f5a;
+  color: var(--color-note-marker);
 }
 .iconUrl {
-  color: #4a7c8c;
+  color: var(--segment-scene);
 }
 .iconDoc {
-  color: #7a5c7c;
+  color: var(--segment-part);
 }
 
 .title {

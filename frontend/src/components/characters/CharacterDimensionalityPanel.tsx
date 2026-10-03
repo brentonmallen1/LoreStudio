@@ -112,11 +112,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Strengths */}
           {asStringList(entry.strengths).length > 0 && (
-            <Section
-              icon={<CheckCircle size={12} />}
-              title="Strengths"
-              color="var(--color-accent-secondary, #0d9488)"
-            >
+            <Section icon={<CheckCircle size={12} />} title="Strengths" color="var(--color-accent-secondary)">
               <ul className={styles.bulletList}>
                 {asStringList(entry.strengths).map((s, i) => (
                   <li key={i}>{s}</li>
@@ -127,7 +123,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Gaps */}
           {asStringList(entry.gaps).length > 0 && (
-            <Section icon={<AlertCircle size={12} />} title="Gaps" color="var(--color-warning, #f59e0b)">
+            <Section icon={<AlertCircle size={12} />} title="Gaps" color="var(--color-warning)">
               <ul className={styles.bulletList}>
                 {asStringList(entry.gaps).map((g, i) => (
                   <li key={i}>{g}</li>
@@ -145,11 +141,7 @@ export default function CharacterDimensionalityPanel({ characterId }: Props) {
 
           {/* Relationship depth */}
           {!!entry.relationship_depth && (
-            <Section
-              icon={<Users size={12} />}
-              title="Relationship depth"
-              color="var(--segment-chapter, #7c3aed)"
-            >
+            <Section icon={<Users size={12} />} title="Relationship depth" color="var(--segment-chapter)">
               <p className={styles.prose}>{entry.relationship_depth}</p>
             </Section>
           )}

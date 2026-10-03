@@ -1,26 +1,13 @@
 import { useState } from "react";
 import type { Character, CharacterRelationship } from "../../../types";
+import {
+  relationshipInk,
+  relationshipPurposeColor as purposeColor,
+  relationshipTypeColor as typeColor,
+} from "../../../lib/relationships/colors";
 import styles from "./RelationshipMatrixView.module.css";
 
 type CellMode = "type" | "purpose" | "trust" | "power" | "affection" | "strength";
-
-const TYPE_COLORS: Record<string, string> = {
-  family: "#6b8e6b",
-  romantic: "#c97878",
-  ally: "#7898c9",
-  rival: "#c9a060",
-  enemy: "#c96060",
-  mentor: "#9878c9",
-  confidant: "#78a878",
-  authority: "#a8a060",
-  foil: "#c9c060",
-  protector: "#609878",
-  "former ally": "#9890a0",
-};
-
-function typeColor(type: string): string {
-  return TYPE_COLORS[type.toLowerCase()] ?? "#888";
-}
 
 function safeStrength(rel: CharacterRelationship) {
   const s = rel.strength as Partial<import("../../../types").StrengthDimensions> | null | undefined;
@@ -36,42 +23,13 @@ function avgStrength(rel: CharacterRelationship): number {
   return (s.trust + s.power + s.affection) / 3;
 }
 
-// stored 0–10, where 5 = neutral (display 0). Positive = blue, negative = orange-red.
+// stored 0–10, where 5 = neutral (display 0). Positive in slot 1, negative in danger, as a
+// tint of the card, so the number on it stays in body text at full strength (doc 17).
 function strengthColor(stored: number): string {
   const display = stored - 5; // −5..+5
-  const t = Math.abs(display) / 5; // 0..1 intensity
-  if (display >= 0) {
-    // neutral → blue
-    const r = Math.round(160 + t * (120 - 160));
-    const g = Math.round(160 + t * (152 - 160));
-    const b = Math.round(160 + t * (201 - 160));
-    return `rgb(${r},${g},${b})`;
-  }
-  // neutral → orange-red
-  const r = Math.round(160 + t * (201 - 160));
-  const g = Math.round(160 + t * (96 - 160));
-  const b = Math.round(160 + t * (60 - 160));
-  return `rgb(${r},${g},${b})`;
-}
-
-const PURPOSE_COLORS: Record<string, string> = {
-  "conflict-driver": "#c96060",
-  ally: "#7898c9",
-  foil: "#c9c060",
-  "growth-catalyst": "#78a878",
-  "emotional-anchor": "#c97878",
-  "twist-setup": "#9878c9",
-  "comic-relief": "#c9a060",
-  "exposition-vehicle": "#a0a060",
-  obstacle: "#c06060",
-  mirror: "#8890c9",
-  "wisdom-source": "#78a8a8",
-  "past-connection": "#9890a0",
-  "structure-provider": "#a09060",
-};
-
-function purposeColor(p: string): string {
-  return PURPOSE_COLORS[p] ?? "#888";
+  const pct = Math.round(12 + (Math.abs(display) / 5) * 38);
+  const ink = display >= 0 ? "var(--cat-1)" : "var(--color-danger)";
+  return `color-mix(in srgb, ${ink} ${pct}%, var(--color-surface))`;
 }
 
 const MODES: { value: CellMode; label: string }[] = [
@@ -129,7 +87,7 @@ export default function RelationshipMatrixView({
               height: 8 + avg * 1.4,
             }}
           />
-          <span className={styles.cellLabel} style={{ color }}>
+          <span className={styles.cellLabel} style={{ color: relationshipInk(color) }}>
             {rel.relationship_type}
           </span>
         </div>
@@ -167,11 +125,10 @@ export default function RelationshipMatrixView({
             : s.affection;
     const display = stored - 5; // −5..+5
     const color = strengthColor(stored);
-    const opacity = 0.15 + (Math.abs(display) / 5) * 0.85;
     const label = (display >= 0 ? "+" : "") + display.toFixed(mode === "strength" ? 1 : 0);
     return (
       <div className={styles.cellInner}>
-        <div className={styles.strengthMeter} style={{ background: color, opacity }}>
+        <div className={styles.strengthMeter} style={{ background: color }}>
           <span className={styles.strengthNum}>{label}</span>
         </div>
       </div>

@@ -52,7 +52,7 @@
   height: 0.8rem;
   left: 3px;
   top: 3px;
-  background: white;
+  background: var(--color-surface);
   border-radius: 50%;
   transition: transform 0.2s;
 }

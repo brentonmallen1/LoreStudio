@@ -51,11 +51,7 @@ function BeatRow({ item }: { item: AlignmentItem }) {
 function ScoreBar({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(100, score));
   const color =
-    pct >= 70
-      ? "var(--color-success, #22c55e)"
-      : pct >= 40
-        ? "var(--color-warning, #d97706)"
-        : "var(--color-error, #ef4444)";
+    pct >= 70 ? "var(--color-success)" : pct >= 40 ? "var(--color-warning)" : "var(--color-danger)";
   return (
     <div className={styles.scoreBar}>
       <div className={styles.scoreTrack}>

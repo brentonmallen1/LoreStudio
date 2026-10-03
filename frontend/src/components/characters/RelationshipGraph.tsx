@@ -13,26 +13,8 @@ import {
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { CharacterRelationship } from "../../types";
+import { relationshipInk, relationshipTypeColor as edgeColor } from "../../lib/relationships/colors";
 import styles from "./RelationshipGraph.module.css";
-
-// ── Relationship type → edge color ─────────────────────────────
-const TYPE_COLORS: Record<string, string> = {
-  family: "#6b8e6b",
-  romantic: "#c97878",
-  ally: "#7898c9",
-  rival: "#c9a060",
-  enemy: "#c96060",
-  mentor: "#9878c9",
-  confidant: "#78a878",
-  authority: "#a8a060",
-  foil: "#c9c060",
-  protector: "#609878",
-  "former ally": "#9890a0",
-};
-
-function edgeColor(type: string): string {
-  return TYPE_COLORS[type.toLowerCase()] ?? "#999";
-}
 
 function avgStrength(rel: CharacterRelationship): number {
   if (!rel.strength) return 5;
@@ -61,7 +43,7 @@ const ROLE_STROKE: Record<string, string> = {
   deuteragonist: "color-mix(in srgb, var(--color-accent) 55%, transparent)",
   love_interest: "color-mix(in srgb, var(--color-danger) 50%, var(--color-accent))",
   confidant: "var(--color-text-muted)",
-  foil: "var(--color-warning, #c9a227)",
+  foil: "var(--color-warning)",
   supporting: "var(--color-text-muted)",
   minor: "var(--color-border)",
   tertiary: "var(--color-border-subtle)",
@@ -606,7 +588,10 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
             style={{ left: tooltip.x + 12, top: tooltip.y - 10 }}
             onMouseEnter={() => {}}
           >
-            <div className={styles.tooltipType} style={{ color: edgeColor(tooltip.rel.relationship_type) }}>
+            <div
+              className={styles.tooltipType}
+              style={{ color: relationshipInk(edgeColor(tooltip.rel.relationship_type)) }}
+            >
               {tooltip.rel.relationship_type}
               {tooltip.rel.visibility === "hidden" && <span className={styles.tooltipHidden}>· hidden</span>}
             </div>

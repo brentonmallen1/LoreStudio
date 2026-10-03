@@ -519,7 +519,7 @@
   border-radius: 5px;
   border: none;
   background: var(--color-ai);
-  color: white;
+  color: var(--color-ai-fg);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;

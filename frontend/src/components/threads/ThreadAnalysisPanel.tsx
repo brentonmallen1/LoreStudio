@@ -129,11 +129,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
 
           {/* Moment Discoveries */}
           {asList(data.moment_discoveries).length > 0 && (
-            <Section
-              icon={<Map size={12} />}
-              title="Key moments found"
-              color="var(--segment-chapter, #7c3aed)"
-            >
+            <Section icon={<Map size={12} />} title="Key moments found" color="var(--segment-chapter)">
               <p className={styles.sectionSubtitle}>Significant scenes discovered in your prose</p>
               {(asList(data.moment_discoveries) as AnyRecord[]).map((m, i) => (
                 <div key={i} className={styles.momentRow}>
@@ -159,7 +155,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
             <Section
               icon={<BarChart2 size={12} />}
               title="Quality assessment"
-              color="var(--color-accent-secondary, #0d9488)"
+              color="var(--color-accent-secondary)"
             >
               {!!asRecord(data.quality).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.quality).summary)}</p>
@@ -174,11 +170,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
 
           {/* Unlinked cycles */}
           {asStringList(data.unlinked_cycles).length > 0 && (
-            <Section
-              icon={<AlertCircle size={12} />}
-              title="Unlinked cycles"
-              color="var(--color-warning, #f59e0b)"
-            >
+            <Section icon={<AlertCircle size={12} />} title="Unlinked cycles" color="var(--color-warning)">
               <p className={styles.sectionSubtitle}>Try/fail cycles with no scene assigned</p>
               {asStringList(data.unlinked_cycles).map((c, i) => (
                 <p key={i} className={styles.warningItem}>
@@ -190,7 +182,7 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
 
           {/* Suggestions */}
           {asStringList(data.suggestions).length > 0 && (
-            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
+            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
                   <li key={i} className={styles.suggestionListItem}>

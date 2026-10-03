@@ -357,7 +357,6 @@
   width: 100%;
   border-radius: 2px 2px 0 0;
   background: var(--color-nlp);
-  opacity: 0.75;
 }
 
 .histogram span:last-child {

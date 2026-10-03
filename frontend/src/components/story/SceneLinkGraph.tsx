@@ -16,16 +16,16 @@ import styles from "./SceneLinkGraph.module.css";
 
 // ── Link type definitions ──────────────────────────────────────
 const LINK_TYPES = [
-  { value: "foreshadowing", label: "Foreshadowing", color: "#4a80b8", directional: true },
-  { value: "callback", label: "Callback", color: "#4a9c5e", directional: true },
-  { value: "causes", label: "Causes", color: "#c4791e", directional: true },
-  { value: "parallel", label: "Parallel", color: "#8b6aa8", directional: false },
-  { value: "contrast", label: "Contrast", color: "#b83232", directional: false },
-  { value: "echoes", label: "Echoes", color: "#2a9d8f", directional: false },
+  { value: "foreshadowing", label: "Foreshadowing", color: "var(--cat-1)", directional: true },
+  { value: "callback", label: "Callback", color: "var(--color-success)", directional: true },
+  { value: "causes", label: "Causes", color: "var(--cat-5)", directional: true },
+  { value: "parallel", label: "Parallel", color: "var(--cat-4)", directional: false },
+  { value: "contrast", label: "Contrast", color: "var(--color-danger)", directional: false },
+  { value: "echoes", label: "Echoes", color: "var(--cat-7)", directional: false },
 ] as const;
 
 function getLinkColor(type: string): string {
-  return LINK_TYPES.find((t) => t.value === type)?.color ?? "#888";
+  return LINK_TYPES.find((t) => t.value === type)?.color ?? "var(--color-text-subtle)";
 }
 function isDirectional(type: string): boolean {
   return LINK_TYPES.find((t) => t.value === type)?.directional ?? true;

@@ -87,7 +87,7 @@
   width: 0.933rem;
   height: 0.933rem;
   border-radius: 50%;
-  background: white;
+  background: var(--color-surface);
   transition: transform var(--transition);
 }
 

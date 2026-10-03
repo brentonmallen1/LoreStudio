@@ -3,13 +3,13 @@
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.6rem 0.9rem;
-  background: color-mix(in srgb, #c9a060 12%, transparent);
-  border: 1px solid color-mix(in srgb, #c9a060 35%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, transparent);
   border-radius: var(--radius);
 }
 
 .icon {
-  color: #c9a060;
+  color: var(--color-warning);
   flex-shrink: 0;
   margin-top: 1px;
 }

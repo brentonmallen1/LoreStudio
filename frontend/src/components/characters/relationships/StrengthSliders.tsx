@@ -9,11 +9,23 @@ export const STRENGTH_DIMS: {
   posLabel: string;
   color: string;
 }[] = [
-  { key: "trust", label: "Trust", negLabel: "Distrust", posLabel: "Trust", color: "#7898c9" },
-  { key: "power", label: "Power balance", negLabel: "Submits", posLabel: "Dominates", color: "#c9a060" },
-  { key: "affection", label: "Affection", negLabel: "Hostile", posLabel: "Bonded", color: "#c97878" },
-  { key: "tension", label: "Tension", negLabel: "Harmony", posLabel: "Conflict", color: "#a06090" },
-  { key: "openness", label: "Openness", negLabel: "Guarded", posLabel: "Vulnerable", color: "#609878" },
+  { key: "trust", label: "Trust", negLabel: "Distrust", posLabel: "Trust", color: "var(--cat-1)" },
+  {
+    key: "power",
+    label: "Power balance",
+    negLabel: "Submits",
+    posLabel: "Dominates",
+    color: "var(--color-warning)",
+  },
+  { key: "affection", label: "Affection", negLabel: "Hostile", posLabel: "Bonded", color: "var(--cat-6)" },
+  { key: "tension", label: "Tension", negLabel: "Harmony", posLabel: "Conflict", color: "var(--cat-4)" },
+  {
+    key: "openness",
+    label: "Openness",
+    negLabel: "Guarded",
+    posLabel: "Vulnerable",
+    color: "var(--color-success)",
+  },
 ];
 
 interface Props {

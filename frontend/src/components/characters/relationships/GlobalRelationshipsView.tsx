@@ -8,28 +8,10 @@ import RelationshipSuggestionDialog from "../RelationshipSuggestionDialog";
 import type { CharacterRelationship, Character } from "../../../types";
 import styles from "./GlobalRelationshipsView.module.css";
 import AIOnly from "../../ai/AIOnly";
+import { relationshipInk, relationshipTypeColor as typeColor, tint } from "../../../lib/relationships/colors";
 
 interface Props {
   storyId: string;
-}
-
-const TYPE_COLORS: Record<string, string> = {
-  family: "#6b8e6b",
-  romantic: "#c97878",
-  ally: "#7898c9",
-  rival: "#c9a060",
-  enemy: "#c96060",
-  mentor: "#9878c9",
-  confidant: "#78a878",
-  authority: "#a8a060",
-  foil: "#c9c060",
-  protector: "#609878",
-  "former ally": "#9890a0",
-  acquaintance: "#888",
-};
-
-function typeColor(t: string) {
-  return TYPE_COLORS[t.toLowerCase()] ?? "#888";
 }
 
 function initials(name: string) {
@@ -44,7 +26,10 @@ function initials(name: string) {
 function TypePill({ type }: { type: string }) {
   const c = typeColor(type);
   return (
-    <span className={styles.typePill} style={{ color: c, borderColor: `${c}40`, background: `${c}14` }}>
+    <span
+      className={styles.typePill}
+      style={{ color: relationshipInk(c), borderColor: tint(c, 25), background: tint(c, 8) }}
+    >
       {type}
     </span>
   );

@@ -9,7 +9,8 @@ invisible to the contrast gate.
 
 Two things fail here.
 
-1. Hex literals in component stylesheets. A ratchet, like the file-length budget:
+1. Hard-coded colours in components: hex or named (`white`) in stylesheets, hex strings in
+   TS/TSX. A ratchet, like the file-length budget:
    files that had them when the gate went in are recorded in HARDCODED with the
    count they had. They may shrink; they may not grow. Every other file must have
    none.
@@ -45,6 +46,10 @@ SRC = ROOT / "frontend" / "src"
 THEME_DIR = SRC / "themes"
 
 HEX = re.compile(r"#[0-9a-fA-F]{3,8}\b")
+#: A named colour does the same thing a hex does (doc 17 found 19 `white`s on theme fills).
+NAMED = re.compile(r"(?<![-\w])(?:color|background(?:-color)?|fill|stroke|border(?:-[a-z]+)?)\s*:[^;{}]*\b(?:white|black)\b")
+#: In component code, a colour is a string: "#c96060", `#fff`, var(--x, #888).
+TS_HEX = re.compile(r"""["'`(,\s]#[0-9a-fA-F]{3,8}\b""")
 DEFINITION = re.compile(r"(--[a-z0-9-]+)\s*:")
 REFERENCE = re.compile(r"var\(\s*(--[a-z0-9-]+)")
 #: Custom properties are also set from TSX style props (`--beat-color`, and friends).
@@ -56,27 +61,17 @@ TSX_DEFINITION = re.compile(r"""["'](--[a-z0-9-]+)["']\s*:""")
 #: Empty now: a new one fails at once.
 UNDEFINED: dict[str, int] = {}
 
-#: Component stylesheets carrying hex literals when this gate went in, locked at the
-#: count they had. Sorted worst first: the top of this list is the work. Lower a
-#: number when a file loses one; delete the line at zero. Never raise one.
+#: Files carrying hard-coded colours, locked at the count they have. Every component
+#: stylesheet is at zero (doc 17 moved the last 52 onto tokens); what is left is deliberate:
+#: the theme swatches in Settings and the header preview each palette in its own colours,
+#: and diagrams are drawings the author colours by hand. Lower a number when a file loses
+#: one; delete the line at zero. Never raise one.
 HARDCODED: dict[str, int] = {
-    "frontend/src/components/help/MICEGuide.module.css": 9,
-    "frontend/src/components/characters/relationships/RelationshipMatrixView.module.css": 4,
-    "frontend/src/components/characters/relationships/ValidationWarnings.module.css": 3,
-    "frontend/src/components/compendium/CompendiumEntryDetail.module.css": 3,
-    "frontend/src/components/import/StructureReviewStep.module.css": 3,
-    "frontend/src/components/story/TodoListView.module.css": 3,
-    "frontend/src/components/characters/relationships/StrengthSliders.module.css": 2,
-    "frontend/src/components/media/AssetPicker.module.css": 2,
-    "frontend/src/components/story/StoryboardView.module.css": 2,
-    "frontend/src/components/ai/modes/ClicheCoachMode.module.css": 1,
-    "frontend/src/components/ai/modes/DiscoveryQuestionsMode.module.css": 1,
-    "frontend/src/components/help/EssentialQuestionsGuide.module.css": 1,
-    "frontend/src/components/import/ImportWizard.module.css": 1,
-    "frontend/src/components/media/MediaLibrary.module.css": 1,
-    "frontend/src/components/media/PortraitEditor.module.css": 1,
-    "frontend/src/components/outline/ExtractOutlinePanel.module.css": 1,
-    "frontend/src/components/story/SummaryOverviewView.module.css": 1,
+    "frontend/src/lib/diagramTemplates.ts": 26,
+    "frontend/src/pages/Settings.tsx": 21,
+    "frontend/src/components/layout/GlobalHeader.tsx": 21,
+    "frontend/src/components/media/DiagramEditor.tsx": 6,
+    "frontend/src/lib/diagramExport.ts": 2,
 }
 
 
@@ -95,11 +90,20 @@ def defined_tokens() -> set[str]:
 
 
 def count_hex() -> dict[str, int]:
+    """Hard-coded colours per file: hex or named in stylesheets, hex strings in TS/TSX."""
     counts: dict[str, int] = {}
     for path in component_styles():
-        n = len(HEX.findall(path.read_text()))
+        text = path.read_text()
+        n = len(HEX.findall(text)) + len(NAMED.findall(text))
         if n:
             counts[str(path.relative_to(ROOT))] = n
+    for suffix in ("*.ts", "*.tsx"):
+        for path in SRC.rglob(suffix):
+            if ".test." in path.name:
+                continue
+            n = len(TS_HEX.findall(path.read_text()))
+            if n:
+                counts[str(path.relative_to(ROOT))] = n
     return counts
 
 
@@ -156,7 +160,7 @@ def main() -> int:
             print("}\n")
         return 0
 
-    problems, notes = ratchet(hexes, HARDCODED, "hex colours", "Themes cannot reach these — use a var(--color-*) token.")
+    problems, notes = ratchet(hexes, HARDCODED, "hard-coded colours", "Themes cannot reach these — use a var(--color-*) token.")
     more, extra = ratchet(
         undefined,
         UNDEFINED,
@@ -180,7 +184,7 @@ def main() -> int:
         return 1
 
     print(
-        f"Design-token budget: {sum(HARDCODED.values())} hex colours and "
+        f"Design-token budget: {sum(HARDCODED.values())} hard-coded colours and "
         f"{sum(UNDEFINED.values())} undefined-token references on the debt list."
     )
     return 0

@@ -241,7 +241,7 @@
   padding: 3px 8px;
   font-size: var(--text-xs);
   background: var(--color-danger);
-  color: white;
+  color: var(--color-danger-fg);
   border: none;
   border-radius: 4px;
   cursor: pointer;

@@ -39,7 +39,7 @@
   padding: 0 4px;
   border-radius: 99px;
   background: var(--twist-accent);
-  color: white;
+  color: var(--color-ai-coach-fg);
   font-size: var(--text-xs);
   font-weight: 700;
 }

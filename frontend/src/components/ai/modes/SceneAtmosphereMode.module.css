@@ -148,7 +148,7 @@
   align-items: flex-end;
   justify-content: flex-end;
   padding: 4px;
-  color: white;
+  color: var(--color-scrim-fg);
 }
 
 .queryInput {
@@ -198,7 +198,7 @@
   border-radius: 6px;
   border: none;
   background: var(--color-ai);
-  color: white;
+  color: var(--color-ai-fg);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;

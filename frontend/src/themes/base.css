@@ -50,6 +50,11 @@
   /* ── Width the docked AI panel takes; PanelFrame sets it at runtime ── */
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
+  /* Text on a danger or success fill: the page colour, which the contrast test already holds
+     at 4.5:1 against both (contrast is symmetric). Text over a photo's dark scrim. */
+  --color-danger-fg: var(--color-bg);
+  --color-success-fg: var(--color-bg);
+  --color-scrim-fg: #ffffff;
   /* ── Modal overlay ── */
   --color-overlay: rgba(0, 0, 0, 0.4);
   /* ── UI & Editor typography ────────────────────── */

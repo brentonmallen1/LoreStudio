@@ -180,13 +180,11 @@
   font-style: italic;
   color: var(--color-text-muted);
   margin-top: 0.2rem;
-  opacity: 0.7;
 }
 
 /* Top-right type indicator */
 .typeIndicator {
   color: var(--btn-color, var(--color-text-subtle));
-  opacity: 0.45;
   flex-shrink: 0;
   margin-top: 1px;
 }

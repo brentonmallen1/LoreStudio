@@ -167,19 +167,19 @@
 }
 
 .level0 {
-  background: var(--segment-act, rgba(99, 102, 241, 0.12));
-  color: #6366f1;
-  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--segment-act);
+  color: var(--color-bg);
+  border-color: transparent;
 }
 .level1 {
-  background: var(--segment-chapter, rgba(234, 179, 8, 0.12));
-  color: #b45309;
-  border-color: rgba(234, 179, 8, 0.3);
+  background: var(--segment-chapter);
+  color: var(--color-bg);
+  border-color: transparent;
 }
 .level2 {
-  background: var(--segment-scene, rgba(34, 197, 94, 0.12));
-  color: #15803d;
-  border-color: rgba(34, 197, 94, 0.3);
+  background: var(--segment-scene);
+  color: var(--color-bg);
+  border-color: transparent;
 }
 
 /* ── Node title ── */

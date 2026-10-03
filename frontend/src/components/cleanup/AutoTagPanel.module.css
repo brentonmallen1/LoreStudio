@@ -46,7 +46,7 @@
   border-radius: var(--radius);
   border: none;
   background: var(--color-nlp);
-  color: white;
+  color: var(--color-nlp-fg);
   font-size: 0.78rem;
   cursor: pointer;
   transition: opacity var(--transition);
@@ -357,7 +357,7 @@
   border-radius: var(--radius);
   border: none;
   background: var(--color-nlp);
-  color: white;
+  color: var(--color-nlp-fg);
   font-size: 0.78rem;
   cursor: pointer;
   transition: opacity var(--transition);

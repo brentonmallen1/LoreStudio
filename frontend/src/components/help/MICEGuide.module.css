@@ -1,18 +1,3 @@
-/* ── MICE colors ── */
-:root {
-  --mice-milieu: #5a6a82;
-  --mice-idea: #b07c10;
-  --mice-character: #1a9272;
-  --mice-event: #c94f1e;
-}
-
-.dark {
-  --mice-milieu: #8a9ab0;
-  --mice-idea: #e0a830;
-  --mice-character: #35c498;
-  --mice-event: #f07050;
-}
-
 /* ── Intro ── */
 .intro {
   margin-bottom: 1.25rem;
@@ -209,7 +194,7 @@
   font-size: var(--text-xs);
   padding: 0.3rem 0.6rem;
   border-radius: var(--radius-sm);
-  color: #fff;
+  color: var(--color-bg);
   font-weight: 500;
 }
 

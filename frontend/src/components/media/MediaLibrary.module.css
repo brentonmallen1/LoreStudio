@@ -157,7 +157,7 @@
 }
 .cardThumbClickable:hover .thumbZoom {
   background: rgba(0, 0, 0, 0.42);
-  color: #fff;
+  color: var(--color-scrim-fg);
 }
 
 .thumb {

@@ -20,9 +20,9 @@ interface Props {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "var(--status-draft, #9ca3af)",
-  revised: "var(--status-revised, #60a5fa)",
-  final: "var(--status-final, #34d399)",
+  draft: "var(--status-draft)",
+  revised: "var(--status-revised)",
+  final: "var(--status-final)",
 };
 
 export default function ArcTimelineView({ characterId, characterName }: Props) {

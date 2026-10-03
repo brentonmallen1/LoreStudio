@@ -132,11 +132,10 @@
 .levelBadge {
   font-size: var(--text-xs);
   font-weight: 700;
-  color: #fff;
+  color: var(--color-bg);
   padding: 0.1rem 0.35rem;
   border-radius: 3px;
   flex-shrink: 0;
-  opacity: 0.9;
 }
 
 .nodeTitle {

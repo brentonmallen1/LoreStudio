@@ -36,7 +36,9 @@ function BipolarBar({ dim, value }: { dim: (typeof STRENGTH_DIMS)[0]; value: num
       </div>
       <span
         className={styles.strengthValue}
-        style={{ color: display < 0 ? "#a06090" : display > 0 ? "#609878" : undefined }}
+        style={{
+          color: display < 0 ? "var(--color-danger)" : display > 0 ? "var(--color-success)" : undefined,
+        }}
       >
         {sign}
         {display}

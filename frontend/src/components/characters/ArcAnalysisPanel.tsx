@@ -109,11 +109,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Moment Discoveries */}
           {asList(data.moment_discoveries).length > 0 && (
-            <Section
-              icon={<Map size={12} />}
-              title="Key moments found"
-              color="var(--segment-chapter, #7c3aed)"
-            >
+            <Section icon={<Map size={12} />} title="Key moments found" color="var(--segment-chapter)">
               <p className={styles.sectionSubtitle}>Significant character moments discovered in your prose</p>
               {(asList(data.moment_discoveries) as AnyRecord[]).map((m, i) => (
                 <div key={i} className={styles.momentRow}>
@@ -136,11 +132,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Drift Analysis */}
           {!!data.drift_analysis && (
-            <Section
-              icon={<AlertTriangle size={12} />}
-              title="Drift analysis"
-              color="var(--color-warning, #f59e0b)"
-            >
+            <Section icon={<AlertTriangle size={12} />} title="Drift analysis" color="var(--color-warning)">
               {!!asRecord(data.drift_analysis).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.drift_analysis).summary)}</p>
               )}
@@ -154,11 +146,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Health */}
           {!!data.health && (
-            <Section
-              icon={<Heart size={12} />}
-              title="Arc health"
-              color="var(--color-accent-secondary, #0d9488)"
-            >
+            <Section icon={<Heart size={12} />} title="Arc health" color="var(--color-accent-secondary)">
               {!!asRecord(data.health).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.health).summary)}</p>
               )}
@@ -172,11 +160,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Unlinked milestones */}
           {asStringList(data.unlinked_milestones).length > 0 && (
-            <Section
-              icon={<XCircle size={12} />}
-              title="Unlinked milestones"
-              color="var(--color-danger, #ef4444)"
-            >
+            <Section icon={<XCircle size={12} />} title="Unlinked milestones" color="var(--color-danger)">
               <p className={styles.sectionSubtitle}>Milestones with no clear scene fulfilling them yet</p>
               {asStringList(data.unlinked_milestones).map((m, i) => (
                 <p key={i} className={styles.warningItem}>
@@ -188,7 +172,7 @@ export default function ArcAnalysisPanel({ characterId }: Props) {
 
           {/* Suggestions */}
           {asStringList(data.suggestions).length > 0 && (
-            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat, #a855f7)">
+            <Section icon={<Lightbulb size={12} />} title="Suggestions" color="var(--segment-beat)">
               <ul className={styles.suggestionList}>
                 {asStringList(data.suggestions).map((s, i) => (
                   <li key={i} className={styles.suggestionListItem}>

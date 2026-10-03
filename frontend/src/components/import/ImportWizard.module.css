@@ -59,7 +59,7 @@
 .stepDot.done .stepNum {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-success-fg);
   font-size: var(--text-xs);
 }
 

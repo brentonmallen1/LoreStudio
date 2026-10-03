@@ -159,7 +159,6 @@
   font-size: var(--text-xs);
   font-family: inherit;
   cursor: pointer;
-  opacity: 0.8;
   transition: opacity var(--transition);
 }
 

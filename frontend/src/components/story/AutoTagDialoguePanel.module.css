@@ -339,7 +339,7 @@
   border-radius: var(--radius);
   border: none;
   background: var(--color-ai);
-  color: white;
+  color: var(--color-ai-fg);
   font-size: 0.84rem;
   font-weight: 500;
   font-family: inherit;
