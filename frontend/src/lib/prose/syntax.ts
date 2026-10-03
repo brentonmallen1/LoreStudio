@@ -42,10 +42,19 @@ export interface Lexicon {
 
 const PARENTHETICAL = /^(.*?)\s*\(([^)]+)\)\s*$/;
 const ARTICLES = new Set(["the", "a", "an"]);
+/** Words before a name that are not the name (the server's `_TITLES`). */
+const TITLES = new Set(
+  (
+    "dr doctor mr mrs ms miss mx sir dame lady lord madam madame captain capt commander general " +
+    "colonel major lieutenant sergeant admiral professor prof father mother sister brother aunt " +
+    "uncle detective inspector officer agent king queen prince princess reverend rev"
+  ).split(" "),
+);
 
 /**
  * The ways prose refers to a character by name: the full name, either half of "The Visitor
- * (Calder)", and a longer name's first word unless it is an article ("Eleanor", not "The").
+ * (Calder)", and a longer name's first word unless it is an article ("Eleanor", not "The")
+ * or a title ("Dr. Priya Sharma" is "Priya" or "Dr. Sharma", never "Dr.").
  */
 export function nameForms(label: string): Set<string> {
   const clean = label.split(/\s+/).filter(Boolean).join(" ");
@@ -59,7 +68,12 @@ export function nameForms(label: string): Set<string> {
   }
   for (const part of parts) {
     const words = part.split(/\s+/).filter(Boolean);
-    if (words.length > 1 && !ARTICLES.has(words[0].toLowerCase())) forms.add(words[0]);
+    if (words.length < 2 || ARTICLES.has(words[0].toLowerCase())) continue;
+    if (TITLES.has(words[0].toLowerCase().replace(/\.+$/, ""))) {
+      // "Dr. Priya Sharma" is "Priya" or "Dr. Sharma" on the page, never "Dr.".
+      if (words.length > 2) forms.add(words[1]);
+      forms.add(`${words[0]} ${words[words.length - 1]}`);
+    } else forms.add(words[0]);
   }
   return forms;
 }

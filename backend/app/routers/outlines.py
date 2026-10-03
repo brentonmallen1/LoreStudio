@@ -25,7 +25,7 @@ from ..schemas.outline import (
 from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.outline import build_extract_outline_prompt, build_outline_alignment_prompt
-from ..services.text_utils import html_to_text
+from ..services.text_utils import prose_text
 
 router = APIRouter()
 
@@ -440,7 +440,7 @@ async def extract_outline_from_prose(
     for leaf in leaves:
         if not leaf.content or not leaf.content.strip():
             continue
-        excerpt = html_to_text(leaf.content)[:400].strip()
+        excerpt = prose_text(leaf.content)[:400].strip()
         scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{excerpt}")
 
     if not scenes_with_content:
@@ -537,7 +537,7 @@ async def analyze_outline_alignment(
     for leaf in leaves:
         if not leaf.content or not leaf.content.strip():
             continue
-        excerpt = html_to_text(leaf.content)[:400].strip()
+        excerpt = prose_text(leaf.content)[:400].strip()
         scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{excerpt}")
 
     if not scenes_with_content:

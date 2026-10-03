@@ -23,7 +23,7 @@ from ...models.structure import StructureNode
 from ...models.user import User
 from ..llm.gateway import AICallContext, ai_gateway
 from ..llm.prompts.codex_suggest import build_codex_suggest_prompt
-from ..text_utils import html_to_text
+from ..text_utils import prose_text
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ async def suggest_for_scene(
     """Read one scene and record what it proposes. Returns what it wrote."""
     report = SuggestReport()
     scene_node = scene_nodes.get(node.id)
-    prose = html_to_text(node.content or "")
+    prose = prose_text(node.content or "")
     if not scene_node or len(prose) < MIN_PROSE_CHARS or not char_nodes:
         report.skipped = 1
         return report

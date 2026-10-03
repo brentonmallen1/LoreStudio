@@ -13,7 +13,6 @@ was included. For anything the graph or the index turned up, "why" is a real ans
 """
 
 import logging
-import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -23,8 +22,8 @@ from sqlalchemy.orm import Session
 from ...models.character import Character, CharacterRelationship
 from ...models.codex import CodexChunk, CodexEdge, CodexNode, is_settled
 from ...models.interview import CharacterInterview
+from ...models.location import Location
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
-from ...models.setting import Setting
 from ...models.story import Story
 from ...models.structure import StructureNode
 from ...models.user import User
@@ -33,10 +32,11 @@ from ..character_journey import get_cached_journey
 from ..character_knowledge import build_scope, describe_scope
 from ..llm.prompts.interviews import build_character_interview_system_prompt
 from ..llm.prompts.panel import build_panel_character_prompt
+from ..prose_html import paragraphs
+from ..prose_syntax import Known, Lexicon, find_mentions
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 from .mentions import render_mentions, resolve_mentions, without
-from .presence import known_as
 
 
 class ContextOptions(BaseModel):
@@ -58,11 +58,16 @@ logger = logging.getLogger(__name__)
 VIRTUAL_NODE_IDS = {"__global__", "__story__"}
 
 
-def _extract_mentions(content: str) -> tuple[list[str], list[str]]:
-    """Return (character_names, setting_names) mentioned in prose."""
-    char_names = re.findall(r"@([\w\s'-]+?)(?=\s|[,.:;!?@\[\]]|$)", content)
-    setting_names = re.findall(r"\[\[([\w\s'-]+?)\]\]", content)
-    return [n.strip() for n in char_names], [n.strip() for n in setting_names]
+def _extract_mentions(content: str, characters: list, places: list) -> tuple[set[str], set[str]]:
+    """The characters and places the scene mentions, by name, other name or (a character) a
+    short form only they go by: (character names, place names). Read by the grammar the
+    editor shares (services/prose_syntax), so "@Eleanor Vance" is Eleanor Vance, not "Eleanor"."""
+    lex = Lexicon(
+        [Known("character", c.name, tuple(c.aliases or ())) for c in characters if c.name]
+        + [Known("place", p.name, tuple(p.aliases or ())) for p in places if p.name]
+    )
+    found = [(m.kind, m.name) for para in paragraphs(content or "") for m in find_mentions(para.text, lex) if m.name]
+    return {n for k, n in found if k == "character"}, {n for k, n in found if k == "place"}
 
 
 VIRTUAL_NODE_IDS = {"__global__", "__story__"}
@@ -135,9 +140,9 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
     opts = context_options or ContextOptions()
 
     # ── Characters mentioned in prose ──
-    char_names_mentioned, setting_names_mentioned = _extract_mentions(node_content)
-
     all_chars = db.query(Character).filter(Character.story_id == story.id).all()
+    all_places = db.query(Location).filter(Location.story_id == story.id).all()
+    char_names_mentioned, place_names_mentioned = _extract_mentions(node_content, all_chars, all_places)
     # Always include light summary of all characters for context
     all_char_summaries = [
         {"name": c.name, "role": c.role, "motivation": c.motivation[:100] if c.motivation else None} for c in all_chars
@@ -145,8 +150,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
 
     mentioned_char_profiles = []
     if opts.include_characters:
-        said = {n.lower() for n in char_names_mentioned}
-        mentioned_chars = [c for c in all_chars if any(n.lower() in said for n in known_as(c))]
+        mentioned_chars = [c for c in all_chars if c.name in char_names_mentioned]
         for c in mentioned_chars:
             profile: dict = {"name": c.name, "role": c.role}
             if c.personality:
@@ -169,15 +173,15 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
     # ── Settings mentioned ──
     mentioned_settings = []
     if opts.include_settings:
-        all_settings = db.query(Setting).filter(Setting.story_id == story.id).all()
+        # Places in the Lorebook (the old settings table no longer holds the story's places).
         mentioned_settings = [
             {
-                "name": s.name,
-                "description": s.description[:200] if s.description else None,
-                "atmosphere": s.atmosphere[:200] if s.atmosphere else None,
+                "name": p.name,
+                "description": p.description[:200] if p.description else None,
+                "atmosphere": p.atmosphere[:200] if p.atmosphere else None,
             }
-            for s in all_settings
-            if any(s.name.lower() == n.lower() for n in setting_names_mentioned)
+            for p in all_places
+            if p.name in place_names_mentioned
         ]
 
     # ── Plot threads touching this scene ──

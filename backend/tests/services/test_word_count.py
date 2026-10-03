@@ -93,13 +93,17 @@ def test_a_scene_is_counted_the_way_the_editor_counts_it():
     # A block boundary ends a word even with no space: not "nine.She".
     assert count_words("<p>nine.</p><p>She waited.</p>") == 3
     # Dialogue speaker tags are metadata, stored escaped; the editor does not count them.
-    assert count_words("<p>&lt;Calder&gt; “Ms. Vance,” she said.</p>") == 4
+    assert count_words("<p>“Ms. Vance,”&lt;Calder&gt; she said.</p>") == 4
+    # Anything else in angle brackets is prose (doc 16): "x < 5" is four words.
+    assert count_words("<p>x &lt; 5 now</p>") == 4
     assert count_words("<p><strong>Bold</strong> and <em>plain</em></p>") == 3
     assert count_words(None) == 0 and count_words("") == 0
 
 
 def test_the_migration_counts_by_the_same_rule():
-    """0014 carries its own copy of the rule; it must not drift from the app's."""
+    """0014 carries its own copy of the rule of its day. Since doc 16 only a tag after a
+    quoted line is metadata (0014 dropped anything in angle brackets); on prose as it is
+    written the two agree, so the counts 0014 stored stand."""
     import importlib.util
     import pathlib
 
@@ -109,5 +113,5 @@ def test_the_migration_counts_by_the_same_rule():
     spec = importlib.util.spec_from_file_location("m0014", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    for sample in ["<p>a b</p><p>c</p>", "<p>&lt;Maya&gt; Hi — there.</p>", "<h3>Title</h3><p>x</p>", None]:
+    for sample in ["<p>a b</p><p>c</p>", "<p>“Hi — there.”&lt;Maya&gt;</p>", "<h3>Title</h3><p>x</p>", None]:
         assert mod._count(sample) == count_words(sample)

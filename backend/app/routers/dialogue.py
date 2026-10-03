@@ -11,7 +11,6 @@ GET  /api/stories/{story_id}/dialogue/interactions — character interaction mat
 PATCH /api/dialogue/{block_id}                    — manually correct a block's attribution
 """
 
-import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -35,6 +34,7 @@ from ..services.dialogue_tagging import ProposedDialogueTag, suggest_tags
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
 from ..services.prose_rewrite import tag_lines
+from ..services.prose_syntax import find_quotes, find_speaker_tags
 
 router = APIRouter()
 
@@ -186,10 +186,8 @@ async def ai_suggest_dialogue_speakers(  # noqa: C901
     # Already-attributed dialogue (for voice context)
     already_attributed_lines = []
     for para in paragraphs:
-        for m in re.finditer(r'"([^"]+)"<([^>]+)>', para):
-            already_attributed_lines.append(f'{m.group(2)}: "{m.group(1)}"')
-        for m in re.finditer(r"\u201c([^\u201d]+)\u201d<([^>]+)>", para):
-            already_attributed_lines.append(f'{m.group(2)}: "\u201c{m.group(1)}\u201d"')
+        for t in find_speaker_tags(para):
+            already_attributed_lines.append(f"{t.speaker}: {para[t.quote_start : t.quote_end]}")
     already_attributed = "\n".join(already_attributed_lines[:20])  # cap context length
 
     # POV context for first-person narratives
@@ -235,17 +233,12 @@ async def ai_suggest_dialogue_speakers(  # noqa: C901
     # Extract the verbatim untagged quotes from the scene so we can snap the LLM's
     # quote_text back to the exact string. The LLM may paraphrase or alter
     # punctuation, which would cause the regex apply to silently fail.
-    from ..services.dialogue_service import _STANDALONE_QUOTE_RE
-
     actual_quotes: list[str] = []
     for para in paragraphs:
         # Skip paragraphs that already have explicit <Name> attribution
-        if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
+        if find_speaker_tags(para):
             continue
-        for m in _STANDALONE_QUOTE_RE.finditer(para):
-            content = (m.group(1) or m.group(2) or "").strip()
-            if content and len(content) >= 2:
-                actual_quotes.append(content)
+        actual_quotes += [q.words for q in find_quotes(para) if len(q.words) >= 2]
 
     def _snap_to_actual(llm_text: str) -> str:
         """Return the actual scene quote that best matches the LLM's version."""
@@ -431,7 +424,7 @@ def get_scenes_with_unattributed_dialogue(
     if not story:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    from ..services.dialogue_service import _STANDALONE_QUOTE_RE, _html_to_paragraphs
+    from ..services.dialogue_service import _html_to_paragraphs
 
     scenes = (
         db.query(StructureNode)
@@ -450,9 +443,9 @@ def get_scenes_with_unattributed_dialogue(
         count = 0
         for para in paragraphs:
             # Skip paragraphs that already have explicit <Name> attribution
-            if re.search(r'"[^"]+?"<[^>]+>', para) or re.search(r"\u201d<[^>]+>", para):
+            if find_speaker_tags(para):
                 continue
-            count += sum(1 for m in _STANDALONE_QUOTE_RE.finditer(para) if (m.group(1) or m.group(2) or "").strip())
+            count += len(find_quotes(para))
         if count > 0:
             results.append(
                 {

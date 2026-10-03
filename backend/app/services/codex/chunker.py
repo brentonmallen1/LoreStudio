@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
-from ..text_utils import html_to_paragraphs
+from ..text_utils import prose_paragraphs
 
 #: Characters per token. The gateway's budgeting uses the same rough number; chunk sizes
 #: only have to be consistent with each other, not exact.
@@ -91,7 +91,7 @@ def pack_paragraphs(paragraphs: list[str], target_tokens: int = TARGET_TOKENS) -
 
 def chunk_prose(html: str, target_tokens: int = TARGET_TOKENS) -> list[Chunk]:
     """Scene or chapter content (TipTap HTML) as ordered passages."""
-    passages = pack_paragraphs(html_to_paragraphs(html or ""), target_tokens)
+    passages = pack_paragraphs(prose_paragraphs(html or ""), target_tokens)
     return [
         Chunk(index=i, text=p, token_count=estimate_tokens(p))
         for i, p in enumerate(x for x in passages if len(x) >= MIN_CHARS)

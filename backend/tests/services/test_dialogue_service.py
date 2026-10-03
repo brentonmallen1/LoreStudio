@@ -266,3 +266,25 @@ def test_scare_quotes_are_not_dialogue():
     from app.services.dialogue_service import extract_dialogue
 
     assert extract_dialogue('<p>They called it an "official inquiry" and left.</p>', names=[]) == []
+
+
+# ── The shared grammar (doc 16): every form a writer can type is a tagged line ──
+
+
+def test_curly_single_and_spaced_tags_are_all_explicit():
+    from app.services.dialogue_service import extract_dialogue
+
+    html = '<p>“I know.” &lt;Calder&gt; ‘Do you?’&lt;Maya&gt; "the <em>Ardent</em>."&lt;Calder&gt;</p>'
+    blocks = extract_dialogue(html)
+    assert [(b["speaker_name"], b["content"], b["attribution_method"]) for b in blocks] == [
+        ("Calder", "I know.", "explicit"),
+        ("Maya", "Do you?", "explicit"),
+        ("Calder", "the Ardent.", "explicit"),
+    ]
+
+
+def test_a_possessive_mention_names_the_character_not_their_possessive():
+    from app.services.dialogue_service import extract_dialogue
+
+    blocks = extract_dialogue("<p>@Eleanor's hands shook. “Not now.”</p>")
+    assert blocks[0]["speaker_name"] == "Eleanor"

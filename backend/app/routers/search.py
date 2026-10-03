@@ -16,6 +16,7 @@ from ..models.user import User
 from ..services import change_log
 from ..services.prose_html import paragraphs
 from ..services.prose_rewrite import find_in_text, replace_words
+from ..services.prose_syntax import reader_text
 from ..services.text_utils import html_to_text
 
 router = APIRouter()
@@ -223,7 +224,9 @@ def _count_and_excerpt(content: str, query: str, case_sensitive: bool) -> tuple[
         if spans and not snippet:
             a, b = spans[0]
             start, end = max(0, a - 40), min(len(p.text), b + 80)
-            snippet = ("…" if start > 0 else "") + p.text[start:end].strip() + ("…" if end < len(p.text) else "")
+            # Shown as a reader sees it: no "@", no "[[ ]]", no "<Name>".
+            words = reader_text(p.text[start:end]).strip()
+            snippet = ("…" if start > 0 else "") + words + ("…" if end < len(p.text) else "")
         count += len(spans)
     return count, snippet
 

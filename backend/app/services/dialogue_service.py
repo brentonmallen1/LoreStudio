@@ -24,28 +24,19 @@ from ..models.dialogue import DialogueBlock
 from ..models.story import Story
 from ..models.structure import StructureNode
 from .codex.presence import known_as, name_forms
+from .prose_syntax import Lexicon, find_mentions, find_quotes, find_speaker_tags
 from .text_utils import extract_em_blocks as _extract_em_blocks
 from .text_utils import html_to_paragraphs as _html_to_paragraphs
+
+_NO_NAMES = Lexicon([])
 
 # ---------------------------------------------------------------------------
 # Patterns
 # ---------------------------------------------------------------------------
 
-# Explicit: "..."<Name> — speaker suffix attached directly to the closing quote.
-# Multi-word names are allowed (e.g. "Hello."<Lady Ashford>).
-# Captures: (dialogue_content, speaker_name)
-_EXPLICIT_RE = re.compile(
-    r"\u201c([^\u201d]+)\u201d<([^>]+)>"  # smart quotes "…"<Name>
-    r'|"([^"]+)"<([^>]+)>',  # straight quotes "..."<Name>
-    re.UNICODE,
-)
-
-# Standalone quotes with no <Name> suffix — candidates for inference/unattributed.
-# Negative lookahead (?!<) excludes quotes already captured by _EXPLICIT_RE.
-_STANDALONE_QUOTE_RE = re.compile(
-    r'\u201c([^\u201d]+)\u201d(?!<)|(?:^|\s)"([^"]+)"(?!<)',
-    re.UNICODE,
-)
+# The lines themselves (a tagged "…"<Name>, an untagged quote) and @mentions are read by
+# the one grammar (services/prose_syntax), which the editor shares (doc 16): straight,
+# curly or single quotes, a space before <Name>, and "@Eleanor's" is Eleanor.
 
 # Dialogue tags that name the speaker in plain prose: "…," Eleanor said / said Eleanor /
 # Eleanor said, "…". The @mention pass alone left most real prose unattributed — the
@@ -84,7 +75,6 @@ def _tag_before(head: str, forms: list[str]) -> str | None:
 # Any @mention in a line (for proximity/alternation inference).
 # Deliberately excludes \s so that @Maya followed by prose words isn't consumed.
 # Multi-word names (e.g. Lady Ashford) require explicit @Name: "..." syntax.
-_MENTION_RE = re.compile(r"@([\w][\w\'-]{0,49})", re.UNICODE)
 
 
 # ---------------------------------------------------------------------------
@@ -103,23 +93,19 @@ def _extract_from_paragraph(
 
     # Pass 1: explicit attribution ("..."<Name>)
     explicit_matches = set()
-    for m in _EXPLICIT_RE.finditer(text):
-        if m.group(1):
-            content, speaker = m.group(1).strip(), m.group(2).strip()
-        else:
-            content, speaker = m.group(3).strip(), m.group(4).strip()
+    for t in find_speaker_tags(text):
         results.append(
             {
-                "speaker_name": speaker,
-                "content": content.strip(),
-                "raw_text": m.group(0),
+                "speaker_name": t.speaker,
+                "content": text[t.quote_start + 1 : t.quote_end - 1].strip(),
+                "raw_text": text[t.quote_start : t.end],
                 "paragraph_index": para_index,
-                "position_in_paragraph": m.start(),
+                "position_in_paragraph": t.quote_start,
                 "attribution_method": "explicit",
                 "confidence": 1.0,
             }
         )
-        explicit_matches.add(m.start())
+        explicit_matches.add(t.quote_start)
 
     # Quotes beside an explicit marker are read on, so that '"…"<Calder> she said. "…"' gives
     # its second half to Calder through the paragraph rule below.
@@ -127,10 +113,9 @@ def _extract_from_paragraph(
     # Pass 2: inferred — build candidate quote list and nearby @mentions
     # Collect all quotes with positions
     quotes: list[tuple[int, int, str]] = []  # (start_pos, end_pos, content)
-    for m in _STANDALONE_QUOTE_RE.finditer(text):
-        content = (m.group(1) or m.group(2) or "").strip()
-        if content and len(content) >= 2 and not _is_scare_quote(content):
-            quotes.append((m.start(), m.end(), content))
+    for q in find_quotes(text):
+        if len(q.words) >= 2 and not _is_scare_quote(q.words):
+            quotes.append((q.start, q.end, q.words))
 
     if not quotes:
         return results
@@ -138,9 +123,9 @@ def _extract_from_paragraph(
     # Find all @mentions with positions
     # A name inside the quote is who the line is about, not who says it.
     mentions: list[tuple[int, str]] = [
-        (m.start(), m.group(1).strip())
-        for m in _MENTION_RE.finditer(text)
-        if not any(a <= m.start() < b for a, b, _ in quotes)
+        (m.start, m.written)
+        for m in find_mentions(text, _NO_NAMES)
+        if m.kind == "character" and not any(a <= m.start < b for a, b, _ in quotes)
     ]
 
     for q_pos, q_end, q_content in quotes:
@@ -196,6 +181,21 @@ def _is_scare_quote(content: str) -> bool:
     return len(content.split()) <= 3 and content[0].islower() and not re.search(r"[.,!?;:\u2014-]$", content)
 
 
+def _without_lines(para: str) -> str:
+    """The paragraph with each quoted line (tag and all) replaced by a mark."""
+    spans = sorted(
+        [(t.quote_start, t.end) for t in find_speaker_tags(para)] + [(q.start, q.end) for q in find_quotes(para)]
+    )
+    out, last = [], 0
+    for a, b in spans:
+        if a < last:
+            continue
+        out.append(para[last:a] + " \u00b6")
+        last = b
+    out.append(para[last:])
+    return "".join(out)
+
+
 def _beat_speaker(para: str, forms: list[str], canonical: Callable[[str], str]) -> str | None:
     """The one character a paragraph's narration names, outside its quotes.
 
@@ -204,7 +204,7 @@ def _beat_speaker(para: str, forms: list[str], canonical: Callable[[str], str]) 
     and the line is left for alternation or the author.
     """
     # Quotes become a mark, so '"…," the Visitor said' still opens a sentence after it.
-    narration = _STANDALONE_QUOTE_RE.sub(" \u00b6", para)
+    narration = _without_lines(para)
     taken: list[tuple[int, int]] = []
     named: set[str] = set()
     for form in forms:  # longest first, so "Eleanor Vance" is not also a stray "Vance"

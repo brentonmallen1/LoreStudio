@@ -9,15 +9,16 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { StructureNode } from "../../types";
+import { readerText } from "../../lib/prose/syntax";
 
 /**
- * Count words after stripping dialogue speaker tags (e.g., <Maya>).
- * @mentions and [[settings]] ARE counted since they represent actual prose words.
- * Only the <Speaker> suffix is pure metadata and should be excluded.
+ * Words in the prose as a reader sees it (lib/prose/syntax readerText): a speaker tag after
+ * a line ("…"<Maya>) is metadata and not counted, a mention's words are, and any other "<"
+ * is just a character ("x < 5"). The server counts the same way (services/word_count.py);
+ * both run shared/prose-syntax/cases.json.
  */
 export function countWordsClean(text: string): number {
-  const cleaned = text.replace(/<[^>]+>/g, "");
-  const trimmed = cleaned.trim();
+  const trimmed = readerText(text).trim();
   return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
 }
 

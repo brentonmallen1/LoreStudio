@@ -56,6 +56,49 @@ class Mention:
 
 _PARENTHETICAL = re.compile(r"^(?P<outer>.*?)\s*\((?P<inner>[^)]+)\)\s*$")
 _ARTICLES = {"the", "a", "an"}
+#: Words before a name that are not the name: "Dr." alone is nobody.
+_TITLES = {
+    "dr",
+    "doctor",
+    "mr",
+    "mrs",
+    "ms",
+    "miss",
+    "mx",
+    "sir",
+    "dame",
+    "lady",
+    "lord",
+    "madam",
+    "madame",
+    "captain",
+    "capt",
+    "commander",
+    "general",
+    "colonel",
+    "major",
+    "lieutenant",
+    "sergeant",
+    "admiral",
+    "professor",
+    "prof",
+    "father",
+    "mother",
+    "sister",
+    "brother",
+    "aunt",
+    "uncle",
+    "detective",
+    "inspector",
+    "officer",
+    "agent",
+    "king",
+    "queen",
+    "prince",
+    "princess",
+    "reverend",
+    "rev",
+}
 
 
 def name_forms(label: str) -> set[str]:
@@ -65,8 +108,9 @@ def name_forms(label: str) -> set[str]:
     A label is how the Lorebook files someone, not how a sentence says them: "Eleanor
     Vance" is "Eleanor" on the page, and "The Visitor (Calder)" is either half. Matching
     the whole label found almost nobody, so protagonists came out absent from their own
-    scenes. Same rule as the entity linker: full name, and a multi-word name's first word
-    — unless that word is an article, because "The" is not anybody.
+    scenes. The full name, either half of a bracketed one, and a longer name's first word,
+    unless it is an article ("The" is not anybody) or a title ("Dr. Priya Sharma" is
+    "Priya" or "Dr. Sharma", never "Dr.").
     """
     label = " ".join(label.split())
     if not label:
@@ -78,7 +122,14 @@ def name_forms(label: str) -> set[str]:
         forms |= {p for p in parts if p}
     for part in parts:
         words = part.split()
-        if len(words) > 1 and words[0].lower() not in _ARTICLES:
+        if len(words) < 2 or words[0].lower() in _ARTICLES:
+            continue
+        if words[0].lower().rstrip(".") in _TITLES:
+            # "Dr. Priya Sharma" is "Priya" or "Dr. Sharma" on the page, never "Dr.".
+            if len(words) > 2:
+                forms.add(words[1])
+            forms.add(f"{words[0]} {words[-1]}")
+        else:
             forms.add(words[0])
     return forms
 

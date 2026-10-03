@@ -1,29 +1,21 @@
 """Counting a scene's words, and the target ranges by intended story length."""
 
-import html
-import re
-
-#: Block-level tags end a word even with no space around them: "<p>end</p><p>Start"
-#: is two words, not "endStart".
-_BLOCK_TAG = re.compile(r"</?(?:p|h[1-6]|li|ul|ol|blockquote|pre|div|br|hr)\b[^>]*>", re.IGNORECASE)
-_TAG = re.compile(r"<[^>]+>")
+from .prose_html import paragraphs
+from .prose_syntax import reader_text
 
 
 def count_words(content_html: str | None) -> int:
     """
     Words in a scene's stored HTML, by the rule the editor counts with as you type
-    (`countWordsClean` in the frontend): tags out, dialogue speaker tags such as
-    `<Calder>` out, then whitespace-separated runs.
+    (`countWordsClean` in the frontend): the prose as a reader sees it, so a speaker tag
+    such as `<Calder>` is not words, a mention's words are, and a "<" in the prose ("x < 5")
+    is just a character. Both run shared/prose-syntax/cases.json.
 
     The two have to agree. The tree shows the stored number and the editor shows its
     own, so a stored count made any other way jumps the first time the author types —
     the demo's hand-written counts were off by up to 49 words a scene.
     """
-    text = _BLOCK_TAG.sub(" ", content_html or "")
-    text = _TAG.sub("", text)
-    # Speaker tags are stored escaped (&lt;Calder&gt;), so they only look like tags now.
-    text = _TAG.sub("", html.unescape(text))
-    return len(text.split())
+    return sum(len(reader_text(p.text).split()) for p in paragraphs(content_html or ""))
 
 
 # Maps intended_length values to {min, max, soft_warning_at} in words.

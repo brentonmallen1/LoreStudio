@@ -56,6 +56,20 @@ def html_to_paragraphs(html: str) -> list[str]:
     return extractor.get_paragraphs()
 
 
+def prose_paragraphs(html: str) -> list[str]:
+    """The prose's paragraphs as a reader sees them: no `@`, no `[[ ]]`, no `<Name>` after a
+    line (services/prose_syntax). What analysis, the search index and the model are given,
+    so a speaker tag is never read as words ("Hi."Calder) or a name as "@Eleanor"."""
+    from .prose_syntax import reader_text
+
+    return [t for t in (reader_text(p).strip() for p in html_to_paragraphs(html)) if t]
+
+
+def prose_text(html: str) -> str:
+    """The prose as one string, as a reader sees it (see `prose_paragraphs`)."""
+    return " ".join(prose_paragraphs(html))
+
+
 def last_paragraphs(html: str, count: int = 2, max_chars: int = 700) -> list[str]:
     """The closing paragraphs of a scene, for the Overview's "where you left off" card.
 

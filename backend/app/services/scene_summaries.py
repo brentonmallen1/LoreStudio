@@ -20,6 +20,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from .llm.gateway import AICallContext, ai_gateway
 from .llm.prompts.summaries import build_scene_summary_prompt
+from .text_utils import prose_text
 
 logger = logging.getLogger(__name__)
 
@@ -93,8 +94,8 @@ async def refresh_scene_summaries(
         try:
             tokens: list[str] = []
             async for token in ai_gateway.stream(
-                messages=[{"role": "user", "content": f"Scene: {node.title}\n\n{node.content}"}],
-                feature_prompt=build_scene_summary_prompt(node.title, node.content),
+                messages=[{"role": "user", "content": f"Scene: {node.title}\n\n{prose_text(node.content or '')}"}],
+                feature_prompt=build_scene_summary_prompt(node.title, prose_text(node.content or "")),
                 context=AICallContext(
                     feature="scene-summary-batch",
                     user_id=user.id,

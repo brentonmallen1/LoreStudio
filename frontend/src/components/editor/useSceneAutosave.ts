@@ -83,12 +83,21 @@ export function useSceneAutosave(editor: Editor | null) {
     return () => window.removeEventListener(SCENES_REWRITTEN_EVENT, onRewritten);
   }, [editor, saveState, setActiveNode]);
 
+  /** Stored HTML as text, for counting a draft the editor is not showing. */
+  function htmlText(html: string): string {
+    const doc = new DOMParser().parseFromString(
+      html.replace(/<\/(p|h[1-6]|li|blockquote|div)>|<br\s*\/?>/gi, "$&\n"),
+      "text/html",
+    );
+    return doc.body.textContent ?? "";
+  }
+
   async function persist(nodeId: string, content: string, force: boolean) {
     const node = useStoryStore.getState().activeNode;
     if (!node || node.id !== nodeId) return;
     setSaveState("saving");
     const count = countWordsClean(
-      editor && editor.getHTML() === content ? editor.getText() : content.replace(/<[^>]+>/g, " "),
+      editor && editor.getHTML() === content ? editor.getText() : htmlText(content),
     );
     try {
       const updated = await api.updateNode(nodeId, {

@@ -582,5 +582,94 @@
         "aa"
       ]
     }
+  ],
+  "name_forms": [
+    [
+      "Eleanor Vance",
+      [
+        "Eleanor",
+        "Eleanor Vance"
+      ]
+    ],
+    [
+      "The Visitor (Calder)",
+      [
+        "Calder",
+        "The Visitor",
+        "The Visitor (Calder)"
+      ]
+    ],
+    [
+      "Dr. Priya Sharma",
+      [
+        "Dr. Priya Sharma",
+        "Dr. Sharma",
+        "Priya"
+      ]
+    ],
+    [
+      "Commander Alexei Volkov",
+      [
+        "Alexei",
+        "Commander Alexei Volkov",
+        "Commander Volkov"
+      ]
+    ],
+    [
+      "Lady Ashford",
+      [
+        "Lady Ashford"
+      ]
+    ],
+    [
+      "MIRA",
+      [
+        "MIRA"
+      ]
+    ],
+    [
+      "  Maya   Chen ",
+      [
+        "Maya",
+        "Maya Chen"
+      ]
+    ]
+  ],
+  "word_count": [
+    {
+      "html": "<p>\"I know.\"&lt;Calder&gt; she said.</p>",
+      "text": "\"I know.\"<Calder> she said.",
+      "words": 4
+    },
+    {
+      "html": "<p>“Hi.” &lt;The Visitor (Calder)&gt; she said</p>",
+      "text": "“Hi.” <The Visitor (Calder)> she said",
+      "words": 3
+    },
+    {
+      "html": "<p>If x &lt; 5 and y &gt; 3 then.</p>",
+      "text": "If x < 5 and y > 3 then.",
+      "words": 9
+    },
+    {
+      "html": "<p>end</p><p>Start</p>",
+      "text": "end\n\nStart",
+      "words": 2
+    },
+    {
+      "html": "<p>One<br>two</p>",
+      "text": "One\ntwo",
+      "words": 2
+    },
+    {
+      "html": "<p>@Eleanor Vance went to [[Keeper's Cottage]].</p>",
+      "text": "@Eleanor Vance went to [[Keeper's Cottage]].",
+      "words": 6
+    },
+    {
+      "html": "<p>The <em>Ardent</em> sank.</p>",
+      "text": "The Ardent sank.",
+      "words": 3
+    }
   ]
 }

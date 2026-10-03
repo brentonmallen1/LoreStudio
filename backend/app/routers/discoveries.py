@@ -19,6 +19,7 @@ from ..schemas.discovered_element import (
 )
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.discovery import build_discovery_prompt
+from ..services.text_utils import prose_text
 
 router = APIRouter()
 
@@ -52,12 +53,8 @@ def _get_story(story_id: str, db: Session, user: User) -> Story:
 
 
 def _strip_html(html: str) -> str:
-    """Very basic HTML tag stripping for prose text sent to LLM."""
-    import re
-
-    text = re.sub(r"<[^>]+>", " ", html)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    """The prose sent to the model, as a reader sees it (entities decoded, no tags or syntax)."""
+    return prose_text(html)
 
 
 @router.post("/stories/{story_id}/discover", response_model=list[DiscoveredElementOut])

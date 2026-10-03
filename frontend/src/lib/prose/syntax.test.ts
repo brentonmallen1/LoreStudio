@@ -1,11 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { countWordsClean } from "../../components/editor/segmentMeta";
 import {
   findMentions,
   findQuotes,
   findSpeakerTags,
   makeLexicon,
+  nameForms,
   readerText,
   speakerName,
   type KnownName,
@@ -22,6 +24,8 @@ const CASES = JSON.parse(
   reader: [string, string][];
   speaker_names: [string, string | null][];
   quotes: { text: string; expect: string[] }[];
+  name_forms: [string, string[]][];
+  word_count: { html: string; text: string; words: number }[];
 };
 const LEX = makeLexicon(CASES.known);
 
@@ -44,6 +48,14 @@ describe("the inline syntax, as the server reads it", () => {
 
   it.each(CASES.speaker_names)("a tag <%s> names %s", (written, name) => {
     expect(speakerName(LEX, written)).toBe(name);
+  });
+
+  it.each(CASES.name_forms)("%s is called %j", (label, forms) => {
+    expect([...nameForms(label)].sort()).toEqual(forms);
+  });
+
+  it.each(CASES.word_count)("$text is $words words", ({ text, words }) => {
+    expect(countWordsClean(text)).toBe(words);
   });
 
   it.each(CASES.quotes)("untagged quotes in $text", ({ text, expect: want }) => {

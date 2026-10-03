@@ -7,7 +7,16 @@ from pathlib import Path
 import pytest
 
 from app.services.prose_rewrite import find_in_text
-from app.services.prose_syntax import Known, Lexicon, find_mentions, find_quotes, find_speaker_tags, reader_text
+from app.services.prose_syntax import (
+    Known,
+    Lexicon,
+    find_mentions,
+    find_quotes,
+    find_speaker_tags,
+    name_forms,
+    reader_text,
+)
+from app.services.word_count import count_words
 
 CASES = json.loads((Path(__file__).parents[3] / "shared" / "prose-syntax" / "cases.json").read_text())
 LEX = Lexicon([Known(k["kind"], k["name"], tuple(k["aliases"])) for k in CASES["known"]])
@@ -51,3 +60,13 @@ def test_find(case):
     text = case["text"]
     spans = find_in_text(text, case["term"], case_sensitive=case["case"], whole_word=case["whole"])
     assert [text[a:b] for a, b in spans] == case["expect"]
+
+
+@pytest.mark.parametrize(("label", "forms"), CASES["name_forms"])
+def test_name_forms(label, forms):
+    assert sorted(name_forms(label)) == forms
+
+
+@pytest.mark.parametrize("case", CASES["word_count"], ids=lambda c: c["text"][:30])
+def test_word_count(case):
+    assert count_words(case["html"]) == case["words"]

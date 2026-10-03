@@ -309,3 +309,18 @@ def test_the_prompt_renders_the_mentioned_section(db_session, test_user):
         assert "### Mara (character)" in prompt
     plain = assemble_scene(story, scene, db_session).packet
     assert SECTION_HEADING not in build_scene_chat_system_prompt(plain)
+
+
+def test_mentions_bring_their_profiles_by_any_name():
+    """doc 16: "@Eleanor Vance" is Eleanor Vance (not "Eleanor"), a mention at the end of a
+    paragraph counts, and a place comes from the Lorebook by its name or another."""
+    from types import SimpleNamespace as NS
+
+    from app.services.codex.context import _extract_mentions
+
+    cast = [NS(name="Eleanor Vance", aliases=[]), NS(name="Thomas Vance", aliases=["Tom"])]
+    places = [NS(name="Keeper's Cottage", aliases=["The Keeper's Cottage"])]
+    chars, where = _extract_mentions(
+        "<p>@Eleanor Vance’s lamp went out at [[the keeper’s cottage]]. Ask @Tom</p>", cast, places
+    )
+    assert (chars, where) == ({"Eleanor Vance", "Thomas Vance"}, {"Keeper's Cottage"})
