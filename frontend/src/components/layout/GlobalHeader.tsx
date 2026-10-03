@@ -12,7 +12,7 @@ import {
   Maximize2,
   Feather,
   Database,
-  PenLine,
+  NotepadText,
   BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
@@ -306,7 +306,7 @@ export default function GlobalHeader() {
             title={`Scratch pad (${formatCombo(SHORTCUTS.scratchPad.combo)})`}
             style={{ position: "relative" }}
           >
-            <PenLine size={15} />
+            <NotepadText size={15} />
             {scratchHasContent && !scratchPadOpen && <span className={styles.scratchDot} />}
           </button>
 

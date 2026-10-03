@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { X, ClipboardCopy, PenLine, Send } from "lucide-react";
+import { X, ClipboardCopy, NotepadText, Send } from "lucide-react";
 import { api } from "../../api/client";
 import { freewriteApi } from "../../api/freewrite";
 import { dayLabel } from "../../lib/freewrite/day";
@@ -112,7 +112,7 @@ export default function ScratchPadDrawer() {
       <div className={styles.drawer} role="dialog" aria-label="Scratch pad">
         <div className={styles.drawerHeader}>
           <div className={styles.titleRow}>
-            <PenLine size={14} className={styles.titleIcon} />
+            <NotepadText size={14} className={styles.titleIcon} />
             <span className={styles.title}>Scratch pad</span>
             <span className={styles.titleNote}>yours, not any story's</span>
           </div>

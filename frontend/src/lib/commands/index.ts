@@ -19,7 +19,7 @@ import {
   Quote,
   BookMarked,
   LibraryBig,
-  PenLine,
+  NotepadText,
   Download,
   PanelRight,
 } from "lucide-react";
@@ -74,7 +74,7 @@ commandRegistry.register({
   id: "scratch-pad",
   label: "Toggle scratch pad",
   keywords: ["scratch", "notes", "jot", "pad"],
-  icon: PenLine,
+  icon: NotepadText,
   group: "Global",
   action: () => useUIStore.getState().toggleScratchPad(),
 });
