@@ -8,7 +8,9 @@ import {
   findSpeakerTags,
   makeLexicon,
   nameForms,
+  presencePatterns,
   readerText,
+  timesNamed,
   speakerName,
   type KnownName,
 } from "./syntax";
@@ -26,6 +28,7 @@ const CASES = JSON.parse(
   quotes: { text: string; expect: string[] }[];
   name_forms: [string, string[]][];
   word_count: { html: string; text: string; words: number }[];
+  presence: { text: string; expect: string[] }[];
 };
 const LEX = makeLexicon(CASES.known);
 
@@ -52,6 +55,12 @@ describe("the inline syntax, as the server reads it", () => {
 
   it.each(CASES.name_forms)("%s is called %j", (label, forms) => {
     expect([...nameForms(label)].sort()).toEqual(forms);
+  });
+
+  it.each(CASES.presence)("$text names $expect", ({ text, expect: want }) => {
+    const patterns = presencePatterns(CASES.known);
+    const cast = CASES.known.filter((k) => k.kind === "character").map((k) => k.name);
+    expect(cast.filter((n) => timesNamed(text, patterns.get(n) ?? []) > 0)).toEqual(want);
   });
 
   it.each(CASES.word_count)("$text is $words words", ({ text, words }) => {

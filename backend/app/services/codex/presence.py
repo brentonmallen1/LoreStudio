@@ -14,8 +14,9 @@ should not be told they were in the room.
 import logging
 import re
 from collections import Counter
+from collections.abc import Callable
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from ...models.character import Character
 from ...models.codex import SYNCED_SOURCES, CodexEdge, CodexNode, settled_edges
@@ -66,6 +67,28 @@ def name_patterns(labels: dict[str, str | list[str]]) -> dict[str, list[re.Patte
         key: [_pattern(form) for form in sorted(fs, key=len, reverse=True) if owners[form.lower()] == 1]
         for key, fs in forms.items()
     }
+
+
+def naming(character) -> Callable[[str | None], bool]:
+    """
+    A test for whether some prose names `character`, by the presence rule above: a name,
+    other name or short form only they go by, a one-word form only as capitalised. Replaces
+    `character.name.lower() in content.lower()`, which found "Al" in every "also" and never
+    found "Eleanor" for Eleanor Vance (doc 16).
+    """
+    session = object_session(character)
+    cast = (
+        session.query(Character).filter(Character.story_id == character.story_id).all()
+        if session is not None
+        else [character]
+    )
+    patterns = name_patterns({c.id: known_as(c) for c in cast} | {character.id: known_as(character)})[character.id]
+
+    def names(html: str | None) -> bool:
+        text = plain_text(html or "")
+        return any(p.search(text) for p in patterns)
+
+    return names
 
 
 def plain_text(html: str) -> str:

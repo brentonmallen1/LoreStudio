@@ -87,56 +87,6 @@ def last_paragraphs(html: str, count: int = 2, max_chars: int = 700) -> list[str
     return paras
 
 
-class _EmExtractor(HTMLParser):
-    """Extract <em>…</em> text spans with their paragraph index."""
-
-    def __init__(self):
-        super().__init__(convert_charrefs=True)
-        self._para_index: int = -1
-        self._in_em: bool = False
-        self._em_buf: list[str] = []
-        self._results: list[tuple[int, int, str]] = []  # (para_index, char_offset, text)
-        self._para_char_offset: int = 0
-        self._current_para_len: int = 0
-        self._em_start_offset: int = 0
-
-    def handle_starttag(self, tag: str, attrs) -> None:
-        if tag in _BLOCK_TAGS:
-            self._para_index += 1
-            self._current_para_len = 0
-        elif tag == "em":
-            self._in_em = True
-            self._em_buf = []
-            self._em_start_offset = self._current_para_len
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag == "em" and self._in_em:
-            self._in_em = False
-            text = "".join(self._em_buf).strip()
-            if text and len(text.split()) >= 2:
-                self._results.append((max(self._para_index, 0), self._em_start_offset, text))
-            self._current_para_len += len("".join(self._em_buf))
-
-    def handle_data(self, data: str) -> None:
-        if self._in_em:
-            self._em_buf.append(data)
-        else:
-            self._current_para_len += len(data)
-
-    def get_results(self) -> list[tuple[int, int, str]]:
-        return self._results
-
-
-def extract_em_blocks(html: str) -> list[tuple[int, int, str]]:
-    """Return (para_index, char_offset, text) for italicized spans of ≥2 words.
-
-    Used to detect inner monologue in first-person prose.
-    """
-    extractor = _EmExtractor()
-    extractor.feed(html)
-    return extractor.get_results()
-
-
 # ── Quote normalisation ──────────────────────────────────────────────────────
 #
 # Straight and curly quotes mixed in one manuscript is the most common copy-edit

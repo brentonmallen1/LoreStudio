@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from ..models.character import Character
 from ..models.character_journey import CharacterJourneySummary
 from ..models.structure import StructureNode
+from .codex.presence import naming
 
 
 def get_nodes_up_to(story_id: str, up_to_node_id: str, db: Session) -> list[StructureNode]:
@@ -48,9 +49,9 @@ def get_nodes_up_to(story_id: str, up_to_node_id: str, db: Session) -> list[Stru
 
 
 def get_scenes_with_character(nodes: list[StructureNode], character: Character) -> list[StructureNode]:
-    """Filter to nodes that mention the character by name and have a content summary."""
-    name = character.name.lower()
-    return [n for n in nodes if n.content_summary and name in (n.content or "").lower()]
+    """Filter to nodes that name the character (codex/presence.naming) and have a content summary."""
+    names = naming(character)
+    return [n for n in nodes if n.content_summary and names(n.content)]
 
 
 def get_cached_journey(character_id: str, up_to_node_id: str, db: Session) -> CharacterJourneySummary | None:

@@ -272,3 +272,49 @@ export function readerText(text: string): string {
   }
   return out + text.slice(last);
 }
+
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Who prose names, by the server's presence rule (codex/presence.name_patterns): each
+ * character's name forms and other names, minus any form two characters share (two Vances
+ * make "Vance" nobody's); a one-word form only as capitalised, so "will" is not Will; an
+ * `@` before it is fine. Returns each character's patterns, longest form first.
+ */
+export function presencePatterns(known: KnownName[]): Map<string, RegExp[]> {
+  const cast = known.filter((k) => k.kind === "character");
+  const forms = new Map(
+    cast.map((k) => [k.name, new Set([k.name, ...(k.aliases ?? [])].flatMap((n) => [...nameForms(n)]))]),
+  );
+  const owners = new Map<string, number>();
+  for (const fs of forms.values())
+    for (const f of fs) owners.set(f.toLowerCase(), (owners.get(f.toLowerCase()) ?? 0) + 1);
+  return new Map(
+    cast.map((k) => [
+      k.name,
+      [...forms.get(k.name)!]
+        .filter((f) => owners.get(f.toLowerCase()) === 1)
+        .sort((a, b) => b.length - a.length)
+        .map(
+          (f) =>
+            new RegExp(
+              `(?<![\\p{L}\\p{M}\\p{N}_@])@?${escapeRe(f)}(?![\\p{L}\\p{M}\\p{N}_])`,
+              f.includes(" ") ? "giu" : "gu",
+            ),
+        ),
+    ]),
+  );
+}
+
+/** How many times a character is named in some text, by their patterns, never counting
+ * one stretch twice ("Eleanor Vance" is one naming, not also "Eleanor"). */
+export function timesNamed(text: string, patterns: RegExp[]): number {
+  const taken: [number, number][] = [];
+  for (const re of patterns)
+    for (const m of text.matchAll(re)) {
+      const a = m.index ?? 0;
+      const b = a + m[0].length;
+      if (!taken.some(([x, y]) => a < y && x < b)) taken.push([a, b]);
+    }
+  return taken.length;
+}

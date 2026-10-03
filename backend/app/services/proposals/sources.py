@@ -156,8 +156,12 @@ def scanned_names(story_id: str, db: Session, titles: dict[str, str]) -> list[Pr
     if run is None:
         return []
     result = result_of(run)
-    known = {c.name for c in db.query(Character).filter(Character.story_id == story_id)}
-    known |= {loc.name for loc in db.query(Location).filter(Location.story_id == story_id)}
+    known = {
+        n for c in db.query(Character).filter(Character.story_id == story_id) for n in [c.name, *(c.aliases or [])]
+    }
+    known |= {
+        n for loc in db.query(Location).filter(Location.story_id == story_id) for n in [loc.name, *(loc.aliases or [])]
+    }
     known |= {d.name for d in db.query(DiscoveredElement).filter(DiscoveredElement.story_id == story_id)}
     known_words = {w for name in known for w in _words(name)}
     lowercase = _lowercase_words(story_id, db)

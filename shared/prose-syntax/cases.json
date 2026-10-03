@@ -671,5 +671,42 @@
       "text": "The Ardent sank.",
       "words": 3
     }
+  ],
+  "presence": [
+    {
+      "text": "Eleanor met Thomas. The Visitor waited.",
+      "expect": [
+        "Eleanor Vance",
+        "Thomas Vance",
+        "The Visitor (Calder)"
+      ]
+    },
+    {
+      "text": "Vance was there. It will rain.",
+      "expect": []
+    },
+    {
+      "text": "Dr. Sharma and Priya. Dr. Who.",
+      "expect": [
+        "Dr. Priya Sharma"
+      ]
+    },
+    {
+      "text": "maya laughed. Also mayan ruins.",
+      "expect": []
+    },
+    {
+      "text": "Tom’s coat hung by @O'Brien",
+      "expect": [
+        "Thomas Vance",
+        "O'Brien"
+      ]
+    },
+    {
+      "text": "“Not here.”<Calder> she said.",
+      "expect": [
+        "The Visitor (Calder)"
+      ]
+    }
   ]
 }

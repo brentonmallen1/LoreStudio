@@ -106,8 +106,13 @@ def run_editorial_consistency(
 
 def run_entity_scan(story_id: str, user_id: str, db: Session) -> EntitySuggestionsResponse:
     """Proper nouns in the prose the Lorebook does not have (people; places)."""
-    known_characters = {c.name for c in db.query(Character).filter(Character.story_id == story_id)}
-    known_locations = {loc.name for loc in db.query(Location).filter(Location.story_id == story_id)}
+    # Other names count as known: "Tom" is not a stranger when Thomas Vance answers to it.
+    known_characters = {
+        n for c in db.query(Character).filter(Character.story_id == story_id) for n in [c.name, *(c.aliases or [])]
+    }
+    known_locations = {
+        n for loc in db.query(Location).filter(Location.story_id == story_id) for n in [loc.name, *(loc.aliases or [])]
+    }
     scenes = [(n.id, n.title or "", n.content) for n in _scenes(story_id, db, None)]
     result = extract_unknown_entities(scenes, known_characters, known_locations)
     chars, locs = len(result.character_suggestions), len(result.location_suggestions)

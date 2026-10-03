@@ -36,6 +36,7 @@ from ..schemas.nlp_analysis import (
     EntitySuggestionsResponse,
     ProseNLPResponse,
 )
+from ..services.codex.presence import naming
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import (
     TARGET_AUDIENCES,
@@ -149,9 +150,8 @@ async def summarize_character_arc(
 
     # Get all scene content mentioning the character
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    relevant_scenes = [
-        f"[{n.title}]\n{n.content}" for n in all_nodes if n.content and character.name.lower() in n.content.lower()
-    ]
+    names = naming(character)
+    relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if names(n.content)]
 
     profile_parts = []
     if character.personality:
@@ -505,9 +505,9 @@ async def analyze_character_arc_structured(
     leaves = flatten_leaves(roots)
 
     scenes = []
-    name_lower = character.name.lower()
+    names = naming(character)
     for n in leaves:
-        if n.content and name_lower in n.content.lower():
+        if names(n.content):
             scenes.append(
                 {
                     "id": n.id,
@@ -570,8 +570,8 @@ async def analyze_essential_questions(
 
     # Gather scenes featuring this character
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    name_lower = character.name.lower()
-    relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if n.content and name_lower in n.content.lower()]
+    names = naming(character)
+    relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if names(n.content)]
     scenes_content = "\n\n".join(relevant_scenes) if relevant_scenes else ""
 
     feature_prompt = build_essential_questions_prompt(
@@ -1552,8 +1552,8 @@ def _gather_character_data(character: Character, db: Session, all_nodes: list | 
     # Scene count
     scene_count = 0
     if all_nodes:
-        name_lower = character.name.lower()
-        scene_count = sum(1 for n in all_nodes if n.content and name_lower in n.content.lower())
+        names = naming(character)
+        scene_count = sum(1 for n in all_nodes if names(n.content))
 
     return {
         "id": character.id,
@@ -1644,8 +1644,8 @@ async def analyze_all_character_dimensionality(
     characters_data = []
     for c in characters:
         rels = db.query(CharacterRelationship).filter(CharacterRelationship.character_id == c.id).all()
-        name_lower = c.name.lower()
-        scene_count = sum(1 for n in all_nodes if n.content and name_lower in n.content.lower())
+        names = naming(c)
+        scene_count = sum(1 for n in all_nodes if names(n.content))
         characters_data.append(
             {
                 "id": c.id,

@@ -39,7 +39,14 @@ function EntityList({ tool }: { tool: Exclude<ToolId, "freewrite" | "notes"> }) 
       ) : (
         <div className={styles.list}>
           {rows.map((row) => {
-            const onPage = entityPresence(kind, row.entity, activeNode, structure, sceneCast).onPage;
+            const onPage = entityPresence(
+              kind,
+              row.entity,
+              activeNode,
+              structure,
+              sceneCast,
+              characters,
+            ).onPage;
             const open = openIds.has(`entity:${kind}:${row.id}`);
             return (
               <button

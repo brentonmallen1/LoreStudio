@@ -26,6 +26,8 @@ class Paragraph:
 
     text: str = ""
     spans: list[tuple[int, int]] = field(default_factory=list)
+    #: For each character, whether it is in italics (<em> or <i>).
+    italic: list[bool] = field(default_factory=list)
 
     def html_range(self, start: int, end: int) -> tuple[int, int]:
         """The HTML holding text[start:end]; an empty range is the point after text[start-1]."""
@@ -41,6 +43,7 @@ def paragraphs(html: str) -> list[Paragraph]:
     """The prose's paragraphs, as text, in order. A line break reads as "\\n"."""
     out: list[Paragraph] = []
     cur = Paragraph()
+    italic = 0
 
     def flush():
         nonlocal cur
@@ -58,16 +61,21 @@ def paragraphs(html: str) -> list[Paragraph]:
             elif tag == "br":
                 cur.text += "\n"
                 cur.spans.append((m.start(), m.end()))
+                cur.italic.append(italic > 0)
+            elif tag in ("em", "i") and not tok.endswith("/>"):
+                italic = max(0, italic + (-1 if tok.startswith("</") else 1))
             continue
         chars = _html.unescape(tok) if tok.startswith("&") else tok
         if tok.startswith("&"):
             for ch in chars:
                 cur.text += ch
                 cur.spans.append((m.start(), m.end()))
+                cur.italic.append(italic > 0)
         else:
             for i, ch in enumerate(chars):
                 cur.text += ch
                 cur.spans.append((m.start() + i, m.start() + i + 1))
+                cur.italic.append(italic > 0)
     flush()
     return out
 

@@ -42,6 +42,7 @@ from ..services.character_journey import (
     save_journey,
 )
 from ..services.character_knowledge import build_scope
+from ..services.codex.presence import naming
 from ..services.dialogue_service import sync_story_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links_preloaded
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
@@ -362,10 +363,10 @@ def get_arc_timeline(
 
     leaves = flatten_leaves(roots)
 
-    name_lower = character.name.lower()
+    names = naming(character)
     scenes = []
     for i, n in enumerate(leaves):
-        if n.content and name_lower in n.content.lower():
+        if names(n.content):
             linked_milestones = [m["id"] for m in (character.arc_milestones or []) if m.get("scene_id") == n.id]
             scenes.append(
                 {
@@ -463,8 +464,8 @@ async def preview_pronoun_refactor(
             )
             .all()
         )
-    name_lower = character.name.lower()
-    scenes_to_scan = [n for n in nodes if n.content and name_lower in n.content.lower()]
+    names = naming(character)
+    scenes_to_scan = [n for n in nodes if names(n.content)]
 
     proposals: list[PronounRewriteProposal] = []
     for node in scenes_to_scan:

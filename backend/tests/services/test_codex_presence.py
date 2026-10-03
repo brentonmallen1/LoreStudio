@@ -257,3 +257,23 @@ def test_an_unconfirmed_proposal_does_not_teach_anyone_anything(db_session, test
         for e in db_session.query(CodexEdge).filter(CodexEdge.kind == "knows", CodexEdge.dst_id == fact.id)
     }
     assert knowers == {"Elena"}
+
+
+def test_naming_is_by_name_forms_not_substrings(db_session, test_user):
+    """doc 16: "Al" is not in every "also", and "Eleanor" names Eleanor Vance."""
+    from app.models.character import Character
+    from app.models.story import Story
+    from app.services.codex.presence import naming
+
+    story = Story(title="S", user_id=test_user.id)
+    db_session.add(story)
+    db_session.flush()
+    al = Character(story_id=story.id, name="Al Reyes")
+    eleanor = Character(story_id=story.id, name="Eleanor Vance")
+    thomas = Character(story_id=story.id, name="Thomas Vance")
+    db_session.add_all([al, eleanor, thomas])
+    db_session.flush()
+
+    assert not naming(al)("<p>Also, it rained.</p>")
+    assert naming(eleanor)("<p>Eleanor climbed.</p>")
+    assert not naming(thomas)("<p>Vance climbed.</p>")

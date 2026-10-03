@@ -122,7 +122,8 @@ def name_drift(nodes: list[StructureNode], characters: list[Character]) -> list[
     for c in characters:
         # Words only: splitting on spaces kept "(Calder)" from "The Visitor (Calder)", and
         # every "Calder" in the prose was two edits from it — flagged as a misspelling.
-        for part in re.findall(r"[^\W\d_][\w'’]*", c.name or ""):
+        # Other names too: "Nell" is a name, not a misspelling of one.
+        for part in re.findall(r"[^\W\d_][\w'’]*", " ".join([c.name or "", *(getattr(c, "aliases", None) or [])])):
             if len(part) >= 4:
                 names.add(part)
     if not names:

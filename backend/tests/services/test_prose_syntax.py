@@ -70,3 +70,13 @@ def test_name_forms(label, forms):
 @pytest.mark.parametrize("case", CASES["word_count"], ids=lambda c: c["text"][:30])
 def test_word_count(case):
     assert count_words(case["html"]) == case["words"]
+
+
+@pytest.mark.parametrize("case", CASES["presence"], ids=lambda c: c["text"][:30])
+def test_presence(case):
+    from app.services.codex.presence import name_patterns
+
+    cast = [k for k in CASES["known"] if k["kind"] == "character"]
+    patterns = name_patterns({k["name"]: [k["name"], *k["aliases"]] for k in cast})
+    named = [k["name"] for k in cast if any(p.search(case["text"]) for p in patterns[k["name"]])]
+    assert named == case["expect"]

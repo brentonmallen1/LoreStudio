@@ -28,6 +28,7 @@ from ..services.codex.context import (
     attach_passages,
     retrieve_for,
 )
+from ..services.codex.presence import naming
 from ..services.llm.gateway import ai_gateway
 from ..services.llm.ollama import ollama_provider
 from ..services.llm.prompts.generation import (
@@ -359,9 +360,8 @@ async def get_prompt_preview(  # noqa: C901, PLR0912, PLR0915
             raise HTTPException(status_code=404, detail="Character not found")
 
         all_nodes = db.query(StructureNode).filter(StructureNode.story_id == body.story_id).all()
-        relevant_scenes = [
-            f"[{n.title}]\n{n.content}" for n in all_nodes if n.content and character.name.lower() in n.content.lower()
-        ]
+        names = naming(character)
+        relevant_scenes = [f"[{n.title}]\n{n.content}" for n in all_nodes if names(n.content)]
         profile_parts = []
         if character.personality:
             profile_parts.append(f"Personality: {character.personality}")

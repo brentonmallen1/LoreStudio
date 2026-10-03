@@ -24,8 +24,8 @@ from ..models.dialogue import DialogueBlock
 from ..models.story import Story
 from ..models.structure import StructureNode
 from .codex.presence import known_as, name_forms
+from .prose_html import paragraphs
 from .prose_syntax import Lexicon, find_mentions, find_quotes, find_speaker_tags
-from .text_utils import extract_em_blocks as _extract_em_blocks
 from .text_utils import html_to_paragraphs as _html_to_paragraphs
 
 _NO_NAMES = Lexicon([])
@@ -256,22 +256,42 @@ def _apply_alternation(raw_blocks: list[dict]) -> list[dict]:
 
 
 def extract_thoughts(scene_content: str, para_index_offset: int = 0) -> list[dict]:
-    """Extract inner-monologue blocks from italicized spans (≥2 words) in TipTap HTML."""
+    """Inner monologue: italic runs of two words or more, outside quoted lines (an italic
+    ship's name in a line of dialogue is not a thought). Numbered by the same paragraphs as
+    the dialogue, so an empty paragraph does not push the thoughts out of step."""
     results = []
-    for para_idx, char_offset, text in _extract_em_blocks(scene_content):
-        results.append(
-            {
-                "speaker_name": "",
-                "content": text,
-                "raw_text": f"*{text}*",
-                "paragraph_index": para_idx + para_index_offset,
-                "position_in_paragraph": char_offset,
-                "attribution_method": "unattributed",
-                "confidence": 0.0,
-                "dialogue_type": "thought",
-            }
-        )
+    for para_idx, para in enumerate(paragraphs(scene_content or "")):
+        quoted = [(t.quote_start, t.end) for t in find_speaker_tags(para.text)]
+        quoted += [(q.start, q.end) for q in find_quotes(para.text)]
+        for start, end in _runs(para.italic):
+            text = para.text[start:end].strip()
+            if len(text.split()) < 2 or any(a <= start < b for a, b in quoted):
+                continue
+            results.append(
+                {
+                    "speaker_name": "",
+                    "content": text,
+                    "raw_text": f"*{text}*",
+                    "paragraph_index": para_idx + para_index_offset,
+                    "position_in_paragraph": start,
+                    "attribution_method": "unattributed",
+                    "confidence": 0.0,
+                    "dialogue_type": "thought",
+                }
+            )
     return results
+
+
+def _runs(flags: list[bool]) -> list[tuple[int, int]]:
+    """The [start, end) stretches where flags are true."""
+    out, start = [], None
+    for i, on in enumerate([*flags, False]):
+        if on and start is None:
+            start = i
+        elif not on and start is not None:
+            out.append((start, i))
+            start = None
+    return out
 
 
 def extract_dialogue(

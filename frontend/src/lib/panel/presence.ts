@@ -1,6 +1,6 @@
 import type { Character, Location, PlotThread, StructureNode } from "../../types";
 import type { EntityKind, SceneCast } from "../../types/panel";
-import { charactersIn } from "../planning/whoIsInScene";
+import { presencePatterns, timesNamed } from "../prose/syntax";
 
 /**
  * Whether an entity is on the open page, and where it was last seen if not (doc 11
@@ -19,12 +19,14 @@ function escape(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function countNames(text: string, names: string[]): number {
+/** Times a place is named: by its name or another, in any case, in [[ ]] or not. */
+function countPlace(text: string, place: Location): number {
   const plain = text.replace(/<[^>]+>/g, " ");
-  return names.reduce((n, name) => {
-    const re = new RegExp(`(^|[^\\p{L}])${escape(name)}(?![\\p{L}])`, "gu");
-    return n + (plain.match(re)?.length ?? 0);
-  }, 0);
+  const patterns = [place.name, ...(place.aliases ?? [])]
+    .filter((n) => n.trim())
+    .sort((a, b) => b.length - a.length)
+    .map((n) => new RegExp(`(?<![\\p{L}\\p{N}])${escape(n)}(?![\\p{L}\\p{N}])`, "giu"));
+  return timesNamed(plain, patterns);
 }
 
 function inScene(kind: EntityKind, id: string, sceneId: string, cast: SceneCast | null): boolean {
@@ -50,15 +52,23 @@ export function entityPresence(
   node: StructureNode | null,
   structure: StructureNode[],
   cast: SceneCast | null,
+  /** The rest of the cast, so a name two characters share counts for neither. */
+  others: Character[] = [],
 ): Presence {
   const text = node ? `${node.content ?? ""} ${node.synopsis ?? ""}` : "";
   let count = 0;
   if (node) {
     if (kind === "character") {
+      // By the server's presence rule, with the rest of the cast: a form two people share
+      // ("Vance") names neither, and "Dr." alone is nobody (lib/prose/syntax).
       const c = entity as Character;
-      count = charactersIn(text, [c]).length ? Math.max(1, countNames(text, [c.name.split(" ")[0]])) : 0;
+      const cast = [c, ...others.filter((o) => o.id !== c.id)];
+      const patterns = presencePatterns(
+        cast.map((p) => ({ kind: "character", name: p.name, aliases: p.aliases ?? [] })),
+      );
+      count = timesNamed(text.replace(/<[^>]+>/g, " "), patterns.get(c.name) ?? []);
     } else if (kind === "location") {
-      count = countNames(text, [(entity as Location).name]);
+      count = countPlace(text, entity as Location);
     } else if (kind === "thread") {
       const t = entity as PlotThread;
       count = t.appearances?.some((a) => a.node_id === node.id) ? 1 : 0;

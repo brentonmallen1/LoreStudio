@@ -288,3 +288,15 @@ def test_a_possessive_mention_names_the_character_not_their_possessive():
 
     blocks = extract_dialogue("<p>@Eleanor's hands shook. “Not now.”</p>")
     assert blocks[0]["speaker_name"] == "Eleanor"
+
+
+def test_italics_inside_a_line_are_not_a_thought_and_thoughts_keep_their_paragraph():
+    from app.services.dialogue_service import extract_thoughts
+
+    html = (
+        "<p>“My brother was the captain of the <em>Ardent Star</em>.”&lt;Calder&gt;</p>"
+        "<p></p>"
+        "<p><em>She knows more than she says.</em> Eleanor waited.</p>"
+    )
+    thoughts = extract_thoughts(html)
+    assert [(t["content"], t["paragraph_index"]) for t in thoughts] == [("She knows more than she says.", 1)]

@@ -50,7 +50,9 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
     );
   }
 
-  const presence = entity ? entityPresence(tab.entityKind, entity, activeNode, structure, sceneCast) : null;
+  const presence = entity
+    ? entityPresence(tab.entityKind, entity, activeNode, structure, sceneCast, characters)
+    : null;
   const sub =
     tab.entityKind === "character"
       ? (characters.find((c) => c.id === tab.entityId)?.role ?? "")
