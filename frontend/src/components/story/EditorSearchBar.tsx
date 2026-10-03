@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/core";
-import { ChevronUp, ChevronDown, X, CaseSensitive, Replace } from "lucide-react";
+import { ChevronUp, ChevronDown, X, CaseSensitive, Replace, WholeWord } from "lucide-react";
 import styles from "./EditorSearchBar.module.css";
 
 interface Props {
@@ -12,6 +12,7 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
   const [term, setTerm] = useState("");
   const [replacement, setReplacement] = useState("");
   const [caseSensitive, setCaseSensitive] = useState(false);
+  const [wholeWord, setWholeWord] = useState(false);
   const [showReplace, setShowReplace] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +31,10 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
       caseSensitive,
     );
   }, [editor, caseSensitive]);
+
+  useEffect(() => {
+    (editor.commands as unknown as Record<string, (arg: unknown) => boolean>).setSearchWholeWord?.(wholeWord);
+  }, [editor, wholeWord]);
 
   // Clear highlights when unmounted
   useEffect(() => {
@@ -82,10 +87,21 @@ export default function EditorSearchBar({ editor, onClose }: Props) {
         <button
           className={`${styles.iconBtn}${caseSensitive ? ` ${styles.iconBtnActive}` : ""}`}
           onClick={() => setCaseSensitive((c) => !c)}
-          title="Case sensitive (Alt+C)"
+          title="Match case"
+          aria-label="Match case"
           aria-pressed={caseSensitive}
         >
           <CaseSensitive size={14} />
+        </button>
+
+        <button
+          className={`${styles.iconBtn}${wholeWord ? ` ${styles.iconBtnActive}` : ""}`}
+          onClick={() => setWholeWord((w) => !w)}
+          title="Whole word"
+          aria-label="Whole word"
+          aria-pressed={wholeWord}
+        >
+          <WholeWord size={14} />
         </button>
 
         <button

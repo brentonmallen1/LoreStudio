@@ -4,6 +4,7 @@
  */
 import { Extension } from "@tiptap/core";
 import { forEachBlockText } from "../../lib/prose/blockText";
+import { findInText } from "../../lib/prose/find";
 import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
@@ -13,6 +14,7 @@ const SEARCH_PLUGIN_KEY = new PluginKey("lorestudio-search");
 export interface SearchStorage {
   term: string;
   caseSensitive: boolean;
+  wholeWord: boolean;
   resultCount: number;
   currentIndex: number;
 }
@@ -22,21 +24,19 @@ interface SearchMatch {
   to: number;
 }
 
-function getMatches(doc: ProseMirrorNode, term: string, caseSensitive: boolean): SearchMatch[] {
+function getMatches(
+  doc: ProseMirrorNode,
+  term: string,
+  caseSensitive: boolean,
+  wholeWord = false,
+): SearchMatch[] {
   const results: SearchMatch[] = [];
   if (!term) return results;
-  const needle = caseSensitive ? term : term.toLowerCase();
-
-  // A paragraph at a time: "the Ardent" is found when Ardent is in italics.
+  // A paragraph at a time ("the Ardent" is found when Ardent is in italics), and never in
+  // the syntax around the words: a replace cannot rewrite a speaker tag or a mention's @.
   forEachBlockText(doc, (block) => {
-    const text = caseSensitive ? block.text : block.text.toLowerCase();
-    let start = 0;
-    while (true) {
-      const idx = text.indexOf(needle, start);
-      if (idx === -1) break;
-      results.push(block.range(idx, idx + needle.length));
-      start = idx + 1;
-    }
+    for (const [start, end] of findInText(block.text, term, { caseSensitive, wholeWord }))
+      results.push(block.range(start, end));
   });
   return results;
 }
@@ -45,7 +45,7 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
   name: "lorestudioSearch",
 
   addStorage(): SearchStorage {
-    return { term: "", caseSensitive: false, resultCount: 0, currentIndex: 0 };
+    return { term: "", caseSensitive: false, wholeWord: false, resultCount: 0, currentIndex: 0 };
   },
 
   addCommands() {
@@ -55,7 +55,12 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
         ({ editor }: { editor: import("@tiptap/core").Editor }) => {
           this.storage.term = term;
           this.storage.currentIndex = 0;
-          const matches = getMatches(editor.state.doc, term, this.storage.caseSensitive);
+          const matches = getMatches(
+            editor.state.doc,
+            term,
+            this.storage.caseSensitive,
+            this.storage.wholeWord,
+          );
           this.storage.resultCount = matches.length;
           editor.view.dispatch(editor.state.tr.setMeta("addToHistory", false));
           return true;
@@ -65,7 +70,18 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
         (cs: boolean) =>
         ({ editor }: { editor: import("@tiptap/core").Editor }) => {
           this.storage.caseSensitive = cs;
-          const matches = getMatches(editor.state.doc, this.storage.term, cs);
+          const matches = getMatches(editor.state.doc, this.storage.term, cs, this.storage.wholeWord);
+          this.storage.resultCount = matches.length;
+          editor.view.dispatch(editor.state.tr.setMeta("addToHistory", false));
+          return true;
+        },
+
+      setSearchWholeWord:
+        (whole: boolean) =>
+        ({ editor }: { editor: import("@tiptap/core").Editor }) => {
+          this.storage.wholeWord = whole;
+          this.storage.currentIndex = 0;
+          const matches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive, whole);
           this.storage.resultCount = matches.length;
           editor.view.dispatch(editor.state.tr.setMeta("addToHistory", false));
           return true;
@@ -74,7 +90,12 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
       goToNextSearchResult:
         () =>
         ({ editor }: { editor: import("@tiptap/core").Editor }) => {
-          const matches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive);
+          const matches = getMatches(
+            editor.state.doc,
+            this.storage.term,
+            this.storage.caseSensitive,
+            this.storage.wholeWord,
+          );
           if (matches.length === 0) return false;
           this.storage.currentIndex = (this.storage.currentIndex + 1) % matches.length;
           const match = matches[this.storage.currentIndex];
@@ -89,7 +110,12 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
       goToPrevSearchResult:
         () =>
         ({ editor }: { editor: import("@tiptap/core").Editor }) => {
-          const matches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive);
+          const matches = getMatches(
+            editor.state.doc,
+            this.storage.term,
+            this.storage.caseSensitive,
+            this.storage.wholeWord,
+          );
           if (matches.length === 0) return false;
           this.storage.currentIndex = (this.storage.currentIndex - 1 + matches.length) % matches.length;
           const match = matches[this.storage.currentIndex];
@@ -101,46 +127,40 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
           return true;
         },
 
+      // Both replace commands change the command's own transaction: dispatching another
+      // from inside a command left TipTap applying a stale one ("mismatched transaction").
       replaceCurrentSearchResult:
         (replacement: string) =>
-        ({ editor }: { editor: import("@tiptap/core").Editor }) => {
-          const matches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive);
+        ({ tr, dispatch }: { tr: import("@tiptap/pm/state").Transaction; dispatch?: unknown }) => {
+          const { term, caseSensitive, wholeWord } = this.storage;
+          const matches = getMatches(tr.doc, term, caseSensitive, wholeWord);
           if (matches.length === 0) return false;
+          if (!dispatch) return true;
           const match = matches[this.storage.currentIndex] ?? matches[0];
-          const tr = editor.state.tr;
-          if (replacement) {
-            tr.replaceWith(match.from, match.to, editor.state.schema.text(replacement));
-          } else {
-            tr.delete(match.from, match.to);
-          }
-          editor.view.dispatch(tr);
-          // Refresh count after replace
-          const newMatches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive);
-          this.storage.resultCount = newMatches.length;
-          this.storage.currentIndex = Math.min(this.storage.currentIndex, Math.max(0, newMatches.length - 1));
-          editor.view.dispatch(editor.state.tr.setMeta("addToHistory", false));
+          // insertText keeps the words' marks (a replaced word in italics stays italic).
+          if (replacement) tr.insertText(replacement, match.from, match.to);
+          else tr.delete(match.from, match.to);
+          const left = getMatches(tr.doc, term, caseSensitive, wholeWord);
+          this.storage.resultCount = left.length;
+          this.storage.currentIndex = Math.min(this.storage.currentIndex, Math.max(0, left.length - 1));
           return true;
         },
 
       replaceAllSearchResults:
         (replacement: string) =>
-        ({ editor }: { editor: import("@tiptap/core").Editor }) => {
-          const matches = getMatches(editor.state.doc, this.storage.term, this.storage.caseSensitive);
+        ({ tr, dispatch }: { tr: import("@tiptap/pm/state").Transaction; dispatch?: unknown }) => {
+          const { term, caseSensitive, wholeWord } = this.storage;
+          const matches = getMatches(tr.doc, term, caseSensitive, wholeWord);
           if (matches.length === 0) return false;
-          // Iterate in reverse so earlier positions stay valid
-          const tr = editor.state.tr;
+          if (!dispatch) return true;
+          // In reverse, so earlier positions stay valid.
           for (let i = matches.length - 1; i >= 0; i--) {
             const { from, to } = matches[i];
-            if (replacement) {
-              tr.replaceWith(from, to, editor.state.schema.text(replacement));
-            } else {
-              tr.delete(from, to);
-            }
+            if (replacement) tr.insertText(replacement, from, to);
+            else tr.delete(from, to);
           }
-          editor.view.dispatch(tr);
-          this.storage.resultCount = 0;
+          this.storage.resultCount = getMatches(tr.doc, term, caseSensitive, wholeWord).length;
           this.storage.currentIndex = 0;
-          editor.view.dispatch(editor.state.tr.setMeta("addToHistory", false));
           return true;
         },
     } as Record<string, unknown>;
@@ -154,9 +174,9 @@ export const SearchAndReplaceExtension = Extension.create<object, SearchStorage>
         key: SEARCH_PLUGIN_KEY,
         props: {
           decorations(state) {
-            const { term, caseSensitive, currentIndex } = storage;
+            const { term, caseSensitive, wholeWord, currentIndex } = storage;
             if (!term) return DecorationSet.empty;
-            const matches = getMatches(state.doc, term, caseSensitive);
+            const matches = getMatches(state.doc, term, caseSensitive, wholeWord);
             if (matches.length === 0) return DecorationSet.empty;
             const decorations = matches.map((match, idx) =>
               Decoration.inline(match.from, match.to, {
