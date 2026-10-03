@@ -12,9 +12,9 @@ export function DialogueSyntaxContent() {
     <>
       <div className={styles.intro}>
         <p>
-          LoreStudio can track <strong>who says what</strong> across your story, enabling dialogue stats,
-          character voice analysis, and future audio playback. Attribution is always optional: write naturally
-          and the system will do its best to infer speakers, or use explicit syntax for precision.
+          LoreStudio keeps track of <strong>who says what</strong>, for the Dialogue view and the numbers on
+          each voice. Tagging is optional: write naturally and most lines are worked out from the prose, or
+          tag a line to be sure.
         </p>
       </div>
 
@@ -55,7 +55,11 @@ export function DialogueSyntaxContent() {
           </div>
         </div>
         <p className={styles.note}>
-          Multi-word names work: <code>"You shall not pass."&lt;Lady Ashford&gt;</code>
+          Straight, curly or single quotes all work, and a space before the tag is fine:{" "}
+          <code>“You shall not pass.” &lt;Lady Ashford&gt;</code>. The name can be the full one, another name
+          from the character's sheet, or a short one only they go by (<code>&lt;Calder&gt;</code> for The
+          Visitor (Calder)). A tag that names nobody shows in amber: point at it to correct it, add the
+          character, or take the tag off.
         </p>
       </div>
 
@@ -65,15 +69,14 @@ export function DialogueSyntaxContent() {
           <span>Natural prose: inferred automatically</span>
         </div>
         <p className={styles.sectionDesc}>
-          If you use <code>@CharacterName</code> mentions in prose, the system still detects nearby quoted
-          text and attributes it. No extra syntax needed for natural writing.
+          A line with no tag is worked out from the prose around it: a speech tag (<code>“…,” Maya said</code>{" "}
+          or <code>Maya said, “…”</code>), the one character acting in the paragraph, or an{" "}
+          <code>@mention</code> nearby. No extra syntax needed.
         </p>
         <div className={styles.exampleBox}>
           <div className={styles.exampleRaw}>
             <span className={styles.exampleLabel}>You write</span>
-            <code>
-              "I don't think this will work," <span className={styles.mention}>@Maya</span> said, frowning.
-            </code>
+            <code>“I don't think this will work,” Maya said, frowning.</code>
           </div>
           <div className={styles.exampleResult}>
             <span className={styles.exampleLabel}>System infers</span>
@@ -129,19 +132,32 @@ export function DialogueSyntaxContent() {
           <div className={styles.shortcutRow}>
             <kbd>^</kbd>
             <span>
-              Open speaker picker: inserts <code>""&lt;Name&gt;</code> with cursor between quotes
+              A new line for someone: pick the speaker and get <code>“”&lt;Name&gt;</code> with the cursor
+              between the quotes, in the quote marks the scene already uses
             </span>
           </div>
           <div className={styles.shortcutRow}>
             <kbd>/dialogue</kbd>
             <span>
-              Same as <kbd>^</kbd>: type at start of a line to pick a speaker
+              Same as <kbd>^</kbd>
+            </span>
+          </div>
+          <div className={styles.shortcutRow}>
+            <kbd>&lt;</kbd>
+            <span>
+              Right after a closing quote: pick who said it, the likeliest speaker first. On an existing tag
+              it replaces the name
             </span>
           </div>
           <div className={styles.shortcutRow}>
             <kbd>{formatCombo(SHORTCUTS.attributeDialogue.combo)}</kbd>
+            <span>Make the selected words a line: pick the speaker, and they are quoted and tagged</span>
+          </div>
+          <div className={styles.shortcutRow}>
+            <kbd>Tab</kbd>
             <span>
-              Select quoted text first, then wrap it: <code>"selected"&lt;Name&gt;</code>
+              Take the highlighted name (<kbd>Enter</kbd> does too); the rest of the top name shows faintly as
+              you type. <kbd>Esc</kbd> closes the picker
             </span>
           </div>
         </div>
@@ -150,12 +166,14 @@ export function DialogueSyntaxContent() {
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <AlertCircle size={14} />
-          <span>Unattributed dialogue</span>
+          <span>Seeing who says what</span>
         </div>
         <p className={styles.sectionDesc}>
-          Quotes with no nearby <code>@mention</code> are marked as unattributed with a subtle amber
-          underline. They still appear in dialogue stats as "Unknown". You can fix them by clicking the quote
-          and editing the speaker, or by adding explicit <code>@Name: "..."</code> syntax.
+          Turn on <strong>Highlight dialogue</strong> in the scene's ⋯ menu under Type and width. Tagged lines
+          are tinted, lines worked out from the prose are underlined with a dashed line, and lines nobody
+          could be found for are amber. The prose and the Dialogue view agree; a line you have just typed is
+          coloured once the scene saves. To fix the amber ones, tag them, or use{" "}
+          <strong>Tag the dialogue</strong> in the ⋯ menu.
         </p>
       </div>
 
