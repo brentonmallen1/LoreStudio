@@ -96,8 +96,14 @@ class Lexicon:
                     if k.kind == "character":
                         for f in name_forms(n):
                             forms.setdefault(fold(f), set()).add(k.name)
-        self.characters = sorted(self.by_kind["character"], key=len, reverse=True)
         self.forms = forms
+        # A mention answers to a name or other name, and to a shorter form of one ("@Eleanor",
+        # "@Calder") when only one character goes by it.
+        self.mentionable = dict(self.by_kind["character"])
+        for key, owners in forms.items():
+            if len(owners) == 1:
+                self.mentionable.setdefault(key, next(iter(owners)))
+        self.characters = sorted(self.mentionable, key=len, reverse=True)
 
     def speaker(self, written: str) -> str | None:
         """Who a speaker tag names: a name or other name in any case, or a shorter form of
@@ -134,7 +140,7 @@ def _known_at(text: str, i: int, lex: Lexicon) -> tuple[int, str] | None:
             continue
         if end < len(text) and is_word(text[end]):
             continue
-        return end, lex.by_kind["character"][key]
+        return end, lex.mentionable[key]
     return None
 
 

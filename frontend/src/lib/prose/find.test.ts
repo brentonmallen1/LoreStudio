@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { findInText } from "./find";
 
@@ -24,5 +26,18 @@ describe("find in a scene", () => {
       [0, 2],
       [2, 4],
     ]);
+  });
+});
+
+// The same cases story-wide replace runs on the server (backend/tests/services/test_prose_syntax.py).
+const CASES = JSON.parse(
+  readFileSync(join(__dirname, "../../../../shared/prose-syntax/cases.json"), "utf8"),
+) as {
+  find: { text: string; term: string; case: boolean; whole: boolean; expect: string[] }[];
+};
+
+describe("find, as the server replaces", () => {
+  it.each(CASES.find)("$term in $text", ({ text, term, case: caseSensitive, whole, expect: want }) => {
+    expect(words(text, term, { caseSensitive, wholeWord: whole })).toEqual(want);
   });
 });

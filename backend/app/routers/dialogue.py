@@ -34,6 +34,7 @@ from ..services.dialogue_service import (
 from ..services.dialogue_tagging import ProposedDialogueTag, suggest_tags
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.analysis import build_dialogue_attribution_prompt
+from ..services.prose_rewrite import tag_lines
 
 router = APIRouter()
 
@@ -309,28 +310,9 @@ def apply_dialogue_tags(
     if not body.tags:
         return {"id": scene_id, "content": node.content}
 
-    content = node.content or ""
-
-    # Apply each tag: find `"quote_content"` (straight or smart) not already suffixed
-    # and append `&lt;speaker_name&gt;` (entity-encoded, matching TipTap storage).
-    # Process in an order that doesn't invalidate earlier positions — since we're
-    # doing string substitutions on content strings (not offsets), this is safe.
-    for tag in body.tags:
-        q = re.escape(tag.quote_content)
-        suffix = f"&lt;{tag.speaker_name}&gt;"
-        # Match straight quotes not already followed by &lt;.
-        # \s* inside the quotes handles trailing whitespace stripped during extraction.
-        content = re.sub(
-            rf'"(\s*{q}\s*)"(?!&lt;)',
-            rf'"\1"{suffix}',
-            content,
-        )
-        # Match smart quotes not already followed by &lt;
-        content = re.sub(
-            f"\u201c(\s*{q}\s*)\u201d(?!&lt;)",
-            f"\u201c\\1\u201d{suffix}",
-            content,
-        )
+    # On the text, by the grammar (services/prose_rewrite): a line with italics or a note in
+    # it is found, and each tag lands once, after the first untagged quote that says it.
+    content, _ = tag_lines(node.content or "", [(t.quote_content, t.speaker_name) for t in body.tags])
 
     node.content = content
     db.commit()
@@ -590,14 +572,7 @@ def apply_dialogue_tags_batch(
         if not node or node.story_id != story_id:
             continue
 
-        content = node.content or ""
-        for tag in scene_entry.tags:
-            q = re.escape(tag.quote_content)
-            suffix = f"&lt;{tag.speaker_name}&gt;"
-            # Allow optional whitespace inside the quotes — content is stripped on
-            # extraction but the raw HTML may have trailing spaces before the closing mark.
-            content = re.sub(rf'"(\s*{q}\s*)"(?!&lt;)', rf'"\1"{suffix}', content)
-            content = re.sub(f"\u201c(\s*{q}\s*)\u201d(?!&lt;)", f"\u201c\\1\u201d{suffix}", content)
+        content, _ = tag_lines(node.content or "", [(t.quote_content, t.speaker_name) for t in scene_entry.tags])
 
         node.content = content
         db.commit()

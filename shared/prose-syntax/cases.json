@@ -199,7 +199,7 @@
         [
           "@Eleanor",
           "character",
-          null
+          "Eleanor Vance"
         ],
         [
           "@Eleanor Vance",
@@ -281,6 +281,21 @@
     {
       "text": "@ alone, and @123",
       "expect": []
+    },
+    {
+      "text": "@Calder and @Vance waited.",
+      "expect": [
+        [
+          "@Calder",
+          "character",
+          "The Visitor (Calder)"
+        ],
+        [
+          "@Vance",
+          "character",
+          null
+        ]
+      ]
     }
   ],
   "unknown_words": [
@@ -499,6 +514,72 @@
       "text": "Wait—\"now.\"",
       "expect": [
         "now."
+      ]
+    }
+  ],
+  "find": [
+    {
+      "text": "“Not here.”<Calder> @Calder waited at [[Calder House]].",
+      "term": "calder",
+      "case": false,
+      "whole": false,
+      "expect": [
+        "Calder",
+        "Calder"
+      ]
+    },
+    {
+      "text": "“Not here.”<Calder> @Calder waited.",
+      "term": "<Calder>",
+      "case": false,
+      "whole": false,
+      "expect": []
+    },
+    {
+      "text": "@Calder waited at [[Calder House]].",
+      "term": "@",
+      "case": false,
+      "whole": false,
+      "expect": []
+    },
+    {
+      "text": "Tom said tomorrow, Tom.",
+      "term": "tom",
+      "case": false,
+      "whole": false,
+      "expect": [
+        "Tom",
+        "tom",
+        "Tom"
+      ]
+    },
+    {
+      "text": "Tom said tomorrow, Tom.",
+      "term": "tom",
+      "case": true,
+      "whole": false,
+      "expect": [
+        "tom"
+      ]
+    },
+    {
+      "text": "Tom said tomorrow, Tom.",
+      "term": "tom",
+      "case": false,
+      "whole": true,
+      "expect": [
+        "Tom",
+        "Tom"
+      ]
+    },
+    {
+      "text": "aaaa",
+      "term": "aa",
+      "case": false,
+      "whole": false,
+      "expect": [
+        "aa",
+        "aa"
       ]
     }
   ]

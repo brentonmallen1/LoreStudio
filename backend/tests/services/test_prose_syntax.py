@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from app.services.prose_rewrite import find_in_text
 from app.services.prose_syntax import Known, Lexicon, find_mentions, find_quotes, find_speaker_tags, reader_text
 
 CASES = json.loads((Path(__file__).parents[3] / "shared" / "prose-syntax" / "cases.json").read_text())
@@ -43,3 +44,10 @@ def test_who_a_speaker_tag_names(written, name):
 @pytest.mark.parametrize("case", CASES["quotes"], ids=lambda c: c["text"][:40])
 def test_untagged_quotes(case):
     assert [q.words for q in find_quotes(case["text"])] == case["expect"]
+
+
+@pytest.mark.parametrize("case", CASES["find"], ids=lambda c: f"{c['term']} in {c['text'][:30]}")
+def test_find(case):
+    text = case["text"]
+    spans = find_in_text(text, case["term"], case_sensitive=case["case"], whole_word=case["whole"])
+    assert [text[a:b] for a, b in spans] == case["expect"]

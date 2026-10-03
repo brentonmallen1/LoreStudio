@@ -175,17 +175,9 @@ def count_quote_styles(html: str) -> dict[str, int]:
 
 
 def normalize_quotes_html(html: str, style: str) -> tuple[str, int]:
-    """Convert quotes in the prose of an HTML fragment. Returns (html, changed_chars)."""
-    from bs4 import BeautifulSoup, NavigableString
+    """Convert quotes in the prose of an HTML fragment. Returns (html, changed_chars).
+    Read a paragraph at a time, so a closing quote after italics stays closing, and names
+    in mentions and speaker tags keep their spelling (services/prose_rewrite)."""
+    from .prose_rewrite import normalize_quotes
 
-    soup = BeautifulSoup(html, "html.parser")
-    changed = 0
-    for node in list(soup.find_all(string=True)):
-        if not isinstance(node, NavigableString) or node.parent is None or node.parent.name in ("script", "style"):
-            continue
-        before = str(node)
-        after = normalize_quotes_text(before, style)
-        if after != before:
-            changed += sum(1 for a, b in zip(before, after) if a != b)
-            node.replace_with(after)
-    return (str(soup) if changed else html), changed
+    return normalize_quotes(html, style)

@@ -6,7 +6,6 @@ bulk tools do: logged under Chronicle › Changes, not undoable here, because th
 own history owns prose.
 """
 
-import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -25,6 +24,7 @@ from ..services.findings import all_findings, collect
 from ..services.findings.fingerprint import content_hash
 from ..services.findings.view import load_view
 from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
+from ..services.prose_rewrite import replace_words
 
 router = APIRouter()
 
@@ -151,8 +151,10 @@ def fix_finding(
     node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
     if finding.fix is None or node is None:
         raise HTTPException(status_code=422, detail="This finding has no fix to make")
-    pattern = re.compile(rf"(?<![\w-]){re.escape(finding.fix.old)}(?![\w-])")
-    content, replaced = pattern.subn(finding.fix.new, node.content or "")
+    # Whole words in the prose, never the markup around them (services/prose_rewrite).
+    content, replaced = replace_words(
+        node.content or "", finding.fix.old, finding.fix.new, case_sensitive=True, whole_word=True
+    )
     if replaced:
         change_log.rewrite_prose(
             db,

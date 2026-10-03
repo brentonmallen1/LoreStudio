@@ -1,18 +1,26 @@
 """Story-wide replace must only touch prose, never markup or speaker tags."""
 
-import re
-
-from app.routers.search import replace_in_text_nodes
+from app.services.prose_rewrite import replace_words
 
 
 def test_replace_leaves_tags_and_attributes_alone():
-    html = '<p class="Maya">"Hello," said <b>Maya</b>. Maya smiled.</p><p>"Bye"<Maya></p>'
-    pattern = re.compile(r"\bMaya\b")
-    out, n = replace_in_text_nodes(html, pattern, "Mara")
+    html = '<p class="Maya">"Hello," said <b>Maya</b>. Maya smiled.</p><p>"Bye"&lt;Maya&gt;</p>'
+    out, n = replace_words(html, "Maya", "Mara", case_sensitive=True, whole_word=True)
     assert n == 2
     assert 'class="Maya"' in out  # attribute untouched
-    assert "<Maya>" in out or "<maya>" in out  # speaker tag untouched
+    assert '"Bye"&lt;Maya&gt;' in out  # speaker tag untouched
     assert "<b>Mara</b>" in out and "Mara smiled" in out
+
+
+def test_a_replacement_is_text_not_a_template(client):
+    sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
+    a = client.post(
+        f"/api/stories/{sid}/structure",
+        json={"title": "A", "content": "<p>Tea at four.</p>", "level": 0, "level_type": "scene"},
+    ).json()
+    r = client.post(f"/api/stories/{sid}/replace", json={"query": "four", "replacement": r"five \1 & six"})
+    assert r.status_code == 200
+    assert client.get(f"/api/structure/{a['id']}").json()["content"] == "<p>Tea at five \\1 &amp; six.</p>"
 
 
 def test_replace_endpoint_scoped_and_whole_word(client):

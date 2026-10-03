@@ -1,62 +1,30 @@
 """
 Entity refactoring service.
 
-Handles rename propagation: when a character or location is renamed, finds all
-@mentions and [[references]] in scene content and updates them.
+Handles rename propagation: when a character or location is renamed, finds every @mention,
+[[reference]] and (for a character) "…"<Name> speaker tag in the scenes and updates the
+name inside it. Found and rewritten by the grammar on the text (services/prose_rewrite), so
+the preview counts exactly what the rename changes: a mention ending a paragraph, one
+followed by ’s or a dash, a name with an ampersand.
 """
 
-import re
 from typing import Literal
 
 from sqlalchemy.orm import Session
 
 from ..models.structure import StructureNode
 from ..schemas.refactoring import RenamePreviewItem
-from .text_utils import html_to_text as _html_to_text
+from .prose_rewrite import name_occurrences, rename
 
 
-def _mention_pattern(entity_type: Literal["character", "location"], name: str) -> str:
-    # Matched without regard to case, as the editor resolves mentions.
-    escaped = re.escape(name)
-    if entity_type == "character":
-        return rf'@{escaped}(?=[\s.,;:!?)"\'\]]|$)'
-    else:
-        return rf"\[\[{escaped}\]\]"
-
-
-def _attribution_pattern(name: str) -> str:
-    """Dialogue attribution pattern: "..."<Name>. Stored prose escapes the brackets."""
-    escaped = re.escape(name)
-    return rf"(<|&lt;){escaped}(>|&gt;)"
-
-
-def _count_occurrences(entity_type: Literal["character", "location"], name: str, content: str) -> int:
-    text = _html_to_text(content)
-    pattern = _mention_pattern(entity_type, name)
-    count = len(re.findall(pattern, text, re.IGNORECASE))
-    if entity_type == "character":
-        count += len(re.findall(_attribution_pattern(name), text, re.IGNORECASE))
-    return count
-
-
-def _extract_excerpt(entity_type: Literal["character", "location"], name: str, content: str) -> str:
-    """Return a short context string around the first occurrence."""
-    text = _html_to_text(content)
-    pattern = _mention_pattern(entity_type, name)
-    m = re.search(pattern, text, re.IGNORECASE)
-    if not m:
-        if entity_type == "character":
-            m = re.search(_attribution_pattern(name), text, re.IGNORECASE)
-    if not m:
-        return ""
-    start = max(0, m.start() - 40)
-    end = min(len(text), m.end() + 60)
+def _excerpt(text: str, name: str) -> str:
+    """A short context string around the first use of the name in a paragraph."""
+    at = text.casefold().find(name.casefold())
+    at = max(at, 0)
+    start = max(0, at - 40)
+    end = min(len(text), at + len(name) + 60)
     excerpt = text[start:end].strip()
-    if start > 0:
-        excerpt = "…" + excerpt
-    if end < len(text):
-        excerpt = excerpt + "…"
-    return excerpt
+    return ("…" if start > 0 else "") + excerpt + ("…" if end < len(text) else "")
 
 
 def preview_entity_rename(
@@ -66,20 +34,18 @@ def preview_entity_rename(
     story_id: str,
     db: Session,
 ) -> list[RenamePreviewItem]:
-    """Scan all scenes for occurrences of old_name mentions, return preview."""
+    """Scan all scenes for uses of old_name, return a preview."""
     nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id, StructureNode.content != "").all()
     results: list[RenamePreviewItem] = []
     for node in nodes:
-        if not node.content:
-            continue
-        count = _count_occurrences(entity_type, old_name, node.content)
-        if count > 0:
+        uses = name_occurrences(node.content or "", entity_type, old_name)
+        if uses:
             results.append(
                 RenamePreviewItem(
                     node_id=node.id,
                     node_title=node.title or "(Untitled)",
-                    occurrences=count,
-                    excerpt=_extract_excerpt(entity_type, old_name, node.content),
+                    occurrences=len(uses),
+                    excerpt=_excerpt(uses[0][1], old_name),
                 )
             )
     return results
@@ -95,30 +61,11 @@ def apply_entity_rename(
     """Apply rename to selected scenes. Returns updated nodes."""
     nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
     updated: list[StructureNode] = []
-    pattern = _mention_pattern(entity_type, old_name)
-
     for node in nodes:
-        if not node.content:
-            continue
-        new_content = node.content
-
-        # Replacements are functions: a name is text, never a replacement template.
-        if entity_type == "character":
-            # Replace @OldName mentions
-            new_content = re.sub(pattern, lambda _: f"@{new_name}", new_content, flags=re.IGNORECASE)
-            # Replace dialogue attribution <OldName> → <NewName>
-            attr_pattern = _attribution_pattern(old_name)
-            new_content = re.sub(
-                attr_pattern, lambda m: f"{m.group(1)}{new_name}{m.group(2)}", new_content, flags=re.IGNORECASE
-            )
-        else:
-            # Replace [[OldName]] → [[NewName]]
-            new_content = re.sub(pattern, lambda _: f"[[{new_name}]]", new_content, flags=re.IGNORECASE)
-
-        if new_content != node.content:
-            node.content = new_content
+        content, changed = rename(node.content or "", entity_type, old_name, new_name)
+        if changed:
+            node.content = content
             node.summary_stale = True
             updated.append(node)
-
     db.flush()
     return updated

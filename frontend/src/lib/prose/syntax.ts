@@ -32,7 +32,9 @@ export interface KnownName {
 export interface Lexicon {
   places: Map<string, string>;
   characters: Map<string, string>;
-  /** Folded character names, longest first. */
+  /** What a mention may say: names, other names, and short forms only one character has. */
+  mentionable: Map<string, string>;
+  /** Folded mentionable names, longest first. */
   characterKeys: string[];
   /** Each folded name form ("calder", "thomas") and the characters who answer to it. */
   forms: Map<string, Set<string>>;
@@ -80,8 +82,13 @@ export function makeLexicon(known: KnownName[]): Lexicon {
         }
     }
   }
-  const characterKeys = [...characters.keys()].sort((a, b) => b.length - a.length);
-  return { places, characters, characterKeys, forms };
+  // A mention answers to a name or other name, and to a shorter form of one ("@Eleanor",
+  // "@Calder") when only one character goes by it.
+  const mentionable = new Map(characters);
+  for (const [key, owners] of forms)
+    if (owners.size === 1 && !mentionable.has(key)) mentionable.set(key, [...owners][0]);
+  const characterKeys = [...mentionable.keys()].sort((a, b) => b.length - a.length);
+  return { places, characters, mentionable, characterKeys, forms };
 }
 
 /**
@@ -123,7 +130,7 @@ function knownAt(text: string, i: number, lex: Lexicon): [number, string] | null
     const end = i + key.length;
     if (end > text.length || foldName(text.slice(i, end)) !== key) continue;
     if (isWordChar(text[end])) continue;
-    return [end, lex.characters.get(key)!];
+    return [end, lex.mentionable.get(key)!];
   }
   return null;
 }

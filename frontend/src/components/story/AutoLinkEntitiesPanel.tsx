@@ -142,7 +142,8 @@ export default function AutoLinkEntitiesPanel({ nodeId, onClose, onApplied }: Pr
                         {items.map((p) => {
                           const isSelected = selected.has(p.id);
                           const Icon = TYPE_ICON[p.entity_type];
-                          const preview = LINK_PREVIEW[p.entity_type](p.entity_name);
+                          // The words stay as written; the mention finds the entry (doc 16).
+                          const preview = LINK_PREVIEW[p.entity_type](p.matched_text);
                           return (
                             <div
                               key={p.id}

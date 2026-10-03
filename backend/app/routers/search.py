@@ -1,4 +1,3 @@
-import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -15,6 +14,8 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..services import change_log
+from ..services.prose_html import paragraphs
+from ..services.prose_rewrite import find_in_text, replace_words
 from ..services.text_utils import html_to_text
 
 router = APIRouter()
@@ -213,45 +214,17 @@ class StoryReplaceRequest(BaseModel):
     node_ids: list[str] | None = None  # None means replace in all nodes
 
 
-def replace_in_text_nodes(html: str, pattern: "re.Pattern[str]", replacement: str) -> tuple[str, int]:
-    """Replace inside the prose only. Tag names, attributes and speaker tags like
-    ``<Maya>`` are never touched, so a rename cannot corrupt the markup."""
-    from bs4 import BeautifulSoup, NavigableString
-
-    soup = BeautifulSoup(html, "html.parser")
-    total = 0
-    for text_node in list(soup.find_all(string=True)):
-        if not isinstance(text_node, NavigableString) or text_node.parent is None:
-            continue
-        if text_node.parent.name in ("script", "style"):
-            continue
-        new_text, n = pattern.subn(replacement, str(text_node))
-        if n:
-            text_node.replace_with(new_text)
-            total += n
-    return (str(soup) if total else html), total
-
-
 def _count_and_excerpt(content: str, query: str, case_sensitive: bool) -> tuple[int, str]:
-    """Return (match_count, excerpt) for a content string."""
-    if not content:
-        return 0, ""
-    flags = 0 if case_sensitive else re.IGNORECASE
-    plain = re.sub(r"<[^>]+>", " ", content)
-    plain = re.sub(r"\s+", " ", plain).strip()
-    pattern = re.escape(query)
-    matches = list(re.finditer(pattern, plain, flags))
-    if not matches:
-        return 0, ""
-    count = len(matches)
-    m = matches[0]
-    start = max(0, m.start() - 40)
-    end = min(len(plain), m.end() + 80)
-    snippet = plain[start:end].strip()
-    if start > 0:
-        snippet = "…" + snippet
-    if end < len(plain):
-        snippet = snippet + "…"
+    """(matches, an excerpt round the first): in the prose as read, never in its tags, so
+    the count is what Replace would change (services/prose_rewrite)."""
+    count, snippet = 0, ""
+    for p in paragraphs(content or ""):
+        spans = find_in_text(p.text, query, case_sensitive=case_sensitive)
+        if spans and not snippet:
+            a, b = spans[0]
+            start, end = max(0, a - 40), min(len(p.text), b + 80)
+            snippet = ("…" if start > 0 else "") + p.text[start:end].strip() + ("…" if end < len(p.text) else "")
+        count += len(spans)
     return count, snippet
 
 
@@ -302,10 +275,6 @@ async def story_replace(
     if not req.query:
         return {"replaced_count": 0, "scenes_affected": 0, "node_ids": []}
 
-    flags = 0 if req.case_sensitive else re.IGNORECASE
-    escaped = re.escape(req.query)
-    pattern = re.compile(rf"\b{escaped}\b" if req.whole_word else escaped, flags)
-
     q = db.query(StructureNode).filter(StructureNode.story_id == story_id)
     if req.node_ids:
         q = q.filter(StructureNode.id.in_(req.node_ids))
@@ -318,7 +287,9 @@ async def story_replace(
     for node in nodes:
         if not node.content:
             continue
-        new_content, n = replace_in_text_nodes(node.content, pattern, req.replacement)
+        new_content, n = replace_words(
+            node.content, req.query, req.replacement, case_sensitive=req.case_sensitive, whole_word=req.whole_word
+        )
         if n > 0:
             change_log.rewrite_prose(
                 db,
