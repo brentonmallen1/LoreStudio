@@ -28,8 +28,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 1.333rem;
+  height: 1.333rem;
   border: none;
   background: none;
   border-radius: var(--radius-sm);
@@ -47,7 +47,7 @@
 
 .body {
   padding: 0.75rem;
-  min-height: 60px;
+  min-height: 4rem;
 }
 
 .hint {

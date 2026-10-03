@@ -7,6 +7,8 @@ import AssistantTab from "./AssistantTab";
 import { fitTabs } from "../../lib/panel/overflow";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
+import { useUIStore } from "../../stores/uiStore";
+import { scaledPx } from "../../lib/appearance/uiScale";
 import type { PanelTab } from "../../types/panel";
 import { tabLabel } from "../../lib/panel/tabLabel";
 import OverflowMenu from "./OverflowMenu";
@@ -45,17 +47,20 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
     return () => ro.disconnect();
   }, []);
 
+  // The tabs' text and controls are rem, so the arithmetic follows the interface size.
+  const uiScale = useUIStore((s) => s.uiScale);
+  const px = (n: number) => scaledPx(n, uiScale);
   const widths = Object.fromEntries(
-    tabs.map((t) => [t.id, t.kind === "scene" ? SCENE_TAB_WIDTH : TAB_WIDTH]),
+    tabs.map((t) => [t.id, px(t.kind === "scene" ? SCENE_TAB_WIDTH : TAB_WIDTH)]),
   );
-  const reserved = (aiAvailable ? ASSISTANT_RESERVE : 0) + (inWindow ? 0 : CONTROLS_RESERVE);
+  const reserved = (aiAvailable ? px(ASSISTANT_RESERVE) : 0) + (inWindow ? 0 : px(CONTROLS_RESERVE));
   const { visible, hidden } = fitTabs(
     tabs,
     widths,
     available - 4 - reserved,
     activeTabId,
-    OVERFLOW_RESERVE,
-    TAB_WIDTH,
+    px(OVERFLOW_RESERVE),
+    px(TAB_WIDTH),
   );
 
   function popOut() {

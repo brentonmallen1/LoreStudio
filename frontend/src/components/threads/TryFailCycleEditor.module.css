@@ -34,8 +34,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 16px;
-  height: 16px;
+  min-width: 1.067rem;
+  height: 1.067rem;
   padding: 0 4px;
   border-radius: 99px;
   background: var(--color-accent);
@@ -74,8 +74,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 50%;
   background: var(--color-surface-3);
   border: 1px solid var(--color-border);
@@ -133,8 +133,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 1.467rem;
+  height: 1.467rem;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;

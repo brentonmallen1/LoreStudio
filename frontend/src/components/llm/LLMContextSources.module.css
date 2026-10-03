@@ -73,16 +73,16 @@
 }
 
 .dot {
-  width: 5px;
-  height: 5px;
+  width: 0.333rem;
+  height: 0.333rem;
   border-radius: 50%;
   background: var(--color-accent);
   flex-shrink: 0;
 }
 
 .dotMissing {
-  width: 5px;
-  height: 5px;
+  width: 0.333rem;
+  height: 0.333rem;
   border-radius: 50%;
   border: 1px solid var(--color-border);
   flex-shrink: 0;

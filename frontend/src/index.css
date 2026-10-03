@@ -51,8 +51,9 @@ body {
   height: 100%;
 }
 
+/* The interface size (doc 17): uiStore sets --ui-scale; the prose is sized in px and stays put. */
 html {
-  font-size: 15px;
+  font-size: calc(15px * var(--ui-scale));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -67,6 +68,11 @@ body {
 
 #root {
   height: 100%;
+}
+
+/* Lucide sizes icons in px attributes; zoom carries them with the interface size. */
+svg.lucide {
+  zoom: var(--ui-scale);
 }
 
 @media (prefers-reduced-motion: reduce) {

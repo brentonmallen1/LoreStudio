@@ -37,8 +37,8 @@
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   flex-shrink: 0;
   background: var(--color-success);

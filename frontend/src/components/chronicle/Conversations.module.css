@@ -34,7 +34,7 @@
 .checkVisible,
 [role="button"]:hover > .check,
 .check:focus-visible {
-  width: 18px;
+  width: 1.2rem;
   opacity: 1;
 }
 
@@ -100,8 +100,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 1.733rem;
+  height: 1.733rem;
   margin-left: auto;
   border: none;
   border-radius: var(--radius-sm);

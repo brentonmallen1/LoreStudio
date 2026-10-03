@@ -87,7 +87,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 32px;
+  height: 2.133rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -214,7 +214,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  height: 44px;
+  height: 2.933rem;
   padding: 0 1.25rem;
   border-radius: var(--radius-lg);
   background: var(--color-accent);
@@ -239,7 +239,7 @@
 .nextScene {
   display: inline-flex;
   align-items: center;
-  height: 44px;
+  height: 2.933rem;
   padding: 0 0.85rem;
   border-radius: var(--radius-lg);
   color: var(--color-text-muted);
@@ -263,8 +263,8 @@
 }
 
 .slot {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -334,7 +334,7 @@
 
 .vitalBar {
   display: block;
-  height: 4px;
+  height: 0.267rem;
   margin: 0.2rem 0 0.1rem;
   border-radius: 2px;
   background: var(--color-surface-3);
@@ -429,7 +429,7 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  min-height: 34px;
+  min-height: 2.267rem;
   margin: 0 -0.5rem;
   padding: 0.2rem 0.5rem;
   border: none;
@@ -481,14 +481,14 @@
 
 .planGo {
   flex-shrink: 0;
-  width: 8px;
+  width: 0.533rem;
   color: var(--color-accent);
 }
 
 .dot {
   flex-shrink: 0;
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
 }
@@ -514,7 +514,7 @@
 
 .bar {
   flex: 1;
-  min-width: 4px;
+  min-width: 0.267rem;
   border-radius: 2px 2px 0 0;
   background: var(--color-border);
 }
@@ -591,7 +591,7 @@
 
 .recapCursor {
   display: inline-block;
-  width: 7px;
+  width: 0.467rem;
   height: 1em;
   margin-left: 2px;
   vertical-align: text-bottom;

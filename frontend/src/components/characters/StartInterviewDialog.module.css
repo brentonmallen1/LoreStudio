@@ -138,8 +138,8 @@
 /* Staleness indicator dots */
 .indicatorFresh {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-success);
   flex-shrink: 0;
@@ -147,8 +147,8 @@
 
 .indicatorStale {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-warning);
   flex-shrink: 0;
@@ -156,8 +156,8 @@
 
 .indicatorNone {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
   opacity: 0.5;

@@ -39,8 +39,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2.133rem;
+  height: 2.133rem;
   flex-shrink: 0;
   border-radius: var(--radius);
   border: none;
@@ -65,8 +65,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2.133rem;
+  height: 2.133rem;
   flex-shrink: 0;
   border-radius: var(--radius);
   border: none;

@@ -52,8 +52,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 1.6rem;
+  height: 1.6rem;
   padding: 0;
   border: none;
   background: transparent;
@@ -107,8 +107,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: 4px;

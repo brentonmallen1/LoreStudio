@@ -13,7 +13,7 @@
 
 /* Reserve space for fixed header in normal mode */
 .contentNormal {
-  padding-top: 40px;
+  padding-top: var(--header-height);
 }
 
 /* No space reservation in focus/fullscreen — content fills full viewport */
@@ -30,7 +30,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  height: 30px;
+  height: 2rem;
   padding: 0 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;

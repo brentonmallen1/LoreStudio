@@ -178,8 +178,8 @@
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
   animation: pulse 1.2s ease-in-out infinite;
@@ -253,7 +253,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  height: 24px;
+  height: 1.6rem;
   padding: 0 0.5rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);

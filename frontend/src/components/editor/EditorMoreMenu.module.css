@@ -7,8 +7,8 @@
 .trigger {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: transparent;

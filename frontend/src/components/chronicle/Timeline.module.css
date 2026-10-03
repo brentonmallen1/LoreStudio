@@ -11,7 +11,7 @@
 
 /* The same chips as every page header (PageHeader.module.css .chip). */
 .filter {
-  height: 28px;
+  height: 1.867rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 99px;
@@ -75,7 +75,7 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  min-height: 44px;
+  min-height: 2.933rem;
   padding: 0.45rem 0.6rem 0.45rem 0.75rem;
   border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
@@ -105,7 +105,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
+  width: 1.2rem;
   color: var(--color-text-subtle);
 }
 
@@ -183,15 +183,15 @@
   flex-shrink: 0;
   display: flex;
   gap: 0.15rem;
-  min-width: 26px;
+  min-width: 1.733rem;
 }
 
 .iconBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 1.733rem;
+  height: 1.733rem;
   border: none;
   border-radius: var(--radius-sm);
   background: none;
@@ -336,7 +336,7 @@
 }
 
 .progress {
-  height: 4px;
+  height: 0.267rem;
   margin: -0.25rem 0 1rem;
   border-radius: 99px;
   background: var(--color-surface-3);

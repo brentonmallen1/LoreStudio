@@ -53,8 +53,8 @@
 }
 
 .legendDot {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--type-color, var(--color-border));
   flex-shrink: 0;

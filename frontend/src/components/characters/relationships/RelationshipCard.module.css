@@ -61,8 +61,8 @@
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
+  width: 2.133rem;
+  height: 2.133rem;
   border-radius: 50%;
   background: var(--color-surface-2);
   border: 1.5px solid var(--color-border);
@@ -149,7 +149,7 @@
   font-weight: 700;
   font-family: "JetBrains Mono", monospace;
   color: var(--color-text-subtle);
-  width: 9px;
+  width: 0.6rem;
   flex-shrink: 0;
   text-align: center;
 }
@@ -159,12 +159,12 @@
   flex: 1;
   display: flex;
   align-items: center;
-  height: 5px;
+  height: 0.333rem;
 }
 
 .bpLeft {
   flex: 1;
-  height: 5px;
+  height: 0.333rem;
   background: var(--color-border);
   border-radius: 3px 0 0 3px;
   overflow: hidden;
@@ -179,14 +179,14 @@
 
 .bpTick {
   width: 1.5px;
-  height: 8px;
+  height: 0.533rem;
   background: var(--color-text-muted);
   flex-shrink: 0;
 }
 
 .bpRight {
   flex: 1;
-  height: 5px;
+  height: 0.333rem;
   background: var(--color-border);
   border-radius: 0 3px 3px 0;
   overflow: hidden;
@@ -201,7 +201,7 @@
   font-size: 0.62rem;
   font-family: "JetBrains Mono", monospace;
   color: var(--color-text-subtle);
-  width: 20px;
+  width: 1.333rem;
   text-align: right;
   flex-shrink: 0;
 }

@@ -198,8 +198,8 @@
 }
 
 .unpin {
-  width: 26px;
-  height: 26px;
+  width: 1.733rem;
+  height: 1.733rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -223,7 +223,7 @@
 }
 
 .openBtn {
-  height: 30px;
+  height: 2rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-accent);
   border-radius: var(--radius);

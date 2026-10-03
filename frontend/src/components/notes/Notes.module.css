@@ -69,7 +69,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 30px;
+  min-height: 2rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
@@ -82,8 +82,8 @@
 
 .filter[data-kind]::before {
   content: "";
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--kind-color);
 }
@@ -104,7 +104,7 @@
 }
 
 .board[data-compact] .filter {
-  min-height: 26px;
+  min-height: 1.733rem;
   padding: 0 0.55rem;
   font-size: var(--text-xs);
 }
@@ -151,8 +151,8 @@
 .dot {
   content: "";
   flex-shrink: 0;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--kind-color);
 }
@@ -220,8 +220,8 @@
   align-self: center;
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 1.6rem;
+  height: 1.6rem;
   border: none;
   border-radius: var(--radius-sm);
   background: none;
@@ -352,8 +352,8 @@
 .remove {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 1.6rem;
+  height: 1.6rem;
   border: none;
   border-radius: var(--radius-sm);
   background: none;

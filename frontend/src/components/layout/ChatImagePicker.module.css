@@ -7,8 +7,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 2rem;
+  height: 2rem;
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -31,16 +31,16 @@
 /* Selected thumbnail */
 .selectedThumb {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 2.4rem;
+  height: 2.4rem;
   border-radius: 5px;
   overflow: visible;
   flex-shrink: 0;
 }
 
 .thumbImg {
-  width: 36px;
-  height: 36px;
+  width: 2.4rem;
+  height: 2.4rem;
   object-fit: cover;
   border-radius: 5px;
   border: 1px solid var(--color-border);
@@ -51,8 +51,8 @@
   position: absolute;
   top: -5px;
   right: -5px;
-  width: 16px;
-  height: 16px;
+  width: 1.067rem;
+  height: 1.067rem;
   border-radius: 50%;
   background: var(--color-text);
   color: var(--color-bg);
@@ -125,8 +125,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 1.467rem;
+  height: 1.467rem;
   background: none;
   border: none;
   color: var(--color-text-muted);
@@ -226,8 +226,8 @@
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 18px;
-  height: 18px;
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 50%;
   background: var(--color-accent);
   color: var(--color-bg);

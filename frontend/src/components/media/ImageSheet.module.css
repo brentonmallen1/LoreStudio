@@ -59,8 +59,8 @@
   bottom: 0.6rem;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   border-radius: 999px;
   background: var(--color-surface);
   color: var(--color-text-muted);
@@ -145,7 +145,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 28px;
+  height: 1.867rem;
   padding: 0 0.7rem;
   border-radius: var(--radius);
   font: inherit;

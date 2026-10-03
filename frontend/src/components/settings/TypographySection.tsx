@@ -1,5 +1,6 @@
 import { FONT_CATEGORIES, FONT_OPTIONS, useUIStore } from "../../stores/uiStore";
 import type { EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
+import InterfaceSizeButtons from "./InterfaceSizeButtons";
 import styles from "../../pages/Settings.module.css";
 
 const FONT_SIZES: { value: EditorFontSize; label: string }[] = [
@@ -15,7 +16,7 @@ const LINE_WIDTHS: { value: EditorLineWidth; label: string }[] = [
   { value: "wide", label: "Wide" },
 ];
 
-/** Editor font, size and line width. */
+/** Interface size, then the writing's font, size and line width. */
 export default function TypographySection() {
   const {
     editorFontFamily,
@@ -27,6 +28,18 @@ export default function TypographySection() {
   } = useUIStore();
   return (
     <>
+      <div className={styles.settingGroup}>
+        <p className={styles.settingGroupLabel}>Interface size</p>
+        <p className={styles.hint}>
+          Menus, buttons, labels and icons. The writing keeps its own size, below.
+        </p>
+        <InterfaceSizeButtons
+          rowClass={styles.themeRow}
+          buttonClass={styles.themeOption}
+          activeClass={styles.active}
+        />
+      </div>
+
       <div className={styles.settingGroup}>
         <p className={styles.settingGroupLabel}>Editor font</p>
         <select
@@ -48,12 +61,13 @@ export default function TypographySection() {
       </div>
 
       <div className={styles.settingGroup}>
-        <p className={styles.settingGroupLabel}>Editor font size</p>
+        <p className={styles.settingGroupLabel}>Writing size</p>
         <div className={styles.themeRow}>
           {FONT_SIZES.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setEditorFontSize(value)}
+              aria-pressed={editorFontSize === value}
               className={`${styles.themeOption} ${editorFontSize === value ? styles.active : ""}`}
             >
               {label}
@@ -69,6 +83,7 @@ export default function TypographySection() {
             <button
               key={value}
               onClick={() => setEditorLineWidth(value)}
+              aria-pressed={editorLineWidth === value}
               className={`${styles.themeOption} ${editorLineWidth === value ? styles.active : ""}`}
             >
               {label}

@@ -73,8 +73,8 @@
 }
 
 .streaming {
-  width: 5px;
-  height: 5px;
+  width: 0.333rem;
+  height: 0.333rem;
   border-radius: 50%;
   background: var(--color-ai);
   animation: pulse 1.2s ease-in-out infinite;

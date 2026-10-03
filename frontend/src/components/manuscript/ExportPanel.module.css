@@ -84,8 +84,8 @@
 }
 
 .checkRow input[type="checkbox"] {
-  width: 14px;
-  height: 14px;
+  width: 0.933rem;
+  height: 0.933rem;
   accent-color: var(--color-accent);
   cursor: pointer;
   flex-shrink: 0;

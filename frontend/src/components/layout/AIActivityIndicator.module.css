@@ -15,8 +15,8 @@
 }
 
 .pulse {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-accent);
   flex-shrink: 0;
@@ -66,8 +66,8 @@ a.itemLabel:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 1.2rem;
+  height: 1.2rem;
   flex-shrink: 0;
   border: none;
   border-radius: var(--radius);

@@ -13,6 +13,7 @@ import {
 } from "../../lib/strip/stripModel";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
+import { scaledPx } from "../../lib/appearance/uiScale";
 import ChapterRows from "./ChapterRows";
 import ColourModePicker from "./ColourModePicker";
 import FullTree from "./FullTree";
@@ -43,6 +44,7 @@ export default function StoryStrip() {
     stripDepth,
     stripReadoutPct,
     toggleStripReadout,
+    uiScale,
   } = useUIStore();
   const [hovering, setHovering] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -90,7 +92,12 @@ export default function StoryStrip() {
     <nav
       aria-label="The book"
       className={styles.strip}
-      style={{ width: dragPx ?? stripPx(width, expandedPx) }}
+      // The collapsed line holds rem-sized controls, so it grows with the interface size.
+      style={{
+        width:
+          dragPx ??
+          (width === "strip" ? scaledPx(stripPx(width, expandedPx), uiScale) : stripPx(width, expandedPx)),
+      }}
       data-width={width}
       data-dragging={dragPx !== null || undefined}
     >

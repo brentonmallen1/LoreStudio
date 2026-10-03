@@ -225,8 +225,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
@@ -433,7 +433,7 @@
 
 .progressTrack {
   flex: 0 1 8rem;
-  height: 4px;
+  height: 0.267rem;
   border-radius: 99px;
   background: var(--color-surface-2);
   overflow: hidden;

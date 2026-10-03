@@ -168,7 +168,7 @@ export default function EditorTopbar(p: Props) {
               setTitleValue(activeNode.title);
               setEditingTitle(true);
             }}
-            title="Rename"
+            title={`${activeNode.title} (click to rename)`}
           >
             {activeNode.title}
           </button>

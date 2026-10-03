@@ -76,8 +76,8 @@
 }
 
 .legendDot {
-  width: 10px;
-  height: 10px;
+  width: 0.667rem;
+  height: 0.667rem;
   border-radius: 50%;
   border: 2px solid;
   background: var(--color-surface);
@@ -90,7 +90,7 @@
 
 .legendSep {
   width: 1px;
-  height: 12px;
+  height: 0.8rem;
   background: var(--color-border);
   flex-shrink: 0;
 }
@@ -192,8 +192,8 @@
 
 /* Scene dot */
 .sceneDot {
-  width: 16px;
-  height: 16px;
+  width: 1.067rem;
+  height: 1.067rem;
   border-radius: 50%;
   border: 2px solid;
   background: var(--color-surface);

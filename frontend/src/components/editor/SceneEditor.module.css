@@ -14,7 +14,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1.25rem;
-  height: 52px;
+  height: 3.467rem;
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
@@ -25,8 +25,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  /* Never narrower than the type, a few letters of the title and the status; the
-     responsive rules below hide things on the right before it gets that tight. */
+  /* Never narrower than the type, the title (capped below) and the status; the responsive
+     rules below hide things on the right before it gets that tight. */
   min-width: min-content;
   flex: 1;
 }
@@ -96,6 +96,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 5rem;
+  /* A long title ellipsizes at a share of the column, so ⋯ is never pushed out of the bar
+     at a large interface size (doc 17). */
+  max-width: 30cqi;
   cursor: text;
 }
 
@@ -209,7 +212,7 @@
 /* Between what the scene is (words, saved) and what you can do with it. */
 .topbarRule {
   width: 1px;
-  height: 16px;
+  height: 1.067rem;
   margin: 0 0.2rem;
   background: var(--color-border);
 }
@@ -411,8 +414,8 @@
 /* ── Summary staleness indicators ── */
 .staleIndicatorFresh {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-success);
   margin-left: 0.4rem;
@@ -422,8 +425,8 @@
 
 .staleIndicatorStale {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-warning);
   margin-left: 0.4rem;
@@ -433,8 +436,8 @@
 
 .staleIndicatorNone {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
   opacity: 0.5;
@@ -587,7 +590,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
+  width: 1.467rem;
   height: 100%;
   padding: 0;
   border: none;
@@ -610,7 +613,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
+  width: 1.467rem;
   height: 100%;
   padding: 0;
   border: none;
@@ -670,8 +673,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 1.733rem;
+  height: 1.733rem;
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
@@ -846,8 +849,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 1.467rem;
+  height: 1.467rem;
   border-radius: var(--radius);
   border: none;
   background: transparent;
@@ -888,7 +891,7 @@
   position: absolute;
   top: 0;
   right: 6px;
-  width: 6px;
+  width: 0.4rem;
   height: 100%;
   pointer-events: none;
 }
@@ -896,7 +899,7 @@
 .mentionGutterMark {
   position: absolute;
   left: 0;
-  width: 6px;
+  width: 0.4rem;
   border-radius: 3px;
   opacity: 0.85;
   transition:
@@ -934,7 +937,7 @@
 }
 
 .editorWrap :global(.ProseMirror h1) {
-  font-size: 1.5rem;
+  font-size: 1.5em;
   font-weight: 700;
   margin-top: 1.75em;
   margin-bottom: 0.5em;
@@ -944,7 +947,7 @@
 }
 
 .editorWrap :global(.ProseMirror h2) {
-  font-size: 1.15rem;
+  font-size: 1.15em;
   font-weight: 600;
   margin-top: 1.5em;
   margin-bottom: 0.4em;
@@ -1677,21 +1680,21 @@
 
 /* Hide button text labels → icon-only buttons. With the rest behind ⋯ (doc 14 Q1) the two
    toggles keep their words until the column is narrow. */
-@container (max-width: 760px) {
+@container (max-width: 60rem) {
   .topbarBtn span {
     display: none;
   }
 }
 
 /* Thread chips fold into one button at 720px (SceneThreadBadges); the word count goes later. */
-@container (max-width: 560px) {
+@container (max-width: 37.333rem) {
   .wordCount {
     display: none;
   }
 }
 
 /* Hide status badge */
-@container (max-width: 440px) {
+@container (max-width: 29.333rem) {
   .statusBadge {
     display: none;
   }

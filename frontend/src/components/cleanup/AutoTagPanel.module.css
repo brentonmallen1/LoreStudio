@@ -248,8 +248,8 @@
 
 .dot {
   display: inline-block;
-  width: 5px;
-  height: 5px;
+  width: 0.333rem;
+  height: 0.333rem;
   border-radius: 50%;
   background: var(--color-border);
 }

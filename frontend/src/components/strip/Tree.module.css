@@ -11,9 +11,9 @@
 /* Focus mode: panel floats over content, offset by collapsed sidebar rail */
 .panelOverlay {
   position: fixed;
-  top: 40px;
+  top: var(--header-height);
   left: 48px;
-  height: calc(100% - 40px);
+  height: calc(100% - var(--header-height));
   z-index: 40;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
 }
@@ -24,7 +24,7 @@
   right: 0;
   top: 0;
   bottom: 0;
-  width: 5px;
+  width: 0.333rem;
   cursor: col-resize;
   z-index: 10;
 }
@@ -53,7 +53,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 0.625rem;
-  height: 40px;
+  height: 2.667rem;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
@@ -68,8 +68,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 1.6rem;
+  height: 1.6rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -180,8 +180,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 1.2rem;
+  height: 1.2rem;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: none;
@@ -217,7 +217,7 @@
 }
 
 .chevron {
-  width: 14px;
+  width: 0.933rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -286,8 +286,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 1.6rem;
+  height: 1.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -383,7 +383,7 @@
 
 /* Drag handle */
 .dragHandle {
-  width: 14px;
+  width: 0.933rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;

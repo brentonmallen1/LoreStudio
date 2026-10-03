@@ -5,7 +5,7 @@
 }
 
 /* The editor's width, not the window's: the tree and sidebar take their share first. */
-@container (max-width: 860px) {
+@container (max-width: 57.333rem) {
   .today {
     display: none;
   }

@@ -50,8 +50,8 @@
 }
 
 .legendDot {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -87,8 +87,8 @@
 }
 
 .phaseDot {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -138,8 +138,8 @@
 }
 
 .checkbox {
-  width: 14px;
-  height: 14px;
+  width: 0.933rem;
+  height: 0.933rem;
   cursor: pointer;
 }
 
@@ -447,15 +447,15 @@
 }
 
 .dotFilled {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-text-muted);
 }
 
 .dotEmpty {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-border);
 }

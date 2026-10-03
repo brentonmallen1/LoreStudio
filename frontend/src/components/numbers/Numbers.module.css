@@ -68,7 +68,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 28px;
+  height: 1.867rem;
   padding: 0 0.75rem;
   border: 1px solid var(--color-nlp-border);
   border-radius: var(--radius);
@@ -96,7 +96,7 @@
 
 .stack {
   display: flex;
-  height: 14px;
+  height: 0.933rem;
   overflow: hidden;
   border-radius: 7px;
   background: var(--color-surface-2);
@@ -122,15 +122,15 @@
 }
 
 .swatch {
-  width: 9px;
-  height: 9px;
+  width: 0.6rem;
+  height: 0.6rem;
   border-radius: 2px;
   flex-shrink: 0;
 }
 
 .target {
   position: relative;
-  height: 6px;
+  height: 0.4rem;
   margin-top: 1.4rem;
   border-radius: 3px;
   background: var(--color-surface-2);
@@ -154,7 +154,7 @@
   position: absolute;
   top: -4px;
   width: 1px;
-  height: 14px;
+  height: 0.933rem;
   background: var(--color-text-subtle);
 }
 
@@ -240,8 +240,8 @@
   position: absolute;
   top: 0;
   left: -3px;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-text-subtle);
@@ -255,7 +255,7 @@
 
 .track {
   position: relative;
-  height: 18px;
+  height: 1.2rem;
 }
 
 .span {
@@ -269,8 +269,8 @@
 .hit {
   position: absolute;
   top: 5px;
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   margin-left: -4px;
   border-radius: 50%;
 }
@@ -278,7 +278,7 @@
 .cells {
   display: flex;
   gap: 2px;
-  height: 12px;
+  height: 0.8rem;
 }
 
 .cell {
@@ -321,7 +321,7 @@
 
 .shareBar {
   --bar: var(--color-text-subtle);
-  height: 8px;
+  height: 0.533rem;
   border-radius: 4px;
   background: var(--bar);
 }
@@ -339,7 +339,7 @@
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  height: 64px;
+  height: 4.267rem;
   max-width: 22rem;
 }
 

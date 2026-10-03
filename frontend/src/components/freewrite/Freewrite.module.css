@@ -47,14 +47,15 @@
   min-height: 60vh;
   outline: none;
   font-family: var(--font-editor);
-  font-size: 1.05rem;
+  /* The writing size (Settings › Typography), not the interface size: this is prose. */
+  font-size: calc(var(--font-size-editor) * 1.05);
   line-height: 1.85;
   color: var(--color-text);
 }
 
 .surface[data-compact] .prose :global(.ProseMirror) {
   min-height: 40vh;
-  font-size: 0.95rem;
+  font-size: calc(var(--font-size-editor) * 0.95);
   line-height: 1.75;
 }
 
@@ -140,8 +141,8 @@
 
 .barBtn[data-kind]::before {
   content: "";
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--kind-color);
 }
@@ -174,7 +175,7 @@
 
 .barRule {
   width: 1px;
-  height: 18px;
+  height: 1.2rem;
   margin: 0 0.2rem;
   background: var(--color-border);
 }

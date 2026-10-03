@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  min-height: 34px;
+  min-height: 2.267rem;
   padding: 0 0.6rem;
   border-radius: var(--radius-sm);
   color: var(--color-text-muted);
@@ -89,9 +89,9 @@
 }
 
 /* Narrow: the index keeps its icons, the labels go to the tooltip. */
-@container browser (max-width: 760px) {
+@container browser (max-width: 50.667rem) {
   .index {
-    width: 52px;
+    width: 3.467rem;
     padding: 0.9rem 0.35rem;
     align-items: center;
   }
@@ -104,7 +104,7 @@
 
   .item {
     justify-content: center;
-    width: 38px;
+    width: 2.533rem;
     padding: 0;
   }
 }

@@ -38,7 +38,7 @@ export default function ModeIndicator() {
       }
       aria-label={`Interface mode: ${writer ? "Writer" : "Studio"}. Click to switch.`}
     >
-      {writer ? <PenLine size={12} /> : <Layers size={12} />}
+      {writer ? <PenLine size={14} /> : <Layers size={14} />}
       <span className={styles.modePillLabel}>{writer ? "Writer" : "Studio"}</span>
     </button>
   );

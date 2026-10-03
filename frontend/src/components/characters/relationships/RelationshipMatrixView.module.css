@@ -112,7 +112,7 @@
   text-align: center;
   cursor: pointer;
   transition: background var(--transition);
-  height: 52px;
+  height: 3.467rem;
 }
 
 .emptyCell:hover {
@@ -136,7 +136,7 @@
   transition: background var(--transition);
   padding: 0.25rem;
   vertical-align: middle;
-  height: 52px;
+  height: 3.467rem;
 }
 
 .filledCell:hover {
@@ -166,7 +166,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 62px;
+  max-width: 4.133rem;
 }
 
 .cellMuted {
@@ -182,16 +182,16 @@
 }
 
 .purposePip {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 /* Strength mode */
 .strengthMeter {
-  width: 36px;
-  height: 24px;
+  width: 2.4rem;
+  height: 1.6rem;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -211,7 +211,7 @@
   border: 1px dashed var(--color-border);
   cursor: pointer;
   opacity: 0.35;
-  height: 52px;
+  height: 3.467rem;
 }
 
 .hiddenCell:hover {
@@ -238,15 +238,15 @@
 }
 
 .legendDot {
-  width: 9px;
-  height: 9px;
+  width: 0.6rem;
+  height: 0.6rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .legendGradient {
   width: 100px;
-  height: 8px;
+  height: 0.533rem;
   border-radius: 4px;
   background: linear-gradient(to right, #c9603c, #a0a0a0, #7898c9);
   flex-shrink: 0;

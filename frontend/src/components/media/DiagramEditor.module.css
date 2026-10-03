@@ -212,8 +212,8 @@
 }
 
 .colorSwatch {
-  width: 12px;
-  height: 12px;
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 3px;
   flex-shrink: 0;
 }
@@ -278,13 +278,13 @@
   color: inherit;
   text-align: center;
   width: 100%;
-  min-width: 60px;
+  min-width: 4rem;
   padding: 0;
 }
 
 .handle {
-  width: 8px !important;
-  height: 8px !important;
+  width: 0.533rem !important;
+  height: 0.533rem !important;
   background: var(--color-accent) !important;
   border: 2px solid var(--color-bg) !important;
   opacity: 0;

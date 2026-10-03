@@ -42,7 +42,7 @@ export default function HeaderTitle() {
   return (
     <div className={styles.storyTitleRow}>
       <button className={styles.backToStories} onClick={() => navigate("/")} title="All stories">
-        <LibraryBig size={15} aria-hidden />
+        <LibraryBig size={16} aria-hidden />
         <span className={styles.srOnly}>All stories</span>
       </button>
       <span className={styles.storyTitle} title={activeStory.title}>
@@ -55,7 +55,7 @@ export default function HeaderTitle() {
           onClick={() => navigate(`/stories/${storyId}/write/${back.id}`)}
           title={`Back to ${back.title}`}
         >
-          <ArrowLeft size={12} aria-hidden />
+          <ArrowLeft size={14} aria-hidden />
           <span className={styles.backToSceneLabel}>Back to {back.title}</span>
         </button>
       )}

@@ -39,7 +39,7 @@
 
 .heroStatDivider {
   width: 1px;
-  height: 14px;
+  height: 0.933rem;
   background: var(--color-border);
 }
 
@@ -146,8 +146,8 @@
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-border);
   transition: background var(--transition);
@@ -357,8 +357,8 @@
 }
 
 .goalCheck {
-  width: 17px;
-  height: 17px;
+  width: 1.133rem;
+  height: 1.133rem;
   flex-shrink: 0;
   border-radius: 4px;
   border: 1.5px solid var(--color-border);
@@ -465,8 +465,8 @@
 }
 
 .goalAddBtn {
-  width: 34px;
-  height: 34px;
+  width: 2.267rem;
+  height: 2.267rem;
   display: flex;
   align-items: center;
   justify-content: center;

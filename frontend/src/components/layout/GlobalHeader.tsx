@@ -19,6 +19,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useAIAvailable } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
+import InterfaceSizeButtons from "../settings/InterfaceSizeButtons";
 import HeaderTitle from "./HeaderTitle";
 import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
@@ -236,7 +237,7 @@ export default function GlobalHeader() {
               className={styles.iconBtn}
               title="Leave focus mode"
             >
-              <PanelLeft size={15} />
+              <PanelLeft size={16} />
             </button>
           )}
           <HeaderTitle />
@@ -261,7 +262,7 @@ export default function GlobalHeader() {
                 : "No backups yet · Click to view version history"
             }
           >
-            <Database size={12} />
+            <Database size={14} />
             {backupStatus?.last_backup_at ? (
               <span>Backed up {relativeTime(backupStatus.last_backup_at)}</span>
             ) : !backupStatus ? null : (
@@ -290,13 +291,18 @@ export default function GlobalHeader() {
               className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}
               title={`AI Assistant (${formatCombo(SHORTCUTS.assistant.combo)})`}
             >
-              <Feather size={14} />
+              <Feather size={16} />
               <span>Assistant</span>
             </button>
           )}
 
-          <button onClick={() => navigate("/guides")} className={styles.iconBtn} title="Guides">
-            <BookOpen size={14} />
+          <button
+            onClick={() => navigate("/guides")}
+            className={styles.iconBtn}
+            title="Guides"
+            aria-label="Guides"
+          >
+            <BookOpen size={16} />
           </button>
 
           {/* Scratch Pad */}
@@ -304,15 +310,16 @@ export default function GlobalHeader() {
             onClick={toggleScratchPad}
             className={`${styles.iconBtn} ${scratchPadOpen ? styles.iconBtnActive : ""}`}
             title={`Scratch pad (${formatCombo(SHORTCUTS.scratchPad.combo)})`}
+            aria-label="Scratch pad"
             style={{ position: "relative" }}
           >
-            <NotepadText size={15} />
+            <NotepadText size={16} />
             {scratchHasContent && !scratchPadOpen && <span className={styles.scratchDot} />}
           </button>
 
           {/* Search */}
           <button onClick={() => setCommandPaletteOpen(true)} className={styles.searchBtn}>
-            <Search size={14} />
+            <Search size={15} />
             <span>Search</span>
             <kbd>{formatCombo(SHORTCUTS.palette.combo)}</kbd>
           </button>
@@ -329,7 +336,7 @@ export default function GlobalHeader() {
               aria-expanded={settingsOpen}
               aria-haspopup="menu"
             >
-              <Settings size={15} />
+              <Settings size={16} />
             </button>
 
             {settingsOpen && (
@@ -343,6 +350,8 @@ export default function GlobalHeader() {
                         onClick={() => setThemeName(t)}
                         className={`${styles.themeBtn} ${themeName === t ? styles.active : ""}`}
                         title={THEME_META[t].label}
+                        aria-label={THEME_META[t].label}
+                        aria-pressed={themeName === t}
                       >
                         <div className={styles.themeSwatch}>
                           {THEME_SWATCHES[t].map((color, i) => (
@@ -379,6 +388,15 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownDivider} />
 
                 <div className={styles.dropdownSection}>
+                  <span className={styles.dropdownLabel}>Interface size</span>
+                  <InterfaceSizeButtons
+                    rowClass={styles.btnRow}
+                    buttonClass={styles.optionBtn}
+                    activeClass={styles.active}
+                  />
+                </div>
+
+                <div className={styles.dropdownSection}>
                   <span className={styles.dropdownLabel}>Editor font</span>
                   <select
                     className={styles.fontSelect}
@@ -399,12 +417,13 @@ export default function GlobalHeader() {
                 </div>
 
                 <div className={styles.dropdownSection}>
-                  <span className={styles.dropdownLabel}>Font size</span>
+                  <span className={styles.dropdownLabel}>Writing size</span>
                   <div className={styles.btnRow}>
                     {sizeOptions.map(({ value, label }) => (
                       <button
                         key={value}
                         onClick={() => setEditorFontSize(value)}
+                        aria-pressed={editorFontSize === value}
                         className={`${styles.optionBtn} ${editorFontSize === value ? styles.active : ""}`}
                       >
                         {label}
@@ -420,6 +439,7 @@ export default function GlobalHeader() {
                       <button
                         key={value}
                         onClick={() => setEditorLineWidth(value)}
+                        aria-pressed={editorLineWidth === value}
                         className={`${styles.optionBtn} ${editorLineWidth === value ? styles.active : ""}`}
                       >
                         {label}
@@ -457,7 +477,7 @@ export default function GlobalHeader() {
             className={styles.iconBtn}
             title={`Color mode: ${colorMode}`}
           >
-            <ColorModeIcon size={15} />
+            <ColorModeIcon size={16} />
           </button>
 
           {/* Focus toggle: normal ↔ focus */}
@@ -466,7 +486,7 @@ export default function GlobalHeader() {
             className={`${styles.iconBtn} ${isFocused ? styles.iconBtnActive : ""}`}
             title={isFocused ? "Exit focus mode" : "Focus mode"}
           >
-            <Maximize2 size={15} />
+            <Maximize2 size={16} />
           </button>
 
           {/* User Menu */}

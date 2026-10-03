@@ -86,8 +86,8 @@
 }
 
 .selectBox {
-  width: 13px;
-  height: 13px;
+  width: 0.867rem;
+  height: 0.867rem;
   cursor: pointer;
   accent-color: var(--color-accent);
   pointer-events: none;

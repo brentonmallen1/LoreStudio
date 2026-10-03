@@ -53,8 +53,8 @@
 }
 
 .chipDot {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -87,8 +87,8 @@
 }
 
 .legendSwatch {
-  width: 14px;
-  height: 3px;
+  width: 0.933rem;
+  height: 0.2rem;
   border-radius: 2px;
   flex-shrink: 0;
 }
@@ -136,8 +136,8 @@
 }
 
 .tooltipDot {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }

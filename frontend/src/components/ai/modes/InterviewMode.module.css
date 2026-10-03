@@ -1,6 +1,6 @@
 .avatar {
-  width: 26px;
-  height: 26px;
+  width: 1.733rem;
+  height: 1.733rem;
   border-radius: 50%;
   background: var(--color-accent);
   color: var(--color-accent-fg);
@@ -39,7 +39,7 @@
   background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
   flex-shrink: 0;
   flex-wrap: wrap;
-  min-height: 36px;
+  min-height: 2.4rem;
 }
 
 .contextIcon {
@@ -70,22 +70,22 @@
 }
 
 .journeyDotFresh {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-success);
   flex-shrink: 0;
 }
 .journeyDotStale {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-warning);
   flex-shrink: 0;
 }
 .journeyDotNone {
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
   opacity: 0.5;

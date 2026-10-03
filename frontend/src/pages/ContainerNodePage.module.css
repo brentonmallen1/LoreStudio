@@ -12,7 +12,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 30px;
+  height: 2rem;
   padding: 0 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: 15px;
@@ -94,7 +94,7 @@
   justify-content: center;
   flex-direction: row;
   gap: 0.4rem;
-  min-height: 64px;
+  min-height: 4.267rem;
   border-style: dashed;
   color: var(--color-text-muted);
   font-size: 0.82rem;
@@ -135,8 +135,8 @@
 }
 
 .state {
-  width: 10px;
-  height: 10px;
+  width: 0.667rem;
+  height: 0.667rem;
   box-sizing: border-box;
   border-radius: 50%;
   flex-shrink: 0;
@@ -184,7 +184,7 @@
 
 .primary,
 .secondary {
-  height: 30px;
+  height: 2rem;
   padding: 0 0.8rem;
   border-radius: 15px;
   font: inherit;

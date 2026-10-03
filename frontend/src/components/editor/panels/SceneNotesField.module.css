@@ -58,8 +58,8 @@
 .dot {
   content: "";
   flex-shrink: 0;
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--kind-color);
 }

@@ -16,7 +16,7 @@
   left: -3px;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 0.4rem;
   cursor: col-resize;
   z-index: 3;
 }
@@ -42,7 +42,7 @@
   display: flex;
   align-items: center;
   width: var(--tab-width);
-  height: 34px;
+  height: 2.267rem;
   padding: 0 0.2rem 0 0.25rem;
   box-sizing: border-box;
   border-radius: var(--radius) var(--radius) 0 0;
@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  height: 30px;
+  height: 2rem;
   min-width: 0;
   padding: 0 0.35rem;
   border: none;
@@ -88,8 +88,8 @@
 
 .tabDot {
   flex-shrink: 0;
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   background: var(--tab-color, var(--color-text-subtle));
 }
@@ -102,13 +102,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 1.6rem;
+  height: 1.6rem;
   flex-shrink: 0;
   border: none;
   border-radius: 50%;
   background: none;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -125,7 +125,7 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  height: 28px;
+  height: 1.867rem;
   margin-bottom: 3px;
   padding: 0 0.5rem;
   border: 1px solid var(--color-border);
@@ -172,7 +172,7 @@
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  min-height: 32px;
+  min-height: 2.133rem;
   padding: 0 0.5rem;
   border: none;
   border-radius: var(--radius-sm);
@@ -282,7 +282,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  height: 28px;
+  height: 1.867rem;
   padding: 0 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 14px;
@@ -355,7 +355,7 @@
 }
 
 .chip {
-  height: 26px;
+  height: 1.733rem;
   padding: 0 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 13px;
@@ -386,7 +386,7 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  min-height: 40px;
+  min-height: 2.667rem;
   padding: 0 0.6rem;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius);
@@ -472,7 +472,7 @@
 /* ── The assistant's tab (doc 11 P5, A2) ── */
 .aiDivider {
   width: 1px;
-  height: 22px;
+  height: 1.467rem;
   margin: 0 0.3rem 0.45rem 0.35rem;
   flex-shrink: 0;
   background: var(--color-border);
@@ -497,7 +497,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  height: 30px;
+  height: 2rem;
   padding: 0 0.5rem;
   border: none;
   background: none;
@@ -506,8 +506,8 @@
 }
 
 .aiBadge {
-  min-width: 17px;
-  height: 17px;
+  min-width: 1.133rem;
+  height: 1.133rem;
   padding: 0 5px;
   box-sizing: border-box;
   border-radius: 9px;
@@ -544,12 +544,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 1.733rem;
+  height: 1.733rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   cursor: pointer;
 }
 
@@ -577,7 +577,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 14px;
+  height: 0.933rem;
   flex-shrink: 0;
   cursor: grab;
   color: var(--color-text-subtle);
@@ -593,8 +593,8 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 14px;
-  height: 14px;
+  width: 0.933rem;
+  height: 0.933rem;
   cursor: nwse-resize;
   background: linear-gradient(
     135deg,
@@ -608,7 +608,7 @@
 
 .awayStrip {
   position: fixed;
-  top: 40px;
+  top: var(--header-height);
   right: 0;
   display: flex;
   align-items: center;
@@ -643,7 +643,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 36px;
+  width: 2.4rem;
   height: 100%;
   padding: 0.35rem 0;
   border-left: 1px solid var(--color-border);
@@ -668,8 +668,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   flex-shrink: 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -690,8 +690,8 @@
 }
 
 .railDot {
-  width: 10px;
-  height: 10px;
+  width: 0.667rem;
+  height: 0.667rem;
   border-radius: 50%;
   background: var(--color-text-subtle);
 }
@@ -714,8 +714,8 @@
   position: absolute;
   top: 2px;
   right: 0;
-  min-width: 13px;
-  height: 13px;
+  min-width: 0.867rem;
+  height: 0.867rem;
   padding: 0 3px;
   font-size: 0.58rem;
   font-weight: 600;

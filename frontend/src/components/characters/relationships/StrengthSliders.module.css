@@ -62,13 +62,13 @@
   flex: 1;
   display: flex;
   align-items: center;
-  height: 6px;
+  height: 0.4rem;
   position: relative;
 }
 
 .leftHalf {
   flex: 1;
-  height: 6px;
+  height: 0.4rem;
   background: var(--color-border);
   border-radius: 3px 0 0 3px;
   overflow: hidden;
@@ -83,7 +83,7 @@
 
 .centerTick {
   width: 2px;
-  height: 10px;
+  height: 0.667rem;
   background: var(--color-text-muted);
   flex-shrink: 0;
   z-index: 1;
@@ -91,7 +91,7 @@
 
 .rightHalf {
   flex: 1;
-  height: 6px;
+  height: 0.4rem;
   background: var(--color-border);
   border-radius: 0 3px 3px 0;
   overflow: hidden;
@@ -123,7 +123,7 @@
 .slider {
   flex: 1;
   cursor: pointer;
-  height: 4px;
+  height: 0.267rem;
   border-radius: 2px;
   accent-color: var(--color-accent);
 }

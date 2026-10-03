@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 18px;
+  min-height: 1.2rem;
 }
 
 /* The note colour is a dot beside a readable word, not the word's colour (3:1 at 11px). */
@@ -80,8 +80,8 @@
 
 .kind::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--kind-color);
 }
@@ -98,8 +98,8 @@
 .iconBtn {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 1.467rem;
+  height: 1.467rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -166,7 +166,7 @@
 
 .cancel,
 .save {
-  height: 26px;
+  height: 1.733rem;
   padding: 0 0.6rem;
   border-radius: var(--radius);
   font: inherit;
@@ -194,8 +194,8 @@
 /* A dot beside the line when there is no room for cards. */
 .marker {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 0.667rem;
+  height: 0.667rem;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -303,8 +303,8 @@
 
 .kindSwitch button::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 0.4rem;
+  height: 0.4rem;
   border-radius: 50%;
   background: var(--kind-color);
 }

@@ -101,8 +101,8 @@
 }
 
 .legendSwatch {
-  width: 12px;
-  height: 12px;
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 3px;
   border: 2px solid var(--color-border);
   flex-shrink: 0;
@@ -170,8 +170,8 @@
 /* ── Shared handle ───────────────────────────────────── */
 
 .handle {
-  width: 8px !important;
-  height: 8px !important;
+  width: 0.533rem !important;
+  height: 0.533rem !important;
   background: var(--color-accent) !important;
   border: 2px solid var(--color-bg) !important;
   opacity: 0;
@@ -286,7 +286,7 @@
   color: var(--color-text);
   text-align: center;
   width: 100%;
-  min-width: 60px;
+  min-width: 4rem;
   padding: 0;
 }
 
@@ -294,8 +294,8 @@
   position: absolute;
   top: -7px;
   right: -7px;
-  width: 16px;
-  height: 16px;
+  width: 1.067rem;
+  height: 1.067rem;
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -319,16 +319,16 @@
 /* ── Summary state dots ──────────────────────────────── */
 
 .dotFresh {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-ai);
   flex-shrink: 0;
 }
 
 .dotStale {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   border-radius: 50%;
   background: var(--color-ai);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ai) 25%, transparent);

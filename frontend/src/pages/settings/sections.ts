@@ -36,7 +36,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     modes: BOTH,
     keywords: ["theme", "mode", "dark", "writer", "studio"],
   },
-  { id: "typography", label: "Typography", icon: Type, modes: BOTH, keywords: ["font", "editor width"] },
+  {
+    id: "typography",
+    label: "Typography",
+    icon: Type,
+    modes: BOTH,
+    keywords: ["font", "editor width", "interface size", "ui size", "text size", "bigger", "zoom"],
+  },
   { id: "shortcuts", label: "Shortcuts", icon: Keyboard, modes: BOTH, keywords: ["keyboard", "keys"] },
   { id: "ai", label: "AI / LLM", icon: Cpu, modes: ["studio"], keywords: ["ollama", "model", "assistant"] },
   {

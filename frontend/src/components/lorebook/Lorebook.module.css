@@ -21,13 +21,13 @@
 }
 
 /* A narrow sheet: "Open beside the page" keeps its icon and its tooltip. */
-@container sheet (max-width: 640px) {
+@container sheet (max-width: 42.667rem) {
   .sheetBtnLabel {
     display: none;
   }
 
   .sheetBtn {
-    width: 32px;
+    width: 2.133rem;
     padding: 0;
     justify-content: center;
   }
@@ -90,7 +90,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  height: 26px;
+  height: 1.733rem;
   padding: 0 0.65rem;
   border: none;
   border-radius: var(--radius);
@@ -110,7 +110,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  height: 26px;
+  height: 1.733rem;
   padding: 0 0.55rem;
   border: 1px solid var(--color-border);
   border-radius: 13px;
@@ -137,7 +137,7 @@
   gap: 0.4rem;
   margin: 0 0.75rem 0.5rem;
   padding: 0 0.55rem;
-  height: 28px;
+  height: 1.867rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   color: var(--color-text-subtle);
@@ -185,12 +185,12 @@
 
 .fold,
 .foldSpace {
-  width: 18px;
+  width: 1.2rem;
   flex-shrink: 0;
 }
 
 .fold {
-  height: 22px;
+  height: 1.467rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -211,7 +211,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  min-height: 40px;
+  min-height: 2.667rem;
   padding: 0.3rem 0.55rem;
   border: none;
   border-radius: var(--radius-sm);
@@ -276,8 +276,8 @@
 }
 
 .rowDot {
-  width: 9px;
-  height: 9px;
+  width: 0.6rem;
+  height: 0.6rem;
   flex-shrink: 0;
   box-sizing: border-box;
   border-radius: 50%;
@@ -285,8 +285,8 @@
 }
 
 .flag {
-  width: 7px;
-  height: 7px;
+  width: 0.467rem;
+  height: 0.467rem;
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--color-warning);
@@ -316,8 +316,8 @@
 }
 
 .sheetDot {
-  width: 16px;
-  height: 16px;
+  width: 1.067rem;
+  height: 1.067rem;
   margin-top: 0.55rem;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -406,7 +406,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  height: 22px;
+  height: 1.467rem;
   padding: 0 0.55rem;
   border: 1px solid transparent;
   border-radius: 11px;
@@ -433,7 +433,7 @@
 }
 
 .sceneChip {
-  height: 24px;
+  height: 1.6rem;
   padding: 0 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 12px;
@@ -458,7 +458,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 32px;
+  height: 2.133rem;
   padding: 0 0.8rem;
   flex-shrink: 0;
   border: 1px solid var(--color-border);
@@ -481,7 +481,7 @@
 }
 
 .sheetView {
-  height: 34px;
+  height: 2.267rem;
   padding: 0 0.85rem;
   border: none;
   border-bottom: 2px solid transparent;
@@ -527,13 +527,13 @@
   gap: 0.9rem;
 }
 
-@container lore (max-width: 820px) {
+@container lore (max-width: 54.667rem) {
   .sheetBody {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-@container lore (max-width: 620px) {
+@container lore (max-width: 41.333rem) {
   .list {
     width: 200px;
   }
@@ -619,7 +619,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  height: 26px;
+  height: 1.733rem;
   padding: 0 0.6rem;
   border: 1px dashed var(--color-text-subtle);
   border-radius: 13px;
@@ -678,7 +678,7 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  min-height: 28px;
+  min-height: 1.867rem;
   padding: 0.1rem 0.3rem;
   margin: 0 -0.3rem;
   border: none;
@@ -745,7 +745,7 @@ button.cardRow:hover {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  min-height: 40px;
+  min-height: 2.667rem;
   padding: 0 0.85rem;
   border: none;
   border-radius: var(--radius);
@@ -782,7 +782,7 @@ button.cardRow:hover {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  height: 30px;
+  height: 2rem;
   padding: 0 0.8rem;
   border: none;
   border-radius: var(--radius);
@@ -866,8 +866,8 @@ button.cardRow:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 1.867rem;
+  height: 1.867rem;
   flex-shrink: 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -890,7 +890,7 @@ button.cardRow:hover {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  height: 28px;
+  height: 1.867rem;
   padding: 0 0.6rem;
   border: 1px dashed var(--color-text-subtle);
   border-radius: 14px;
@@ -943,7 +943,7 @@ button.cardRow:hover {
 
 .confirmCancel,
 .confirmDelete {
-  height: 32px;
+  height: 2.133rem;
   padding: 0 0.9rem;
   border-radius: var(--radius);
   font: inherit;
@@ -1011,8 +1011,8 @@ button.cardRow:hover {
 }
 
 .check {
-  width: 16px;
-  height: 16px;
+  width: 1.067rem;
+  height: 1.067rem;
   margin-top: 0.15rem;
   flex-shrink: 0;
   display: inline-flex;
@@ -1117,7 +1117,7 @@ button.cardRow:hover {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  min-height: 32px;
+  min-height: 2.133rem;
   padding: 0.25rem 0.6rem;
   border: 1px solid color-mix(in srgb, var(--color-ai) 30%, var(--color-border));
   border-radius: var(--radius-sm);

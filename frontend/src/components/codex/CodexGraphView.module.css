@@ -41,8 +41,8 @@
 }
 
 .swatch {
-  width: 8px;
-  height: 8px;
+  width: 0.533rem;
+  height: 0.533rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -102,7 +102,7 @@
 }
 
 .legendDash {
-  width: 18px;
+  width: 1.2rem;
   border-top: 1.5px dashed var(--color-ai);
 }
 

@@ -14,7 +14,7 @@ export default function UndoRedoButtons({ undoRedo }: { undoRedo: UndoRedoState 
         title={canUndo ? `Undo: ${undoLabel} (${formatCombo(SHORTCUTS.undo.combo)})` : "Nothing to undo"}
         aria-label={canUndo ? `Undo ${undoLabel}` : "Undo"}
       >
-        <Undo2 size={14} />
+        <Undo2 size={16} />
       </button>
       <button
         className={styles.iconBtn}
@@ -23,7 +23,7 @@ export default function UndoRedoButtons({ undoRedo }: { undoRedo: UndoRedoState 
         title={canRedo ? `Redo: ${redoLabel} (${formatCombo(SHORTCUTS.redo.combo)})` : "Nothing to redo"}
         aria-label={canRedo ? `Redo ${redoLabel}` : "Redo"}
       >
-        <Redo2 size={14} />
+        <Redo2 size={16} />
       </button>
       {error && (
         <button className={styles.undoError} onClick={clearError} title="Dismiss">

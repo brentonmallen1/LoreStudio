@@ -7,6 +7,7 @@ import {
   type StripWidth,
 } from "../lib/strip/stripModel";
 import { create } from "zustand";
+import { ROOT_PX, isUiScale, scaleFactor, type UiScale } from "../lib/appearance/uiScale";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
 export type ColorMode = "light" | "dark" | "system";
@@ -96,11 +97,12 @@ export const LINE_WIDTHS: Record<EditorLineWidth, string> = {
   wide: "800px",
 };
 
+// In px, not rem: the interface size scales the root, and the prose must not follow it (doc 17 D2).
 export const FONT_SIZES: Record<EditorFontSize, string> = {
-  small: "0.875rem",
-  medium: "1rem",
-  large: "1.125rem",
-  xl: "1.25rem",
+  small: `${ROOT_PX * 0.875}px`,
+  medium: `${ROOT_PX}px`,
+  large: `${ROOT_PX * 1.125}px`,
+  xl: `${ROOT_PX * 1.25}px`,
 };
 
 export const THEME_META: Record<ThemeName, { label: string; darkOnly: boolean }> = {
@@ -128,6 +130,8 @@ interface UIState {
   setEditorFontFamily: (font: EditorFontFamily) => void;
   setEditorFontSize: (size: EditorFontSize) => void;
   setEditorLineWidth: (width: EditorLineWidth) => void;
+  uiScale: UiScale;
+  setUiScale: (scale: UiScale) => void;
   /** Tint dialogue in the prose editor. Off by default: it is noise while drafting. */
   highlightDialogue: boolean;
   setHighlightDialogue: (on: boolean) => void;
@@ -257,6 +261,10 @@ function applyEditorFont(fontFamily: EditorFontFamily, fontSize: EditorFontSize)
   root.style.setProperty("--font-size-editor", FONT_SIZES[fontSize]);
 }
 
+function applyUiScale(scale: UiScale) {
+  document.documentElement.style.setProperty("--ui-scale", String(scaleFactor(scale)));
+}
+
 function applyEditorLineWidth(lineWidth: EditorLineWidth) {
   document.documentElement.style.setProperty("--editor-max-width", LINE_WIDTHS[lineWidth]);
 }
@@ -314,6 +322,9 @@ const savedHighlightDialogue = localStorage.getItem("ls_highlight_dialogue") ===
 
 applyEditorFont(savedEditorFont, savedEditorSize);
 applyEditorLineWidth(savedLineWidth);
+const rawUiScale = localStorage.getItem("ls_ui_scale");
+const savedUiScale: UiScale = isUiScale(rawUiScale) ? rawUiScale : "default";
+applyUiScale(savedUiScale);
 applyHighlightDialogue(savedHighlightDialogue);
 
 for (const stale of [
@@ -376,6 +387,16 @@ export const useUIStore = create<UIState>((set, get) => ({
     localStorage.setItem("ls_editor_line_width", editorLineWidth);
     applyEditorLineWidth(editorLineWidth);
     set({ editorLineWidth });
+  },
+  uiScale: savedUiScale,
+  setUiScale: (uiScale) => {
+    try {
+      localStorage.setItem("ls_ui_scale", uiScale);
+    } catch {
+      // Site data blocked: the size holds until the page reloads.
+    }
+    applyUiScale(uiScale);
+    set({ uiScale });
   },
   highlightDialogue: savedHighlightDialogue,
   setHighlightDialogue: (highlightDialogue) => {

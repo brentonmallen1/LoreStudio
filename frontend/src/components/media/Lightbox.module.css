@@ -44,8 +44,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2.133rem;
+  height: 2.133rem;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.12);
@@ -96,8 +96,8 @@
 }
 
 .spinner {
-  width: 36px;
-  height: 36px;
+  width: 2.4rem;
+  height: 2.4rem;
   border: 3px solid rgba(255, 255, 255, 0.15);
   border-top-color: rgba(255, 255, 255, 0.7);
   border-radius: 50%;
@@ -116,8 +116,8 @@
   position: fixed;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
+  width: 2.933rem;
+  height: 2.933rem;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.12);

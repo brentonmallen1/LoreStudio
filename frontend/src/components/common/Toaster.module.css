@@ -44,8 +44,8 @@
 .close {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 1.467rem;
+  height: 1.467rem;
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);

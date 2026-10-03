@@ -55,8 +55,8 @@
 /* Toggle switch — mirrors ChatSettingsModal pattern */
 .toggle {
   position: relative;
-  width: 34px;
-  height: 18px;
+  width: 2.267rem;
+  height: 1.2rem;
   flex-shrink: 0;
 }
 
@@ -84,8 +84,8 @@
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 14px;
-  height: 14px;
+  width: 0.933rem;
+  height: 0.933rem;
   border-radius: 50%;
   background: white;
   transition: transform var(--transition);
