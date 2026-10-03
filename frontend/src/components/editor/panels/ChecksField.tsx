@@ -17,7 +17,7 @@ export default function ChecksField({ activeNode }: { activeNode: StructureNode 
   return (
     <div className={styles.overviewField}>
       <label className={styles.overviewLabel}>
-        <ScanEye size={11} className={styles.nlpIcon} /> Findings
+        <ScanEye size={11} className={styles.nlpIcon} /> Findings · {findings.length}
       </label>
       <FindingsCard findings={findings} storyId={activeNode.story_id} here="scene" empty={null} />
     </div>

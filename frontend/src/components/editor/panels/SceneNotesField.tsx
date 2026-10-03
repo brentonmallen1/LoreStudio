@@ -12,7 +12,14 @@ const ADDABLE: NoteKind[] = ["note", "question", "todo"];
  * Notes on this scene (doc 15 N1): every note, question and to-do tied to the scene,
  * whether to a passage (it opens in the margin) or to the scene as a whole.
  */
-export default function SceneNotesField({ notes }: { notes: InlineNotesState }) {
+export default function SceneNotesField({
+  notes,
+  bare = false,
+}: {
+  notes: InlineNotesState;
+  /** Inside a fold that already says "Notes": no heading of its own. */
+  bare?: boolean;
+}) {
   const [kind, setKind] = useState<NoteKind>("note");
   const [text, setText] = useState("");
   const rows = notes.sceneNotes.filter((n) => !(notes.hideEditorial && n.source?.startsWith("editorial-")));
@@ -21,7 +28,7 @@ export default function SceneNotesField({ notes }: { notes: InlineNotesState }) 
   return (
     <section className={styles.field} aria-label="Notes on this scene">
       <div className={styles.head}>
-        <h3 className={styles.label}>Notes on this scene</h3>
+        {!bare && <h3 className={styles.label}>Notes on this scene</h3>}
         {hasEditorial && (
           <button type="button" className={styles.toggle} onClick={() => notes.setHideEditorial((s) => !s)}>
             {notes.hideEditorial ? "Show" : "Hide"} editorial

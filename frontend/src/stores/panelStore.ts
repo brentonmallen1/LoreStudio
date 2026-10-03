@@ -8,6 +8,7 @@ import {
   type ToolId,
 } from "../types/panel";
 import { panelStartsOpen } from "../lib/layout/sides";
+import { DEFAULT_PROSE_AMOUNT, PROSE_AMOUNTS, type ProseAmount } from "../lib/panel/sequence";
 
 /**
  * The side panel (refactor doc 11): what is open beside the page. "This scene" is always
@@ -42,6 +43,10 @@ interface PanelState {
   frame: PanelFrameMode;
   /** The entity whose mentions light up in the prose and on the strip. */
   highlight: Highlight | null;
+  /** Paragraphs of prose the This scene tab shows from the scenes either side. */
+  proseAmount: ProseAmount;
+  /** A scene further away, pinned read-only on top of the This scene tab (⌥-click on the strip). */
+  pinnedSceneId: string | null;
 
   loadForStory: (storyId: string) => void;
   /** Called when the route changes between the prose and every other page. */
@@ -56,9 +61,12 @@ interface PanelState {
   toggleFloating: () => void;
   /** Show the Assistant tab (doc 11 P5, A2); it is not one of `tabs`, it is always there when AI is. */
   openAssistant: () => void;
-  /** ⌘J: the Assistant tab if it is not showing, else back to the scene. */
+  /** ⌘J: the Assistant tab if it is not showing, else back to the scene (shut, off the prose). */
   toggleAssistant: () => void;
   setHighlight: (h: Highlight | null) => void;
+  setProseAmount: (n: ProseAmount) => void;
+  /** Pin a scene on top of the This scene tab and show the tab; null unpins. */
+  pinScene: (id: string | null) => void;
   /** Drop tabs whose entity no longer exists. */
   prune: (exists: (tab: PanelTab) => boolean) => void;
 }
@@ -67,6 +75,7 @@ const SCENE_TAB: PanelTab = { id: "scene", kind: "scene" };
 const OPEN_KEYS: Record<PanelSide, string> = { writing: "ls_panel_open", pages: "ls_panel_open_pages" };
 const OPEN_DEFAULTS: Record<PanelSide, boolean> = { writing: true, pages: false };
 const FRAME_KEY = "ls_panel_frame";
+const PROSE_KEY = "ls_panel_prose";
 const tabsKey = (storyId: string) => `ls_panel:${storyId}`;
 
 function read<T>(key: string, fallback: T): T {
@@ -118,6 +127,17 @@ export const usePanelStore = create<PanelState>((set, get) => {
     return { open, openBySide: { ...openBySide, [side]: open } };
   }
 
+  /**
+   * Leave a tab for the scene tab. While writing that shows the scene; on any other page the
+   * scene tab is not something the author opened there, so the panel collapses instead of
+   * staying open on every page with the last scene in it.
+   */
+  function backToScene(): void {
+    const { tabs, storyId, side } = get();
+    persistTabs(storyId, tabs, "scene");
+    set({ activeTabId: "scene", highlight: null, ...openOnSide(side === "writing") });
+  }
+
   return {
     storyId: null,
     tabs: [SCENE_TAB],
@@ -128,6 +148,8 @@ export const usePanelStore = create<PanelState>((set, get) => {
     // "window" is never restored: a pop-out that is not there any more would leave a strip and no panel.
     frame: read<PanelFrameMode>(FRAME_KEY, "docked") === "floating" ? "floating" : "docked",
     highlight: null,
+    proseAmount: PROSE_AMOUNTS.find((n) => n === read<number>(PROSE_KEY, 0)) ?? DEFAULT_PROSE_AMOUNT,
+    pinnedSceneId: null,
 
     loadForStory: (storyId) => {
       if (get().storyId === storyId) return;
@@ -149,6 +171,7 @@ export const usePanelStore = create<PanelState>((set, get) => {
         tabs,
         activeTabId,
         highlight: get().open ? highlightOf(active) : null,
+        pinnedSceneId: null,
       });
     },
 
@@ -189,7 +212,7 @@ export const usePanelStore = create<PanelState>((set, get) => {
 
     close: (id) => {
       if (id === "scene") return;
-      if (id === "assistant") return get().activate("scene");
+      if (id === "assistant") return backToScene();
       const { tabs, activeTabId, storyId } = get();
       const index = tabs.findIndex((t) => t.id === id);
       if (index < 0) return;
@@ -197,6 +220,10 @@ export const usePanelStore = create<PanelState>((set, get) => {
       // Closing the open tab lands on its neighbour, the way browser tabs do.
       const nextActive =
         activeTabId === id ? (next[Math.min(index, next.length - 1)]?.id ?? "scene") : activeTabId;
+      if (activeTabId === id && nextActive === "scene") {
+        set({ tabs: next });
+        return backToScene();
+      }
       persistTabs(storyId, next, nextActive);
       const active = next.find((t) => t.id === nextActive);
       set({
@@ -223,11 +250,23 @@ export const usePanelStore = create<PanelState>((set, get) => {
     },
     toggleAssistant: () => {
       const { open, activeTabId } = get();
-      if (open && activeTabId === "assistant") get().activate("scene");
+      if (open && activeTabId === "assistant") backToScene();
       else get().openAssistant();
     },
 
     setHighlight: (highlight) => set({ highlight }),
+
+    setProseAmount: (proseAmount) => {
+      write(PROSE_KEY, proseAmount);
+      set({ proseAmount });
+    },
+
+    pinScene: (id) => {
+      if (!id) return set({ pinnedSceneId: null });
+      const { tabs, storyId } = get();
+      persistTabs(storyId, tabs, "scene");
+      set({ pinnedSceneId: id, activeTabId: "scene", highlight: null, ...openOnSide(true) });
+    },
 
     prune: (exists) => {
       const { tabs, activeTabId, storyId } = get();

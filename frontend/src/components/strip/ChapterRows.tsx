@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { stopClick } from "../../lib/panel/openScene";
 import { colourFor, type ColourContext, type ColourMode, type Line } from "../../lib/strip/stripModel";
 import styles from "./Strip.module.css";
 
@@ -66,7 +67,7 @@ export default function ChapterRows({ line, mode, ctx, storyId }: Props) {
                               "--stop-color": c?.color,
                             } as React.CSSProperties
                           }
-                          onClick={() => go(s.node.id)}
+                          onClick={(e) => stopClick(e, s.node.id, go)}
                           title={s.node.title}
                           aria-label={s.node.title}
                         />
@@ -82,7 +83,7 @@ export default function ChapterRows({ line, mode, ctx, storyId }: Props) {
                       <button
                         key={s.node.id}
                         className={`${styles.sceneRow} ${current ? styles.sceneRowCurrent : ""} ${s.planned ? styles.sceneRowPlanned : ""}`}
-                        onClick={() => go(s.node.id)}
+                        onClick={(e) => stopClick(e, s.node.id, go)}
                         aria-current={current ? "page" : undefined}
                       >
                         <span

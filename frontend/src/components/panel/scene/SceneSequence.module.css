@@ -1,0 +1,290 @@
+/* The This scene tab as a sequence: the scene before, this scene, the scene after, then
+   everything else folded. Neighbours sit on the raised surface so they read as context,
+   not as fields to fill. */
+
+.neighbour {
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.neighbour + * {
+  border-top: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.8rem 0.55rem 0.7rem;
+}
+
+.foldBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.3rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-section-title);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.foldBtn:hover {
+  background: var(--color-surface-3);
+}
+
+.chevron,
+.chevronOpen {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform var(--transition);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.sceneLink {
+  margin-left: auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.35rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.sceneLink:hover {
+  background: var(--color-surface-3);
+}
+
+.sceneLinkText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0 1.1rem 0.9rem;
+}
+
+.break {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: var(--font-editor);
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.prose p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.prose .cut {
+  color: var(--color-text-muted);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.factLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.fact p {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* The story's first or last scene: a line where the neighbour would be. */
+.edge {
+  padding: 0.65rem 1.1rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.edgeTitle {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-section-title);
+}
+
+.edgeText {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-editor);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+/* This scene's own heading, between the neighbours. */
+.here {
+  padding: 0.85rem 1.5rem 0;
+}
+
+.hereTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hereMeta {
+  margin: 0.15rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* A scene further away, pinned on top from the strip: the scene colour marks it as a visitor. */
+.pinned {
+  margin: 0.75rem;
+  padding: 0.7rem 0.9rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--segment-scene) 35%, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--segment-scene) 6%, var(--color-surface));
+}
+
+.pinnedHead {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+}
+
+.pinnedKicker {
+  flex: 1;
+  font-size: var(--text-xs);
+}
+
+.unpin {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.unpin:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.pinnedText {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.openBtn {
+  height: 30px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-accent);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.openBtn:hover {
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+/* Everything else about the scene, folded below the sequence. */
+.fold {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.foldHead {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.6rem 1.1rem 0.6rem 0.8rem;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-section-title);
+  text-align: left;
+  cursor: pointer;
+}
+
+.foldHead:hover {
+  background: var(--color-surface-2);
+}
+
+.foldTitle {
+  flex: 1;
+}
+
+.foldCount {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.foldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.15rem 1.5rem 1rem;
+}
+
+/* A body that pads itself (the story plan). */
+.foldBodyFlush {
+  padding: 0;
+}
+
+.ai {
+  color: var(--color-ai);
+}

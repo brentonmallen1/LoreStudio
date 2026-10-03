@@ -10,6 +10,8 @@ import {
   type Stop,
 } from "../../lib/strip/stripModel";
 import { usePanelStore } from "../../stores/panelStore";
+import { stopClick } from "../../lib/panel/openScene";
+import { MODIFIER } from "../../lib/keyboard/shortcuts";
 import { entityColor } from "../panel/entityColor";
 import styles from "./Strip.module.css";
 
@@ -108,7 +110,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                   <button
                     key={stop.node.id}
                     className={`${styles.row} ${styles.rowStop}`}
-                    onClick={() => go(stop.node.id)}
+                    onClick={(e) => stopClick(e, stop.node.id, go)}
                     onMouseEnter={(e) => peekAt(e, { kind: "stop", stop })}
                     aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
                     aria-current={current ? "page" : undefined}
@@ -200,6 +202,7 @@ function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: Colo
       </span>
       <span className={styles.peekTitle}>{s.node.title}</span>
       {s.node.synopsis && <span className={styles.peekText}>{s.node.synopsis}</span>}
+      <span className={styles.peekKicker}>{MODIFIER.alt}-click to read it beside yours</span>
       {tags.length > 0 && (
         <span className={styles.peekTags}>
           {tags.map((t) => (

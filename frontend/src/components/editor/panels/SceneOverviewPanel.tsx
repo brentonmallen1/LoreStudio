@@ -1,23 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Telescope } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { api } from "../../../api/client";
-import type { Character, DiagramSummary, Location, Story, StructureNode } from "../../../types";
+import type { Character, Location, Story, StructureNode } from "../../../types";
 import { useStoryStore } from "../../../stores/storyStore";
-import { useProposalsStore } from "../../../stores/proposalsStore";
-import DiagramThumbnail from "../../media/DiagramThumbnail";
-import AssetPicker from "../../media/AssetPicker";
-import type { InlineNotesState } from "../useInlineNotes";
-import { flattenStructure } from "../segmentMeta";
 import SceneSettingsField from "./SceneSettingsField";
-import WhoIsHereField from "./WhoIsHereField";
-import SceneSummaryField from "./SceneSummaryField";
-import SceneNotesField from "./SceneNotesField";
-import SceneLinksField from "./SceneLinksField";
-import LinkedTwistsField from "./LinkedTwistsField";
 import ChecksField from "./ChecksField";
 import QuotesField from "./QuotesField";
-import { useAIAvailable } from "../../../lib/mode";
 import styles from "../SceneEditor.module.css";
 
 interface Props {
@@ -25,8 +12,6 @@ interface Props {
   activeStory: Story | null;
   characters: Character[];
   locations: Location[];
-  /** The editor's live notes; absent when the panel is open on another page. */
-  notes?: InlineNotesState;
 }
 
 const OVERVIEW_SAVE_DEBOUNCE_MS = 900;
@@ -90,36 +75,28 @@ function TextField({
   );
 }
 
-/** The "Notes" side panel: synopsis, purpose, states, beat, POV, settings, summary, notes, links. */
-export default function SceneOverviewPanel({ activeNode, activeStory, characters, locations, notes }: Props) {
+/**
+ * The scene's own fields, in the order the scene runs: what needs your eye, where things
+ * stand going in, what happens and why, where they stand coming out, then beat, POV and
+ * setting. Notes, links, images and the Assistant fold below it (SceneMoreFields), so the
+ * scene before and the scene after sit right against its entry and exit states.
+ */
+export default function SceneOverviewPanel({ activeNode, activeStory, characters, locations }: Props) {
   // The scene's point of view, or the story's default: the person entry and exit states are about.
   const povId = activeNode.pov_character_id ?? activeStory?.pov_character_id;
   const povName = characters.find((c) => c.id === povId)?.name;
-  const { setActiveNode, structure, beatSheets, activeTemplate: _t } = useStoryStore();
-  const discoverIn = useProposalsStore((s) => s.discoverIn);
-  const isAnalyzing = useProposalsStore((s) => s.discovering);
-  const navigate = useNavigate();
-  const studio = useAIAvailable();
+  const { setActiveNode, beatSheets } = useStoryStore();
   // Seeded once per node: the parent renders this panel with key={activeNode.id}.
   const [synopsis, setSynopsis] = useState(activeNode.synopsis ?? "");
   const [purpose, setPurpose] = useState(activeNode.purpose ?? "");
   const [entryState, setEntryState] = useState(activeNode.entry_state ?? "");
   const [exitState, setExitState] = useState(activeNode.exit_state ?? "");
   const [keyEvents, setKeyEvents] = useState(activeNode.key_events ?? "");
-  const [diagrams, setDiagrams] = useState<DiagramSummary[]>([]);
   const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const beatSheet = activeStory?.beat_sheet_id
     ? (beatSheets.find((s) => s.id === activeStory.beat_sheet_id) ?? null)
     : null;
-
-  useEffect(() => {
-    if (!activeStory) return;
-    api
-      .listDiagrams(activeStory.id)
-      .then((all) => setDiagrams(all.filter((d) => d.attached_node_id === activeNode.id)))
-      .catch(() => {});
-  }, [activeNode.id, activeStory?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function patch(fields: Parameters<typeof api.updateNode>[1]) {
     const updated = await api.updateNode(activeNode.id, fields);
@@ -140,6 +117,13 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
     <div className={styles.overviewPanel}>
       <ChecksField activeNode={activeNode} />
       <TextField
+        label="Entry state"
+        value={entryState}
+        onChange={setEntryState}
+        onBlur={() => patch({ entry_state: entryState })}
+        placeholder={`Who is ${povName ?? "your point-of-view character"} before this scene begins? What do they believe?`}
+      />
+      <TextField
         label="Synopsis"
         value={synopsis}
         onChange={(v) => {
@@ -159,11 +143,11 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         hint="Consider: Where are things at the start? Where should they be at the end? What key events need to happen?"
       />
       <TextField
-        label="Entry state"
-        value={entryState}
-        onChange={setEntryState}
-        onBlur={() => patch({ entry_state: entryState })}
-        placeholder={`Who is ${povName ?? "your point-of-view character"} before this scene begins? What do they believe?`}
+        label="Key events"
+        value={keyEvents}
+        onChange={setKeyEvents}
+        onBlur={() => patch({ key_events: keyEvents })}
+        placeholder="What must happen in this scene? List the pivotal moments or turning points."
       />
       <TextField
         label="Exit state"
@@ -171,13 +155,6 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         onChange={setExitState}
         onBlur={() => patch({ exit_state: exitState })}
         placeholder="How has the character or situation changed by the end of this scene?"
-      />
-      <TextField
-        label="Key events"
-        value={keyEvents}
-        onChange={setKeyEvents}
-        onBlur={() => patch({ key_events: keyEvents })}
-        placeholder="What must happen in this scene? List the pivotal moments or turning points."
       />
 
       {beatSheet && (
@@ -230,62 +207,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
       )}
 
       <SceneSettingsField activeNode={activeNode} locations={locations} />
-      {studio && activeStory && <WhoIsHereField activeNode={activeNode} storyId={activeStory.id} />}
-      {studio && <SceneSummaryField activeNode={activeNode} setActiveNode={setActiveNode} />}
-      {notes && <SceneNotesField notes={notes} />}
       <QuotesField activeNode={activeNode} />
-      {activeStory && (
-        <SceneLinksField
-          activeNode={activeNode}
-          activeStory={activeStory}
-          flatNodes={flattenStructure(structure)}
-          onNavigate={setActiveNode}
-        />
-      )}
-
-      {diagrams.length > 0 && activeStory && (
-        <div className={styles.overviewField}>
-          <div className={styles.linkedHeader}>
-            <label className={styles.overviewLabel}>Diagrams</label>
-          </div>
-          <div className={styles.diagramThumbnails}>
-            {diagrams.map((d) => (
-              <DiagramThumbnail
-                key={d.id}
-                diagram={d}
-                onClick={() => navigate(`/stories/${activeStory.id}/lorebook/places`)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {studio && activeStory?.discovery_enabled && (
-        <div className={styles.overviewField}>
-          <button
-            className={styles.analyzeBtn}
-            onClick={() => discoverIn(activeNode.story_id, activeNode.id).catch(() => {})}
-            disabled={isAnalyzing}
-            title="Analyze this scene for new characters, settings, and other story elements"
-          >
-            <Telescope size={12} />
-            {isAnalyzing ? "Analyzing…" : "Analyze for discoveries"}
-          </button>
-        </div>
-      )}
-
-      {activeStory && <LinkedTwistsField activeNode={activeNode} activeStory={activeStory} />}
-
-      {activeStory && (
-        <div className={styles.overviewField}>
-          <AssetPicker
-            storyId={activeStory.id}
-            objectType="structure_node"
-            objectId={activeNode.id}
-            label="Images & references"
-          />
-        </div>
-      )}
     </div>
   );
 }
