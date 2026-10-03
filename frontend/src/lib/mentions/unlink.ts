@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { forEachBlockText } from "../prose/blockText";
-import { findMentions, foldName, type Lexicon } from "../prose/syntax";
+import { findMentions, findSpeakerTags, foldName, speakerName, type Lexicon } from "../prose/syntax";
 
 /**
  * Drop the syntax around a mention that names nobody, in the open scene, keeping the words:
@@ -28,6 +28,45 @@ export function unlinkMentions(
   if (!found.length) return 0;
   const tr = editor.state.tr;
   for (const r of found.reverse()) tr.insertText(r.words, r.from, r.to);
+  editor.view.dispatch(tr);
+  return found.length;
+}
+
+/**
+ * Take off the speaker tags that name `written` when it names nobody, in the open scene,
+ * keeping the lines: "“No.”<Caldre>" becomes "“No.”". One transaction, so ⌘Z restores them.
+ */
+export function removeSpeakerTags(editor: Editor, written: string, lexicon: Lexicon): number {
+  const want = foldName(written);
+  const found: { from: number; to: number }[] = [];
+  forEachBlockText(editor.state.doc, ({ text, range }) => {
+    for (const t of findSpeakerTags(text))
+      if (!speakerName(lexicon, t.speaker) && foldName(t.speaker) === want)
+        found.push(range(t.tagStart, t.end));
+  });
+  if (!found.length) return 0;
+  const tr = editor.state.tr;
+  for (const r of found.reverse()) tr.delete(r.from, r.to);
+  editor.view.dispatch(tr);
+  return found.length;
+}
+
+/**
+ * Point the speaker tags that say `written` (and name nobody) at `name` instead, in the open
+ * scene: "“No.”<Caldre>" becomes "“No.”<The Visitor (Calder)>". A tag is markup, not the
+ * author's words, so it is corrected rather than given another name. ⌘Z undoes it.
+ */
+export function retagSpeakers(editor: Editor, written: string, name: string, lexicon: Lexicon): number {
+  const want = foldName(written);
+  const found: { from: number; to: number }[] = [];
+  forEachBlockText(editor.state.doc, ({ text, range }) => {
+    for (const t of findSpeakerTags(text))
+      if (!speakerName(lexicon, t.speaker) && foldName(t.speaker) === want)
+        found.push(range(t.tagStart, t.end));
+  });
+  if (!found.length) return 0;
+  const tr = editor.state.tr;
+  for (const r of found.reverse()) tr.insertText(`<${name}>`, r.from, r.to);
   editor.view.dispatch(tr);
   return found.length;
 }

@@ -1,10 +1,10 @@
 /**
  * DialogueExtension — TipTap extension for dialogue markup.
  *
- * Highlights attributed dialogue inline in the prose editor:
- *   - Explicit:     "dialogue"<Name>  →  speaker badge + tinted quote (includes <Name> suffix)
- *   - Inferred:     "dialogue" @Name said  →  lighter tint
- *   - Unattributed: "standalone quote"  →  amber warning
+ * Highlights dialogue inline in the prose editor (doc 16):
+ *   - Tagged:       "dialogue"<Name>  →  tinted quote and the tag, which a hover explains
+ *   - Inferred:     the server named the speaker ("…," Eleanor said)  →  lighter tint
+ *   - Unattributed: the server could not tell who speaks  →  amber
  *
  * Also handles ^ trigger for dialogue-mode insertion:
  * typing ^ opens the mention dropdown in dialogue mode, and selecting
@@ -16,7 +16,9 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
-import { findSpeakerTags } from "../../lib/prose/syntax";
+import { findQuotes, findSpeakerTags, foldName, speakerName } from "../../lib/prose/syntax";
+import type { DialogueBlock } from "../../types";
+import { mentionLexicon } from "./MentionDropdown";
 
 // ---------------------------------------------------------------------------
 // Dialogue mode state (read by SceneEditor to change insertion behaviour)
@@ -48,66 +50,33 @@ export function setDialogueCallbacks(cb: Partial<DialogueCallbacks>) {
 }
 
 // ---------------------------------------------------------------------------
-// Decoration patterns
+// Who says what (doc 16, D1)
 // ---------------------------------------------------------------------------
 
-function findInferredQuotes(text: string, explicitRanges: Array<[number, number]>): Array<[number, number]> {
-  const results: Array<[number, number]> = [];
+// The scene's lines as the server read them (GET /scenes/{id}/dialogue, after each save).
+// A tagged line is coloured from the prose itself, at once; an untagged one from these, so
+// the prose, the Dialogue view, Numbers and Findings all say the same thing about it.
+let _lines: DialogueBlock[] = [];
 
-  function isClaimed(s: number, e: number): boolean {
-    return explicitRanges.some(([a, b]) => s < b && e > a);
-  }
+export const FORCE_DIALOGUE_KEY = "forceDialogueRebuild";
 
-  // Find all @mentions (single-word names only for inference)
-  const mentionPositions: number[] = [];
-  const mentionRe = /@[\w][\w'-]{0,49}/g;
-  let mm: RegExpExecArray | null;
-  while ((mm = mentionRe.exec(text)) !== null) {
-    mentionPositions.push(mm.index);
-  }
-
-  if (mentionPositions.length === 0) return results;
-
-  // Straight quotes (negative lookahead excludes "..."<Name> explicit syntax)
-  const quoteRe = /(?:^|\s)"([^"]{2,})"(?!<)(?=\s|[.,;:!?]|$)/g;
-  while ((mm = quoteRe.exec(text)) !== null) {
-    const qStart = mm.index + (text[mm.index] === '"' ? 0 : 1);
-    const qEnd = qStart + mm[0].trim().length;
-    if (isClaimed(qStart, qEnd)) continue;
-    // Check for nearby mention
-    const nearMention = mentionPositions.some((mp) => Math.abs(qStart - mp) <= 150);
-    if (nearMention) results.push([qStart, qEnd]);
-  }
-  return results;
+export function setSceneDialogue(lines: DialogueBlock[]) {
+  _lines = lines.filter((l) => l.dialogue_type !== "thought");
 }
 
-function findUnattributedQuotes(
-  text: string,
-  claimedRanges: Array<[number, number]>,
-): Array<[number, number]> {
-  const results: Array<[number, number]> = [];
-  function isClaimed(s: number, e: number): boolean {
-    return claimedRanges.some(([a, b]) => s < b && e > a);
-  }
-  // Negative lookahead excludes "..."<Name> explicit syntax
-  const quoteRe = /(?:^|\s)"([^"]{2,})"(?!<)(?=\s|[.,;:!?]|$)/g;
-  let mm: RegExpExecArray | null;
-  while ((mm = quoteRe.exec(text)) !== null) {
-    const qStart = mm.index + (text[mm.index] === '"' ? 0 : 1);
-    const qEnd = qStart + mm[0].trim().length;
-    if (!isClaimed(qStart, qEnd)) results.push([qStart, qEnd]);
-  }
-  return results;
-}
-
-// ---------------------------------------------------------------------------
-// Build DecorationSet
-// ---------------------------------------------------------------------------
-
-const FORCE_DIALOGUE_KEY = "forceDialogueRebuild";
+const ATTRIBUTED = new Set(["inferred", "alternating", "manual", "pov_default", "explicit"]);
 
 function buildDialogueDecos(doc: PMNode): DecorationSet {
   const decos: Decoration[] = [];
+  const lexicon = mentionLexicon();
+  // The server's untagged lines, by their words, in reading order: each quote takes the
+  // first unclaimed line that says the same thing. A quote typed since the last save has
+  // none yet and stays plain until it is saved.
+  const pending = new Map<string, DialogueBlock[]>();
+  for (const l of _lines) {
+    const key = foldName(l.content);
+    pending.set(key, [...(pending.get(key) ?? []), l]);
+  }
 
   // A paragraph at a time, not a text node: a quote with an italic word in it is still
   // one quote (lib/prose/blockText).
@@ -118,35 +87,32 @@ function buildDialogueDecos(doc: PMNode): DecorationSet {
     };
 
     // Tagged lines, by the one grammar (lib/prose/syntax): straight, curly or single
-    // quotes, with or without a space before <Name>.
-    const explicit = findSpeakerTags(text);
-    const explicitRanges: Array<[number, number]> = explicit.map((t) => [t.quoteStart, t.end]);
-
-    for (const t of explicit) {
+    // quotes, with or without a space before <Name>. The tag answers to a hover like a
+    // mention; one that names nobody is marked, and the hover card can fix it.
+    for (const t of findSpeakerTags(text)) {
+      const who = speakerName(lexicon, t.speaker);
       decos.push(
-        inline(t.quoteStart, t.quoteEnd, { class: "dialogue-explicit", "data-dialogue-speaker": t.speaker }),
-        inline(t.tagStart, t.end, { class: "dialogue-speaker-tag", "data-dialogue-speaker": t.speaker }),
-      );
-    }
-
-    // Inferred (near @mention but not explicit)
-    const inferred = findInferredQuotes(text, explicitRanges);
-    const allClaimed = [...explicitRanges, ...inferred.map(([s, e]) => [s, e] as [number, number])];
-
-    for (const [s, e] of inferred) {
-      decos.push(
-        inline(s, e, {
-          class: "dialogue-inferred",
+        inline(t.quoteStart, t.quoteEnd, {
+          class: "dialogue-explicit",
+          "data-dialogue-speaker": who ?? t.speaker,
+        }),
+        inline(t.tagStart, t.end, {
+          class: who ? "dialogue-speaker-tag" : "dialogue-speaker-tag speaker-missing",
+          "data-dialogue-speaker": who ?? t.speaker,
+          "data-mention-name": who ?? t.speaker,
+          "data-mention-type": "character",
+          "data-speaker-tag": "",
         }),
       );
     }
 
-    // Unattributed (standalone quotes with no nearby mention)
-    for (const [s, e] of findUnattributedQuotes(text, allClaimed)) {
+    for (const q of findQuotes(text)) {
+      const line = pending.get(foldName(q.words))?.shift();
+      if (!line) continue;
       decos.push(
-        inline(s, e, {
-          class: "dialogue-unattributed",
-        }),
+        ATTRIBUTED.has(line.attribution_method) && line.speaker_name
+          ? inline(q.start, q.end, { class: "dialogue-inferred", "data-dialogue-speaker": line.speaker_name })
+          : inline(q.start, q.end, { class: "dialogue-unattributed" }),
       );
     }
   });
@@ -184,5 +150,3 @@ export const DialogueExtension = Extension.create({
     ];
   },
 });
-
-export { FORCE_DIALOGUE_KEY };

@@ -41,12 +41,13 @@ import { useMentionDropdown } from "./useMentionDropdown";
 import { useSlashCommands } from "./useSlashCommands";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
+import { useSceneDialogue } from "./useSceneDialogue";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
 import { readNotesView, saveNotesView } from "../../lib/notes/view";
 import MentionHoverCard from "./MentionHoverCard";
-import { unlinkMentions } from "../../lib/mentions/unlink";
+import { removeSpeakerTags, retagSpeakers, unlinkMentions } from "../../lib/mentions/unlink";
 import MentionGutter from "./MentionGutter";
 import EditorTopbar from "./EditorTopbar";
 import { DraftBanner } from "./SaveStatusPill";
@@ -142,6 +143,7 @@ export default function SceneEditor() {
     openDialoguePicker: mention.openDialoguePicker,
     addTodo: () => notes.triggerAdd("todo"),
   });
+  useSceneDialogue(editor, activeNode?.id, activeNode?.updated_at);
   const hover = useMentionHoverCard(
     scrollAreaRef,
     hoverCardRef,
@@ -375,9 +377,16 @@ export default function SceneEditor() {
         hover={hover}
         cardRef={hoverCardRef}
         storyId={activeStory?.id}
-        onUnlink={(type, name) => {
+        onUnlink={(type, name, speakerTag) => {
+          if (!editor) return;
+          const done = speakerTag
+            ? removeSpeakerTags(editor, name, mentionLexicon())
+            : unlinkMentions(editor, type, name, mentionLexicon());
           // Back in the prose, so ⌘Z puts the link back straight away.
-          if (editor && unlinkMentions(editor, type, name, mentionLexicon())) editor.commands.focus();
+          if (done) editor.commands.focus();
+        }}
+        onRetag={(written, name) => {
+          if (editor && retagSpeakers(editor, written, name, mentionLexicon())) editor.commands.focus();
         }}
       />
       <SlashPicker slash={slash} />

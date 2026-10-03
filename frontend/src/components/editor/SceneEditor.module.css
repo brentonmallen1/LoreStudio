@@ -1100,7 +1100,7 @@
   border-bottom: none !important;
 }
 
-/* Explicit: @Name: "dialogue" — quoted portion */
+/* Tagged: "dialogue"<Name>, the quoted part */
 .editorWrap :global(.ProseMirror .dialogue-explicit) {
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   border-bottom: 1.5px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
@@ -1108,14 +1108,14 @@
   position: relative;
 }
 
-/* Inferred: "dialogue" near @mention — lighter than explicit */
+/* Inferred: the server named the speaker from the prose, lighter than tagged */
 .editorWrap :global(.ProseMirror .dialogue-inferred) {
   background: color-mix(in srgb, var(--color-accent) 5%, transparent);
   border-bottom: 1px dashed color-mix(in srgb, var(--color-accent) 25%, transparent);
   border-radius: 2px;
 }
 
-/* Unattributed: standalone "quote" with no nearby @mention */
+/* Unattributed: the server could not tell who speaks */
 .editorWrap :global(.ProseMirror .dialogue-unattributed) {
   background: color-mix(in srgb, var(--color-warning) 7%, transparent);
   border-bottom: 1px dashed color-mix(in srgb, var(--color-warning) 30%, transparent);
@@ -1129,6 +1129,14 @@
   font-size: 0.82em;
   font-weight: 500;
   letter-spacing: 0.01em;
+}
+
+/* A speaker tag that names nobody: the warning colour, and the hover card offers a fix. */
+.editorWrap :global(.ProseMirror .dialogue-speaker-tag.speaker-missing) {
+  color: var(--color-warning);
+  opacity: 1;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+  cursor: pointer;
 }
 
 /* Dialogue mode indicator in the mention dropdown header */

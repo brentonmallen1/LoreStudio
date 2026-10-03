@@ -1,7 +1,15 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { findMentions, findSpeakerTags, makeLexicon, readerText, type KnownName } from "./syntax";
+import {
+  findMentions,
+  findQuotes,
+  findSpeakerTags,
+  makeLexicon,
+  readerText,
+  speakerName,
+  type KnownName,
+} from "./syntax";
 
 // The same cases the server's tests run (backend/tests/services/test_prose_syntax.py).
 const CASES = JSON.parse(
@@ -12,6 +20,8 @@ const CASES = JSON.parse(
   unknown_words: [string, string][];
   speakers: { text: string; expect: [string, string][] }[];
   reader: [string, string][];
+  speaker_names: [string, string | null][];
+  quotes: { text: string; expect: string[] }[];
 };
 const LEX = makeLexicon(CASES.known);
 
@@ -30,5 +40,13 @@ describe("the inline syntax, as the server reads it", () => {
 
   it.each(CASES.reader)("reads %s as %s", (text, want) => {
     expect(readerText(text)).toBe(want);
+  });
+
+  it.each(CASES.speaker_names)("a tag <%s> names %s", (written, name) => {
+    expect(speakerName(LEX, written)).toBe(name);
+  });
+
+  it.each(CASES.quotes)("untagged quotes in $text", ({ text, expect: want }) => {
+    expect(findQuotes(text).map((q) => q.words)).toEqual(want);
   });
 });

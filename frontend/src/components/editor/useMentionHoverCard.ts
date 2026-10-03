@@ -8,6 +8,8 @@ export type HoverCard =
       type: "character" | "setting";
       name: string;
       found: boolean;
+      /** A speaker tag ("…"<Name>) rather than a mention. */
+      speakerTag?: boolean;
       entityId: string;
       roleOrLabel: string;
       pronouns?: string;
@@ -94,7 +96,9 @@ export function useMentionHoverCard(
     }
 
     function mentionTarget(e: MouseEvent): HTMLElement | null {
-      return (e.target as Element).closest(".mention-char, .mention-setting, .mention-missing");
+      return (e.target as Element).closest(
+        ".mention-char, .mention-setting, .mention-missing, [data-speaker-tag]",
+      );
     }
 
     function onOver(e: MouseEvent) {
@@ -105,7 +109,8 @@ export function useMentionHoverCard(
       showTimer.current = setTimeout(() => {
         const name = target.getAttribute("data-mention-name") ?? "";
         const type = (target.getAttribute("data-mention-type") ?? "character") as "character" | "setting";
-        setCard(lookup(type, name, target.getBoundingClientRect()));
+        const card = lookup(type, name, target.getBoundingClientRect());
+        setCard(card.open && target.hasAttribute("data-speaker-tag") ? { ...card, speakerTag: true } : card);
       }, SHOW_DELAY_MS);
     }
 

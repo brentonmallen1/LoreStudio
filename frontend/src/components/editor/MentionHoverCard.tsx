@@ -11,12 +11,15 @@ export default function MentionHoverCard({
   cardRef,
   storyId,
   onUnlink,
+  onRetag,
 }: {
   hover: HoverCardState;
   cardRef: RefObject<HTMLDivElement | null>;
   storyId?: string;
-  /** Drop the syntax of a mention that names nobody, keeping its words. */
-  onUnlink?: (type: "character" | "setting", name: string) => void;
+  /** Drop the syntax of a mention (or a speaker tag) that names nobody, keeping its words. */
+  onUnlink?: (type: "character" | "setting", name: string, speakerTag: boolean) => void;
+  /** Correct a speaker tag that names nobody to a character's name. */
+  onRetag?: (written: string, name: string) => void;
 }) {
   const navigate = useNavigate();
   const openEntity = usePanelStore((s) => s.openEntity);
@@ -116,7 +119,9 @@ export default function MentionHoverCard({
           type={card.type}
           name={card.name}
           storyId={storyId}
-          onUnlink={onUnlink && (() => onUnlink(card.type, card.name))}
+          speakerTag={!!card.speakerTag}
+          onUnlink={onUnlink && (() => onUnlink(card.type, card.name, !!card.speakerTag))}
+          onRetag={onRetag && ((name) => onRetag(card.name, name))}
           onDone={hover.close}
         />
       ) : null}

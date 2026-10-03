@@ -18,13 +18,19 @@ export default function MentionFixer({
   type,
   name,
   storyId,
+  speakerTag = false,
   onUnlink,
+  onRetag,
   onDone,
 }: {
   type: "character" | "setting";
   name: string;
   storyId: string;
+  /** A speaker tag ("…"<Name>): unlinking takes the tag off. */
+  speakerTag?: boolean;
   onUnlink?: () => void;
+  /** A speaker tag: point it at this character (the tag is corrected, not given another name). */
+  onRetag?: (name: string) => void;
   onDone: () => void;
 }) {
   const isChar = type === "character";
@@ -55,6 +61,12 @@ export default function MentionFixer({
   }
 
   function sameAs(entry: Entry) {
+    if (speakerTag && onRetag) {
+      onRetag(entry.name);
+      toast.success(`Tagged as ${entry.name}`);
+      onDone();
+      return;
+    }
     void run(async () => {
       const aliases = [...(entry.aliases ?? []), name];
       if (isChar) upsertCharacter(await api.updateCharacter(entry.id, { aliases }));
@@ -75,7 +87,9 @@ export default function MentionFixer({
     <div className={styles.fixer}>
       <div className={styles.head}>
         <span className={styles.name}>{name}</span>
-        <span className={styles.badge}>{isChar ? "Not in Characters" : "Not in Places"}</span>
+        <span className={styles.badge}>
+          {speakerTag ? "Speaker not found" : isChar ? "Not in Characters" : "Not in Places"}
+        </span>
       </div>
       <div className={styles.actions}>
         {best && (
@@ -102,13 +116,13 @@ export default function MentionFixer({
             type="button"
             className={styles.quiet}
             disabled={busy}
-            title="Keep the words and drop the link"
+            title={speakerTag ? "Take the tag off; the line stays" : "Keep the words and drop the link"}
             onClick={() => {
               onUnlink();
               onDone();
             }}
           >
-            Unlink
+            {speakerTag ? "Remove tag" : "Unlink"}
           </button>
         )}
       </div>

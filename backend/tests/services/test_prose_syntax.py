@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from app.services.prose_syntax import Known, Lexicon, find_mentions, find_speaker_tags, reader_text
+from app.services.prose_syntax import Known, Lexicon, find_mentions, find_quotes, find_speaker_tags, reader_text
 
 CASES = json.loads((Path(__file__).parents[3] / "shared" / "prose-syntax" / "cases.json").read_text())
 LEX = Lexicon([Known(k["kind"], k["name"], tuple(k["aliases"])) for k in CASES["known"]])
@@ -33,3 +33,13 @@ def test_speaker_tags(case):
 @pytest.mark.parametrize(("text", "expect"), CASES["reader"])
 def test_reader_text(text, expect):
     assert reader_text(text) == expect
+
+
+@pytest.mark.parametrize(("written", "name"), CASES["speaker_names"])
+def test_who_a_speaker_tag_names(written, name):
+    assert LEX.speaker(written) == name
+
+
+@pytest.mark.parametrize("case", CASES["quotes"], ids=lambda c: c["text"][:40])
+def test_untagged_quotes(case):
+    assert [q.words for q in find_quotes(case["text"])] == case["expect"]

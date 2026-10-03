@@ -1,64 +1,505 @@
 {
   "_about": "The prose's inline syntax, as both sides read it (notes/refactor-2026-09/16-tags-audit.md, D2). backend/tests/services/test_prose_syntax.py and frontend/src/lib/prose/syntax.test.ts both run every case, so the server and the editor cannot disagree about what a mention or a speaker tag is.",
   "known": [
-    { "kind": "character", "name": "Eleanor Vance", "aliases": ["Nell"] },
-    { "kind": "character", "name": "Thomas Vance", "aliases": ["Tom"] },
-    { "kind": "character", "name": "The Visitor (Calder)", "aliases": [] },
-    { "kind": "character", "name": "Dr. Priya Sharma", "aliases": [] },
-    { "kind": "character", "name": "Maya", "aliases": [] },
-    { "kind": "character", "name": "O'Brien", "aliases": [] },
-    { "kind": "place", "name": "Keeper's Cottage", "aliases": ["The Keeper's Cottage"] },
-    { "kind": "place", "name": "The Lighthouse", "aliases": [] }
+    {
+      "kind": "character",
+      "name": "Eleanor Vance",
+      "aliases": [
+        "Nell"
+      ]
+    },
+    {
+      "kind": "character",
+      "name": "Thomas Vance",
+      "aliases": [
+        "Tom"
+      ]
+    },
+    {
+      "kind": "character",
+      "name": "The Visitor (Calder)",
+      "aliases": []
+    },
+    {
+      "kind": "character",
+      "name": "Dr. Priya Sharma",
+      "aliases": []
+    },
+    {
+      "kind": "character",
+      "name": "Maya",
+      "aliases": []
+    },
+    {
+      "kind": "character",
+      "name": "O'Brien",
+      "aliases": []
+    },
+    {
+      "kind": "place",
+      "name": "Keeper's Cottage",
+      "aliases": [
+        "The Keeper's Cottage"
+      ]
+    },
+    {
+      "kind": "place",
+      "name": "The Lighthouse",
+      "aliases": []
+    }
   ],
   "mentions": [
-    { "text": "@Eleanor Vance climbed the stairs.", "expect": [["@Eleanor Vance", "character", "Eleanor Vance"]] },
-    { "text": "She lit @eleanor vance's lamp.", "expect": [["@eleanor vance", "character", "Eleanor Vance"]] },
-    { "text": "She lit @Eleanor Vance’s lamp.", "expect": [["@Eleanor Vance", "character", "Eleanor Vance"]] },
-    { "text": "“Hello, @Maya” she said.", "expect": [["@Maya", "character", "Maya"]] },
-    { "text": "“Who would I tell? @Tom was the keeper.”", "expect": [["@Tom", "character", "Thomas Vance"]] },
-    { "text": "@Dr. Priya Sharma knew.", "expect": [["@Dr. Priya Sharma", "character", "Dr. Priya Sharma"]] },
-    { "text": "(@The Visitor (Calder)) waited.", "expect": [["@The Visitor (Calder)", "character", "The Visitor (Calder)"]] },
-    { "text": "@O’Brien laughed.", "expect": [["@O’Brien", "character", "O'Brien"]] },
-    { "text": "@Nell, come here.", "expect": [["@Nell", "character", "Eleanor Vance"]] },
-    { "text": "@Nellie, come here.", "expect": [["@Nellie", "character", null]] },
-    { "text": "Write to me@host.com today.", "expect": [] },
-    { "text": "@Victor's coat hung by the door.", "expect": [["@Victor", "character", null]] },
-    { "text": "@Victor’s coat hung by the door.", "expect": [["@Victor", "character", null]] },
-    { "text": "@Maya—then silence.", "expect": [["@Maya", "character", "Maya"]] },
-    { "text": "“Hi, @Bob”<Thomas Vance>", "expect": [["@Bob", "character", null]] },
-    { "text": "@Eleanor met @Eleanor Vance.", "expect": [["@Eleanor", "character", null], ["@Eleanor Vance", "character", "Eleanor Vance"]] },
-    { "text": "@Maya.@Tom", "expect": [["@Maya", "character", "Maya"], ["@Tom", "character", "Thomas Vance"]] },
-    { "text": "Ends with @Eleanor Vance", "expect": [["@Eleanor Vance", "character", "Eleanor Vance"]] },
-    { "text": "@Mayan ruins", "expect": [["@Mayan", "character", null]] },
-    { "text": "To [[Keeper's Cottage]] and [[the keeper’s cottage]].", "expect": [["[[Keeper's Cottage]]", "place", "Keeper's Cottage"], ["[[the keeper’s cottage]]", "place", "Keeper's Cottage"]] },
-    { "text": "Past [[The Old Boathouse]].", "expect": [["[[The Old Boathouse]]", "place", null]] },
-    { "text": "Up [[ The Lighthouse ]] again.", "expect": [["[[ The Lighthouse ]]", "place", "The Lighthouse"]] },
-    { "text": "@ alone, and @123", "expect": [] }
+    {
+      "text": "@Eleanor Vance climbed the stairs.",
+      "expect": [
+        [
+          "@Eleanor Vance",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "She lit @eleanor vance's lamp.",
+      "expect": [
+        [
+          "@eleanor vance",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "She lit @Eleanor Vance’s lamp.",
+      "expect": [
+        [
+          "@Eleanor Vance",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "“Hello, @Maya” she said.",
+      "expect": [
+        [
+          "@Maya",
+          "character",
+          "Maya"
+        ]
+      ]
+    },
+    {
+      "text": "“Who would I tell? @Tom was the keeper.”",
+      "expect": [
+        [
+          "@Tom",
+          "character",
+          "Thomas Vance"
+        ]
+      ]
+    },
+    {
+      "text": "@Dr. Priya Sharma knew.",
+      "expect": [
+        [
+          "@Dr. Priya Sharma",
+          "character",
+          "Dr. Priya Sharma"
+        ]
+      ]
+    },
+    {
+      "text": "(@The Visitor (Calder)) waited.",
+      "expect": [
+        [
+          "@The Visitor (Calder)",
+          "character",
+          "The Visitor (Calder)"
+        ]
+      ]
+    },
+    {
+      "text": "@O’Brien laughed.",
+      "expect": [
+        [
+          "@O’Brien",
+          "character",
+          "O'Brien"
+        ]
+      ]
+    },
+    {
+      "text": "@Nell, come here.",
+      "expect": [
+        [
+          "@Nell",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "@Nellie, come here.",
+      "expect": [
+        [
+          "@Nellie",
+          "character",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "Write to me@host.com today.",
+      "expect": []
+    },
+    {
+      "text": "@Victor's coat hung by the door.",
+      "expect": [
+        [
+          "@Victor",
+          "character",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "@Victor’s coat hung by the door.",
+      "expect": [
+        [
+          "@Victor",
+          "character",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "@Maya—then silence.",
+      "expect": [
+        [
+          "@Maya",
+          "character",
+          "Maya"
+        ]
+      ]
+    },
+    {
+      "text": "“Hi, @Bob”<Thomas Vance>",
+      "expect": [
+        [
+          "@Bob",
+          "character",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "@Eleanor met @Eleanor Vance.",
+      "expect": [
+        [
+          "@Eleanor",
+          "character",
+          null
+        ],
+        [
+          "@Eleanor Vance",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "@Maya.@Tom",
+      "expect": [
+        [
+          "@Maya",
+          "character",
+          "Maya"
+        ],
+        [
+          "@Tom",
+          "character",
+          "Thomas Vance"
+        ]
+      ]
+    },
+    {
+      "text": "Ends with @Eleanor Vance",
+      "expect": [
+        [
+          "@Eleanor Vance",
+          "character",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "@Mayan ruins",
+      "expect": [
+        [
+          "@Mayan",
+          "character",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "To [[Keeper's Cottage]] and [[the keeper’s cottage]].",
+      "expect": [
+        [
+          "[[Keeper's Cottage]]",
+          "place",
+          "Keeper's Cottage"
+        ],
+        [
+          "[[the keeper’s cottage]]",
+          "place",
+          "Keeper's Cottage"
+        ]
+      ]
+    },
+    {
+      "text": "Past [[The Old Boathouse]].",
+      "expect": [
+        [
+          "[[The Old Boathouse]]",
+          "place",
+          null
+        ]
+      ]
+    },
+    {
+      "text": "Up [[ The Lighthouse ]] again.",
+      "expect": [
+        [
+          "[[ The Lighthouse ]]",
+          "place",
+          "The Lighthouse"
+        ]
+      ]
+    },
+    {
+      "text": "@ alone, and @123",
+      "expect": []
+    }
   ],
   "unknown_words": [
-    ["@Nellie, come here.", "Nellie"],
-    ["@Victor's coat", "Victor"],
-    ["Past [[The Old Boathouse]].", "The Old Boathouse"],
-    ["@Eleanor met", "Eleanor"]
+    [
+      "@Nellie, come here.",
+      "Nellie"
+    ],
+    [
+      "@Victor's coat",
+      "Victor"
+    ],
+    [
+      "Past [[The Old Boathouse]].",
+      "The Old Boathouse"
+    ],
+    [
+      "@Eleanor met",
+      "Eleanor"
+    ]
   ],
   "speakers": [
-    { "text": "\"I know.\"<Eleanor Vance>", "expect": [["\"I know.\"", "Eleanor Vance"]] },
-    { "text": "“I know.”<Calder> she said.", "expect": [["“I know.”", "Calder"]] },
-    { "text": "\"Hi.\" <Calder> she said.", "expect": [["\"Hi.\"", "Calder"]] },
-    { "text": "‘I don’t know.’<Maya>", "expect": [["‘I don’t know.’", "Maya"]] },
-    { "text": "He said, 'Not likely,'<Tom> and left.", "expect": [["'Not likely,'", "Tom"]] },
-    { "text": "\"My brother was the captain of the Ardent.\"<Calder> The words came out steady.", "expect": [["\"My brother was the captain of the Ardent.\"", "Calder"]] },
-    { "text": "“Mixed.\"<Maya>", "expect": [["“Mixed.\"", "Maya"]] },
-    { "text": "\"One.\"<Maya> \"Two.\"<Tom>", "expect": [["\"One.\"", "Maya"], ["\"Two.\"", "Tom"]] },
-    { "text": "If x < 5 and y > 3 then.", "expect": [] },
-    { "text": "\"Hi.\"<>", "expect": [] },
-    { "text": "“Not here.” <The Visitor (Calder)>", "expect": [["“Not here.”", "The Visitor (Calder)"]] }
+    {
+      "text": "\"I know.\"<Eleanor Vance>",
+      "expect": [
+        [
+          "\"I know.\"",
+          "Eleanor Vance"
+        ]
+      ]
+    },
+    {
+      "text": "“I know.”<Calder> she said.",
+      "expect": [
+        [
+          "“I know.”",
+          "Calder"
+        ]
+      ]
+    },
+    {
+      "text": "\"Hi.\" <Calder> she said.",
+      "expect": [
+        [
+          "\"Hi.\"",
+          "Calder"
+        ]
+      ]
+    },
+    {
+      "text": "‘I don’t know.’<Maya>",
+      "expect": [
+        [
+          "‘I don’t know.’",
+          "Maya"
+        ]
+      ]
+    },
+    {
+      "text": "He said, 'Not likely,'<Tom> and left.",
+      "expect": [
+        [
+          "'Not likely,'",
+          "Tom"
+        ]
+      ]
+    },
+    {
+      "text": "\"My brother was the captain of the Ardent.\"<Calder> The words came out steady.",
+      "expect": [
+        [
+          "\"My brother was the captain of the Ardent.\"",
+          "Calder"
+        ]
+      ]
+    },
+    {
+      "text": "“Mixed.\"<Maya>",
+      "expect": [
+        [
+          "“Mixed.\"",
+          "Maya"
+        ]
+      ]
+    },
+    {
+      "text": "\"One.\"<Maya> \"Two.\"<Tom>",
+      "expect": [
+        [
+          "\"One.\"",
+          "Maya"
+        ],
+        [
+          "\"Two.\"",
+          "Tom"
+        ]
+      ]
+    },
+    {
+      "text": "If x < 5 and y > 3 then.",
+      "expect": []
+    },
+    {
+      "text": "\"Hi.\"<>",
+      "expect": []
+    },
+    {
+      "text": "“Not here.” <The Visitor (Calder)>",
+      "expect": [
+        [
+          "“Not here.”",
+          "The Visitor (Calder)"
+        ]
+      ]
+    }
   ],
   "reader": [
-    ["\"I know.\"<Eleanor Vance> @Tom went to [[Keeper's Cottage]].", "\"I know.\" Tom went to Keeper's Cottage."],
-    ["\"Hi.\" <Calder> she said.", "\"Hi.\" she said."],
-    ["If x < 5 and y > 3 then.", "If x < 5 and y > 3 then."],
-    ["Write to me@host.com today.", "Write to me@host.com today."],
-    ["@Eleanor Vance’s lamp", "Eleanor Vance’s lamp"]
+    [
+      "\"I know.\"<Eleanor Vance> @Tom went to [[Keeper's Cottage]].",
+      "\"I know.\" Tom went to Keeper's Cottage."
+    ],
+    [
+      "\"Hi.\" <Calder> she said.",
+      "\"Hi.\" she said."
+    ],
+    [
+      "If x < 5 and y > 3 then.",
+      "If x < 5 and y > 3 then."
+    ],
+    [
+      "Write to me@host.com today.",
+      "Write to me@host.com today."
+    ],
+    [
+      "@Eleanor Vance’s lamp",
+      "Eleanor Vance’s lamp"
+    ]
+  ],
+  "speaker_names": [
+    [
+      "Calder",
+      "The Visitor (Calder)"
+    ],
+    [
+      "the visitor",
+      "The Visitor (Calder)"
+    ],
+    [
+      "Thomas",
+      "Thomas Vance"
+    ],
+    [
+      "tom",
+      "Thomas Vance"
+    ],
+    [
+      "Eleanor",
+      "Eleanor Vance"
+    ],
+    [
+      "ELEANOR VANCE",
+      "Eleanor Vance"
+    ],
+    [
+      "Vance",
+      null
+    ],
+    [
+      "Nell",
+      "Eleanor Vance"
+    ],
+    [
+      "O’Brien",
+      "O'Brien"
+    ],
+    [
+      "Nobody",
+      null
+    ]
+  ],
+  "quotes": [
+    {
+      "text": "“I could burn them,” Eleanor said. “The whole set.”",
+      "expect": [
+        "I could burn them,",
+        "The whole set."
+      ]
+    },
+    {
+      "text": "He said \"no\" and then \"yes.\"",
+      "expect": [
+        "no",
+        "yes."
+      ]
+    },
+    {
+      "text": "(\"Quiet,\" she said.)",
+      "expect": [
+        "Quiet,"
+      ]
+    },
+    {
+      "text": "\"Tagged.\"<Maya> \"Not tagged.\"",
+      "expect": [
+        "Not tagged."
+      ]
+    },
+    {
+      "text": "It's Tom's lamp, isn't it?",
+      "expect": []
+    },
+    {
+      "text": "The 12\" ruler and the 6\" one.",
+      "expect": []
+    },
+    {
+      "text": "Wait—\"now.\"",
+      "expect": [
+        "now."
+      ]
+    }
   ]
 }

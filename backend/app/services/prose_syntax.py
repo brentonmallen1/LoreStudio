@@ -54,16 +54,59 @@ class Mention:
     name: str | None
 
 
+_PARENTHETICAL = re.compile(r"^(?P<outer>.*?)\s*\((?P<inner>[^)]+)\)\s*$")
+_ARTICLES = {"the", "a", "an"}
+
+
+def name_forms(label: str) -> set[str]:
+    """
+    The ways prose refers to a character by name.
+
+    A label is how the Lorebook files someone, not how a sentence says them: "Eleanor
+    Vance" is "Eleanor" on the page, and "The Visitor (Calder)" is either half. Matching
+    the whole label found almost nobody, so protagonists came out absent from their own
+    scenes. Same rule as the entity linker: full name, and a multi-word name's first word
+    — unless that word is an article, because "The" is not anybody.
+    """
+    label = " ".join(label.split())
+    if not label:
+        return set()
+    forms = {label}
+    parts = [label]
+    if m := _PARENTHETICAL.match(label):
+        parts = [m.group("outer"), m.group("inner")]
+        forms |= {p for p in parts if p}
+    for part in parts:
+        words = part.split()
+        if len(words) > 1 and words[0].lower() not in _ARTICLES:
+            forms.add(words[0])
+    return forms
+
+
 class Lexicon:
     """The names a story's prose may use, each folded, longest first."""
 
     def __init__(self, known: list[Known]):
         self.by_kind: dict[str, dict[str, str]] = {"character": {}, "place": {}}
+        forms: dict[str, set[str]] = {}
         for k in known:
             for n in (k.name, *k.aliases):
                 if n and n.strip():
                     self.by_kind[k.kind].setdefault(fold(n), k.name)
+                    if k.kind == "character":
+                        for f in name_forms(n):
+                            forms.setdefault(fold(f), set()).add(k.name)
         self.characters = sorted(self.by_kind["character"], key=len, reverse=True)
+        self.forms = forms
+
+    def speaker(self, written: str) -> str | None:
+        """Who a speaker tag names: a name or other name in any case, or a shorter form of
+        one ("Calder", "Thomas") when only one character answers to it."""
+        key = fold(written)
+        if name := self.by_kind["character"].get(key):
+            return name
+        owners = self.forms.get(key, set())
+        return next(iter(owners)) if len(owners) == 1 else None
 
 
 def _unknown_word(text: str, i: int) -> int:
@@ -165,6 +208,32 @@ def find_speaker_tags(text: str) -> list[SpeakerTag]:
         if not speaker or open_at is None or m.start(1) - open_at < 2:
             continue
         out.append(SpeakerTag(open_at, m.start(1) + 1, m.start(1) + 1, m.end(), speaker))
+    return out
+
+
+_QUOTE = re.compile(
+    r"\u201c([^\u201c\u201d\"]+)[\u201d\"]|(?:^|(?<=[\s(\[\u2014\u2013]))\"([^\u201c\u201d\"]+)[\u201d\"]"
+)
+
+
+@dataclass(frozen=True)
+class Quote:
+    start: int
+    end: int
+    #: The words inside the quote marks, trimmed.
+    words: str
+
+
+def find_quotes(text: str) -> list[Quote]:
+    """Double-quoted passages that carry no speaker tag: “…” anywhere, "…" where a quote can
+    open (a line start, a space, a bracket, a dash). Single quotes are apostrophes until
+    tagged."""
+    tagged = [(t.quote_start, t.end) for t in find_speaker_tags(text)]
+    out: list[Quote] = []
+    for m in _QUOTE.finditer(text):
+        words = (m.group(1) or m.group(2) or "").strip()
+        if words and not any(a < m.end() and m.start() < b for a, b in tagged):
+            out.append(Quote(m.start(), m.end(), words))
     return out
 
 

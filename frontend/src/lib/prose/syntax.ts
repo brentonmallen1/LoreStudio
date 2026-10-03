@@ -34,20 +34,66 @@ export interface Lexicon {
   characters: Map<string, string>;
   /** Folded character names, longest first. */
   characterKeys: string[];
+  /** Each folded name form ("calder", "thomas") and the characters who answer to it. */
+  forms: Map<string, Set<string>>;
+}
+
+const PARENTHETICAL = /^(.*?)\s*\(([^)]+)\)\s*$/;
+const ARTICLES = new Set(["the", "a", "an"]);
+
+/**
+ * The ways prose refers to a character by name: the full name, either half of "The Visitor
+ * (Calder)", and a longer name's first word unless it is an article ("Eleanor", not "The").
+ */
+export function nameForms(label: string): Set<string> {
+  const clean = label.split(/\s+/).filter(Boolean).join(" ");
+  if (!clean) return new Set();
+  const forms = new Set([clean]);
+  let parts = [clean];
+  const m = PARENTHETICAL.exec(clean);
+  if (m) {
+    parts = [m[1], m[2]];
+    for (const p of parts) if (p) forms.add(p);
+  }
+  for (const part of parts) {
+    const words = part.split(/\s+/).filter(Boolean);
+    if (words.length > 1 && !ARTICLES.has(words[0].toLowerCase())) forms.add(words[0]);
+  }
+  return forms;
 }
 
 export function makeLexicon(known: KnownName[]): Lexicon {
   const places = new Map<string, string>();
   const characters = new Map<string, string>();
+  const forms = new Map<string, Set<string>>();
   for (const k of known) {
     const into = k.kind === "character" ? characters : places;
     for (const n of [k.name, ...(k.aliases ?? [])]) {
       const key = n?.trim() ? foldName(n) : "";
-      if (key && !into.has(key)) into.set(key, k.name);
+      if (!key) continue;
+      if (!into.has(key)) into.set(key, k.name);
+      if (k.kind === "character")
+        for (const f of nameForms(n)) {
+          const owners = forms.get(foldName(f)) ?? new Set<string>();
+          owners.add(k.name);
+          forms.set(foldName(f), owners);
+        }
     }
   }
   const characterKeys = [...characters.keys()].sort((a, b) => b.length - a.length);
-  return { places, characters, characterKeys };
+  return { places, characters, characterKeys, forms };
+}
+
+/**
+ * Who a speaker tag names: a name or other name in any case, or a shorter form of one
+ * ("Calder", "Thomas") when only one character answers to it.
+ */
+export function speakerName(lex: Lexicon, written: string): string | null {
+  const key = foldName(written);
+  const named = lex.characters.get(key);
+  if (named) return named;
+  const owners = lex.forms.get(key);
+  return owners && owners.size === 1 ? [...owners][0] : null;
 }
 
 export interface Mention {
@@ -156,6 +202,34 @@ export function findSpeakerTags(text: string): SpeakerTag[] {
       end: close + m[0].length,
       speaker,
     });
+  }
+  return out;
+}
+
+const QUOTE = new RegExp(
+  '\u201c([^\u201c\u201d"]+)[\u201d"]|(?:^|(?<=[\\s(\\[\u2014\u2013]))"([^\u201c\u201d"]+)[\u201d"]',
+  "g",
+);
+
+export interface Quote {
+  start: number;
+  end: number;
+  /** The words inside the quote marks, trimmed. */
+  words: string;
+}
+
+/**
+ * Double-quoted passages that carry no speaker tag: “…” anywhere, "…" where a quote can open
+ * (a line start, a space, a bracket, a dash). Single quotes are apostrophes until tagged.
+ */
+export function findQuotes(text: string): Quote[] {
+  const tagged = findSpeakerTags(text).map((t) => [t.quoteStart, t.end]);
+  const out: Quote[] = [];
+  for (const m of text.matchAll(QUOTE)) {
+    const start = m.index ?? 0;
+    const end = start + m[0].length;
+    const words = (m[1] ?? m[2] ?? "").trim();
+    if (words && !tagged.some(([a, b]) => a < end && start < b)) out.push({ start, end, words });
   }
   return out;
 }

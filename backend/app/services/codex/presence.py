@@ -23,6 +23,7 @@ from ...models.location import ScenePresence
 from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
 from ...models.twist import Twist
+from ..prose_syntax import name_forms
 
 logger = logging.getLogger(__name__)
 
@@ -36,33 +37,6 @@ MENTION = "mention"
 
 
 _TAG = re.compile(r"<[^>]+>")
-_PARENTHETICAL = re.compile(r"^(?P<outer>.*?)\s*\((?P<inner>[^)]+)\)\s*$")
-_ARTICLES = {"the", "a", "an"}
-
-
-def name_forms(label: str) -> set[str]:
-    """
-    The ways prose refers to a character by name.
-
-    A label is how the Lorebook files someone, not how a sentence says them: "Eleanor
-    Vance" is "Eleanor" on the page, and "The Visitor (Calder)" is either half. Matching
-    the whole label found almost nobody, so protagonists came out absent from their own
-    scenes. Same rule as the entity linker: full name, and a multi-word name's first word
-    — unless that word is an article, because "The" is not anybody.
-    """
-    label = " ".join(label.split())
-    if not label:
-        return set()
-    forms = {label}
-    parts = [label]
-    if m := _PARENTHETICAL.match(label):
-        parts = [m.group("outer"), m.group("inner")]
-        forms |= {p for p in parts if p}
-    for part in parts:
-        words = part.split()
-        if len(words) > 1 and words[0].lower() not in _ARTICLES:
-            forms.add(words[0])
-    return forms
 
 
 def _pattern(form: str) -> re.Pattern[str]:

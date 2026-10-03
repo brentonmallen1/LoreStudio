@@ -12,6 +12,11 @@ describe("other names", () => {
     expect(closeness("Old Lighthouse Road", "The Lighthouse")).toBe(2);
     expect(closeness("Lighthouse Steps", "Lighthouse Keeper")).toBe(1);
     expect(closeness("Nell", "Eleanor Vance")).toBe(0);
+    // By a form the prose uses, and a slip of the keys.
+    expect(closeness("Calder", "The Visitor (Calder)")).toBe(3);
+    expect(closeness("Caldre", "The Visitor (Calder)")).toBe(2);
+    expect(closeness("Eleanr Vance", "Eleanor Vance")).toBe(2);
+    expect(closeness("Tom", "Tim")).toBe(0);
   });
 
   it("ranks the closest first, by any of an entry's names", () => {

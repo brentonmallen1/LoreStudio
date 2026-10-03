@@ -17,6 +17,7 @@ import {
   setDialogueCallbacks,
   isDialogueModeActive,
   setDialogueModeActive,
+  FORCE_DIALOGUE_KEY,
 } from "../story/DialogueExtension";
 
 interface Args {
@@ -88,7 +89,11 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
   // Hand the items to the decoration plugin and rebuild whenever they, or the editor, change.
   useEffect(() => {
     setMentionItems(allItems);
-    if (editor?.view) editor.view.dispatch(editor.state.tr.setMeta(FORCE_MENTION_KEY, true));
+    // Speaker tags resolve by the same names, so the dialogue decorations rebuild too.
+    if (editor?.view)
+      editor.view.dispatch(
+        editor.state.tr.setMeta(FORCE_MENTION_KEY, true).setMeta(FORCE_DIALOGUE_KEY, true),
+      );
   }, [allItems, editor]);
 
   const filteredItems = useMemo(() => {
