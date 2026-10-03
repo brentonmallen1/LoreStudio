@@ -361,7 +361,7 @@
 }
 
 .histogram span:last-child {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 

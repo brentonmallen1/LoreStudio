@@ -185,7 +185,7 @@ export default function RelationshipRadarChart({ focusCharacterId, characters, r
                 domain={[0, 10]}
                 tickCount={6}
                 tickFormatter={tickFormatter}
-                tick={{ fill: "var(--color-text-subtle)", fontSize: 10 }}
+                tick={{ fill: "var(--color-text-subtle)", fontSize: 11 }}
                 stroke="var(--color-border)"
               />
               {selected.map((charId, idx) => (

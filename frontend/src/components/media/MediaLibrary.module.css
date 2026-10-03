@@ -26,7 +26,7 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-subtle);
   background: none;
   border: none;
@@ -49,7 +49,7 @@
   color: var(--color-text-muted);
   border-radius: 8px;
   padding: 0 5px;
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 600;
 }
 
@@ -67,7 +67,7 @@
   color: var(--color-bg);
   border: none;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.15s;
@@ -110,7 +110,7 @@
   gap: 10px;
   height: 200px;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 .grid {
@@ -185,7 +185,7 @@
 /* The name opens the image's own page (doc 13 P5). */
 .fileName {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text);
   overflow: hidden;
@@ -201,21 +201,21 @@
 }
 
 .altText {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   margin: 0;
   font-style: italic;
 }
 
 .desc {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
   line-height: 1.4;
 }
 
 .meta {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
 }
@@ -229,7 +229,7 @@
 
 .editInput {
   padding: 4px 7px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-bg);
@@ -239,7 +239,7 @@
 
 .editTextarea {
   padding: 4px 7px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: var(--color-bg);
@@ -268,7 +268,7 @@
   align-items: center;
   gap: 3px;
   padding: 3px 7px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   background: none;
@@ -292,7 +292,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: var(--color-accent);
   color: var(--color-bg);
   border: none;
@@ -304,7 +304,7 @@
   display: flex;
   align-items: center;
   padding: 3px 5px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -335,14 +335,14 @@
   justify-content: space-between;
   padding: 5px 8px;
   background: var(--color-surface-raised);
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--color-text-subtle);
 }
 
 .analysisText {
   padding: 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text);
   line-height: 1.5;
   white-space: pre-wrap;
@@ -354,7 +354,7 @@
 /* Where an image is used (doc 12 P6). */
 .usedBy {
   margin: 0.15rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   line-height: 1.4;
   color: var(--color-text-muted);
 }

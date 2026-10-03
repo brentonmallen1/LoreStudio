@@ -116,7 +116,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-nlp);
   padding: 0;
   text-decoration: underline;
@@ -178,7 +178,7 @@
 }
 
 .confidenceLow {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   background: var(--color-surface-2);
   padding: 0.1rem 0.3rem;

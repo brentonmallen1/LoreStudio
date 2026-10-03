@@ -44,7 +44,7 @@
   border-radius: 99px;
   border: 1px solid var(--color-border);
   background: transparent;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-family: inherit;
   color: var(--color-text-muted);
   cursor: pointer;

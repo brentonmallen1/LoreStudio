@@ -280,7 +280,7 @@
 }
 
 .sceneRef {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -305,7 +305,7 @@
 }
 
 .reasoning {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   margin: 0;
   line-height: 1.45;

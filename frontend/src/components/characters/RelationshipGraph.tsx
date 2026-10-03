@@ -681,9 +681,9 @@ export default function RelationshipGraph({ storyId, onEditRelationship }: Props
         {/* Strength scale */}
         {edges.length > 0 && (
           <span className={styles.legendItem} style={{ marginLeft: "auto", gap: "0.5rem" }}>
-            <span style={{ fontSize: "0.65rem" }}>weak</span>
+            <span style={{ fontSize: "var(--text-xs)" }}>weak</span>
             <span className={styles.strengthScaleBar} />
-            <span style={{ fontSize: "0.65rem" }}>strong</span>
+            <span style={{ fontSize: "var(--text-xs)" }}>strong</span>
           </span>
         )}
       </div>

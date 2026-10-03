@@ -469,7 +469,7 @@
 
 .tabDeleteYes {
   padding: 0.12rem 0.35rem;
-  font-size: 0.62rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
@@ -481,7 +481,7 @@
 
 .tabDeleteNo {
   padding: 0.12rem 0.35rem;
-  font-size: 0.62rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
@@ -568,7 +568,7 @@
 }
 
 .addTabMenuHint {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   padding: 0.35rem 0.65rem 0.25rem;
   line-height: 1.4;

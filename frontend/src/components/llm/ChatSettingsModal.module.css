@@ -54,7 +54,7 @@
 }
 
 .hint {
-  font-size: 0.69rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   line-height: 1.4;
 }

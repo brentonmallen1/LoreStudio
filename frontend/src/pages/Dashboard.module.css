@@ -256,7 +256,7 @@
 
 .deleteConfirmYes {
   padding: 0.22rem 0.5rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
@@ -268,7 +268,7 @@
 
 .deleteConfirmNo {
   padding: 0.22rem 0.5rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);

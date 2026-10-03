@@ -282,7 +282,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-warning);
 }
 
@@ -307,7 +307,7 @@
   border: 1px solid var(--color-ai);
   background: color-mix(in srgb, var(--color-ai) 8%, transparent);
   color: var(--color-ai);
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   cursor: pointer;
   transition: background var(--transition);
   font-family: inherit;

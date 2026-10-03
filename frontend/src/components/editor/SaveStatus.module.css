@@ -89,7 +89,7 @@
   background: var(--color-surface);
   color: inherit;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   cursor: pointer;
 }
 

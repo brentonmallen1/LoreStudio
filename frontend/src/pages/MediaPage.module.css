@@ -43,7 +43,7 @@
 
 .createInput {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   border: 1px solid var(--color-accent);
   border-radius: 5px;
   background: var(--color-bg);
@@ -54,7 +54,7 @@
 
 .typeSelect {
   padding: 5px 8px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   border: 1px solid var(--color-border);
   border-radius: 5px;
   background: var(--color-bg);
@@ -64,7 +64,7 @@
 
 .createBtn {
   padding: 5px 12px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
   background: var(--color-accent);
   color: var(--color-bg);
@@ -80,7 +80,7 @@
 
 .cancelBtn {
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 5px;
@@ -89,13 +89,13 @@
 }
 
 .hint {
-  font-size: 13px;
+  font-size: var(--text-base);
   color: var(--color-text-muted);
   margin: 0;
 }
 
 .hintSub {
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   margin: 4px 0 0;
 }
@@ -113,7 +113,7 @@
 
 .emptyDiagrams p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-md);
 }
 
 .diagramGrid {
@@ -169,7 +169,7 @@
 }
 
 .diagramTitle {
-  font-size: 13px;
+  font-size: var(--text-base);
   font-weight: 500;
   color: var(--color-text);
   overflow: hidden;
@@ -178,7 +178,7 @@
 }
 
 .diagramDesc {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -186,7 +186,7 @@
 }
 
 .diagramMeta {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: capitalize;
 }
@@ -233,13 +233,13 @@
   padding: 0 10px;
   background: var(--color-surface);
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   color: var(--color-text-subtle);
 }
 
 .confirmYes {
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: var(--color-danger);
   color: white;
   border: none;
@@ -249,7 +249,7 @@
 
 .confirmNo {
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 4px;

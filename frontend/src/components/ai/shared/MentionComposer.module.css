@@ -10,7 +10,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.15rem 0.3rem 0.15rem 0.5rem;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--color-ai) 35%, var(--color-border));
   background: color-mix(in srgb, var(--color-ai) 8%, var(--color-surface));
@@ -75,6 +75,6 @@
 }
 
 .kind {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }

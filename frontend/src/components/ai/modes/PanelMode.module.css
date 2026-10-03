@@ -215,7 +215,7 @@
 }
 
 .lengthBtn {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   padding: 2px 8px;
   border: none;
   border-radius: var(--radius);

@@ -30,7 +30,7 @@
 }
 
 .passageChip {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   font-style: italic;
   max-width: 200px;
@@ -122,7 +122,7 @@
 }
 
 .fitBadge {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 100px;
@@ -289,7 +289,7 @@
 
 .severityBadge {
   flex-shrink: 0;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 100px;
@@ -313,7 +313,7 @@
 
 .issueBadge {
   flex-shrink: 0;
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   padding: 2px 6px;
   border-radius: 100px;
   background: var(--color-surface-raised);

@@ -170,7 +170,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -178,7 +178,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-success);
 }
 
@@ -289,7 +289,7 @@
 }
 
 .toggleHint {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -354,7 +354,7 @@
 }
 
 .paramHint {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   line-height: 1.4;
 }
@@ -497,7 +497,7 @@
 }
 
 .modelSize {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   flex-shrink: 0;
 }
@@ -593,7 +593,7 @@
   margin-top: 0.35rem;
   padding: 0.15rem 0.6rem;
   border-radius: 99px;
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   background: var(--color-accent);
   color: var(--color-accent-fg);
@@ -697,7 +697,7 @@
 
 .kbd {
   font: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);

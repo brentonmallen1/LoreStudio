@@ -78,7 +78,7 @@
 }
 
 .beatPct {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
   min-width: 2.5rem;

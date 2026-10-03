@@ -56,7 +56,7 @@
   --font-editor: "Merriweather", Georgia, serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-size-editor: 15px;
-  --editor-max-width: 640px;
+  --editor-max-width: 60ch;
   /* ── Type scale (base: 15px) ──────────────────── */
   --text-xs: 0.73rem; /* 11px — metadata, captions         */
   --text-sm: 0.8rem; /* 12px — secondary labels, badges   */

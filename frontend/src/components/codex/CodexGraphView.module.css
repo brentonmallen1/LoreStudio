@@ -30,7 +30,7 @@
   border-radius: 999px;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   cursor: pointer;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .nodeLabel {
-  font-size: 10px;
+  font-size: var(--text-xs);
   fill: var(--color-text);
   pointer-events: none;
   paint-order: stroke;
@@ -91,7 +91,7 @@
   display: flex;
   gap: 0.9rem;
   flex-wrap: wrap;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 

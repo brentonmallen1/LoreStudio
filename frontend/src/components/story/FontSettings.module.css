@@ -97,6 +97,6 @@
 
 .toggleHint {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }

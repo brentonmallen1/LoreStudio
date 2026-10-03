@@ -91,10 +91,12 @@ export function getFontStack(fontFamily: EditorFontFamily): string {
   return FONT_OPTIONS.find((f) => f.value === fontFamily)?.stack ?? FONT_OPTIONS[0].stack;
 }
 
+// Characters of the prose font, not px (doc 17): a larger writing size keeps its words per
+// line. Medium is today's 640px column in Merriweather at 15px.
 export const LINE_WIDTHS: Record<EditorLineWidth, string> = {
-  narrow: "520px",
-  medium: "640px",
-  wide: "800px",
+  narrow: "48ch",
+  medium: "60ch",
+  wide: "76ch",
 };
 
 // In px, not rem: the interface size scales the root, and the prose must not follow it (doc 17 D2).

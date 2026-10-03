@@ -119,7 +119,7 @@
 }
 
 .proposed {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: var(--color-ai);
   border: 1px dashed var(--color-ai);
   border-radius: 4px;

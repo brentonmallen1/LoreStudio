@@ -21,12 +21,12 @@
 /* Sizes */
 .sm {
   padding: 3px 8px;
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .md {
   padding: 5px 10px;
-  font-size: 13px;
+  font-size: var(--text-base);
 }
 
 /* Variants */

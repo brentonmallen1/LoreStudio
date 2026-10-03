@@ -210,7 +210,7 @@
 }
 
 .matchedText {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }
 
@@ -228,7 +228,7 @@
 
 .arrow {
   color: var(--color-text-subtle);
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
 }
 
 .linkCode {
@@ -242,7 +242,7 @@
 }
 
 .excerpt {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   margin: 0;
   line-height: 1.5;

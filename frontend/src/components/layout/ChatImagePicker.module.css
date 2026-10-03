@@ -100,7 +100,7 @@
 
 .tab {
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--text-xs);
   background: none;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -166,7 +166,7 @@
 
 .searchInput {
   flex: 1;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-family: inherit;
   background: none;
   border: none;
@@ -175,7 +175,7 @@
 }
 
 .hint {
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-align: center;
   padding: 12px 0;
@@ -237,7 +237,7 @@
 }
 
 .gridName {
-  font-size: 9px;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   width: 100%;
   overflow: hidden;
@@ -256,7 +256,7 @@
 }
 
 .uploadHint {
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   text-align: center;
   line-height: 1.5;
@@ -268,7 +268,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
   background: var(--color-accent);
   color: var(--color-bg);

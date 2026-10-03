@@ -200,7 +200,7 @@
 }
 
 .beatScenes {
-  font-size: 0.68rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   white-space: nowrap;
 }

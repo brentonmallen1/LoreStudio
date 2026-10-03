@@ -138,7 +138,7 @@
   border: 1px solid var(--color-ai);
   background: color-mix(in srgb, var(--color-ai) 8%, transparent);
   color: var(--color-ai);
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   cursor: pointer;
   transition: background var(--transition);
 }
@@ -172,7 +172,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-nlp);
   padding: 0;
 }
@@ -259,7 +259,7 @@
 }
 
 .excerpt {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin: 0;
   padding-left: 1.2rem;
@@ -287,7 +287,7 @@
   display: flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 

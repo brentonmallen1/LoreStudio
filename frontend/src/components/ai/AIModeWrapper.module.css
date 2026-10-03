@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--color-text-muted);
   flex-shrink: 0;
@@ -156,7 +156,7 @@
   border: 1px solid currentColor;
   background: none;
   color: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-family: inherit;
   cursor: pointer;
   opacity: 0.8;

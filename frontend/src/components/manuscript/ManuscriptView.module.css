@@ -220,7 +220,7 @@
 }
 
 .pubPrepBtnDesc {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-muted);
   margin-top: 1px;
 }
@@ -440,6 +440,6 @@ h3.structureHeading {
 }
 
 .wordCount {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
 }

@@ -65,7 +65,7 @@
 }
 
 .count {
-  font-size: 0.7rem;
+  font-size: var(--text-xs);
   opacity: 0.75;
 }
 

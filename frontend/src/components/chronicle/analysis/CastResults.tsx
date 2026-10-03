@@ -44,7 +44,7 @@ function ClicheInstanceRow({ instance }: { instance: ClicheInstance }) {
           <span
             style={{
               marginLeft: 6,
-              fontSize: "0.68rem",
+              fontSize: "var(--text-xs)",
               color: "var(--color-text-muted)",
               fontStyle: "normal",
             }}
@@ -158,10 +158,10 @@ function CharacterDimensionRow({ char }: { char: CharacterDimensionEntry }) {
           }}
         />
         <span style={{ flex: 1 }}>{char.character_name}</span>
-        <span style={{ fontSize: "0.68rem", color, fontWeight: 600, textTransform: "capitalize" }}>
+        <span style={{ fontSize: "var(--text-xs)", color, fontWeight: 600, textTransform: "capitalize" }}>
           {char.dimension_score}
         </span>
-        <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>
+        <span style={{ fontSize: "var(--text-xs)", color: "var(--color-text-muted)", fontStyle: "italic" }}>
           {char.role}
         </span>
       </button>

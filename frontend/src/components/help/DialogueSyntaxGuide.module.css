@@ -106,7 +106,7 @@
 }
 
 .inferredBadge {
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   color: var(--color-text-subtle);
   font-style: italic;
 }

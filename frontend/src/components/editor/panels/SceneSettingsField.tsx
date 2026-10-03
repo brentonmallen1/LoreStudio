@@ -5,7 +5,7 @@ import type { Location, SceneSetting, StructureNode } from "../../../types";
 import styles from "../SceneEditor.module.css";
 
 const smallSelect: React.CSSProperties = {
-  fontSize: "0.72rem",
+  fontSize: "var(--text-xs)",
   fontFamily: "inherit",
   padding: "0.15rem 0.3rem",
   borderRadius: "var(--radius-sm)",
