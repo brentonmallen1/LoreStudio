@@ -14,7 +14,8 @@ from sqlalchemy.orm import Session
 from ...models.proposal_decline import ProposalDecline
 from ...schemas.proposals import Proposal, ProposalsOut
 from ..findings.runs import latest_runs
-from .sources import SOURCES, reading_order, scene_hashes, scene_titles
+from ..structure_order import reading_order
+from .sources import SOURCES, scene_hashes, scene_titles
 
 #: Writer mode shows no Assistant: these sources are hidden there.
 AI_SOURCES = {"ai"}

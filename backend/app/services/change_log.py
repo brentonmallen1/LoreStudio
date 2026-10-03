@@ -71,6 +71,7 @@ ENTITY_MODELS: dict[str, type] = {
     "reader_knowledge_event": ReaderKnowledgeEvent,
     "scene_setting": SceneSetting,
     "location_travel": LocationTravel,
+    "scene_link": SceneLink,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).

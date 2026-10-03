@@ -44,39 +44,29 @@ def validate_thread_nesting(
             return -1
         return pos.get(node_id, -1)
 
+    spans = []
+    for t in typed:
+        o, c = node_pos(t.opens_at_node_id), node_pos(t.closes_at_node_id)
+        if o != -1 and c != -1 and c >= o:
+            spans.append((o, c, t))
+    # Earliest open first; a tie goes to the one that closes later (it holds the other).
+    spans.sort(key=lambda s: (s[0], -s[1], s[2].name or ""))
+
     violations = []
-
-    # Check every pair of threads for crossing.
-    for i, a in enumerate(typed):
-        a_open = node_pos(a.opens_at_node_id)
-        a_close = node_pos(a.closes_at_node_id)
-        if a_open == -1 or a_close == -1:
-            continue
-
-        for b in typed[i + 1 :]:
-            b_open = node_pos(b.opens_at_node_id)
-            b_close = node_pos(b.closes_at_node_id)
-            if b_open == -1 or b_close == -1:
-                continue
-
-            # Determine which opened first.
-            if a_open <= b_open:
-                outer, inner = a, b
-                outer_close, inner_close = a_close, b_close
-            else:
-                outer, inner = b, a
-                outer_close, inner_close = b_close, a_close
-
-            # Violation: inner thread closes AFTER outer thread.
-            if inner_close > outer_close:
+    # A crossing: B opens inside A (after A opens, before A closes) and closes after A does.
+    # Threads that follow one another, or that hand over in the scene one closes and the next
+    # opens, do not cross (doc 18: this used to flag any later thread that closed later).
+    for i, (a_open, a_close, outer) in enumerate(spans):
+        for b_open, b_close, inner in spans[i + 1 :]:
+            if a_open < b_open < a_close < b_close:
                 violations.append(
                     {
                         "thread_id": inner.id,
                         "thread_name": inner.name,
                         "message": (
-                            f'"{inner.name}" opens after "{outer.name}" but closes after it. '
-                            f"MICE threads must close in reverse order of opening (LIFO). "
-                            f'Close "{inner.name}" before closing "{outer.name}".'
+                            f'"{inner.name}" opens inside "{outer.name}" but closes after it. '
+                            f"MICE threads close in the reverse order they open. "
+                            f'Close "{inner.name}" before "{outer.name}", or open it after.'
                         ),
                         "conflicting_thread_id": outer.id,
                         "conflicting_thread_name": outer.name,

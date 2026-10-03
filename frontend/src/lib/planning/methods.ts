@@ -321,8 +321,9 @@ export function sceneLeaves(
 }
 
 /**
- * Threads that cross instead of nesting: A opens before B but closes after B opened and
- * before B closed. Pairs of names, for a gentle warning, not a rule.
+ * Threads that cross instead of nesting: B opens inside A and closes after A does. A handover
+ * (B opens in the scene A closes) is not a crossing. Pairs of names, for a gentle warning, not
+ * a rule. The server's check (services/mice_validation.py) has the same rule.
  */
 export function crossingThreads(threads: PlotThread[], scenes: StructureNode[]): [string, string][] {
   const at = new Map(scenes.map((s, i) => [s.id, i]));
@@ -337,6 +338,6 @@ export function crossingThreads(threads: PlotThread[], scenes: StructureNode[]):
   const out: [string, string][] = [];
   for (const a of spans)
     for (const b of spans)
-      if (a.open < b.open && b.open <= a.close && a.close < b.close) out.push([a.name, b.name]);
+      if (a.open < b.open && b.open < a.close && a.close < b.close) out.push([a.name, b.name]);
   return out;
 }

@@ -43,6 +43,7 @@ from ..services.character_journey import (
 )
 from ..services.character_knowledge import build_scope
 from ..services.codex.presence import naming
+from ..services.dangling import detach_character
 from ..services.dialogue_service import sync_story_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links_preloaded
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
@@ -113,6 +114,7 @@ def delete_character(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     character = _verify_character_access(character_id, db, current_user)
+    batch = detach_character(db, character.story_id, character.id, actor_id=current_user.id, client_id=client_id)
     change_log.record(
         db,
         story_id=character.story_id,
@@ -124,6 +126,7 @@ def delete_character(
         label=f"Delete character {character.name}",
         actor_id=current_user.id,
         client_id=client_id,
+        batch_id=batch,
     )
     db.delete(character)
     db.commit()

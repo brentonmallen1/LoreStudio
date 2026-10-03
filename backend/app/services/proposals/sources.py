@@ -268,23 +268,6 @@ def _clean(name: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"^[^\w]+|[^\w'’.]+$", "", name)).strip()
 
 
-def reading_order(story_id: str, db: Session) -> dict[str, int]:
-    """Each node's place in the book, depth first, so the inbox reads front to back."""
-    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
-    children: dict[str | None, list[StructureNode]] = {}
-    for n in nodes:
-        children.setdefault(n.parent_id, []).append(n)
-    order: dict[str, int] = {}
-
-    def walk(parent: str | None) -> None:
-        for n in sorted(children.get(parent, []), key=lambda n: n.position):
-            order[n.id] = len(order)
-            walk(n.id)
-
-    walk(None)
-    return order
-
-
 def scene_titles(story_id: str, db: Session) -> dict[str, str]:
     return {
         n.id: n.title or "Untitled scene" for n in db.query(StructureNode).filter(StructureNode.story_id == story_id)

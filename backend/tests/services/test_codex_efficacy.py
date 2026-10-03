@@ -159,3 +159,22 @@ def test_retrieval_prefers_a_scene_set_somewhere_over_one_that_mentions_it(db_se
     )
     assert [b.node_id for b in blocks] == [set_there.id]
     assert blocks[0].why == "set in The Lighthouse"
+
+
+def test_only_the_reader_knows_a_reader_only_fact(db_session, test_user):
+    """Doc 18: dramatic irony is the reader knowing what the people in the room do not."""
+    story, *_ = _lighthouse(db_session, test_user)
+    event = db_session.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story.id).one()
+    event.knowledge_type = "reader_only"
+    db_session.commit()
+    derive_facts(story.id, db_session)
+    assert _knowers(db_session, story) == set()
+
+
+def test_a_misdirection_is_not_a_fact_anyone_knows(db_session, test_user):
+    story, *_ = _lighthouse(db_session, test_user)
+    event = db_session.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story.id).one()
+    event.is_truth = False
+    db_session.commit()
+    derive_facts(story.id, db_session)
+    assert db_session.query(CodexNode).filter(CodexNode.story_id == story.id, CodexNode.kind == "fact").count() == 0

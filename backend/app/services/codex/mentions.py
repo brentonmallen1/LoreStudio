@@ -34,7 +34,7 @@ _LABELS = {
     "synopsis": "Synopsis",
     "purpose": "Purpose",
     "status": "Status",
-    "resolution": "Resolution",
+    "mice_type": "MICE kind",
     "prose_preview": "Opens",
 }
 
@@ -69,7 +69,7 @@ def _scene(node: StructureNode) -> dict:
 
 def _thread(t: PlotThread) -> dict:
     item: dict = {"kind": "thread", "id": t.id, "name": t.name, "status": t.status}
-    for key in ("description", "resolution"):
+    for key in ("description", "mice_type"):
         if getattr(t, key, None):
             item[key] = getattr(t, key)
     return item

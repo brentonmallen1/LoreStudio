@@ -217,14 +217,28 @@ def derive_facts(story_id: str, db: Session) -> int:
         if (edge.props or {}).get("role") in WITNESSING_ROLES:
             witnessed.setdefault(edge.dst_id, set()).add(edge.src_id)
 
-    facts: list[tuple[str, str, str, str | None, list[str]]] = []
+    # (ref, label, detail, scene, listed knowers, whether being in the room is knowing)
+    facts: list[tuple[str, str, str, str | None, list[str], bool]] = []
     for event in db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id):
+        if not event.is_truth:
+            # A misdirection is what the reader is led to believe, not a fact anyone knows.
+            continue
+        # Only the reader knows a reader-only fact (that gap is the dramatic irony), so the
+        # people in the room are not handed it; the author's list still counts (doc 18).
+        witnessed_counts = event.knowledge_type != "reader_only"
         facts.append(
-            (event.id, event.subject, event.detail or "", event.node_id, list(event.characters_who_know or []))
+            (
+                event.id,
+                event.subject,
+                event.detail or "",
+                event.node_id,
+                list(event.characters_who_know or []),
+                witnessed_counts,
+            )
         )
     for twist in db.query(Twist).filter(Twist.story_id == story_id):
         if twist.revealed_at_node_id and twist.the_truth:
-            facts.append((f"twist:{twist.id}", twist.name, twist.the_truth, twist.revealed_at_node_id, []))
+            facts.append((f"twist:{twist.id}", twist.name, twist.the_truth, twist.revealed_at_node_id, [], True))
 
     # Facts are regenerated wholesale; the author's own `knows` links are overrides and stay.
     existing = {
@@ -239,7 +253,7 @@ def derive_facts(story_id: str, db: Session) -> int:
 
     seen: set[str] = set()
     made = 0
-    for ref_id, label, detail, node_id, known_by in facts:
+    for ref_id, label, detail, node_id, known_by, witnessed_counts in facts:
         seen.add(ref_id)
         fact = existing.get(ref_id)
         if fact:
@@ -270,7 +284,7 @@ def derive_facts(story_id: str, db: Session) -> int:
             )
 
         knowers = {char_by_ref[c].id for c in known_by if c in char_by_ref}
-        if scene_node:
+        if scene_node and witnessed_counts:
             knowers |= witnessed.get(scene_node.id, set())
         for char_node_id in knowers:
             if char_node_id not in characters_by_node_id:

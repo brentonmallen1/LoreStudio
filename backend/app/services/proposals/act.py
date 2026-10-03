@@ -20,6 +20,7 @@ from .. import change_log
 from ..codex.presence import derive_facts, derive_presence
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
+from ..who_knows import character_ids
 from .sources import knowledge_key
 
 
@@ -149,7 +150,9 @@ def _answer_codex(story_id: str, ref: str, db: Session, actor: str, client: str 
         node_id=scene.ref_id if scene else None,
         subject=fact.label,
         detail=(fact.props or {}).get("quote", ""),
-        knowledge_type="character_learns",
+        # What a scene establishes, the reader now knows. It was "a character learns" with
+        # nobody named, which read as dramatic irony (doc 18).
+        knowledge_type="truth_revealed",
     )
     _create(
         db,
@@ -187,7 +190,7 @@ def _add_knowledge(story_id: str, p: Proposal, db: Session, actor: str, client: 
         subject=p.subject,
         detail=ev.get("detail") or "",
         reader_knows=ev.get("reader_knows", True),
-        characters_who_know=ev.get("characters_who_know") or [],
+        characters_who_know=character_ids(story_id, ev.get("characters_who_know") or [], db),
         is_truth=ev.get("is_truth", True),
     )
     _create(

@@ -24,6 +24,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.scene_cast import SceneCastEntry, SceneCastOut
 from ..services.codex.presence import known_as, name_patterns, plain_text
+from ..services.structure_order import order_of
 
 router = APIRouter()
 
@@ -50,8 +51,11 @@ def get_scene_cast(story_id: str, db: Session = Depends(get_db), current_user: U
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position).all()
-    scenes = _leaf_scenes(nodes)
+    nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    # Reading order, not raw position (which interleaves chapters): the strip, lanes and
+    # presence read this list front to back (doc 18).
+    order = order_of(nodes)
+    scenes = sorted(_leaf_scenes(nodes), key=lambda n: order.get(n.id, 0))
     scene_ids = [s.id for s in scenes]
     characters = db.query(Character).filter(Character.story_id == story_id).all()
     patterns = name_patterns({c.id: known_as(c) for c in characters})

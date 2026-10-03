@@ -135,5 +135,9 @@ describe("planning methods", () => {
       ({ name, mice_type: "event", opens_at_node_id: open, closes_at_node_id: close }) as PlotThread;
     expect(crossingThreads([t("outer", "s1", "s4"), t("inner", "s2", "s3")], scenes)).toEqual([]);
     expect(crossingThreads([t("A", "s1", "s3"), t("B", "s2", "s4")], scenes)).toEqual([["A", "B"]]);
+    // A handover (B opens in the scene A closes) and a thread after another are not crossings,
+    // the same rule as the server's check (doc 18).
+    expect(crossingThreads([t("A", "s1", "s2"), t("B", "s2", "s4")], scenes)).toEqual([]);
+    expect(crossingThreads([t("A", "s1", "s2"), t("B", "s3", "s4")], scenes)).toEqual([]);
   });
 });

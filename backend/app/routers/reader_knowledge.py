@@ -16,10 +16,14 @@ from ..schemas.reader_knowledge import (
     ReaderKnowledgeEventOut,
     ReaderKnowledgeEventUpdate,
 )
+from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.reader_knowledge import (
     build_reader_knowledge_scan_prompt,
 )
+from ..services.patching import check_nodes, patch_fields
+from ..services.structure_order import reading_order
+from ..services.who_knows import character_ids
 from ..services.wording import count
 
 router = APIRouter()
@@ -65,7 +69,18 @@ def list_events(
         .order_by(ReaderKnowledgeEvent.created_at.asc())
         .all()
     )
+    # In reading order (doc 18): what the reader learns, front to back; unplaced events last.
+    order = reading_order(story_id, db)
+    events.sort(key=lambda e: order.get(e.node_id or "", len(order)))
     return [_enrich(e, db) for e in events]
+
+
+def _check_twist(db: Session, story_id: str, twist_id: str | None) -> None:
+    if twist_id is None:
+        return
+    twist = db.get(Twist, twist_id)
+    if twist is None or twist.story_id != story_id:
+        raise HTTPException(status_code=422, detail="twist_id: no such twist in this story")
 
 
 @router.post(
@@ -78,10 +93,26 @@ def create_event(
     body: ReaderKnowledgeEventCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
-    event = ReaderKnowledgeEvent(story_id=story_id, **body.model_dump())
+    check_nodes(db, story_id, body.model_dump(), ("node_id",))
+    _check_twist(db, story_id, body.twist_id)
+    fields = body.model_dump()
+    fields["characters_who_know"] = character_ids(story_id, fields.get("characters_who_know") or [], db)
+    event = ReaderKnowledgeEvent(story_id=story_id, **fields)
     db.add(event)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        event,
+        "reader_knowledge_events",
+        entity_type="reader_knowledge_event",
+        story_id=story_id,
+        label=f"Add what the reader knows: {event.subject}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(event)
     return _enrich(event, db)
@@ -106,12 +137,28 @@ def update_event(
     body: ReaderKnowledgeEventUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     event = db.get(ReaderKnowledgeEvent, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     _verify_story(event.story_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = patch_fields(body, nullable={"node_id", "twist_id", "supersedes_id"})
+    check_nodes(db, event.story_id, data, ("node_id",))
+    _check_twist(db, event.story_id, data.get("twist_id"))
+    if "characters_who_know" in data:
+        data["characters_who_know"] = character_ids(event.story_id, data["characters_who_know"] or [], db)
+    change_log.record_update(
+        db,
+        event,
+        data,
+        entity_type="reader_knowledge_event",
+        story_id=event.story_id,
+        label=f"Edit {{fields}} on what the reader knows: {event.subject}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(event, key, value)
     db.commit()
     db.refresh(event)
@@ -123,11 +170,22 @@ def delete_event(
     event_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     event = db.get(ReaderKnowledgeEvent, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     _verify_story(event.story_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        event,
+        "reader_knowledge_events",
+        entity_type="reader_knowledge_event",
+        story_id=event.story_id,
+        label=f"Delete what the reader knows: {event.subject}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(event)
     db.commit()
 

@@ -16,6 +16,7 @@ from ..schemas.plot_thread import (
 )
 from ..services import change_log
 from ..services.color_slots import next_slot
+from ..services.patching import check_nodes, patch_fields
 
 router = APIRouter()
 
@@ -55,6 +56,7 @@ def create_thread(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
+    check_nodes(db, story_id, body.model_dump(), ("opens_at_node_id", "closes_at_node_id"))
     thread = PlotThread(story_id=story_id, **body.model_dump())
     if not thread.color_slot:
         thread.color_slot = next_slot(
@@ -86,7 +88,8 @@ def update_thread(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     thread = _verify_thread(thread_id, db, current_user)
-    data = body.model_dump(exclude_none=True)
+    data = patch_fields(body, nullable={"mice_type", "opens_at_node_id", "closes_at_node_id"})
+    check_nodes(db, thread.story_id, data, ("opens_at_node_id", "closes_at_node_id"))
     change_log.record_update(
         db,
         thread,
@@ -139,6 +142,7 @@ def add_appearance(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     thread = _verify_thread(thread_id, db, current_user)
+    check_nodes(db, thread.story_id, {"node_id": body.node_id}, ("node_id",))
     # Prevent duplicate appearances for same node
     existing = (
         db.query(PlotThreadAppearance)

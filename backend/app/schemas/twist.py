@@ -1,15 +1,18 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
+
+TwistType = Literal["reveal", "reversal", "identity", "unreliable_narrator", "red_herring"]
+TwistStatus = Literal["planned", "seeding", "revealed"]
 
 
 class TwistCreate(BaseModel):
     name: str
     the_truth: str = ""
     the_misdirection: str = ""
-    twist_type: str = "reveal"
-    status: str = "planned"
+    twist_type: TwistType = "reveal"
+    status: TwistStatus = "planned"
     revealed_at_node_id: str | None = None
     clues: list[Any] = []
 
@@ -18,8 +21,8 @@ class TwistUpdate(BaseModel):
     name: str | None = None
     the_truth: str | None = None
     the_misdirection: str | None = None
-    twist_type: str | None = None
-    status: str | None = None
+    twist_type: TwistType | None = None
+    status: TwistStatus | None = None
     revealed_at_node_id: str | None = None
     clues: list[Any] | None = None
 

@@ -11,6 +11,7 @@ from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.structure import StructureNodeOut, StructureNodeUpdate
 from ..services import change_log
+from ..services.dangling import detach_scenes
 from ..services.dialogue_service import sync_scene_dialogue
 from ..services.linking_service import apply_entity_links, suggest_entity_links
 from ..services.llm.gateway import AICallContext, AICallResult, ai_gateway
@@ -238,17 +239,22 @@ def delete_node(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     node = _verify_node_access(node_id, db, current_user)
+    tree = change_log.capture_node_tree(node, db)
+    batch = detach_scenes(
+        db, node.story_id, {n["id"] for n in tree["structure_nodes"]}, actor_id=current_user.id, client_id=client_id
+    )
     change_log.record(
         db,
         story_id=node.story_id,
         entity_type="structure_node",
         entity_id=node.id,
         action="delete",
-        before=change_log.capture_node_tree(node, db),
+        before=tree,
         after=None,
         label=f"Delete {node.level_type} “{node.title}”",
         actor_id=current_user.id,
         client_id=client_id,
+        batch_id=batch,
     )
     db.delete(node)
     db.commit()

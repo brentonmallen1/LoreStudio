@@ -15,6 +15,7 @@ from ..services import change_log
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
+from ..services.patching import check_nodes, patch_fields
 
 router = APIRouter()
 
@@ -56,6 +57,7 @@ def create_twist(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
+    check_nodes(db, story_id, body.model_dump(), ("revealed_at_node_id",))
     twist = Twist(story_id=story_id, **body.model_dump())
     db.add(twist)
     db.flush()
@@ -92,7 +94,8 @@ def update_twist(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     twist = _verify_twist(twist_id, db, current_user)
-    data = body.model_dump(exclude_none=True)
+    data = patch_fields(body, nullable={"revealed_at_node_id"})
+    check_nodes(db, twist.story_id, data, ("revealed_at_node_id",))
     change_log.record_update(
         db,
         twist,
@@ -332,16 +335,13 @@ def link_clue_to_scene(
     """Link a clue to a specific scene node (or unlink by passing empty string)."""
     twist = _verify_twist(twist_id, db, current_user)
     clues = [dict(c) for c in twist.clues or []]  # copies, so the before-image stays intact
-    scene_title = None
-    if scene_id:
-        node = db.get(StructureNode, scene_id)
-        if node:
-            scene_title = node.title
-    for c in clues:
-        if c.get("id") == clue_id:
-            c["node_id"] = scene_id or None
-            c["scene_title"] = scene_title
-            break
+    check_nodes(db, twist.story_id, {"scene_id": scene_id or None}, ("scene_id",))
+    clue = next((c for c in clues if c.get("id") == clue_id), None)
+    if clue is None:
+        raise HTTPException(status_code=404, detail="Clue not found")
+    clue["node_id"] = scene_id or None
+    # No copy of the scene's title: it went stale on a rename (doc 18). Readers look it up.
+    clue.pop("scene_title", None)
     change_log.record_update(
         db,
         twist,
