@@ -339,7 +339,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Act balance, tension curve and structural rhythm.",
-        context=("Story structure", "Scene synopses", "Word counts", "MICE threads"),
+        context=("Story structure", "Scene synopses", "Word counts"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -348,7 +348,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Logical gaps, dropped questions and inconsistencies.",
-        context=("Scene prose", "Story structure", "Plot threads", "Character motivations"),
+        context=("Scene prose", "Story structure", "Plot threads", "Twists", "Character motivations"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -365,7 +365,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Detects reveals, misdirections and clues from scene synopses.",
-        context=("Scene synopses", "Existing knowledge events"),
+        context=("Scene synopses (or openings)", "Characters", "Twists", "What the reader already knows"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -417,7 +417,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Recurring themes and motifs, and where they develop.",
-        context=("Scene prose", "Story intent", "Plot threads"),
+        context=("Scene prose", "Story intent"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -426,7 +426,12 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="How a plot thread progresses, and where it goes quiet.",
-        context=("Thread description", "Scenes tagged to the thread", "Thread status"),
+        context=(
+            "Thread description",
+            "Where it opens and closes",
+            "Try/fail cycles",
+            "Its scenes in reading order, with your notes",
+        ),
         budget=BUDGET_LARGE,
     ),
     AIFeature(
@@ -444,7 +449,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Clue quality, distribution and whether the reveal lands.",
-        context=("Twist description", "Linked clues", "Scenes mentioning it"),
+        context=("The truth and the misdirection", "Clues, before or after the reveal", "The reveal scene"),
     ),
     AIFeature(
         id="twist-impact",
@@ -452,7 +457,13 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="What changes downstream once a twist resolves.",
-        context=("Twist description", "Plot threads", "Character arcs", "Scene synopses"),
+        context=(
+            "The truth and the misdirection",
+            "Clues and the reveal",
+            "Plot threads",
+            "Characters",
+            "Scene synopses",
+        ),
     ),
     AIFeature(
         id="voice-fidelity",

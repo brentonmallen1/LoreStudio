@@ -3,7 +3,6 @@ Analysis prompts — character arc analysis, MICE economy, session recap, show-d
 """
 
 from ....models.character import Character
-from ....models.plot_thread import PlotThread
 from ....models.story import Story
 from .interviews import _ATTR_GUIDANCE, _ATTR_LABELS, _normalise
 
@@ -207,86 +206,6 @@ def build_character_arc_prompt(
         f"Answer: Where is {character.name} right now in their arc? What have they done, how have they changed, "
         f"and what still needs to happen? Be specific about what's been written vs. what's planned."
     )
-
-
-def build_thread_analysis_prompt(
-    thread: PlotThread,
-    story_title: str,
-    story_context: str,
-    scenes: list[dict],  # [{"id", "title", "content_excerpt"}]
-) -> str:
-    """Structured JSON prompt to analyze a plot thread's progression and quality."""
-    cycles_text = ""
-    if thread.try_fail_cycles:
-        lines = []
-        for i, c in enumerate(thread.try_fail_cycles, 1):
-            scene_ref = (
-                f"[{c.get('scene_title', 'unlinked')}]" if c.get("scene_title") or c.get("scene_id") else "[unlinked]"
-            )
-            lines.append(f"  {i}. {c.get('action', '?')} → {c.get('outcome_type', '?')} {scene_ref}")
-        cycles_text = "\n".join(lines)
-    else:
-        cycles_text = "  (none defined)"
-
-    scenes_block = ""
-    if scenes:
-        parts = []
-        for s in scenes:
-            excerpt = s.get("content_excerpt", "")[:500]
-            parts.append(f"[{s['title']}]\n{excerpt}{'...' if len(s.get('content_excerpt', '')) > 500 else ''}")
-        scenes_block = "\n\n".join(parts)
-    else:
-        scenes_block = "(no scenes tagged to this thread yet)"
-
-    return f"""You are a story craft advisor analyzing a plot thread in "{story_title}".
-
-THREAD: {thread.name}
-Type (MICE): {thread.mice_type or "unspecified"}
-Status: {thread.status}
-Description: {thread.description or "(none)"}
-
-Story context: {story_context or "Not provided"}
-
-TRY/FAIL CYCLES ({len(thread.try_fail_cycles or [])} defined):
-{cycles_text}
-
-SCENES WHERE THIS THREAD APPEARS ({len(scenes)} scenes):
-{scenes_block}
-
-Analyze this plot thread and respond with a JSON object matching this exact schema:
-
-{{
-  "progression": {{
-    "summary": "1-2 sentence overview of where this thread is in its MICE lifecycle",
-    "details": ["specific observation about the thread's current state", "what has been established", "what still needs to happen"]
-  }},
-  "moment_discoveries": [
-    {{
-      "scene_id": "the scene id from the data above",
-      "scene_title": "scene title",
-      "moment_type": "inciting | complication | turning_point | climax | resolution",
-      "description": "brief description of what this scene does for the thread",
-      "suggested_cycle_link": true or false
-    }}
-  ],
-  "quality": {{
-    "summary": "1-2 sentence assessment of pacing, struggle depth, and resolution setup",
-    "details": ["specific observation about try/fail cycle depth", "observation about pacing or tension", "observation about setup/payoff"]
-  }},
-  "unlinked_cycles": [
-    "description of any try/fail cycle that has no scene assigned"
-  ],
-  "suggestions": [
-    "specific, actionable suggestion referencing scene and thread names"
-  ],
-  "overall_rating": "needs_work | fair | good | excellent"
-}}
-
-Rules:
-- Output ONLY valid JSON. No markdown, no extra text.
-- moment_discoveries: only include scenes that mark a meaningful beat — not every scene.
-- suggested_cycle_link is true if the scene represents a distinct attempt/failure worth tracking.
-- overall_rating: needs_work = major structural issues, fair = functional but weak, good = solid craft, excellent = exemplary."""
 
 
 def build_arc_analysis_prompt(
@@ -702,8 +621,10 @@ def build_plot_hole_detection_prompt(
     characters_summary: list[str],
     threads_summary: list[str],
     scenes_with_content: list[str],
+    twists_summary: list[str] | None = None,
 ) -> str:
-    """Prompt to detect logical gaps and plot holes."""
+    """Prompt to detect logical gaps and plot holes. The twists are said (doc 18), so a
+    deliberate mystery or red herring is not reported as a hole."""
     return f"""You are a story logic analyst for "{story_title}".
 
 Story intent: {story_intent or "Not specified"}
@@ -713,6 +634,9 @@ CHARACTERS:
 
 PLOT THREADS:
 {chr(10).join(threads_summary) if threads_summary else "No threads defined."}
+
+TWISTS THE AUTHOR IS PLANNING (what looks like a gap may be one of these, on purpose):
+{chr(10).join(twists_summary) if twists_summary else "None."}
 
 SCENES (in order, with excerpts):
 {chr(10).join(scenes_with_content) if scenes_with_content else "No scenes written yet."}

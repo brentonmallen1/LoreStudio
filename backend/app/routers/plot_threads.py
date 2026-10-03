@@ -7,6 +7,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
+from ..schemas.ai_responses import StructuredResult, ThreadAnalysisResponse
 from ..schemas.plot_thread import (
     PlotThreadAppearanceCreate,
     PlotThreadAppearanceOut,
@@ -16,7 +17,11 @@ from ..schemas.plot_thread import (
 )
 from ..services import change_log
 from ..services.color_slots import next_slot
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.threads import build_thread_analysis_prompt
 from ..services.patching import check_nodes, patch_fields
+from ..services.structure_order import order_of
+from ..services.text_utils import prose_text
 
 router = APIRouter()
 
@@ -202,3 +207,68 @@ def remove_appearance(
         )
         db.delete(appearance)
         db.commit()
+
+
+@router.post("/threads/{thread_id}/analyze", response_model=StructuredResult)
+async def analyze_thread(
+    thread_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Analyze a plot thread's progression, moment mapping, and quality."""
+    thread = db.get(PlotThread, thread_id)
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    story = db.query(Story).filter(Story.id == thread.story_id, Story.user_id == current_user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    # The thread's scenes in reading order, written or planned, with what the author noted
+    # each one does; the opening and closing scenes count even when not tagged (doc 18).
+    notes = {a.node_id: a.note for a in thread.appearances}
+    tagged = set(notes) | {n for n in (thread.opens_at_node_id, thread.closes_at_node_id) if n}
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
+    order = order_of(all_nodes)
+    titles = {n.id: n.title or "Untitled" for n in all_nodes}
+
+    scenes = []
+    for n in sorted(all_nodes, key=lambda n: order.get(n.id, 0)):
+        if n.id not in tagged:
+            continue
+        role = "opens" if n.id == thread.opens_at_node_id else "closes" if n.id == thread.closes_at_node_id else ""
+        scenes.append(
+            {
+                "id": n.id,
+                "title": titles[n.id],
+                "content_excerpt": prose_text(n.content or ""),
+                "synopsis": n.synopsis or "",
+                "note": notes.get(n.id) or "",
+                "role": role,
+            }
+        )
+
+    story_context = story.logline or story.premise or story.narrative_intent or ""
+
+    feature_prompt = build_thread_analysis_prompt(
+        thread=thread,
+        story_title=story.title,
+        story_context=story_context,
+        scenes=scenes,
+        titles=titles,
+    )
+
+    ctx = AICallContext(
+        feature="thread-analysis",
+        user_id=current_user.id,
+        story_id=story.id,
+        tags=["threads", "analysis", "user-initiated"],
+    )
+
+    return await ai_gateway.generate_structured(
+        response_model=ThreadAnalysisResponse,
+        messages=[{"role": "user", "content": f"Analyze the plot thread: {thread.name}"}],
+        feature_prompt=feature_prompt,
+        context=ctx,
+        db=db,
+        user=current_user,
+    )

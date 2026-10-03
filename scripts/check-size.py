@@ -52,18 +52,18 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: list is the work. Lower a number when the file shrinks; delete the line when
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
-    "backend/app/routers/analysis.py": 1498,
-    "frontend/src/types/index.ts": 1509,
-    "frontend/src/api/client.ts": 1227,
-    "backend/app/services/llm/prompts/analysis.py": 1249,
+    "backend/app/routers/analysis.py": 1458,
+    "frontend/src/types/index.ts": 1500,
+    "frontend/src/api/client.ts": 1194,
+    "backend/app/services/llm/prompts/analysis.py": 1179,
     "backend/app/services/import_service.py": 878,
     "frontend/src/components/layout/CommandPalette.tsx": 594,
     "frontend/src/components/outline/OutlineManager.tsx": 680,
     "frontend/src/pages/Settings.tsx": 585,
-    "frontend/src/components/characters/RelationshipGraph.tsx": 633,
+    "frontend/src/components/characters/RelationshipGraph.tsx": 626,
     "frontend/src/components/characters/CharacterFormDialog.tsx": 620,
     "frontend/src/components/story/StoryIdentityPanel.tsx": 527,
-    "frontend/src/components/characters/CharacterDialogueTab.tsx": 519,
+    "frontend/src/components/characters/CharacterDialogueTab.tsx": 515,
     "frontend/src/components/story/StoryboardView.tsx": 516,
 }
 

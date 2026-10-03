@@ -46,12 +46,17 @@ export const STORY_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "reader-knowledge-scan": {
     id: "reader-knowledge-scan",
-    label: "Auto-detect Knowledge Events",
+    label: "Find what the reader learns",
     type: "ai",
-    shortDescription: "Detect truth reveals, misdirections, and clues from scene synopses",
+    shortDescription: "Propose what the reader learns, scene by scene; each waits in Proposals",
     fullDescription:
-      "Reads through scene synopses to automatically identify truth reveals, misdirections, planted clues, and moments where reader knowledge diverges from character knowledge.",
-    contextSources: ["Scene synopses (all scenes)", "Existing knowledge events (to avoid duplicates)"],
+      "Reads the scenes in order (the synopsis, or the opening of a scene with none) and proposes what the reader learns where: truths revealed, misdirections planted, clues, and moments only the reader knows. Each waits in Proposals for a yes; people are named from your cast and an event can say which twist it serves.",
+    contextSources: [
+      "Scene synopses or openings, in reading order",
+      "Characters",
+      "Twists",
+      "What the reader already knows",
+    ],
     backendFeatureId: "reader-knowledge-scan",
   },
   "thread-analysis": {

@@ -15,6 +15,7 @@ from ...models.location import Location, ScenePresence
 from ...models.proposal_decline import ProposalDecline
 from ...models.reader_knowledge import ReaderKnowledgeEvent
 from ...models.structure import StructureNode
+from ...models.twist import Twist
 from ...schemas.proposals import ActResult, Proposal
 from .. import change_log
 from ..codex.presence import derive_facts, derive_presence
@@ -169,6 +170,17 @@ def _answer_codex(story_id: str, ref: str, db: Session, actor: str, client: str 
     return ActResult()
 
 
+def _twist_named(story_id: str, name: str | None, db: Session) -> str | None:
+    """The twist a scanned event says it serves, by name (any case), if there is one."""
+    if not name:
+        return None
+    want = " ".join(name.split()).casefold()
+    for twist in db.query(Twist).filter(Twist.story_id == story_id):
+        if " ".join((twist.name or "").split()).casefold() == want:
+            return twist.id
+    return None
+
+
 def _add_knowledge(story_id: str, p: Proposal, db: Session, actor: str, client: str | None) -> ActResult:
     """Yes to something the reader-knowledge scan found: the event, as it proposed it."""
     run = latest_runs(story_id, db).get("reader-knowledge-scan")
@@ -192,6 +204,7 @@ def _add_knowledge(story_id: str, p: Proposal, db: Session, actor: str, client: 
         reader_knows=ev.get("reader_knows", True),
         characters_who_know=character_ids(story_id, ev.get("characters_who_know") or [], db),
         is_truth=ev.get("is_truth", True),
+        twist_id=_twist_named(story_id, ev.get("twist"), db),
     )
     _create(
         db,

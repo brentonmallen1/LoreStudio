@@ -16,6 +16,8 @@ def build_twist_analysis_prompt(
     for c in clue_scenes:
         direction = "→ TRUTH" if c["points_to"] == "truth" else "→ MISDIRECTION"
         scene_ref = f"[{c['scene_title']}]" if c.get("scene_title") else "[scene not linked]"
+        if c.get("placement"):
+            scene_ref += f" ({c['placement']})"
         excerpt = ""
         if c.get("scene_content"):
             # Include a truncated excerpt of the scene for context
@@ -35,7 +37,7 @@ def build_twist_analysis_prompt(
     scenes_ref_block = ""
     if all_scenes:
         lines = [f'  - id: "{s["id"]}" title: "{s["title"]}"' for s in all_scenes]
-        scenes_ref_block = "\nALL STORY SCENES (for suggesting links):\n" + "\n".join(lines) + "\n"
+        scenes_ref_block = "\nALL STORY SCENES, in reading order (for suggesting links):\n" + "\n".join(lines) + "\n"
 
     return f"""You are a story craft advisor analyzing a twist in "{story_title}".
 

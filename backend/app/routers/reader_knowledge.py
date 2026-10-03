@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.activity_log import ActivityLog
+from ..models.character import Character
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -22,7 +23,8 @@ from ..services.llm.prompts.reader_knowledge import (
     build_reader_knowledge_scan_prompt,
 )
 from ..services.patching import check_nodes, patch_fields
-from ..services.structure_order import reading_order
+from ..services.structure_order import order_of, reading_order
+from ..services.text_utils import prose_text
 from ..services.who_knows import character_ids
 from ..services.wording import count
 
@@ -204,6 +206,7 @@ class ScannedEvent(BaseModel):
     reader_knows: bool = True
     characters_who_know: list[str] = []
     is_truth: bool = True
+    twist: str | None = None
 
 
 class ScanResponse(BaseModel):
@@ -225,13 +228,13 @@ async def scan_for_knowledge_events(
     what it finds is logged with the run and waits in Proposals (doc 13 P4)."""
     story = _verify_story(story_id, db, current_user)
 
-    all_nodes = (
-        db.query(StructureNode).filter(StructureNode.story_id == story_id).order_by(StructureNode.position.asc()).all()
-    )
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
+    order = order_of(all_nodes)
     child_ids = {n.parent_id for n in all_nodes if n.parent_id}
     scenes = [
-        {"id": n.id, "title": n.title or "Untitled", "synopsis": n.synopsis or ""}
-        for n in all_nodes
+        # A written scene with no synopsis is read from its opening (it was sent blank).
+        {"id": n.id, "title": n.title or "Untitled", "synopsis": n.synopsis or prose_text(n.content or "")[:400]}
+        for n in sorted(all_nodes, key=lambda n: order.get(n.id, 0))
         if n.id not in child_ids and (n.synopsis or n.content)
     ]
     if not scenes:
@@ -244,6 +247,8 @@ async def scan_for_knowledge_events(
         existing_events=[
             {"subject": e.subject, "knowledge_type": e.knowledge_type, "node_id": e.node_id} for e in existing
         ],
+        characters=[c.name for c in db.query(Character).filter(Character.story_id == story_id) if c.name],
+        twists=[{"name": t.name, "truth": t.the_truth} for t in db.query(Twist).filter(Twist.story_id == story_id)],
     )
     ctx = AICallContext(
         feature="reader-knowledge-scan",

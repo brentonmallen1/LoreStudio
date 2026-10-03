@@ -16,6 +16,8 @@ from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.twist_impact import build_twist_impact_prompt
 from ..services.llm.prompts.twists import build_twist_analysis_prompt
 from ..services.patching import check_nodes, patch_fields
+from ..services.structure_order import order_of
+from ..services.text_utils import prose_text
 
 router = APIRouter()
 
@@ -180,16 +182,31 @@ async def analyze_twist(
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
 
-    # Assemble clue scene context
+    # Reading order, so each clue can say whether it lands before the reveal (doc 18: a clue
+    # after the reveal is not a clue), and the scene list reads front to back.
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == twist.story_id).all()
+    order = order_of(all_nodes)
+    by_id = {n.id: n for n in all_nodes}
+    reveal_at = order.get(twist.revealed_at_node_id or "")
+
     clue_scenes = []
     for clue in twist.clues or []:
         scene_title = None
         scene_content = None
-        if clue.get("node_id"):
-            node = db.get(StructureNode, clue["node_id"])
-            if node:
-                scene_title = node.title
-                scene_content = node.content or ""
+        placement = None
+        node = by_id.get(clue.get("node_id") or "")
+        if node:
+            scene_title = node.title
+            scene_content = prose_text(node.content or "")
+            if reveal_at is not None:
+                at = order.get(node.id, 0)
+                placement = (
+                    "before the reveal"
+                    if at < reveal_at
+                    else "in the reveal scene"
+                    if at == reveal_at
+                    else "AFTER the reveal"
+                )
         clue_scenes.append(
             {
                 "clue_id": clue.get("id", ""),
@@ -198,20 +215,22 @@ async def analyze_twist(
                 "subtlety": clue.get("subtlety", "moderate"),
                 "scene_title": scene_title,
                 "scene_content": scene_content,
+                "placement": placement,
             }
         )
 
     # Reveal scene context
     reveal_scene = None
-    if twist.revealed_at_node_id:
-        node = db.get(StructureNode, twist.revealed_at_node_id)
-        if node:
-            reveal_scene = {"title": node.title, "content": node.content or ""}
+    if twist.revealed_at_node_id and (node := by_id.get(twist.revealed_at_node_id)):
+        reveal_scene = {"title": node.title, "content": prose_text(node.content or "")}
 
     # Pass all leaf scenes so the LLM can suggest scene links for unlinked clues
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == twist.story_id).all()
     children_ids = {n.parent_id for n in all_nodes if n.parent_id}
-    all_scenes_ref = [{"id": n.id, "title": n.title or "Untitled"} for n in all_nodes if n.id not in children_ids]
+    all_scenes_ref = [
+        {"id": n.id, "title": n.title or "Untitled"}
+        for n in sorted(all_nodes, key=lambda n: order.get(n.id, 0))
+        if n.id not in children_ids
+    ]
 
     feature_prompt = build_twist_analysis_prompt(
         twist=twist,
@@ -253,17 +272,19 @@ async def analyze_twist_impact(
 
     threads = db.query(PlotThread).filter(PlotThread.story_id == twist.story_id).all()
     characters = db.query(Character).filter(Character.story_id == twist.story_id).all()
-    all_nodes = (
-        db.query(StructureNode)
-        .filter(StructureNode.story_id == twist.story_id)
-        .order_by(StructureNode.position.asc())
-        .all()
-    )
+    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == twist.story_id).all()
+    order = order_of(all_nodes)
+    titles = {n.id: n.title or "Untitled" for n in all_nodes}
     child_ids = {n.parent_id for n in all_nodes if n.parent_id}
     scenes = [
-        {"id": n.id, "title": n.title or "Untitled", "synopsis": n.synopsis or ""}
-        for n in all_nodes
+        {"id": n.id, "title": titles[n.id], "synopsis": n.synopsis or ""}
+        for n in sorted(all_nodes, key=lambda n: order.get(n.id, 0))
         if n.id not in child_ids
+    ]
+    clues = [
+        {"text": c.get("text", ""), "points_to": c.get("points_to"), "scene": titles.get(c.get("node_id") or "")}
+        for c in twist.clues or []
+        if c.get("text")
     ]
 
     feature_prompt = build_twist_impact_prompt(
@@ -274,6 +295,8 @@ async def analyze_twist_impact(
         threads=[{"id": t.id, "name": t.name, "description": t.description} for t in threads],
         characters=[{"id": c.id, "name": c.name, "role": getattr(c, "role", "")} for c in characters],
         scenes=scenes,
+        reveal=titles.get(twist.revealed_at_node_id or "", ""),
+        clues=clues,
     )
 
     ctx = AICallContext(

@@ -11,6 +11,7 @@ from ..models.location import Location
 from ..models.plot_thread import PlotThread
 from ..models.story import Story
 from ..models.structure import StructureNode
+from ..models.twist import Twist
 from ..models.user import User
 from ..schemas.ai_responses import (
     ArcAnalysisResponse,
@@ -27,7 +28,6 @@ from ..schemas.ai_responses import (
     ShowDontTellAnalysisResponse,
     StructuredResult,
     ThemeTrackerResponse,
-    ThreadAnalysisResponse,
 )
 from ..schemas.chronicle import ActivityLogOut
 from ..schemas.mentions import MentionedRef
@@ -56,12 +56,12 @@ from ..services.llm.prompts.analysis import (
     build_session_recap_prompt,
     build_show_dont_tell_prompt,
     build_theme_tracker_prompt,
-    build_thread_analysis_prompt,
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
 from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
+from ..services.text_utils import prose_text
 from ..services.word_count import WORD_COUNT_RANGES
 from ..services.wording import count
 
@@ -405,61 +405,6 @@ async def recap_last_session(
     return sse_stream(
         ai_gateway,
         messages=llm_messages,
-        feature_prompt=feature_prompt,
-        context=ctx,
-        db=db,
-        user=current_user,
-    )
-
-
-@router.post("/threads/{thread_id}/analyze", response_model=StructuredResult)
-async def analyze_thread(
-    thread_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Analyze a plot thread's progression, moment mapping, and quality."""
-    thread = db.get(PlotThread, thread_id)
-    if not thread:
-        raise HTTPException(status_code=404, detail="Thread not found")
-    story = db.query(Story).filter(Story.id == thread.story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Thread not found")
-
-    # Gather scene content for scenes tagged to this thread
-    tagged_node_ids = {a.node_id for a in thread.appearances}
-    all_nodes = db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
-
-    scenes = []
-    for n in all_nodes:
-        if n.id in tagged_node_ids and n.content:
-            scenes.append(
-                {
-                    "id": n.id,
-                    "title": n.title or "Untitled",
-                    "content_excerpt": n.content,
-                }
-            )
-
-    story_context = story.logline or story.premise or story.narrative_intent or ""
-
-    feature_prompt = build_thread_analysis_prompt(
-        thread=thread,
-        story_title=story.title,
-        story_context=story_context,
-        scenes=scenes,
-    )
-
-    ctx = AICallContext(
-        feature="thread-analysis",
-        user_id=current_user.id,
-        story_id=story.id,
-        tags=["threads", "analysis", "user-initiated"],
-    )
-
-    return await ai_gateway.generate_structured(
-        response_model=ThreadAnalysisResponse,
-        messages=[{"role": "user", "content": f"Analyze the plot thread: {thread.name}"}],
         feature_prompt=feature_prompt,
         context=ctx,
         db=db,
@@ -1090,13 +1035,16 @@ async def analyze_plot_holes(
 
     characters_summary = [f"- {c.name} ({c.role})" + (f": {c.motivation}" if c.motivation else "") for c in characters]
     threads_summary = [f'- "{t.name}" [{t.mice_type or "untyped"}] status: {t.status}' for t in threads]
+    twists_summary = [
+        f'- "{t.name}": the truth is {t.the_truth or "(not set)"}; the reader is led to believe '
+        f"{t.the_misdirection or '(not set)'}"
+        for t in db.query(Twist).filter(Twist.story_id == story_id)
+    ]
     scenes_with_content = []
     for leaf in leaves:
-        if leaf.content and leaf.content.strip():
-            excerpt = leaf.content[:500]
-            scenes_with_content.append(
-                f"[{leaf.title or 'Untitled'}]\n{excerpt}{'...' if len(leaf.content) > 500 else ''}"
-            )
+        text = prose_text(leaf.content or "")
+        if text:
+            scenes_with_content.append(f"[{leaf.title or 'Untitled'}]\n{text[:500]}{'...' if len(text) > 500 else ''}")
 
     feature_prompt = build_plot_hole_detection_prompt(
         story_title=story.title,
@@ -1104,6 +1052,7 @@ async def analyze_plot_holes(
         characters_summary=characters_summary,
         threads_summary=threads_summary,
         scenes_with_content=scenes_with_content,
+        twists_summary=twists_summary,
     )
 
     ctx = AICallContext(
