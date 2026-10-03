@@ -13,7 +13,7 @@ import {
   Feather,
   Database,
   NotepadText,
-  BookOpen,
+  LifeBuoy,
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useAIAvailable } from "../../lib/mode";
@@ -303,7 +303,7 @@ export default function GlobalHeader() {
             title="Guides"
             aria-label="Guides"
           >
-            <BookOpen size={16} />
+            <LifeBuoy size={16} />
           </button>
 
           {/* Scratch Pad */}
