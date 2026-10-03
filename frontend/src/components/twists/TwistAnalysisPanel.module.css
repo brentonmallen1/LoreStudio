@@ -22,7 +22,7 @@
 }
 
 .icon {
-  color: var(--twist-accent);
+  color: var(--color-ai);
   flex-shrink: 0;
   margin-top: 0.15rem;
 }
@@ -119,8 +119,8 @@
 }
 
 .ratingExcellent {
-  background: color-mix(in srgb, var(--twist-accent) 15%, transparent);
-  color: var(--twist-accent);
+  background: color-mix(in srgb, var(--color-ai) 15%, transparent);
+  color: var(--color-ai);
 }
 
 /* Section cards */

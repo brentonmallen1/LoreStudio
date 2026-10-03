@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { TwistClue, ClueTarget, SubtletyLevel, StructureNode } from "../../types";
+import CommitInput from "../common/CommitInput";
 import styles from "./TwistClueEditor.module.css";
 
 interface Props {
@@ -62,11 +63,12 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
           {clues.map((clue) => (
             <div key={clue.id} className={styles.clueRow}>
               <div className={styles.clueFields}>
-                <input
+                <CommitInput
                   className={styles.textInput}
                   value={clue.text}
-                  onChange={(e) => updateClue(clue.id, { text: e.target.value })}
+                  onCommit={(text) => updateClue(clue.id, { text })}
                   placeholder="Describe the clue…"
+                  aria-label="The clue"
                 />
                 <div className={styles.bottomRow}>
                   {/* Points to truth or misdirection */}

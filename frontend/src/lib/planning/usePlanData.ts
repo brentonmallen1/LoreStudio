@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
+import { refreshThreads } from "../story/refreshThreads";
 import type { PlotThread } from "../../types";
 import { methodById, planMethods, sceneLeaves, type PlanData } from "./methods";
 
@@ -25,6 +26,14 @@ export function usePlanData() {
       .then(setThreads)
       .catch(() => setThreads(null));
   }, [storyId, needsThreads]);
+  // A change made on the Plan page reaches the story's own copy too (the Lorebook, strip and
+  // palette read it, and kept the old threads until a reload; doc 18).
+  const reloadThreads = useCallback(() => {
+    if (!storyId) return;
+    refreshThreads(storyId)
+      .then(setThreads)
+      .catch(() => setThreads(null));
+  }, [storyId]);
   useEffect(() => {
     loadThreads();
   }, [loadThreads]);
@@ -33,5 +42,5 @@ export function usePlanData() {
   const data: PlanData | null = activeStory
     ? { story: activeStory, characters, scenes: sceneLeaves(structure, activeTemplate), threads }
     : null;
-  return { data, method, methods: planMethods(beatSheets), threads, setThreads, reloadThreads: loadThreads };
+  return { data, method, methods: planMethods(beatSheets), threads, setThreads, reloadThreads };
 }

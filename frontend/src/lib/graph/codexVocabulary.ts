@@ -23,8 +23,8 @@ export const NODE_COLORS: Record<string, string> = {
   scene: "var(--color-nlp)",
   location: "var(--segment-chapter)",
   thread: "var(--segment-act)",
-  twist: "var(--color-danger)",
-  fact: "var(--color-ai)",
+  twist: "var(--twist-accent)",
+  fact: "var(--segment-section)",
   culture: "var(--segment-scene)",
   system: "var(--segment-scene)",
 };

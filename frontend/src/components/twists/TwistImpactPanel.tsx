@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Orbit, RefreshCw, GitBranch, User, Film, AlertTriangle, Zap } from "lucide-react";
 import { api } from "../../api/client";
+import { useRunOnOpen } from "../../lib/ai/useRunOnOpen";
 import type { StructuredResult } from "../../types";
 import styles from "./TwistImpactPanel.module.css";
 
@@ -32,11 +33,12 @@ export default function TwistImpactPanel({ twistId, twistName }: Props) {
       const r = await api.analyzeTwistImpact(twistId);
       setResult(r);
     } catch {
-      setResult({ success: false, raw_text: "⚠ Analysis failed. Check that Ollama is running." });
+      setResult({ success: false, raw_text: "The Assistant could not trace the impact just now." });
     } finally {
       setLoading(false);
     }
   }
+  useRunOnOpen(() => void analyze(), twistId);
 
   const data = result?.success ? (result.data as AnyRecord) : null;
   const affectedThreads = asList(data?.affected_threads) as AnyRecord[];

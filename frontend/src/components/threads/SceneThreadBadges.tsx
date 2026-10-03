@@ -3,6 +3,7 @@ import { Plus, X } from "lucide-react";
 import { api } from "../../api/client";
 import { slotVar } from "../../lib/colorSlots";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { refreshThreads } from "../../lib/story/refreshThreads";
 import type { PlotThread } from "../../types";
 import styles from "./SceneThreadBadges.module.css";
 
@@ -35,18 +36,17 @@ export default function SceneThreadBadges({ storyId, nodeId }: Props) {
 
   async function addThread(threadId: string) {
     await api.addThreadAppearance(threadId, nodeId);
-    const updated = await api.listThreads(storyId);
-    setThreads(updated);
+    setThreads(await refreshThreads(storyId));
     setShowPicker(false);
   }
 
   async function removeThread(threadId: string) {
     await api.removeThreadAppearance(threadId, nodeId);
-    const updated = await api.listThreads(storyId);
-    setThreads(updated);
+    setThreads(await refreshThreads(storyId));
   }
 
-  if (loading) return null;
+  // No threads in the story yet: nothing to attach, so no button that unfolds to nothing.
+  if (loading || threads.length === 0) return null;
 
   return (
     <div className={styles.wrap} data-open={unfolded || undefined}>

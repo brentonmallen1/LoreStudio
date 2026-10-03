@@ -23,7 +23,9 @@ export default function LinkedTwistsField({
   }, [activeNode.id]);
 
   if (twists.length === 0) return null;
-  const go = () => navigate(`/stories/${activeStory.id}/lorebook/twists`);
+  // To the twist itself, not the Twists landing (doc 18).
+  const go = (twistId?: string) =>
+    navigate(`/stories/${activeStory.id}/lorebook/twists${twistId ? `/${twistId}` : ""}`);
 
   return (
     <div className={styles.overviewField}>
@@ -32,7 +34,7 @@ export default function LinkedTwistsField({
           <Eye size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }} />
           Linked twists
         </label>
-        <button className={styles.addLinkBtn} onClick={go} title="Manage twists">
+        <button className={styles.addLinkBtn} onClick={() => go()} title="Manage twists">
           Manage
         </button>
       </div>
@@ -41,14 +43,18 @@ export default function LinkedTwistsField({
           const isReveal = twist.revealed_at_node_id === activeNode.id;
           const clues = twist.clues.filter((c) => c.node_id === activeNode.id).length;
           const clueText = `${clues} clue${clues !== 1 ? "s" : ""}`;
+          // A scene can reveal a twist and hold its clues: say both.
+          const label = [isReveal ? "reveal" : "", clues ? clueText : ""].filter(Boolean).join(" · ");
           return (
             <div key={twist.id} className={styles.linkChip}>
               <button
                 className={styles.linkChipContent}
-                onClick={go}
-                title={isReveal ? "Reveal scene for this twist" : `${clueText} planted here`}
+                onClick={() => go(twist.id)}
+                title={[isReveal ? "Revealed in this scene" : "", clues ? `${clueText} planted here` : ""]
+                  .filter(Boolean)
+                  .join("; ")}
               >
-                <span className={styles.linkChipLabel}>{isReveal ? "reveal" : clueText}</span>
+                <span className={styles.linkChipLabel}>{label}</span>
                 <span className={styles.linkChipTitle}>{twist.name}</span>
               </button>
             </div>

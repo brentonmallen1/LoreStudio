@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { TryFailCycle, TryFailOutcome, StructureNode } from "../../types";
+import CommitInput from "../common/CommitInput";
 import styles from "./TryFailCycleEditor.module.css";
 
 interface Props {
@@ -62,11 +63,12 @@ export default function TryFailCycleEditor({ cycles, nodes, onChange }: Props) {
             <div key={cycle.id} className={styles.cycleRow}>
               <span className={styles.cycleNum}>{i + 1}</span>
               <div className={styles.cycleFields}>
-                <input
+                <CommitInput
                   className={styles.descInput}
                   value={cycle.description}
-                  onChange={(e) => updateCycle(cycle.id, { description: e.target.value })}
+                  onCommit={(description) => updateCycle(cycle.id, { description })}
                   placeholder="What does the protagonist attempt?"
+                  aria-label="The attempt"
                 />
                 <div className={styles.bottomRow}>
                   <select

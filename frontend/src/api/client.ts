@@ -496,6 +496,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  updateReaderKnowledgeEvent: (eventId: string, data: Partial<import("../types").ReaderKnowledgeEvent>) =>
+    request<import("../types").ReaderKnowledgeEvent>(`/reader-knowledge/${eventId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
   deleteReaderKnowledgeEvent: (eventId: string) =>
     request<void>(`/reader-knowledge/${eventId}`, { method: "DELETE" }),
   scanReaderKnowledgeEvents: (storyId: string) =>

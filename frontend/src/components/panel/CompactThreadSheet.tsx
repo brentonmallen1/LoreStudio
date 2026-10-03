@@ -16,11 +16,15 @@ const MICE: Record<string, string> = {
 
 /** A plot thread beside the prose: what it is, where it stands, and the scenes it runs through. */
 export default function CompactThreadSheet({ thread }: { thread: PlotThread }) {
-  const { activeStory, activeNode, upsertThread, setThreads } = useStoryStore();
+  const { activeStory, activeNode, upsertThread, setThreads, sceneCast } = useStoryStore();
   useReloadOnUndo(["plot_thread", "plot_thread_appearance"], () => {
     if (activeStory) api.listThreads(activeStory.id).then(setThreads);
   });
-  const appearances = [...(thread.appearances ?? [])];
+  // In reading order, as the strip and the Lorebook sheet list them (doc 18: it was raw order).
+  const order = new Map((sceneCast?.scenes ?? []).map((s, i) => [s.node_id, i]));
+  const appearances = [...(thread.appearances ?? [])].sort(
+    (a, b) => (order.get(a.node_id) ?? Infinity) - (order.get(b.node_id) ?? Infinity),
+  );
 
   return (
     <>

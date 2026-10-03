@@ -20,26 +20,8 @@ import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
 import LorebookList from "../LorebookList";
 import { useLoreSelection } from "../useLoreSelection";
+import { STATUSES, TYPES, cluesLine, statusLabel, typeLabel } from "../../../lib/twists/labels";
 import styles from "../Lorebook.module.css";
-
-const TYPES: { value: TwistType; label: string; hint: string }[] = [
-  { value: "reveal", label: "Reveal", hint: "Hidden information is exposed" },
-  { value: "reversal", label: "Reversal", hint: "Expectations are subverted" },
-  { value: "identity", label: "Identity", hint: "Who someone really is" },
-  {
-    value: "unreliable_narrator",
-    label: "Unreliable narrator",
-    hint: "The narrator has been deceiving the reader",
-  },
-  { value: "red_herring", label: "Red herring", hint: "A deliberate false lead" },
-];
-const STATUSES: { value: TwistStatus; label: string }[] = [
-  { value: "planned", label: "Planned" },
-  { value: "seeding", label: "Seeding" },
-  { value: "revealed", label: "Revealed" },
-];
-const typeLabel = (t: TwistType) => TYPES.find((x) => x.value === t)?.label ?? t;
-const statusLabel = (s: TwistStatus) => STATUSES.find((x) => x.value === s)?.label ?? s;
 
 /**
  * Twists in the Lorebook (doc 12 D5; Studio only). With none open, what the reader knows
@@ -154,8 +136,8 @@ export default function TwistsSection() {
             }
             presence={
               twist.revealed_at_node_id
-                ? `Revealed in ${titleOf(twist.revealed_at_node_id)} · ${twist.clues.length} ${twist.clues.length === 1 ? "clue" : "clues"} planted`
-                : `Not revealed yet · ${twist.clues.length} ${twist.clues.length === 1 ? "clue" : "clues"} planted`
+                ? `Revealed in ${titleOf(twist.revealed_at_node_id)} · ${cluesLine(twist)}`
+                : `Not revealed yet · ${cluesLine(twist)}`
             }
             onOpenBeside={() => openEntity("twist", twist.id, twist.name)}
             more={[{ label: "Delete twist", icon: Trash2, danger: true, onSelect: () => setDeleting(twist) }]}

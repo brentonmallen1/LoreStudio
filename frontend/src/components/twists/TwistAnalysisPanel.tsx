@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { useRunOnOpen } from "../../lib/ai/useRunOnOpen";
 import type { StructuredResult } from "../../types";
 import styles from "./TwistAnalysisPanel.module.css";
 
@@ -72,11 +73,12 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
       const r = await api.analyzeTwist(twistId);
       setResult(r);
     } catch {
-      setResult({ success: false, raw_text: "⚠ Error running twist analysis." });
+      setResult({ success: false, raw_text: "The Assistant could not analyse the twist just now." });
     } finally {
       setGenerating(false);
     }
   }
+  useRunOnOpen(() => void analyze(), twistId);
 
   const data = result?.success ? (result.data as AnyRecord) : null;
 
@@ -158,7 +160,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
 
           {/* Distribution */}
           {!!data.distribution && (
-            <Section icon={<BarChart2 size={12} />} title="Clue distribution" color="var(--twist-accent)">
+            <Section icon={<BarChart2 size={12} />} title="Clue distribution" color="var(--color-ai)">
               {!!asRecord(data.distribution).summary && (
                 <p className={styles.sectionSummary}>{str(asRecord(data.distribution).summary)}</p>
               )}

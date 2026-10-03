@@ -169,36 +169,34 @@ export default function ThreadsSection() {
                     </select>
                   </div>
                   {thread.mice_type && (
-                    <>
-                      <p className={styles.cardHint}>
-                        {MICE.find((m) => m.value === thread.mice_type)?.hint}.
-                      </p>
-                      {(["opens_at_node_id", "closes_at_node_id"] as const).map((key) => (
-                        <label key={key} className={styles.rowEdit}>
-                          <span className={styles.rowLabel}>
-                            {key === "opens_at_node_id" ? "Opens in" : "Closes in"}
-                          </span>
-                          <select
-                            className={styles.grow}
-                            value={thread[key] ?? ""}
-                            onChange={(e) => void save({ [key]: e.target.value || null })}
-                          >
-                            <option value="">Not decided</option>
-                            {leaves.map((n) => (
-                              <option key={n.id} value={n.id}>
-                                {n.title || "Untitled scene"}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      ))}
-                    </>
+                    <p className={styles.cardHint}>{MICE.find((m) => m.value === thread.mice_type)?.hint}.</p>
                   )}
+                  {/* Every thread opens and closes somewhere, kind or not (doc 18: the pickers
+                      hid until a MICE kind was set). */}
+                  {(["opens_at_node_id", "closes_at_node_id"] as const).map((key) => (
+                    <label key={key} className={styles.rowEdit}>
+                      <span className={styles.rowLabel}>
+                        {key === "opens_at_node_id" ? "Opens in" : "Closes in"}
+                      </span>
+                      <select
+                        className={styles.grow}
+                        value={thread[key] ?? ""}
+                        onChange={(e) => void save({ [key]: e.target.value || null })}
+                      >
+                        <option value="">Not decided</option>
+                        {leaves.map((n) => (
+                          <option key={n.id} value={n.id}>
+                            {n.title || "Untitled scene"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
                 </SheetCard>
                 <SheetCard title="Scenes" meta={scenes.length || undefined}>
                   {scenes.length === 0 ? (
                     <p className={styles.cardEmpty}>
-                      Not placed in a scene yet. Add it from a scene’s notes.
+                      Not in a scene yet. In a scene, add it with Threads in the bar above the prose.
                     </p>
                   ) : (
                     scenes.map((s) => (
@@ -216,8 +214,17 @@ export default function ThreadsSection() {
                       />
                     ))
                   )}
-                  {thread.opens_at_node_id && !scenes.some((s) => s.id === thread.opens_at_node_id) && (
-                    <CardRow text={sceneTitle(thread.opens_at_node_id)} note="opens" />
+                  {(["opens_at_node_id", "closes_at_node_id"] as const).map(
+                    (key) =>
+                      thread[key] &&
+                      !scenes.some((s) => s.id === thread[key]) && (
+                        <CardRow
+                          key={key}
+                          text={sceneTitle(thread[key]!)}
+                          note={key === "opens_at_node_id" ? "opens" : "closes"}
+                          onClick={() => navigate(`/stories/${storyId}/write/${thread[key]}`)}
+                        />
+                      ),
                   )}
                 </SheetCard>
               </>

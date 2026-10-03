@@ -125,9 +125,14 @@ export default function CommandPalette() {
       icon: GitBranch,
       group: "Create",
       when: hasStory,
-      action: () => {
-        const sid = _useStoryStoreForNav.getState().activeStory?.id;
-        if (sid) navigate(`/stories/${sid}/lorebook/threads`);
+      // Makes one and opens its sheet (doc 18: it only went to the list).
+      action: async () => {
+        const store = _useStoryStoreForNav.getState();
+        const sid = store.activeStory?.id;
+        if (!sid) return;
+        const thread = await api.createThread(sid, { name: "New thread" });
+        store.upsertThread(thread);
+        navigate(`/stories/${sid}/lorebook/threads/${thread.id}`);
       },
     });
     commandRegistry.update({

@@ -10,6 +10,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { useRunOnOpen } from "../../lib/ai/useRunOnOpen";
 import type { StructuredResult } from "../../types";
 import styles from "./ThreadAnalysisPanel.module.css";
 import { useAIAvailable } from "../../lib/mode";
@@ -62,11 +63,12 @@ export default function ThreadAnalysisPanel({ threadId }: Props) {
       const r = await api.analyzeThread(threadId);
       setResult(r);
     } catch {
-      setResult({ success: false, raw_text: "⚠ Error running thread analysis." });
+      setResult({ success: false, raw_text: "The Assistant could not analyse the thread just now." });
     } finally {
       setGenerating(false);
     }
   }
+  useRunOnOpen(() => void analyze(), threadId, aiAvailable);
 
   const data = result?.success ? (result.data as AnyRecord) : null;
 

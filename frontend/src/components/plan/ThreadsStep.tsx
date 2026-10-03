@@ -71,7 +71,7 @@ export function ThreadsStep({ storyId, threads, reload }: Props) {
         </button>
       </form>
       <Link to={`/stories/${storyId}/lorebook/threads`} className={styles.quietLink}>
-        Plot Threads page: appearances, try/fail cycles, the timeline
+        Each thread's sheet: its scenes, try/fail cycles and the map of every thread
       </Link>
     </div>
   );

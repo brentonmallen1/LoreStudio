@@ -13,6 +13,7 @@ import { usePanelStore } from "../../stores/panelStore";
 import { stopClick } from "../../lib/panel/openScene";
 import { MODIFIER } from "../../lib/keyboard/shortcuts";
 import { entityColor } from "../panel/entityColor";
+import { useTwistScenes } from "../../lib/twists/useTwistScenes";
 import styles from "./Strip.module.css";
 
 /** A stop shows at most this many colour pips (a 2×2 grid); the peek and title name the rest. */
@@ -37,6 +38,7 @@ type Peek = PeekBody & { top: number };
 export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
   const navigate = useNavigate();
   const highlight = usePanelStore((s) => s.highlight);
+  const twistScenes = useTwistScenes(storyId, highlight?.kind === "twist" ? highlight.id : null);
   const [peek, setPeek] = useState<Peek | null>(null);
   const go = (id: string | undefined) => id && navigate(`/stories/${storyId}/write/${id}`);
 
@@ -50,6 +52,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
     if (highlight.kind === "character") return stop.cast.character_ids.includes(highlight.id);
     if (highlight.kind === "location") return stop.cast.location_ids.includes(highlight.id);
     if (highlight.kind === "thread") return stop.cast.thread_ids.includes(highlight.id);
+    if (highlight.kind === "twist") return twistScenes.has(stop.cast.node_id);
     return false;
   }
   const peekAt = (e: React.MouseEvent, next: PeekBody) =>

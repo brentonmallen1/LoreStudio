@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import { slotVar } from "../../lib/colorSlots";
@@ -9,7 +9,8 @@ import styles from "./ThreadVisualization.module.css";
 
 // ── Layout constants ──────────────────────────────────────────
 const LABEL_W = 148; // left column for thread names
-const COL_W = 84; // width per scene column
+const COL_MAX = 84; // widest a scene column gets
+const COL_MIN = 52; // narrowest before the map scrolls inside itself
 const HDR_LVL = 30; // height per ancestor header level
 const LEAF_HDR = 34; // height of leaf-label row
 const ROW_H = 42; // height per thread row
@@ -26,7 +27,8 @@ interface FlatNode {
 
 function flattenLeaves(nodes: StructureNode[], ancestors: StructureNode[] = []): FlatNode[] {
   const out: FlatNode[] = [];
-  for (const n of nodes) {
+  // In reading order: unsorted, the columns could disagree with the strip and the pickers (doc 18).
+  for (const n of [...nodes].sort((a, b) => a.position - b.position)) {
     if (!n.children || n.children.length === 0) {
       out.push({ node: n, ancestors });
     } else {
@@ -84,6 +86,16 @@ export default function ThreadVisualization({ storyId }: Props) {
   const [hovThread, setHovThread] = useState<string | null>(null);
   const [hovCol, setHovCol] = useState<number | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  // The columns share the width there is (doc 18: the map ran off the page's right edge).
+  const [areaW, setAreaW] = useState(0);
+  const areaRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = areaRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setAreaW(entry.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [loading]);
   const { structure } = useStoryStore();
 
   useEffect(() => {
@@ -101,6 +113,9 @@ export default function ThreadVisualization({ storyId }: Props) {
   if (loading) return <div className={styles.loading}>Loading…</div>;
 
   const flat = flattenLeaves(structure);
+  const COL_W = Math.round(
+    Math.max(COL_MIN, Math.min(COL_MAX, areaW ? (areaW - LABEL_W) / Math.max(1, flat.length) : COL_MAX)),
+  );
 
   if (flat.length === 0) {
     return (
@@ -152,7 +167,7 @@ export default function ThreadVisualization({ storyId }: Props) {
 
   return (
     <div className={styles.container}>
-      <div className={styles.scrollArea}>
+      <div className={styles.scrollArea} ref={areaRef}>
         <svg width={svgW} height={svgH} className={styles.svg}>
           {/* ── Ancestor level spans ── */}
           {spansByLevel.map((spans, lvl) => {
@@ -183,7 +198,8 @@ export default function ThreadVisualization({ storyId }: Props) {
                         fill="var(--color-text-muted)"
                         fontFamily="Inter, system-ui, sans-serif"
                       >
-                        {trunc(span.title, maxDepth <= 1 ? 18 : 14)}
+                        {/* As many letters as the span is wide (about 6px each at this size). */}
+                        {trunc(span.title, Math.max(4, Math.floor((x2 - x1 - 8) / 6)))}
                       </text>
                     </g>
                   );
@@ -233,7 +249,7 @@ export default function ThreadVisualization({ storyId }: Props) {
                   style={{ cursor: "pointer" }}
                 >
                   <title>{fn.node.title}</title>
-                  {trunc(fn.node.title, 10)}
+                  {trunc(fn.node.title, Math.max(4, Math.floor((COL_W - 6) / 6)))}
                 </text>
               </g>
             );

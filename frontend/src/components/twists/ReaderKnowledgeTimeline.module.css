@@ -27,7 +27,7 @@
 }
 
 .headerIcon {
-  color: var(--color-ai);
+  color: var(--color-accent);
 }
 
 .headerTitle {
@@ -42,9 +42,9 @@
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 100px;
-  background: color-mix(in srgb, var(--color-ai) 12%, transparent);
-  color: var(--color-ai);
-  border: 1px solid color-mix(in srgb, var(--color-ai) 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .headerRight {
@@ -128,7 +128,7 @@
 }
 
 .emptyIcon {
-  color: var(--color-ai);
+  color: var(--color-accent);
   opacity: 0.4;
 }
 
@@ -177,7 +177,7 @@
   width: 0.667rem;
   height: 0.667rem;
   border-radius: 50%;
-  background: var(--color-ai);
+  background: var(--color-accent);
   border: 2px solid var(--color-bg);
 }
 
@@ -185,6 +185,12 @@
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--color-section-title);
+  text-decoration: none;
+}
+
+/* A scene's title goes to the scene. */
+.groupTitle:any-link:hover {
+  text-decoration: underline;
 }
 
 .groupAddBtn {
@@ -242,10 +248,11 @@
   background: color-mix(in srgb, var(--color-accent) 6%, transparent);
 }
 .type_reader {
-  border: 1px solid color-mix(in srgb, var(--color-ai) 45%, var(--color-border));
-  background: color-mix(in srgb, var(--color-ai) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
 }
 
+/* The row's toggle and its Edit and Delete are siblings (a button inside a button was invalid). */
 .eventCardHeader {
   width: 100%;
   display: flex;
@@ -287,8 +294,8 @@
   color: var(--color-accent);
 }
 .badge_reader {
-  background: color-mix(in srgb, var(--color-ai) 12%, transparent);
-  color: var(--color-ai);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent);
 }
 
 .falseBadge {
@@ -394,7 +401,7 @@
 .addForm {
   margin: 4px 0 8px;
   padding: 12px 14px;
-  border: 1px solid var(--color-ai);
+  border: 1px solid var(--color-accent);
   border-radius: 8px;
   background: var(--color-surface);
   display: flex;
@@ -420,7 +427,7 @@
 }
 
 .addInput:focus {
-  border-color: var(--color-ai);
+  border-color: var(--color-accent);
 }
 
 .addTextarea {
@@ -435,7 +442,7 @@
 }
 
 .addTextarea:focus {
-  border-color: var(--color-ai);
+  border-color: var(--color-accent);
 }
 
 .addFormMeta {
@@ -458,7 +465,7 @@
 }
 
 .addSelect:focus {
-  border-color: var(--color-ai);
+  border-color: var(--color-accent);
 }
 
 .checkLabel {
@@ -515,8 +522,8 @@
   padding: 5px 12px;
   border-radius: 5px;
   border: none;
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -530,4 +537,50 @@
 .saveBtn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.eventToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Who knows: the cast as chips (doc 18), not names typed with commas. */
+.whoKnows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.whoKnowsLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-right: 0.2rem;
+}
+
+.whoChip {
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.whoChipOn {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  color: var(--color-text);
 }
