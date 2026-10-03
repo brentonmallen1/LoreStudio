@@ -9,6 +9,10 @@ LoreStudio is a thinking space for writers. You write; it keeps the threads stra
 
 Switch in **Settings › Appearance › Mode**. Everything in Writer mode works with no model installed.
 
+## Make it comfortable
+
+**Settings › Typography** has two sizes. **Interface size** (Small, Default, Large, Larger) scales the menus, buttons, labels and icons; the palette has **Larger interface** and **Smaller interface**. **Writing size** is the prose alone, and **Line width** is counted in characters, so a larger writing size keeps the same words per line. Both are also in the header's appearance menu, beside the theme and colour mode. Every theme, light and dark, keeps its text readable on every surface.
+
 ## The five places things live
 
 | Place                | What is there                                                                     |
