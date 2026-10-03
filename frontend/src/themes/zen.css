@@ -8,22 +8,22 @@
   --color-border: #d8d6cf;
   --color-border-light: #ebe9e2;
   --color-text: #1a1916;
-  --color-text-muted: #6b6860;
-  --color-text-subtle: #88867f;
+  --color-text-muted: #6a675f;
+  --color-text-subtle: #6e6c65;
   --color-section-title: #4a4843;
-  --segment-act: #c94f1e;
-  --segment-chapter: #b07c10;
+  --segment-act: #bd4311;
+  --segment-chapter: #876710;
   --segment-scene: #2668c4;
   --segment-section: #5a6a82;
-  --segment-beat: #1a9272;
+  --segment-beat: #087b65;
   --segment-part: #7040b8;
   --segment-stage: #b83670;
   --color-note-highlight: rgba(200, 160, 20, 0.18);
   --color-note-marker: #b89020;
-  --color-accent: #4a7c59;
+  --color-accent: #457754;
   --color-accent-hover: #3d6a4a;
   --color-accent-fg: #ffffff;
-  --color-ai: #8566a1;
+  --color-ai: #7f6095;
   --color-ai-hover: #7a5a96;
   --color-ai-fg: #ffffff;
   --color-ai-subtle: rgba(139, 106, 168, 0.12);
@@ -33,7 +33,7 @@
   --color-ai-coach-fg: #ffffff;
   --color-ai-coach-subtle: rgba(124, 84, 184, 0.1);
   --color-ai-coach-border: rgba(124, 84, 184, 0.28);
-  --color-nlp: #2a8a9a;
+  --color-nlp: #0e7883;
   --color-nlp-hover: #238090;
   --color-nlp-fg: #ffffff;
   --color-nlp-subtle: rgba(42, 138, 154, 0.12);
@@ -48,20 +48,19 @@
   --color-editorial-surface: rgba(15, 118, 110, 0.06);
   --color-danger: #b83232;
   --color-danger-bg: #fdf2f2;
-  --color-warning: #c47a1e;
-  --color-success: #4a9c6e;
+  --color-warning: #976117;
+  --color-success: #227a5a;
   --color-surface-raised: #eceae2;
-  --color-planner: #0d9488;
+  --color-planner: #147977;
   --color-planner-hover: #0b7c72;
   --color-planner-fg: #ffffff;
   --color-planner-subtle: rgba(13, 148, 136, 0.1);
   --color-planner-border: rgba(13, 148, 136, 0.28);
-  --color-brainstorm: #d97706;
+  --color-brainstorm: #9f5b15;
   --color-brainstorm-hover: #b45309;
   --color-brainstorm-fg: #ffffff;
   --color-brainstorm-subtle: rgba(217, 119, 6, 0.1);
   --color-brainstorm-border: rgba(217, 119, 6, 0.28);
-  --color-overlay: rgba(0, 0, 0, 0.4);
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
   --cat-1: #2668c4;
   --cat-1-fg: #ffffff;
@@ -79,10 +78,13 @@
   --cat-7-fg: #111111;
   --cat-8: #5a6a82;
   --cat-8-fg: #ffffff;
-  --status-planned: #88867f;
-  --status-draft: #c47a1e;
-  --status-revised: #2a8a9a;
-  --status-final: #4a9c6e;
+  --status-planned: #6e6c65;
+  --status-draft: #976117;
+  --status-revised: #0e7883;
+  --status-final: #227a5a;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-control-border: #8a8985;
+  --color-focus: #4a7c59;
 }
 
 /* ── Zen theme · dark mode ─────────────────────── */
@@ -97,7 +99,7 @@
   --color-border-light: #2b2a26;
   --color-text: #f0ede6;
   --color-text-muted: #a8a6a0;
-  --color-text-subtle: #858379;
+  --color-text-subtle: #8e8b80;
   --color-section-title: #b8b5ae;
 
   --segment-act: #f07050;
@@ -142,7 +144,7 @@
   --color-editorial-marker: #2dd4bf;
   --color-editorial-surface: rgba(45, 212, 191, 0.07);
 
-  --color-danger: #e05454;
+  --color-danger: #e85c58;
   --color-danger-bg: #1f1212;
   --color-warning: #d08428;
   --color-success: #5ab87e;
@@ -180,8 +182,10 @@
   --cat-7-fg: #111111;
   --cat-8: #8a9ab0;
   --cat-8-fg: #111111;
-  --status-planned: #858379;
+  --status-planned: #8e8b80;
   --status-draft: #d08428;
   --status-revised: #50c0d8;
   --status-final: #5ab87e;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-focus: #4d7f5c;
 }

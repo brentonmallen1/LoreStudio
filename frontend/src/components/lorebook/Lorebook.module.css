@@ -127,7 +127,7 @@
 
 .listAdd:focus-visible,
 .listAddQuiet:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -248,7 +248,7 @@
 .assistantToggle:focus-visible,
 .assistantBtn:focus-visible,
 .sheetView:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 1px;
 }
 
@@ -341,7 +341,7 @@
 }
 
 .sheetDotBtn:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -394,7 +394,7 @@
 .sheetNameInput {
   min-width: 12rem;
   padding: 0.1rem 0.35rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
@@ -842,7 +842,7 @@ button.cardRow:hover {
 .inlineInput {
   min-width: 0;
   padding: 0.35rem 0.5rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
@@ -882,7 +882,7 @@ button.cardRow:hover {
 }
 
 .iconBtn:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
 }
 
 .quietBtn {
@@ -1035,7 +1035,7 @@ button.cardRow:hover {
 .linkBtn:focus-visible,
 .promptBtn:focus-visible,
 .quietSelect:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 1px;
 }
 

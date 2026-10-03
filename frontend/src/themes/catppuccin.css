@@ -7,40 +7,40 @@
   --color-surface-raised: #c6cad5;
   --color-border: #b4b9c6;
   --color-border-light: #d1d5de;
-  --color-text: #4c4f69;
-  --color-text-muted: #5c5f77;
-  --color-text-subtle: #6f7287;
-  --color-section-title: #5c5f77;
+  --color-text: #4a4d67;
+  --color-text-muted: #4a4d65;
+  --color-text-subtle: #55586d;
+  --color-section-title: #555870;
 
-  --segment-act: #d20f39;
-  --segment-chapter: #fe640b;
-  --segment-scene: #1e66f5;
-  --segment-section: #8c8fa1;
-  --segment-beat: #40a02b;
-  --segment-part: #8839ef;
-  --segment-stage: #ea76cb;
+  --segment-act: #af1936;
+  --segment-chapter: #9d350a;
+  --segment-scene: #024ad9;
+  --segment-section: #585962;
+  --segment-beat: #166804;
+  --segment-part: #7b1cd5;
+  --segment-stage: #9c287e;
 
   --color-note-highlight: rgba(223, 142, 29, 0.15);
   --color-note-marker: #df8e1d;
 
-  --color-accent: #8839ef;
+  --color-accent: #7b1cd5;
   --color-accent-hover: #7527d8;
   --color-accent-fg: #eff1f5;
 
-  --color-ai: #8839ef;
+  --color-ai: #7b1cd5;
   --color-ai-hover: #7527d8;
   --color-ai-fg: #eff1f5;
   --color-ai-subtle: rgba(136, 57, 239, 0.1);
   --color-ai-border: rgba(136, 57, 239, 0.28);
 
-  --color-nlp: #1e93a7;
-  --color-nlp-hover: #1a8fa3;
+  --color-nlp: #0e626b;
+  --color-nlp-hover: #087987;
   --color-nlp-fg: #eff1f5;
   --color-nlp-subtle: rgba(32, 159, 181, 0.12);
   --color-nlp-border: rgba(32, 159, 181, 0.3);
 
-  --color-editorial: #179a88;
-  --color-editorial-hover: #0f8070;
+  --color-editorial: #096461;
+  --color-editorial-hover: #027c6d;
   --color-editorial-fg: #eff1f5;
   --color-editorial-subtle: rgba(23, 154, 136, 0.1);
   --color-editorial-border: rgba(23, 154, 136, 0.28);
@@ -48,31 +48,49 @@
   --color-editorial-marker: #179a88;
   --color-editorial-surface: rgba(23, 154, 136, 0.06);
 
-  --color-danger: #d20f39;
+  --color-danger: #af1936;
   --color-danger-bg: #f4e8ec;
-  --color-warning: #df8e1d;
-  --color-success: #40a02b;
+  --color-warning: #75530e;
+  --color-success: #166804;
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
   --cat-1: #1e66f5;
   --cat-1-fg: #ffffff;
   --cat-2: #d20f39;
   --cat-2-fg: #ffffff;
-  --cat-3: #3d9829;
-  --cat-3-fg: #111111;
+  --cat-3: #2b8617;
+  --cat-3-fg: #ffffff;
   --cat-4: #8839ef;
   --cat-4-fg: #ffffff;
-  --cat-5: #de580a;
-  --cat-5-fg: #111111;
-  --cat-6: #c161a7;
-  --cat-6-fg: #111111;
-  --cat-7: #1d8fa3;
-  --cat-7-fg: #111111;
-  --cat-8: #828495;
-  --cat-8-fg: #111111;
-  --status-planned: #6f7287;
-  --status-draft: #b87518;
-  --status-revised: #1d8fa3;
-  --status-final: #3d9829;
+  --cat-5: #c64c0c;
+  --cat-5-fg: #ffffff;
+  --cat-6: #b15197;
+  --cat-6-fg: #ffffff;
+  --cat-7: #1c7f91;
+  --cat-7-fg: #ffffff;
+  --cat-8: #72747f;
+  --cat-8-fg: #ffffff;
+  --status-planned: #55586d;
+  --status-draft: #765300;
+  --status-revised: #11636b;
+  --status-final: #1b670c;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #7b1cd5;
+  --color-ai-coach-subtle: rgba(123, 28, 213, 0.1);
+  --color-ai-coach-border: rgba(123, 28, 213, 0.28);
+  --color-planner: #096461;
+  --color-planner-subtle: rgba(9, 100, 97, 0.1);
+  --color-planner-border: rgba(9, 100, 97, 0.28);
+  --color-brainstorm: #75530e;
+  --color-brainstorm-subtle: rgba(117, 83, 14, 0.1);
+  --color-brainstorm-border: rgba(117, 83, 14, 0.28);
+  --color-ai-coach-hover: #7d27e1;
+  --color-ai-coach-fg: #ffffff;
+  --color-planner-hover: #0b8478;
+  --color-planner-fg: #ffffff;
+  --color-brainstorm-hover: #a56908;
+  --color-brainstorm-fg: #ffffff;
+  --color-control-border: #72747b;
+  --color-focus: #8737ed;
 }
 
 /* ── Catppuccin theme · Macchiato (dark) ───────── */
@@ -87,13 +105,13 @@
   --color-border-light: #2d3145;
   --color-text: #cad3f5;
   --color-text-muted: #b8c0e0;
-  --color-text-subtle: #8087a2;
+  --color-text-subtle: #97a6c2;
   --color-section-title: #a5adcb;
 
   --segment-act: #ed8796;
   --segment-chapter: #f5a97f;
   --segment-scene: #8aadf4;
-  --segment-section: #8087a2;
+  --segment-section: #97a6c2;
   --segment-beat: #a6da95;
   --segment-part: #c6a0f6;
   --segment-stage: #f5bde6;
@@ -158,8 +176,21 @@
   --cat-7-fg: #111111;
   --cat-8: #8087a2;
   --cat-8-fg: #111111;
-  --status-planned: #8087a2;
+  --status-planned: #97a6c2;
   --status-draft: #eed49f;
   --status-revised: #8bd5ca;
   --status-final: #a6da95;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #ac96ff;
+  --color-ai-coach-subtle: rgba(172, 150, 255, 0.1);
+  --color-ai-coach-border: rgba(172, 150, 255, 0.28);
+  --color-planner: #76b1a6;
+  --color-planner-subtle: rgba(118, 177, 166, 0.1);
+  --color-planner-border: rgba(118, 177, 166, 0.28);
+  --color-ai-coach-hover: #987af9;
+  --color-ai-coach-fg: #24273a;
+  --color-planner-hover: #30a086;
+  --color-planner-fg: #24273a;
+  --color-control-border: #82848d;
+  --color-focus: #a38afc;
 }

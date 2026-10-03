@@ -9,38 +9,38 @@
   --color-border-light: #d2d9e4;
   --color-text: #2e3440;
   --color-text-muted: #4c566a;
-  --color-text-subtle: #6f7d99;
+  --color-text-subtle: #556376;
   --color-section-title: #434c5e;
 
-  --segment-act: #bf616a;
-  --segment-chapter: #c07a40;
-  --segment-scene: #5e81ac;
-  --segment-section: #6b7b8f;
-  --segment-beat: #6a9070;
-  --segment-part: #8b6a9b;
-  --segment-stage: #ac5e7a;
+  --segment-act: #954c55;
+  --segment-chapter: #865800;
+  --segment-scene: #43667d;
+  --segment-section: #546474;
+  --segment-beat: #48694e;
+  --segment-part: #75577c;
+  --segment-stage: #8c4e6a;
 
   --color-note-highlight: rgba(235, 203, 139, 0.2);
   --color-note-marker: #b8933e;
 
-  --color-accent: #506d92;
+  --color-accent: #476480;
   --color-accent-hover: #4c6f96;
   --color-accent-fg: #eceff4;
 
-  --color-ai: #7d6378;
-  --color-ai-hover: #a07a9b;
+  --color-ai: #745a6f;
+  --color-ai-hover: #7d657c;
   --color-ai-fg: #eceff4;
   --color-ai-subtle: rgba(180, 142, 173, 0.12);
   --color-ai-border: rgba(180, 142, 173, 0.3);
 
-  --color-nlp: #8fbcbb;
-  --color-nlp-hover: #7aabad;
-  --color-nlp-fg: #2e3440;
+  --color-nlp: #476868;
+  --color-nlp-hover: #4d7375;
+  --color-nlp-fg: #eceff4;
   --color-nlp-subtle: rgba(143, 188, 187, 0.12);
   --color-nlp-border: rgba(143, 188, 187, 0.3);
 
-  --color-editorial: #3d8a84;
-  --color-editorial-hover: #2e7a74;
+  --color-editorial: #026d6b;
+  --color-editorial-hover: #2a7872;
   --color-editorial-fg: #eceff4;
   --color-editorial-subtle: rgba(61, 138, 132, 0.12);
   --color-editorial-border: rgba(61, 138, 132, 0.3);
@@ -48,31 +48,49 @@
   --color-editorial-marker: #3d8a84;
   --color-editorial-surface: rgba(61, 138, 132, 0.07);
 
-  --color-danger: #bf616a;
+  --color-danger: #954c55;
   --color-danger-bg: #efe6e6;
-  --color-warning: #d08770;
-  --color-success: #6a9070;
+  --color-warning: #825849;
+  --color-success: #48694e;
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
-  --cat-1: #5e81ac;
+  --cat-1: #5d80aa;
   --cat-1-fg: #111111;
   --cat-2: #bf616a;
   --cat-2-fg: #111111;
-  --cat-3: #678c6d;
+  --cat-3: #64866a;
   --cat-3-fg: #111111;
   --cat-4: #8b6a9b;
   --cat-4-fg: #ffffff;
-  --cat-5: #b6743d;
+  --cat-5: #ae7035;
   --cat-5-fg: #111111;
   --cat-6: #ac5e7a;
   --cat-6-fg: #ffffff;
-  --cat-7: #688888;
+  --cat-7: #648484;
   --cat-7-fg: #111111;
   --cat-8: #68788b;
   --cat-8-fg: #ffffff;
-  --status-planned: #6f7d99;
-  --status-draft: #b1735f;
-  --status-revised: #688888;
-  --status-final: #678c6d;
+  --status-planned: #556376;
+  --status-draft: #7f5a46;
+  --status-revised: #476767;
+  --status-final: #486a4e;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #75577c;
+  --color-ai-coach-subtle: rgba(117, 87, 124, 0.1);
+  --color-ai-coach-border: rgba(117, 87, 124, 0.28);
+  --color-planner: #026d6b;
+  --color-planner-subtle: rgba(2, 109, 107, 0.1);
+  --color-planner-border: rgba(2, 109, 107, 0.28);
+  --color-brainstorm: #75600d;
+  --color-brainstorm-subtle: rgba(117, 96, 13, 0.1);
+  --color-brainstorm-border: rgba(117, 96, 13, 0.28);
+  --color-ai-coach-hover: #7f5e8f;
+  --color-ai-coach-fg: #ffffff;
+  --color-planner-hover: #307e78;
+  --color-planner-fg: #ffffff;
+  --color-brainstorm-hover: #8f7313;
+  --color-brainstorm-fg: #ffffff;
+  --color-control-border: #7a7e86;
+  --color-focus: #506d92;
 }
 
 /* ── Nord theme · dark mode ────────────────────── */
@@ -87,38 +105,38 @@
   --color-border-light: #434c5e;
   --color-text: #eceff4;
   --color-text-muted: #d8dee9;
-  --color-text-subtle: #9aa3b7;
+  --color-text-subtle: #b4bdd1;
   --color-section-title: #c8d0e0;
 
-  --segment-act: #bf616a;
-  --segment-chapter: #d08770;
-  --segment-scene: #88c0d0;
-  --segment-section: #81a1c1;
-  --segment-beat: #a3be8c;
-  --segment-part: #b48ead;
-  --segment-stage: #c07090;
+  --segment-act: #fea69d;
+  --segment-chapter: #f4ab8f;
+  --segment-scene: #8cc4d4;
+  --segment-section: #9fbfdf;
+  --segment-beat: #a9c492;
+  --segment-part: #d6b0cf;
+  --segment-stage: #f6a4c6;
 
   --color-note-highlight: rgba(235, 203, 139, 0.12);
   --color-note-marker: #ebcb8b;
 
-  --color-accent: #88c0d0;
+  --color-accent: #8cc4d4;
   --color-accent-hover: #6fafc0;
   --color-accent-fg: #2e3440;
 
-  --color-ai: #b793b0;
+  --color-ai: #d5b1ce;
   --color-ai-hover: #c6a0c5;
   --color-ai-fg: #2e3440;
   --color-ai-subtle: rgba(180, 142, 173, 0.12);
   --color-ai-border: rgba(180, 142, 173, 0.28);
 
-  --color-nlp: #88c0d0;
+  --color-nlp: #8cc4d4;
   --color-nlp-hover: #8fbcbb;
   --color-nlp-fg: #2e3440;
   --color-nlp-subtle: rgba(136, 192, 208, 0.1);
   --color-nlp-border: rgba(136, 192, 208, 0.25);
 
-  --color-editorial: #49b8b0;
-  --color-editorial-hover: #38a8a0;
+  --color-editorial: #5fcec6;
+  --color-editorial-hover: #3caca4;
   --color-editorial-fg: #2e3440;
   --color-editorial-subtle: rgba(73, 184, 176, 0.1);
   --color-editorial-border: rgba(73, 184, 176, 0.25);
@@ -126,10 +144,10 @@
   --color-editorial-marker: #49b8b0;
   --color-editorial-surface: rgba(73, 184, 176, 0.07);
 
-  --color-danger: #bf616a;
+  --color-danger: #fea69d;
   --color-danger-bg: #3a2a2b;
-  --color-warning: #d08770;
-  --color-success: #a3be8c;
+  --color-warning: #f4ab8f;
+  --color-success: #a9c492;
 
   --color-brainstorm: #ebcb8b;
   --color-brainstorm-hover: #d8b86a;
@@ -144,7 +162,7 @@
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
   --cat-1: #88c0d0;
   --cat-1-fg: #111111;
-  --cat-2: #c7757d;
+  --cat-2: #d58384;
   --cat-2-fg: #111111;
   --cat-3: #a3be8c;
   --cat-3-fg: #111111;
@@ -152,14 +170,27 @@
   --cat-4-fg: #111111;
   --cat-5: #d08770;
   --cat-5-fg: #111111;
-  --cat-6: #c37796;
+  --cat-6: #cf83a2;
   --cat-6-fg: #111111;
   --cat-7: #88c0d0;
   --cat-7-fg: #111111;
   --cat-8: #81a1c1;
   --cat-8-fg: #111111;
-  --status-planned: #9aa3b7;
-  --status-draft: #d08770;
-  --status-revised: #88c0d0;
-  --status-final: #a3be8c;
+  --status-planned: #b4bdd1;
+  --status-draft: #f4ab8f;
+  --status-revised: #8cc4d4;
+  --status-final: #a9c492;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #dcacec;
+  --color-ai-coach-subtle: rgba(220, 172, 236, 0.1);
+  --color-ai-coach-border: rgba(220, 172, 236, 0.28);
+  --color-planner: #7dcabe;
+  --color-planner-subtle: rgba(125, 202, 190, 0.1);
+  --color-planner-border: rgba(125, 202, 190, 0.28);
+  --color-ai-coach-hover: #bb8bd3;
+  --color-ai-coach-fg: #2e3440;
+  --color-planner-hover: #60a996;
+  --color-planner-fg: #2e3440;
+  --color-control-border: #9199a9;
+  --color-focus: #7caae0;
 }

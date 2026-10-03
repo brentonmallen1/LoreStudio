@@ -9,37 +9,37 @@
   --color-border-light: #d8c9a0;
   --color-text: #3c3836;
   --color-text-muted: #504945;
-  --color-text-subtle: #7c6f64;
+  --color-text-subtle: #6b5e53;
   --color-section-title: #504945;
 
-  --segment-act: #cc241d;
-  --segment-chapter: #d79921;
-  --segment-scene: #458588;
+  --segment-act: #c01311;
+  --segment-chapter: #795d07;
+  --segment-scene: #126b6f;
   --segment-section: #665c54;
-  --segment-beat: #98971a;
-  --segment-part: #b16286;
-  --segment-stage: #d65d0e;
+  --segment-beat: #69630c;
+  --segment-part: #894e72;
+  --segment-stage: #a44008;
 
   --color-note-highlight: rgba(215, 153, 33, 0.15);
   --color-note-marker: #d79921;
 
-  --color-accent: #b54f0c;
+  --color-accent: #a1440d;
   --color-accent-hover: #af3a03;
   --color-accent-fg: #fbf1c7;
 
-  --color-ai: #9c5677;
+  --color-ai: #8a4d6e;
   --color-ai-hover: #9a5070;
   --color-ai-fg: #fbf1c7;
   --color-ai-subtle: rgba(177, 98, 134, 0.1);
   --color-ai-border: rgba(177, 98, 134, 0.28);
 
-  --color-nlp: #458588;
+  --color-nlp: #126b6f;
   --color-nlp-hover: #386d70;
   --color-nlp-fg: #fbf1c7;
   --color-nlp-subtle: rgba(69, 133, 136, 0.12);
   --color-nlp-border: rgba(69, 133, 136, 0.3);
 
-  --color-editorial: #2d7068;
+  --color-editorial: #236b63;
   --color-editorial-hover: #245c56;
   --color-editorial-fg: #fbf1c7;
   --color-editorial-subtle: rgba(45, 112, 104, 0.1);
@@ -48,31 +48,49 @@
   --color-editorial-marker: #2d7068;
   --color-editorial-surface: rgba(45, 112, 104, 0.06);
 
-  --color-danger: #cc241d;
+  --color-danger: #c01311;
   --color-danger-bg: #f4e8e0;
-  --color-warning: #d79921;
-  --color-success: #98971a;
+  --color-warning: #795d07;
+  --color-success: #69630c;
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
   --cat-1: #427e81;
   --cat-1-fg: #ffffff;
   --cat-2: #cc241d;
   --cat-2-fg: #ffffff;
-  --cat-3: #858417;
+  --cat-3: #838011;
   --cat-3-fg: #111111;
   --cat-4: #a85d7f;
   --cat-4-fg: #ffffff;
-  --cat-5: #ac7a1a;
+  --cat-5: #a4740e;
   --cat-5-fg: #111111;
-  --cat-6: #d65d0e;
+  --cat-6: #d05702;
   --cat-6-fg: #111111;
   --cat-7: #427e81;
   --cat-7-fg: #ffffff;
   --cat-8: #665c54;
   --cat-8-fg: #ffffff;
-  --status-planned: #7c6f64;
-  --status-draft: #ac7a1a;
-  --status-revised: #458588;
-  --status-final: #858417;
+  --status-planned: #6b5e53;
+  --status-draft: #785d10;
+  --status-revised: #126b6f;
+  --status-final: #686310;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #894e72;
+  --color-ai-coach-subtle: rgba(137, 78, 114, 0.1);
+  --color-ai-coach-border: rgba(137, 78, 114, 0.28);
+  --color-planner: #236b63;
+  --color-planner-subtle: rgba(35, 107, 99, 0.1);
+  --color-planner-border: rgba(35, 107, 99, 0.28);
+  --color-brainstorm: #795d07;
+  --color-brainstorm-subtle: rgba(121, 93, 7, 0.1);
+  --color-brainstorm-border: rgba(121, 93, 7, 0.28);
+  --color-ai-coach-hover: #a4567a;
+  --color-ai-coach-fg: #ffffff;
+  --color-planner-hover: #20645d;
+  --color-planner-fg: #ffffff;
+  --color-brainstorm-hover: #9a6e01;
+  --color-brainstorm-fg: #ffffff;
+  --color-control-border: #867d5c;
+  --color-focus: #b34d08;
 }
 
 /* ── Gruvbox theme · dark mode ─────────────────── */
@@ -86,38 +104,38 @@
   --color-border: #605850;
   --color-border-light: #46423d;
   --color-text: #ebdbb2;
-  --color-text-muted: #d5c4a1;
-  --color-text-subtle: #a89984;
+  --color-text-muted: #e7d6b3;
+  --color-text-subtle: #c8b9a3;
   --color-section-title: #d5c4a1;
 
-  --segment-act: #fb4934;
+  --segment-act: #fca394;
   --segment-chapter: #fabd2f;
-  --segment-scene: #83a598;
-  --segment-section: #928374;
-  --segment-beat: #b8bb26;
-  --segment-part: #d3869b;
-  --segment-stage: #fe8019;
+  --segment-scene: #9fc1b4;
+  --segment-section: #ccb89f;
+  --segment-beat: #bec12e;
+  --segment-part: #f1a4b9;
+  --segment-stage: #ffa46c;
 
   --color-note-highlight: rgba(250, 189, 47, 0.12);
   --color-note-marker: #fabd2f;
 
-  --color-accent: #fe8019;
-  --color-accent-hover: #d65d0e;
+  --color-accent: #ffa46c;
+  --color-accent-hover: #e46b22;
   --color-accent-fg: #282828;
 
-  --color-ai: #d3869b;
-  --color-ai-hover: #b16286;
+  --color-ai: #f1a4b9;
+  --color-ai-hover: #cb739d;
   --color-ai-fg: #282828;
   --color-ai-subtle: rgba(211, 134, 155, 0.12);
   --color-ai-border: rgba(211, 134, 155, 0.28);
 
-  --color-nlp: #83a598;
-  --color-nlp-hover: #6d8c82;
+  --color-nlp: #9fc1b4;
+  --color-nlp-hover: #729687;
   --color-nlp-fg: #282828;
   --color-nlp-subtle: rgba(131, 165, 152, 0.12);
   --color-nlp-border: rgba(131, 165, 152, 0.28);
 
-  --color-editorial: #5dbfb0;
+  --color-editorial: #69cbbc;
   --color-editorial-hover: #4aafa0;
   --color-editorial-fg: #282828;
   --color-editorial-subtle: rgba(93, 191, 176, 0.1);
@@ -126,10 +144,10 @@
   --color-editorial-marker: #5dbfb0;
   --color-editorial-surface: rgba(93, 191, 176, 0.07);
 
-  --color-danger: #fb4934;
+  --color-danger: #fca394;
   --color-danger-bg: #332020;
   --color-warning: #fabd2f;
-  --color-success: #b8bb26;
+  --color-success: #bec12e;
 
   --color-brainstorm: #fabd2f;
   --color-brainstorm-hover: #e8ab1a;
@@ -144,7 +162,7 @@
   /* Palette slots for characters, places and threads, and scene states (doc 11 P2). */
   --cat-1: #83a598;
   --cat-1-fg: #111111;
-  --cat-2: #fb4934;
+  --cat-2: #fb6854;
   --cat-2-fg: #111111;
   --cat-3: #b8bb26;
   --cat-3-fg: #111111;
@@ -156,10 +174,23 @@
   --cat-6-fg: #111111;
   --cat-7: #83a598;
   --cat-7-fg: #111111;
-  --cat-8: #928374;
+  --cat-8: #a8947f;
   --cat-8-fg: #111111;
-  --status-planned: #a89984;
+  --status-planned: #c8b9a3;
   --status-draft: #fabd2f;
-  --status-revised: #83a598;
-  --status-final: #b8bb26;
+  --status-revised: #9fc1b4;
+  --status-final: #bec12e;
+  /* Doc 17: declared here so nothing falls through to zen's :root. */
+  --color-ai-coach: #f79fc9;
+  --color-ai-coach-subtle: rgba(247, 159, 201, 0.1);
+  --color-ai-coach-border: rgba(247, 159, 201, 0.28);
+  --color-planner: #8cc7b3;
+  --color-planner-subtle: rgba(140, 199, 179, 0.1);
+  --color-planner-border: rgba(140, 199, 179, 0.28);
+  --color-ai-coach-hover: #ce7195;
+  --color-ai-coach-fg: #282828;
+  --color-planner-hover: #609b89;
+  --color-planner-fg: #282828;
+  --color-control-border: #a6976e;
+  --color-focus: #fd9757;
 }

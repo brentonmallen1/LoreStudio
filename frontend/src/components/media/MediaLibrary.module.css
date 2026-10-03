@@ -230,7 +230,7 @@
 .editInput {
   padding: 4px 7px;
   font-size: var(--text-sm);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control-border);
   border-radius: 4px;
   background: var(--color-bg);
   color: var(--color-text);
@@ -240,7 +240,7 @@
 .editTextarea {
   padding: 4px 7px;
   font-size: var(--text-sm);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control-border);
   border-radius: 4px;
   background: var(--color-bg);
   color: var(--color-text);

@@ -50,7 +50,7 @@
 }
 
 .vital:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -104,7 +104,7 @@
 }
 
 .chip:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -275,7 +275,7 @@
 
 .verb:focus-visible,
 .confirmYes:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -368,7 +368,7 @@
 }
 
 .runButton:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 
@@ -630,7 +630,7 @@ button.runItem:focus-visible {
 .yes:focus-visible,
 .no:focus-visible,
 .whereLink:focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
 

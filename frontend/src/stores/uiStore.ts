@@ -237,6 +237,14 @@ export interface WorldBuildingAIContext {
   storyId: string;
 }
 
+// "System" follows the OS while it is chosen, not only when the page loads (doc 17).
+const systemDark =
+  typeof window !== "undefined" ? window.matchMedia?.("(prefers-color-scheme: dark)") : undefined;
+systemDark?.addEventListener?.("change", () => {
+  const { themeName, colorMode } = useUIStore.getState();
+  if (colorMode === "system") applyAppearance(themeName, colorMode);
+});
+
 function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
   const root = document.documentElement;
 

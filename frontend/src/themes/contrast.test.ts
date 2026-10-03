@@ -52,34 +52,74 @@ export function contrast(a: string, b: string): number {
 }
 
 /** [foreground token, background token, minimum ratio, what it is] */
+// Doc 17 (D3): all text meets AA, 4.5:1, on every ground it sits on: the page, cards, and the
+// vellum of the header, strip and panel tab bar (surface-2). Non-text (slot dots, control
+// edges, the focus ring) meets 3:1.
+const GROUNDS: [string, string][] = [
+  ["--color-bg", "page"],
+  ["--color-surface", "cards"],
+  ["--color-surface-2", "the header, strip and tab bar"],
+];
+const TEXT: [string, string][] = [
+  ["--color-text", "body text"],
+  ["--color-text-muted", "muted text"],
+  ["--color-text-subtle", "subtle text"],
+  ["--color-section-title", "section titles"],
+  ["--color-accent", "accent as text"],
+  ["--color-ai", "AI as text"],
+  ["--color-nlp", "analysis as text"],
+  ["--color-editorial", "editorial as text"],
+  ["--color-danger", "danger as text"],
+  ["--color-warning", "warning as text"],
+  ["--color-success", "success as text"],
+  ["--color-ai-coach", "coach as text"],
+  ["--color-planner", "planner as text"],
+  ["--color-brainstorm", "brainstorm as text"],
+  ...["act", "chapter", "scene", "section", "beat", "part", "stage"].map((s): [string, string] => [
+    `--segment-${s}`,
+    `${s} label`,
+  ]),
+  ...["planned", "draft", "revised", "final"].map((s): [string, string] => [`--status-${s}`, `${s} badge`]),
+];
+const FILLS = ["accent", "ai", "nlp", "editorial", "ai-coach", "planner", "brainstorm"];
+
 const PAIRS: [string, string, number, string][] = [
-  ["--color-text", "--color-bg", 4.5, "body text on page"],
-  ["--color-text", "--color-surface", 4.5, "body text on cards"],
-  ["--color-text-muted", "--color-bg", 4.5, "muted text on page"],
-  ["--color-text-muted", "--color-surface", 4.5, "muted text on cards"],
-  ["--color-text-subtle", "--color-bg", 3, "subtle text on page"],
-  // Where subtle text actually renders: sidebar group headings, tree word counts and card
-  // meta sit on the surfaces, not the page. Checked against the page alone, six palettes
-  // passed here while ~116 labels per screen measured under 3:1 in the browser.
-  ["--color-text-subtle", "--color-surface", 3, "subtle text on cards and the sidebar"],
-  ["--color-text-subtle", "--color-surface-2", 3, "subtle text on raised surfaces"],
-  ["--color-section-title", "--color-bg", 4.5, "section titles"],
-  ["--color-accent-fg", "--color-accent", 4.5, "text on accent buttons"],
-  ["--color-ai-fg", "--color-ai", 4.5, "text on AI buttons"],
-  ["--color-nlp-fg", "--color-nlp", 3, "text on NLP badges"],
+  ...TEXT.flatMap(([fg, what]) =>
+    GROUNDS.map(([bg, where]): [string, string, number, string] => [fg, bg, 4.5, `${what} on ${where}`]),
+  ),
+  // Hover grounds and raised cards carry body and muted text; subtle text appears there on hover.
+  ["--color-text", "--color-surface-3", 4.5, "body text on hover"],
+  ["--color-text", "--color-surface-raised", 4.5, "body text on raised cards"],
+  ["--color-text-muted", "--color-surface-3", 4.5, "muted text on hover"],
+  ["--color-text-muted", "--color-surface-raised", 4.5, "muted text on raised cards"],
+  ["--color-text-subtle", "--color-surface-3", 3, "subtle text on hover"],
+  // Text on filled buttons and badges, at rest and under the pointer.
+  ...FILLS.flatMap((f): [string, string, number, string][] => [
+    [`--color-${f}-fg`, `--color-${f}`, 4.5, `text on ${f} buttons`],
+    [`--color-${f}-fg`, `--color-${f}-hover`, 4.5, `text on ${f} buttons under the pointer`],
+  ]),
+  ["--color-danger", "--color-danger-bg", 4.5, "danger text on its tint"],
   // Palette slots (doc 11 P2): used as ink (dots, rings, underlines, chip fills), so 3:1 on
-  // both grounds, and the text on a filled chip reaches 4.5.
+  // every ground, and the text on a filled chip reaches 4.5.
   ...Array.from({ length: 8 }, (_, i) => i + 1).flatMap((n): [string, string, number, string][] => [
-    [`--cat-${n}`, "--color-bg", 3, `slot ${n} on page`],
-    [`--cat-${n}`, "--color-surface", 3, `slot ${n} on cards`],
+    ...GROUNDS.map(([bg, where]): [string, string, number, string] => [
+      `--cat-${n}`,
+      bg,
+      3,
+      `slot ${n} on ${where}`,
+    ]),
     [`--cat-${n}-fg`, `--cat-${n}`, 4.5, `text on slot ${n}`],
   ]),
-  ...["planned", "draft", "revised", "final"].map((s): [string, string, number, string] => [
-    `--status-${s}`,
-    "--color-surface",
+  // The edge of an input, select or toggle (WCAG 1.4.11), and the keyboard focus ring.
+  ...GROUNDS.map(([bg, where]): [string, string, number, string] => [
+    "--color-control-border",
+    bg,
     3,
-    `${s} state on cards`,
+    `control edges on ${where}`,
   ]),
+  ...[...GROUNDS, ["--color-surface-3", "hover"] as [string, string]].map(
+    ([bg, where]): [string, string, number, string] => ["--color-focus", bg, 3, `focus ring on ${where}`],
+  ),
   // Region edges (doc 13 P7): the rules between header, strip, index, page and panel. Not
   // text, so not WCAG's 3:1, but under these the dividers vanished and the screen read as
   // one slab, worst in dark mode.
@@ -98,11 +138,27 @@ const REQUIRED = [
   "--status-final",
 ];
 
+/**
+ * Zen's light block is also `:root`, so any token another palette leaves out silently takes
+ * Zen's light value, even in dark mode (doc 17 found the coach, planner and brainstorm
+ * colours doing this). Every palette's light block declares everything Zen's does.
+ */
+function declared(css: string): Set<string> {
+  const first = css.match(/\{([^}]*)\}/);
+  return new Set([...(first?.[1] ?? "").matchAll(/(--[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+}
+
 const files = readdirSync(THEMES_DIR).filter((f) => f.endsWith(".css") && f !== "base.css");
+
+const ZEN_TOKENS = declared(readFileSync(join(THEMES_DIR, "zen.css"), "utf8"));
 
 describe("theme contrast (WCAG)", () => {
   for (const file of files) {
     const css = readFileSync(join(THEMES_DIR, file), "utf8");
+    it(`${file} declares every token Zen's :root does`, () => {
+      const own = declared(css);
+      expect([...ZEN_TOKENS].filter((t) => !own.has(t))).toEqual([]);
+    });
     const blocks = parseBlocks(css);
     const light = blocks.find((b) => !b.selector.includes(".dark"));
     it(`${file} defines a palette`, () => {

@@ -51,6 +51,7 @@
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
   /* ── Modal overlay ── */
+  --color-overlay: rgba(0, 0, 0, 0.4);
   /* ── UI & Editor typography ────────────────────── */
   --font-ui: "DM Sans", system-ui, sans-serif;
   --font-editor: "Merriweather", Georgia, serif;
