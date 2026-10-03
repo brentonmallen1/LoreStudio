@@ -4,6 +4,7 @@ import { Eye, Trash2 } from "lucide-react";
 import { api } from "../../../api/client";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { KINDS } from "../../../lib/lorebook/kinds";
+import { useAIAvailable } from "../../../lib/mode";
 import { sceneLeaves } from "../../../lib/planning/methods";
 import { usePanelStore } from "../../../stores/panelStore";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -59,6 +60,8 @@ export default function TwistsSection() {
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Twist | null>(null);
   const [panel, setPanel] = useState<"analysis" | "impact" | null>(null);
+  // Twists are planning, in both modes; the analysis and impact panels are the Assistant's.
+  const aiAvailable = useAIAvailable();
   const [irony, setIrony] = useState(false);
 
   const reload = useCallback(
@@ -230,10 +233,12 @@ export default function TwistsSection() {
             }
             footer={
               <>
-                {panel === "analysis" && (
+                {aiAvailable && panel === "analysis" && (
                   <TwistAnalysisPanel twistId={twist.id} onClueLinked={() => void reload()} />
                 )}
-                {panel === "impact" && <TwistImpactPanel twistId={twist.id} twistName={twist.name} />}
+                {aiAvailable && panel === "impact" && (
+                  <TwistImpactPanel twistId={twist.id} twistName={twist.name} />
+                )}
                 <AssistantRow
                   actions={[
                     {

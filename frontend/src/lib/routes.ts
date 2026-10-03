@@ -45,7 +45,7 @@ export interface RouteSection {
   label: string;
   icon: LucideIcon;
   keywords?: string[];
-  /** Narrower than the page's modes (Twists is Studio only inside a both-modes Lorebook). */
+  /** Narrower than the page's modes (a Studio-only section inside a both-modes page). */
   modes?: UIMode[];
   ai?: boolean;
   /** The URL parameter of an entry under the section (`/lorebook/characters/:entryId`). */
@@ -157,7 +157,6 @@ export const STORY_ROUTES: StoryRoute[] = [
         label: "Twists",
         icon: Eye,
         detailParam: "entryId",
-        modes: STUDIO,
         keywords: ["reveal", "clues", "reader knowledge", "surprise", "dramatic irony"],
       },
       {

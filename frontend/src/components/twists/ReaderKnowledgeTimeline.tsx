@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Orbit, Brain, Plus, Trash2, X, ChevronDown, ChevronRight, Check } from "lucide-react";
+import { useAIAvailable } from "../../lib/mode";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ReaderKnowledgeEvent, KnowledgeType, StructureNode } from "../../types";
@@ -101,6 +102,8 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
   const [events, setEvents] = useState<ReaderKnowledgeEvent[]>([]);
   const [nodes, setNodes] = useState<StructureNode[]>([]);
   const [loading, setLoading] = useState(true);
+  // Writer mode keeps the timeline and loses only the scan, which asks the Assistant.
+  const aiAvailable = useAIAvailable();
   const [scanning, setScanning] = useState(false);
   /** How many events the last scan proposed; -1 when it failed. */
   const [scanNote, setScanNote] = useState<number | null>(null);
@@ -207,7 +210,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
           <span className={styles.eventCount}>{displayedEvents.length}</span>
         </div>
         <div className={styles.headerRight}>
-          {!ironyOnly && (
+          {!ironyOnly && aiAvailable && (
             <button
               className={styles.scanBtn}
               onClick={handleScan}
@@ -262,11 +265,13 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
       {displayedEvents.length === 0 && (
         <div className={styles.empty}>
-          <Orbit size={18} className={styles.emptyIcon} />
+          <Brain size={18} className={styles.emptyIcon} />
           <p>
             {ironyOnly
               ? "No dramatic irony moments found. Add reader knowledge events where readers know more than the characters."
-              : 'No knowledge events yet. "Find what the reader learns" asks the Assistant to propose some, or add them yourself.'}
+              : aiAvailable
+                ? 'No knowledge events yet. "Find what the reader learns" asks the Assistant to propose some, or add them yourself.'
+                : "No knowledge events yet. Add what the reader learns, scene by scene, with Add event."}
           </p>
         </div>
       )}
