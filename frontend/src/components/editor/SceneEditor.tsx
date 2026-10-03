@@ -203,9 +203,7 @@ export default function SceneEditor() {
     if (dialogueInsertTrigger === prevTrigger.current) return;
     prevTrigger.current = dialogueInsertTrigger;
     if (!editor) return;
-    editor.commands.focus();
-    const coords = editor.view.coordsAtPos(editor.state.selection.from);
-    mention.openDialoguePicker(coords.bottom, coords.left);
+    mention.openDialoguePicker();
   }, [dialogueInsertTrigger, editor]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Command palette → writing guides modal: the store's tab wins while it is set

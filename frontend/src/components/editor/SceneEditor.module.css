@@ -1139,6 +1139,24 @@
   cursor: pointer;
 }
 
+/* The faint rest of a suggestion after the cursor; Tab takes it. */
+.editorWrap :global(.ProseMirror .mention-ghost) {
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.mentionItemVia {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.mentionDropdownKeys {
+  padding: 0.3rem 0.6rem 0.2rem;
+  border-top: 1px solid var(--color-border-light);
+  font-size: 0.68rem;
+  color: var(--color-text-subtle);
+}
+
 /* Dialogue mode indicator in the mention dropdown header */
 .mentionDropdownDialogueMode {
   font-size: var(--text-xs);

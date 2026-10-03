@@ -1,24 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
+import { TextSelection } from "@tiptap/pm/state";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+import { toast } from "../../stores/toastStore";
 import type { Character, Location, Story } from "../../types";
 import {
-  setMentionItems,
-  setMentionCallbacks,
-  setMentionIsOpen,
-  setMentionDialogueCallbacks,
-  setMentionAttributionCallbacks,
-  isMentionAttributionMode,
-  FORCE_MENTION_KEY,
-  type MentionItem,
-} from "../story/MentionDropdown";
+  ghostText,
+  quotePair,
+  suggest,
+  type Choice,
+  type Entry,
+  type Trigger,
+  type TriggerMode,
+} from "../../lib/prose/completion";
 import {
-  setDialogueCallbacks,
-  isDialogueModeActive,
-  setDialogueModeActive,
-  FORCE_DIALOGUE_KEY,
-} from "../story/DialogueExtension";
+  FORCE_MENTION_KEY,
+  GHOST_KEY,
+  setMentionCallbacks,
+  setMentionEntries,
+  setMentionGhost,
+  setMentionIsOpen,
+} from "../story/MentionDropdown";
+import { FORCE_DIALOGUE_KEY, likelySpeaker } from "../story/DialogueExtension";
 
 interface Args {
   editor: Editor | null;
@@ -27,282 +31,232 @@ interface Args {
   setCharacters: (chars: Character[]) => void;
 }
 
+/** The quoted line just before a "<" being typed, for the speaker picker to rank by. */
+const LINE_BEFORE_TAG = new RegExp(
+  '[\u201c"\u2018\']([^\u201c\u201d"]+)[\u201d"\u2019\'][ \\u00a0]?<[^<>\\n]*$',
+);
+
 /**
- * The @mention / ^dialogue / <attribution dropdown. One dropdown, three modes:
- * - plain: `@Name` or `[[Setting]]` insertion
- * - dialogue (`^` or /dialogue): inserts `""<Name>` or wraps a selection
- * - attribution (`<` after a closing quote): completes `<Name>`
+ * The pickers that complete the inline syntax as it is typed (doc 16, lib/prose/completion):
+ * `@` a character or place, `[[` a place, `<` after a closing quote its speaker, `^` (or
+ * /dialogue, or Attribute on a selection) a new line for someone. Enter or Tab takes the
+ * chosen suggestion, and its faint rest shows after the cursor; Escape closes.
  *
- * Also owns the flat location list for the story, which feeds the mention
- * items, the scene settings picker and the hover card.
+ * Also owns the flat location list for the story, which feeds the scene settings picker
+ * and the hover card.
  */
 export function useMentionDropdown({ editor, activeStory, characters, setCharacters }: Args) {
   // Characters and places both come from the store (the workspace loads places once,
-  // doc 11); the mention items follow whichever list changes.
+  // doc 11); the mention entries follow whichever list changes.
   const flatLocations: Location[] = useStoryStore((s) => s.locations);
-  const allItems = useMemo<MentionItem[]>(
+  const upsertLocation = useStoryStore((s) => s.upsertLocation);
+  const entries = useMemo<Entry[]>(
     () =>
       activeStory
         ? [
-            ...characters.flatMap((c) => [
-              { type: "character" as const, name: c.name, role: c.role, slot: c.color_slot },
-              ...(c.aliases ?? []).map((a) => ({
-                type: "character" as const,
-                name: a,
-                slot: c.color_slot,
-                aliasOf: c.name,
-              })),
-            ]),
-            ...flatLocations.flatMap((s) => [
-              { type: "setting" as const, name: s.name, slot: s.color_slot },
-              ...(s.aliases ?? []).map((a) => ({
-                type: "setting" as const,
-                name: a,
-                slot: s.color_slot,
-                aliasOf: s.name,
-              })),
-            ]),
+            ...characters.map((c) => ({
+              kind: "character" as const,
+              name: c.name,
+              aliases: c.aliases ?? [],
+              role: c.role,
+              slot: c.color_slot,
+            })),
+            ...flatLocations.map((l) => ({
+              kind: "place" as const,
+              name: l.name,
+              aliases: l.aliases ?? [],
+              slot: l.color_slot,
+            })),
           ]
         : [],
     [activeStory, characters, flatLocations],
   );
+
   const [open, setOpen_] = useState(false);
+  const [mode, setMode] = useState<TriggerMode>("mention");
   const [query, setQuery] = useState("");
+  const [preferred, setPreferred] = useState<string | null>(null);
   const [pos, setPos] = useState({ bottom: 0, left: 0 });
   const [selIdx, setSelIdx] = useState(0);
-  const [dialogueMode, setDialogueMode] = useState(false);
-  const [attributionMode, setAttributionMode] = useState(false);
-  // Refs for stable access inside ProseMirror callbacks
-  const queryRef = useRef("");
-  const selIdxRef = useRef(0);
-  const filteredRef = useRef<MentionItem[]>([]);
-  const insertRef = useRef<((item: MentionItem) => void) | null>(null);
-  // Set by triggerAttributeDialogue to wrap a selection range instead of inserting at cursor
-  const pendingWrapRef = useRef<{ from: number; to: number } | null>(null);
+  // Where the typed syntax starts (the @, [[, ^ or the speaker's first letter), so a choice
+  // replaces it; and the selection Attribute is wrapping, when that opened the picker.
+  const anchorRef = useRef(0);
+  const wrapRef = useRef<{ from: number; to: number } | null>(null);
+  const [wrapping, setWrapping] = useState(false);
 
-  function setOpen(next: boolean) {
+  const choices = useMemo(() => suggest(mode, query, entries, preferred), [mode, query, entries, preferred]);
+
+  // Read by ProseMirror callbacks (event time), so syncing after render is fine.
+  const live = useRef({ choices, selIdx, mode });
+  useEffect(() => {
+    live.current = { choices, selIdx, mode };
+  });
+
+  const setOpen = useCallback((next: boolean) => {
     setOpen_(next);
     setMentionIsOpen(next);
-    if (!next) setAttributionMode(false);
-  }
+    if (!next) {
+      wrapRef.current = null;
+      setWrapping(false);
+    }
+  }, []);
 
-  // Hand the items to the decoration plugin and rebuild whenever they, or the editor, change.
+  // Hand the names to the decorations and rebuild whenever they, or the editor, change.
   useEffect(() => {
-    setMentionItems(allItems);
+    setMentionEntries(entries);
     // Speaker tags resolve by the same names, so the dialogue decorations rebuild too.
     if (editor?.view)
       editor.view.dispatch(
         editor.state.tr.setMeta(FORCE_MENTION_KEY, true).setMeta(FORCE_DIALOGUE_KEY, true),
       );
-  }, [allItems, editor]);
+  }, [entries, editor]);
 
-  const filteredItems = useMemo(() => {
-    const characterOnly = dialogueMode || attributionMode;
-    const base = allItems.filter(
-      (item) =>
-        !item.aliasOf &&
-        item.name.toLowerCase().startsWith(query.toLowerCase()) &&
-        (!characterOnly || item.type === "character"),
-    );
-    const q = query.trim();
-    if (
-      q &&
-      activeStory &&
-      !allItems.some((i) => i.type === "character" && i.name.toLowerCase() === q.toLowerCase())
-    ) {
-      base.push({ type: "create", name: q });
-    }
-    return base;
-  }, [allItems, query, attributionMode, dialogueMode, activeStory]);
-
-  // Refs are read by ProseMirror callbacks (event time), so syncing after render is fine.
+  // The faint rest of the chosen suggestion, redrawn when it changes.
+  const ghost = open && !wrapping ? ghostText(query, choices[selIdx]) : "";
   useEffect(() => {
-    queryRef.current = query;
-    selIdxRef.current = selIdx;
-    filteredRef.current = filteredItems;
-  });
+    setMentionGhost(ghost);
+    if (editor?.view && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta(GHOST_KEY, true));
+  }, [ghost, editor]);
 
-  const openAt = useCallback(
-    (q: string, bottom: number, left: number, mode: "plain" | "dialogue" | "attribution") => {
-      if (mode === "dialogue") setDialogueModeActive(true);
-      setQuery(q);
-      setPos({ bottom, left });
-      setOpen_(true);
-      setMentionIsOpen(true);
-      setDialogueMode(mode === "dialogue");
-      setAttributionMode(mode === "attribution");
-      setSelIdx(0);
-      selIdxRef.current = 0;
-    },
-    [],
-  );
-
-  const insert = useCallback(
-    async (item: MentionItem) => {
+  const openFor = useCallback(
+    (trigger: Trigger, before: string, bottom: number, left: number) => {
       if (!editor) return;
-      const { from } = editor.state.selection;
-      const q = queryRef.current;
-      const inDialogueMode = isDialogueModeActive();
-      const inAttributionMode = isMentionAttributionMode();
-
-      if (item.type === "create" && activeStory) {
-        const name = item.name.trim();
-        let createdName = name;
-        try {
-          const newChar = await api.createCharacter(activeStory.id, { name });
-          createdName = newChar.name;
-          // The store's cast is the source of the items: adding them there rebuilds the decorations.
-          setCharacters([...characters, newChar]);
-        } catch {
-          /* fall through with typed name */
-        }
-        insertRef.current?.({ type: "character", name: createdName });
-        return;
-      }
-
-      if (inAttributionMode && item.type === "character") {
-        const start = from - q.length; // position right after <
-        editor
-          .chain()
-          .focus()
-          .command(({ tr, dispatch }) => {
-            if (dispatch) tr.insertText(`${item.name}>`, start, from);
-            return true;
-          })
-          .run();
-        setAttributionMode(false);
-        setOpen_(false);
-        setMentionIsOpen(false);
-        setSelIdx(0);
-        return;
-      }
-
-      if (inDialogueMode && item.type === "character") {
-        const pendingWrap = pendingWrapRef.current;
-        if (pendingWrap) {
-          pendingWrapRef.current = null;
-          const selectedText = editor.state.doc.textBetween(pendingWrap.from, pendingWrap.to);
-          const wrapped = `"${selectedText}"<${item.name}>`;
-          editor
-            .chain()
-            .focus()
-            .command(({ tr, dispatch }) => {
-              if (dispatch)
-                tr.replaceWith(pendingWrap.from, pendingWrap.to, editor.state.schema.text(wrapped));
-              return true;
-            })
-            .run();
-        } else {
-          const start = from - q.length - 1; // -1 for the ^ prefix
-          editor
-            .chain()
-            .focus()
-            .command(({ tr, dispatch }) => {
-              if (dispatch) tr.insertText(`""<${item.name}>`, start, from);
-              return true;
-            })
-            .run();
-          editor
-            .chain()
-            .setTextSelection(start + 1)
-            .run(); // between the quotes
-        }
-        setDialogueModeActive(false);
-      } else {
-        const start = from - q.length - 1; // -1 for the @ character
-        const text = item.type === "character" ? `@${item.name}` : `[[${item.name}]]`;
-        editor
-          .chain()
-          .focus()
-          .command(({ tr, dispatch }) => {
-            if (dispatch) tr.insertText(text, start, from);
-            return true;
-          })
-          .run();
-      }
-      setOpen(false);
-      setDialogueMode(false);
-      setAttributionMode(false);
+      anchorRef.current = editor.state.selection.from - (before.length - trigger.start);
+      const line = trigger.mode === "speaker" ? LINE_BEFORE_TAG.exec(before) : null;
+      setPreferred(line ? likelySpeaker(line[1]) : null);
+      setMode(trigger.mode);
+      setQuery(trigger.query);
+      setPos({ bottom, left });
       setSelIdx(0);
+      setOpen(true);
     },
-    [editor, activeStory, characters, setCharacters],
+    [editor, setOpen],
   );
 
-  useEffect(() => {
-    insertRef.current = insert;
-  }, [insert]);
+  /** Write a choice into the prose, replacing what was typed to ask for it. */
+  const write = useCallback(
+    (choice: Choice) => {
+      if (!editor) return;
+      const { mode } = live.current;
+      const cursor = editor.state.selection.from;
+      const after = editor.state.doc.textBetween(cursor, editor.state.doc.resolve(cursor).end(), "\n", "\0");
+      const anchor = anchorRef.current;
+      const wrap = wrapRef.current;
+      const [openQuote, closeQuote] = quotePair(editor.state.doc.textContent);
+      editor
+        .chain()
+        .focus()
+        .command(({ tr, dispatch }) => {
+          if (!dispatch) return true;
+          if (wrap) {
+            // Attribute: quote marks go around the selection, so its italics stay.
+            const text = tr.doc.textBetween(wrap.from, wrap.to);
+            tr.insertText(`${/["”’']$/.test(text) ? "" : closeQuote}<${choice.words}>`, wrap.to);
+            if (!/^["“‘']/.test(text)) tr.insertText(openQuote, wrap.from);
+          } else if (mode === "mention") {
+            tr.insertText(
+              choice.kind === "character" ? `@${choice.words}` : `[[${choice.words}]]`,
+              anchor,
+              cursor,
+            );
+          } else if (mode === "place") {
+            tr.insertText(`[[${choice.words}]]`, anchor, cursor + (after.startsWith("]]") ? 2 : 0));
+          } else if (mode === "speaker") {
+            // Editing a tag replaces the rest of it, rather than leaving a second ">".
+            const rest = /^[^<>\n]*>/.exec(after)?.[0].length ?? 0;
+            tr.insertText(`${choice.words}>`, anchor, cursor + rest);
+          } else {
+            tr.insertText(`${openQuote}${closeQuote}<${choice.words}>`, anchor, cursor);
+            tr.setSelection(TextSelection.create(tr.doc, anchor + 1));
+          }
+          return true;
+        })
+        .run();
+      setOpen(false);
+    },
+    [editor, setOpen],
+  );
 
-  // Wire the ProseMirror-side callbacks once; they read fresh state through refs.
+  const accept = useCallback(
+    async (choice: Choice) => {
+      if (!choice.create || !activeStory) return write(choice);
+      try {
+        if (choice.kind === "character") {
+          const made = await api.createCharacter(activeStory.id, { name: choice.name });
+          // The store's cast is the source of the names: adding them there rebuilds the decorations.
+          setCharacters([...useStoryStore.getState().characters, made]);
+          write({ ...choice, name: made.name, words: made.name, create: false });
+        } else {
+          const made = await api.createLocation(activeStory.id, { name: choice.name });
+          upsertLocation(made);
+          write({ ...choice, name: made.name, words: made.name, create: false });
+        }
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "That didn't work; try again.");
+      }
+    },
+    [activeStory, setCharacters, upsertLocation, write],
+  );
+
+  // Wire the ProseMirror-side callbacks; they read fresh state through refs.
   useEffect(() => {
     setMentionCallbacks({
-      onOpen: (q, bottom, left) => openAt(q, bottom, left, "plain"),
+      onTrigger: openFor,
       onClose: () => {
-        if (isDialogueModeActive()) return; // dialogue picker reuses this dropdown
-        setOpen_(false);
-        setMentionIsOpen(false);
+        // Attribute keeps its picker open over the selection until a choice or Escape.
+        if (!wrapRef.current) setOpen(false);
       },
-      onArrowDown: () =>
-        setSelIdx((i) => {
-          const next = Math.min(i + 1, filteredRef.current.length - 1);
-          selIdxRef.current = next;
-          return next;
-        }),
-      onArrowUp: () =>
-        setSelIdx((i) => {
-          const next = Math.max(i - 1, 0);
-          selIdxRef.current = next;
-          return next;
-        }),
-      onEnterSelect: () => {
-        const items = filteredRef.current;
-        const item = items[Math.min(selIdxRef.current, items.length - 1)];
-        if (item && insertRef.current) insertRef.current(item);
+      onEscape: () => setOpen(false),
+      onArrowDown: () => setSelIdx((i) => Math.min(i + 1, live.current.choices.length - 1)),
+      onArrowUp: () => setSelIdx((i) => Math.max(i - 1, 0)),
+      onAccept: () => {
+        const { choices, selIdx } = live.current;
+        const choice = choices[Math.min(selIdx, choices.length - 1)];
+        if (choice) void accept(choice);
       },
     });
-    setMentionDialogueCallbacks(
-      (q, bottom, left) => openAt(q, bottom, left, "dialogue"),
-      () => {
-        setDialogueModeActive(false);
-        setOpen_(false);
-        setMentionIsOpen(false);
-        setDialogueMode(false);
-      },
-    );
-    setMentionAttributionCallbacks(
-      (q, bottom, left) => openAt(q, bottom, left, "attribution"),
-      () => {
-        setOpen_(false);
-        setMentionIsOpen(false);
-        setAttributionMode(false);
-      },
-    );
-    setDialogueCallbacks({});
-  }, [openAt]);
+  }, [openFor, accept, setOpen]);
 
-  /** Open the speaker picker at the cursor (used by /dialogue and the palette trigger). */
-  function openDialoguePicker(bottom: number, left: number) {
-    openAt("", bottom, left, "dialogue");
+  /** A new line of dialogue at the cursor (/dialogue, the palette): types the ^ that asks. */
+  function openDialoguePicker() {
+    if (!editor) return;
+    const { from } = editor.state.selection;
+    const prev = editor.state.doc.textBetween(
+      Math.max(editor.state.doc.resolve(from).start(), from - 1),
+      from,
+    );
+    editor
+      .chain()
+      .focus()
+      .insertContent(/[\p{L}\p{N}]/u.test(prev) ? " ^" : "^")
+      .run();
   }
 
-  /** Wrap the current selection as attributed dialogue via the speaker picker. */
+  /** Make the selection a line of dialogue: pick its speaker, and it is quoted and tagged. */
   function triggerAttributeDialogue() {
     if (!editor) return;
     const { from, to, empty } = editor.state.selection;
     if (empty) return;
     const coords = editor.view.coordsAtPos(from);
-    openAt("", coords.top - 8, coords.left, "dialogue");
-    pendingWrapRef.current = { from, to };
+    wrapRef.current = { from, to };
+    setWrapping(true);
+    setMode("line");
+    setQuery("");
+    setPreferred(null);
+    setPos({ bottom: coords.top - 8, left: coords.left });
+    setSelIdx(0);
+    setOpen(true);
   }
 
   return {
     open,
+    mode,
     pos,
     selIdx,
-    filteredItems,
-    dialogueMode,
-    attributionMode,
+    choices,
     flatLocations,
-    insert,
+    accept,
+    close: () => setOpen(false),
     openDialoguePicker,
     triggerAttributeDialogue,
   };

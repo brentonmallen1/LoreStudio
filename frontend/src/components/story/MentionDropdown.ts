@@ -3,24 +3,23 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as PMNode } from "@tiptap/pm/model";
 import { forEachBlockText } from "../../lib/prose/blockText";
-import { findMentions, makeLexicon, type KnownName, type Lexicon } from "../../lib/prose/syntax";
+import { anyStartsWith, detectTrigger, type Entry, type Trigger } from "../../lib/prose/completion";
+import { findMentions, makeLexicon, type Lexicon } from "../../lib/prose/syntax";
 
-export interface MentionItem {
-  type: "character" | "setting" | "create";
-  name: string;
-  role?: string;
-  /** Palette slot 1..8 (doc 11 P2), painted on the decoration as data-slot. */
-  slot?: number;
-  /** Another name for a character or place: decorated as that entry, never offered in the picker. */
-  aliasOf?: string;
-}
-
+/**
+ * Mentions in the prose (doc 16): their decorations, the picker's triggers and keys, and the
+ * faint rest of a suggestion. What a picker offers and inserts is useMentionDropdown's.
+ */
 export interface MentionCallbacks {
-  onOpen: (query: string, bottom: number, left: number) => void;
+  /** The text before the cursor asks for a picker (lib/prose/completion). */
+  onTrigger: (trigger: Trigger, before: string, bottom: number, left: number) => void;
   onClose: () => void;
   onArrowDown: () => void;
   onArrowUp: () => void;
-  onEnterSelect: () => void;
+  /** Enter or Tab: take the chosen suggestion. */
+  onAccept: () => void;
+  /** Escape: close whatever picker is open. */
+  onEscape: () => void;
 }
 
 // Module-level state — safe since only one SceneEditor exists at a time.
@@ -32,46 +31,19 @@ export function setMentionHighlight(name: string | null): void {
 }
 
 const _cb: MentionCallbacks = {
-  onOpen: () => {},
+  onTrigger: () => {},
   onClose: () => {},
   onArrowDown: () => {},
   onArrowUp: () => {},
-  onEnterSelect: () => {},
+  onAccept: () => {},
+  onEscape: () => {},
 };
 
-// Dialogue-mode callbacks — called when @@ trigger is detected instead of @
-let _dialogueMode = false;
-let _onDialogueOpen: ((query: string, bottom: number, left: number) => void) | null = null;
-let _onDialogueClose: (() => void) | null = null;
-
-export function setMentionDialogueCallbacks(
-  onOpen: (query: string, bottom: number, left: number) => void,
-  onClose: () => void,
-) {
-  _onDialogueOpen = onOpen;
-  _onDialogueClose = onClose;
-}
-
-// Attribution-mode callbacks — called when < after a closing quote is detected
-let _attributionMode = false;
-let _onAttributionOpen: ((query: string, bottom: number, left: number) => void) | null = null;
-let _onAttributionClose: (() => void) | null = null;
-
-export function setMentionAttributionCallbacks(
-  onOpen: (query: string, bottom: number, left: number) => void,
-  onClose: () => void,
-) {
-  _onAttributionOpen = onOpen;
-  _onAttributionClose = onClose;
-}
-
-export function isMentionAttributionMode(): boolean {
-  return _attributionMode;
-}
-
 export const FORCE_MENTION_KEY = "forceMentionRebuild";
+/** Meta on the transaction that redraws the faint suggestion (nothing else changes). */
+export const GHOST_KEY = "mentionGhost";
 
-/** Whether the @-mention picker is open (an Escape in the prose closes it first). */
+/** Whether a picker is open (an Escape in the prose closes it first). */
 export function mentionIsOpen(): boolean {
   return _isOpen;
 }
@@ -80,28 +52,26 @@ export function setMentionIsOpen(open: boolean) {
   _isOpen = open;
 }
 
+let _entries: Entry[] = [];
 let _lexicon: Lexicon = makeLexicon([]);
 let _slots = new Map<string, number>();
+let _ghost = "";
 
-/** The names the prose may use, from the picker's items (a name and its other names). */
-export function setMentionItems(items: MentionItem[]) {
-  const known = new Map<string, KnownName>();
-  _slots = new Map();
-  for (const item of items) {
-    if (item.type === "create") continue;
-    const kind = item.type === "character" ? "character" : "place";
-    const name = item.aliasOf ?? item.name;
-    const entry = known.get(`${kind}:${name}`) ?? { kind, name, aliases: [] };
-    if (item.aliasOf) entry.aliases!.push(item.name);
-    known.set(`${kind}:${name}`, entry);
-    if (item.slot) _slots.set(`${kind}:${name}`, item.slot);
-  }
-  _lexicon = makeLexicon([...known.values()]);
+/** The story's characters and places, with their other names: what the prose may mention. */
+export function setMentionEntries(entries: Entry[]) {
+  _entries = entries;
+  _slots = new Map(entries.filter((e) => e.slot).map((e) => [`${e.kind}:${e.name}`, e.slot!]));
+  _lexicon = makeLexicon(entries);
 }
 
 /** The lexicon the decorations read, for anything else that has to agree with them. */
 export function mentionLexicon(): Lexicon {
   return _lexicon;
+}
+
+/** The faint rest of the chosen suggestion, after the cursor; Tab takes it. */
+export function setMentionGhost(text: string) {
+  _ghost = text;
 }
 
 export function setMentionCallbacks(cb: Partial<MentionCallbacks>) {
@@ -173,12 +143,17 @@ export const MentionDropdownExtension = Extension.create({
       },
       Enter: () => {
         if (!_isOpen) return false;
-        _cb.onEnterSelect();
+        _cb.onAccept();
+        return true;
+      },
+      Tab: () => {
+        if (!_isOpen) return false;
+        _cb.onAccept();
         return true;
       },
       Escape: () => {
         if (!_isOpen) return false;
-        _cb.onClose();
+        _cb.onEscape();
         return true;
       },
     };
@@ -222,84 +197,46 @@ export const MentionDropdownExtension = Extension.create({
         },
       }),
 
-      // Trigger detection — watches text before cursor for @query pattern
+      // The faint rest of a suggestion, just after the cursor.
+      new Plugin({
+        props: {
+          decorations: (state) => {
+            if (!_isOpen || !_ghost || !state.selection.empty) return null;
+            const ghost = document.createElement("span");
+            ghost.className = "mention-ghost";
+            ghost.textContent = _ghost;
+            return DecorationSet.create(state.doc, [
+              Decoration.widget(state.selection.from, ghost, { side: 1, key: `ghost:${_ghost}` }),
+            ]);
+          },
+        },
+      }),
+
+      // Triggers: the text before the cursor asks for a picker (lib/prose/completion).
       new Plugin({
         key: mentionTriggerKey,
         view() {
           return {
             update(view, prevState) {
               const { state } = view;
-              // Only react to actual selection or document changes
-              if (state.selection === prevState.selection && state.doc === prevState.doc) {
-                return;
-              }
+              if (state.selection === prevState.selection && state.doc === prevState.doc) return;
               // Moving the cursor is not asking for a name. Clicking into "@Eleanor Vance"
               // used to open the picker as if "@Eleanor" were being typed.
-              if (state.doc === prevState.doc) {
+              if (state.doc === prevState.doc || !state.selection.empty) {
                 _cb.onClose();
                 return;
               }
-
-              const { from, empty } = state.selection;
-              if (!empty) {
+              const { from } = state.selection;
+              const before = state.doc.textBetween(state.doc.resolve(from).start(), from, "\n", "\0");
+              const trigger = detectTrigger(before, (q) =>
+                anyStartsWith(q, _entries, ["character", "place"]),
+              );
+              if (!trigger) {
                 _cb.onClose();
                 return;
               }
-
-              const $from = state.doc.resolve(from);
-              const blockStart = $from.start();
-              const textBefore = state.doc.textBetween(blockStart, from, "\n", "\0");
-
-              // Check for ^ (dialogue mode trigger) — completely separate from @
-              const dialogueMatch = textBefore.match(/\^(\S*)$/);
-              if (dialogueMatch) {
-                const atIdx = textBefore.length - dialogueMatch[0].length;
-                const prevChar = atIdx > 0 ? textBefore[atIdx - 1] : null;
-                if (prevChar === null || prevChar === " " || prevChar === "\t") {
-                  _dialogueMode = true;
-                  const coords = view.coordsAtPos(from);
-                  _onDialogueOpen?.(dialogueMatch[1], coords.bottom, coords.left);
-                  return;
-                }
-              }
-
-              // Check for @query at end — must be preceded by whitespace or start of block
-              const match = textBefore.match(/@(\S*)$/);
-              if (match) {
-                const atIdx = textBefore.length - match[0].length;
-                const prevChar = atIdx > 0 ? textBefore[atIdx - 1] : null;
-                if (prevChar === null || prevChar === " " || prevChar === "\t") {
-                  if (_dialogueMode) {
-                    _dialogueMode = false;
-                    _onDialogueClose?.();
-                  }
-                  const coords = view.coordsAtPos(from);
-                  _cb.onOpen(match[1], coords.bottom, coords.left);
-                  return;
-                }
-              }
-
-              // Check for < after a closing quote (attribution mode)
-              const attrMatch = textBefore.match(/[""\u201d]<([^>]*)$/);
-              if (attrMatch) {
-                if (!_attributionMode) {
-                  _attributionMode = true;
-                }
-                const coords = view.coordsAtPos(from);
-                _onAttributionOpen?.(attrMatch[1], coords.bottom, coords.left);
-                return;
-              }
-
-              if (_attributionMode) {
-                _attributionMode = false;
-                _onAttributionClose?.();
-              }
-
-              if (_dialogueMode) {
-                _dialogueMode = false;
-                _onDialogueClose?.();
-              }
-              _cb.onClose();
+              const coords = view.coordsAtPos(from);
+              _cb.onTrigger(trigger, before, coords.bottom, coords.left);
             },
           };
         },

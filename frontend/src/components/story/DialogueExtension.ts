@@ -6,9 +6,8 @@
  *   - Inferred:     the server named the speaker ("…," Eleanor said)  →  lighter tint
  *   - Unattributed: the server could not tell who speaks  →  amber
  *
- * Also handles ^ trigger for dialogue-mode insertion:
- * typing ^ opens the mention dropdown in dialogue mode, and selecting
- * a character inserts `""<Name>` with cursor between quotes.
+ * The pickers (^ for a new line, < after a quote for its speaker) are the mention
+ * extension's (MentionDropdown.ts, lib/prose/completion).
  */
 
 import { Extension } from "@tiptap/core";
@@ -19,35 +18,6 @@ import { forEachBlockText } from "../../lib/prose/blockText";
 import { findQuotes, findSpeakerTags, foldName, speakerName } from "../../lib/prose/syntax";
 import type { DialogueBlock } from "../../types";
 import { mentionLexicon } from "./MentionDropdown";
-
-// ---------------------------------------------------------------------------
-// Dialogue mode state (read by SceneEditor to change insertion behaviour)
-// ---------------------------------------------------------------------------
-
-let _dialogueModeActive = false;
-
-export function isDialogueModeActive(): boolean {
-  return _dialogueModeActive;
-}
-
-export function setDialogueModeActive(v: boolean) {
-  _dialogueModeActive = v;
-}
-
-// Callbacks wired by SceneEditor for dialogue trigger handling
-export interface DialogueCallbacks {
-  onDialogueOpen: (query: string, bottom: number, left: number) => void;
-  onDialogueClose: () => void;
-}
-
-const _dcb: DialogueCallbacks = {
-  onDialogueOpen: () => {},
-  onDialogueClose: () => {},
-};
-
-export function setDialogueCallbacks(cb: Partial<DialogueCallbacks>) {
-  Object.assign(_dcb, cb);
-}
 
 // ---------------------------------------------------------------------------
 // Who says what (doc 16, D1)
@@ -62,6 +32,14 @@ export const FORCE_DIALOGUE_KEY = "forceDialogueRebuild";
 
 export function setSceneDialogue(lines: DialogueBlock[]) {
   _lines = lines.filter((l) => l.dialogue_type !== "thought");
+}
+
+/** Who the server thinks says a line with these words, if anyone: the speaker picker
+ * offers them first. */
+export function likelySpeaker(words: string): string | null {
+  const key = foldName(words);
+  const line = _lines.find((l) => foldName(l.content) === key && l.speaker_name);
+  return line?.speaker_name ?? null;
 }
 
 const ATTRIBUTED = new Set(["inferred", "alternating", "manual", "pov_default", "explicit"]);

@@ -4,7 +4,7 @@ import { setSlashCallbacks, setSlashIsOpen, SLASH_COMMANDS } from "../story/Slas
 
 interface Args {
   editor: Editor | null;
-  openDialoguePicker: (bottom: number, left: number) => void;
+  openDialoguePicker: () => void;
   /** `/todo`: a to-do in the margin on the sentence at the cursor (doc 15 N1). */
   addTodo: () => void;
 }
@@ -30,7 +30,6 @@ export function useSlashCommands({ editor, openDialoguePicker, addTodo }: Args) 
   function execute(name: string, slashFrom: number, slashTo: number) {
     close();
     if (!editor) return;
-    const coords = editor.view.coordsAtPos(slashFrom);
     const deleteSlashText = () =>
       editor
         .chain()
@@ -42,7 +41,7 @@ export function useSlashCommands({ editor, openDialoguePicker, addTodo }: Args) 
 
     if (name === "dialogue") {
       deleteSlashText();
-      openDialoguePicker(coords.bottom, coords.left);
+      openDialoguePicker();
     }
     if (name === "todo") {
       deleteSlashText();
