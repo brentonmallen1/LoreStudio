@@ -47,7 +47,7 @@ export function relationshipPurposeColor(purpose: string): string {
 
 /** A colour as label text: mixed toward body text so it reads at AA on any ground. */
 export function relationshipInk(color: string): string {
-  return `color-mix(in srgb, ${color} 65%, var(--color-text))`;
+  return `color-mix(in srgb, ${color} 55%, var(--color-text))`;
 }
 
 /** The same colour at a percentage over transparent, for a pill's tint or border. */

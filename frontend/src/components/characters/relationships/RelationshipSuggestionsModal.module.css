@@ -364,7 +364,6 @@
   width: 100%;
 }
 .fieldInput:focus {
-  outline: none;
   border-color: var(--color-ai-border);
 }
 .fieldInputDimmed {
@@ -384,7 +383,6 @@
   line-height: 1.45;
 }
 .fieldTextarea:focus {
-  outline: none;
   border-color: var(--color-ai-border);
 }
 .fieldTextarea:disabled {

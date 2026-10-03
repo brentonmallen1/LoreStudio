@@ -41,13 +41,13 @@
   font-size: var(--text-xs);
   font-weight: 700;
   font-family: inherit;
-  color: var(--color-accent);
+  /* Coloured text on a tint of itself: a fifth of body text keeps it at AA (doc 17). */
+  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-text));
   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.4rem;
   cursor: pointer;
-  outline: none;
   appearance: none;
   -webkit-appearance: none;
   white-space: nowrap;
@@ -73,7 +73,7 @@
 .typeBadge {
   font-size: var(--text-xs);
   font-weight: 700;
-  color: var(--color-accent);
+  color: color-mix(in srgb, var(--color-accent) 80%, var(--color-text));
   background: color-mix(in srgb, var(--color-accent) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
   border-radius: var(--radius-sm);
@@ -116,7 +116,6 @@
   border-radius: var(--radius-sm);
   padding: 0.1rem 0.35rem;
   min-width: 0;
-  outline: none;
   width: 18ch;
   max-width: 260px;
 }
@@ -146,13 +145,13 @@
 
 .statusBadge.final {
   background: color-mix(in srgb, var(--status-final) 12%, transparent);
-  color: var(--status-final);
+  color: color-mix(in srgb, var(--status-final) 80%, var(--color-text));
   border-color: color-mix(in srgb, var(--status-final) 25%, transparent);
 }
 
 .statusBadge.revised {
   background: color-mix(in srgb, var(--status-revised) 10%, transparent);
-  color: var(--status-revised);
+  color: color-mix(in srgb, var(--status-revised) 80%, var(--color-text));
   border-color: color-mix(in srgb, var(--status-revised) 22%, transparent);
 }
 
@@ -325,7 +324,6 @@
   border: 1px solid transparent;
   background: transparent;
   color: var(--color-text);
-  outline: none;
   resize: none;
   transition: border-color var(--transition);
   box-sizing: border-box;
@@ -371,7 +369,6 @@
   background: transparent;
   color: var(--color-text);
   cursor: pointer;
-  outline: none;
   transition: border-color var(--transition);
 }
 
@@ -589,7 +586,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.467rem;
+  width: 1.6rem;
   height: 100%;
   padding: 0;
   border: none;
@@ -612,7 +609,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.467rem;
+  width: 1.6rem;
   height: 100%;
   padding: 0;
   border: none;
@@ -720,7 +717,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface-2);
   color: var(--color-text);
-  outline: none;
   box-sizing: border-box;
   transition: border-color var(--transition);
 }
@@ -848,8 +844,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.467rem;
-  height: 1.467rem;
+  width: 1.6rem;
+  height: 1.6rem;
   border-radius: var(--radius);
   border: none;
   background: transparent;

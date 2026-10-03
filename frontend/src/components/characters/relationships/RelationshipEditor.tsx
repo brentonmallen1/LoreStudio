@@ -182,7 +182,7 @@ export default function RelationshipEditor({
             </span>
           )}
         </div>
-        <button className={styles.closeBtn} onClick={onClose}>
+        <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
           <X size={14} />
         </button>
       </div>

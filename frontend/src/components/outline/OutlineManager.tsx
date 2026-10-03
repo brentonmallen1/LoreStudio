@@ -371,12 +371,14 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
                   className={`${styles.bulkDot} ${(styles as Record<string, string>)[`dot_${type}`] ?? ""}`}
                   onClick={() => bulkSetBeatType(type)}
                   title={type}
+                  aria-label={`Set type: ${type}`}
                 />
               ))}
               <button
                 className={`${styles.bulkDot} ${styles.dot_none}`}
                 onClick={() => bulkSetBeatType(null)}
                 title="Clear type"
+                aria-label="Clear type"
               />
               <span className={styles.bulkSep} />
               <button className={`${styles.bulkActionBtn} ${styles.bulkDanger}`} onClick={bulkDelete}>
@@ -385,7 +387,7 @@ function OutlinePanel({ outline, storyId }: OutlinePanelProps) {
               </button>
             </>
           )}
-          <button className={styles.bulkCloseBtn} onClick={exitSelectionMode}>
+          <button aria-label="Leave selection" className={styles.bulkCloseBtn} onClick={exitSelectionMode}>
             <X size={14} />
           </button>
         </div>
@@ -648,6 +650,7 @@ export default function OutlineManager({ storyId }: Props) {
                       setRenamingId(outline.id);
                     }}
                     title="Rename"
+                    aria-label="Rename"
                   >
                     <Pencil size={10} />
                   </button>
@@ -680,6 +683,7 @@ export default function OutlineManager({ storyId }: Props) {
                         setPendingDeleteOutlineId(outline.id);
                       }}
                       title="Delete outline"
+                      aria-label="Delete outline"
                     >
                       <X size={11} />
                     </button>
@@ -690,7 +694,12 @@ export default function OutlineManager({ storyId }: Props) {
           ))}
 
           {/* Add outline button */}
-          <button className={styles.addTabBtn} onClick={handleCreateOutline} title="New blank outline">
+          <button
+            className={styles.addTabBtn}
+            onClick={handleCreateOutline}
+            title="New blank outline"
+            aria-label="New blank outline"
+          >
             <Plus size={14} />
           </button>
         </div>

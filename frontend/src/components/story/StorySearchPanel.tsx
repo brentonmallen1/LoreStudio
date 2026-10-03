@@ -147,6 +147,7 @@ export default function StorySearchPanel({ storyId, onClose, onNavigateToNode }:
             onClick={() => setCaseSensitive((c) => !c)}
             title="Case sensitive"
             aria-pressed={caseSensitive}
+            aria-label="Case sensitive"
           >
             <CaseSensitive size={14} />
           </button>

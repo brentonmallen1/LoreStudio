@@ -12,7 +12,7 @@
   position: relative;
 }
 
-svg {
+.svgWrap svg {
   display: block;
 }
 

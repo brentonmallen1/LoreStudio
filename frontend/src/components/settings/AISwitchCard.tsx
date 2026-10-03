@@ -76,6 +76,7 @@ export default function AISwitchCard() {
       <div className={styles.field}>
         <label className={styles.label}>Context window ceiling</label>
         <select
+          aria-label="Context window ceiling"
           className={styles.input}
           value={ceiling}
           disabled={enabled === false}

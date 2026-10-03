@@ -43,6 +43,7 @@ export default function TypographySection() {
       <div className={styles.settingGroup}>
         <p className={styles.settingGroupLabel}>Editor font</p>
         <select
+          aria-label="Editor font"
           className={styles.fontSelect}
           value={editorFontFamily}
           onChange={(e) => setEditorFontFamily(e.target.value as EditorFontFamily)}

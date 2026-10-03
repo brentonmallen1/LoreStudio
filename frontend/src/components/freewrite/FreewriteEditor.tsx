@@ -70,6 +70,7 @@ export default function FreewriteEditor({
   }
 
   const editor = useEditor({
+    editorProps: { attributes: { "aria-label": "Freewrite" } },
     extensions: [
       StarterKit.configure({ heading: { levels: [3] } }),
       Placeholder.configure({ placeholder: "Type whatever comes. Select a sentence to make it something." }),

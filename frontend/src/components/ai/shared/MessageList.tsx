@@ -81,7 +81,12 @@ function MessageActions({
         {copied ? <Check size={11} /> : <Copy size={11} />}
       </button>
       {onShowCall && (
-        <button className={styles.action} title="Show what was sent for this reply" onClick={onShowCall}>
+        <button
+          className={styles.action}
+          title="Show what was sent for this reply"
+          onClick={onShowCall}
+          aria-label="Show what was sent for this reply"
+        >
           <ShieldCheck size={11} />
         </button>
       )}
@@ -98,7 +103,7 @@ function MessageActions({
         </button>
       )}
       {onRegenerate && (
-        <button className={styles.action} title="Ask again" onClick={onRegenerate}>
+        <button className={styles.action} title="Ask again" onClick={onRegenerate} aria-label="Ask again">
           <RotateCw size={11} />
         </button>
       )}

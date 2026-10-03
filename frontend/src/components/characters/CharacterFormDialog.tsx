@@ -638,7 +638,12 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                   placeholder={`e.g. "What do you fear most?"`}
                   className={styles.promptInput}
                 />
-                <button type="button" onClick={() => removePrompt(i)} className={styles.removePromptBtn}>
+                <button
+                  aria-label="Remove this prompt"
+                  type="button"
+                  onClick={() => removePrompt(i)}
+                  className={styles.removePromptBtn}
+                >
                   <Trash2 size={13} />
                 </button>
               </div>

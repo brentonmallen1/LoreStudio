@@ -214,7 +214,6 @@
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
   transition: border-color var(--transition);
 }
 

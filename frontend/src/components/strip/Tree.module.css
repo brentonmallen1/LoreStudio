@@ -180,8 +180,8 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: 1.6rem;
+  height: 1.6rem;
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: none;
@@ -378,7 +378,6 @@
   border: 1px solid var(--color-accent);
   background: var(--color-surface-2);
   color: var(--color-text);
-  outline: none;
 }
 
 /* Drag handle */

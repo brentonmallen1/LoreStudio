@@ -208,7 +208,7 @@ export default function RelationshipSuggestionsModal({
             <Compass size={15} className={styles.headerIcon} />
             <span className={styles.title}>AI Relationship Suggestions</span>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
             <X size={16} />
           </button>
         </div>
@@ -252,6 +252,7 @@ export default function RelationshipSuggestionsModal({
                     className={`${styles.selectBtn} ${row.selected ? styles.selectBtnActive : ""}`}
                     onClick={() => patch(idx, { selected: !row.selected })}
                     title={row.selected ? "Deselect" : "Select"}
+                    aria-label={row.selected ? "Deselect" : "Select"}
                   >
                     {row.selected && <Check size={11} />}
                   </button>

@@ -31,7 +31,6 @@
   font-size: 0.82rem;
   font-family: inherit;
   cursor: pointer;
-  outline: none;
   transition: border-color var(--transition);
 }
 

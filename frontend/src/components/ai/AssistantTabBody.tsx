@@ -173,7 +173,11 @@ export default function AssistantTabBody() {
       ) : pickingCharacterFor ? (
         <div className={styles.charPicker}>
           <div className={styles.charPickerHeader}>
-            <button className={styles.charPickerBack} onClick={() => setPickingCharacterFor(null)}>
+            <button
+              aria-label="Back"
+              className={styles.charPickerBack}
+              onClick={() => setPickingCharacterFor(null)}
+            >
               <ChevronLeft size={13} />
             </button>
             <span className={styles.charPickerTitle}>Select a character</span>

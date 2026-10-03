@@ -33,7 +33,6 @@
   color: var(--color-text);
   font: inherit;
   font-size: 0.82rem;
-  outline: none;
 }
 
 .search input:focus {

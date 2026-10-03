@@ -439,7 +439,6 @@
   background: color-mix(in srgb, var(--color-nlp) 5%, var(--color-surface));
   color: var(--color-text-muted);
   resize: vertical;
-  outline: none;
 }
 
 .subtextField:focus {

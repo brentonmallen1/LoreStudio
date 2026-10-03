@@ -72,6 +72,7 @@ function EventCard({ event, onDelete }: EventCardProps) {
             onDelete(event.id);
           }}
           title="Delete"
+          aria-label="Delete"
         >
           <Trash2 size={11} />
         </button>
@@ -285,6 +286,7 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
                     className={styles.groupAddBtn}
                     onClick={() => openAddForm(nodeId)}
                     title="Add event here"
+                    aria-label="Add event here"
                   >
                     <Plus size={11} />
                   </button>
@@ -345,7 +347,7 @@ function AddForm({ form, nodes, onChange, onSave, onCancel }: AddFormProps) {
           onChange={(e) => set({ subject: e.target.value })}
           placeholder='Subject (e.g. "Marcus killed Irene")'
         />
-        <button className={styles.formCloseBtn} onClick={onCancel}>
+        <button aria-label="Cancel" className={styles.formCloseBtn} onClick={onCancel}>
           <X size={13} />
         </button>
       </div>

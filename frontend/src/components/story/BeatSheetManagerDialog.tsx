@@ -124,7 +124,11 @@ function EditView({
                 onChange={(e) => updateBeat(beat.id, "description", e.target.value)}
                 placeholder="Optional description"
               />
-              <button className={styles.removeBeatBtn} onClick={() => removeBeat(beat.id)}>
+              <button
+                aria-label="Remove this beat"
+                className={styles.removeBeatBtn}
+                onClick={() => removeBeat(beat.id)}
+              >
                 <Trash2 size={11} />
               </button>
             </div>
@@ -183,7 +187,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
       <div className={styles.dialog}>
         <div className={styles.dialogHeader}>
           <h2 className={styles.dialogTitle}>Custom beat sheets</h2>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
             <X size={15} />
           </button>
         </div>
@@ -225,6 +229,7 @@ export default function BeatSheetManagerDialog({ onClose, onSheetsChanged }: Pro
                         </div>
                       ) : (
                         <button
+                          aria-label="Delete this beat sheet"
                           className={styles.deleteBtn}
                           onClick={() => setPendingDeleteId(sheet.id)}
                           disabled={deletingId === sheet.id}

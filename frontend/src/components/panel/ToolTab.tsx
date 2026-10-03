@@ -58,7 +58,9 @@ function EntityList({ tool }: { tool: Exclude<ToolId, "freewrite" | "notes"> }) 
               >
                 <span className={styles.tabDot} style={{ background: entityColor(kind, row.id) }} />
                 <span className={styles.rowText}>
-                  <span className={styles.rowTitle}>{row.title}</span>
+                  <span className={styles.rowTitle} title={row.title}>
+                    {row.title}
+                  </span>
                   {row.meta && <span className={styles.rowMeta}>{row.meta}</span>}
                 </span>
                 {onPage && <span className={styles.tag}>on this page</span>}

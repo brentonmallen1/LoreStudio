@@ -349,7 +349,11 @@ export default function InterviewMode({ session }: Props) {
                   Apply to character…
                 </button>
               )}
-              <button className={styles.notesToggle} onClick={() => setShowNotes(false)}>
+              <button
+                aria-label="Hide notes"
+                className={styles.notesToggle}
+                onClick={() => setShowNotes(false)}
+              >
                 <ChevronDown size={12} />
               </button>
             </div>

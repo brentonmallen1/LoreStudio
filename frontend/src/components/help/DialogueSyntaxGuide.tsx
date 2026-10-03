@@ -130,34 +130,34 @@ export function DialogueSyntaxContent() {
         </div>
         <div className={styles.shortcutsGrid}>
           <div className={styles.shortcutRow}>
-            <kbd>^</kbd>
+            <kbd className={styles.kbd}>^</kbd>
             <span>
               A new line for someone: pick the speaker and get <code>“”&lt;Name&gt;</code> with the cursor
               between the quotes, in the quote marks the scene already uses
             </span>
           </div>
           <div className={styles.shortcutRow}>
-            <kbd>/dialogue</kbd>
+            <kbd className={styles.kbd}>/dialogue</kbd>
             <span>
-              Same as <kbd>^</kbd>
+              Same as <kbd className={styles.kbd}>^</kbd>
             </span>
           </div>
           <div className={styles.shortcutRow}>
-            <kbd>&lt;</kbd>
+            <kbd className={styles.kbd}>&lt;</kbd>
             <span>
               Right after a closing quote: pick who said it, the likeliest speaker first. On an existing tag
               it replaces the name
             </span>
           </div>
           <div className={styles.shortcutRow}>
-            <kbd>{formatCombo(SHORTCUTS.attributeDialogue.combo)}</kbd>
+            <kbd className={styles.kbd}>{formatCombo(SHORTCUTS.attributeDialogue.combo)}</kbd>
             <span>Make the selected words a line: pick the speaker, and they are quoted and tagged</span>
           </div>
           <div className={styles.shortcutRow}>
-            <kbd>Tab</kbd>
+            <kbd className={styles.kbd}>Tab</kbd>
             <span>
-              Take the highlighted name (<kbd>Enter</kbd> does too); the rest of the top name shows faintly as
-              you type. <kbd>Esc</kbd> closes the picker
+              Take the highlighted name (<kbd className={styles.kbd}>Enter</kbd> does too); the rest of the
+              top name shows faintly as you type. <kbd className={styles.kbd}>Esc</kbd> closes the picker
             </span>
           </div>
         </div>

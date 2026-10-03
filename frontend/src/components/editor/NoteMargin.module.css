@@ -98,8 +98,8 @@
 .iconBtn {
   display: inline-grid;
   place-items: center;
-  width: 1.467rem;
-  height: 1.467rem;
+  width: 1.6rem;
+  height: 1.6rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -153,7 +153,6 @@
 }
 
 .input:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 
@@ -202,6 +201,13 @@
   background: var(--kind-color);
   opacity: 0.7;
   cursor: pointer;
+}
+
+/* The dot stays small; the target round it is 24px (WCAG 2.5.8, doc 17). */
+.marker::before {
+  content: "";
+  position: absolute;
+  inset: -0.4rem;
 }
 
 .marker[data-editorial] {

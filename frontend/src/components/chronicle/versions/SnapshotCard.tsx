@@ -105,13 +105,19 @@ export default function SnapshotCard({
             </span>
           )}
           <div className={styles.snapActions}>
-            <button className={styles.snapBtn} onClick={() => onExport(snapshot)} title="Download snapshot">
+            <button
+              className={styles.snapBtn}
+              onClick={() => onExport(snapshot)}
+              title="Download snapshot"
+              aria-label="Download snapshot"
+            >
               <Download size={12} />
             </button>
             <button
               className={styles.snapBtn}
               onClick={() => onCompare(snapshot)}
               title="Compare with another snapshot"
+              aria-label="Compare with another snapshot"
             >
               <GitCompare size={12} />
             </button>
@@ -119,6 +125,7 @@ export default function SnapshotCard({
               className={styles.snapBtn}
               onClick={() => onRestore(snapshot)}
               title="Restore to this version"
+              aria-label="Restore to this version"
             >
               <RotateCcw size={12} />
             </button>
@@ -142,6 +149,7 @@ export default function SnapshotCard({
                 className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
                 onClick={() => setPendingDelete(true)}
                 title="Delete snapshot"
+                aria-label="Delete snapshot"
               >
                 <Trash2 size={12} />
               </button>

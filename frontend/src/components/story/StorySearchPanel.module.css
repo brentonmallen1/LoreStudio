@@ -95,7 +95,6 @@
   border: 1px solid var(--color-control-border);
   border-radius: 4px;
   color: var(--color-text);
-  outline: none;
   box-sizing: border-box;
 }
 

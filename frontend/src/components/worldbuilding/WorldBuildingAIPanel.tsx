@@ -371,7 +371,12 @@ export default function WorldBuildingAIPanel() {
               <RefreshCw size={10} />
               {generating ? "Thinking…" : "Re-run"}
             </button>
-            <button className={styles.closeBtn} onClick={closeWorldBuildingAIPanel} title="Close">
+            <button
+              className={styles.closeBtn}
+              onClick={closeWorldBuildingAIPanel}
+              title="Close"
+              aria-label="Close"
+            >
               <X size={14} />
             </button>
           </div>

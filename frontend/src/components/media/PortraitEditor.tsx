@@ -147,6 +147,7 @@ export default function PortraitEditor({
           onClick={() => setOpen((v) => !v)}
           title="Change portrait"
           disabled={analyzing}
+          aria-label="Change portrait"
         >
           <Camera size={16} />
         </button>
@@ -158,6 +159,7 @@ export default function PortraitEditor({
           <div className={styles.panelHeader}>
             <span>Portrait</span>
             <button
+              aria-label="Close"
               className={styles.closeBtn}
               onClick={() => {
                 setOpen(false);

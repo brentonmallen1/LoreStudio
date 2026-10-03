@@ -161,6 +161,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         <div className={styles.overviewField}>
           <label className={styles.overviewLabel}>Beat</label>
           <select
+            aria-label="Beat"
             className={styles.overviewSelect}
             value={activeNode.beat_id ?? ""}
             onChange={(e) => patch({ beat_id: e.target.value || null })}
@@ -188,6 +189,7 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
             perspectives.
           </p>
           <select
+            aria-label="POV character"
             className={styles.overviewSelect}
             value={activeNode.pov_character_id ?? ""}
             onChange={(e) => patch({ pov_character_id: e.target.value || null })}

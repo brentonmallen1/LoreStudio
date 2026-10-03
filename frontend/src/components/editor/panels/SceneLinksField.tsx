@@ -150,10 +150,16 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
                     setEditing(link);
                   }}
                   title="Edit link"
+                  aria-label="Edit link"
                 >
                   <Pencil size={10} />
                 </button>
-                <button className={styles.linkChipDelete} onClick={() => remove(link.id)} title="Remove link">
+                <button
+                  className={styles.linkChipDelete}
+                  onClick={() => remove(link.id)}
+                  title="Remove link"
+                  aria-label="Remove link"
+                >
                   <X size={10} />
                 </button>
               </div>
@@ -167,7 +173,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <span className={styles.modalTitle}>Add scene link</span>
-              <button className={styles.modalClose} onClick={() => setAdding(false)}>
+              <button aria-label="Close" className={styles.modalClose} onClick={() => setAdding(false)}>
                 <X size={14} />
               </button>
             </div>
@@ -220,7 +226,7 @@ export default function SceneLinksField({ activeNode, activeStory, flatNodes, on
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <span className={styles.modalTitle}>Edit scene link</span>
-              <button className={styles.modalClose} onClick={() => setEditing(null)}>
+              <button aria-label="Close" className={styles.modalClose} onClick={() => setEditing(null)}>
                 <X size={14} />
               </button>
             </div>

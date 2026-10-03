@@ -29,6 +29,7 @@ export default function ScratchPadDrawer() {
   const [sending, setSending] = useState(false);
 
   const editor = useEditor({
+    editorProps: { attributes: { "aria-label": "Scratch pad" } },
     extensions: [
       StarterKit,
       Placeholder.configure({ placeholder: "Anything at all, for any story or none…" }),

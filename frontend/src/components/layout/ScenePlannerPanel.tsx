@@ -280,7 +280,7 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
               New plan
             </button>
           )}
-          <button className={styles.headerBtn} onClick={closePlannerPanel} title="Close">
+          <button className={styles.headerBtn} onClick={closePlannerPanel} title="Close" aria-label="Close">
             <X size={13} />
           </button>
         </div>
@@ -446,6 +446,7 @@ export default function ScenePlannerPanel({ storyId, nodeId }: Props) {
             onClick={() => send()}
             disabled={(!input.trim() && !selectedImage) || generating}
             title="Send"
+            aria-label="Send"
           >
             <Map size={14} />
           </button>

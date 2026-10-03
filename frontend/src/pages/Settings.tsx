@@ -368,6 +368,7 @@ export default function SettingsPage() {
                     <button
                       key={value}
                       onClick={() => setThemeName(value)}
+                      aria-pressed={themeName === value}
                       className={`${styles.themeOption} ${themeName === value ? styles.active : ""}`}
                     >
                       <div className={styles.themeSwatch}>
@@ -388,6 +389,7 @@ export default function SettingsPage() {
                     <button
                       key={value}
                       onClick={() => setThemeName(value)}
+                      aria-pressed={themeName === value}
                       className={`${styles.themeOption} ${themeName === value ? styles.active : ""}`}
                     >
                       <div className={styles.themeSwatch}>
@@ -412,6 +414,7 @@ export default function SettingsPage() {
                       key={value}
                       onClick={() => setColorMode(value)}
                       disabled={isDisabled}
+                      aria-pressed={colorMode === value}
                       className={`${styles.themeOption} ${colorMode === value ? styles.active : ""}`}
                     >
                       <Icon size={16} />
@@ -510,6 +513,7 @@ export default function SettingsPage() {
                     <label className={styles.label}>Temperature</label>
                     <div className={styles.sliderRow}>
                       <input
+                        aria-label="Temperature"
                         type="range"
                         min={0}
                         max={2}
@@ -528,6 +532,7 @@ export default function SettingsPage() {
                     <label className={styles.label}>Top-p</label>
                     <div className={styles.sliderRow}>
                       <input
+                        aria-label="Top-p"
                         type="range"
                         min={0}
                         max={1}
@@ -545,6 +550,7 @@ export default function SettingsPage() {
                   <div className={styles.field}>
                     <label className={styles.label}>Top-k</label>
                     <input
+                      aria-label="Top-k"
                       type="number"
                       min={1}
                       max={200}
@@ -561,6 +567,7 @@ export default function SettingsPage() {
                   <div className={styles.field}>
                     <label className={styles.label}>Image token budget</label>
                     <select
+                      aria-label="Image token budget"
                       value={llmTokenBudget}
                       onChange={(e) =>
                         setLlmTokenBudget(parseInt(e.target.value, 10) as ImageTokenBudget | 0)
@@ -591,6 +598,7 @@ export default function SettingsPage() {
                     <label className={styles.toggle}>
                       <input
                         type="checkbox"
+                        aria-label="Thinking mode"
                         checked={llmThinking}
                         onChange={(e) => setLlmThinking(e.target.checked)}
                       />

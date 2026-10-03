@@ -296,6 +296,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             onClick={() => setTemplateOpen(true)}
             className={styles.toolBtn}
             title="Start from template"
+            aria-label="Start from template"
           >
             <LayoutGrid size={13} />
           </button>
@@ -312,6 +313,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
               className={styles.toolBtn}
               title="Color selected nodes"
               onClick={() => setColorPickerOpen((v) => !v)}
+              aria-label="Color selected nodes"
             >
               <Palette size={13} />
             </button>
@@ -341,6 +343,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
             onClick={deleteSelected}
             className={`${styles.toolBtn} ${styles.toolBtnDanger}`}
             title="Delete selected"
+            aria-label="Delete selected"
           >
             <Trash2 size={13} />
           </button>
@@ -358,6 +361,7 @@ export default function DiagramEditor({ diagram, onSave, onClose }: Props) {
               className={styles.toolBtn}
               title="Export diagram"
               onClick={() => setExportOpen((v) => !v)}
+              aria-label="Export diagram"
             >
               <Download size={13} />
             </button>

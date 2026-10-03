@@ -63,6 +63,7 @@ export default function LogDetail({ logId, onOpenJob }: Props) {
           onClick={async () => setLog(await api.updateActivityLog(logId, { starred: !log.starred }))}
           aria-pressed={log.starred}
           title={log.starred ? "Unstar" : "Star to keep it under Starred"}
+          aria-label={log.starred ? "Unstar" : "Star to keep it under Starred"}
         >
           <Star size={13} />
         </button>

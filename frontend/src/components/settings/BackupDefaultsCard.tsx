@@ -37,6 +37,7 @@ export default function BackupDefaultsCard() {
             <label className={styles.toggle}>
               <input
                 type="checkbox"
+                aria-label="Enable automatic backups by default"
                 checked={backupDefaults.auto_enabled}
                 onChange={(e) => handleBackupDefaultsChange({ auto_enabled: e.target.checked })}
               />
@@ -46,6 +47,7 @@ export default function BackupDefaultsCard() {
           <div className={styles.fieldRow}>
             <label className={styles.label}>Backup frequency</label>
             <select
+              aria-label="Backup frequency"
               className={styles.select}
               value={backupDefaults.interval_minutes}
               onChange={(e) => handleBackupDefaultsChange({ interval_minutes: Number(e.target.value) })}
@@ -61,6 +63,7 @@ export default function BackupDefaultsCard() {
           <div className={styles.fieldRow}>
             <label className={styles.label}>Keep at most (auto backups)</label>
             <select
+              aria-label="Keep at most"
               className={styles.select}
               value={backupDefaults.max_count ?? ""}
               onChange={(e) =>
@@ -79,6 +82,7 @@ export default function BackupDefaultsCard() {
           <div className={styles.fieldRow}>
             <label className={styles.label}>Delete backups older than</label>
             <select
+              aria-label="Delete backups older than"
               className={styles.select}
               value={backupDefaults.max_age_days ?? ""}
               onChange={(e) =>

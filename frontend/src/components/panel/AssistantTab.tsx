@@ -20,12 +20,9 @@ export default function AssistantTab() {
   return (
     <>
       <span className={styles.aiDivider} aria-hidden="true" />
-      <div
-        role="tab"
-        aria-selected={selected}
-        className={`${styles.tab} ${styles.aiTab} ${selected ? styles.aiTabOn : ""}`}
-      >
+      <div className={`${styles.tab} ${styles.aiTab} ${selected ? styles.aiTabOn : ""}`}>
         <button
+          aria-current={selected ? "true" : undefined}
           className={styles.aiTabBtn}
           aria-label={label}
           title={label}

@@ -295,6 +295,7 @@ export function EditorialReportCard({ log, onDelete }: Props) {
             setConfirmDelete(true);
           }}
           title="Delete report"
+          aria-label="Delete report"
         >
           <Trash2 size={13} />
         </button>

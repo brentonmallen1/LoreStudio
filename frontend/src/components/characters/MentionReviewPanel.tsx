@@ -107,6 +107,7 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
           {/* Scene nav */}
           <div className={styles.sceneNav}>
             <button
+              aria-label="Previous scene"
               className={styles.navBtn}
               onClick={() => setSceneIndex((i) => i - 1)}
               disabled={sceneIndex === 0}
@@ -121,6 +122,7 @@ export default function MentionReviewPanel({ characterId, characterName, onAppli
               </span>
             </span>
             <button
+              aria-label="Next scene"
               className={styles.navBtn}
               onClick={() => setSceneIndex((i) => i + 1)}
               disabled={sceneIndex === data.scenes.length - 1}

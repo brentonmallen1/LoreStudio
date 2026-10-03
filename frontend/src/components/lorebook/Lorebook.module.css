@@ -147,7 +147,6 @@
   flex: 1;
   min-width: 0;
   border: none;
-  outline: none;
   background: transparent;
   color: var(--color-text);
   font: inherit;
@@ -598,7 +597,6 @@
 
 .fieldArea:focus,
 .fieldInput:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 
@@ -854,7 +852,6 @@ button.cardRow:hover {
 .rowEdit > select:focus,
 .rowEdit > textarea:focus,
 .inlineInput:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 

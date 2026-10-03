@@ -181,7 +181,12 @@ export default function ConversationsView({ storyId, q, selectedId, onSelect }: 
           >
             <Trash2 size={13} /> Delete
           </button>
-          <button className={styles.bulkClear} onClick={() => setPicked(new Set())} title="Clear selection">
+          <button
+            className={styles.bulkClear}
+            onClick={() => setPicked(new Set())}
+            title="Clear selection"
+            aria-label="Clear selection"
+          >
             <X size={13} />
           </button>
         </div>

@@ -236,6 +236,7 @@ export default function GlobalHeader() {
               onClick={() => setViewState("normal")}
               className={styles.iconBtn}
               title="Leave focus mode"
+              aria-label="Leave focus mode"
             >
               <PanelLeft size={16} />
             </button>
@@ -399,6 +400,7 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownSection}>
                   <span className={styles.dropdownLabel}>Editor font</span>
                   <select
+                    aria-label="Editor font"
                     className={styles.fontSelect}
                     value={editorFontFamily}
                     onChange={(e) => setEditorFontFamily(e.target.value as EditorFontFamily)}
@@ -476,6 +478,7 @@ export default function GlobalHeader() {
             }}
             className={styles.iconBtn}
             title={`Color mode: ${colorMode}`}
+            aria-label={`Color mode: ${colorMode}`}
           >
             <ColorModeIcon size={16} />
           </button>
@@ -485,6 +488,7 @@ export default function GlobalHeader() {
             onClick={() => setViewState(isFocused ? "normal" : "focus")}
             className={`${styles.iconBtn} ${isFocused ? styles.iconBtnActive : ""}`}
             title={isFocused ? "Exit focus mode" : "Focus mode"}
+            aria-label={isFocused ? "Exit focus mode" : "Focus mode"}
           >
             <Maximize2 size={16} />
           </button>

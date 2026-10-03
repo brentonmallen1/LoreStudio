@@ -420,7 +420,6 @@
 }
 
 .addInput:focus {
-  outline: none;
   border-color: var(--color-ai);
 }
 
@@ -436,7 +435,6 @@
 }
 
 .addTextarea:focus {
-  outline: none;
   border-color: var(--color-ai);
 }
 
@@ -460,7 +458,6 @@
 }
 
 .addSelect:focus {
-  outline: none;
   border-color: var(--color-ai);
 }
 

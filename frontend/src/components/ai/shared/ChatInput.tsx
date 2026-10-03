@@ -57,7 +57,12 @@ export default function ChatInput({
           disabled={disabled}
         />
         {disabled && onCancel ? (
-          <button onClick={onCancel} className={styles.stopBtn} title="Cancel response">
+          <button
+            onClick={onCancel}
+            className={styles.stopBtn}
+            title="Cancel response"
+            aria-label="Cancel response"
+          >
             <Square size={13} />
           </button>
         ) : (
@@ -66,6 +71,7 @@ export default function ChatInput({
             disabled={disabled || !value.trim()}
             className={styles.sendBtn}
             title="Send (Enter)"
+            aria-label="Send (Enter)"
           >
             <Send size={14} />
           </button>

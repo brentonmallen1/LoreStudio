@@ -156,6 +156,8 @@
 }
 
 /* ── Assistant button ── */
+/* At rest, AI text on the bar itself (the contrast test holds --color-ai there); open, the
+   canonical AI fill. A tinted ground under AI text measured under 4.5:1 (doc 17). */
 .assistantBtn {
   display: flex;
   align-items: center;
@@ -163,7 +165,7 @@
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius);
   border: 1px solid var(--color-ai-border);
-  background: var(--color-ai-subtle);
+  background: transparent;
   color: var(--color-ai);
   font-size: var(--text-sm);
   font-family: inherit;
@@ -176,19 +178,14 @@
 }
 
 .assistantBtn:hover {
-  background: color-mix(in srgb, var(--color-ai) 18%, transparent);
-  border-color: color-mix(in srgb, var(--color-ai) 55%, transparent);
-  color: var(--color-ai);
+  border-color: var(--color-ai);
 }
 
-.assistantBtnActive {
-  background: color-mix(in srgb, var(--color-ai) 22%, transparent);
-  border-color: color-mix(in srgb, var(--color-ai) 60%, transparent);
-  color: var(--color-ai);
-}
-
+.assistantBtnActive,
 .assistantBtnActive:hover {
-  background: color-mix(in srgb, var(--color-ai) 28%, transparent);
+  background: var(--color-ai);
+  border-color: var(--color-ai);
+  color: var(--color-ai-fg);
 }
 
 /* ── Search button ── */

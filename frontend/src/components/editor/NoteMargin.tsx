@@ -191,7 +191,7 @@ export default function NoteMargin({
     if (newTop !== null) placed.push({ id: "new", top: newTop });
     const tops = layoutCards(placed, heights, GAP, popover.open ? (activeId ?? "new") : null);
     return (
-      <div ref={marginRef} className={styles.margin} aria-label="Notes">
+      <div ref={marginRef} className={styles.margin} role="complementary" aria-label="Notes">
         <style>{litRule}</style>
         {geo.anchors.map((a) => {
           const note = byId.get(a.id);
@@ -229,7 +229,7 @@ export default function NoteMargin({
   const peek = peekId ? anchorOf(peekId) : undefined;
   const peekNote = peekId ? byId.get(peekId) : undefined;
   return (
-    <div ref={marginRef} className={styles.margin} aria-label="Notes">
+    <div ref={marginRef} className={styles.margin} role="complementary" aria-label="Notes">
       <style>{litRule}</style>
       {geo.mode === "markers" &&
         geo.anchors.map((a) => {

@@ -49,19 +49,35 @@ export default function SnapshotGraph({
                 </div>
               )}
               <div className={styles.snapActions}>
-                <button className={styles.snapBtn} onClick={() => onExport(snap)} title="Download">
+                <button
+                  className={styles.snapBtn}
+                  onClick={() => onExport(snap)}
+                  title="Download"
+                  aria-label="Download"
+                >
                   <Download size={11} />
                 </button>
-                <button className={styles.snapBtn} onClick={() => onCompare(snap)} title="Compare">
+                <button
+                  className={styles.snapBtn}
+                  onClick={() => onCompare(snap)}
+                  title="Compare"
+                  aria-label="Compare"
+                >
                   <GitCompare size={11} />
                 </button>
-                <button className={styles.snapBtn} onClick={() => onRestore(snap)} title="Restore">
+                <button
+                  className={styles.snapBtn}
+                  onClick={() => onRestore(snap)}
+                  title="Restore"
+                  aria-label="Restore"
+                >
                   <RotateCcw size={11} />
                 </button>
                 <button
                   className={`${styles.snapBtn} ${styles.snapBtnDanger}`}
                   onClick={() => onDelete(snap)}
                   title="Delete"
+                  aria-label="Delete"
                 >
                   <Trash2 size={11} />
                 </button>

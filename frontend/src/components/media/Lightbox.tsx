@@ -47,7 +47,7 @@ export default function Lightbox({ url, alt, filename, onClose, onPrev, onNext }
             >
               {zoomed ? <ZoomOut size={15} /> : <ZoomIn size={15} />}
             </button>
-            <button className={styles.toolBtn} onClick={onClose} title="Close (Esc)">
+            <button className={styles.toolBtn} onClick={onClose} title="Close (Esc)" aria-label="Close (Esc)">
               <X size={15} />
             </button>
           </div>
@@ -66,12 +66,22 @@ export default function Lightbox({ url, alt, filename, onClose, onPrev, onNext }
         </div>
 
         {onPrev && (
-          <button className={`${styles.navBtn} ${styles.navPrev}`} onClick={onPrev} title="Previous (←)">
+          <button
+            className={`${styles.navBtn} ${styles.navPrev}`}
+            onClick={onPrev}
+            title="Previous (←)"
+            aria-label="Previous (←)"
+          >
             <ChevronLeft size={22} />
           </button>
         )}
         {onNext && (
-          <button className={`${styles.navBtn} ${styles.navNext}`} onClick={onNext} title="Next (→)">
+          <button
+            className={`${styles.navBtn} ${styles.navNext}`}
+            onClick={onNext}
+            title="Next (→)"
+            aria-label="Next (→)"
+          >
             <ChevronRight size={22} />
           </button>
         )}

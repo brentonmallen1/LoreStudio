@@ -175,6 +175,7 @@ export default function AIModeWrapper({
               className={`${styles.headerBtn} ${showCtxOptions ? styles.headerBtnActive : ""}`}
               onClick={() => setShowCtxOptions((v) => !v)}
               title="Context options"
+              aria-label="Context options"
             >
               <SlidersHorizontal size={13} />
             </button>
@@ -205,6 +206,7 @@ export default function AIModeWrapper({
             className={`${styles.headerBtn} ${sessionParams ? styles.headerBtnActive : ""}`}
             onClick={() => setShowSettings(true)}
             title="AI parameters"
+            aria-label="AI parameters"
           >
             <Settings2 size={13} />
           </button>

@@ -141,7 +141,12 @@ export default function AssetPicker({
                       <div className={styles.attachInfo}>
                         <span className={styles.attachName}>{asset?.original_filename ?? att.asset_id}</span>
                       </div>
-                      <button onClick={() => detach(att.id)} className={styles.detachBtn} title="Remove">
+                      <button
+                        onClick={() => detach(att.id)}
+                        className={styles.detachBtn}
+                        title="Remove"
+                        aria-label="Remove"
+                      >
                         <X size={11} />
                       </button>
                     </div>
@@ -177,7 +182,11 @@ export default function AssetPicker({
               <div className={styles.browser}>
                 <div className={styles.browserHeader}>
                   <span>Story media</span>
-                  <button onClick={() => setBrowsing(false)} className={styles.closeBtn}>
+                  <button
+                    aria-label="Close story media"
+                    onClick={() => setBrowsing(false)}
+                    className={styles.closeBtn}
+                  >
                     <X size={12} />
                   </button>
                 </div>

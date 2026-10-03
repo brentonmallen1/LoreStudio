@@ -126,7 +126,7 @@
   color: var(--color-text-muted);
 }
 
-kbd {
+.kbd {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.75rem;

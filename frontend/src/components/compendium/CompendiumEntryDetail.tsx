@@ -74,7 +74,7 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
                 {refreshing ? <Loader2 size={14} className={styles.spin} /> : <RefreshCw size={14} />}
               </button>
             )}
-            <button className={styles.iconBtn} onClick={onEdit} title="Edit">
+            <button className={styles.iconBtn} onClick={onEdit} title="Edit" aria-label="Edit">
               <Pencil size={14} />
             </button>
             {pendingDelete ? (
@@ -92,6 +92,7 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
                 onClick={() => setPendingDelete(true)}
                 disabled={deleting}
                 title="Delete"
+                aria-label="Delete"
               >
                 <Trash2 size={14} />
               </button>

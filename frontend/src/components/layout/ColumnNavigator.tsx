@@ -57,7 +57,9 @@ export default function ColumnNavigator({ storyId, onClose }: { storyId: string;
                 onClick={() => go(n.id)}
               >
                 <span className={`${styles.mark} ${current ? styles.markOn : ""}`} />
-                <span className={styles.itemLabel}>{n.title}</span>
+                <span className={styles.itemLabel} title={n.title}>
+                  {n.title}
+                </span>
                 {!n.children?.length && n.word_count > 0 && (
                   <span className={styles.itemMeta}>{fmt(n.word_count)}</span>
                 )}

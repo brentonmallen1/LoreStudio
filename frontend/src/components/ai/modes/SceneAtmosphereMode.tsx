@@ -118,7 +118,7 @@ export default function SceneAtmosphereMode({ session }: Props) {
         <div className={styles.resultWrap}>
           <div className={styles.resultHeader}>
             <span className={styles.resultLabel}>Atmospheric description</span>
-            <button className={styles.iconBtn} onClick={reset} title="Start over">
+            <button className={styles.iconBtn} onClick={reset} title="Start over" aria-label="Start over">
               <X size={13} />
             </button>
           </div>

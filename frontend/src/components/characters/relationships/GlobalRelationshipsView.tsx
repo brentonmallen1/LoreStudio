@@ -8,7 +8,7 @@ import RelationshipSuggestionDialog from "../RelationshipSuggestionDialog";
 import type { CharacterRelationship, Character } from "../../../types";
 import styles from "./GlobalRelationshipsView.module.css";
 import AIOnly from "../../ai/AIOnly";
-import { relationshipInk, relationshipTypeColor as typeColor, tint } from "../../../lib/relationships/colors";
+import { relationshipTypeColor as typeColor, tint } from "../../../lib/relationships/colors";
 
 interface Props {
   storyId: string;
@@ -26,10 +26,7 @@ function initials(name: string) {
 function TypePill({ type }: { type: string }) {
   const c = typeColor(type);
   return (
-    <span
-      className={styles.typePill}
-      style={{ color: relationshipInk(c), borderColor: tint(c, 25), background: tint(c, 8) }}
-    >
+    <span className={styles.typePill} style={{ borderColor: tint(c, 45), background: tint(c, 8) }}>
       {type}
     </span>
   );
@@ -75,6 +72,7 @@ function CharacterGroup({
             onNavigate(character.id);
           }}
           title={`View ${character.name}'s relationships`}
+          aria-label={`View ${character.name}'s relationships`}
         >
           <ExternalLink size={12} />
         </button>

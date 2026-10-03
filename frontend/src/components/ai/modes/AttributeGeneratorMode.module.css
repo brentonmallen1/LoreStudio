@@ -15,7 +15,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface-2);
   color: var(--color-text);
-  outline: none;
 }
 
 .select:disabled {

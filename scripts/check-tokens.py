@@ -23,6 +23,9 @@ Two things fail here.
    near-miss for `--color-text-muted`, and 48 rules using it were dead. The 161
    references in the tree when this went in are all resolved; the lock is empty.
 
+4. A rule in a CSS module that starts with a bare element (`kbd { … }`): modules hash
+   classes, not elements, so it styles every such element in the app.
+
 3. `text-transform: uppercase` in a component stylesheet. Labels are sentence case in the
    section-title colour (DESIGN.md); small capitals were 140 rules of 9–11px grey text
    that read as shouting and failed contrast. Acronyms are written in capitals in the
@@ -120,6 +123,24 @@ def count_undefined() -> dict[str, int]:
 
 UPPERCASE = re.compile(r"text-transform:\s*uppercase")
 
+#: A CSS module hashes classes, not elements: a rule that starts with a bare element
+#: (`kbd { … }`) is global, and applies to every such element in the app once the module
+#: loads. Doc 17 found the dialogue guide's `kbd` restyling the header's shortcut hint.
+BARE_ELEMENT = re.compile(r"^([a-z][a-z0-9]*)\s*(?:[,{:\[>~+]|\s+[a-z.#\[])", re.M)
+KEYFRAME_STEPS = {"from", "to"}
+
+
+def bare_element_rules() -> list[str]:
+    found = []
+    for path in SRC.rglob("*.module.css"):
+        text = path.read_text()
+        for m in BARE_ELEMENT.finditer(text):
+            if m.group(1) in KEYFRAME_STEPS:
+                continue
+            line = text[: m.start()].count("\n") + 1
+            found.append(f"{path.relative_to(ROOT)}:{line}")
+    return found
+
 
 def uppercase_rules() -> list[str]:
     found = []
@@ -172,6 +193,10 @@ def main() -> int:
     problems += [
         f"{where}: text-transform: uppercase. Write the label in sentence case instead."
         for where in uppercase_rules()
+    ]
+    problems += [
+        f"{where}: a bare element selector in a CSS module is global. Give it a class."
+        for where in bare_element_rules()
     ]
 
     for note in notes:

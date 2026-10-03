@@ -50,7 +50,9 @@ export default function ChapterRows({ line, mode, ctx, storyId }: Props) {
                   title={st.node ? "Click to unfold; double-click for the chapter's plan" : undefined}
                 >
                   {line.hasStations && <span className={styles.chapterNum}>{st.number}</span>}
-                  <span className={styles.chapterTitle}>{st.title || "Scenes"}</span>
+                  <span className={styles.chapterTitle} title={st.title || undefined}>
+                    {st.title || "Scenes"}
+                  </span>
                   <span className={styles.chapterMeta}>{st.planned ? "planned" : fmt(st.words)}</span>
                 </button>
                 {!isOpen && (
@@ -96,7 +98,9 @@ export default function ChapterRows({ line, mode, ctx, storyId }: Props) {
                             } as React.CSSProperties
                           }
                         />
-                        <span className={styles.sceneTitle}>{s.node.title}</span>
+                        <span className={styles.sceneTitle} title={s.node.title}>
+                          {s.node.title}
+                        </span>
                         <span
                           className={styles.chapterMeta}
                           style={current ? { color: "inherit" } : undefined}
@@ -109,7 +113,7 @@ export default function ChapterRows({ line, mode, ctx, storyId }: Props) {
                 {isOpen && st.node && (
                   <button
                     className={styles.sceneRow}
-                    style={{ color: "var(--color-text-subtle)" }}
+                    style={{ color: "var(--color-text-muted)" }}
                     onClick={() => go(st.node?.id)}
                   >
                     Open the chapter's plan →

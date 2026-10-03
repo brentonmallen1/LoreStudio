@@ -95,7 +95,12 @@ export default function ContextChips({ sessionId, context, resolvedNames }: Prop
             <span className={styles.chipLabel} title={resolvedNames.storyTitle}>
               {resolvedNames.storyTitle ?? "Story"}
             </span>
-            <button className={styles.chipRemove} onClick={removeStory} title="Remove story context">
+            <button
+              className={styles.chipRemove}
+              onClick={removeStory}
+              title="Remove story context"
+              aria-label="Remove story context"
+            >
               <X size={9} />
             </button>
           </span>
@@ -106,7 +111,12 @@ export default function ContextChips({ sessionId, context, resolvedNames }: Prop
             <span className={styles.chipLabel} title={resolvedNames.nodeName}>
               {resolvedNames.nodeName ?? "Scene"}
             </span>
-            <button className={styles.chipRemove} onClick={removeNode} title="Remove scene context">
+            <button
+              className={styles.chipRemove}
+              onClick={removeNode}
+              title="Remove scene context"
+              aria-label="Remove scene context"
+            >
               <X size={9} />
             </button>
           </span>
@@ -117,7 +127,12 @@ export default function ContextChips({ sessionId, context, resolvedNames }: Prop
             <span className={styles.chipLabel} title={resolvedNames.characterName}>
               {resolvedNames.characterName ?? "Character"}
             </span>
-            <button className={styles.chipRemove} onClick={removeCharacter} title="Remove character context">
+            <button
+              className={styles.chipRemove}
+              onClick={removeCharacter}
+              title="Remove character context"
+              aria-label="Remove character context"
+            >
               <X size={9} />
             </button>
           </span>

@@ -316,7 +316,6 @@
 
 .textarea:focus,
 .input:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 
@@ -564,7 +563,6 @@
 
 .sceneTitle:focus,
 .sceneSynopsis:focus {
-  outline: none;
   border-color: var(--color-accent);
   background: var(--color-surface);
 }

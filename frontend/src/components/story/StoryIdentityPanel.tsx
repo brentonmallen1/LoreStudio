@@ -227,7 +227,12 @@ function GoalsPanel({ storyId }: { storyId: string }) {
           placeholder="Add a goal…"
           className={styles.goalInput}
         />
-        <button onClick={addGoal} className={styles.goalAddBtn} disabled={!newGoal.trim()}>
+        <button
+          aria-label="Add the goal"
+          onClick={addGoal}
+          className={styles.goalAddBtn}
+          disabled={!newGoal.trim()}
+        >
           <Plus size={13} />
         </button>
       </div>

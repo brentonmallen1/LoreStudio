@@ -143,7 +143,6 @@
 
 .intentSelect:focus,
 .intentInput:focus {
-  outline: none;
   border-color: var(--color-brainstorm);
 }
 
@@ -161,7 +160,6 @@
 }
 
 .intentTextarea:focus {
-  outline: none;
   border-color: var(--color-brainstorm);
 }
 
@@ -438,7 +436,6 @@
 }
 
 .input:focus {
-  outline: none;
   border-color: var(--color-brainstorm);
 }
 

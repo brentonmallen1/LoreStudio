@@ -48,7 +48,12 @@ export default function NarrativePurposeTags({ value, onChange, error }: Props) 
         {value.map((tag) => (
           <span key={tag} className={styles.chip}>
             {tag}
-            <button className={styles.chipRemove} onClick={() => remove(tag)} type="button">
+            <button
+              aria-label={`Remove ${tag}`}
+              className={styles.chipRemove}
+              onClick={() => remove(tag)}
+              type="button"
+            >
               <X size={9} />
             </button>
           </span>

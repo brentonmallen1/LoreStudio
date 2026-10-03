@@ -83,6 +83,7 @@ export default function RelationshipCard({
                 onAccept();
               }}
               title="Accept suggestion"
+              aria-label="Accept suggestion"
             >
               <Check size={11} />
             </button>
@@ -109,6 +110,7 @@ export default function RelationshipCard({
               onDelete();
             }}
             title="Delete relationship"
+            aria-label="Delete relationship"
           >
             <Trash2 size={12} />
           </button>

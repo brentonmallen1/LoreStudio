@@ -93,7 +93,12 @@ export default function WhoIsHereField({
         <label className={styles.overviewLabel}>Who is here</label>
         {elsewhere.length > 0 && (
           <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
-            <select value={adding} onChange={(e) => setAdding(e.target.value)} style={smallSelect}>
+            <select
+              aria-label="Add someone"
+              value={adding}
+              onChange={(e) => setAdding(e.target.value)}
+              style={smallSelect}
+            >
               <option value="">Add someone…</option>
               {elsewhere.map((r) => (
                 <option key={r.character_id} value={r.character_id}>
@@ -102,6 +107,7 @@ export default function WhoIsHereField({
               ))}
             </select>
             <button
+              aria-label="Add this character"
               className={styles.addLinkBtn}
               disabled={!adding}
               onClick={async () => {

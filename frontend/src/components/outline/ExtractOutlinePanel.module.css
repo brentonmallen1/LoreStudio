@@ -180,7 +180,6 @@
   border-radius: var(--radius);
   background: var(--color-bg);
   color: var(--color-text);
-  outline: none;
 }
 
 .nameInput:focus {
@@ -296,7 +295,6 @@
   background: var(--color-surface);
   color: var(--color-text);
   resize: vertical;
-  outline: none;
   transition: border-color var(--transition);
 }
 

@@ -218,6 +218,7 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
                           setConfirmDelete(d.id);
                         }}
                         title="Delete diagram"
+                        aria-label="Delete diagram"
                       >
                         <Trash2 size={12} />
                       </button>

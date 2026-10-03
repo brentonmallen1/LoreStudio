@@ -229,7 +229,6 @@
   color: var(--color-text);
   background: transparent;
   border: none;
-  outline: none;
   font-family: inherit;
 }
 
@@ -500,7 +499,6 @@
   border: 1px solid var(--color-accent);
   border-radius: 3px;
   padding: 0.1rem 0.3rem;
-  outline: none;
 }
 
 .addTabWrap {

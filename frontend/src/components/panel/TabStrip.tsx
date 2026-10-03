@@ -85,21 +85,26 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
   }
 
   return (
-    <div ref={stripRef} className={styles.strip} role="tablist" aria-label="Side panel">
+    // A group of buttons, not an ARIA tablist: the strip also holds the panel's controls and
+    // the overflow, which a tablist may not contain, and there is no tabpanel (doc 17).
+    <div ref={stripRef} className={styles.strip} role="group" aria-label="Side panel tabs">
       {visible.map((tab) => {
         const selected = tab.id === activeTabId;
         const color = tabColor(tab);
         return (
           <div
             key={tab.id}
-            role="tab"
-            aria-selected={selected}
             className={`${styles.tab} ${selected ? styles.tabActive : ""} ${tab.kind === "scene" ? styles.tabPinned : ""}`}
             style={{ "--tab-width": `${widths[tab.id]}px`, "--tab-color": color } as React.CSSProperties}
             onMouseEnter={() => hoverTab(tab)}
             onMouseLeave={() => hoverTab(null)}
           >
-            <button className={styles.tabLabel} title={tabLabel(tab)} onClick={() => activate(tab.id)}>
+            <button
+              aria-current={selected ? "true" : undefined}
+              className={styles.tabLabel}
+              title={tabLabel(tab)}
+              onClick={() => activate(tab.id)}
+            >
               {tab.kind !== "scene" && (
                 <span className={`${styles.tabDot} ${tab.kind === "tool" ? styles.tabDotSquare : ""}`} />
               )}

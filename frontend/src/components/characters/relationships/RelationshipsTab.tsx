@@ -123,6 +123,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
             className={`${styles.viewBtn} ${viewMode === "focus" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("focus")}
             title="Focus view"
+            aria-label="Focus view"
           >
             <LayoutGrid size={14} />
           </button>
@@ -130,6 +131,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
             className={`${styles.viewBtn} ${viewMode === "matrix" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("matrix")}
             title="Matrix view"
+            aria-label="Matrix view"
           >
             <Table2 size={14} />
           </button>
@@ -137,6 +139,7 @@ export default function RelationshipsTab({ characterId, storyId }: Props) {
             className={`${styles.viewBtn} ${viewMode === "radar" ? styles.viewBtnActive : ""}`}
             onClick={() => setViewMode("radar")}
             title="Radar chart"
+            aria-label="Radar chart"
           >
             <Radar size={14} />
           </button>

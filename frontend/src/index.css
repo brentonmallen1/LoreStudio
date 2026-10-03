@@ -99,16 +99,29 @@ svg.lucide {
   }
 }
 
-/* ── Focus-visible baseline (keyboard a11y) ─────── */
-/* Buttons/links get a visible outline on keyboard focus.
-   Specificity (0-1-1) beats class-only outline:none (0-1-0),
-   so this wins without !important for <button> elements. */
+/* ── Focus-visible baseline (keyboard a11y, doc 17) ─── */
+/* Every control shows the palette's focus ring when the keyboard reaches it, fields too.
+   Specificity (0-1-1) beats a class-only outline:none (0-1-0); component rules no longer
+   remove the outline on :focus, and a component that draws its own ring does it on
+   :focus-visible. The prose is a page, not a control: no ring there. */
 button:focus-visible,
 [role="button"]:focus-visible,
 [role="tab"]:focus-visible,
 [role="option"]:focus-visible,
-a:focus-visible {
+[role="menuitem"]:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:not([tabindex="-1"]):not(.ProseMirror):focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* Rounded for bare buttons and links; a field keeps its own corners. */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
   border-radius: var(--radius-sm);
 }

@@ -3,6 +3,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 /**
@@ -54,6 +55,54 @@ const NO_BARE_DATE_PARSE = {
   message: "API timestamps are UTC without an offset — use parseServerDate / serverTime from lib/serverDate.",
 };
 
+/**
+ * Doc 17: a control has a name a screen reader can say (an icon alone has none: give it
+ * an aria-label), images have alt text, and ARIA is spelt right. Errors, not warnings:
+ * the tree was brought to zero when these went in.
+ */
+const A11Y = {
+  "jsx-a11y/control-has-associated-label": [
+    "error",
+    {
+      ignoreElements: [
+        "audio",
+        "canvas",
+        "embed",
+        "input",
+        "textarea",
+        "select",
+        "option",
+        "tr",
+        "th",
+        "td",
+        "li",
+        "video",
+        "a",
+      ],
+      ignoreRoles: [
+        "grid",
+        "listbox",
+        "menu",
+        "menubar",
+        "radiogroup",
+        "row",
+        "tablist",
+        "toolbar",
+        "tree",
+        "treegrid",
+        "option",
+        "tabpanel",
+        "separator",
+      ],
+      depth: 4,
+    },
+  ],
+  "jsx-a11y/alt-text": "error",
+  "jsx-a11y/aria-props": "error",
+  "jsx-a11y/aria-role": "error",
+  "jsx-a11y/role-has-required-aria-props": "error",
+};
+
 export default defineConfig([
   globalIgnores(["dist", "coverage", "node_modules"]),
   {
@@ -68,8 +117,10 @@ export default defineConfig([
       ecmaVersion: 2022,
       globals: globals.browser,
     },
+    plugins: { "jsx-a11y": jsxA11y },
     rules: {
       ...LEGACY_WARNINGS,
+      ...A11Y,
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },

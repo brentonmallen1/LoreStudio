@@ -137,7 +137,6 @@
 
 .input:focus,
 .select:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 
@@ -189,7 +188,6 @@
 }
 
 .notes:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 

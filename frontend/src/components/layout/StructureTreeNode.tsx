@@ -260,6 +260,7 @@ export default function NodeItem({
               setChildTitle("");
             }}
             title={`Add ${childLevelDef.name}`}
+            aria-label={`Add ${childLevelDef.name}`}
           >
             <Plus size={11} />
           </button>

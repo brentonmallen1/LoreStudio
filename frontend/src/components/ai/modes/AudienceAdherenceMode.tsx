@@ -160,7 +160,12 @@ export default function AudienceAdherenceMode({ session }: Props) {
                   ? "No issues"
                   : `${result.issues.length} issue${result.issues.length !== 1 ? "s" : ""}`}
               </span>
-              <button className={styles.rerunBtn} onClick={runAnalysis} title="Re-run analysis">
+              <button
+                className={styles.rerunBtn}
+                onClick={runAnalysis}
+                title="Re-run analysis"
+                aria-label="Re-run analysis"
+              >
                 <RefreshCw size={12} />
               </button>
             </div>

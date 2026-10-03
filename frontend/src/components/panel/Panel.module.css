@@ -332,7 +332,6 @@
 }
 
 .textarea:focus {
-  outline: none;
   border-color: var(--color-accent);
   background: var(--color-surface);
 }

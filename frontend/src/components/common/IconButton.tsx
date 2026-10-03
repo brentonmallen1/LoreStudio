@@ -29,6 +29,7 @@ export default function IconButton({
       onClick={onClick}
       disabled={disabled}
       title={tooltip}
+      aria-label={label ? undefined : tooltip}
     >
       {icon}
       {label && <span className={styles.label}>{label}</span>}

@@ -55,7 +55,6 @@
   color: var(--color-text);
   background: transparent;
   border: none;
-  outline: none;
   cursor: pointer;
   appearance: none;
 }

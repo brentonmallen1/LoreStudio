@@ -166,10 +166,20 @@ export default function SessionSwitcher({ session, onClose }: Props) {
                 )}
               </button>
             )}
-            <button className={styles.rowBtn} title="Fork conversation" onClick={(e) => handleFork(e, cs)}>
+            <button
+              className={styles.rowBtn}
+              title="Fork conversation"
+              onClick={(e) => handleFork(e, cs)}
+              aria-label="Fork conversation"
+            >
               <GitFork size={10} />
             </button>
-            <button className={styles.rowBtn} title="Archive" onClick={(e) => handleArchive(e, cs)}>
+            <button
+              className={styles.rowBtn}
+              title="Archive"
+              onClick={(e) => handleArchive(e, cs)}
+              aria-label="Archive"
+            >
               <Archive size={10} />
             </button>
           </div>

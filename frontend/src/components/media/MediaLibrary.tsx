@@ -112,7 +112,11 @@ function AssetCard({
               <button onClick={saveEdit} className={styles.saveBtn}>
                 <Check size={12} /> Save
               </button>
-              <button onClick={() => setEditing(false)} className={styles.cancelBtn}>
+              <button
+                aria-label="Cancel editing"
+                onClick={() => setEditing(false)}
+                className={styles.cancelBtn}
+              >
                 <X size={12} />
               </button>
             </div>
@@ -136,7 +140,12 @@ function AssetCard({
         )}
 
         <div className={styles.cardActions}>
-          <button onClick={() => setEditing((v) => !v)} className={styles.actionBtn} title="Edit metadata">
+          <button
+            onClick={() => setEditing((v) => !v)}
+            className={styles.actionBtn}
+            title="Edit metadata"
+            aria-label="Edit metadata"
+          >
             <Edit2 size={12} />
           </button>
           {isImage && (
@@ -146,6 +155,7 @@ function AssetCard({
                 className={styles.actionBtn}
                 title="AI: analyze mood & atmosphere"
                 disabled={analyzing}
+                aria-label="AI: analyze mood & atmosphere"
               >
                 <Compass size={12} />
               </button>
@@ -155,6 +165,7 @@ function AssetCard({
             onClick={() => navigator.clipboard.writeText(fileUrl)}
             className={styles.actionBtn}
             title="Copy URL"
+            aria-label="Copy URL"
           >
             <Copy size={12} />
           </button>
@@ -164,10 +175,15 @@ function AssetCard({
                 onClick={() => onDelete(asset.id)}
                 className={`${styles.actionBtn} ${styles.danger}`}
                 title="Confirm delete"
+                aria-label="Confirm delete"
               >
                 <Check size={12} />
               </button>
-              <button onClick={() => setConfirmDelete(false)} className={styles.actionBtn}>
+              <button
+                aria-label="Keep it"
+                onClick={() => setConfirmDelete(false)}
+                className={styles.actionBtn}
+              >
                 <X size={12} />
               </button>
             </>
@@ -176,6 +192,7 @@ function AssetCard({
               onClick={() => setConfirmDelete(true)}
               className={`${styles.actionBtn} ${styles.danger}`}
               title="Delete"
+              aria-label="Delete"
             >
               <Trash2 size={12} />
             </button>
@@ -186,7 +203,11 @@ function AssetCard({
           <div className={styles.analysisBox}>
             <div className={styles.analysisHeader}>
               <span>AI analysis</span>
-              <button onClick={() => setShowAnalysis(false)} className={styles.cancelBtn}>
+              <button
+                aria-label="Hide the analysis"
+                onClick={() => setShowAnalysis(false)}
+                className={styles.cancelBtn}
+              >
                 <X size={11} />
               </button>
             </div>

@@ -251,7 +251,6 @@
   box-sizing: border-box;
 }
 .input:focus {
-  outline: none;
   border-color: var(--color-accent);
 }
 

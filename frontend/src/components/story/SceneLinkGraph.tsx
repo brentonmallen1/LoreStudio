@@ -486,7 +486,12 @@ export default function SceneLinkGraph() {
 
         {/* Reset view button */}
         {!loading && sceneNodes.length > 0 && (
-          <button className={styles.resetBtn} onClick={() => setXform(DEFAULT_XFORM)} title="Reset view">
+          <button
+            className={styles.resetBtn}
+            onClick={() => setXform(DEFAULT_XFORM)}
+            title="Reset view"
+            aria-label="Reset view"
+          >
             <Crosshair size={13} />
           </button>
         )}

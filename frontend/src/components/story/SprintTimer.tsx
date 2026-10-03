@@ -73,7 +73,7 @@ export default function SprintTimer({ currentWordCount }: Props) {
         <span className={styles.words}>+{wordsWritten.toLocaleString()}</span>
         {sprintGoalWords > 0 && <span className={styles.goal}>/{sprintGoalWords.toLocaleString()}</span>}
         {!completed && (
-          <button className={styles.stopBtn} onClick={handleStop} title="End sprint">
+          <button className={styles.stopBtn} onClick={handleStop} title="End sprint" aria-label="End sprint">
             <X size={11} />
           </button>
         )}

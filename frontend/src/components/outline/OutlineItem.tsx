@@ -193,6 +193,7 @@ export default function OutlineItem({
           className={`${styles.beatDot} ${beatClass}`}
           onClick={cycleBeatType}
           title={item.beat_type ? item.beat_type : "No type. Click to set"}
+          aria-label={item.beat_type ? `Beat type: ${item.beat_type}. Change it` : "Set the beat type"}
           tabIndex={-1}
         />
 
@@ -244,6 +245,7 @@ export default function OutlineItem({
               <Link size={10} />
               <span>{item.scene_title || "Linked scene"}</span>
               <button
+                aria-label="Unlink the scene"
                 className={styles.sceneLinkRemove}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -313,6 +315,7 @@ export default function OutlineItem({
               onClick={() => setShowScenePicker((v) => !v)}
               title={item.scene_id ? `Linked: ${item.scene_title}` : "Link to scene"}
               tabIndex={-1}
+              aria-label={item.scene_id ? `Linked: ${item.scene_title}` : "Link to scene"}
             >
               <Link size={13} />
             </button>
@@ -322,6 +325,7 @@ export default function OutlineItem({
             onClick={() => setShowNotes((v) => !v)}
             title="Toggle notes"
             tabIndex={-1}
+            aria-label="Toggle notes"
           >
             <FileText size={13} />
           </button>
@@ -330,6 +334,7 @@ export default function OutlineItem({
             onClick={() => onAddChild(item.id)}
             title="Add child"
             tabIndex={-1}
+            aria-label="Add child"
           >
             <Plus size={13} />
           </button>
@@ -338,6 +343,7 @@ export default function OutlineItem({
             onClick={() => onDelete(item.id)}
             title="Delete"
             tabIndex={-1}
+            aria-label="Delete"
           >
             <Trash2 size={13} />
           </button>

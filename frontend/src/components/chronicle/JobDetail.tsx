@@ -104,6 +104,7 @@ export default function JobDetail({ jobId }: { jobId: string }) {
         <div
           className={styles.progress}
           role="progressbar"
+          aria-label="Progress"
           aria-valuemin={0}
           aria-valuemax={job.total}
           aria-valuenow={job.progress}

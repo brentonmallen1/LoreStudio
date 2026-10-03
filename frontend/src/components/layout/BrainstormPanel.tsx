@@ -282,7 +282,12 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
               New brainstorm
             </button>
           )}
-          <button className={styles.headerBtn} onClick={closeBrainstormPanel} title="Close">
+          <button
+            className={styles.headerBtn}
+            onClick={closeBrainstormPanel}
+            title="Close"
+            aria-label="Close"
+          >
             <X size={13} />
           </button>
         </div>
@@ -394,6 +399,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
                 background: "color-mix(in srgb, var(--color-danger) 15%, transparent)",
                 color: "var(--color-danger)",
               }}
+              aria-label="Cancel"
             >
               <Square size={13} />
             </button>
@@ -403,6 +409,7 @@ export default function BrainstormPanel({ storyId, nodeId }: Props) {
               onClick={() => send()}
               disabled={!input.trim() && !selectedImage}
               title="Send"
+              aria-label="Send"
             >
               <Send size={14} />
             </button>

@@ -178,7 +178,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
   transition: border-color var(--transition);
   box-sizing: border-box;
 }
@@ -197,7 +196,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
   resize: vertical;
   transition: border-color var(--transition);
   box-sizing: border-box;
@@ -264,7 +262,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
 }
 
 .tagInput:focus {
@@ -400,7 +397,6 @@
   border: 1px solid var(--color-accent);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
 }
 
 .goalActions {
@@ -457,7 +453,6 @@
   border: 1px solid var(--color-control-border);
   background: var(--color-surface);
   color: var(--color-text);
-  outline: none;
 }
 
 .goalInput:focus {

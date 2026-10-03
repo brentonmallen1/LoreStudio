@@ -138,6 +138,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
             onClick={() => onSelect(null)}
             title="Remove image"
             disabled={disabled}
+            aria-label="Remove image"
           >
             <X size={10} />
           </button>
@@ -148,6 +149,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
           onClick={() => setOpen((v) => !v)}
           title="Attach image"
           disabled={disabled}
+          aria-label="Attach image"
         >
           <ImagePlus size={14} />
         </button>
@@ -171,7 +173,7 @@ export default function ChatImagePicker({ storyId, selected, onSelect, disabled 
                 Upload new
               </button>
             </div>
-            <button className={styles.closeBtn} onClick={() => setOpen(false)}>
+            <button aria-label="Close" className={styles.closeBtn} onClick={() => setOpen(false)}>
               <X size={12} />
             </button>
           </div>

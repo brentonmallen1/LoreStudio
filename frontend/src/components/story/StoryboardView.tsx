@@ -175,6 +175,7 @@ function NoteStoryboardNode({ data, id, selected }: NodeProps) {
             onDelete?.(id);
           }}
           title="Delete note"
+          aria-label="Delete note"
         >
           <X size={10} />
         </button>

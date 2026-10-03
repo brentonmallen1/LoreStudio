@@ -91,7 +91,6 @@
 }
 
 .textInput:focus {
-  outline: none;
   border-color: var(--twist-accent);
 }
 

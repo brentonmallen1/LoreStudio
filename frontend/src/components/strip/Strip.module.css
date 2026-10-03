@@ -108,7 +108,7 @@
 }
 
 .segBtn {
-  height: 1.467rem;
+  height: 1.6rem;
   padding: 0 0.5rem;
   border: none;
   border-radius: 10px;
@@ -195,7 +195,7 @@
 }
 
 .rowAct {
-  height: 1.333rem;
+  height: 1.6rem;
   cursor: pointer;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .rowStop {
-  min-height: 1.333rem;
+  min-height: 1.6rem;
   padding: 2px 0;
 }
 
@@ -751,6 +751,11 @@
 
 .chapterCurrent .chapterTitle {
   font-weight: 600;
+}
+
+/* The current chapter's band is surface-3, where subtle text is only held to 3:1. */
+.chapterCurrent .chapterMeta {
+  color: var(--color-text-muted);
 }
 
 .chapterMeta {

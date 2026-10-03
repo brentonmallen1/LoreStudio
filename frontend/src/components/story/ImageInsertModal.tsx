@@ -56,7 +56,7 @@ export default function ImageInsertModal({ storyId, onInsert, onClose }: Props) 
                 disabled={uploading}
               />
             </label>
-            <button className={styles.closeBtn} onClick={onClose}>
+            <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
               <X size={14} />
             </button>
           </div>

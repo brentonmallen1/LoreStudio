@@ -113,6 +113,7 @@ export default function SceneEditor() {
       SearchAndReplaceExtension,
     ],
     content: activeNode?.content ?? "",
+    editorProps: { attributes: { "aria-label": "Scene text" } },
     onSelectionUpdate: ({ editor }) => {
       if (selectionDebounceRef.current) clearTimeout(selectionDebounceRef.current);
       if (editor.state.selection.empty) {
@@ -274,7 +275,12 @@ export default function SceneEditor() {
         <div className={styles.editorColumn}>
           {storySummaryOpen && activeStory && aiAvailable && (
             <div className={styles.summaryWrap}>
-              <button className={styles.summaryCloseBtn} onClick={closeStorySummary} title="Close">
+              <button
+                className={styles.summaryCloseBtn}
+                onClick={closeStorySummary}
+                title="Close"
+                aria-label="Close"
+              >
                 <X size={13} />
               </button>
               <StorySummaryPanel storyId={activeStory.id} />

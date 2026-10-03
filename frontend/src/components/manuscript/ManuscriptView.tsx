@@ -186,7 +186,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
           )}
           <div className={styles.toolbarRight}>
             {filterSelect}
-            <button className={styles.refreshBtn} onClick={load} title="Refresh">
+            <button className={styles.refreshBtn} onClick={load} title="Refresh" aria-label="Refresh">
               <RefreshCw size={13} />
             </button>
             {/* AI tools: absent in Writer mode and with AI switched off. */}
@@ -249,6 +249,7 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
                 className={styles.exportDrawerClose}
                 onClick={() => setPubPrepOpen(false)}
                 title="Close"
+                aria-label="Close"
               >
                 <X size={13} />
               </button>
@@ -306,7 +307,12 @@ export default function ManuscriptView({ storyId, onNavigateToScene, asPage = fa
           <div className={styles.exportDrawer}>
             <div className={styles.exportDrawerHeader}>
               <span className={styles.exportDrawerTitle}>Export</span>
-              <button className={styles.exportDrawerClose} onClick={() => setExportOpen(false)} title="Close">
+              <button
+                className={styles.exportDrawerClose}
+                onClick={() => setExportOpen(false)}
+                title="Close"
+                aria-label="Close"
+              >
                 <X size={13} />
               </button>
             </div>

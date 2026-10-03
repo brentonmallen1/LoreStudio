@@ -51,12 +51,22 @@ export default function SceneSettingsField({
       <div className={styles.linkedHeader}>
         <label className={styles.overviewLabel}>Settings</label>
         <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
-          <select value={addRole} onChange={(e) => setAddRole(e.target.value)} style={smallSelect}>
+          <select
+            aria-label="How the place is used"
+            value={addRole}
+            onChange={(e) => setAddRole(e.target.value)}
+            style={smallSelect}
+          >
             <option value="primary">Primary</option>
             <option value="mentioned">Mentioned</option>
             <option value="flashback">Flashback</option>
           </select>
-          <select value={addId} onChange={(e) => setAddId(e.target.value)} style={smallSelect}>
+          <select
+            aria-label="Add a place"
+            value={addId}
+            onChange={(e) => setAddId(e.target.value)}
+            style={smallSelect}
+          >
             <option value="">Add location…</option>
             {locations
               .filter((loc) => !settings.some((s) => s.location_id === loc.id))
@@ -66,7 +76,7 @@ export default function SceneSettingsField({
                 </option>
               ))}
           </select>
-          <button className={styles.addLinkBtn} disabled={!addId} onClick={add}>
+          <button aria-label="Add this place" className={styles.addLinkBtn} disabled={!addId} onClick={add}>
             <Plus size={11} />
           </button>
         </div>
@@ -87,6 +97,7 @@ export default function SceneSettingsField({
                   className={styles.linkChipDelete}
                   onClick={() => remove(s.id)}
                   title="Remove location"
+                  aria-label="Remove location"
                 >
                   <X size={10} />
                 </button>

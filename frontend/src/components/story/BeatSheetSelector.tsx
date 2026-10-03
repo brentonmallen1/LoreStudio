@@ -40,7 +40,12 @@ export default function BeatSheetSelector({ value, onChange, onInject }: Props) 
             </option>
           ))}
         </select>
-        <button className={styles.manageBtn} onClick={() => setShowManager(true)} title="Manage beat sheets">
+        <button
+          className={styles.manageBtn}
+          onClick={() => setShowManager(true)}
+          title="Manage beat sheets"
+          aria-label="Manage beat sheets"
+        >
           <Settings2 size={13} />
         </button>
       </div>

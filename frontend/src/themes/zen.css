@@ -11,34 +11,34 @@
   --color-text-muted: #6a675f;
   --color-text-subtle: #6e6c65;
   --color-section-title: #4a4843;
-  --segment-act: #bd4311;
-  --segment-chapter: #876710;
-  --segment-scene: #2668c4;
-  --segment-section: #5a6a82;
-  --segment-beat: #087b65;
+  --segment-act: #aa3c13;
+  --segment-chapter: #7a5e0d;
+  --segment-scene: #1c5eba;
+  --segment-section: #53637b;
+  --segment-beat: #006f5b;
   --segment-part: #7040b8;
-  --segment-stage: #b83670;
+  --segment-stage: #ae2c6b;
   --color-note-highlight: rgba(200, 160, 20, 0.18);
   --color-note-marker: #b89020;
-  --color-accent: #457754;
+  --color-accent: #3a6c49;
   --color-accent-hover: #3d6a4a;
   --color-accent-fg: #ffffff;
-  --color-ai: #7f6095;
+  --color-ai: #765783;
   --color-ai-hover: #7a5a96;
   --color-ai-fg: #ffffff;
   --color-ai-subtle: rgba(139, 106, 168, 0.12);
   --color-ai-border: rgba(139, 106, 168, 0.3);
-  --color-ai-coach: #7c54b8;
+  --color-ai-coach: #774aae;
   --color-ai-coach-hover: #6b44a4;
   --color-ai-coach-fg: #ffffff;
   --color-ai-coach-subtle: rgba(124, 84, 184, 0.1);
   --color-ai-coach-border: rgba(124, 84, 184, 0.28);
-  --color-nlp: #0e7883;
+  --color-nlp: #016c76;
   --color-nlp-hover: #238090;
   --color-nlp-fg: #ffffff;
   --color-nlp-subtle: rgba(42, 138, 154, 0.12);
   --color-nlp-border: rgba(42, 138, 154, 0.3);
-  --color-editorial: #0f766e;
+  --color-editorial: #106d66;
   --color-editorial-hover: #0d6660;
   --color-editorial-fg: #ffffff;
   --color-editorial-subtle: rgba(15, 118, 110, 0.1);
@@ -46,17 +46,17 @@
   --color-editorial-highlight: rgba(15, 118, 110, 0.15);
   --color-editorial-marker: #0f766e;
   --color-editorial-surface: rgba(15, 118, 110, 0.06);
-  --color-danger: #b83232;
+  --color-danger: #b42e30;
   --color-danger-bg: #fdf2f2;
-  --color-warning: #976117;
-  --color-success: #227a5a;
+  --color-warning: #835913;
+  --color-success: #056f4f;
   --color-surface-raised: #eceae2;
-  --color-planner: #147977;
+  --color-planner: #0d6d6b;
   --color-planner-hover: #0b7c72;
   --color-planner-fg: #ffffff;
   --color-planner-subtle: rgba(13, 148, 136, 0.1);
   --color-planner-border: rgba(13, 148, 136, 0.28);
-  --color-brainstorm: #9f5b15;
+  --color-brainstorm: #8c5413;
   --color-brainstorm-hover: #b45309;
   --color-brainstorm-fg: #ffffff;
   --color-brainstorm-subtle: rgba(217, 119, 6, 0.1);
@@ -78,10 +78,10 @@
   --cat-7-fg: #111111;
   --cat-8: #5a6a82;
   --cat-8-fg: #ffffff;
-  --status-planned: #6e6c65;
-  --status-draft: #976117;
-  --status-revised: #0e7883;
-  --status-final: #227a5a;
+  --status-planned: #64625b;
+  --status-draft: #835913;
+  --status-revised: #016c76;
+  --status-final: #056f4f;
   /* Doc 17: declared here so nothing falls through to zen's :root. */
   --color-control-border: #8a8985;
   --color-focus: #4a7c59;
@@ -107,8 +107,8 @@
   --segment-scene: #5b9fe0;
   --segment-section: #8a9ab0;
   --segment-beat: #35c498;
-  --segment-part: #b07ae0;
-  --segment-stage: #e0608a;
+  --segment-part: #b882e8;
+  --segment-stage: #ee6e98;
 
   --color-note-highlight: rgba(220, 180, 40, 0.14);
   --color-note-marker: #d4b040;
@@ -123,7 +123,7 @@
   --color-ai-subtle: rgba(176, 144, 208, 0.1);
   --color-ai-border: rgba(176, 144, 208, 0.25);
 
-  --color-ai-coach: #a080e0;
+  --color-ai-coach: #a888e8;
   --color-ai-coach-hover: #b090f0;
   --color-ai-coach-fg: #100820;
   --color-ai-coach-subtle: rgba(160, 128, 224, 0.1);
@@ -144,9 +144,9 @@
   --color-editorial-marker: #2dd4bf;
   --color-editorial-surface: rgba(45, 212, 191, 0.07);
 
-  --color-danger: #e85c58;
+  --color-danger: #f86c60;
   --color-danger-bg: #1f1212;
-  --color-warning: #d08428;
+  --color-warning: #d4882c;
   --color-success: #5ab87e;
 
   --color-brainstorm: #f0a030;
@@ -182,8 +182,8 @@
   --cat-7-fg: #111111;
   --cat-8: #8a9ab0;
   --cat-8-fg: #111111;
-  --status-planned: #8e8b80;
-  --status-draft: #d08428;
+  --status-planned: #9c9987;
+  --status-draft: #d4882c;
   --status-revised: #50c0d8;
   --status-final: #5ab87e;
   /* Doc 17: declared here so nothing falls through to zen's :root. */

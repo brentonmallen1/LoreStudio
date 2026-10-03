@@ -45,6 +45,26 @@ function luminance(hex: string): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+/** `color-mix(in srgb, fg w%, transparent)` laid over `ground`: what a badge's tint renders as. */
+function tint(fg: string, ground: string, w = 0.12): string {
+  const rgb = (h: string) => {
+    let x = h.replace("#", "");
+    if (x.length === 3) x = [...x].map((c) => c + c).join("");
+    return [0, 2, 4].map((i) => parseInt(x.slice(i, i + 2), 16));
+  };
+  const [a, b] = [rgb(fg), rgb(ground)];
+  return (
+    "#" +
+    a
+      .map((v, i) =>
+        Math.round(w * v + (1 - w) * b[i])
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
+}
+
 export function contrast(a: string, b: string): number {
   const la = luminance(a);
   const lb = luminance(b);
@@ -99,6 +119,15 @@ const PAIRS: [string, string, number, string][] = [
     [`--color-${f}-fg`, `--color-${f}-hover`, 4.5, `text on ${f} buttons under the pointer`],
   ]),
   ["--color-danger", "--color-danger-bg", 4.5, "danger text on its tint"],
+  // Coloured text on a 12% tint of itself: status and type badges, role and type pills.
+  ...TEXT.slice(4).flatMap(([fg, what]) =>
+    GROUNDS.map(([bg, where]): [string, string, number, string] => [
+      fg,
+      `tint:${bg}`,
+      4.5,
+      `${what} on its own tint on ${where}`,
+    ]),
+  ),
   // Palette slots (doc 11 P2): used as ink (dots, rings, underlines, chip fills), so 3:1 on
   // every ground, and the text on a filled chip reaches 4.5.
   ...Array.from({ length: 8 }, (_, i) => i + 1).flatMap((n): [string, string, number, string][] => [
@@ -174,8 +203,9 @@ describe("theme contrast (WCAG)", () => {
         const failures: string[] = [];
         for (const [fg, bg, min, what] of PAIRS) {
           const a = tokens[fg];
-          const b = tokens[bg];
-          if (!a || !b) continue; // derived value (rgba/color-mix) or not defined
+          const ground = tokens[bg.replace(/^tint:/, "")];
+          if (!a || !ground) continue; // derived value (rgba/color-mix) or not defined
+          const b = bg.startsWith("tint:") ? tint(a, ground) : ground;
           const ratio = contrast(a, b);
           if (ratio < min)
             failures.push(`${what}: ${fg} ${a} on ${bg} ${b} = ${ratio.toFixed(2)} (< ${min})`);

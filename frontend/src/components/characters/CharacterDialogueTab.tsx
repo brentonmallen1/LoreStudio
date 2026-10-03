@@ -19,6 +19,7 @@ import type {
 } from "../../types";
 import AutoTagPanel from "../cleanup/AutoTagPanel";
 import CharacterDialogueActionToolbar from "./CharacterDialogueActionToolbar";
+import HidePanelButton from "./HidePanelButton";
 import styles from "./CharacterDialogueTab.module.css";
 
 interface Props {
@@ -221,9 +222,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                 {voiceResult.overall_distinctness.replace("_", " ")}
               </span>
             </span>
-            <button onClick={() => setShowVoice(false)} className={styles.voiceClose}>
-              <ChevronUp size={12} />
-            </button>
+            <HidePanelButton label="Hide voice analysis" onClick={() => setShowVoice(false)} />
           </div>
 
           {focusProfile && (
@@ -294,9 +293,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
         <div ref={prosePanelRef} className={styles.voicePanel}>
           <div className={styles.voicePanelHeader}>
             <span className={styles.voiceTitle}>Dialogue prose analysis</span>
-            <button onClick={() => setShowProse(false)} className={styles.voiceClose}>
-              <ChevronUp size={12} />
-            </button>
+            <HidePanelButton label="Hide prose analysis" onClick={() => setShowProse(false)} />
           </div>
           <div className={styles.voiceProfile}>
             <div className={styles.profileStat}>
@@ -370,9 +367,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                 {fidelityResult.overall_fidelity.replace("_", " ")}
               </span>
             </span>
-            <button onClick={() => setShowFidelity(false)} className={styles.voiceClose}>
-              <ChevronUp size={12} />
-            </button>
+            <HidePanelButton label="Hide fidelity analysis" onClick={() => setShowFidelity(false)} />
           </div>
 
           {fidelityResult.attribute_summary && (
@@ -490,6 +485,7 @@ export default function CharacterDialogueTab({ characterId, characterName }: Pro
                             className={`${styles.subtextBtn} ${hasSubtext ? styles.subtextBtnActive : ""}`}
                             onClick={() => toggleSubtextOpen(block.id)}
                             title={hasSubtext ? "View/edit subtext note" : "Add subtext note"}
+                            aria-label={hasSubtext ? "View/edit subtext note" : "Add subtext note"}
                           >
                             <MessageCircle size={11} />
                           </button>

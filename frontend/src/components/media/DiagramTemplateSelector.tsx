@@ -13,7 +13,7 @@ export default function DiagramTemplateSelector({ onSelect, onClose }: Props) {
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <span className={styles.title}>Start from a template</span>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button aria-label="Close" className={styles.closeBtn} onClick={onClose}>
             <X size={14} />
           </button>
         </div>
