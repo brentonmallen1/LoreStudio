@@ -69,6 +69,9 @@ describe("SHORTCUTS", () => {
     expect(matchesCombo(ev({ ...mod, key: "Z", shiftKey: true }), "mod+shift+z")).toBe(true);
     expect(matchesCombo(ev({ key: "?" }), "?")).toBe(true);
     expect(matchesCombo(ev({ key: "/" }), "?")).toBe(false);
+    // The strip and the panel sit side by side: ⌘, and ⌘.
+    expect(matchesCombo(ev({ ...mod, key: "," }), SHORTCUTS.cycleStrip.combo)).toBe(true);
+    expect(matchesCombo(ev({ ...mod, key: "." }), SHORTCUTS.cycleStrip.combo)).toBe(false);
   });
 
   it("formats combos for display", () => {

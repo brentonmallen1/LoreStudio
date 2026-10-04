@@ -42,7 +42,8 @@ export const SHORTCUTS = {
     commandId: "view-focus",
   },
   cycleStrip: {
-    combo: "mod+shift+e",
+    // ⌘, beside ⌘. (the side panel): the strip on the left, the panel on the right.
+    combo: "mod+,",
     label: "Collapse or expand the story strip",
     group: "Navigation",
     scope: "global",
@@ -165,6 +166,7 @@ const KEY_CODES: Record<string, string> = Object.fromEntries([
   ..."abcdefghijklmnopqrstuvwxyz".split("").map((c) => [c, `Key${c.toUpperCase()}`]),
   ..."0123456789".split("").map((d) => [d, `Digit${d}`]),
   [".", "Period"],
+  [",", "Comma"],
   ["/", "Slash"],
   ["\\", "Backslash"],
   ["[", "BracketLeft"],
