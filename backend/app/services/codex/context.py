@@ -36,6 +36,7 @@ from ..llm.prompts.panel import build_panel_character_prompt
 from ..prose_html import paragraphs
 from ..prose_syntax import Known, Lexicon, find_mentions
 from ..series.context import earlier_states, earlier_text
+from ..series.promises import earlier_lines
 from ..thread_roles import role_label
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
@@ -278,6 +279,8 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         "threads_in_scene": threads_in_scene,
         "open_threads": all_open_threads,
         "twists_in_scene": twists_in_scene,
+        # A book of a series: what the books before it leave open, never the later ones.
+        "earlier_books": earlier_lines(db, story.id) if opts.include_threads else [],
         "sibling_scenes": sibling_context,
         "mentioned": mentioned,
     }
@@ -388,6 +391,7 @@ def _blocks_for(packet: dict) -> list[Block]:
         ("settings_in_scene", "Settings", "[[mentioned]] in the prose"),
         ("threads_in_scene", "Plot threads", "the thread appears in this scene"),
         ("twists_in_scene", "Twists", "a clue is planted or the twist revealed in this scene"),
+        ("earlier_books", "From earlier books", "this book's series: the books before it, never after"),
         ("sibling_scenes", "Neighbouring scenes", "adjacent in the manuscript"),
         ("all_characters", "Cast summary", ""),
         ("open_threads", "Open threads", ""),

@@ -4,6 +4,7 @@ import { findingsApi } from "../api/findings";
 import { MUTATION_EVENT, type MutationEventDetail } from "../api/request";
 import { UNDO_APPLIED_EVENT } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
+import { notifyPromisesChanged } from "../lib/promises/usePromises";
 import { announceScenesRewritten } from "../lib/sceneEvents";
 import { useProposalsStore } from "./proposalsStore";
 import { useSeriesStore } from "./seriesStore";
@@ -77,7 +78,11 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
       // An open editor holds the old text; this makes it take the new. A series fix wrote
       // the other books' sheets instead, which the series view shows.
       if (done.node_id) announceScenesRewritten([done.node_id]);
-      else void useSeriesStore.getState().refetch();
+      else {
+        void useSeriesStore.getState().refetch();
+        // A thread carried into the next book: the promise views across the books redraw.
+        if (f.fix?.kind === "carry") notifyPromisesChanged();
+      }
       return done;
     } finally {
       await get().refetch();

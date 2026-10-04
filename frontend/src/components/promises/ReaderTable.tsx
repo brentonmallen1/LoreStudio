@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import { slotVar } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
-import type { Promises, ReaderItem } from "../../types/promises";
+import type { ComingInItem, Promises, ReaderItem } from "../../types/promises";
 import styles from "./ReaderTable.module.css";
 
 /**
  * What the reader knows, scene by scene (doc 18 C8): what they learn, what they are led to
  * believe, and what only they know. Clues and reveals fill it from the twists; the author's
- * own entries add the rest. A belief the story has overturned is struck through.
+ * own entries add the rest. A belief the story has overturned is struck through. In a book of
+ * a series, the first row is what the reader comes in knowing from the books before (v1.5).
  */
 export default function ReaderTable({
   storyId,
@@ -20,6 +21,25 @@ export default function ReaderTable({
 }) {
   const twists = new Map(data.twists.map((t) => [t.id, t]));
   const rows = ironyOnly ? data.reader.filter((r) => r.only.length > 0) : data.reader;
+  const coming = data.coming_in;
+  const comingAny =
+    coming && (ironyOnly ? coming.only.length > 0 : Object.values(coming).some((l) => l.length));
+
+  const earlier = (items: ComingInItem[], kind: "learns" | "believes" | "only") => (
+    <div className={`${styles.cell} ${kind === "only" ? styles.onlyCell : ""}`}>
+      {items.map((item, i) => (
+        <p
+          key={i}
+          className={`${styles.item} ${item.overturned_at ? styles.over : ""} ${kind === "only" ? styles.only : ""}`}
+        >
+          <span className={styles.text}>{item.text}</span>{" "}
+          <span className={styles.source}>
+            {item.overturned_at ? `no longer, after ${item.overturned_at}` : `Book ${item.book + 1}`}
+          </span>
+        </p>
+      ))}
+    </div>
+  );
 
   function source(item: ReaderItem) {
     const tw = item.twist_id ? twists.get(item.twist_id) : undefined;
@@ -54,7 +74,7 @@ export default function ReaderTable({
     </div>
   );
 
-  if (rows.length === 0) {
+  if (rows.length === 0 && !comingAny) {
     return (
       <p className={styles.empty}>
         {ironyOnly
@@ -72,6 +92,21 @@ export default function ReaderTable({
         {!ironyOnly && <span role="columnheader">…and is led to believe</span>}
         <span role="columnheader">Only the reader knows</span>
       </div>
+      {coming && comingAny && (
+        <div className={`${styles.row} ${styles.comingIn} ${ironyOnly ? styles.rowIrony : ""}`} role="row">
+          <span className={styles.scene} role="cell">
+            Coming in
+            {data.series_id && (
+              <Link to={`/series/${data.series_id}/story-so-far`} className={styles.twist}>
+                The story so far
+              </Link>
+            )}
+          </span>
+          {!ironyOnly && earlier(coming.learned, "learns")}
+          {!ironyOnly && earlier(coming.believes, "believes")}
+          {earlier(coming.only, "only")}
+        </div>
+      )}
       {rows.map((r) => (
         <div key={r.node_id} className={`${styles.row} ${ironyOnly ? styles.rowIrony : ""}`} role="row">
           <Link to={`/stories/${storyId}/write/${r.node_id}`} className={styles.scene} role="cell">

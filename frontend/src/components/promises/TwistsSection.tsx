@@ -4,6 +4,8 @@ import { BookOpen, Eye, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useAIAvailable } from "../../lib/mode";
+import { usePromises } from "../../lib/promises/usePromises";
+import { twistAcrossLine } from "../../lib/series/promises";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -58,7 +60,12 @@ export default function TwistsSection() {
   useEffect(() => {
     void reload();
   }, [reload]);
-  useReloadOnUndo(["twist", "twist_clue", "reader_knowledge_event"], () => void reload());
+  useReloadOnUndo(
+    ["twist", "twist_clue", "reader_knowledge_event", "series_element_member"],
+    () => void reload(),
+  );
+  // In a series: where each twist is revealed across the books (v1.5).
+  const across = usePromises(storyId).data?.across ?? {};
 
   const twist = twists.find((t) => t.id === selectedId) ?? null;
   const leaves = sceneLeaves(structure, activeTemplate);
@@ -95,6 +102,8 @@ export default function TwistsSection() {
           select(id);
         }}
         onAdd={add}
+        seriesKinds={["twist"]}
+        onFromSeries={(id) => void reload().then(() => select(id))}
         empty={
           loaded ? (
             <p className={styles.listEmpty}>
@@ -125,6 +134,7 @@ export default function TwistsSection() {
             dot={slotVar(twist.color_slot)}
             dotShape="diamond"
             slot={{ value: twist.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
+            series={{ kind: "twist", id: twist.id }}
             badges={
               <>
                 <Badge title={TYPES.find((t) => t.value === twist.twist_type)?.hint}>
@@ -136,7 +146,7 @@ export default function TwistsSection() {
             presence={
               twist.revealed_at_node_id
                 ? `Revealed in ${titleOf(twist.revealed_at_node_id)} · ${cluesLine(twist)}`
-                : `Not revealed yet · ${cluesLine(twist)}`
+                : `${twistAcrossLine(across[twist.id]) ?? "Not revealed yet"} · ${cluesLine(twist)}`
             }
             onOpenBeside={() => openEntity("twist", twist.id, twist.name)}
             more={[

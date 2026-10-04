@@ -2,58 +2,61 @@ import type { SeriesKind } from "../../api/series";
 import { KINDS, type LoreKind } from "../lorebook/kinds";
 import { sectionPath } from "../routes";
 
+/** Where a series kind's sheets live, and its Lorebook kind (for labels and fields). */
+interface KindSpec {
+  page: "lorebook" | "promises";
+  section: string;
+  lore: LoreKind;
+}
+
 /**
- * The series kinds in the Lorebook's words (series doc). The server names two kinds
- * differently (backend services/series/kinds.py FRONTEND_KIND); this is the other half.
+ * Every series kind in the app's words (series doc). The server names some kinds differently
+ * (backend services/series/kinds.py FRONTEND_KIND); this is the other half. In the order the
+ * Lorebook lists them, the promises last, as the server carries them.
  */
-export const LORE_KIND: Record<SeriesKind, LoreKind> = {
-  character: "character",
-  location: "location",
-  world_system: "system",
-  culture: "culture",
-  era: "era",
-  historical_event: "event",
-  calendar: "calendar",
+export const SERIES_KIND_SPEC: Record<SeriesKind, KindSpec> = {
+  character: { page: "lorebook", section: "characters", lore: "character" },
+  location: { page: "lorebook", section: "places", lore: "location" },
+  world_system: { page: "lorebook", section: "systems", lore: "system" },
+  culture: { page: "lorebook", section: "cultures", lore: "culture" },
+  era: { page: "lorebook", section: "history", lore: "era" },
+  historical_event: { page: "lorebook", section: "history", lore: "event" },
+  calendar: { page: "lorebook", section: "calendars", lore: "calendar" },
+  plot_thread: { page: "promises", section: "threads", lore: "thread" },
+  twist: { page: "promises", section: "twists", lore: "twist" },
 };
 
-/** The Lorebook section each kind's sheets live in. */
-export const LORE_SECTION: Record<SeriesKind, string> = {
-  character: "characters",
-  location: "places",
-  world_system: "systems",
-  culture: "cultures",
-  era: "history",
-  historical_event: "history",
-  calendar: "calendars",
-};
+/** The order kinds are listed in. */
+export const SERIES_KIND_ORDER = Object.keys(SERIES_KIND_SPEC) as SeriesKind[];
 
-/** The order kinds are listed in: the Lorebook's. */
-export const SERIES_KIND_ORDER: SeriesKind[] = [
-  "character",
-  "location",
-  "world_system",
-  "culture",
-  "era",
-  "historical_event",
-  "calendar",
-];
+/** The Canon's kinds: the Lorebook's. Threads and twists have the series' Promises. */
+export const CANON_KINDS = SERIES_KIND_ORDER.filter((k) => SERIES_KIND_SPEC[k].page === "lorebook");
 
-/** The kind a Lorebook section lists, the other way round (History lists two). */
-export function seriesKindsOf(section: string): SeriesKind[] {
-  return SERIES_KIND_ORDER.filter((k) => LORE_SECTION[k] === section);
+export const PROMISE_KINDS = SERIES_KIND_ORDER.filter((k) => SERIES_KIND_SPEC[k].page === "promises");
+
+export function loreKind(kind: SeriesKind): LoreKind {
+  return SERIES_KIND_SPEC[kind].lore;
+}
+
+/** The kinds a section lists, the other way round (History lists two). */
+export function seriesKindsOf(section: string, page: KindSpec["page"] = "lorebook"): SeriesKind[] {
+  return SERIES_KIND_ORDER.filter(
+    (k) => SERIES_KIND_SPEC[k].page === page && SERIES_KIND_SPEC[k].section === section,
+  );
 }
 
 export function kindLabel(kind: SeriesKind, plural = false): string {
-  const spec = KINDS[LORE_KIND[kind]];
+  const spec = KINDS[loreKind(kind)];
   return plural ? spec.plural : spec.label;
 }
 
 /** The element's sheet in one book. */
 export function sheetPath(storyId: string, kind: SeriesKind, refId: string): string {
-  return sectionPath(storyId, "lorebook", LORE_SECTION[kind], refId);
+  const { page, section } = SERIES_KIND_SPEC[kind];
+  return sectionPath(storyId, page, section, refId);
 }
 
 /** A field's label, from the Lorebook's own table. */
 export function fieldLabel(kind: SeriesKind, key: string): string {
-  return KINDS[LORE_KIND[kind]].fields.find((f) => f.key === key)?.label ?? key.replace(/_/g, " ");
+  return KINDS[loreKind(kind)].fields.find((f) => f.key === key)?.label ?? key.replace(/_/g, " ");
 }

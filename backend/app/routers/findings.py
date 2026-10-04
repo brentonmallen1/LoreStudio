@@ -67,9 +67,10 @@ def run_local_checks(story_id: str, db: Session = Depends(get_db), user: User = 
 
 
 def _books_sharing(story_id: str, finding: Finding, db: Session) -> list[str]:
-    """Where else the same finding stands: a series finding is the same in every book of its
-    series, so the author's word on it is too. Otherwise just this book."""
-    if not finding.check.startswith("series-"):
+    """Where else the same finding stands: a finding about a series element is the same in
+    every book of its series, so the author's word on it is too. Otherwise just this book,
+    even for a series check about something only this book has."""
+    if not finding.anchor.series_element_id:
         return [story_id]
     book = series_service.membership(db, story_id)
     return [b.story_id for b in book.series.books] if book else [story_id]
@@ -87,9 +88,11 @@ def dismiss_finding(
     series finding is dismissed in every book of the series, each book logging its own."""
     story = _story(story_id, db, user)
     finding = _finding(story, fingerprint, db)
+    books = _books_sharing(story_id, finding, db)
     node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
-    node_hash = content_hash(node.content) if node is not None else None
-    for sid in _books_sharing(story_id, finding, db):
+    # A scene is one book's: a dismissal held in several books cannot lapse with it.
+    node_hash = content_hash(node.content) if node is not None and len(books) == 1 else None
+    for sid in books:
         existing = (
             db.query(FindingDismissal)
             .filter(FindingDismissal.story_id == sid, FindingDismissal.fingerprint == fingerprint)
@@ -155,12 +158,14 @@ def fix_finding(
     user: User = Depends(get_current_user),
     client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Make the fix a finding offers. Only a misspelt name has one: every whole-word
-    "Elenor" in that scene becomes "Eleanor"."""
+    """Make the fix a finding offers: a misspelt name (every whole-word "Elenor" in that
+    scene becomes "Eleanor"), a series value made every book's, or a thread carried on."""
     story = _story(story_id, db, user)
     finding = _finding(story, fingerprint, db)
     if finding.fix is not None and finding.fix.kind == "series":
         return _fix_series(story, finding, db, user, client_id)
+    if finding.fix is not None and finding.fix.kind == "carry":
+        return _fix_carry(story, finding, db, user, client_id)
     node = db.get(StructureNode, finding.anchor.node_id) if finding.anchor.node_id else None
     if finding.fix is None or node is None:
         raise HTTPException(status_code=422, detail="This finding has no fix to make")
@@ -198,3 +203,23 @@ def _fix_series(story: Story, finding: Finding, db: Session, user: User, client_
         raise HTTPException(status_code=e.status_code, detail=str(e)) from e
     db.commit()
     return FixResult(node_id=None, replaced=len(changed))
+
+
+def _fix_carry(story: Story, finding: Finding, db: Session, user: User, client_id: str | None) -> FixResult:
+    """A thread left open, brought into the next book where it stands now: shared with the
+    series if it was this book's own, and undoable in the book it is brought into."""
+    fix = finding.fix
+    book = series_service.membership(db, story.id)
+    thread_id = finding.anchor.thread_id
+    if book is None or fix is None or not fix.story_id or not thread_id:
+        raise HTTPException(status_code=422, detail="This finding has no fix to make")
+    try:
+        element = series_service.element_for_row(db, "plot_threads", thread_id) or series_service.lift_element(
+            db, book.series, "plot_thread", story.id, thread_id
+        )
+        series_service.adopt_into_book(db, book.series, element, fix.story_id, actor_id=user.id, client_id=client_id)
+    except series_service.SeriesError as e:
+        db.rollback()
+        raise HTTPException(status_code=e.status_code, detail=str(e)) from e
+    db.commit()
+    return FixResult(node_id=None, replaced=1)

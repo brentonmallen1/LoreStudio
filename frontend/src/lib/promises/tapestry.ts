@@ -1,6 +1,6 @@
 import { slotVar } from "../colorSlots";
 import { roleLabel } from "../threads/roles";
-import type { Promises } from "../../types/promises";
+import type { PromiseAcross, Promises } from "../../types/promises";
 import { setupSentence, setupType } from "./setups";
 
 /** How a mark is drawn on the tapestry; the legend names each one. */
@@ -36,6 +36,9 @@ export interface Lane {
   marks: Mark[];
   /** Set aside, or with nothing placed yet: drawn quieter. */
   quiet: boolean;
+  /** In a series: where it comes from and goes on to, drawn as a lead-in and a lead-out. */
+  edgeIn: string | null;
+  edgeOut: string | null;
 }
 
 export interface LaneGroup {
@@ -55,6 +58,23 @@ const ROLE_SHAPE: Record<string, MarkShape> = {
   succeeds: "succeeds",
   closes: "closes",
 };
+
+const book = (p: number) => `Book ${p + 1}`;
+
+/** A thread or twist that runs across books: the book it comes from, and where it goes. */
+function edges(a: PromiseAcross | undefined, here: number | null): Pick<Lane, "edgeIn" | "edgeOut"> {
+  if (!a || here === null) return { edgeIn: null, edgeOut: null };
+  const later = (p: number | undefined) => p !== undefined && p > here;
+  const out =
+    a.continues_in !== null
+      ? `on to ${book(a.continues_in)}`
+      : later(a.resolved_in?.position)
+        ? `closes in ${book(a.resolved_in!.position)}`
+        : later(a.revealed_in?.position)
+          ? `revealed in ${book(a.revealed_in!.position)}`
+          : null;
+  return { edgeIn: a.from_book !== null ? `from ${book(a.from_book)}` : null, edgeOut: out };
+}
 
 function spanOf(marks: Mark[]): [number, number] | null {
   if (marks.length < 2) return null;
@@ -83,7 +103,8 @@ export function tapestryLanes(data: Promises): LaneGroup[] {
       color: slotVar(t.color_slot),
       span: spanOf(marks),
       marks,
-      quiet: t.status === "set_aside" || marks.length === 0,
+      quiet: t.status === "set_aside" || (marks.length === 0 && !data.across?.[t.id]),
+      ...edges(data.across?.[t.id], data.book),
     };
   });
   const twists: Lane[] = data.twists.map((tw) => {
@@ -111,7 +132,8 @@ export function tapestryLanes(data: Promises): LaneGroup[] {
       color: slotVar(tw.color_slot),
       span: spanOf(marks),
       marks,
-      quiet: marks.length === 0,
+      quiet: marks.length === 0 && !data.across?.[tw.id],
+      ...edges(data.across?.[tw.id], data.book),
     };
   });
   const setups: Lane[] = data.setups.map((s) => {
@@ -137,6 +159,8 @@ export function tapestryLanes(data: Promises): LaneGroup[] {
         },
       ],
       quiet: false,
+      edgeIn: null,
+      edgeOut: null,
     };
   });
   return [

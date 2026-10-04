@@ -7,6 +7,7 @@ import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { sheetPath } from "../../lib/series/kinds";
+import { carryBook } from "../../lib/series/promises";
 import type { MentionedRef } from "../../types/mentions";
 import type { Finding } from "../../types/findings";
 
@@ -40,6 +41,7 @@ export function useFindingActions() {
           return SHEETS.some(([key]) => f.anchor[key]) ? "Open the sheet" : "Open Story Identity";
         case "fix":
           if (f.fix?.kind === "series") return "Use this in every book";
+          if (f.fix?.kind === "carry") return `Bring into ${carryBook(f.fix.story_id)}`;
           return f.fix ? `Change to “${f.fix.new}”` : null;
         case "ask":
           return aiAvailable ? "Ask about this" : f.run_id ? "Read the run" : null;

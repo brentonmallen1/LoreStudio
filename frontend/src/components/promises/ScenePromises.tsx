@@ -9,6 +9,7 @@ import { refreshThreads } from "../../lib/story/refreshThreads";
 import { ROLES, roleHint } from "../../lib/threads/roles";
 import type { ThreadRole } from "../../types";
 import CommitTextarea from "../common/CommitTextarea";
+import StillOpen from "../series/StillOpen";
 import styles from "./ScenePromises.module.css";
 
 /**
@@ -68,6 +69,8 @@ export default function ScenePromises({ storyId, nodeId }: { storyId: string; no
           ))}
         </section>
       )}
+
+      <StillOpen storyId={storyId} data={data} onChanged={reload} />
 
       <section aria-label="What this scene does" className={styles.block}>
         <h4 className={styles.heading}>What this scene does</h4>

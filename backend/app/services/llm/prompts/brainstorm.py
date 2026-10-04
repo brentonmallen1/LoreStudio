@@ -6,6 +6,8 @@ The AI is a guide, not a co-author: it asks questions, suggests directions,
 and references story context — it never drafts narrative text.
 """
 
+from ...series.promises import render_earlier
+
 
 def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
     """
@@ -131,6 +133,8 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
         open_names = [t["name"] for t in ctx["open_threads"] if t not in ctx["threads_in_scene"]]
         if open_names:
             lines.append(f"\nOther open threads in this story: {', '.join(open_names)}")
+
+    lines += render_earlier(ctx.get("earlier_books"))
 
     # ── Adjacent scenes ──
     if ctx["sibling_scenes"]:

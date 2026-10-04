@@ -126,7 +126,7 @@ def test_unknown_kinds_and_rows_are_refused(client, db_session, test_user):
     sid = series["id"]
     assert (
         client.post(
-            f"/api/series/{sid}/elements", json={"kind": "plot_thread", "story_id": one.story.id, "ref_id": "x"}
+            f"/api/series/{sid}/elements", json={"kind": "scene_link", "story_id": one.story.id, "ref_id": "x"}
         ).status_code
         == 400
     )

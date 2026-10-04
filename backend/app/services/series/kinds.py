@@ -9,12 +9,18 @@ Every field is one of two classes:
 
 These are defaults; a series overrides any field per kind (``Series.field_classes``).
 Field keys are the model columns and the same keys as frontend/src/lib/lorebook/kinds.ts,
-so the sheets' labels apply. The frontend calls two kinds by other names: see
+so the sheets' labels apply. The frontend calls some kinds by other names: see
 ``FRONTEND_KIND``.
+
+Threads and twists are series kinds too (v1.5): a thread that runs across books is one
+element with a row in each, and each book's scenes say what it does there. What a thread
+does across the series is read from those scenes (services/series/promises.py), never
+copied, because scenes belong to one book.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -23,6 +29,8 @@ from ...models.character import Character
 from ...models.culture import Culture
 from ...models.historical_event import Era, HistoricalEvent
 from ...models.location import Location
+from ...models.plot_thread import PlotThread
+from ...models.twist import Twist
 from ...models.world_system import WorldSystem
 
 FieldClass = Literal["enduring", "evolving"]
@@ -43,10 +51,29 @@ class SeriesKind:
     refs: tuple[tuple[str, str], ...] = ()
     #: Columns a copy starts afresh, with the value given: they belong to one book only.
     fresh: dict[str, object] = field(default_factory=dict)
+    #: The column that names a row (a research entry has a title, not a name).
+    name_attr: str = "name"
+    #: Prose names it ("Eleanor", "Harrow Island"), so naming it in a book that lacks it is
+    #: worth a proposal. A thread's name ("The Missing Logs") is the author's, not the prose's.
+    prose_named: bool = True
+    #: The finding anchor a sheet of this kind shows its findings by.
+    anchor_col: str | None = None
+    #: Kept in step: every book has it and an edit in one is every book's (shared research).
+    #: Never compared, never a finding, never offered to carry: it is simply everywhere.
+    synced: bool = False
+    #: After a copy is made, given (db, source row, copy): what a column copy cannot do,
+    #: such as giving an image its own file.
+    after_copy: Callable[[Any, Any, Any], None] | None = None
 
     @property
     def fields(self) -> tuple[str, ...]:
         return self.enduring + self.evolving
+
+
+def name_of(row: Any, kind: SeriesKind | None = None) -> str:
+    """What a row is called, whatever its kind calls the column."""
+    attr = kind.name_attr if kind else "name"
+    return str(getattr(row, attr, None) or getattr(row, "name", None) or "")
 
 
 SERIES_KINDS: dict[str, SeriesKind] = {
@@ -74,6 +101,7 @@ SERIES_KINDS: dict[str, SeriesKind] = {
             ),
             # Milestones and discovery notes name scenes of the book they were made in.
             fresh={"arc_milestones": [], "discovery_notes": []},
+            anchor_col="character_id",
         ),
         SeriesKind(
             kind="location",
@@ -95,6 +123,7 @@ SERIES_KINDS: dict[str, SeriesKind] = {
             evolving=("description", "atmosphere", "significance", "political_affiliation"),
             refs=(("parent_id", "location"),),
             fresh={"is_stub": False, "discovered_from_id": None, "discovered_at": None},
+            anchor_col="location_id",
         ),
         SeriesKind(
             kind="world_system",
@@ -143,11 +172,47 @@ SERIES_KINDS: dict[str, SeriesKind] = {
             enduring=("epoch_name", "description", "conversion_notes"),
             evolving=(),
         ),
+        # Promises last: a sequel carries its cast and world before the questions they hold.
+        SeriesKind(
+            kind="plot_thread",
+            model=PlotThread,
+            table="plot_threads",
+            label="Thread",
+            plural="Threads",
+            # The colour is copied so a thread looks the same in every book, but never compared.
+            enduring=("name", "mice_type"),
+            evolving=("description",),
+            # Set aside is this book's word on it; the next book picks it up afresh.
+            fresh={"set_aside": False},
+            prose_named=False,
+            anchor_col="thread_id",
+        ),
+        SeriesKind(
+            kind="twist",
+            model=Twist,
+            table="twists",
+            label="Twist",
+            plural="Twists",
+            enduring=("name", "the_truth", "twist_type"),
+            # The cover story can shift from book to book; the truth is the anchor.
+            evolving=("the_misdirection",),
+            # A reveal is a scene of the book it happens in.
+            fresh={"revealed_at_node_id": None},
+            prose_named=False,
+            anchor_col="twist_id",
+        ),
     )
 }
 
+#: The kinds whose threads of story run across books (services/series/promises.py).
+PROMISE_KINDS = ("plot_thread", "twist")
+
 #: Server kind -> the frontend's LoreKind, where they differ.
-FRONTEND_KIND: dict[str, str] = {"world_system": "system", "historical_event": "event"}
+FRONTEND_KIND: dict[str, str] = {
+    "world_system": "system",
+    "historical_event": "event",
+    "plot_thread": "thread",
+}
 
 #: A field's name in a sentence, where the column's own reads wrong ("the source", not
 #: "the source origin"). Everything else is the column with spaces.

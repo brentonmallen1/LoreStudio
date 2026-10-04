@@ -31,15 +31,18 @@ class FindingAnchor(BaseModel):
 
 
 class FindingFix(BaseModel):
-    """A fix the app can make for the author, on their word: a misspelt name, or (``series``)
-    this book's value of an enduring field made the value in every book of the series."""
+    """A fix the app can make for the author, on their word: a misspelt name, (``series``)
+    this book's value of an enduring field made the value in every book of the series, or
+    (``carry``) a thread left open brought into the next book."""
 
-    kind: Literal["rename", "series"] = "rename"
+    kind: Literal["rename", "series", "carry"] = "rename"
     old: str
     new: str
     #: ``series`` only: the field, and the element it is a field of.
     field: str | None = None
     element_id: str | None = None
+    #: ``carry`` only: the book it is carried into.
+    story_id: str | None = None
 
 
 class Finding(BaseModel):

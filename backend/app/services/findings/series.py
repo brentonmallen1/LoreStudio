@@ -14,6 +14,7 @@ from ...schemas.findings import Finding, FindingAnchor, FindingFix
 from ..series import service
 from ..series.drift import disagree
 from ..series.kinds import SERIES_KINDS, enduring_fields, field_words
+from ..series.promises import BookAcross, SeriesCheck
 from .fingerprint import normalise
 from .make import make
 from .view import StoryView
@@ -33,17 +34,48 @@ def _books(positions: list[int]) -> str:
     return f"Books {', '.join(names[:-1])} and {names[-1]}"
 
 
-def computed(view: StoryView, db: Session) -> list[Finding]:
+def computed(view: StoryView, db: Session, ctx: BookAcross | None = None) -> list[Finding]:
     book = service.membership(db, view.story.id)
     if book is None:
         return []
+    out = canon(view, db, book)
+    return out + promise_findings(ctx.checks()) if ctx is not None else out
+
+
+def promise_findings(checks: list[SeriesCheck]) -> list[Finding]:
+    """Threads across books (services/series/promises.py), each on its thread's sheet. A
+    thread the series shares is anchored to its element, so the finding is the same in every
+    book and one dismissal holds in all; a book's own thread keeps its finding to itself."""
+    out: list[Finding] = []
+    for c in checks:
+        anchor = FindingAnchor(series_element_id=c.element_id) if c.element_id else FindingAnchor(thread_id=c.thread_id)
+        finding = make(
+            c.check,
+            "structure",
+            "low" if c.check == "series-nesting" else "mid",
+            "data",
+            c.text,
+            anchor=anchor,
+            key=c.key,
+            evidence=c.evidence,
+            suggestion=c.suggestion,
+            where=c.where,
+            action="fix" if c.carry_to else "open_sheet",
+            fix=FindingFix(kind="carry", old="", new="", story_id=c.carry_to) if c.carry_to else None,
+        )
+        finding.anchor = FindingAnchor(series_element_id=c.element_id, thread_id=c.thread_id)
+        out.append(finding)
+    return out
+
+
+def canon(view: StoryView, db: Session, book) -> list[Finding]:
     series = book.series
     pos = service.positions(series)
     out: list[Finding] = []
     for element in series.elements:
         kind = SERIES_KINDS.get(element.kind)
         mine = service.member_in(element, view.story.id)
-        if kind is None or mine is None:
+        if kind is None or kind.synced or mine is None:
             continue
         rows = []
         for m in element.members:
@@ -77,9 +109,7 @@ def computed(view: StoryView, db: Session) -> list[Finding]:
             )
             # Shown on this book's sheet; the id above stays the same in every book.
             finding.anchor = FindingAnchor(
-                series_element_id=element.id,
-                character_id=here.id if kind.kind == "character" else None,
-                location_id=here.id if kind.kind == "location" else None,
+                series_element_id=element.id, **({kind.anchor_col: here.id} if kind.anchor_col else {})
             )
             out.append(finding)
     return out

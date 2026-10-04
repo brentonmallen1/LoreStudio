@@ -5,6 +5,11 @@ import { tapestryLanes } from "./tapestry";
 const scene = (i: number) => ({ id: `s${i}`, title: `S${i}`, index: i, chapter_id: null, written: true });
 
 const data: Promises = {
+  book: null,
+  series_id: null,
+  across: {},
+  coming_in: null,
+  open_from_earlier: [],
   scenes: [0, 1, 2, 3].map(scene),
   chapters: [],
   threads: [
@@ -85,5 +90,29 @@ describe("tapestry lanes", () => {
   it("reads a setup as a sentence, earlier scene to later", () => {
     expect(setups.lanes[0].name).toBe("S3 calls back to S0");
     expect(setups.lanes[0].marks.map((m) => m.shape)).toEqual(["setup", "payoff"]);
+  });
+});
+
+describe("tapestry lanes in a series", () => {
+  it("runs a thread in from the book it came from and out to the one it goes on to", () => {
+    const across = {
+      element_id: "e",
+      from_book: 0,
+      continues_in: 2,
+      resolved_in: null,
+      revealed_in: null,
+      books: [],
+    };
+    const inSeries = {
+      ...data,
+      book: 1,
+      series_id: "x",
+      across: { t: across, w: { ...across, from_book: null } },
+    };
+    const [threads, twists] = tapestryLanes(inSeries);
+    expect([threads.lanes[0].edgeIn, threads.lanes[0].edgeOut]).toEqual(["from Book 1", "on to Book 3"]);
+    expect(twists.lanes[0].edgeIn).toBeNull();
+    const [alone] = tapestryLanes(data);
+    expect(alone.lanes[0].edgeIn).toBeNull();
   });
 });

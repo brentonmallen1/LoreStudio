@@ -3,6 +3,7 @@ Chat prompts — scene-aware chat assistant and writing coach.
 """
 
 from ...codex.mentions import render_mentions
+from ...series.promises import render_earlier
 
 
 def build_writing_coach_system_prompt(ctx: dict) -> str:
@@ -159,6 +160,8 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
         open_names = [t["name"] for t in ctx["open_threads"] if t not in ctx["threads_in_scene"]]
         if open_names:
             lines.append(f"\nOther open threads in this story: {', '.join(open_names)}")
+
+    lines += render_earlier(ctx.get("earlier_books"))
 
     if ctx["sibling_scenes"]:
         lines += ["", "## Other scenes in this section"]

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, ExternalLink, Plus, Unlink } from "lucide-react";
 import { seriesApi, type Series, type SeriesElement } from "../../api/series";
 import PopoverMenu from "../common/PopoverMenu";
-import { SERIES_KIND_ORDER, kindLabel, sheetPath } from "../../lib/series/kinds";
+import { CANON_KINDS, kindLabel, sheetPath } from "../../lib/series/kinds";
 import { refreshBookLists } from "../../lib/series/refresh";
 import { bookLabel } from "../../stores/seriesStore";
 import { toast } from "../../stores/toastStore";
@@ -135,7 +135,7 @@ export default function Canon({
 
   return (
     <div className={styles.section}>
-      {SERIES_KIND_ORDER.map((kind) => {
+      {CANON_KINDS.map((kind) => {
         const items = series.elements.filter((e) => e.kind === kind);
         if (items.length === 0) return null;
         return (

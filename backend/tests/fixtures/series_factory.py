@@ -75,3 +75,63 @@ def empty_book(db: Session, user: User, title: str) -> Story:
     db.add(story)
     db.flush()
     return story
+
+
+# ── Promises across books ────────────────────────────────────────────────────────
+
+
+def scenes(db: Session, story: Story, *titles: str) -> list:
+    """Scenes at the top of the book, in order, each with a few words."""
+    from app.models.structure import StructureNode
+
+    nodes = [
+        StructureNode(
+            id=_uid(),
+            story_id=story.id,
+            title=t,
+            level=0,
+            level_type="scene",
+            position=i,
+            content=f"<p>{t}.</p>",
+            word_count=3,
+        )
+        for i, t in enumerate(titles)
+    ]
+    db.add_all(nodes)
+    db.flush()
+    return nodes
+
+
+def thread(db: Session, story: Story, name: str, *beats, mice_type: str | None = None):
+    """A thread with its beats, each ``(scene, role)``."""
+    from app.models.plot_thread import PlotThread, PlotThreadAppearance
+
+    t = PlotThread(id=_uid(), story_id=story.id, name=name, mice_type=mice_type)
+    db.add(t)
+    db.flush()
+    for node, role in beats:
+        db.add(PlotThreadAppearance(id=_uid(), thread_id=t.id, node_id=node.id, role=role))
+    db.flush()
+    db.refresh(t)
+    return t
+
+
+def twist(db: Session, story: Story, name: str, *clues, truth: str = "", misdirection: str = "", reveal=None):
+    """A twist with its clues, each ``(scene, "truth" | "misdirection", text)``."""
+    from app.models.twist import Twist, TwistClue
+
+    tw = Twist(
+        id=_uid(),
+        story_id=story.id,
+        name=name,
+        the_truth=truth,
+        the_misdirection=misdirection,
+        revealed_at_node_id=reveal.id if reveal is not None else None,
+    )
+    db.add(tw)
+    db.flush()
+    for i, (node, points_to, text) in enumerate(clues):
+        db.add(TwistClue(id=_uid(), twist_id=tw.id, node_id=node.id, points_to=points_to, text=text, position=i))
+    db.flush()
+    db.refresh(tw)
+    return tw

@@ -8,6 +8,7 @@ import { refreshBookLists } from "../../lib/series/refresh";
 import { bookLabel, bookList, elementForRow, useSeriesStore } from "../../stores/seriesStore";
 import { toast } from "../../stores/toastStore";
 import ElementProgression from "./ElementProgression";
+import PromiseAcross from "./PromiseAcross";
 import styles from "./Series.module.css";
 
 /** Which series element a Lorebook sheet shows, when the book is in a series. */
@@ -44,6 +45,8 @@ export function useSeriesSheet(
 
   const { kind, id } = target;
   const element = elementForRow(series, storyId, id);
+  // A thread or twist: what each book does with it comes first (v1.5).
+  const promise = kind === "plot_thread" ? "thread" : kind === "twist" ? "twist" : null;
   if (!element)
     return {
       line: null,
@@ -77,10 +80,11 @@ export function useSeriesSheet(
         {others.length > 0 && (
           <button className={styles.foldBtn} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
             {open ? <ChevronDown size={12} aria-hidden /> : <ChevronRight size={12} aria-hidden />}
-            How {name} changes
+            {promise ? "Across the series" : `How ${name} changes`}
           </button>
         )}
       </div>
+      {open && promise && <PromiseAcross storyId={storyId} refId={id} kind={promise} />}
       {open && (
         <ElementProgression
           series={series}

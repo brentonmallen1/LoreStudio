@@ -15,14 +15,14 @@ from sqlalchemy.orm import Session
 from ...models.structure import StructureNode
 from ...schemas.proposals import ActResult, Proposal, ProposalAction, ProposalKind
 from ..series import service
-from ..series.kinds import SERIES_KINDS
+from ..series.kinds import SERIES_KINDS, name_of
 from ..text_utils import html_to_text
 
 _KIND: dict[str, ProposalKind] = {"character": "person", "location": "place"}
 
 
-def _names(row) -> list[str]:
-    return [n for n in [row.name, *(getattr(row, "aliases", None) or [])] if n and n.strip()]
+def _names(row, kind=None) -> list[str]:
+    return [n for n in [name_of(row, kind), *(getattr(row, "aliases", None) or [])] if n and n.strip()]
 
 
 #: First words that are not a first name ("The Visitor", "Old Tom").
@@ -61,21 +61,21 @@ def series_proposals(story_id: str, db: Session, titles: dict[str, str]) -> list
     out: list[Proposal] = []
     for element in series.elements:
         kind = SERIES_KINDS.get(element.kind)
-        if kind is None or service.member_in(element, story_id) is not None:
+        if kind is None or kind.synced or service.member_in(element, story_id) is not None:
             continue
         source = service.source_member(series, element, story_id)
         src = service.member_row(db, source) if source else None
         if src is None:
             continue
         pk = _KIND.get(kind.kind, "fact")
-        names = _names(src)
+        names = _names(src, kind)
         wanted = {n.strip().lower() for n in names}
         # This book's own row of the same name: the same one, written before the series.
         same = next(
             (
                 r
                 for r in db.query(kind.model).filter(kind.model.story_id == story_id).all()
-                if {n.strip().lower() for n in _names(r)} & wanted
+                if {n.strip().lower() for n in _names(r, kind)} & wanted
                 and service.element_for_row(db, kind.table, r.id) is None
             ),
             None,
@@ -86,13 +86,15 @@ def series_proposals(story_id: str, db: Session, titles: dict[str, str]) -> list
                     id=f"series-same:{element.id}:{same.id}",
                     kind=pk,
                     source="local",
-                    text=f"{same.name} here has the name of {series.name}'s {element.name}",
-                    subject=same.name,
+                    text=f"{name_of(same, kind)} here has the name of {series.name}'s {element.name}",
+                    subject=name_of(same, kind),
                     where=f"{kind.label} in this book",
                     actions=[ProposalAction(id="link", label="The same one", primary=True)],
                     decline="Someone else",
                 )
             )
+            continue
+        if not kind.prose_named:
             continue
         # A person is named by their first name too, when no one else in the book shares it.
         if kind.kind == "character" and (first := _first_name(element.name)):

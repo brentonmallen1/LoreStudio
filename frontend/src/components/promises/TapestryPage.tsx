@@ -102,6 +102,10 @@ const PROMISE_CHECKS = new Set([
   "shared_reveal",
   "mice_nesting",
   "thin_try_fail",
+  // Across the books of a series (v1.5).
+  "series-left-open",
+  "series-opens-again",
+  "series-nesting",
 ]);
 
 const empty = (d: Promises) => d.threads.length === 0 && d.twists.length === 0 && d.setups.length === 0;

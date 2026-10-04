@@ -17,9 +17,18 @@ export interface SeriesMember {
   position: number;
 }
 
-/** Server kinds; the Lorebook calls two of them by other names (`lore_kind`). */
+/** Server kinds; the app calls some of them by other names (`lore_kind`). Threads and twists
+ * run across books too, their scenes in each book saying what they do there. */
 export type SeriesKind =
-  "character" | "location" | "world_system" | "culture" | "era" | "historical_event" | "calendar";
+  | "character"
+  | "location"
+  | "world_system"
+  | "culture"
+  | "era"
+  | "historical_event"
+  | "calendar"
+  | "plot_thread"
+  | "twist";
 
 export interface SeriesElement {
   id: string;
@@ -55,15 +64,21 @@ export interface ElementDetail {
   fields: ElementField[];
 }
 
-/** A canon finding once for the series, with the books it stands in. */
+/** A series finding once for the series, with the books it stands in: books that disagree
+ * about what stays true (`series-canon`), or a thread across books. */
 export interface SeriesFinding {
   id: string;
+  check: string;
   text: string;
   evidence: string;
   suggestion: string;
-  element_id: string;
+  /** The element it is about; a thread only one book has has none. */
+  element_id: string | null;
+  /** `series-canon` only. */
   field: string;
   story_ids: string[];
+  /** A thread finding: the thread in the first book it stands in. */
+  ref_id: string | null;
 }
 
 export interface SeriesSummary {
@@ -86,6 +101,8 @@ export interface CarryCandidate {
   name: string;
   in_series: boolean;
   parent_ref_id: string | null;
+  /** Ticked to begin with: what the series shares, and threads and twists still open. */
+  preselect: boolean;
 }
 
 export type CarryItem = { kind: SeriesKind; ref_id: string } | { element_id: string };

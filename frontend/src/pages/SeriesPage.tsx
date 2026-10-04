@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { BookCopy, Plus, Trash2 } from "lucide-react";
 import { progressApi, type StoryProgress } from "../api/progress";
 import { seriesApi, type Series, type SeriesFinding } from "../api/series";
@@ -8,7 +8,8 @@ import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
 import Canon from "../components/series/Canon";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
-import { useSeriesStore } from "../stores/seriesStore";
+import { sheetPath } from "../lib/series/kinds";
+import { bookLabel, useSeriesStore } from "../stores/seriesStore";
 import { toast } from "../stores/toastStore";
 import styles from "../components/series/Series.module.css";
 
@@ -132,8 +133,8 @@ export default function SeriesPage() {
                 Needs your eye
               </h2>
               <p className={styles.sectionNote}>
-                Where the books disagree about what should stay true. Dismissing one in any book dismisses it
-                in all.
+                Where the books disagree about what should stay true, and threads across them left open,
+                opened twice or crossing. Dismissing one in any book dismisses it in all.
               </p>
             </div>
             <ul className={styles.eyeList}>
@@ -143,12 +144,24 @@ export default function SeriesPage() {
                     {f.text}
                     {f.suggestion && <span className={styles.eyeEvidence}>{f.suggestion}</span>}
                   </span>
-                  <button
-                    className={styles.textBtn}
-                    onClick={() => setFocus({ id: f.element_id, n: (focus?.n ?? 0) + 1 })}
-                  >
-                    Compare the books
-                  </button>
+                  {f.check === "series-canon" && f.element_id ? (
+                    <button
+                      className={styles.textBtn}
+                      onClick={() => setFocus({ id: f.element_id as string, n: (focus?.n ?? 0) + 1 })}
+                    >
+                      Compare the books
+                    </button>
+                  ) : (
+                    f.ref_id && (
+                      <Link
+                        className={styles.textBtn}
+                        to={sheetPath(f.story_ids[0], "plot_thread", f.ref_id)}
+                      >
+                        Open in{" "}
+                        {bookLabel(series.books.find((b) => b.story_id === f.story_ids[0])?.position ?? 0)}
+                      </Link>
+                    )
+                  )}
                 </li>
               ))}
             </ul>

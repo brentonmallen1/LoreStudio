@@ -20,7 +20,16 @@ from ...models.character import CharacterRelationship
 from ...models.series import Series, SeriesElement, SeriesElementMember, SeriesStory
 from ...models.story import Story
 from .. import change_log
-from .kinds import NOT_COPIED, SERIES_KINDS, SeriesKind, field_class, field_words, kind_for_table
+from .kinds import (
+    NOT_COPIED,
+    PROMISE_KINDS,
+    SERIES_KINDS,
+    SeriesKind,
+    field_class,
+    field_words,
+    kind_for_table,
+    name_of,
+)
 
 
 class SeriesError(Exception):
@@ -154,7 +163,7 @@ def lift_element(db: Session, series: Series, kind_name: str, story_id: str, ref
     existing = element_for_row(db, kind.table, ref_id)
     if existing is not None:
         return existing
-    element = SeriesElement(kind=kind.kind, name=row.name)
+    element = SeriesElement(kind=kind.kind, name=name_of(row, kind))
     series.elements.append(element)
     element.members.append(SeriesElementMember(story_id=story_id, ref_table=kind.table, ref_id=ref_id))
     db.flush()
@@ -197,6 +206,8 @@ def copy_row(db: Session, series: Series, kind: SeriesKind, src, story_id: str):
     row = kind.model(id=str(uuid.uuid4()), story_id=story_id, **data)
     db.add(row)
     db.flush()
+    if kind.after_copy is not None:
+        kind.after_copy(db, src, row)
     return row
 
 
@@ -297,7 +308,7 @@ def link_existing(db: Session, series: Series, element: SeriesElement, story_id:
     if member_in(element, story_id) is not None:
         raise SeriesError(f"That book already has {element.name}.", 409)
     if element_for_row(db, kind.table, ref_id) is not None:
-        raise SeriesError(f"{row.name} is already a series element.", 409)
+        raise SeriesError(f"{name_of(row, kind)} is already a series element.", 409)
     element.members.append(SeriesElementMember(story_id=story_id, ref_table=kind.table, ref_id=ref_id))
     db.flush()
 
@@ -337,16 +348,71 @@ INHERITED_STORY_FIELDS = (
 )
 
 
+def _promise_state(row) -> str:
+    """Where one book leaves a thread or twist: "done" (closed, revealed or set aside),
+    "open" (it has scenes and is not done) or "planned" (no scenes in this book)."""
+    if getattr(row, "set_aside", False):
+        return "done"
+    if isinstance(row, SERIES_KINDS["plot_thread"].model):
+        if any(a.role == "closes" for a in row.appearances):
+            return "done"
+        return "open" if row.appearances else "planned"
+    if row.revealed_at_node_id:
+        return "done"
+    return "open" if any(c.node_id for c in row.clues) else "planned"
+
+
+def promise_open_after(db: Session, series: Series | None, kind: SeriesKind, row, story_id: str) -> str:
+    """Where a thread or twist stands at the end of ``story_id``, the books before it counted:
+    done in any of them is done; open in any and not done is open; else planned."""
+    states = [_promise_state(row)] if row is not None else []
+    element = element_for_row(db, kind.table, row.id) if row is not None else None
+    if series is not None and element is not None:
+        pos = positions(series)
+        here = pos.get(story_id, len(pos))
+        for m in element.members:
+            if m.story_id != story_id and pos.get(m.story_id, here) < here and (other := member_row(db, m)) is not None:
+                states.append(_promise_state(other))
+    if "done" in states:
+        return "done"
+    return "open" if "open" in states else "planned"
+
+
+def _element_open_after(db: Session, series: Series, element: SeriesElement, story_id: str) -> str:
+    pos = positions(series)
+    here = pos.get(story_id, len(pos))
+    states = [
+        _promise_state(row)
+        for m in element.members
+        if pos.get(m.story_id, here) < here and (row := member_row(db, m)) is not None
+    ]
+    if "done" in states:
+        return "done"
+    return "open" if "open" in states else "planned"
+
+
 def carry_candidates(db: Session, story: Story) -> list[dict]:
     """Everything a sequel to ``story`` could start with: this book's rows of every series
-    kind, and the series' elements this book does not have (they come from an earlier book)."""
+    kind, and the series' elements this book does not have (they come from an earlier book).
+
+    Threads and twists are offered only while still open, and those with scenes behind them
+    come ticked (``preselect``): a question the books have asked and not answered is the one
+    a sequel most easily drops. What the series already shares comes ticked too.
+    """
     book = membership(db, story.id)
     series = book.series if book else None
     out: list[dict] = []
     for kind in SERIES_KINDS.values():
-        rows = db.query(kind.model).filter(kind.model.story_id == story.id).order_by(kind.model.name).all()
+        if kind.synced:
+            continue
+        promise = kind.kind in PROMISE_KINDS
+        name_col = getattr(kind.model, kind.name_attr)
+        rows = db.query(kind.model).filter(kind.model.story_id == story.id).order_by(name_col).all()
         for row in rows:
             if getattr(row, "is_stub", False):
+                continue
+            state = promise_open_after(db, series, kind, row, story.id) if promise else ""
+            if state == "done":
                 continue
             element = element_for_row(db, kind.table, row.id)
             out.append(
@@ -354,25 +420,31 @@ def carry_candidates(db: Session, story: Story) -> list[dict]:
                     "kind": kind.kind,
                     "ref_id": row.id,
                     "element_id": element.id if element else None,
-                    "name": row.name,
+                    "name": name_of(row, kind),
                     "in_series": element is not None,
                     "parent_ref_id": getattr(row, "parent_id", None),
+                    "preselect": state == "open" if promise else element is not None,
                 }
             )
         if series is None:
             continue
         for element in sorted(series.elements, key=lambda e: e.name.lower()):
-            if element.kind == kind.kind and member_in(element, story.id) is None and element.members:
-                out.append(
-                    {
-                        "kind": kind.kind,
-                        "ref_id": None,
-                        "element_id": element.id,
-                        "name": element.name,
-                        "in_series": True,
-                        "parent_ref_id": None,
-                    }
-                )
+            if element.kind != kind.kind or member_in(element, story.id) is not None or not element.members:
+                continue
+            state = _element_open_after(db, series, element, story.id) if promise else ""
+            if state == "done":
+                continue
+            out.append(
+                {
+                    "kind": kind.kind,
+                    "ref_id": None,
+                    "element_id": element.id,
+                    "name": element.name,
+                    "in_series": True,
+                    "parent_ref_id": None,
+                    "preselect": state == "open" if promise else True,
+                }
+            )
     return out
 
 
@@ -542,9 +614,11 @@ def prune_dead_members(db: Session, series: Series) -> int:
     pos = positions(series)
     for e in series.elements:
         latest = max(e.members, key=lambda m: pos.get(m.story_id, -1), default=None)
-        row = alive.get((latest.ref_table, latest.ref_id)) if latest else None
-        if row is not None and row.name != e.name:
-            e.name = row.name
+        if latest is None or (row := alive.get((latest.ref_table, latest.ref_id))) is None:
+            continue
+        name = name_of(row, kind_for_table(latest.ref_table))
+        if name and name != e.name:
+            e.name = name
     db.flush()
     gc_elements(db, series)
     return pruned

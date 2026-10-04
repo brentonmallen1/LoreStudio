@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { KINDS, type FieldSpec, type LoreKind } from "../../../lib/lorebook/kinds";
-import { LORE_KIND, seriesKindsOf } from "../../../lib/series/kinds";
+import { loreKind, seriesKindsOf } from "../../../lib/series/kinds";
 import { useUIStore } from "../../../stores/uiStore";
 import type { MenuItem } from "../../common/PopoverMenu";
 import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
@@ -95,7 +95,7 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
   // In a book of a series: which series kinds this list holds, and which one the open entry is.
   const seriesKinds = seriesKindsOf(config.section);
   const selectedLore = (selected as { kind?: string } | null)?.kind ?? config.kind;
-  const selectedSeriesKind = seriesKinds.find((k) => LORE_KIND[k] === selectedLore);
+  const selectedSeriesKind = seriesKinds.find((k) => loreKind(k) === selectedLore);
   const nameOf = (e: T) =>
     config.nameOf?.(e, items) ?? String((e as unknown as { name?: string }).name ?? "");
   const blocked = config.cannotAdd?.() ?? null;

@@ -9,6 +9,9 @@ The checks read the same view, so the tapestry, the sheets and the findings agre
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
 from ..models.plot_thread import PlotThread
@@ -32,6 +35,9 @@ from ..schemas.promises import (
 from .mice_validation import validate_thread_nesting
 from .structure_order import order_of
 
+if TYPE_CHECKING:
+    from .series.promises import BookAcross
+
 #: A thread that says nothing for this many scenes in a row, between its first and last, has
 #: gone quiet: the reader may have forgotten the question.
 QUIET_SCENES = 3
@@ -39,7 +45,32 @@ QUIET_SCENES = 3
 LEARNS = {"truth_revealed", "clue_planted"}
 
 
-def promises_view(story_id: str, db: Session) -> PromisesOut:
+@dataclass
+class PromiseFacts:
+    """One book's promises as its rows say, before any check or reading: what a series reads
+    from each of its books, and what a book's own view is built on."""
+
+    story_id: str
+    scenes: list[PromiseScene]
+    chapters: list[PromiseChapter]
+    threads: list[PromiseThread]
+    twists: list[PromiseTwist]
+    setups: list[Setup]
+    events: list
+    thread_rows: list[PlotThread]
+    #: Scene id -> its place in the book.
+    index: dict[str, int]
+
+    @property
+    def leaf_ids(self) -> list[str]:
+        return [s.id for s in self.scenes]
+
+    def title(self, node_id: str | None) -> str:
+        i = self.index.get(node_id or "")
+        return self.scenes[i].title if i is not None else ""
+
+
+def promise_facts(story_id: str, db: Session) -> PromiseFacts:
     nodes = db.query(StructureNode).filter(StructureNode.story_id == story_id).all()
     order = order_of(nodes)
     parents = {n.parent_id for n in nodes if n.parent_id}
@@ -140,11 +171,32 @@ def promises_view(story_id: str, db: Session) -> PromisesOut:
     setups.sort(key=lambda s: (s.from_index, s.to_index))
 
     events = db.query(ReaderKnowledgeEvent).filter(ReaderKnowledgeEvent.story_id == story_id).all()
-    reader = reader_rows(twists, events, index)
-    checks = promise_checks(threads, twists, scenes, thread_rows, [n.id for n in leaves])
-    return PromisesOut(
-        scenes=scenes, chapters=chapters, threads=threads, twists=twists, setups=setups, reader=reader, checks=checks
+    return PromiseFacts(story_id, scenes, chapters, threads, twists, setups, events, thread_rows, index)
+
+
+def promises_view(story_id: str, db: Session, ctx: BookAcross | None = None) -> PromisesOut:
+    """A book's promises, read with the books around it when it is in a series: a thread
+    carried in or on, a twist clued here and revealed in another book, what the reader
+    comes in knowing (services/series/promises.py)."""
+    facts = promise_facts(story_id, db)
+    if ctx is None:
+        from .series.promises import across
+
+        ctx = across(db, story_id, facts)
+    reader = reader_rows(facts.twists, facts.events, facts.index, ctx)
+    checks = promise_checks(facts.threads, facts.twists, facts.scenes, facts.thread_rows, facts.leaf_ids, ctx)
+    out = PromisesOut(
+        scenes=facts.scenes,
+        chapters=facts.chapters,
+        threads=facts.threads,
+        twists=facts.twists,
+        setups=facts.setups,
+        reader=reader,
+        checks=checks,
     )
+    if ctx is not None:
+        ctx.fill(out)
+    return out
 
 
 class _Rows:
@@ -176,13 +228,18 @@ class _Rows:
             self.beliefs.setdefault(item.twist_id, []).append((self.index[node_id], item.text))
 
 
-def reader_rows(twists: list[PromiseTwist], events: list, index: dict[str, int]) -> list[ReaderRow]:
+def reader_rows(
+    twists: list[PromiseTwist], events: list, index: dict[str, int], ctx: BookAcross | None = None
+) -> list[ReaderRow]:
     """What the reader learns, is led to believe and alone knows, scene by scene (doc 18 C8).
 
     Clues and reveals say most of it; the author's hand entries add what they do not. At a
-    twist's reveal, what its misdirection had the reader believe is overturned.
+    twist's reveal, what its misdirection had the reader believe is overturned, including
+    what an earlier book of its series had them believe (held from before the first scene).
     """
     rows = _Rows(index)
+    for twist_id, texts in (ctx.beliefs_coming_in() if ctx else {}).items():
+        rows.beliefs.setdefault(twist_id, []).extend((-1, t) for t in texts)
     for tw in twists:
         for c in tw.clues:
             # A clue planted on the words themselves may have no description yet: the words say it.
@@ -235,14 +292,81 @@ def _reveal(rows: _Rows, tw: PromiseTwist) -> None:
             already.add(text)
 
 
+def _twist_checks(
+    twists: list[PromiseTwist], title: dict[int, str], ctx: BookAcross | None, out: list[PromiseCheck]
+) -> dict[str, list[PromiseTwist]]:
+    """Each twist's checks, added to ``out``; returns the twists revealed in each scene."""
+    reveals: dict[str, list[PromiseTwist]] = {}
+    for tw in twists:
+        placed = [c for c in tw.clues if c.index is not None]
+        elsewhere = ctx.twist(tw.id) if ctx else None
+        if elsewhere is not None and elsewhere.revealed_before is not None:
+            for c in placed:
+                out.append(
+                    PromiseCheck(
+                        check="clue_after_reveal",
+                        severity="medium",
+                        text=f"A clue for {tw.name} comes in {title[c.index or 0]}, after Book "
+                        f"{elsewhere.revealed_before.position + 1} revealed it",
+                        suggestion="After the reveal it is a reminder, not a clue. Is it meant for the reader who knows?",
+                        twist_id=tw.id,
+                        node_id=c.node_id,
+                    )
+                )
+            continue
+        if tw.reveal_index is not None:
+            reveals.setdefault(tw.reveal_node_id or "", []).append(tw)
+            for c in placed:
+                if c.index is not None and c.index > tw.reveal_index:
+                    out.append(
+                        PromiseCheck(
+                            check="clue_after_reveal",
+                            severity="medium",
+                            text=f"A clue for {tw.name} comes in {title[c.index]}, after the reveal",
+                            suggestion="After the reveal it is a reminder, not a clue. Move it earlier?",
+                            twist_id=tw.id,
+                            node_id=c.node_id,
+                        )
+                    )
+            toward = [c for c in placed if c.points_to == "truth" and (c.index or 0) <= tw.reveal_index]
+            if not toward and not (elsewhere and elsewhere.truth_clues_before):
+                out.append(
+                    PromiseCheck(
+                        check="reveal_without_clue",
+                        severity="medium",
+                        text=f"{tw.name} is revealed in {title[tw.reveal_index]} with no clue toward the truth before it",
+                        suggestion="One clue a careful reader could catch makes the reveal feel earned.",
+                        twist_id=tw.id,
+                        node_id=tw.reveal_node_id,
+                    )
+                )
+        elif any(c.points_to == "misdirection" for c in placed) and not (elsewhere and elsewhere.revealed_in):
+            out.append(
+                PromiseCheck(
+                    check="misdirection_unanswered",
+                    severity="low",
+                    text=f"{tw.name} leads the reader astray but is never revealed",
+                    suggestion="Where does the reader learn the truth?",
+                    twist_id=tw.id,
+                )
+            )
+    return reveals
+
+
 def promise_checks(
     threads: list[PromiseThread],
     twists: list[PromiseTwist],
     scenes: list[PromiseScene],
     thread_rows: list[PlotThread],
     leaf_ids: list[str],
+    ctx: BookAcross | None = None,
 ) -> list[PromiseCheck]:
-    """What may need the author's eye. Questions, never verdicts: a deliberate choice stays."""
+    """What may need the author's eye. Questions, never verdicts: a deliberate choice stays.
+
+    In a series, a twist's other books count: revealed in a later book is answered, a clue
+    in an earlier book prepares this book's reveal, and a clue after an earlier book's reveal
+    comes too late.
+    """
     title = {s.index: s.title for s in scenes}
     out: list[PromiseCheck] = []
 
@@ -279,45 +403,7 @@ def promise_checks(
                     )
                 )
 
-    reveals: dict[str, list[PromiseTwist]] = {}
-    for tw in twists:
-        placed = [c for c in tw.clues if c.index is not None]
-        if tw.reveal_index is not None:
-            reveals.setdefault(tw.reveal_node_id or "", []).append(tw)
-            for c in placed:
-                if c.index is not None and c.index > tw.reveal_index:
-                    out.append(
-                        PromiseCheck(
-                            check="clue_after_reveal",
-                            severity="medium",
-                            text=f"A clue for {tw.name} comes in {title[c.index]}, after the reveal",
-                            suggestion="After the reveal it is a reminder, not a clue. Move it earlier?",
-                            twist_id=tw.id,
-                            node_id=c.node_id,
-                        )
-                    )
-            toward = [c for c in placed if c.points_to == "truth" and (c.index or 0) <= tw.reveal_index]
-            if not toward:
-                out.append(
-                    PromiseCheck(
-                        check="reveal_without_clue",
-                        severity="medium",
-                        text=f"{tw.name} is revealed in {title[tw.reveal_index]} with no clue toward the truth before it",
-                        suggestion="One clue a careful reader could catch makes the reveal feel earned.",
-                        twist_id=tw.id,
-                        node_id=tw.reveal_node_id,
-                    )
-                )
-        elif any(c.points_to == "misdirection" for c in placed):
-            out.append(
-                PromiseCheck(
-                    check="misdirection_unanswered",
-                    severity="low",
-                    text=f"{tw.name} leads the reader astray but is never revealed",
-                    suggestion="Where does the reader learn the truth?",
-                    twist_id=tw.id,
-                )
-            )
+    reveals = _twist_checks(twists, title, ctx, out)
     for node_id, landing in reveals.items():
         if len(landing) > 1:
             out.append(

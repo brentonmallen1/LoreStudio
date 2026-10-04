@@ -95,6 +95,9 @@ class CarryCandidate(BaseModel):
     name: str
     in_series: bool
     parent_ref_id: str | None = None
+    #: Ticked to begin with: what the series already shares, and threads and twists the
+    #: books have left open.
+    preselect: bool = False
 
 
 class CarryItem(BaseModel):
@@ -150,12 +153,18 @@ class FieldClassSet(BaseModel):
 
 
 class SeriesFindingOut(BaseModel):
-    """One canon finding, once for the series, with the books it stands in."""
+    """One series finding, once for the series, with the books it stands in: books that
+    disagree about what stays true (``series-canon``), or a thread across books."""
 
     id: str
+    check: str = "series-canon"
     text: str
     evidence: str
     suggestion: str
-    element_id: str
+    #: The element it is about; a thread only one book has has none.
+    element_id: str | None
+    #: ``series-canon`` only: the field the books disagree about.
     field: str
     story_ids: list[str]
+    #: A thread finding: the thread in the first book it stands in, to open its sheet.
+    ref_id: str | None = None

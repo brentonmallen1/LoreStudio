@@ -9,6 +9,8 @@ Distinct from the What's Next? brainstormer (which helps during/after writing):
 - Never generates prose — only structural planning content
 """
 
+from ...series.promises import render_earlier
+
 
 def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
     """
@@ -111,6 +113,8 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
             lines += ["", "## Other open threads in this story"]
             for t in open_threads_not_in_scene:
                 lines.append(f"- {t['name']} [{t['status']}]")
+
+    lines += render_earlier(ctx.get("earlier_books"))
 
     # ── Adjacent scenes for structural awareness ──
     if ctx["sibling_scenes"]:

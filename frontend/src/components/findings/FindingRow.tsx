@@ -3,6 +3,7 @@ import { Check, MoreHorizontal } from "lucide-react";
 import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import { useFindingsStore } from "../../stores/findingsStore";
 import type { Finding } from "../../types/findings";
+import { carryBook } from "../../lib/series/promises";
 import { useFindingActions } from "./useFindingActions";
 import styles from "./Findings.module.css";
 
@@ -61,7 +62,9 @@ export default function FindingRow({
             <span>
               {f.fix.kind === "series"
                 ? `Make every book of the series say what this one says?`
-                : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
+                : f.fix.kind === "carry"
+                  ? `Bring ${f.where} into ${carryBook(f.fix.story_id)}, where this book leaves it?`
+                  : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button
               type="button"
@@ -77,7 +80,11 @@ export default function FindingRow({
                 }
               }}
             >
-              {f.fix.kind === "series" ? "Use it everywhere" : "Change it"}
+              {f.fix.kind === "series"
+                ? "Use it everywhere"
+                : f.fix.kind === "carry"
+                  ? "Bring it in"
+                  : "Change it"}
             </button>
             <button type="button" className={styles.verb} onClick={() => setConfirming(false)}>
               Not now

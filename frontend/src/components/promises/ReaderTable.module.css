@@ -107,3 +107,15 @@
     padding-bottom: 0;
   }
 }
+
+/* What the reader brings from the books before: the first row, set apart from the scenes */
+.comingIn {
+  background: var(--color-bg);
+}
+
+.comingIn .scene {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: var(--color-text-muted);
+}

@@ -5,6 +5,8 @@ import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { KINDS } from "../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../lib/lorebook/presence";
+import { usePromises } from "../../lib/promises/usePromises";
+import { threadAcrossLine, threadBadge } from "../../lib/series/promises";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { slotVar, nextSlot } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
@@ -49,6 +51,12 @@ export default function ThreadsSection() {
   const [deleting, setDeleting] = useState<PlotThread | null>(null);
   const [analysing, setAnalysing] = useState<string | null>(null);
   const [guide, setGuide] = useState(false);
+  // In a series: where each thread stands across the books (v1.5).
+  const across = usePromises(storyId).data?.across ?? {};
+  const statusWord = (t: PlotThread) => {
+    const said = threadBadge(across[t.id], t.status);
+    return said ? said[0].toLowerCase() + said.slice(1) : STATUS_LABELS[t.status].toLowerCase();
+  };
   useReloadOnUndo(
     ["plot_thread", "plot_thread_appearance"],
     () => void api.listThreads(storyId).then(setThreads),
@@ -83,12 +91,14 @@ export default function ThreadsSection() {
         items={threads.map((t) => ({
           id: t.id,
           name: t.name,
-          sub: [kindLabel(t.mice_type), STATUS_LABELS[t.status].toLowerCase()].filter(Boolean).join(" · "),
+          sub: [kindLabel(t.mice_type), statusWord(t)].filter(Boolean).join(" · "),
           dot: slotVar(t.color_slot),
         }))}
         selectedId={selectedId}
         onSelect={(id) => select(id)}
         onAdd={add}
+        seriesKinds={["plot_thread"]}
+        onFromSeries={(id) => select(id)}
         empty={<p className={styles.listEmpty}>No threads yet. The questions the story keeps open.</p>}
         footer={
           threads.length > 0 && (
@@ -114,9 +124,10 @@ export default function ThreadsSection() {
             }}
             dot={slotVar(thread.color_slot)}
             slot={{ value: thread.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
+            series={{ kind: "plot_thread", id: thread.id }}
             badges={
               <>
-                <Badge>{STATUS_LABELS[thread.status]}</Badge>
+                <Badge>{threadBadge(across[thread.id], thread.status) ?? STATUS_LABELS[thread.status]}</Badge>
                 {thread.mice_type && (
                   <Badge title={`MICE: ${thread.mice_type}`}>{kindLabel(thread.mice_type)}</Badge>
                 )}
@@ -155,6 +166,7 @@ export default function ThreadsSection() {
                 </SheetCard>
                 <SheetCard title="Where it stands">
                   <p className={p.cardText}>{statusLine(thread, sceneTitle)}</p>
+                  {across[thread.id] && <p className={p.cardText}>{threadAcrossLine(across[thread.id])}</p>}
                   <button
                     type="button"
                     className={styles.quietBtn}

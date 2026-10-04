@@ -64,6 +64,7 @@ export default function Tapestry({ storyId, data }: { storyId: string; data: Pro
                 <LaneRow
                   key={lane.id}
                   lane={lane}
+                  cols={n}
                   onName={() => openLane(lane)}
                   onMark={(id) => navigate(`/stories/${storyId}/write/${id}`)}
                 />
@@ -86,13 +87,18 @@ export default function Tapestry({ storyId, data }: { storyId: string; data: Pro
 
 function LaneRow({
   lane,
+  cols,
   onName,
   onMark,
 }: {
   lane: Lane;
+  cols: number;
   onName: () => void;
   onMark: (nodeId: string) => void;
 }) {
+  const at = lane.marks.map((m) => m.index);
+  const first = at.length ? Math.min(...at) : null;
+  const last = at.length ? Math.max(...at) : null;
   // Two marks in one scene (a clue each way) sit side by side, not on top of each other.
   const seen = new Map<number, number>();
   const counts = new Map<number, number>();
@@ -107,13 +113,33 @@ function LaneRow({
           className={`${styles.swatch} ${lane.kind === "twist" ? styles.swatchTwist : lane.kind === "setup" ? styles.swatchSetup : ""}`}
           aria-hidden
         />
-        <span className={styles.nameText}>{lane.name}</span>
+        <span className={styles.nameText}>
+          {lane.name}
+          {(lane.edgeIn || lane.edgeOut) && (
+            <span className={styles.edge}>{[lane.edgeIn, lane.edgeOut].filter(Boolean).join(", ")}</span>
+          )}
+        </span>
       </button>
       <div className={styles.track}>
         {lane.span && (
           <span
             className={styles.span}
             style={{ "--from": lane.span[0], "--to": lane.span[1] } as React.CSSProperties}
+            aria-hidden
+          />
+        )}
+        {/* A thread from an earlier book runs in from the edge; one going on runs out to it. */}
+        {lane.edgeIn && (
+          <span
+            className={`${styles.span} ${styles.spanEdge}`}
+            style={{ "--from": -0.5, "--to": first ?? cols - 0.5 } as React.CSSProperties}
+            aria-hidden
+          />
+        )}
+        {lane.edgeOut && (
+          <span
+            className={`${styles.span} ${styles.spanEdge}`}
+            style={{ "--from": last ?? -0.5, "--to": cols - 0.5 } as React.CSSProperties}
             aria-hidden
           />
         )}

@@ -129,3 +129,22 @@ def test_a_series_decides_what_stays_true(client, db_session, test_user):
     assert r.status_code == 200
     db_session.expire_all()
     assert db_session.get(Character, hers.id).personality == "Guarded."
+
+
+def test_a_finding_about_one_book_only_is_dismissed_in_that_book_only(client, db_session, test_user):
+    """Fan-out follows the series element, not the check: a book's own finding stays its own."""
+    from app.models import FindingDismissal
+    from tests.fixtures.series_factory import scenes, twist
+
+    sid, eid, one, two, hers = _two_books(client, db_session, test_user)
+    [s1] = scenes(db_session, two, "Arrival")
+    twist(db_session, two, "The Letter", (s1, "misdirection", "It is from the ministry."))
+    db_session.commit()
+    [f] = [
+        f
+        for f in client.get(f"/api/stories/{two.id}/findings").json()["findings"]
+        if f["check"] == "misdirection_unanswered"
+    ]
+    assert client.post(f"/api/stories/{two.id}/findings/{f['id']}/dismiss").status_code == 204
+    held = {d.story_id for d in db_session.query(FindingDismissal).filter(FindingDismissal.fingerprint == f["id"])}
+    assert held == {two.id}

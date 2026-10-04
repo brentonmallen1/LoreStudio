@@ -81,7 +81,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
       .carryOver(sequelOf)
       .then((list) => {
         setCarry({ of: sequelOf, list });
-        setChosen(new Set(list.filter((c) => c.in_series).map(carryKey)));
+        setChosen(new Set(list.filter((c) => c.preselect).map(carryKey)));
       })
       .catch(() => setCarry({ of: sequelOf, list: [] }));
     seriesApi

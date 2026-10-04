@@ -42,11 +42,13 @@ from ..schemas.series import (
 )
 from ..schemas.story import StoryCreated
 from ..services import change_log
-from ..services.findings.series import computed as canon_findings
+from ..services.findings.series import canon as canon_findings
+from ..services.findings.series import promise_findings as series_promise_findings
 from ..services.findings.view import load_view
 from ..services.series import service
 from ..services.series.drift import disagree
 from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, field_class, field_words
+from ..services.series.promises import SeriesPromises
 from ..services.structure_scaffold import scaffold_story
 
 router = APIRouter()
@@ -381,28 +383,37 @@ def set_field_class(
 
 @router.get("/series/{series_id}/findings", response_model=list[SeriesFindingOut])
 def series_findings(series_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """Where the books disagree about what stays true, once each, minus what was dismissed."""
+    """What needs the author's eye across the books, once each, minus what was dismissed:
+    where they disagree about what stays true, and threads across books (left open, opened
+    again, crossing). The books are read together once."""
     series = _series(series_id, db, current_user)
     book_ids = [b.story_id for b in series.books]
     dismissed = {
         d.fingerprint for d in db.query(FindingDismissal).filter(FindingDismissal.story_id.in_(book_ids)).all()
     }
+    sp = SeriesPromises(db, series)
     seen: dict[str, SeriesFindingOut] = {}
     for book in sorted(series.books, key=lambda b: b.position):
-        for f in canon_findings(load_view(book.story, db), db):
-            if f.id in dismissed or f.fix is None:
+        ctx = sp.book(book.story_id)
+        found = canon_findings(load_view(book.story, db), db, book)
+        found += series_promise_findings(ctx.checks()) if ctx else []
+        for f in found:
+            if f.id in dismissed:
                 continue
             if f.id in seen:
                 seen[f.id].story_ids.append(book.story_id)
                 continue
+            canon = f.check == "series-canon" and f.fix is not None
             seen[f.id] = SeriesFindingOut(
                 id=f.id,
-                text=f"{f.where}'s {field_words(f.fix.field or '')}: the books disagree",
+                check=f.check,
+                text=f"{f.where}'s {field_words(f.fix.field or '')}: the books disagree" if canon and f.fix else f.text,
                 evidence=f.evidence,
                 suggestion=f.suggestion,
-                element_id=f.fix.element_id or "",
-                field=f.fix.field or "",
+                element_id=(f.fix.element_id if canon and f.fix else f.anchor.series_element_id),
+                field=(f.fix.field or "") if canon and f.fix else "",
                 story_ids=[book.story_id],
+                ref_id=f.anchor.thread_id,
             )
     return list(seen.values())
 

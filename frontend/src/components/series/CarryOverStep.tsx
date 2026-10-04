@@ -7,8 +7,15 @@ import styles from "./CarryOverStep.module.css";
 /**
  * "Who carries over?" (series doc): everything the book before has, by kind, each ticked
  * one starting the new book where it last stood. What the series already shares is ticked
- * to begin with; nothing else is assumed.
+ * to begin with, and so are the threads and twists the books have left open (v1.5): the
+ * question a sequel most easily drops. Nothing else is assumed.
  */
+
+/** A promise group's heading: only what is still open is offered. */
+const PROMISE_GROUPS: Record<string, string> = {
+  thread: "Plot threads still open",
+  twist: "Twists not yet revealed",
+};
 export default function CarryOverStep({
   previousTitle,
   candidates,
@@ -48,12 +55,13 @@ export default function CarryOverStep({
     <div className={styles.step}>
       <p className={styles.lead}>
         Who and what carries over from “{previousTitle}”? Each one starts the new book as it stands at the end
-        of that one, and goes on changing there. Relationships come too when both people do.
+        of that one, and goes on changing there. Relationships come too when both people do. Threads still
+        open and twists not yet revealed come ticked: the questions the books have asked and not answered.
       </p>
       {groups.map(([kind, items]) => {
         const keys = items.map(carryKey);
         const all = keys.every((k) => chosen.has(k));
-        const label = KINDS[kind as keyof typeof KINDS]?.plural ?? kind;
+        const label = PROMISE_GROUPS[kind] ?? KINDS[kind as keyof typeof KINDS]?.plural ?? kind;
         return (
           <fieldset key={kind} className={styles.group}>
             <legend className={styles.groupHead}>

@@ -7,7 +7,8 @@
 - data checks (``data.py``): absences, thread shape, empty chapters, the word target, and the
   promise checks the tapestry shows (a quiet thread, a clue after its reveal, ...);
 - Assistant runs (``ai.py``): read from the Chronicle's latest run of each check;
-- series checks (``series.py``): books of a series that disagree about what stays true.
+- series checks (``series.py``): books of a series that disagree about what stays true, and
+  threads that run across books (left open, opened again, crossing).
 
 Nothing here writes. A dismissal lapses when its scene changes (D4).
 """
@@ -22,6 +23,7 @@ from ...models.finding_dismissal import FindingDismissal
 from ...models.story import Story
 from ...schemas.findings import Finding, FindingsOut
 from ..promises import promises_view
+from ..series.promises import SeriesPromises
 from . import ai, data, local, series
 from .fingerprint import content_hash
 from .runs import latest_runs
@@ -34,8 +36,11 @@ def all_findings(view: StoryView, db: Session) -> tuple[list[Finding], dict]:
     """Every finding before dismissals, and the latest run of each check."""
     runs = latest_runs(view.story.id, db)
     found = local.computed(view, db) + data.computed(view)
-    found += data.promise_findings(promises_view(view.story.id, db))
-    found += series.computed(view, db)
+    # A book of a series is read with its neighbours once, for its promises and the series checks.
+    sp = SeriesPromises.for_story(db, view.story.id)
+    ctx = sp.book(view.story.id) if sp else None
+    found += data.promise_findings(promises_view(view.story.id, db, ctx) if ctx else promises_view(view.story.id, db))
+    found += series.computed(view, db, ctx)
     if "prose-analysis" in runs:
         found += local.from_prose_run(view, runs["prose-analysis"])
     if "editorial-consistency" in runs:
