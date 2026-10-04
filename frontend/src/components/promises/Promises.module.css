@@ -168,3 +168,29 @@
   opacity: 0.5;
   cursor: default;
 }
+
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.checkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.85rem;
+}
+
+.linkBtn {
+  align-self: flex-start;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  min-height: 1.6rem;
+}
