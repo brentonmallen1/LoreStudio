@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { api } from "../../api/client";
@@ -7,7 +8,9 @@ import { sectionPath } from "../../lib/routes";
 import { refreshThreads } from "../../lib/story/refreshThreads";
 import { useStoryStore } from "../../stores/storyStore";
 import PageHeader from "../layout/PageHeader";
-import type { PromiseCheck, Promises } from "../../types/promises";
+import type { Promises } from "../../types/promises";
+import { useFindingsStore } from "../../stores/findingsStore";
+import FindingRow from "../findings/FindingRow";
 import Tapestry from "./Tapestry";
 import styles from "./Promises.module.css";
 
@@ -19,6 +22,13 @@ export default function TapestryPage({ storyId }: { storyId: string }) {
   const navigate = useNavigate();
   const threads = useStoryStore((s) => s.threads);
   const { data } = usePromises(storyId);
+  // The checks are findings (doc 18 C7): the same rows, actions and dismissals as everywhere.
+  const findings = useFindingsStore((s) => s.data?.findings);
+  const loadFindings = useFindingsStore((s) => s.load);
+  useEffect(() => {
+    void loadFindings(storyId);
+  }, [storyId, loadFindings, data]);
+  const promiseFindings = (findings ?? []).filter((f) => PROMISE_CHECKS.has(f.check));
 
   async function newThread() {
     const t = await api.createThread(storyId, {
@@ -69,29 +79,12 @@ export default function TapestryPage({ storyId }: { storyId: string }) {
         ) : (
           <Tapestry storyId={storyId} data={data} />
         )}
-        {data && data.checks.length > 0 && (
+        {promiseFindings.length > 0 && (
           <section aria-label="Needs your eye" className={styles.checks}>
             <h2 className={styles.cardTitle}>Needs your eye</h2>
-            <div className={styles.checkGrid}>
-              {data.checks.map((c, i) => {
-                const go = checkAction(c, data);
-                return (
-                  <div key={`${c.check}-${i}`} className={styles.card}>
-                    <span className={styles.rowTitle}>{c.text}</span>
-                    {c.suggestion && <span className={styles.rowNote}>{c.suggestion}</span>}
-                    {go && (
-                      <button
-                        type="button"
-                        className={styles.linkBtn}
-                        onClick={() => navigate(go.to(storyId))}
-                      >
-                        {go.label}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            {promiseFindings.map((f) => (
+              <FindingRow key={f.id} finding={f} showWhere={false} />
+            ))}
           </section>
         )}
       </div>
@@ -99,20 +92,16 @@ export default function TapestryPage({ storyId }: { storyId: string }) {
   );
 }
 
-const empty = (d: Promises) => d.threads.length === 0 && d.twists.length === 0 && d.setups.length === 0;
+/** The findings the tapestry answers for: the promise checks and crossing threads. */
+const PROMISE_CHECKS = new Set([
+  "quiet_thread",
+  "closes_before_opens",
+  "clue_after_reveal",
+  "reveal_without_clue",
+  "misdirection_unanswered",
+  "shared_reveal",
+  "mice_nesting",
+  "thin_try_fail",
+]);
 
-/** Where a check sends the author: the scene it names, else the sheet. */
-function checkAction(
-  c: PromiseCheck,
-  d: Promises,
-): { label: string; to: (storyId: string) => string } | null {
-  if (c.node_id) {
-    const title = d.scenes.find((s) => s.id === c.node_id)?.title ?? "the scene";
-    return { label: `Open ${title}`, to: (sid) => `/stories/${sid}/write/${c.node_id}` };
-  }
-  if (c.thread_id)
-    return { label: "Open the thread", to: (sid) => sectionPath(sid, "promises", "threads", c.thread_id!) };
-  if (c.twist_id)
-    return { label: "Open the twist", to: (sid) => sectionPath(sid, "promises", "twists", c.twist_id!) };
-  return null;
-}
+const empty = (d: Promises) => d.threads.length === 0 && d.twists.length === 0 && d.setups.length === 0;

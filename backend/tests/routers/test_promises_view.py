@@ -153,3 +153,25 @@ def test_a_belief_overturned_where_it_is_planted_shows_once(client):
     rows = {r["index"]: r for r in client.get(f"/api/stories/{sid}/promises").json()["reader"]}
     assert [(i["text"], i["over"]) for i in rows[0]["believes"]] == [("A historian", True)]
     assert rows[1]["believes"] == []
+
+
+def test_the_checks_are_findings_on_the_sheet_and_in_the_scene(client):
+    """Doc 18 C7: each check is a finding anchored to its thread or twist and its scene."""
+    sid = _story(client)
+    s = _scenes(client, sid, 6)
+    th = client.post(f"/api/stories/{sid}/threads", json={"name": "Quiet"}).json()
+    _place(client, th["id"], s[0], "opens")
+    _place(client, th["id"], s[5], "closes")
+    tw = client.post(f"/api/stories/{sid}/twists", json={"name": "Lie", "revealed_at_node_id": s[2]}).json()
+    feed = client.get(f"/api/stories/{sid}/findings").json()["findings"]
+    quiet = next(f for f in feed if f["check"] == "quiet_thread")
+    assert quiet["anchor"]["thread_id"] == th["id"] and quiet["anchor"]["node_id"] == s[1]
+    assert quiet["action"] == "open_scene" and quiet["where"] == "S2" and quiet["suggestion"]
+    bare = next(f for f in feed if f["check"] == "reveal_without_clue")
+    assert bare["anchor"]["twist_id"] == tw["id"]
+    # Dismissed, it stays gone
+    assert client.post(f"/api/stories/{sid}/findings/{bare['id']}/dismiss").status_code in (200, 201, 204)
+    assert not any(f["id"] == bare["id"] for f in client.get(f"/api/stories/{sid}/findings").json()["findings"])
+    # Set aside, the thread's checks go quiet
+    client.patch(f"/api/threads/{th['id']}", json={"set_aside": True})
+    assert not any(f["check"] == "quiet_thread" for f in client.get(f"/api/stories/{sid}/findings").json()["findings"])

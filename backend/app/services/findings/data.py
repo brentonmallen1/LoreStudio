@@ -9,11 +9,12 @@ from __future__ import annotations
 from ...models.character import Character
 from ...models.structure import StructureNode
 from ...schemas.findings import Finding, FindingAnchor
+from ...schemas.promises import PromisesOut
 from ..codex.presence import known_as, name_patterns
 from ..mice_validation import validate_thread_nesting
 from ..thread_roles import tries
 from ..word_count import get_word_count_status
-from .make import make
+from .make import make, severity
 from .view import StoryView
 
 RECENT_SCENE_WINDOW = 5
@@ -42,7 +43,47 @@ def absent_characters(view: StoryView) -> list[tuple[Character, StructureNode]]:
 
 
 def mice_violations(view: StoryView) -> list[dict]:
-    return validate_thread_nesting(view.threads, [n.id for n in view.leaves])
+    # A thread the author set aside is left alone (doc 18 C1).
+    live = [t for t in view.threads if t.status != "set_aside"]
+    return validate_thread_nesting(live, [n.id for n in view.leaves])
+
+
+#: The promise checks that become findings (doc 18 C7). Crossing threads is mice_nesting above.
+PROMISE_CHECKS = (
+    "quiet_thread",
+    "closes_before_opens",
+    "clue_after_reveal",
+    "reveal_without_clue",
+    "misdirection_unanswered",
+    "shared_reveal",
+)
+
+
+def promise_findings(promises: PromisesOut) -> list[Finding]:
+    """The tapestry's checks as findings: in the feed, on the thread's or twist's sheet, and in
+    the scene they name, each opening that scene or that sheet."""
+    names = {t.id: t.name for t in promises.threads} | {t.id: t.name for t in promises.twists}
+    scenes = {s.id: s.title for s in promises.scenes}
+    out: list[Finding] = []
+    for c in promises.checks:
+        if c.check not in PROMISE_CHECKS:
+            continue
+        subject = c.thread_id or c.twist_id
+        out.append(
+            make(
+                c.check,
+                "structure",
+                severity(c.severity, "low"),
+                "data",
+                c.text,
+                anchor=FindingAnchor(node_id=c.node_id, thread_id=c.thread_id, twist_id=c.twist_id),
+                key=f"{subject}:{c.node_id}",
+                suggestion=c.suggestion,
+                where=scenes.get(c.node_id or "") or names.get(subject or "", ""),
+                action="open_scene" if c.node_id else "open_sheet",
+            )
+        )
+    return out
 
 
 def computed(view: StoryView) -> list[Finding]:

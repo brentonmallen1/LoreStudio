@@ -4,7 +4,8 @@
 
 - local checks (``local.py``): name drift and unknown speakers on every read, the spaCy
   checks from their latest run;
-- data checks (``data.py``): absences, thread shape, empty chapters, the word target;
+- data checks (``data.py``): absences, thread shape, empty chapters, the word target, and the
+  promise checks the tapestry shows (a quiet thread, a clue after its reveal, ...);
 - Assistant runs (``ai.py``): read from the Chronicle's latest run of each check.
 
 Nothing here writes. A dismissal lapses when its scene changes (D4).
@@ -19,6 +20,7 @@ from sqlalchemy.orm import Session
 from ...models.finding_dismissal import FindingDismissal
 from ...models.story import Story
 from ...schemas.findings import Finding, FindingsOut
+from ..promises import promises_view
 from . import ai, data, local
 from .fingerprint import content_hash
 from .runs import latest_runs
@@ -31,6 +33,7 @@ def all_findings(view: StoryView, db: Session) -> tuple[list[Finding], dict]:
     """Every finding before dismissals, and the latest run of each check."""
     runs = latest_runs(view.story.id, db)
     found = local.computed(view, db) + data.computed(view)
+    found += data.promise_findings(promises_view(view.story.id, db))
     if "prose-analysis" in runs:
         found += local.from_prose_run(view, runs["prose-analysis"])
     if "editorial-consistency" in runs:
