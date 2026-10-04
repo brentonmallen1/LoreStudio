@@ -56,4 +56,40 @@ def test_it_shows_a_disagreement_and_a_proposal(db_session: Session, monkeypatch
 
     proposals = [p for p in gather(two.id, db_session) if p.id.startswith("series-")]
     assert [p.subject for p in proposals] == ["Margaret Holt"]
-    assert proposals[0].where in scene_titles(two.id, db_session).values()
+    assert set(proposals[0].where.split(", ")) <= set(scene_titles(two.id, db_session).values())
+
+
+def test_its_promises_run_across_the_books(db_session: Session, monkeypatch):
+    from app.models.compendium import CompendiumEntry
+    from app.models.diagram import Diagram
+    from app.models.plot_thread import PlotThread
+    from app.services.promises import promises_view
+
+    one, two = _seed(db_session, monkeypatch)
+    first, second = promises_view(one.id, db_session), promises_view(two.id, db_session)
+
+    staying_one = next(t for t in first.threads if t.name == seed_series.STAYING)
+    staying_two = next(t for t in second.threads if t.name == seed_series.STAYING)
+    assert first.across[staying_one.id].continues_in == 1
+    assert second.across[staying_two.id].from_book == 0
+    sent = next(t for t in first.twists if t.name == seed_series.SENT)
+    assert first.across[sent.id].revealed_in.title == "The Letter"
+
+    # Book 1 led the reader to believe Margaret wants her to stay; the letter overturns it.
+    believes = second.coming_in.believes
+    assert "Margaret wants Eleanor to stay on the island." in [b.text for b in believes]
+    assert {b.overturned_at for b in believes} == {"The Letter"}
+    [link] = second.series_setups
+    assert (link.direction, link.other.title) == ("in", "The New Entry")
+
+    quiet = {"misdirection_unanswered", "reveal_without_clue", "series-left-open"}
+    for story in (one, two):
+        assert not quiet & {f.check for f in collect(story, db_session).findings}, story.title
+
+    for model, title in ((CompendiumEntry, "Keeping a light: the log"), (Diagram, "Harrow Island")):
+        assert {r.story_id for r in db_session.query(model).filter(model.title == title)} == {one.id, two.id}
+
+    offered = {c["name"]: c["preselect"] for c in service.carry_candidates(db_session, two)}
+    assert offered[seed_series.STAYING] is True, "still open: Book 3 would carry it"
+    assert seed_series.SENT not in offered, "revealed"
+    assert db_session.query(PlotThread).filter(PlotThread.name == seed_series.STAYING).count() == 2

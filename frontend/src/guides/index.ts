@@ -80,6 +80,10 @@ const GUIDE_LIST: Guide[] = [
       "enduring",
       "evolving",
       "retcon",
+      "threads across books",
+      "story so far",
+      "coming in",
+      "shared research",
     ],
   },
   {

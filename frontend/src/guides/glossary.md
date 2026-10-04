@@ -6,9 +6,13 @@
 - **Thread.** A question, place, change or disruption the story opens and later closes.
 - **Twist.** A truth hidden behind what the reader is led to believe, with clues pointing either way.
 - **Series.** Books that belong together, in reading order. Each book keeps its own characters and places; the series knows which are the same.
-- **Series element.** A character, place or part of the world the books of a series share, as it is in each book that has it.
-- **Canon.** Everything a series shares, with what stays true across its books and how each thing changes from one to the next.
+- **Series element.** A character, place, part of the world, thread or twist the books of a series share, as it is in each book that has it.
+- **Canon.** Everything a series shares of its Lorebook, with what stays true across its books and how each thing changes from one to the next.
 - **Enduring / evolving.** Of a series element's fields: one truth for every book (where she was born), or each book its own (what she wants now).
+- **Left open.** A thread still open at the end of a book that no later book picks up: the question a sequel most easily drops.
+- **Coming in.** What the reader knows, believes and alone knows at the start of a book, from the books before it.
+- **The story so far.** A card per book of a series: what each leaves the reader with, a reminder before the next.
+- **Shared with the series.** Research, an image or a diagram every book of a series has, kept in step: an edit in one book is an edit in all.
 - **Compendium.** Research and reference: documents, links, notes, images. Informs the story without being part of it.
 - **Codex.** The system's understanding of the story: knowledge graph, embeddings, AI explorations _(Studio)_.
 - **Chronicle.** History: snapshots, the change log, conversations, AI activity.

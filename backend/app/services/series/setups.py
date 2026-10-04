@@ -38,9 +38,11 @@ def add_link(
     made_in: str,
     actor_id: str | None,
     client_id: str | None,
+    log: bool = True,
 ) -> SeriesSceneLink:
     """A link between a scene of one book and a scene of another, ``a`` and ``b`` each
-    ``(story_id, node_id)``, in either order: it is kept earlier book first."""
+    ``(story_id, node_id)``, in either order: it is kept earlier book first. Undoable in the
+    book it was made in, unless ``log`` is off (seeded)."""
     pos = positions(series)
     for story_id, node_id in (a, b):
         if story_id not in pos:
@@ -64,6 +66,8 @@ def add_link(
     )
     series.scene_links.append(link)
     db.flush()
+    if not log:
+        return link
     change_log.record(
         db,
         story_id=made_in,

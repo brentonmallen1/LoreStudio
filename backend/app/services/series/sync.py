@@ -149,6 +149,7 @@ def share(
     *,
     actor_id: str | None,
     client_id: str | None,
+    log: bool = True,
 ) -> SeriesElement:
     """Share a book's research with the series: a copy in every other book, each logged in
     its book. A document entry shares its file first, so each copy holds its own."""
@@ -160,11 +161,11 @@ def share(
         raise service.SeriesError(f"No such {kind.label.lower()} in that book.", 404)
     for column, ref_kind in kind.refs:
         if getattr(row, column):
-            share(db, series, ref_kind, story_id, getattr(row, column), actor_id=actor_id, client_id=client_id)
+            share(db, series, ref_kind, story_id, getattr(row, column), actor_id=actor_id, client_id=client_id, log=log)
     element = service.lift_element(db, series, kind.kind, story_id, ref_id)
     for book in sorted(series.books, key=lambda b: b.position):
         if service.member_in(element, book.story_id) is None:
-            service.adopt_into_book(db, series, element, book.story_id, actor_id=actor_id, client_id=client_id)
+            service.adopt_into_book(db, series, element, book.story_id, actor_id=actor_id, client_id=client_id, log=log)
     return element
 
 
