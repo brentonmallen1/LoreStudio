@@ -49,6 +49,7 @@ from .routers.ollama import router as ollama_router
 from .routers.outlines import router as outlines_router
 from .routers.panel_interviews import router as panel_interviews_router
 from .routers.plot_threads import router as plot_threads_router
+from .routers.promises import router as promises_router
 from .routers.proposals import router as proposals_router
 from .routers.prose_tools import router as prose_tools_router
 from .routers.publication import router as publication_router
@@ -167,6 +168,7 @@ app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])
 app.include_router(scene_cast_router, prefix="/api", tags=["scene-cast"])
 app.include_router(findings_router, prefix="/api", tags=["findings"])
 app.include_router(numbers_router, prefix="/api", tags=["numbers"])
+app.include_router(promises_router, prefix="/api", tags=["promises"])
 app.include_router(proposals_router, prefix="/api", tags=["proposals"])
 app.include_router(search_router, prefix="/api", tags=["search"])
 app.include_router(media_router, prefix="/api", tags=["media"])

@@ -3,6 +3,9 @@ import type * as T from "../types";
 
 /** Threads and twists: the promises a story makes (doc 18). Spread into `api`. */
 export const promisesApi = {
+  /** Every promise in reading order: threads, twists, setups, the reader, the checks (doc 18 C2). */
+  getPromises: (storyId: string) =>
+    request<import("../types/promises").Promises>(`/stories/${storyId}/promises`),
   // Plot Threads
   listThreads: (storyId: string) => request<T.PlotThread[]>(`/stories/${storyId}/threads`),
   createThread: (
