@@ -11,7 +11,7 @@ import DiagramThumbnail from "../../media/DiagramThumbnail";
 import AssetPicker from "../../media/AssetPicker";
 import type { InlineNotesState } from "../../editor/useInlineNotes";
 import { flattenStructure } from "../../editor/segmentMeta";
-import LinkedTwistsField from "../../editor/panels/LinkedTwistsField";
+import ScenePromises from "../../promises/ScenePromises";
 import SceneLinksField from "../../editor/panels/SceneLinksField";
 import SceneNotesField from "../../editor/panels/SceneNotesField";
 import SceneSummaryField from "../../editor/panels/SceneSummaryField";
@@ -23,7 +23,7 @@ import styles from "./SceneSequence.module.css";
 
 /**
  * Everything about the scene that is not its run from entry to exit, folded below the
- * sequence: notes, the story plan, links and twists, images, and in Studio mode the
+ * sequence: notes, the story plan, its promises (threads, twists, setups), images, and in Studio mode the
  * Assistant. Each fold stays as the author left it. Keyed by node id by its parent.
  */
 export default function SceneMoreFields({
@@ -69,14 +69,15 @@ export default function SceneMoreFields({
         <StoryPlanPanel node={activeNode} story={activeStory} characters={characters} />
       </Fold>
 
-      <Fold id="links" title="Links and twists">
+      {/* Threads, twists, setups and the reader at this scene (doc 18 C6) */}
+      <Fold id="promises" title="Promises" defaultOpen>
+        <ScenePromises storyId={activeStory.id} nodeId={activeNode.id} />
         <SceneLinksField
           activeNode={activeNode}
           activeStory={activeStory}
           flatNodes={flattenStructure(structure)}
           onNavigate={setActiveNode}
         />
-        <LinkedTwistsField activeNode={activeNode} activeStory={activeStory} />
       </Fold>
 
       <Fold id="images" title="Images and diagrams" count={diagrams.length || undefined}>

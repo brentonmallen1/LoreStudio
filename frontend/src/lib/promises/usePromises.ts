@@ -15,6 +15,13 @@ export const PROMISE_ENTITIES = [
   "structure_node",
 ] as const;
 
+const CHANGED = "lorestudio:promises-changed";
+
+/** Say a promise changed outside the views that hold one (a clue planted from the prose). */
+export function notifyPromisesChanged() {
+  window.dispatchEvent(new Event(CHANGED));
+}
+
 /**
  * The story's promises (doc 18 C2), fetched once and again whenever a thread, twist, clue,
  * setup or reader entry changes here or through Undo. The store's threads changing (the
@@ -31,5 +38,10 @@ export function usePromises(storyId: string | undefined) {
     void reload();
   }, [reload, threads]);
   useReloadOnUndo(PROMISE_ENTITIES, reload);
+  useEffect(() => {
+    const on = () => void reload();
+    window.addEventListener(CHANGED, on);
+    return () => window.removeEventListener(CHANGED, on);
+  }, [reload]);
   return { data, reload };
 }

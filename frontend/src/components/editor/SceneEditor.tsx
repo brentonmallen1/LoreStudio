@@ -35,6 +35,7 @@ import StorySummaryPanel from "../story/StorySummaryPanel";
 import BrainstormPanel from "../layout/BrainstormPanel";
 import ScenePlannerPanel from "../layout/ScenePlannerPanel";
 import SelectionToolbar from "../story/SelectionToolbar";
+import PromisePicker from "../promises/PromisePicker";
 import EditorSearchBar from "../story/EditorSearchBar";
 import { useSceneAutosave } from "./useSceneAutosave";
 import { useMentionDropdown } from "./useMentionDropdown";
@@ -210,6 +211,19 @@ export default function SceneEditor() {
   // Command palette → writing guides modal: the store's tab wins while it is set
   const effectiveGuidesTab = writingGuidesTab ?? guidesTab;
 
+  // "Plant a clue for…" / "Reveal a twist here…" on the selected words (doc 18 C6)
+  const [promisePick, setPromisePick] = useState<{
+    kind: "clue" | "reveal";
+    quote: string;
+    rect: DOMRect;
+  } | null>(null);
+  function pickPromise(kind: "clue" | "reveal") {
+    if (!editor || !selectionRect) return;
+    const { from, to } = editor.state.selection;
+    setPromisePick({ kind, quote: editor.state.doc.textBetween(from, to, " ").trim(), rect: selectionRect });
+    setSelectionRect(null);
+  }
+
   /** Open (or focus) an AI session seeded with the current selection. */
   function openSelectionSession(type: string, reuseEmpty = false) {
     if (!editor || !activeStory || !activeNode) return;
@@ -371,11 +385,22 @@ export default function SceneEditor() {
         onOpenCoach={() => openSelectionSession("writing-coach", true)}
         onAddNote={(kind) => notes.triggerAdd(kind)}
         onAttributeDialogue={mention.triggerAttributeDialogue}
+        onPlantClue={() => pickPromise("clue")}
+        onRevealTwist={() => pickPromise("reveal")}
         onAnalyzeShowTell={() => openSelectionSession("show-dont-tell")}
         onAnalyzeAudience={() => openSelectionSession("audience-adherence")}
         onClicheCoach={() => openSelectionSession("cliche-coach")}
         showAI={aiAvailable}
       />
+
+      {promisePick && activeStory && activeNode && (
+        <PromisePicker
+          {...promisePick}
+          storyId={activeStory.id}
+          nodeId={activeNode.id}
+          onClose={() => setPromisePick(null)}
+        />
+      )}
 
       <MentionHoverCard
         hover={hover}
