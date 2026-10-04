@@ -177,8 +177,12 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
 SNAPSHOT_EXCLUDED_TABLES = {
     # The Codex graph is derived from everything above: restoring a snapshot and syncing
     # rebuilds it exactly, so carrying a copy would only let the two disagree.
+    # A series says which rows in different books are the same thing: identity across
+    # stories, not content of one. Restoring one book must not rewrite another book's links,
+    # and an exported book is a standalone story. tests/services/test_series_lifecycle.py
+    # covers what the series tables do when a book is deleted or restored.
     "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs",
-    "codex_nodes", "codex_edges", "codex_chunks",
+    "codex_nodes", "codex_edges", "codex_chunks", "series", "series_stories", "series_elements", "series_element_members",
 }
 # fmt: on
 

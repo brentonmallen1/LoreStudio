@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from .proposal_decline import ProposalDecline
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
+    from .series import SeriesElementMember, SeriesStory
     from .setting import Setting
     from .snapshot import StoryBackupSettings, StorySnapshot
     from .structure import StructureNode
@@ -167,4 +168,10 @@ class Story(Base):
     )
     proposal_declines: Mapped[list["ProposalDecline"]] = relationship(
         "ProposalDecline", back_populates="story", cascade="all, delete-orphan"
+    )
+    series_membership: Mapped["SeriesStory | None"] = relationship(
+        "SeriesStory", back_populates="story", uselist=False, cascade="all, delete-orphan"
+    )
+    series_element_members: Mapped[list["SeriesElementMember"]] = relationship(
+        "SeriesElementMember", back_populates="story", cascade="all, delete-orphan"
     )

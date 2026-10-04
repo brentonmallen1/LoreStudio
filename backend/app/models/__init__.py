@@ -27,6 +27,7 @@ from .plot_thread import PlotThread, PlotThreadAppearance
 from .proposal_decline import ProposalDecline
 from .reader_knowledge import ReaderKnowledgeEvent
 from .scene_link import SceneLink
+from .series import Series, SeriesElement, SeriesElementMember, SeriesStory
 from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from .story import Story
@@ -86,4 +87,8 @@ __all__ = [
     "DiscoveredElement",
     "Outline",
     "ReaderKnowledgeEvent",
+    "Series",
+    "SeriesStory",
+    "SeriesElement",
+    "SeriesElementMember",
 ]
