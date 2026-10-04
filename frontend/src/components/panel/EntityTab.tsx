@@ -67,9 +67,9 @@ export default function EntityTab({ tab }: { tab: EntityPanelTab }) {
       : tab.entityKind === "location"
         ? `${base}/lorebook/places/${tab.entityId}`
         : tab.entityKind === "thread"
-          ? `${base}/lorebook/threads/${tab.entityId}`
+          ? `${base}/promises/threads/${tab.entityId}`
           : tab.entityKind === "twist"
-            ? `${base}/lorebook/twists/${tab.entityId}`
+            ? `${base}/promises/twists/${tab.entityId}`
             : `${base}/compendium/research/${tab.entityId}`;
 
   return (

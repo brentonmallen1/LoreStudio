@@ -71,7 +71,7 @@ export function ThreadsStep({ storyId, threads, reload }: Props) {
           Add thread
         </button>
       </form>
-      <Link to={`/stories/${storyId}/lorebook/threads`} className={styles.quietLink}>
+      <Link to={`/stories/${storyId}/promises/threads`} className={styles.quietLink}>
         Each thread's sheet: its scenes, try/fail cycles and the map of every thread
       </Link>
     </div>

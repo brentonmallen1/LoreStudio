@@ -132,7 +132,7 @@ export default function CommandPalette() {
         if (!sid) return;
         const thread = await api.createThread(sid, { name: "New thread" });
         store.upsertThread(thread);
-        navigate(`/stories/${sid}/lorebook/threads/${thread.id}`);
+        navigate(`/stories/${sid}/promises/threads/${thread.id}`);
       },
     });
     commandRegistry.update({
@@ -223,7 +223,7 @@ export default function CommandPalette() {
         navigate(`/stories/${result.story_id}/lorebook`);
         break;
       case "thread":
-        navigate(`/stories/${result.story_id}/lorebook/threads/${result.id}`);
+        navigate(`/stories/${result.story_id}/promises/threads/${result.id}`);
         break;
     }
     close();

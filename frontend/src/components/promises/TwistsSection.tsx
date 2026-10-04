@@ -1,33 +1,32 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
-import { api } from "../../../api/client";
-import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
-import { KINDS } from "../../../lib/lorebook/kinds";
-import { useAIAvailable } from "../../../lib/mode";
-import { sceneLeaves } from "../../../lib/planning/methods";
-import { usePanelStore } from "../../../stores/panelStore";
-import { useStoryStore } from "../../../stores/storyStore";
-import type { Twist, TwistType } from "../../../types";
-import ReaderKnowledgeTimeline from "../../twists/ReaderKnowledgeTimeline";
-import TwistAnalysisPanel from "../../twists/TwistAnalysisPanel";
-import TwistClueEditor from "../../twists/TwistClueEditor";
-import TwistImpactPanel from "../../twists/TwistImpactPanel";
-import AssistantRow from "../AssistantRow";
-import HealthCard from "../HealthCard";
-import ConfirmDelete from "../ConfirmDelete";
-import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
-import FieldList from "../FieldList";
-import LorebookList from "../LorebookList";
-import { useLoreSelection } from "../useLoreSelection";
-import { TYPES, cluesLine, statusLabel, typeLabel } from "../../../lib/twists/labels";
-import { slotVar } from "../../../lib/colorSlots";
-import styles from "../Lorebook.module.css";
+import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { KINDS } from "../../lib/lorebook/kinds";
+import { useAIAvailable } from "../../lib/mode";
+import { sceneLeaves } from "../../lib/planning/methods";
+import { usePanelStore } from "../../stores/panelStore";
+import { useStoryStore } from "../../stores/storyStore";
+import type { Twist, TwistType } from "../../types";
+import TwistAnalysisPanel from "../twists/TwistAnalysisPanel";
+import TwistClueEditor from "../twists/TwistClueEditor";
+import TwistImpactPanel from "../twists/TwistImpactPanel";
+import AssistantRow from "../lorebook/AssistantRow";
+import HealthCard from "../lorebook/HealthCard";
+import ConfirmDelete from "../lorebook/ConfirmDelete";
+import EntitySheet, { Badge, CardRow, SheetCard } from "../lorebook/EntitySheet";
+import FieldList from "../lorebook/FieldList";
+import LorebookList from "../lorebook/LorebookList";
+import { useLoreSelection } from "../lorebook/useLoreSelection";
+import { TYPES, cluesLine, statusLabel, typeLabel } from "../../lib/twists/labels";
+import { slotVar } from "../../lib/colorSlots";
+import { sectionPath } from "../../lib/routes";
+import styles from "../lorebook/Lorebook.module.css";
 
 /**
- * Twists in the Lorebook (doc 12 D5; Studio only). With none open, what the reader knows
- * scene by scene, or only the dramatic irony; open a twist for its truth, its misdirection,
- * where it lands and the clues that point either way.
+ * Twists, under Promises (doc 18 C3): each twist's truth, its misdirection, where it lands and
+ * the clues that point either way. What the reader knows has a section of its own.
  */
 export default function TwistsSection() {
   const { structure, activeTemplate } = useStoryStore();
@@ -38,14 +37,14 @@ export default function TwistsSection() {
   const { storyId, selectedId, select } = useLoreSelection(
     "twists",
     twists.map((t) => t.id),
-    false,
+    true,
+    "promises",
   );
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Twist | null>(null);
   const [panel, setPanel] = useState<"analysis" | "impact" | null>(null);
   // Twists are planning, in both modes; the analysis and impact panels are the Assistant's.
   const aiAvailable = useAIAvailable();
-  const [irony, setIrony] = useState(false);
 
   const reload = useCallback(
     () =>
@@ -103,15 +102,10 @@ export default function TwistsSection() {
         }
         footer={
           <div className={styles.listFooter}>
-            <button
-              type="button"
-              className={styles.quietBtn}
-              onClick={() => select(null)}
-              aria-pressed={!twist}
-            >
+            <Link className={styles.quietBtn} to={sectionPath(storyId, "promises", "reader")}>
               <Eye size={11} aria-hidden />
               What the reader knows
-            </button>
+            </Link>
           </div>
         }
       />
@@ -241,28 +235,12 @@ export default function TwistsSection() {
           </EntitySheet>
         ) : (
           <div className={styles.landing}>
-            <div className={styles.landingHeader}>
-              <h2 className={styles.landingTitle}>{irony ? "Dramatic irony" : "What the reader knows"}</h2>
-              <div className={styles.sheetViews} role="tablist" aria-label="Reader knowledge views">
-                {[
-                  { id: false, label: "Scene by scene" },
-                  { id: true, label: "Only dramatic irony" },
-                ].map((v) => (
-                  <button
-                    key={String(v.id)}
-                    type="button"
-                    role="tab"
-                    aria-selected={irony === v.id}
-                    className={`${styles.sheetView} ${irony === v.id ? styles.sheetViewOn : ""}`}
-                    onClick={() => setIrony(v.id)}
-                  >
-                    {v.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className={styles.landingBody}>
-              <ReaderKnowledgeTimeline storyId={storyId} ironyOnly={irony} />
+            <div className={styles.emptySheet}>
+              <p>
+                {loaded
+                  ? "Add the first twist: a truth the reader will learn late, and what they believe until then."
+                  : null}
+              </p>
             </div>
           </div>
         )}

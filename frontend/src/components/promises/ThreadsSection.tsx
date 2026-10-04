@@ -1,29 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Map as MapIcon, Trash2 } from "lucide-react";
-import { api } from "../../../api/client";
-import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
-import { KINDS } from "../../../lib/lorebook/kinds";
-import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
-import { sceneLeaves } from "../../../lib/planning/methods";
-import { slotVar, nextSlot } from "../../../lib/colorSlots";
-import { refreshThreads } from "../../../lib/story/refreshThreads";
-import { roleLabel, setEndpoint, STATUS_LABELS, statusLine } from "../../../lib/threads/roles";
-import { usePanelStore } from "../../../stores/panelStore";
-import { useStoryStore } from "../../../stores/storyStore";
-import type { MICEType, PlotThread } from "../../../types";
-import MICEGuide from "../../help/MICEGuide";
-import ThreadAnalysisPanel from "../../threads/ThreadAnalysisPanel";
-import ThreadVisualization from "../../threads/ThreadVisualization";
-import ThreadScenes from "../../threads/ThreadScenes";
-import AssistantRow from "../AssistantRow";
-import HealthCard from "../HealthCard";
-import ConfirmDelete from "../ConfirmDelete";
-import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
-import FieldList from "../FieldList";
-import LorebookList from "../LorebookList";
-import { useLoreSelection } from "../useLoreSelection";
-import styles from "../Lorebook.module.css";
+import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { KINDS } from "../../lib/lorebook/kinds";
+import { presenceLine, scenesWith } from "../../lib/lorebook/presence";
+import { sceneLeaves } from "../../lib/planning/methods";
+import { slotVar, nextSlot } from "../../lib/colorSlots";
+import { refreshThreads } from "../../lib/story/refreshThreads";
+import { roleLabel, setEndpoint, STATUS_LABELS, statusLine } from "../../lib/threads/roles";
+import { usePanelStore } from "../../stores/panelStore";
+import { useStoryStore } from "../../stores/storyStore";
+import type { MICEType, PlotThread } from "../../types";
+import MICEGuide from "../help/MICEGuide";
+import ThreadAnalysisPanel from "../threads/ThreadAnalysisPanel";
+import ThreadVisualization from "../threads/ThreadVisualization";
+import ThreadScenes from "../threads/ThreadScenes";
+import AssistantRow from "../lorebook/AssistantRow";
+import HealthCard from "../lorebook/HealthCard";
+import ConfirmDelete from "../lorebook/ConfirmDelete";
+import EntitySheet, { Badge, CardRow, SheetCard } from "../lorebook/EntitySheet";
+import FieldList from "../lorebook/FieldList";
+import LorebookList from "../lorebook/LorebookList";
+import { useLoreSelection } from "../lorebook/useLoreSelection";
+import styles from "../lorebook/Lorebook.module.css";
 
 const MICE: { value: MICEType; label: string; hint: string }[] = [
   { value: "milieu", label: "Milieu", hint: "Opens on entering a place, closes on leaving it" },
@@ -39,7 +39,7 @@ const MICE: { value: MICEType; label: string; hint: string }[] = [
 const label = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
- * Plot threads in the Lorebook (doc 12 D5). With none open, the map of every thread across
+ * Plot threads, under Promises (doc 18 C3). With none open, the map of every thread across
  * the book; open one and it is the same sheet as everything else, with its MICE shape and its
  * scenes, each saying what it does to the thread (doc 18 C1: opening, closing and the tries
  * along the way are roles on those scenes, and the status follows from them).
@@ -52,6 +52,7 @@ export default function ThreadsSection() {
     "threads",
     threads.map((t) => t.id),
     false,
+    "promises",
   );
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<PlotThread | null>(null);

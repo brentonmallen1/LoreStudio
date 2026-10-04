@@ -49,7 +49,7 @@ export function Vitals({ storyId, ov }: { storyId: string; ov: StoryOverview }) 
       sub:
         ov.open_threads.join(", ") ||
         (ov.thread_counts.resolved ? `${ov.thread_counts.resolved} resolved, none open` : "none open"),
-      to: sectionPath(storyId, "lorebook", "threads"),
+      to: sectionPath(storyId, "promises", "threads"),
     },
     {
       label: "Goals",

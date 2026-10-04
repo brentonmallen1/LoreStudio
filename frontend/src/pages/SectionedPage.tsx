@@ -10,7 +10,12 @@ import styles from "./StoryWorkspace.module.css";
 type Body = LazyExoticComponent<ComponentType<PageProps>>;
 
 /** The groups inside an index: a divider before each of these (the Lorebook's world). */
-const GAP_BEFORE = new Set(["lorebook.systems", "compendium.images", "chronicle.versions"]);
+const GAP_BEFORE = new Set([
+  "lorebook.systems",
+  "promises.threads",
+  "compendium.images",
+  "chronicle.versions",
+]);
 
 /**
  * A grouped page (doc 12 P1): the index of its sections, and the open section's body,

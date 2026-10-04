@@ -3,14 +3,18 @@ import {
   BarChart3,
   Book,
   BookOpen,
+  BookOpenCheck,
   CalendarDays,
   Clock,
-  Eye,
+  Diamond,
   Fingerprint,
   GitBranch,
   ScanEye,
   Landmark,
   Library,
+  Link2,
+  Spline,
+  Waypoints,
   History,
   Images,
   MapIcon,
@@ -144,22 +148,6 @@ export const STORY_ROUTES: StoryRoute[] = [
         detailParam: "entryId",
       },
       {
-        id: "threads",
-        path: "/threads",
-        label: "Plot Threads",
-        icon: GitBranch,
-        detailParam: "entryId",
-        keywords: ["mice", "arcs", "plot", "subplot", "threads"],
-      },
-      {
-        id: "twists",
-        path: "/twists",
-        label: "Twists",
-        icon: Eye,
-        detailParam: "entryId",
-        keywords: ["reveal", "clues", "reader knowledge", "surprise", "dramatic irony"],
-      },
-      {
         id: "systems",
         path: "/systems",
         label: "Systems",
@@ -207,6 +195,56 @@ export const STORY_ROUTES: StoryRoute[] = [
         label: "Connections",
         icon: Network,
         keywords: ["codex", "knowledge graph", "graph", "network", "relationships map"],
+      },
+    ],
+  },
+  {
+    // The promises a story makes and pays off (doc 18 C3): threads, twists, setups and what
+    // the reader knows, out of the Lorebook into a group of their own.
+    id: "promises",
+    path: "/promises",
+    label: "Promises",
+    icon: Waypoints,
+    domain: "lorebook",
+    modes: BOTH,
+    keywords: ["promises", "payoffs", "plot", "suspense", "mystery", "structure"],
+    sections: [
+      {
+        id: "tapestry",
+        path: "",
+        label: "The tapestry",
+        icon: Spline,
+        keywords: ["promises", "every thread", "thread map", "reading order", "weave", "overview of threads"],
+      },
+      {
+        id: "threads",
+        path: "/threads",
+        label: "Threads",
+        icon: GitBranch,
+        detailParam: "entryId",
+        keywords: ["plot threads", "mice", "arcs", "plot", "subplot", "questions", "try fail"],
+      },
+      {
+        id: "twists",
+        path: "/twists",
+        label: "Twists",
+        icon: Diamond,
+        detailParam: "entryId",
+        keywords: ["reveal", "clues", "surprise", "red herring", "misdirection", "mystery"],
+      },
+      {
+        id: "setups",
+        path: "/setups",
+        label: "Setups and payoffs",
+        icon: Link2,
+        keywords: ["scene links", "foreshadowing", "callback", "chekhov", "echo", "parallel", "bookends"],
+      },
+      {
+        id: "reader",
+        path: "/reader",
+        label: "What the reader knows",
+        icon: BookOpenCheck,
+        keywords: ["reader knowledge", "dramatic irony", "suspense", "who knows what"],
       },
     ],
   },
@@ -360,6 +398,15 @@ export const STORY_ROUTES: StoryRoute[] = [
     keywords: ["export", "query letter", "synopsis", "share"],
   },
 ];
+
+/**
+ * Addresses that moved, old prefix to new, under `/stories/:storyId`. The rest of the address
+ * (an entry id) carries over, so old links and bookmarks still land.
+ */
+export const STORY_REDIRECTS: Record<string, string> = {
+  "/lorebook/threads": "/promises/threads",
+  "/lorebook/twists": "/promises/twists",
+};
 
 export const DOMAIN_LABELS: Record<Domain, string> = {
   home: "",

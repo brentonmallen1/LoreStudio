@@ -13,15 +13,16 @@ Switch in **Settings › Appearance › Mode**. Everything in Writer mode works 
 
 **Settings › Typography** has two sizes. **Interface size** (Small, Default, Large, Larger) scales the menus, buttons, labels and icons; the palette has **Larger interface** and **Smaller interface**. **Writing size** is the prose alone, and **Line width** is counted in characters, so a larger writing size keeps the same words per line. Both are also in the header's appearance menu, beside the theme and colour mode. Every theme, light and dark, keeps its text readable on every surface.
 
-## The five places things live
+## Where things live
 
-| Place                | What is there                                                           |
-| -------------------- | ----------------------------------------------------------------------- |
-| **Manuscript**       | Scenes and chapters (the structure tree), the editor, the Plan page     |
-| **Lorebook**         | Story identity, characters, places, plot threads, twists, world systems |
-| **Compendium**       | Research, references, media and diagrams                                |
-| **Codex** _(Studio)_ | What-if explorations, group interviews, discoveries the AI proposes     |
-| **Chronicle**        | Snapshots, the change history, AI activity                              |
+| Place                | What is there                                                       |
+| -------------------- | ------------------------------------------------------------------- |
+| **Manuscript**       | Scenes and chapters (the structure tree), the editor, the Plan page |
+| **Lorebook**         | Story identity, characters, places, world systems                   |
+| **Promises**         | Threads, twists, setups and payoffs, what the reader knows          |
+| **Compendium**       | Research, references, media and diagrams                            |
+| **Codex** _(Studio)_ | What-if explorations, group interviews, discoveries the AI proposes |
+| **Chronicle**        | Snapshots, the change history, AI activity                          |
 
 ## A first session
 

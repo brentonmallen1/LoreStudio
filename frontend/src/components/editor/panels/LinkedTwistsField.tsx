@@ -25,7 +25,7 @@ export default function LinkedTwistsField({
   if (twists.length === 0) return null;
   // To the twist itself, not the Twists landing (doc 18).
   const go = (twistId?: string) =>
-    navigate(`/stories/${activeStory.id}/lorebook/twists${twistId ? `/${twistId}` : ""}`);
+    navigate(`/stories/${activeStory.id}/promises/twists${twistId ? `/${twistId}` : ""}`);
 
   return (
     <div className={styles.overviewField}>

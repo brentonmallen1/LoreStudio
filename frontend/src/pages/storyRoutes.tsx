@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-do
 import ModeGate from "../components/layout/ModeGate";
 import { findNode } from "../components/layout/structureTreeMeta";
 import { sceneToResume } from "../lib/resumeScene";
-import { STORY_ROUTES } from "../lib/routes";
+import { STORY_REDIRECTS, STORY_ROUTES } from "../lib/routes";
 import { useStoryStore } from "../stores/storyStore";
 import { useUIStore } from "../stores/uiStore";
 import SectionedPage from "./SectionedPage";
@@ -21,6 +21,12 @@ import styles from "./StoryWorkspace.module.css";
 const SummaryOverviewView = lazy(() => import("../components/story/SummaryOverviewView"));
 const StoryboardView = lazy(() => import("../components/story/StoryboardView"));
 const ManuscriptView = lazy(() => import("../components/manuscript/ManuscriptView"));
+
+/** An address that moved: the same entry at its new home. */
+function Moved({ storyId, to }: { storyId: string; to: string }) {
+  const { "*": rest } = useParams();
+  return <Navigate to={`/stories/${storyId}${to}${rest ? `/${rest}` : ""}`} replace />;
+}
 
 /** `/write` with no node: the alternate views, else the node already open or the one to resume. */
 function WriteIndex({ storyId }: { storyId: string }) {
@@ -78,6 +84,9 @@ export default function StoryRoutes() {
           );
         return <Route key={route.id} path={route.path || "/"} element={element} />;
       })}
+      {Object.entries(STORY_REDIRECTS).map(([from, to]) => (
+        <Route key={from} path={`${from}/*`} element={<Moved storyId={storyId} to={to} />} />
+      ))}
       <Route path="/write/:nodeId" element={<WriteNodePage />} />
       <Route path="*" element={<div className={styles.loading}>There is no page here.</div>} />
     </Routes>

@@ -8,12 +8,12 @@ import { useStoryStore } from "../../stores/storyStore";
 import type { MentionedRef } from "../../types/mentions";
 import type { Finding } from "../../types/findings";
 
-/** The Lorebook section an entity anchor opens, in anchor order. */
+/** The page and section an entity anchor opens, in anchor order. */
 const SHEETS = [
-  ["character_id", "characters"],
-  ["location_id", "places"],
-  ["thread_id", "threads"],
-  ["twist_id", "twists"],
+  ["character_id", "lorebook", "characters"],
+  ["location_id", "lorebook", "places"],
+  ["thread_id", "promises", "threads"],
+  ["twist_id", "promises", "twists"],
 ] as const;
 
 /**
@@ -63,7 +63,7 @@ export function useFindingActions() {
       const sheet = SHEETS.find(([key]) => f.anchor[key]);
       navigate(
         sheet
-          ? sectionPath(storyId, "lorebook", sheet[1], f.anchor[sheet[0]] ?? undefined)
+          ? sectionPath(storyId, sheet[1], sheet[2], f.anchor[sheet[0]] ?? undefined)
           : sectionPath(storyId, "lorebook", "identity"),
       );
     },
