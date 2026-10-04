@@ -3,6 +3,7 @@ import structure from "./structure.md?raw";
 import planning from "./planning.md?raw";
 import dialogue from "./dialogue-and-quotes.md?raw";
 import notes from "./notes-and-freewrite.md?raw";
+import promises from "./promises.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
@@ -45,6 +46,23 @@ const GUIDE_LIST: Guide[] = [
     body: planning,
     modes: BOTH,
     keywords: ["plan", "snowflake", "outline", "logline", "synopsis", "method", "beat board", "planned"],
+  },
+  {
+    id: "promises",
+    title: "Threads, twists and what the reader knows",
+    body: promises,
+    modes: BOTH,
+    keywords: [
+      "promises",
+      "tapestry",
+      "plot threads",
+      "mice",
+      "twists",
+      "clues",
+      "foreshadowing",
+      "dramatic irony",
+      "try fail",
+    ],
   },
   {
     id: "dialogue-and-quotes",

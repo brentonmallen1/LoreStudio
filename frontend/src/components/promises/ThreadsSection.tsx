@@ -126,6 +126,7 @@ export default function ThreadsSection() {
             scenes={scenes}
             onOpenBeside={() => openEntity("thread", thread.id, thread.name)}
             more={[
+              { label: "How threads work", icon: BookOpen, onSelect: () => navigate("/guides/promises") },
               { label: "What is a MICE thread?", icon: BookOpen, onSelect: () => setGuide(true) },
               { label: "Delete thread", icon: Trash2, danger: true, onSelect: () => setDeleting(thread) },
             ]}

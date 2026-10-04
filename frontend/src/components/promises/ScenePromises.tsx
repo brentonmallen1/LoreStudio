@@ -40,6 +40,9 @@ export default function ScenePromises({ storyId, nodeId }: { storyId: string; no
   return (
     <div className={styles.bench}>
       <div className={styles.top}>
+        <Link to="/guides/promises" className={styles.link}>
+          How promises work
+        </Link>
         <Link to={sectionPath(storyId, "promises", "tapestry")} className={styles.link}>
           See them all on the tapestry
         </Link>

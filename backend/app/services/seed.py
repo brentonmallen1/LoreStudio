@@ -1557,6 +1557,11 @@ def seed_demo_story():  # noqa: PLR0915
         _role(db, thread_father, scene1.id, "opens")
         _role(db, thread_father, scene10.id, "closes")
 
+        # What the middle scenes do to the threads, beyond moving them on (doc 18 C9)
+        _role(db, thread_father, scene5.id, "turns")
+        _role(db, thread_father, scene6.id, "complicates")
+        _role(db, thread_identity, scene6.id, "turns")
+
         # ── Try/fail cycles for Eleanor's Father (character arc) ──
         _role(
             db,
@@ -2023,7 +2028,17 @@ def seed_demo_story():  # noqa: PLR0915
                         text="She asks only about shipping records and navigation logs — nothing personal. Appears genuinely interested in historical documentation.",
                         points_to="misdirection",
                         subtlety="moderate",
+                        # Planted on the words themselves (doc 18 C6)
+                        quote="Shipping patterns. Storm records. I'm not here to examine anything personal.",
                         position=3,
+                    ),
+                    TwistClue(
+                        node_id=scene4.id,
+                        text="When the volume is opened, the Visitor watches Eleanor, not the book.",
+                        points_to="truth",
+                        subtlety="subtle",
+                        quote="The Visitor was watching her. Not the book. Her.",
+                        position=4,
                     ),
                 ],
             )

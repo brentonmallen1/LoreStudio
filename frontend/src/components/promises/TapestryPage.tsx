@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { api } from "../../api/client";
 import { nextSlot } from "../../lib/colorSlots";
@@ -61,7 +61,7 @@ export default function TapestryPage({ storyId }: { storyId: string }) {
           Every story makes promises to the reader and pays them off. A <strong>thread</strong> is a question
           it opens and later answers. A <strong>twist</strong> hides a truth behind what the reader is led to
           believe. A <strong>setup</strong> plants something a later scene pays off. Here they are, in reading
-          order.
+          order. <Link to="/guides/promises">New to this? A short guide, built on the demo story.</Link>
         </p>
         {data === null ? null : empty(data) ? (
           <section className={styles.card} aria-label="No promises yet">
