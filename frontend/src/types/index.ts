@@ -495,37 +495,37 @@ export interface PanelInterview {
   updated_at: string;
 }
 
+/** What a scene does to a thread (doc 18 C1). The four in the middle are a try and how it goes. */
+export type ThreadRole =
+  "opens" | "moves" | "turns" | "complicates" | "fails" | "fails_worse" | "costs" | "succeeds" | "closes";
+
 export interface PlotThreadAppearance {
   id: string;
   thread_id: string;
   node_id: string;
+  role: ThreadRole;
   note: string;
   created_at: string;
 }
 
 export type MICEType = "milieu" | "idea" | "character" | "event";
 
-export type TryFailOutcome = "fail_disaster" | "fail_setback" | "success_cost" | "success_clean";
-
-export interface TryFailCycle {
-  id: string;
-  description: string;
-  outcome: TryFailOutcome;
-  node_id: string | null;
-}
+/** Follows from the thread's scenes; only "set aside" is the author's to choose. */
+export type ThreadStatus = "planned" | "open" | "resolved" | "set_aside";
 
 export interface PlotThread {
   id: string;
   story_id: string;
   name: string;
   description: string;
-  status: "open" | "developing" | "resolved";
+  status: ThreadStatus;
+  set_aside: boolean;
   /** Palette slot 1..8 (doc 11 P2); the theme paints it. */
   color_slot: number;
   mice_type: MICEType | null;
+  /** Read from the scenes whose role is opens / closes. */
   opens_at_node_id: string | null;
   closes_at_node_id: string | null;
-  try_fail_cycles: TryFailCycle[];
   appearances: PlotThreadAppearance[];
   created_at: string;
   updated_at: string;
@@ -540,10 +540,14 @@ export type SubtletyLevel = "obvious" | "moderate" | "subtle" | "hidden";
 
 export interface TwistClue {
   id: string;
+  twist_id: string;
   node_id: string | null;
   text: string;
   points_to: ClueTarget;
   subtlety: SubtletyLevel;
+  /** The words in the scene the clue is, when it was planted from a selection. */
+  quote: string;
+  position: number;
 }
 
 export interface Twist {
@@ -553,7 +557,10 @@ export interface Twist {
   the_truth: string;
   the_misdirection: string;
   twist_type: TwistType;
+  /** Follows from the clues and the reveal scene. */
   status: TwistStatus;
+  /** Palette slot 1..8; a new twist starts on teal (7). */
+  color_slot: number;
   revealed_at_node_id: string | null;
   clues: TwistClue[];
   created_at: string;

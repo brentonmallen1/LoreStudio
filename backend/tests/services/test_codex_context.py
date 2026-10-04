@@ -234,7 +234,7 @@ def test_a_mention_adds_to_the_packet_and_says_why(db_session, test_user):
     story = _story(db_session, test_user)
     elena = Character(story_id=story.id, name="Elena", role="protagonist")
     mara = Character(story_id=story.id, name="Mara", role="ally", motivation="Keep the light burning.")
-    thread = PlotThread(story_id=story.id, name="The Missing Logs", status="open")
+    thread = PlotThread(story_id=story.id, name="The Missing Logs")
     harbour = Location(story_id=story.id, name="The Harbour", atmosphere="Salt and rope.")
     db_session.add_all([elena, mara, thread, harbour])
     scene = _scene(db_session, story, "Arrival", content="<p>@Elena climbed the stair.</p>")

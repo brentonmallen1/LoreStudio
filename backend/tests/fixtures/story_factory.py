@@ -47,6 +47,7 @@ from app.models import (
     StoryAsset,
     StructureNode,
     Twist,
+    TwistClue,
     WorldSystem,
 )
 from app.models.user import User
@@ -113,6 +114,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     twist = Twist(id=_uid(), story_id=sid, name="Betrayal", revealed_at_node_id=scene2.id)
     db.add(twist)
     db.flush()
+    db.add(TwistClue(id=_uid(), twist_id=twist.id, node_id=scene1.id, text="He hesitates"))
     db.add(ReaderKnowledgeEvent(id=_uid(), story_id=sid, node_id=scene2.id, twist_id=twist.id, subject="Tomas lied"))
 
     harbour = Location(id=_uid(), story_id=sid, name="Harbour")

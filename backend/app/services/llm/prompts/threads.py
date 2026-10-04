@@ -3,13 +3,7 @@ Plot thread analysis prompt (doc 18: moved out of analysis.py, which is over its
 """
 
 from ....models.plot_thread import PlotThread
-
-OUTCOME_LABELS = {
-    "fail_disaster": "Fail: disaster",
-    "fail_setback": "Fail: setback",
-    "success_cost": "Success, at a cost",
-    "success_clean": "Success, clean",
-}
+from ...thread_roles import role_label, tries
 
 
 def build_thread_analysis_prompt(
@@ -22,26 +16,22 @@ def build_thread_analysis_prompt(
 ) -> str:
     """Structured JSON prompt to analyze a plot thread's progression and quality.
 
-    Doc 18: the cycles arrive as stored (description, outcome, node_id; it read action and
-    outcome_type and sent every cycle as "? → ?"), scenes carry their ids and come in reading
-    order, and where the thread opens and closes is said.
+    Doc 18: scenes carry their ids, come in reading order and say what each does to the
+    thread (its role: the opening, the tries and how they go, the closing).
     """
     titles = titles or {}
 
     def scene_name(node_id: str | None) -> str:
         return f"[{node_id}] {titles.get(node_id, 'a scene')}" if node_id else "unlinked"
 
-    cycles_text = ""
-    if thread.try_fail_cycles:
-        lines = []
-        for i, c in enumerate(thread.try_fail_cycles, 1):
-            outcome = OUTCOME_LABELS.get(c.get("outcome") or "", c.get("outcome") or "outcome not set")
-            lines.append(
-                f"  {i}. {c.get('description') or '(no description)'} → {outcome} ({scene_name(c.get('node_id'))})"
-            )
-        cycles_text = "\n".join(lines)
+    attempts = tries(thread)
+    if attempts:
+        cycles_text = "\n".join(
+            f"  {i}. {role_label(a.role)}: {a.note or '(no note)'} ({scene_name(a.node_id)})"
+            for i, a in enumerate(attempts, 1)
+        )
     else:
-        cycles_text = "  (none defined)"
+        cycles_text = "  (none marked)"
 
     shape = (
         f"Opens in: {scene_name(thread.opens_at_node_id)}\n"
@@ -54,7 +44,7 @@ def build_thread_analysis_prompt(
         for s in scenes:
             head = f"[{s['id']}] {s['title']}"
             if s.get("role"):
-                head += f" ({s['role']})"
+                head += f" ({role_label(s['role'])})"
             body = []
             if s.get("note"):
                 body.append(f"What the author says happens to the thread here: {s['note']}")
@@ -80,7 +70,7 @@ Description: {thread.description or "(none)"}
 
 Story context: {story_context or "Not provided"}
 
-TRY/FAIL CYCLES ({len(thread.try_fail_cycles or [])} defined):
+TRIES ALONG THE WAY ({len(attempts)} marked; scenes whose role is a try that fails or succeeds):
 {cycles_text}
 
 SCENES WHERE THIS THREAD APPEARS, in reading order ({len(scenes)} scenes):
@@ -107,7 +97,7 @@ Analyze this plot thread and respond with a JSON object matching this exact sche
     "details": ["specific observation about try/fail cycle depth", "observation about pacing or tension", "observation about setup/payoff"]
   }},
   "unlinked_cycles": [
-    "description of any try/fail cycle that has no scene assigned"
+    "a try the thread still needs, which no scene makes yet"
   ],
   "suggestions": [
     "specific, actionable suggestion referencing scene and thread names"
@@ -118,5 +108,5 @@ Analyze this plot thread and respond with a JSON object matching this exact sche
 Rules:
 - Output ONLY valid JSON. No markdown, no extra text.
 - moment_discoveries: only include scenes that mark a meaningful beat — not every scene.
-- suggested_cycle_link is true if the scene represents a distinct attempt/failure worth tracking.
+- suggested_cycle_link is true if the scene is a distinct try worth marking with a try role and is not marked as one.
 - overall_rating: needs_work = major structural issues, fair = functional but weak, good = solid craft, excellent = exemplary."""

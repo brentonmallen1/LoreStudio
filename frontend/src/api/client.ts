@@ -1,10 +1,12 @@
 import { aiChatApi } from "./aiChat";
 import { chronicleApi } from "./chronicle";
+import { promisesApi } from "./promises";
 import { BASE, getToken, request } from "./request";
 export { ApiError } from "./request";
 
 export const api = {
   ...aiChatApi,
+  ...promisesApi,
   // Auth
   login: (username: string, password: string) =>
     request<{ access_token: string }>("/auth/login", {
@@ -436,57 +438,6 @@ export const api = {
       signal,
     });
   },
-
-  // Plot Threads
-  listThreads: (storyId: string) => request<import("../types").PlotThread[]>(`/stories/${storyId}/threads`),
-  createThread: (
-    storyId: string,
-    data: { name: string } & Partial<Omit<import("../types").PlotThread, "id" | "appearances">>,
-  ) =>
-    request<import("../types").PlotThread>(`/stories/${storyId}/threads`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  updateThread: (
-    threadId: string,
-    data: Partial<Omit<import("../types").PlotThread, "id" | "appearances" | "status">> & { status?: string },
-  ) =>
-    request<import("../types").PlotThread>(`/threads/${threadId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  deleteThread: (threadId: string) => request<void>(`/threads/${threadId}`, { method: "DELETE" }),
-  addThreadAppearance: (threadId: string, nodeId: string, note?: string) =>
-    request<import("../types").PlotThreadAppearance>(`/threads/${threadId}/appearances`, {
-      method: "POST",
-      body: JSON.stringify({ node_id: nodeId, note: note ?? "" }),
-    }),
-  removeThreadAppearance: (threadId: string, nodeId: string) =>
-    request<void>(`/threads/${threadId}/appearances/${nodeId}`, { method: "DELETE" }),
-  analyzeThread: (threadId: string) =>
-    request<import("../types").StructuredResult>(`/threads/${threadId}/analyze`, { method: "POST" }),
-
-  // Twists
-  listTwists: (storyId: string) => request<import("../types").Twist[]>(`/stories/${storyId}/twists`),
-  createTwist: (storyId: string, data: { name: string; twist_type?: string }) =>
-    request<import("../types").Twist>(`/stories/${storyId}/twists`, {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
-  updateTwist: (twistId: string, data: Partial<import("../types").Twist>) =>
-    request<import("../types").Twist>(`/twists/${twistId}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
-  deleteTwist: (twistId: string) => request<void>(`/twists/${twistId}`, { method: "DELETE" }),
-  getTwistsForScene: (nodeId: string) => request<import("../types").Twist[]>(`/structure/${nodeId}/twists`),
-  analyzeTwist: (twistId: string) =>
-    request<import("../types").StructuredResult>(`/twists/${twistId}/analyze`, { method: "POST" }),
-  linkClueToScene: (twistId: string, clueId: string, sceneId: string) =>
-    request<import("../types").Twist>(`/twists/${twistId}/clues/${clueId}/link`, {
-      method: "PATCH",
-      body: JSON.stringify({ scene_id: sceneId }),
-    }),
 
   // Reader Knowledge
   listReaderKnowledgeEvents: (storyId: string) =>

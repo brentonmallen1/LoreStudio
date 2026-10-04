@@ -7,7 +7,7 @@ from ....models.twist import Twist
 
 def build_twist_analysis_prompt(
     twist: Twist,
-    clue_scenes: list[dict],  # [{clue_id, clue_text, points_to, subtlety, scene_title, scene_content}]
+    clue_scenes: list[dict],  # [{clue_id, clue_text, quote, points_to, subtlety, scene_title, scene_content}]
     reveal_scene: dict | None,  # {title, content}
     story_title: str,
     all_scenes: list[dict] | None = None,  # [{id, title}] for suggesting scene links
@@ -19,7 +19,10 @@ def build_twist_analysis_prompt(
         if c.get("placement"):
             scene_ref += f" ({c['placement']})"
         excerpt = ""
-        if c.get("scene_content"):
+        if c.get("quote"):
+            # The words in the scene the author marked as the clue (doc 18 C6)
+            excerpt = f'\n    The words in the scene: "{c["quote"][:400]}"'
+        elif c.get("scene_content"):
             # Include a truncated excerpt of the scene for context
             excerpt = f"\n    Scene excerpt: {c['scene_content'][:600]}{'...' if len(c.get('scene_content', '')) > 600 else ''}"
         clue_lines.append(f'  - Clue ({c["subtlety"]}, {direction}) {scene_ref}: "{c["clue_text"]}"{excerpt}')

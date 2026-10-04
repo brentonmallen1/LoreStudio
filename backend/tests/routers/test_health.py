@@ -10,7 +10,7 @@ import uuid
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models.plot_thread import PlotThread
+from app.models.plot_thread import PlotThread, PlotThreadAppearance
 from app.models.story import Story
 from app.models.structure import StructureNode
 
@@ -38,14 +38,18 @@ def test_alerts_count_open_findings_including_crossing_threads(client: TestClien
     db_session.add(story)
     a, b, c, d = (_scene(story.id, f"Scene {x}", i) for i, x in enumerate("ABCD"))
     db_session.add_all([a, b, c, d])
+    one = PlotThread(story_id=story.id, name="One", mice_type="milieu")
+    two = PlotThread(story_id=story.id, name="Two", mice_type="idea")
+    db_session.add_all([one, two])
+    db_session.flush()
     db_session.add_all(
         [
-            PlotThread(story_id=story.id, name="One", status="open", mice_type="milieu",
-                       opens_at_node_id=a.id, closes_at_node_id=c.id),
-            PlotThread(story_id=story.id, name="Two", status="open", mice_type="idea",
-                       opens_at_node_id=b.id, closes_at_node_id=d.id),
+            PlotThreadAppearance(thread_id=one.id, node_id=a.id, role="opens"),
+            PlotThreadAppearance(thread_id=one.id, node_id=c.id, role="closes"),
+            PlotThreadAppearance(thread_id=two.id, node_id=b.id, role="opens"),
+            PlotThreadAppearance(thread_id=two.id, node_id=d.id, role="closes"),
         ]
-    )  # fmt: skip
+    )
     db_session.commit()
 
     alerts = client.get(f"/api/stories/{story.id}/health/alerts").json()

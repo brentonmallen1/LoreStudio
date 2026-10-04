@@ -62,6 +62,7 @@ from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
 from ..services.text_utils import prose_text
+from ..services.thread_roles import tries
 from ..services.word_count import WORD_COUNT_RANGES
 from ..services.wording import count
 
@@ -242,7 +243,7 @@ async def analyze_economy(
         threads_summary.append(
             f'- "{t.name}" [{t.mice_type or "untyped"}] — status: {t.status}, '
             f"appears in {len(t.appearances)} scene(s), "
-            f"{len(t.try_fail_cycles or [])} try/fail cycle(s)"
+            f"{len(tries(t))} tries marked"
         )
 
     # Scene summary (which threads are tagged per scene)

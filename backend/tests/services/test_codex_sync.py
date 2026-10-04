@@ -13,7 +13,7 @@ from app.models.plot_thread import PlotThread, PlotThreadAppearance
 from app.models.scene_link import SceneLink
 from app.models.story import Story
 from app.models.structure import StructureNode
-from app.models.twist import Twist
+from app.models.twist import Twist, TwistClue
 from app.services.codex.sync import sync_story
 from tests.fixtures.dialogue import attributed
 
@@ -107,15 +107,15 @@ def test_reading_order_and_speakers_are_derived_not_authored(db_session, test_us
     assert src.ref_id == first.id and second.id == db_session.get(CodexNode, follows[0].dst_id).ref_id
 
 
-def test_a_clue_pointing_at_a_deleted_scene_is_not_an_edge(db_session, test_user):
-    """Twist clues are JSON with no foreign key, so their scene ids can go stale."""
+def test_a_clue_with_no_scene_is_not_an_edge(db_session, test_user):
+    """A clue not yet placed in a scene (doc 18 C1: clues are rows) draws no clue_in edge."""
     story = _story(db_session, test_user)
     scene = _scene(db_session, story, "Arrival", 0)
     db_session.add(
         Twist(
             story_id=story.id,
             name="The light was out",
-            clues=[{"node_id": scene.id, "text": "the unlit lamp"}, {"node_id": "gone", "text": "a torn page"}],
+            clues=[TwistClue(node_id=scene.id, text="the unlit lamp"), TwistClue(text="a torn page", position=1)],
         )
     )
     db_session.commit()

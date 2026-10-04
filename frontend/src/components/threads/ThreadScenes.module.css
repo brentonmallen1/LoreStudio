@@ -1,0 +1,137 @@
+.wrap {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 0.5rem 0.9rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-section-title);
+}
+
+.meta,
+.empty {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.empty {
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(6rem, 9rem) minmax(8rem, 10rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.scene {
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  color: var(--color-text);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene:hover {
+  text-decoration: underline;
+}
+
+.role,
+.add select {
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.3rem;
+  min-height: 1.6rem;
+}
+
+.role[data-role="opens"],
+.role[data-role="closes"] {
+  font-weight: 600;
+}
+
+.note {
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.35rem;
+  min-width: 0;
+}
+
+.note:hover,
+.note:focus {
+  border-color: var(--color-control-border);
+  background: var(--color-surface);
+}
+
+.remove {
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: var(--color-surface-2);
+  color: var(--color-danger);
+}
+
+.add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  margin: 0.5rem 0 0.25rem;
+  color: var(--color-text-muted);
+}
+
+@container (max-width: 40rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .remove {
+    grid-row: 1;
+    grid-column: 3;
+  }
+
+  .note {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}

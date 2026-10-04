@@ -31,7 +31,7 @@ from .setting import Setting
 from .snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from .story import Story
 from .structure import StoryStructureTemplate, StructureNode
-from .twist import Twist
+from .twist import Twist, TwistClue
 from .user import User
 from .world_system import WorldSystem
 
@@ -73,6 +73,7 @@ __all__ = [
     "Change",
     "DialogueBlock",
     "Twist",
+    "TwistClue",
     "OutlineItem",
     "StorySnapshot",
     "StoryBackupSettings",

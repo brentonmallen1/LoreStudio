@@ -22,7 +22,7 @@ def test_a_significant_character_missing_from_the_last_scenes(db_session, test_u
 
 def test_a_long_thread_with_no_try_fail_cycle(db_session, test_user):
     story, nodes = build_findings_story(db_session, test_user)
-    thread = PlotThread(story_id=story.id, name="The light", status="open")
+    thread = PlotThread(story_id=story.id, name="The light")
     db_session.add(thread)
     db_session.flush()
     for title in ("Arrival", "The Lamp", "Supper"):
@@ -31,7 +31,8 @@ def test_a_long_thread_with_no_try_fail_cycle(db_session, test_user):
     f = _checks(story, db_session)["thin_try_fail"]
     assert f.anchor.thread_id == thread.id and f.text == "The light runs through 3 scenes without a try/fail cycle"
 
-    thread.try_fail_cycles = [{"try": "x", "fail": "y"}]
+    # A scene that is a try (doc 18 C1: tries are roles on the thread's scenes)
+    thread.appearances[1].role = "fails"
     db_session.commit()
     assert "thin_try_fail" not in _checks(story, db_session)
 

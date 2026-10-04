@@ -11,6 +11,7 @@ from ...models.structure import StructureNode
 from ...schemas.findings import Finding, FindingAnchor
 from ..codex.presence import known_as, name_patterns
 from ..mice_validation import validate_thread_nesting
+from ..thread_roles import tries
 from ..word_count import get_word_count_status
 from .make import make
 from .view import StoryView
@@ -77,7 +78,7 @@ def computed(view: StoryView) -> list[Finding]:
         )
     for t in view.threads:
         scenes = len(t.appearances or [])
-        if t.status != "resolved" and scenes >= THIN_THREAD_SCENES and not (t.try_fail_cycles or []):
+        if t.status == "open" and scenes >= THIN_THREAD_SCENES and not tries(t):
             out.append(
                 make(
                     "thin_try_fail",

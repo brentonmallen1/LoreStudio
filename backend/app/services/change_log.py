@@ -40,7 +40,7 @@ from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.twist import Twist
+from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
@@ -63,6 +63,7 @@ ENTITY_MODELS: dict[str, type] = {
     "compendium_entry": CompendiumEntry,
     "compendium_attachment": CompendiumAttachment,
     "twist": Twist,
+    "twist_clue": TwistClue,
     "plot_thread": PlotThread,
     "plot_thread_appearance": PlotThreadAppearance,
     "finding_dismissal": FindingDismissal,
@@ -98,6 +99,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "compendium_entries": CompendiumEntry,
     "compendium_attachments": CompendiumAttachment,
     "twists": Twist,
+    "twist_clues": TwistClue,
     "finding_dismissals": FindingDismissal,
     "proposal_declines": ProposalDecline,
     # Answers to the Codex's proposals (doc 13 P4): who is here, and what the reader learns.
@@ -404,6 +406,11 @@ def capture_plot_thread(thread: PlotThread, db: Session) -> dict[str, list[dict]
     return {"plot_threads": [_row(thread)], "plot_thread_appearances": [_row(a) for a in appearances]}
 
 
+def capture_twist(twist: Twist, db: Session) -> dict[str, list[dict]]:
+    clues = db.query(TwistClue).filter(TwistClue.twist_id == twist.id).all()
+    return {"twists": [_row(twist)], "twist_clues": [_row(c) for c in clues]}
+
+
 #: Models whose delete takes child rows with it; everything else is a single-row bundle.
 _CAPTURES: dict[type, Callable[[Any, Session], dict[str, list[dict]]]] = {
     StructureNode: capture_node_tree,
@@ -413,6 +420,7 @@ _CAPTURES: dict[type, Callable[[Any, Session], dict[str, list[dict]]]] = {
     Era: capture_era,
     CompendiumEntry: capture_compendium_entry,
     PlotThread: capture_plot_thread,
+    Twist: capture_twist,
 }
 
 

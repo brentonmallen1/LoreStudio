@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from .reader_knowledge import ReaderKnowledgeEvent
     from .scene_link import SceneLink
     from .story import Story
-    from .twist import Twist
+    from .twist import Twist, TwistClue
 
 
 class StoryStructureTemplate(Base):
@@ -113,6 +113,7 @@ class StructureNode(Base):
     twists_revealed: Mapped[list["Twist"]] = relationship(
         "Twist", foreign_keys="Twist.revealed_at_node_id", back_populates="revealed_at_node"
     )
+    twist_clues: Mapped[list["TwistClue"]] = relationship("TwistClue", back_populates="node")
     children: Mapped[list["StructureNode"]] = relationship(
         "StructureNode",
         back_populates="parent",

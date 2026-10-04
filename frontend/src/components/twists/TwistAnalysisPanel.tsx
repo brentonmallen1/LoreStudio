@@ -57,7 +57,7 @@ export default function TwistAnalysisPanel({ twistId, onClueLinked }: Props) {
     if (!clueId || !sceneId) return;
     setLinking(clueId);
     try {
-      await api.linkClueToScene(twistId, clueId, sceneId);
+      await api.updateClue(clueId, { node_id: sceneId });
       onClueLinked?.();
     } catch {
       // ignore

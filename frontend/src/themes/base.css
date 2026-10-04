@@ -45,9 +45,6 @@
      theme. Riding on --color-nlp keeps the teal and makes it follow the palette. */
   --color-accent-secondary: var(--color-nlp);
   /* ── Brainstorm panel accent (amber/gold) ── */
-  /* ── Twist accent ── */
-  /* Twists are the author's planning, not the Assistant's: a story colour, not AI purple (doc 18). */
-  --twist-accent: var(--segment-stage);
   /* ── Width the docked AI panel takes; PanelFrame sets it at runtime ── */
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));

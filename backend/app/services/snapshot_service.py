@@ -39,9 +39,9 @@ from ..models.setting import Setting
 from ..models.snapshot import StoryBackupSettings, StorySnapshot
 from ..models.story import Story
 from ..models.structure import StructureNode
-from ..models.twist import Twist
+from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
-from .snapshot_legacy import legacy_notes
+from .snapshot_legacy import legacy_notes, legacy_promises
 
 FORMAT_VERSION = 1
 APP_VERSION = "1.0.0"
@@ -89,6 +89,7 @@ _DELTA_ENTITY_KEYS = [
     "plot_threads",
     "plot_thread_appearances",
     "twists",
+    "twist_clues",
     "locations",
     "scene_settings",
     "scene_presence",
@@ -158,6 +159,7 @@ SNAPSHOT_INDIRECT_TABLES: dict[str, str] = {
     "character_interviews": "interviews",
     "character_journey_summaries": "character_journey_summaries",
     "plot_thread_appearances": "plot_thread_appearances",
+    "twist_clues": "twist_clues",
     "scene_settings": "scene_settings",
     "scene_presence": "scene_presence",
     "location_travel": "location_travel",
@@ -350,8 +352,12 @@ def serialize_story(story_id: str, db: Session, settings: StoryBackupSettings | 
         else []
     )
 
-    # Twists (clues embedded in JSON)
+    # Twists + their clues
     data["twists"] = [_model_to_dict(t) for t in db.query(Twist).filter(Twist.story_id == story_id).all()]
+    data["twist_clues"] = [
+        _model_to_dict(c)
+        for c in db.query(TwistClue).join(Twist, Twist.id == TwistClue.twist_id).filter(Twist.story_id == story_id)
+    ]
 
     # Locations + scene_settings
     loc_ids = [row[0] for row in db.query(Location.id).filter(Location.story_id == story_id).all()]
@@ -862,6 +868,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     node_ids = [row[0] for row in db.query(StructureNode.id).filter(StructureNode.story_id == story_id).all()]
     loc_ids = [row[0] for row in db.query(Location.id).filter(Location.story_id == story_id).all()]
     thread_ids = [row[0] for row in db.query(PlotThread.id).filter(PlotThread.story_id == story_id).all()]
+    twist_ids = [row[0] for row in db.query(Twist.id).filter(Twist.story_id == story_id).all()]
     outline_ids = [row[0] for row in db.query(Outline.id).filter(Outline.story_id == story_id).all()]
     entry_ids = [row[0] for row in db.query(CompendiumEntry.id).filter(CompendiumEntry.story_id == story_id).all()]
 
@@ -883,6 +890,7 @@ def _delete_story_content(story_id: str, db: Session, state: dict | None = None)
     _bulk_delete(CharacterJourneySummary, CharacterJourneySummary.character_id, char_ids)
     _bulk_delete(DialogueBlock, DialogueBlock.scene_id, node_ids)
     _bulk_delete(PlotThreadAppearance, PlotThreadAppearance.thread_id, thread_ids)
+    _bulk_delete(TwistClue, TwistClue.twist_id, twist_ids)
     _bulk_delete(SceneSetting, SceneSetting.location_id, loc_ids)
     _bulk_delete(LocationTravel, LocationTravel.from_location_id, loc_ids)
     _bulk_delete(OutlineItem, OutlineItem.outline_id, outline_ids)
@@ -966,9 +974,12 @@ def _insert_story_content(state: dict, db: Session) -> None:  # noqa: PLR0915
 
     # Flat entities
     _insert_all(CharacterRelationship, state.get("character_relationships", []))
+    # Snapshots taken before migration 0028 kept roles and clues in older fields.
+    appearances, clues = legacy_promises(state)
     _insert_all(PlotThread, state.get("plot_threads", []))
-    _insert_all(PlotThreadAppearance, state.get("plot_thread_appearances", []))
+    _insert_all(PlotThreadAppearance, appearances)
     _insert_all(Twist, state.get("twists", []))
+    _insert_all(TwistClue, clues)
     _insert_all(SceneSetting, state.get("scene_settings", []))
     _insert_all(ScenePresence, state.get("scene_presence", []))
     _insert_all(WorldSystem, state.get("world_systems", []))

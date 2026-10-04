@@ -181,7 +181,7 @@ def get_story_overview(
     goals = story.goals or []
 
     # Thread counts
-    thread_counts: dict[str, int] = {"open": 0, "developing": 0, "resolved": 0}
+    thread_counts: dict[str, int] = {"planned": 0, "open": 0, "resolved": 0, "set_aside": 0}
     for t in threads:
         if t.status in thread_counts:
             thread_counts[t.status] += 1
@@ -304,7 +304,7 @@ def get_story_overview(
         goals_done=sum(1 for g in goals if g.get("completed")),
         goals_total=len(goals),
         next_goal=next((g.get("text", "") for g in goals if not g.get("completed")), ""),
-        open_threads=[t.name for t in sorted(threads, key=lambda t: t.created_at) if t.status != "resolved"],
+        open_threads=[t.name for t in sorted(threads, key=lambda t: t.created_at) if t.status in ("planned", "open")],
     )
 
 

@@ -11,6 +11,7 @@ from ..schemas.ai_responses import StructuredResult, ThreadAnalysisResponse
 from ..schemas.plot_thread import (
     PlotThreadAppearanceCreate,
     PlotThreadAppearanceOut,
+    PlotThreadAppearanceUpdate,
     PlotThreadCreate,
     PlotThreadOut,
     PlotThreadUpdate,
@@ -61,7 +62,6 @@ def create_thread(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
-    check_nodes(db, story_id, body.model_dump(), ("opens_at_node_id", "closes_at_node_id"))
     thread = PlotThread(story_id=story_id, **body.model_dump())
     if not thread.color_slot:
         thread.color_slot = next_slot(
@@ -93,8 +93,7 @@ def update_thread(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     thread = _verify_thread(thread_id, db, current_user)
-    data = patch_fields(body, nullable={"mice_type", "opens_at_node_id", "closes_at_node_id"})
-    check_nodes(db, thread.story_id, data, ("opens_at_node_id", "closes_at_node_id"))
+    data = patch_fields(body, nullable={"mice_type"})
     change_log.record_update(
         db,
         thread,
@@ -158,8 +157,11 @@ def add_appearance(
         .first()
     )
     if existing:
-        return existing
-    appearance = PlotThreadAppearance(thread_id=thread_id, node_id=body.node_id, note=body.note)
+        # Placing a scene that is already on the thread says what it does there.
+        return _edit_appearance(
+            existing, thread, PlotThreadAppearanceUpdate(role=body.role), db, current_user.id, client_id
+        )
+    appearance = PlotThreadAppearance(thread_id=thread_id, node_id=body.node_id, role=body.role, note=body.note)
     db.add(appearance)
     db.flush()
     change_log.record_row_create(
@@ -175,6 +177,54 @@ def add_appearance(
     db.commit()
     db.refresh(appearance)
     return appearance
+
+
+def _edit_appearance(
+    appearance: PlotThreadAppearance,
+    thread: PlotThread,
+    body: PlotThreadAppearanceUpdate,
+    db: Session,
+    actor_id: str,
+    client_id: str | None,
+) -> PlotThreadAppearance:
+    data = {k: v for k, v in patch_fields(body, nullable=set()).items() if getattr(appearance, k) != v}
+    if data:
+        change_log.record_update(
+            db,
+            appearance,
+            data,
+            entity_type="plot_thread_appearance",
+            story_id=thread.story_id,
+            label=f"Edit {{fields}} on {thread.name} in “{_scene_title(appearance.node_id, db)}”",
+            actor_id=actor_id,
+            client_id=client_id,
+        )
+        for key, value in data.items():
+            setattr(appearance, key, value)
+        db.commit()
+        db.refresh(appearance)
+    return appearance
+
+
+@router.patch("/threads/{thread_id}/appearances/{node_id}", response_model=PlotThreadAppearanceOut)
+def update_appearance(
+    thread_id: str,
+    node_id: str,
+    body: PlotThreadAppearanceUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """What a scene does to the thread (its role) and the author's note on it."""
+    thread = _verify_thread(thread_id, db, current_user)
+    appearance = (
+        db.query(PlotThreadAppearance)
+        .filter(PlotThreadAppearance.thread_id == thread_id, PlotThreadAppearance.node_id == node_id)
+        .first()
+    )
+    if not appearance:
+        raise HTTPException(status_code=404, detail="That scene is not on this thread")
+    return _edit_appearance(appearance, thread, body, db, current_user.id, client_id)
 
 
 @router.delete("/threads/{thread_id}/appearances/{node_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -223,27 +273,26 @@ async def analyze_thread(
     if not story:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    # The thread's scenes in reading order, written or planned, with what the author noted
-    # each one does; the opening and closing scenes count even when not tagged (doc 18).
-    notes = {a.node_id: a.note for a in thread.appearances}
-    tagged = set(notes) | {n for n in (thread.opens_at_node_id, thread.closes_at_node_id) if n}
+    # The thread's scenes in reading order, written or planned, with what each one does to it
+    # and what the author noted there (doc 18).
+    on_thread = {a.node_id: a for a in thread.appearances}
     all_nodes = db.query(StructureNode).filter(StructureNode.story_id == thread.story_id).all()
     order = order_of(all_nodes)
     titles = {n.id: n.title or "Untitled" for n in all_nodes}
 
     scenes = []
     for n in sorted(all_nodes, key=lambda n: order.get(n.id, 0)):
-        if n.id not in tagged:
+        appearance = on_thread.get(n.id)
+        if appearance is None:
             continue
-        role = "opens" if n.id == thread.opens_at_node_id else "closes" if n.id == thread.closes_at_node_id else ""
         scenes.append(
             {
                 "id": n.id,
                 "title": titles[n.id],
                 "content_excerpt": prose_text(n.content or ""),
                 "synopsis": n.synopsis or "",
-                "note": notes.get(n.id) or "",
-                "role": role,
+                "note": appearance.note or "",
+                "role": appearance.role,
             }
         )
 

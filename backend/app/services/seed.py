@@ -24,7 +24,7 @@ from ..models.scene_link import SceneLink
 from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
-from ..models.twist import Twist
+from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from .seed_chronicle import seed_lighthouse_chronicle
@@ -98,6 +98,20 @@ STRUCTURE_TEMPLATES = [
         ],
     },
 ]
+
+
+def _role(db: Session, thread: PlotThread, node: Any, role: str, note: str = "") -> None:
+    """Say what a scene does to a thread (doc 18 C1), adding the scene when it is not on it."""
+    node_id = node if isinstance(node, str) else node.id
+    db.flush()
+    row = db.query(PlotThreadAppearance).filter_by(thread_id=thread.id, node_id=node_id).first()
+    if row is None:
+        db.add(PlotThreadAppearance(thread_id=thread.id, node_id=node_id, role=role, note=note))
+        return
+    if row.role not in ("opens", "closes"):
+        row.role = role
+    if note and note not in (row.note or ""):
+        row.note = f"{row.note}\n{note}" if row.note else note
 
 
 def seed_structure_templates():
@@ -797,7 +811,6 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Missing Logs",
             description="Several entries from five years ago are missing or damaged. What was recorded there — and why were they removed?",
-            status="resolved",
             color_slot=1,
             mice_type="idea",  # A question raised → answered
         )
@@ -807,7 +820,6 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Visitor's Identity",
             description="Who is this 'historian' really, and why do they know so much about Harrow Island and the Vance family?",
-            status="resolved",
             color_slot=4,
             mice_type="idea",  # Who is she? → answered when Calder's identity is revealed
         )
@@ -817,7 +829,6 @@ def seed_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="Eleanor's Father",
             description="What really happened in the final months of Thomas Vance's life? Eleanor's account has gaps she won't examine.",
-            status="resolved",
             color_slot=2,
             mice_type="character",  # Eleanor's dissatisfaction with her idealized image of her father → acceptance of who he was
         )
@@ -1535,38 +1546,39 @@ def seed_demo_story():  # noqa: PLR0915
 
         # ── MICE open/close points ──
         # thread_logs (idea): opens when the log is first central (scene1), closes when Eleanor makes a new entry acknowledging the gap (scene10)
-        thread_logs.opens_at_node_id = scene1.id
-        thread_logs.closes_at_node_id = scene10.id
+        _role(db, thread_logs, scene1.id, "opens")
+        _role(db, thread_logs, scene10.id, "closes")
 
         # thread_identity (idea): opens when the Visitor arrives and her identity is in question (scene2), closes at her departure (scene8)
-        thread_identity.opens_at_node_id = scene2.id
-        thread_identity.closes_at_node_id = scene8.id
+        _role(db, thread_identity, scene2.id, "opens")
+        _role(db, thread_identity, scene8.id, "closes")
 
         # thread_father (character): opens with the first mention of Thomas Vance (scene1), closes when Eleanor records the truth and makes peace (scene10)
-        thread_father.opens_at_node_id = scene1.id
-        thread_father.closes_at_node_id = scene10.id
+        _role(db, thread_father, scene1.id, "opens")
+        _role(db, thread_father, scene10.id, "closes")
 
         # ── Try/fail cycles for Eleanor's Father (character arc) ──
-        thread_father.try_fail_cycles = [
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Eleanor lets the Visitor in but deflects all questions about her father — she stays polite and closed",
-                "outcome": "fail_setback",
-                "node_id": scene2.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Eleanor shows the Visitor the logbooks to prove she has nothing to hide — and discovers the gap herself for the first time",
-                "outcome": "fail_disaster",
-                "node_id": scene4.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Eleanor confronts what her father did and releases the logbook to Calder — she lets go of the false version of him she'd been protecting",
-                "outcome": "success_cost",
-                "node_id": scene7.id,
-            },
-        ]
+        _role(
+            db,
+            thread_father,
+            scene2.id,
+            "fails",
+            "Eleanor lets the Visitor in but deflects all questions about her father — she stays polite and closed",
+        )
+        _role(
+            db,
+            thread_father,
+            scene4.id,
+            "fails_worse",
+            "Eleanor shows the Visitor the logbooks to prove she has nothing to hide — and discovers the gap herself for the first time",
+        )
+        _role(
+            db,
+            thread_father,
+            scene7.id,
+            "costs",
+            "Eleanor confronts what her father did and releases the logbook to Calder — she lets go of the false version of him she'd been protecting",
+        )
 
         # ── Compendium entries ──────────────────────────────────────────────
         db.add(
@@ -1983,37 +1995,36 @@ def seed_demo_story():  # noqa: PLR0915
                 the_truth="Calder visited Harrow Island two weeks before Thomas Vance died. She spoke with him directly. She already knows what happened to the Ardent — she came back to find out whether Eleanor knows too.",
                 the_misdirection="The Visitor is a neutral Maritime Heritage Foundation investigator who arrived for the first time during the storm, driven purely by professional interest in the lighthouse records.",
                 twist_type="identity",
-                status="revealed",
                 revealed_at_node_id=scene6.id,
                 clues=[
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene2.id,
-                        "text": "The Visitor is oddly calm for someone stranded in a storm — no panic, no questions about the ferry or rescue. She seems to have expected this.",
-                        "points_to": "truth",
-                        "subtlety": "subtle",
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene3.id,
-                        "text": "When Eleanor mentions her father's name unprompted, Calder's expression flickers — just for a moment — before returning to professional neutrality.",
-                        "points_to": "truth",
-                        "subtlety": "subtle",
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene2.id,
-                        "text": "The Visitor shows her Maritime Heritage Foundation credentials without being asked — establishing a believable cover story immediately.",
-                        "points_to": "misdirection",
-                        "subtlety": "obvious",
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene3.id,
-                        "text": "She asks only about shipping records and navigation logs — nothing personal. Appears genuinely interested in historical documentation.",
-                        "points_to": "misdirection",
-                        "subtlety": "moderate",
-                    },
+                    TwistClue(
+                        node_id=scene2.id,
+                        text="The Visitor is oddly calm for someone stranded in a storm — no panic, no questions about the ferry or rescue. She seems to have expected this.",
+                        points_to="truth",
+                        subtlety="subtle",
+                        position=0,
+                    ),
+                    TwistClue(
+                        node_id=scene3.id,
+                        text="When Eleanor mentions her father's name unprompted, Calder's expression flickers — just for a moment — before returning to professional neutrality.",
+                        points_to="truth",
+                        subtlety="subtle",
+                        position=1,
+                    ),
+                    TwistClue(
+                        node_id=scene2.id,
+                        text="The Visitor shows her Maritime Heritage Foundation credentials without being asked — establishing a believable cover story immediately.",
+                        points_to="misdirection",
+                        subtlety="obvious",
+                        position=2,
+                    ),
+                    TwistClue(
+                        node_id=scene3.id,
+                        text="She asks only about shipping records and navigation logs — nothing personal. Appears genuinely interested in historical documentation.",
+                        points_to="misdirection",
+                        subtlety="moderate",
+                        position=3,
+                    ),
                 ],
             )
         )
@@ -2022,33 +2033,33 @@ def seed_demo_story():  # noqa: PLR0915
             Twist(
                 story_id=story.id,
                 name="Thomas Vance Falsified the Logs",
+                color_slot=5,
                 the_truth='On the night the Ardent went down, Thomas Vance did not answer its distress call and logged a quiet night: "Clear. Light wind. No incidents." Afterwards he destroyed six months of entries that would have shown how far his keeping of the light had slipped.',
                 the_misdirection="The missing log entries are a clerical gap or the result of Thomas's illness — the lighthouse records are otherwise reliable and Eleanor has no reason to doubt her father.",
                 twist_type="reveal",
-                status="revealed",
                 revealed_at_node_id=scene6.id,
                 clues=[
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene1.id,
-                        "text": "Eleanor describes her father's obsessive log-keeping with reverence — establishing how impossible any gap should be.",
-                        "points_to": "truth",
-                        "subtlety": "subtle",
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene3.id,
-                        "text": "A faint smell of woodsmoke near the old archive cabinet — ash residue in the corner, barely visible.",
-                        "points_to": "truth",
-                        "subtlety": "hidden",
-                    },
-                    {
-                        "id": str(uuid.uuid4()),
-                        "node_id": scene1.id,
-                        "text": "Eleanor's father always said 'the glass doesn't lie' — suggesting he valued honesty above all else.",
-                        "points_to": "misdirection",
-                        "subtlety": "moderate",
-                    },
+                    TwistClue(
+                        node_id=scene1.id,
+                        text="Eleanor describes her father's obsessive log-keeping with reverence — establishing how impossible any gap should be.",
+                        points_to="truth",
+                        subtlety="subtle",
+                        position=0,
+                    ),
+                    TwistClue(
+                        node_id=scene3.id,
+                        text="A faint smell of woodsmoke near the old archive cabinet — ash residue in the corner, barely visible.",
+                        points_to="truth",
+                        subtlety="hidden",
+                        position=1,
+                    ),
+                    TwistClue(
+                        node_id=scene1.id,
+                        text="Eleanor's father always said 'the glass doesn't lie' — suggesting he valued honesty above all else.",
+                        points_to="misdirection",
+                        subtlety="moderate",
+                        position=2,
+                    ),
                 ],
             )
         )
@@ -2779,7 +2790,6 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Anomalous Signal",
             description="What is the signal? Where does it come from? Is it alien, human, or something else entirely?",
-            status="resolved",
             color_slot=3,
             mice_type="idea",  # A question raised → answered
         )
@@ -2789,7 +2799,6 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="The Lost Colony",
             description="What happened to the Persephone and its 1,247 colonists? Where have they been for thirty years?",
-            status="resolved",
             color_slot=1,
             mice_type="milieu",  # Entering unknown space → understanding achieved
         )
@@ -2799,7 +2808,6 @@ def seed_scifi_demo_story():  # noqa: PLR0915
             story_id=story.id,
             name="Yuki's Isolation",
             description="Yuki chose solitude as safety. The signal forces her to decide if she will stay hidden or reach out.",
-            status="resolved",
             color_slot=5,
             mice_type="character",  # Dissatisfaction with isolation → choosing connection
         )
@@ -3444,57 +3452,59 @@ def seed_scifi_demo_story():  # noqa: PLR0915
         )
 
         # ── MICE open/close points ───────────────────────────────────────────
-        thread_signal.opens_at_node_id = scene1.id
-        thread_signal.closes_at_node_id = scene10.id
+        _role(db, thread_signal, scene1.id, "opens")
+        _role(db, thread_signal, scene10.id, "closes")
 
-        thread_colony.opens_at_node_id = scene4.id
-        thread_colony.closes_at_node_id = scene10.id
+        _role(db, thread_colony, scene4.id, "opens")
+        _role(db, thread_colony, scene10.id, "closes")
 
-        thread_isolation.opens_at_node_id = scene1.id
-        thread_isolation.closes_at_node_id = scene10.id
+        _role(db, thread_isolation, scene1.id, "opens")
+        _role(db, thread_isolation, scene10.id, "closes")
 
         # ── Try/fail cycles ──────────────────────────────────────────────────
-        thread_signal.try_fail_cycles = [
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki asks MIRA to analyze the burst — MIRA classifies it as stellar interference and closes the question",
-                "outcome": "fail_setback",
-                "node_id": scene2.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki manually records the raw signal and identifies the Persephone carrier wave — proof it is not noise, but also proof of a 30-year-old mystery",
-                "outcome": "fail_disaster",
-                "node_id": scene4.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki transmits a response, violating Protocol Delta-7 — the career cost is real, but the signal is answered",
-                "outcome": "success_cost",
-                "node_id": scene8.id,
-            },
-        ]
+        _role(
+            db,
+            thread_signal,
+            scene2.id,
+            "fails",
+            "Yuki asks MIRA to analyze the burst — MIRA classifies it as stellar interference and closes the question",
+        )
+        _role(
+            db,
+            thread_signal,
+            scene4.id,
+            "fails_worse",
+            "Yuki manually records the raw signal and identifies the Persephone carrier wave — proof it is not noise, but also proof of a 30-year-old mystery",
+        )
+        _role(
+            db,
+            thread_signal,
+            scene8.id,
+            "costs",
+            "Yuki transmits a response, violating Protocol Delta-7 — the career cost is real, but the signal is answered",
+        )
 
-        thread_isolation.try_fail_cycles = [
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki finds comfort in routine and her relationship with MIRA — the signal disrupts but doesn't yet break her equilibrium",
-                "outcome": "fail_setback",
-                "node_id": scene2.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki makes the decision to respond alone, accepting the professional consequences — isolation chosen becomes isolation rejected",
-                "outcome": "success_partial",
-                "node_id": scene8.id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "description": "Yuki and Priya work together to decode the signal; Yuki tells The Drift 'you are not alone' — she has rebuilt what she abandoned",
-                "outcome": "success_cost",
-                "node_id": scene10.id,
-            },
-        ]
+        _role(
+            db,
+            thread_isolation,
+            scene2.id,
+            "fails",
+            "Yuki finds comfort in routine and her relationship with MIRA — the signal disrupts but doesn't yet break her equilibrium",
+        )
+        _role(
+            db,
+            thread_isolation,
+            scene8.id,
+            "costs",
+            "Yuki makes the decision to respond alone, accepting the professional consequences — isolation chosen becomes isolation rejected",
+        )
+        _role(
+            db,
+            thread_isolation,
+            scene10.id,
+            "costs",
+            "Yuki and Priya work together to decode the signal; Yuki tells The Drift 'you are not alone' — she has rebuilt what she abandoned",
+        )
 
         # ── Scene Links ──────────────────────────────────────────────────────
         db.add(
@@ -4016,7 +4026,7 @@ def seed_flash_fiction_demo():
     A tight Character-thread MICE story showing how a single question
     (Will Lena finally let go of the life she had before?) opens and closes
     across three beats. Ideal for demonstrating the mice-single template,
-    MICE quotient tracking, and plot thread opens_at / closes_at nodes.
+    MICE quotient tracking, and the scenes where the plot thread opens and closes.
     """
     with Session(engine) as db:
         admin = db.query(User).filter(User.username == settings.admin_username).first()
@@ -4091,7 +4101,6 @@ def seed_flash_fiction_demo():
             story_id=story.id,
             name="Will Lena let go?",
             description="Character thread: Lena is dissatisfied — unable to grieve properly, unable to move on. The story opens the question when she arrives and closes it when she leaves the key.",
-            status="resolved",
             color_slot=4,
             mice_type="character",
         )
@@ -4143,7 +4152,7 @@ def seed_flash_fiction_demo():
                 note="Thread opens. Lena arrives for the first time — Character MICE question established.",
             )
         )
-        thread.opens_at_node_id = opening.id
+        _role(db, thread, opening.id, "opens")
 
         # Try/Fail Beat
         tryfail = StructureNode(
@@ -4230,8 +4239,7 @@ def seed_flash_fiction_demo():
                 note="Thread closes. Lena releases her claim on the house — and on the grief that was holding her in place.",
             )
         )
-        thread.closes_at_node_id = resolution.id
-        thread.status = "resolved"
+        _role(db, thread, resolution.id, "closes")
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
@@ -4352,7 +4360,6 @@ def seed_short_story_demo():  # noqa: PLR0915
             story_id=story.id,
             name="Will Elena accept the end of performing?",
             description="Character thread (outer). Elena's dissatisfaction: she is losing the thing that defines her, and she cannot decide if she is fighting it or surrendering to it. Opens in Movement 1. Closes in Movement 3.",
-            status="resolved",
             color_slot=4,
             mice_type="character",
         )
@@ -4362,7 +4369,6 @@ def seed_short_story_demo():  # noqa: PLR0915
             story_id=story.id,
             name="Will Elena get through the audition?",
             description="Event thread (inner). A discrete, bounded question: she has committed to performing, and the audition either goes well or it doesn't. Opens in Movement 1 Beat 2. Closes in Movement 2 Beat 3.",
-            status="resolved",
             color_slot=1,
             mice_type="event",
         )
@@ -4433,7 +4439,7 @@ def seed_short_story_demo():  # noqa: PLR0915
                 note="Character thread opens. Elena notices the tremor and chooses not to withdraw.",
             )
         )
-        thread_character.opens_at_node_id = beat1.id
+        _role(db, thread_character, beat1.id, "opens")
 
         beat2 = StructureNode(
             story_id=story.id,
@@ -4463,7 +4469,7 @@ def seed_short_story_demo():  # noqa: PLR0915
                 note="Event thread opens. Elena commits to the audition — the question is now live.",
             )
         )
-        thread_event.opens_at_node_id = beat2.id
+        _role(db, thread_event, beat2.id, "opens")
 
         # ── Movement 2: The Audition ──────────────────────────────────────────
         mov2 = StructureNode(
@@ -4571,8 +4577,7 @@ def seed_short_story_demo():  # noqa: PLR0915
                 note="Event thread closes. Elena finishes the audition. The inner MICE thread is resolved.",
             )
         )
-        thread_event.closes_at_node_id = beat5.id
-        thread_event.status = "resolved"
+        _role(db, thread_event, beat5.id, "closes")
 
         # ── Movement 3: After ─────────────────────────────────────────────────
         mov3 = StructureNode(
@@ -4638,8 +4643,7 @@ def seed_short_story_demo():  # noqa: PLR0915
                 note="Character thread closes. Elena finds the thing worth becoming — teacher. The outer MICE thread resolves.",
             )
         )
-        thread_character.closes_at_node_id = beat6.id
-        thread_character.status = "resolved"
+        _role(db, thread_character, beat6.id, "closes")
 
         # ── Supporting character ───────────────────────────────────────────────
         student = Character(
@@ -4976,7 +4980,6 @@ def seed_first_person_demo():
             story_id=story.id,
             name="What is Victor hiding?",
             description="Event thread: Maya's single goal is to get Victor to confirm, on record, what she already knows about the 2019 pilot. The thread opens when she sits down. It closes when he slips.",
-            status="resolved",
             color_slot=1,
             mice_type="event",
         )
@@ -5031,7 +5034,7 @@ def seed_first_person_demo():
                 note="Thread opens. Maya arrives with her research \u2014 the Event question is now in play.",
             )
         )
-        thread.opens_at_node_id = opening.id
+        _role(db, thread, opening.id, "opens")
 
         # Try/Fail beat
         confrontation = StructureNode(
@@ -5139,8 +5142,7 @@ def seed_first_person_demo():
                 note="Thread closes. Victor\u2019s slip confirms the pilot existed and had a compliance gap \u2014 Maya has her story.",
             )
         )
-        thread.closes_at_node_id = resolution.id
-        thread.status = "resolved"
+        _role(db, thread, resolution.id, "closes")
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)

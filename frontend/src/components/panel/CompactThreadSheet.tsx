@@ -1,6 +1,7 @@
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { openScene, sceneTitle } from "../../lib/panel/openScene";
+import { roleLabel, STATUS_LABELS, statusLine } from "../../lib/threads/roles";
 import { useStoryStore } from "../../stores/storyStore";
 import type { PlotThread } from "../../types";
 import AutosaveTextarea from "./AutosaveTextarea";
@@ -41,17 +42,15 @@ export default function CompactThreadSheet({ thread }: { thread: PlotThread }) {
           placeholder="The question this thread asks, or the change it makes…"
           save={(value) => api.updateThread(thread.id, { description: value }).then(upsertThread)}
         />
+        {/* Status follows from the scenes (doc 18 C1); only setting it aside is a choice. */}
+        <p className={styles.sub}>{statusLine(thread, (id) => sceneTitle(id))}</p>
         <label className={styles.field}>
-          <span className={styles.label}>Status</span>
-          <select
-            className={styles.select}
-            value={thread.status}
-            onChange={(e) => api.updateThread(thread.id, { status: e.target.value }).then(upsertThread)}
-          >
-            <option value="open">Open</option>
-            <option value="developing">Developing</option>
-            <option value="resolved">Resolved</option>
-          </select>
+          <input
+            type="checkbox"
+            checked={thread.set_aside}
+            onChange={(e) => api.updateThread(thread.id, { set_aside: e.target.checked }).then(upsertThread)}
+          />
+          <span className={styles.label}>{STATUS_LABELS.set_aside}</span>
         </label>
         {thread.mice_type && <p className={styles.sub}>{MICE[thread.mice_type] ?? thread.mice_type}</p>}
       </section>
@@ -66,7 +65,7 @@ export default function CompactThreadSheet({ thread }: { thread: PlotThread }) {
                 key={a.id}
                 className={`${styles.chip} ${a.node_id === activeNode?.id ? styles.chipCurrent : ""}`}
                 onClick={() => openScene(a.node_id)}
-                title={a.note || undefined}
+                title={[roleLabel(a.role), a.note].filter(Boolean).join(": ")}
               >
                 {sceneTitle(a.node_id)}
               </button>

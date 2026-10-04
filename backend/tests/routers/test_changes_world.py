@@ -13,7 +13,7 @@ ENTITIES = [
     ("historical-events", "historical-events", {"name": "The Wreck"}, "causes", "A doused lamp"),
     ("compendium/notes", "compendium", {"title": "Tide tables"}, "category", "research"),
     ("twists", "twists", {"name": "The letter"}, "the_truth", "Mara wrote it"),
-    ("threads", "threads", {"name": "Lost ship"}, "status", "resolved"),
+    ("threads", "threads", {"name": "Lost ship"}, "description", "The Ardent, lost with all hands"),
 ]
 IDS = [e[0] for e in ENTITIES]
 
@@ -118,15 +118,15 @@ def test_compendium_attachments_undo(client):
 def test_clue_link_undo_and_braces_in_names(client):
     sid = _story(client)
     scene = client.post(f"/api/stories/{sid}/structure", json={"title": "S", "level": 0, "level_type": "scene"}).json()
-    clue = {"id": "c1", "text": "Ink on her cuff", "points_to": "truth"}
-    twist = client.post(f"/api/stories/{sid}/twists", json={"name": "The {letter}", "clues": [clue]}).json()
-    r = client.patch(f"/api/twists/{twist['id']}/clues/c1/link", json={"scene_id": scene["id"]}, headers=H1)
+    twist = client.post(f"/api/stories/{sid}/twists", json={"name": "The {letter}"}).json()
+    clue = client.post(f"/api/twists/{twist['id']}/clues", json={"text": "Ink on her cuff"}, headers=H1).json()
+    r = client.patch(f"/api/twist-clues/{clue['id']}", json={"node_id": scene["id"]}, headers=H1)
     assert r.status_code == 200, r.text
-    assert _undo(client, sid)["label"] == "Link a clue on twist The {letter}"
+    assert _undo(client, sid)["label"] == "Edit node_id on a clue for The {letter}"
     assert client.get(f"/api/twists/{twist['id']}").json()["clues"][0].get("node_id") is None
     # a name with braces must not break the "Edit {fields}" label
-    client.patch(f"/api/twists/{twist['id']}", json={"status": "seeding"}, headers=H1)
-    assert _undo(client, sid)["label"] == "Edit status on twist The {letter}"
+    client.patch(f"/api/twists/{twist['id']}", json={"twist_type": "identity"}, headers=H1)
+    assert _undo(client, sid)["label"] == "Edit twist_type on twist The {letter}"
 
 
 def test_compendium_list_previews_each_entry(client):

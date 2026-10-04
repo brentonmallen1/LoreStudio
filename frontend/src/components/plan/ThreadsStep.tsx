@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
 import type { MICEType, PlotThread } from "../../types";
 import { crossingThreads, sceneLeaves } from "../../lib/planning/methods";
+import { setEndpoint } from "../../lib/threads/roles";
 import styles from "./Plan.module.css";
 
 const KINDS: { value: MICEType; label: string; hint: string }[] = [
@@ -127,8 +128,9 @@ export function ThreadPlacementStep({ threads, reload }: Omit<Props, "storyId">)
   const typed = (threads ?? []).filter((t) => t.mice_type);
   const crossings = crossingThreads(typed, scenes);
 
-  async function place(thread: PlotThread, field: "opens_at_node_id" | "closes_at_node_id", id: string) {
-    await api.updateThread(thread.id, { [field]: id || null });
+  // The opening and closing scenes are roles on the thread's scenes (doc 18 C1).
+  async function place(thread: PlotThread, role: "opens" | "closes", id: string) {
+    await setEndpoint(thread, role, id || null);
     reload();
   }
 
@@ -152,7 +154,7 @@ export function ThreadPlacementStep({ threads, reload }: Omit<Props, "storyId">)
           <select
             className={styles.input}
             value={t.opens_at_node_id ?? ""}
-            onChange={(e) => place(t, "opens_at_node_id", e.target.value)}
+            onChange={(e) => place(t, "opens", e.target.value)}
             aria-label={`Where ${t.name} opens`}
           >
             <option value="">Opens in…</option>
@@ -161,7 +163,7 @@ export function ThreadPlacementStep({ threads, reload }: Omit<Props, "storyId">)
           <select
             className={styles.input}
             value={t.closes_at_node_id ?? ""}
-            onChange={(e) => place(t, "closes_at_node_id", e.target.value)}
+            onChange={(e) => place(t, "closes", e.target.value)}
             aria-label={`Where ${t.name} closes`}
           >
             <option value="">Closes in…</option>

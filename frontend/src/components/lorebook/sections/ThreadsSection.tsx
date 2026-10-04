@@ -7,13 +7,15 @@ import { KINDS } from "../../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
 import { sceneLeaves } from "../../../lib/planning/methods";
 import { slotVar, nextSlot } from "../../../lib/colorSlots";
+import { refreshThreads } from "../../../lib/story/refreshThreads";
+import { roleLabel, setEndpoint, STATUS_LABELS, statusLine } from "../../../lib/threads/roles";
 import { usePanelStore } from "../../../stores/panelStore";
 import { useStoryStore } from "../../../stores/storyStore";
 import type { MICEType, PlotThread } from "../../../types";
 import MICEGuide from "../../help/MICEGuide";
 import ThreadAnalysisPanel from "../../threads/ThreadAnalysisPanel";
 import ThreadVisualization from "../../threads/ThreadVisualization";
-import TryFailCycleEditor from "../../threads/TryFailCycleEditor";
+import ThreadScenes from "../../threads/ThreadScenes";
 import AssistantRow from "../AssistantRow";
 import HealthCard from "../HealthCard";
 import ConfirmDelete from "../ConfirmDelete";
@@ -23,7 +25,6 @@ import LorebookList from "../LorebookList";
 import { useLoreSelection } from "../useLoreSelection";
 import styles from "../Lorebook.module.css";
 
-const STATUSES: PlotThread["status"][] = ["open", "developing", "resolved"];
 const MICE: { value: MICEType; label: string; hint: string }[] = [
   { value: "milieu", label: "Milieu", hint: "Opens on entering a place, closes on leaving it" },
   { value: "idea", label: "Idea", hint: "Opens with a question, closes with its answer" },
@@ -39,8 +40,9 @@ const label = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /**
  * Plot threads in the Lorebook (doc 12 D5). With none open, the map of every thread across
- * the book; open one and it is the same sheet as everything else, with its MICE shape, the
- * scenes it opens and closes in, and its try/fail cycles.
+ * the book; open one and it is the same sheet as everything else, with its MICE shape and its
+ * scenes, each saying what it does to the thread (doc 18 C1: opening, closing and the tries
+ * along the way are roles on those scenes, and the status follows from them).
  */
 export default function ThreadsSection() {
   const { threads, setThreads, upsertThread, sceneCast, structure, activeTemplate } = useStoryStore();
@@ -63,7 +65,9 @@ export default function ThreadsSection() {
   const thread = threads.find((t) => t.id === selectedId) ?? null;
   const leaves = sceneLeaves(structure, activeTemplate);
   const scenes = thread ? scenesWith("thread", thread.id, sceneCast, structure, activeTemplate) : [];
-  const sceneTitle = (id: string | null) => leaves.find((n) => n.id === id)?.title;
+  const sceneTitle = (id: string | null) => leaves.find((n) => n.id === id)?.title || "Untitled scene";
+  const roleOf = (nodeId: string) => thread?.appearances.find((a) => a.node_id === nodeId)?.role;
+  const refresh = () => void refreshThreads(storyId);
 
   async function add() {
     const created = await api.createThread(storyId, {
@@ -87,7 +91,7 @@ export default function ThreadsSection() {
         items={threads.map((t) => ({
           id: t.id,
           name: t.name,
-          sub: [label(t.status), t.mice_type ? label(t.mice_type) : ""].filter(Boolean).join(" · "),
+          sub: [STATUS_LABELS[t.status], t.mice_type ? label(t.mice_type) : ""].filter(Boolean).join(" · "),
           dot: slotVar(t.color_slot),
         }))}
         selectedId={selectedId}
@@ -125,7 +129,7 @@ export default function ThreadsSection() {
             slot={{ value: thread.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
             badges={
               <>
-                <Badge>{label(thread.status)}</Badge>
+                <Badge>{STATUS_LABELS[thread.status]}</Badge>
                 {thread.mice_type && <Badge>{label(thread.mice_type)} thread</Badge>}
               </>
             }
@@ -140,19 +144,18 @@ export default function ThreadsSection() {
               <>
                 <HealthCard anchor="thread_id" id={thread.id} storyId={storyId} />
                 <SheetCard title="Shape">
+                  <p className={styles.cardHint}>{statusLine(thread, sceneTitle)}</p>
                   <div className={styles.rowEdit}>
-                    <select
-                      aria-label="Status"
-                      className={styles.grow}
-                      value={thread.status}
-                      onChange={(e) => void save({ status: e.target.value })}
+                    <button
+                      type="button"
+                      className={styles.quietBtn}
+                      aria-pressed={thread.set_aside}
+                      onClick={() => void save({ set_aside: !thread.set_aside })}
                     >
-                      {STATUSES.map((s) => (
-                        <option key={s} value={s}>
-                          {label(s)}
-                        </option>
-                      ))}
-                    </select>
+                      {thread.set_aside ? "Pick it up again" : "Set it aside"}
+                    </button>
+                  </div>
+                  <div className={styles.rowEdit}>
                     <select
                       aria-label="MICE type"
                       className={styles.grow}
@@ -171,17 +174,15 @@ export default function ThreadsSection() {
                   {thread.mice_type && (
                     <p className={styles.cardHint}>{MICE.find((m) => m.value === thread.mice_type)?.hint}.</p>
                   )}
-                  {/* Every thread opens and closes somewhere, kind or not (doc 18: the pickers
-                      hid until a MICE kind was set). */}
-                  {(["opens_at_node_id", "closes_at_node_id"] as const).map((key) => (
-                    <label key={key} className={styles.rowEdit}>
-                      <span className={styles.rowLabel}>
-                        {key === "opens_at_node_id" ? "Opens in" : "Closes in"}
-                      </span>
+                  {/* Every thread opens and closes somewhere, kind or not. Each is the role of
+                      one of its scenes (doc 18 C1); picking one here puts the scene on it. */}
+                  {(["opens", "closes"] as const).map((role) => (
+                    <label key={role} className={styles.rowEdit}>
+                      <span className={styles.rowLabel}>{role === "opens" ? "Opens in" : "Closes in"}</span>
                       <select
                         className={styles.grow}
-                        value={thread[key] ?? ""}
-                        onChange={(e) => void save({ [key]: e.target.value || null })}
+                        value={(role === "opens" ? thread.opens_at_node_id : thread.closes_at_node_id) ?? ""}
+                        onChange={(e) => void setEndpoint(thread, role, e.target.value || null).then(refresh)}
                       >
                         <option value="">Not decided</option>
                         {leaves.map((n) => (
@@ -203,28 +204,10 @@ export default function ThreadsSection() {
                       <CardRow
                         key={s.id}
                         text={s.title}
-                        note={
-                          s.id === thread.opens_at_node_id
-                            ? "opens"
-                            : s.id === thread.closes_at_node_id
-                              ? "closes"
-                              : undefined
-                        }
+                        note={roleOf(s.id) ? roleLabel(roleOf(s.id)!) : undefined}
                         onClick={() => navigate(`/stories/${storyId}/write/${s.id}`)}
                       />
                     ))
-                  )}
-                  {(["opens_at_node_id", "closes_at_node_id"] as const).map(
-                    (key) =>
-                      thread[key] &&
-                      !scenes.some((s) => s.id === thread[key]) && (
-                        <CardRow
-                          key={key}
-                          text={sceneTitle(thread[key]!)}
-                          note={key === "opens_at_node_id" ? "opens" : "closes"}
-                          onClick={() => navigate(`/stories/${storyId}/write/${thread[key]}`)}
-                        />
-                      ),
                   )}
                 </SheetCard>
               </>
@@ -250,10 +233,11 @@ export default function ThreadsSection() {
               values={thread as unknown as Record<string, unknown>}
               save={(key, value) => save({ [key]: value })}
             />
-            <TryFailCycleEditor
-              cycles={thread.try_fail_cycles}
-              nodes={leaves}
-              onChange={(try_fail_cycles) => void save({ try_fail_cycles })}
+            <ThreadScenes
+              thread={thread}
+              leaves={leaves}
+              onChanged={refresh}
+              onOpenScene={(id) => navigate(`/stories/${storyId}/write/${id}`)}
             />
           </EntitySheet>
         ) : (

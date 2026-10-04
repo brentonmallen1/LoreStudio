@@ -199,8 +199,8 @@ def _author_edges(graph, db, story_id, chars, scenes, locations, threads, twists
     for twist in db.query(Twist).filter(Twist.story_id == story_id).all():
         if twist.revealed_at_node_id:
             graph.edge(twists.get(twist.id), scenes.get(twist.revealed_at_node_id), "revealed_in")
-        for index, clue in enumerate(twist.clues or []):
-            graph.edge(twists.get(twist.id), scenes.get(clue.get("node_id")), "clue_in", position=index)
+        for index, clue in enumerate(twist.clues):
+            graph.edge(twists.get(twist.id), scenes.get(clue.node_id), "clue_in", position=index)
 
 
 def _derived_edges(graph, db, story_id, chars, scenes, structure) -> None:

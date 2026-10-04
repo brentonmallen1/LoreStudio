@@ -8,7 +8,7 @@ import { useAIAvailable } from "../../../lib/mode";
 import { sceneLeaves } from "../../../lib/planning/methods";
 import { usePanelStore } from "../../../stores/panelStore";
 import { useStoryStore } from "../../../stores/storyStore";
-import type { Twist, TwistStatus, TwistType } from "../../../types";
+import type { Twist, TwistType } from "../../../types";
 import ReaderKnowledgeTimeline from "../../twists/ReaderKnowledgeTimeline";
 import TwistAnalysisPanel from "../../twists/TwistAnalysisPanel";
 import TwistClueEditor from "../../twists/TwistClueEditor";
@@ -20,7 +20,8 @@ import EntitySheet, { Badge, CardRow, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
 import LorebookList from "../LorebookList";
 import { useLoreSelection } from "../useLoreSelection";
-import { STATUSES, TYPES, cluesLine, statusLabel, typeLabel } from "../../../lib/twists/labels";
+import { TYPES, cluesLine, statusLabel, typeLabel } from "../../../lib/twists/labels";
+import { slotVar } from "../../../lib/colorSlots";
 import styles from "../Lorebook.module.css";
 
 /**
@@ -57,7 +58,7 @@ export default function TwistsSection() {
   useEffect(() => {
     void reload();
   }, [reload]);
-  useReloadOnUndo(["twist", "reader_knowledge_event"], () => void reload());
+  useReloadOnUndo(["twist", "twist_clue", "reader_knowledge_event"], () => void reload());
 
   const twist = twists.find((t) => t.id === selectedId) ?? null;
   const leaves = sceneLeaves(structure, activeTemplate);
@@ -70,7 +71,7 @@ export default function TwistsSection() {
     select(created.id);
   }
 
-  async function save(patch: Partial<Twist>) {
+  async function save(patch: Parameters<typeof api.updateTwist>[1]) {
     if (!twist) return;
     const saved = await api.updateTwist(twist.id, patch);
     setTwists((all) => all.map((t) => (t.id === saved.id ? saved : t)));
@@ -125,7 +126,8 @@ export default function TwistsSection() {
               setRenaming(null);
               return save({ name });
             }}
-            dot={null}
+            dot={slotVar(twist.color_slot)}
+            slot={{ value: twist.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
             badges={
               <>
                 <Badge title={TYPES.find((t) => t.value === twist.twist_type)?.hint}>
@@ -155,18 +157,6 @@ export default function TwistsSection() {
                       {TYPES.map((t) => (
                         <option key={t.value} value={t.value}>
                           {t.label}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      aria-label="Status"
-                      className={styles.grow}
-                      value={twist.status}
-                      onChange={(e) => void save({ status: e.target.value as TwistStatus })}
-                    >
-                      {STATUSES.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
                         </option>
                       ))}
                     </select>
@@ -242,15 +232,11 @@ export default function TwistsSection() {
               entityKey={twist.id}
               fields={KINDS.twist.fields}
               values={twist as unknown as Record<string, unknown>}
-              save={(key, value) => save({ [key]: value } as Partial<Twist>)}
+              save={(key, value) => save({ [key]: value } as Parameters<typeof api.updateTwist>[1])}
             />
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Clues</span>
-              <TwistClueEditor
-                clues={twist.clues}
-                nodes={leaves}
-                onChange={(clues) => void save({ clues })}
-              />
+              <TwistClueEditor twist={twist} nodes={leaves} onChanged={() => void reload()} />
             </div>
           </EntitySheet>
         ) : (

@@ -38,7 +38,7 @@
   height: 1.067rem;
   padding: 0 4px;
   border-radius: 99px;
-  background: var(--twist-accent);
+  background: var(--twist-color, var(--cat-7));
   /* The page colour: the contrast test holds segment colours at 4.5:1 against it. */
   color: var(--color-bg);
   font-size: var(--text-xs);
@@ -92,7 +92,7 @@
 }
 
 .textInput:focus {
-  border-color: var(--twist-accent);
+  border-color: var(--twist-color, var(--cat-7));
 }
 
 .bottomRow {
@@ -182,7 +182,7 @@
   gap: 0.3rem;
   font-size: 0.75rem;
   font-family: inherit;
-  color: var(--twist-accent);
+  color: var(--twist-color, var(--cat-7));
   background: none;
   border: none;
   cursor: pointer;
@@ -193,4 +193,11 @@
 
 .addBtn:hover {
   opacity: 0.8;
+}
+
+.quote {
+  font-family: var(--font-editor);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
 }

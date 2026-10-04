@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import type { TwistClue, ClueTarget, SubtletyLevel, StructureNode } from "../../types";
+import { api } from "../../api/client";
+import { slotVar } from "../../lib/colorSlots";
+import type { TwistClue, ClueTarget, SubtletyLevel, StructureNode, Twist } from "../../types";
 import CommitInput from "../common/CommitInput";
 import styles from "./TwistClueEditor.module.css";
 
 interface Props {
-  clues: TwistClue[];
+  twist: Twist;
   nodes: StructureNode[];
-  onChange: (clues: TwistClue[]) => void;
+  /** After any change, with the twist as it now stands. */
+  onChanged: () => void;
 }
 
 const SUBTLETY_OPTIONS: { value: SubtletyLevel; label: string }[] = [
@@ -17,34 +20,32 @@ const SUBTLETY_OPTIONS: { value: SubtletyLevel; label: string }[] = [
   { value: "obvious", label: "Obvious" },
 ];
 
-function newClue(): TwistClue {
-  return {
-    id: crypto.randomUUID(),
-    node_id: null,
-    text: "",
-    points_to: "truth",
-    subtlety: "subtle",
-  };
-}
-
-export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
+/** Each clue is its own row (doc 18 C1): every edit saves that clue, and undoes on its own. */
+export default function TwistClueEditor({ twist, nodes, onChanged }: Props) {
   const [expanded, setExpanded] = useState(false);
+  const clues = twist.clues;
 
-  function addClue() {
-    onChange([...clues, newClue()]);
+  async function addClue() {
+    await api.createClue(twist.id, { subtlety: "subtle" });
     setExpanded(true);
+    onChanged();
   }
 
-  function updateClue(id: string, patch: Partial<TwistClue>) {
-    onChange(clues.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  async function updateClue(id: string, patch: Partial<TwistClue>) {
+    await api.updateClue(id, patch);
+    onChanged();
   }
 
-  function removeClue(id: string) {
-    onChange(clues.filter((c) => c.id !== id));
+  async function removeClue(id: string) {
+    await api.deleteClue(id);
+    onChanged();
   }
 
   return (
-    <div className={styles.wrap}>
+    <div
+      className={styles.wrap}
+      style={{ "--twist-color": slotVar(twist.color_slot) } as React.CSSProperties}
+    >
       <button className={styles.toggle} onClick={() => setExpanded((v) => !v)} type="button">
         <span className={styles.toggleLabel}>
           Clues
@@ -66,17 +67,18 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                 <CommitInput
                   className={styles.textInput}
                   value={clue.text}
-                  onCommit={(text) => updateClue(clue.id, { text })}
+                  onCommit={(text) => void updateClue(clue.id, { text })}
                   placeholder="Describe the clue…"
                   aria-label="The clue"
                 />
+                {clue.quote && <q className={styles.quote}>{clue.quote}</q>}
                 <div className={styles.bottomRow}>
                   {/* Points to truth or misdirection */}
                   <div className={styles.directionToggle}>
                     <button
                       type="button"
                       className={`${styles.dirBtn} ${clue.points_to === "truth" ? styles.dirBtnTruth : ""}`}
-                      onClick={() => updateClue(clue.id, { points_to: "truth" as ClueTarget })}
+                      onClick={() => void updateClue(clue.id, { points_to: "truth" as ClueTarget })}
                       title="This clue points toward the truth"
                     >
                       → truth
@@ -84,7 +86,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                     <button
                       type="button"
                       className={`${styles.dirBtn} ${clue.points_to === "misdirection" ? styles.dirBtnMisdirect : ""}`}
-                      onClick={() => updateClue(clue.id, { points_to: "misdirection" as ClueTarget })}
+                      onClick={() => void updateClue(clue.id, { points_to: "misdirection" as ClueTarget })}
                       title="This clue points toward the misdirection (red herring)"
                     >
                       → misdirect
@@ -94,7 +96,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                   <select
                     className={styles.subtletySelect}
                     value={clue.subtlety}
-                    onChange={(e) => updateClue(clue.id, { subtlety: e.target.value as SubtletyLevel })}
+                    onChange={(e) => void updateClue(clue.id, { subtlety: e.target.value as SubtletyLevel })}
                   >
                     {SUBTLETY_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -107,7 +109,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
                     <select
                       className={styles.nodeSelect}
                       value={clue.node_id ?? ""}
-                      onChange={(e) => updateClue(clue.id, { node_id: e.target.value || null })}
+                      onChange={(e) => void updateClue(clue.id, { node_id: e.target.value || null })}
                     >
                       <option value="">No scene</option>
                       {nodes.map((n) => (
@@ -122,7 +124,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
 
               <button
                 className={styles.removeBtn}
-                onClick={() => removeClue(clue.id)}
+                onClick={() => void removeClue(clue.id)}
                 type="button"
                 aria-label="Remove clue"
               >
@@ -131,7 +133,7 @@ export default function TwistClueEditor({ clues, nodes, onChange }: Props) {
             </div>
           ))}
 
-          <button className={styles.addBtn} onClick={addClue} type="button">
+          <button className={styles.addBtn} onClick={() => void addClue()} type="button">
             <Plus size={11} />
             Add clue
           </button>

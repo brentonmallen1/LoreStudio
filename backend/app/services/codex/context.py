@@ -202,9 +202,8 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
             ]
         all_open_threads = [
             {"name": t.name, "status": t.status}
-            for t in db.query(PlotThread)
-            .filter(PlotThread.story_id == story.id, PlotThread.status.in_(["open", "developing"]))
-            .all()
+            for t in db.query(PlotThread).filter(PlotThread.story_id == story.id).all()
+            if t.status in ("planned", "open")
         ]
 
     # ── Sibling context (adjacent scenes) ──

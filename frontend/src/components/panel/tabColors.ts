@@ -8,7 +8,8 @@ export const KIND_COLOR: Record<EntityKind, string> = {
   character: "var(--color-accent)",
   location: "var(--color-nlp)",
   thread: "var(--color-editorial)",
-  twist: "var(--twist-accent)",
+  // A twist's own slot when known (doc 18 D2); a new twist starts on teal, slot 7.
+  twist: "var(--cat-7)",
   compendium: "var(--color-text-subtle)",
 };
 
