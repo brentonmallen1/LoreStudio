@@ -8,6 +8,7 @@ import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
 import Canon from "../components/series/Canon";
 import SeriesTapestry from "../components/series/SeriesTapestry";
+import SharedResearch from "../components/series/SharedResearch";
 import StorySoFar from "../components/series/StorySoFar";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
 import { sheetPath } from "../lib/series/kinds";
@@ -231,6 +232,20 @@ export default function SeriesPage() {
               </p>
             </div>
             <StorySoFar series={series} />
+          </section>
+        )}
+
+        {section === "research" && (
+          <section className={styles.section} aria-labelledby="series-research">
+            <div className={styles.sectionHead}>
+              <h2 id="series-research" className={styles.sectionTitle}>
+                Shared research
+              </h2>
+              <p className={styles.sectionNote}>
+                Research, images and diagrams every book has: an edit in one book is an edit in all of them.
+              </p>
+            </div>
+            <SharedResearch series={series} onSeries={accept} />
           </section>
         )}
       </main>

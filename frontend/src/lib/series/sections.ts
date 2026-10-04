@@ -7,6 +7,7 @@ export const SERIES_SECTIONS = [
   { id: "canon", label: "Canon" },
   { id: "promises", label: "Promises" },
   { id: "story-so-far", label: "The story so far" },
+  { id: "research", label: "Shared research" },
 ] as const;
 
 export type SeriesSection = (typeof SERIES_SECTIONS)[number]["id"];

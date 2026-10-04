@@ -4,7 +4,7 @@ import {
   type ElementDetail,
   type ElementField,
   type Series,
-  type SeriesElement,
+  type CanonElement as SeriesElement,
 } from "../../api/series";
 import { fieldLabel, kindLabel } from "../../lib/series/kinds";
 import { progressionSteps, stepLabel } from "../../lib/series/progression";

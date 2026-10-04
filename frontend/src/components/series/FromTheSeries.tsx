@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { seriesApi, type SeriesKind } from "../../api/series";
+import { isCanon, seriesApi, type SeriesKind } from "../../api/series";
 import { refreshBookLists } from "../../lib/series/refresh";
 import { bookList, useSeriesStore } from "../../stores/seriesStore";
 import { toast } from "../../stores/toastStore";
@@ -21,9 +21,11 @@ export default function FromTheSeries({
   const series = useSeriesStore((s) => s.series);
   const [busy, setBusy] = useState<string | null>(null);
   if (!series || !storyId) return null;
-  const missing = series.elements.filter(
-    (e) => kinds.includes(e.kind) && e.members.length > 0 && !e.members.some((m) => m.story_id === storyId),
-  );
+  const missing = series.elements
+    .filter(isCanon)
+    .filter(
+      (e) => kinds.includes(e.kind) && e.members.length > 0 && !e.members.some((m) => m.story_id === storyId),
+    );
   if (missing.length === 0) return null;
 
   async function add(elementId: string, name: string, kind: SeriesKind) {

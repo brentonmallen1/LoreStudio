@@ -85,6 +85,10 @@ def attach_story(db: Session, series: Series, story: Story, position: int | None
     series.books.append(book)
     db.flush()
     _renumber(series)
+    # Research the series shares is in every book of it, this one now too.
+    from .sync import adopt_shared
+
+    adopt_shared(db, series, story.id)
     return book
 
 
@@ -252,6 +256,29 @@ def _carry_relationships(db: Session, series: Series, src_id: str, new_id: str, 
     return made
 
 
+def _carry_images(db: Session, kind: SeriesKind, src, row) -> list[tuple[Any, str, str]]:
+    """A character's or place's portrait and reference images, copied with it: each a file of
+    its own in the new book, so a portrait can change from book to book. As (row, table, type)."""
+    from ...models.media import AssetAttachment, StoryAsset
+    from ..media_files import copy_asset
+
+    made: list[tuple[Any, str, str]] = []
+    for att in (
+        db.query(AssetAttachment)
+        .filter(AssetAttachment.object_type == kind.kind, AssetAttachment.object_id == src.id)
+        .all()
+    ):
+        asset = db.get(StoryAsset, att.asset_id)
+        if asset is None:
+            continue
+        mine = copy_asset(db, asset, row.story_id)
+        link = AssetAttachment(asset_id=mine.id, object_type=kind.kind, object_id=row.id, role=att.role)
+        db.add(link)
+        db.flush()
+        made += [(mine, "story_assets", "story_asset"), (link, "asset_attachments", "asset_attachment")]
+    return made
+
+
 def adopt_into_book(
     db: Session,
     series: Series,
@@ -278,6 +305,7 @@ def adopt_into_book(
     element.members.append(member)
     db.flush()
     rels = _carry_relationships(db, series, src.id, row.id, story_id) if kind.kind == "character" else []
+    images = _carry_images(db, kind, src, row) if kind.kind in ("character", "location") else []
     if not log:
         return row
 
@@ -287,6 +315,7 @@ def adopt_into_book(
         (row, kind.table, kind.kind),
         (member, "series_element_members", "series_element_member"),
         *((r, "character_relationships", "character_relationship") for r in rels),
+        *images,
     ):
         change_log.record(
             db,
@@ -566,6 +595,8 @@ def propagate_field(
 def set_field_class(series: Series, kind_name: str, field: str, cls: str | None) -> None:
     """Say a field stays true across this series, or changes book to book; None: the default."""
     kind = kind_of(kind_name)
+    if kind.synced:
+        raise SeriesError("Shared research is the same in every book: none of it changes book to book.")
     if field not in kind.fields:
         raise SeriesError(f"A {kind.label.lower()} has no {field_words(field)}.")
     if cls not in (None, "enduring", "evolving"):

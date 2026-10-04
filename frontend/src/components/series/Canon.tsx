@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, ExternalLink, Plus, Unlink } from "lucide-react";
-import { seriesApi, type Series, type SeriesElement } from "../../api/series";
+import { isCanon, seriesApi, type CanonElement as SeriesElement, type Series } from "../../api/series";
 import PopoverMenu from "../common/PopoverMenu";
 import { CANON_KINDS, kindLabel, sheetPath } from "../../lib/series/kinds";
 import { refreshBookLists } from "../../lib/series/refresh";
@@ -36,7 +36,7 @@ export default function Canon({
   const [busy, setBusy] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  if (series.elements.length === 0)
+  if (!series.elements.some((e) => isCanon(e) && CANON_KINDS.includes(e.kind)))
     return (
       <p className={styles.sectionNote}>
         Nothing is shared yet. Share a character, place or part of the world from its sheet in any book (its ⋯
@@ -136,7 +136,7 @@ export default function Canon({
   return (
     <div className={styles.section}>
       {CANON_KINDS.map((kind) => {
-        const items = series.elements.filter((e) => e.kind === kind);
+        const items = series.elements.filter(isCanon).filter((e) => e.kind === kind);
         if (items.length === 0) return null;
         return (
           <div key={kind} className={styles.kindGroup}>

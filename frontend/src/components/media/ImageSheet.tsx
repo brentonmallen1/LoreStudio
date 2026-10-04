@@ -9,6 +9,8 @@ import type { StoryAsset } from "../../types";
 import Lightbox from "./Lightbox";
 import UsedBy from "./UsedBy";
 import styles from "./ImageSheet.module.css";
+import SharedWithSeries from "../series/SharedWithSeries";
+import { onSharedDelete } from "../../lib/series/shared";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -69,7 +71,9 @@ export default function ImageSheet({
 
   async function remove() {
     try {
+      const said = onSharedDelete(asset.id, asset.original_filename);
       await api.deleteAsset(asset.id);
+      said();
       onChange(null);
     } catch {
       setError("The image could not be deleted.");
@@ -100,6 +104,7 @@ export default function ImageSheet({
             <p className={styles.meta}>
               {formatBytes(asset.size_bytes)} · added {ago(asset.created_at)}
             </p>
+            <SharedWithSeries kind="story_asset" refId={asset.id} name={asset.original_filename} />
             <label className={styles.field}>
               <span>What it shows</span>
               <input

@@ -6,12 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.models.media import AssetAttachment, StoryAsset
 from app.models.story import Story
-from app.routers import media
+from app.services import media_files
 
 
 @pytest.fixture
 def uploads(tmp_path, monkeypatch):
-    monkeypatch.setattr(media, "UPLOADS_DIR", tmp_path)
+    monkeypatch.setattr(media_files, "UPLOADS_DIR", tmp_path)
     return tmp_path
 
 

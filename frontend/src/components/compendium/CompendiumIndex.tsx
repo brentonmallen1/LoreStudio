@@ -6,6 +6,7 @@ import { indexRows, KIND_LABELS, matches, type IndexKind, type IndexRow } from "
 import { sectionPath } from "../../lib/routes";
 import { ago } from "../../lib/serverDate";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { elementForRow, useSeriesStore } from "../../stores/seriesStore";
 import PageHeader from "../layout/PageHeader";
 import styles from "./CompendiumIndex.module.css";
 
@@ -23,6 +24,8 @@ const KINDS = Object.keys(KIND_LABELS) as IndexKind[];
  * with one search, each row opening where it is kept.
  */
 export default function CompendiumIndex({ storyId }: { storyId: string }) {
+  // In a book of a series: what it shares with the other books, marked (v1.5).
+  const series = useSeriesStore((s) => s.series);
   const [rows, setRows] = useState<IndexRow[] | null>(null);
   const [params, setParams] = useSearchParams();
   const kind = KINDS.find((k) => k === params.get("kind")) ?? null;
@@ -35,7 +38,10 @@ export default function CompendiumIndex({ storyId }: { storyId: string }) {
   useEffect(() => {
     void load();
   }, [storyId]); // eslint-disable-line react-hooks/exhaustive-deps
-  useReloadOnUndo(["compendium_entry", "compendium_attachment"], () => void load());
+  useReloadOnUndo(
+    ["compendium_entry", "compendium_attachment", "story_asset", "diagram", "series_element_member"],
+    () => void load(),
+  );
 
   const shown = useMemo(
     () => (rows ?? []).filter((r) => (!kind || r.kind === kind) && matches(r, q)),
@@ -123,6 +129,7 @@ export default function CompendiumIndex({ storyId }: { storyId: string }) {
                     </span>
                     <span className={styles.meta}>
                       {KIND_LABELS[r.kind].replace(/s$/, "")}
+                      {elementForRow(series, storyId, r.id) && " · shared with the series"}
                       {r.tags.length > 0 && ` · ${r.tags.slice(0, 3).join(", ")}`}
                       <span className={styles.when}>{ago(r.updated_at)}</span>
                     </span>

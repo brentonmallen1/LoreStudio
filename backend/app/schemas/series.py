@@ -38,6 +38,8 @@ class SeriesElementOut(BaseModel):
     lore_kind: str
     name: str
     members: list[SeriesMemberOut]
+    #: Shared research, kept in step in every book (v1.5): not in the Canon.
+    synced: bool = False
 
 
 class SeriesOut(BaseModel):
@@ -168,3 +170,22 @@ class SeriesFindingOut(BaseModel):
     story_ids: list[str]
     #: A thread finding: the thread in the first book it stands in, to open its sheet.
     ref_id: str | None = None
+
+
+class SharedOut(BaseModel):
+    """Research the series shares (v1.5): which books hold it, and whether they agree."""
+
+    element_id: str
+    kind: str
+    name: str
+    members: list[SeriesMemberOut]
+    #: Every copy says the same.
+    in_step: bool
+    #: Books of the series without a copy (one was deleted there, or kept apart).
+    missing: list[str]
+
+
+class SyncFrom(BaseModel):
+    """Make this book's copy every book's."""
+
+    source_story_id: str

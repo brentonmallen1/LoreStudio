@@ -256,3 +256,14 @@
   color: var(--color-text-subtle);
   cursor: pointer;
 }
+
+/* In a book of a series: share the diagram with every book, or see that it is (v1.5) */
+.diagramShared {
+  padding: 0 14px 10px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.diagramShared:empty {
+  display: none;
+}

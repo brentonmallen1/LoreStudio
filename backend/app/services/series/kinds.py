@@ -26,9 +26,12 @@ from typing import Any, Literal
 
 from ...models.calendar import Calendar
 from ...models.character import Character
+from ...models.compendium import CompendiumEntry
 from ...models.culture import Culture
+from ...models.diagram import Diagram
 from ...models.historical_event import Era, HistoricalEvent
 from ...models.location import Location
+from ...models.media import StoryAsset
 from ...models.plot_thread import PlotThread
 from ...models.twist import Twist
 from ...models.world_system import WorldSystem
@@ -68,6 +71,13 @@ class SeriesKind:
     @property
     def fields(self) -> tuple[str, ...]:
         return self.enduring + self.evolving
+
+
+def _own_file(db: Any, src: Any, copy: Any) -> None:
+    """An image or document shared with another book gets its own file there."""
+    from ..media_files import give_own_file
+
+    give_own_file(src, copy)
 
 
 def name_of(row: Any, kind: SeriesKind | None = None) -> str:
@@ -172,6 +182,58 @@ SERIES_KINDS: dict[str, SeriesKind] = {
             enduring=("epoch_name", "description", "conversion_notes"),
             evolving=(),
         ),
+        # Shared research (v1.5): kept in step, in every book, never compared or carried.
+        # Files before the entries that hold them, so an entry's copy finds its own file.
+        SeriesKind(
+            kind="story_asset",
+            model=StoryAsset,
+            table="story_assets",
+            label="Image",
+            plural="Images",
+            enduring=("original_filename", "alt_text", "description"),
+            evolving=(),
+            name_attr="original_filename",
+            prose_named=False,
+            synced=True,
+            after_copy=_own_file,
+        ),
+        SeriesKind(
+            kind="diagram",
+            model=Diagram,
+            table="diagrams",
+            label="Diagram",
+            plural="Diagrams",
+            enduring=("title", "description", "diagram_type", "nodes", "edges"),
+            evolving=(),
+            # Pinned to a scene of the book it was drawn in.
+            fresh={"attached_node_id": None},
+            name_attr="title",
+            prose_named=False,
+            synced=True,
+        ),
+        SeriesKind(
+            kind="compendium_entry",
+            model=CompendiumEntry,
+            table="compendium_entries",
+            label="Research",
+            plural="Research",
+            enduring=(
+                "title",
+                "entry_type",
+                "content",
+                "url",
+                "url_title",
+                "url_description",
+                "tags",
+                "category",
+                "notes",
+            ),
+            evolving=(),
+            refs=(("asset_id", "story_asset"),),
+            name_attr="title",
+            prose_named=False,
+            synced=True,
+        ),
         # Promises last: a sequel carries its cast and world before the questions they hold.
         SeriesKind(
             kind="plot_thread",
@@ -206,6 +268,9 @@ SERIES_KINDS: dict[str, SeriesKind] = {
 
 #: The kinds whose threads of story run across books (services/series/promises.py).
 PROMISE_KINDS = ("plot_thread", "twist")
+
+#: Shared research, kept in step in every book (services/series/sync.py).
+SYNCED_KINDS = tuple(k for k, spec in SERIES_KINDS.items() if spec.synced)
 
 #: Server kind -> the frontend's LoreKind, where they differ.
 FRONTEND_KIND: dict[str, str] = {

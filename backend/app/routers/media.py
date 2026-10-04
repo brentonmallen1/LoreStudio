@@ -9,28 +9,27 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..auth.utils import decode_token
-from ..config import settings
 from ..database import get_db
 from ..models.media import AssetAttachment, StoryAsset
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.media import AssetOut, AssetUpdate, AttachmentCreate, AttachmentOut
+from ..services import change_log, media_files
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.character_from_image import CHARACTER_FROM_IMAGE_SYSTEM, CHARACTER_FROM_IMAGE_USER
 from ..services.llm.prompts.scene_atmosphere import SCENE_ATMOSPHERE_SYSTEM, build_scene_atmosphere_prompt
 from ..services.llm.sse import sse_stream
+from ..services.series import sync as series_sync
 
 router = APIRouter()
 
-UPLOADS_DIR = Path(settings.uploads_path)
 ALLOWED_MIME_PREFIXES = ("image/", "application/pdf", "text/plain")
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 
 def _get_uploads_dir() -> Path:
-    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-    return UPLOADS_DIR
+    return media_files.uploads_dir()
 
 
 def _verify_story_access(story_id: str, db: Session, user: User) -> Story:
@@ -62,15 +61,7 @@ async def _read_upload(file: UploadFile) -> tuple[bytes, str]:
     return contents, mime
 
 
-def _write_upload(story_id: str, asset_id: str, filename: str | None, contents: bytes) -> str:
-    """Write the bytes under the story's folder; returns the stored path."""
-    story_dir = _get_uploads_dir() / story_id
-    story_dir.mkdir(exist_ok=True)
-    safe_name = "".join(c if c.isalnum() or c in "._-" else "_" for c in (filename or "file"))
-    # A short random part keeps a replacement from landing on the file it replaces.
-    stored_path = f"{story_id}/{asset_id}_{uuid.uuid4().hex[:8]}_{safe_name}"
-    (_get_uploads_dir() / stored_path).write_bytes(contents)
-    return stored_path
+_write_upload = media_files.write_upload
 
 
 @router.post("/stories/{story_id}/media/upload", response_model=AssetOut, status_code=status.HTTP_201_CREATED)
@@ -114,6 +105,7 @@ async def replace_asset_file(
     asset.original_filename = file.filename or asset.original_filename
     asset.mime_type = mime
     asset.size_bytes = len(contents)
+    series_sync.after_new_file(db, asset)
     db.commit()
     db.refresh(asset)
     if old_path.exists() and old_path != _get_uploads_dir() / asset.stored_path:
@@ -183,10 +175,24 @@ def update_asset(
     body: AssetUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     asset = _verify_asset_access(asset_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        asset,
+        data,
+        entity_type="story_asset",
+        story_id=asset.story_id,
+        label=f"Edit {{fields}} on “{asset.original_filename}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(asset, key, value)
+    # Shared with its series: every book's copy follows.
+    series_sync.after_write(db, "story_assets", asset, list(data), actor_id=current_user.id, client_id=client_id)
     db.commit()
     db.refresh(asset)
     return asset

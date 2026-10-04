@@ -47,7 +47,7 @@ from ..services.findings.series import promise_findings as series_promise_findin
 from ..services.findings.view import load_view
 from ..services.series import service
 from ..services.series.drift import disagree
-from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, field_class, field_words
+from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, SYNCED_KINDS, field_class, field_words
 from ..services.series.promises import SeriesPromises
 from ..services.structure_scaffold import scaffold_story
 
@@ -112,6 +112,7 @@ def serialize(series: Series) -> SeriesOut:
             lore_kind=FRONTEND_KIND.get(e.kind, e.kind),
             name=e.name,
             members=_members(e, pos),
+            synced=e.kind in SYNCED_KINDS,
         )
         for e in series.elements
     ]

@@ -14,6 +14,7 @@ import {
 import { api } from "../../api/client";
 import type { CompendiumEntry } from "../../types";
 import styles from "./CompendiumEntryDetail.module.css";
+import SharedWithSeries from "../series/SharedWithSeries";
 
 interface Props {
   entry: CompendiumEntry;
@@ -118,6 +119,8 @@ export default function CompendiumEntryDetail({ entry, onBack, onEdit, onDelete,
             </span>
           ))}
         </div>
+
+        <SharedWithSeries kind="compendium_entry" refId={entry.id} name={entry.title} />
 
         {/* URL block */}
         {entry.entry_type === "url" && entry.url && (

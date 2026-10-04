@@ -10,6 +10,7 @@ from ..models.change import Change
 from ..models.story import Story
 from ..models.user import User
 from ..services import change_log
+from ..services.series import sync as series_sync
 
 router = APIRouter()
 
@@ -19,6 +20,13 @@ def _story(story_id: str, db: Session, user: User) -> Story:
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     return story
+
+
+def _keep_in_step(db: Session, res: change_log.UndoResult | None, user: User, client_id: str | None) -> None:
+    """Undone or redone research a series shares: the other books' copies follow (v1.5)."""
+    if res is not None:
+        series_sync.keep_in_step(db, res.entity_ids, actor_id=user.id, client_id=client_id)
+        db.commit()
 
 
 def _result(res: change_log.UndoResult | None, verb: str) -> dict:
@@ -56,6 +64,7 @@ def undo(
         # What it would put back points at something gone: a series this book has left.
         db.rollback()
         raise HTTPException(status_code=409, detail="That belongs to something no longer here.") from e
+    _keep_in_step(db, res, user, client_id)
     return _result(res, "undo")
 
 
@@ -76,6 +85,7 @@ def redo(
     except IntegrityError as e:
         db.rollback()
         raise HTTPException(status_code=409, detail="That belongs to something no longer here.") from e
+    _keep_in_step(db, res, user, client_id)
     return _result(res, "redo")
 
 

@@ -22,6 +22,7 @@ describe("command palette coverage", () => {
       "series-new-book",
       "series-open",
       "series-promises",
+      "series-research",
       "series-story-so-far",
       "series-write-sequel",
     ]);

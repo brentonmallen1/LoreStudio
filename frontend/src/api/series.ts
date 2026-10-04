@@ -31,12 +31,35 @@ export type SeriesKind =
   | "plot_thread"
   | "twist";
 
+/** Research a series shares, kept in step in every book (v1.5): not in the Canon. */
+export type SharedKind = "compendium_entry" | "story_asset" | "diagram";
+
 export interface SeriesElement {
   id: string;
-  kind: SeriesKind;
-  lore_kind: LoreKind;
+  kind: SeriesKind | SharedKind;
+  lore_kind: LoreKind | SharedKind;
   name: string;
   members: SeriesMember[];
+  /** Shared research: kept in step in every book. */
+  synced: boolean;
+}
+
+/** An element of the Canon or of Promises: a Lorebook kind, a thread or a twist. */
+export type CanonElement = SeriesElement & { kind: SeriesKind; lore_kind: LoreKind };
+
+export function isCanon(e: SeriesElement): e is CanonElement {
+  return !e.synced;
+}
+
+/** Shared research on the series page: the books that hold it, and whether they agree. */
+export interface SharedItem {
+  element_id: string;
+  kind: SharedKind;
+  name: string;
+  members: SeriesMember[];
+  in_step: boolean;
+  /** Books without a copy (deleted or kept apart there). */
+  missing: string[];
 }
 
 export type FieldClass = "enduring" | "evolving";
@@ -233,6 +256,14 @@ export const seriesApi = {
   ) => request<SeriesLink>(`/series/${id}/scene-links`, json(body)),
   removeLink: (id: string, linkId: string) =>
     request<void>(`/series/${id}/scene-links/${linkId}`, { method: "DELETE" }),
+
+  /** Share a book's research, image or diagram: a copy in every book, kept in step. */
+  share: (id: string, kind: SharedKind, storyId: string, refId: string) =>
+    request<Series>(`/series/${id}/share`, json({ kind, story_id: storyId, ref_id: refId })),
+  shared: (id: string) => request<SharedItem[]>(`/series/${id}/shared`),
+  /** One book's copy of shared research made every book's. */
+  syncFrom: (id: string, elementId: string, sourceStoryId: string) =>
+    request<Series>(`/series/${id}/elements/${elementId}/sync`, json({ source_story_id: sourceStoryId })),
 
   carryOver: (storyId: string) => request<CarryCandidate[]>(`/stories/${storyId}/carry-over`),
   sequel: (

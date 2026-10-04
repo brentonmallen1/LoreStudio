@@ -12,6 +12,7 @@ from ..database import get_db
 from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from ..models.story import Story
 from ..models.user import User
+from ..services.series import sync as series_sync
 from ..services.snapshot_export import export_snapshot, import_snapshot_file
 from ..services.snapshot_service import (
     _delete_snapshot_from_disk,
@@ -322,6 +323,9 @@ def restore_to_snapshot(
     _verify_story_access(story_id, db, current_user)
     snap = _verify_snapshot_access(snapshot_id, story_id, db)
     restore_snapshot(snap, db, create_safety_backup=body.create_safety_backup)
+    # A book of a series: the research it shares is what every book now says (v1.5).
+    series_sync.after_restore(db, story_id)
+    db.commit()
     return {"restored": True, "snapshot_id": snapshot_id}
 
 

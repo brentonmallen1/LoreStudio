@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, ExternalLink, BookCopy, Unlink } from "lucide-react";
-import { seriesApi, type Series, type SeriesKind } from "../../api/series";
+import { isCanon, seriesApi, type Series, type SeriesKind } from "../../api/series";
 import type { MenuItem } from "../common/PopoverMenu";
 import { sheetPath } from "../../lib/series/kinds";
 import { refreshBookLists } from "../../lib/series/refresh";
@@ -44,7 +44,8 @@ export function useSeriesSheet(
   if (!target || !series || !storyId || position === null) return { line: null, items: [] };
 
   const { kind, id } = target;
-  const element = elementForRow(series, storyId, id);
+  const found = elementForRow(series, storyId, id);
+  const element = found && isCanon(found) ? found : null;
   // A thread or twist: what each book does with it comes first (v1.5).
   const promise = kind === "plot_thread" ? "thread" : kind === "twist" ? "twist" : null;
   if (!element)

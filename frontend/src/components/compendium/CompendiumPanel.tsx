@@ -10,6 +10,7 @@ import CompendiumEntryDetail from "./CompendiumEntryDetail";
 import PageHeader from "../layout/PageHeader";
 import { sectionPath } from "../../lib/routes";
 import styles from "./CompendiumPanel.module.css";
+import { onSharedDelete } from "../../lib/series/shared";
 
 interface Props {
   storyId: string;
@@ -59,7 +60,7 @@ export default function CompendiumPanel({ storyId }: Props) {
     if (params.get("new")) setParams({}, { replace: true });
   }, [params, setParams]);
 
-  useReloadOnUndo(["compendium_entry", "compendium_attachment"], () => {
+  useReloadOnUndo(["compendium_entry", "compendium_attachment", "series_element_member"], () => {
     load();
     if (selectedEntry)
       api.getCompendiumEntry(selectedEntry.id).then(setSelectedEntry, () => setSelectedEntry(null));
@@ -78,7 +79,9 @@ export default function CompendiumPanel({ storyId }: Props) {
 
   async function doDelete(id: string) {
     setPendingDeleteId(null);
+    const said = onSharedDelete(id, entries.find((en) => en.id === id)?.title ?? "It");
     await api.deleteCompendiumEntry(id);
+    said();
     setEntries((prev) => prev.filter((en) => en.id !== id));
     if (selectedEntry?.id === id) open(null);
   }
@@ -119,7 +122,9 @@ export default function CompendiumPanel({ storyId }: Props) {
         onBack={() => open(null)}
         onEdit={() => setEditingEntry(selectedEntry)}
         onDelete={async () => {
+          const said = onSharedDelete(selectedEntry.id, selectedEntry.title);
           await api.deleteCompendiumEntry(selectedEntry.id);
+          said();
           setEntries((prev) => prev.filter((e) => e.id !== selectedEntry.id));
           open(null);
         }}

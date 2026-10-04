@@ -6,6 +6,7 @@ import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useSeriesStore } from "../../stores/seriesStore";
+import { isCanon } from "../../api/series";
 import { sheetPath } from "../../lib/series/kinds";
 import { carryBook } from "../../lib/series/promises";
 import type { MentionedRef } from "../../types/mentions";
@@ -71,7 +72,8 @@ export function useFindingActions() {
         ? useSeriesStore.getState().series?.elements.find((e) => e.id === f.anchor.series_element_id)
         : undefined;
       const mine = element?.members.find((m) => m.story_id === storyId);
-      if (!sheet && element && mine) return navigate(sheetPath(storyId, element.kind, mine.ref_id));
+      if (!sheet && element && mine && isCanon(element))
+        return navigate(sheetPath(storyId, element.kind, mine.ref_id));
       navigate(
         sheet
           ? sectionPath(storyId, sheet[1], sheet[2], f.anchor[sheet[0]] ?? undefined)

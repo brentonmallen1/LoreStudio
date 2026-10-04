@@ -10,6 +10,9 @@ import DiagramEditor from "../components/media/DiagramEditor";
 import ImageSheet from "../components/media/ImageSheet";
 import PageHeader from "../components/layout/PageHeader";
 import styles from "./MediaPage.module.css";
+import SharedWithSeries from "../components/series/SharedWithSeries";
+import { useReloadOnUndo } from "../hooks/useUndoRedo";
+import { onSharedDelete } from "../lib/series/shared";
 
 type Tab = "media" | "diagrams";
 
@@ -37,6 +40,13 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
       .catch(() => {});
     loadDiagrams();
   }, [storyId]);
+
+  // Undo reaches images and diagrams, and what a series shares (v1.5): read them again.
+  useReloadOnUndo(["story_asset", "asset_attachment", "diagram", "series_element_member"], () => {
+    if (!storyId) return;
+    void api.listAssets(storyId).then(setAssets, () => {});
+    void loadDiagrams();
+  });
 
   async function loadDiagrams() {
     if (!storyId) return;
@@ -68,7 +78,9 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
   }
 
   async function deleteDiagram(id: string) {
+    const said = onSharedDelete(id, diagrams.find((d) => d.id === id)?.title ?? "It");
     await api.deleteDiagram(id);
+    said();
     setDiagrams((prev) => prev.filter((d) => d.id !== id));
     if (activeDiagram?.id === id) closeDiagram();
     setConfirmDelete(null);
@@ -200,6 +212,9 @@ export default function MediaPage({ section = "images" }: { section?: string }) 
                         </span>
                       </div>
                     </button>
+                    <div className={styles.diagramShared}>
+                      <SharedWithSeries kind="diagram" refId={d.id} name={d.title} />
+                    </div>
                     {confirmDelete === d.id ? (
                       <div className={styles.deleteConfirm}>
                         <span>Delete?</span>

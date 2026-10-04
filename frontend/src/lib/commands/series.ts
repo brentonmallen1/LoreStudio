@@ -74,6 +74,13 @@ for (const [id, section, label, description, keywords] of [
     ["promises", "threads", "twists", "series", "tapestry", "across books"],
   ],
   [
+    "series-research",
+    "research",
+    "The series' shared research",
+    "Research, images and diagrams every book of the series has, kept in step",
+    ["research", "compendium", "shared", "series", "images", "diagrams"],
+  ],
+  [
     "series-story-so-far",
     "story-so-far",
     "The story so far",

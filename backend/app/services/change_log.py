@@ -26,12 +26,14 @@ from ..models.change import Change
 from ..models.character import Character, CharacterRelationship
 from ..models.compendium import CompendiumAttachment, CompendiumEntry
 from ..models.culture import Culture
+from ..models.diagram import Diagram
 from ..models.dialogue import DialogueBlock
 from ..models.finding_dismissal import FindingDismissal
 from ..models.historical_event import Era, HistoricalEvent
 from ..models.interview import CharacterInterview
 from ..models.location import Location, ScenePresence, SceneSetting
 from ..models.location_travel import LocationTravel
+from ..models.media import AssetAttachment, StoryAsset
 from ..models.note import Note
 from ..models.outline import Outline, OutlineItem
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
@@ -78,6 +80,10 @@ ENTITY_MODELS: dict[str, type] = {
     "series_element_member": SeriesElementMember,
     # A setup that pays off in another book: undone in the book it was made in.
     "series_scene_link": SeriesSceneLink,
+    # Images and diagrams (v1.5: a portrait carried into a book, research shared with a series).
+    "story_asset": StoryAsset,
+    "asset_attachment": AssetAttachment,
+    "diagram": Diagram,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -112,6 +118,9 @@ BUNDLE_MODELS: dict[str, type] = {
     "reader_knowledge_events": ReaderKnowledgeEvent,
     "series_element_members": SeriesElementMember,
     "series_scene_links": SeriesSceneLink,
+    "story_assets": StoryAsset,
+    "asset_attachments": AssetAttachment,
+    "diagrams": Diagram,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000

@@ -7,6 +7,8 @@ from ..models.diagram import Diagram
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.diagram import DiagramCreate, DiagramOut, DiagramSummary, DiagramUpdate
+from ..services import change_log
+from ..services.series import sync as series_sync
 
 router = APIRouter()
 
@@ -66,10 +68,24 @@ def update_diagram(
     body: DiagramUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     diagram = _verify_diagram_access(diagram_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        diagram,
+        data,
+        entity_type="diagram",
+        story_id=diagram.story_id,
+        label=f"Edit {{fields}} on “{diagram.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(diagram, key, value)
+    # Shared with its series: every book's copy follows.
+    series_sync.after_write(db, "diagrams", diagram, list(data), actor_id=current_user.id, client_id=client_id)
     db.commit()
     db.refresh(diagram)
     return diagram

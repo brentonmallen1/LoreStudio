@@ -20,6 +20,7 @@ from ..schemas.compendium import (
     CompendiumUrlCreate,
 )
 from ..services import change_log
+from ..services.series import sync as series_sync
 from ..services.text_utils import html_to_text
 
 router = APIRouter()
@@ -303,6 +304,8 @@ def update_entry(
     )
     for key, value in data.items():
         setattr(entry, key, value)
+    # Shared with its series: every book's copy follows, each logging its own.
+    series_sync.after_write(db, "compendium_entries", entry, list(data), actor_id=current_user.id, client_id=client_id)
     db.commit()
     db.refresh(entry)
     return entry
@@ -363,6 +366,7 @@ async def refresh_url(
     for key, value in data.items():
         setattr(entry, key, value)
     entry.url_fetched_at = datetime.now(UTC)  # bookkeeping, not an edit: left out of the change
+    series_sync.after_write(db, "compendium_entries", entry, list(data), actor_id=current_user.id, client_id=client_id)
     db.commit()
     db.refresh(entry)
     return entry
