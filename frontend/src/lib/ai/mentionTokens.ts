@@ -1,4 +1,4 @@
-import type { Character, Location, PlotThread, StructureNode } from "../../types";
+import type { Character, Location, PlotThread, StructureNode, Twist } from "../../types";
 import type { MentionedRef, MentionKind } from "../../types/mentions";
 
 /**
@@ -35,6 +35,7 @@ export interface CandidatePool {
   locations: Location[];
   scenes: StructureNode[];
   threads: PlotThread[];
+  twists?: Twist[];
 }
 
 function score(label: string, q: string): number {
@@ -60,6 +61,7 @@ export function candidates(
     ...pool.locations.map((l) => ({ kind: "location" as const, id: l.id, label: l.name })),
     ...pool.scenes.map((s) => ({ kind: "scene" as const, id: s.id, label: s.title })),
     ...pool.threads.map((t) => ({ kind: "thread" as const, id: t.id, label: t.name })),
+    ...(pool.twists ?? []).map((t) => ({ kind: "twist" as const, id: t.id, label: t.name })),
   ];
   return all
     .filter((c) => !taken.has(`${c.kind}:${c.id}`))

@@ -93,7 +93,7 @@ export function tapestryLanes(data: Promises): LaneGroup[] {
         index: c.index!,
         nodeId: c.node_id!,
         shape: c.points_to === "truth" ? "toward" : "away",
-        label: `${title(c.index!)}: a clue ${c.points_to === "truth" ? "toward the truth" : "away from it"} (${c.subtlety}). ${c.text}`,
+        label: `${title(c.index!)}: a clue ${c.points_to === "truth" ? "toward the truth" : "away from it"} (${c.subtlety}). ${c.text || `“${c.quote}”`}`,
       }));
     if (tw.reveal_index !== null && tw.reveal_node_id) {
       marks.push({

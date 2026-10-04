@@ -1,5 +1,5 @@
 /** Something the author @-mentioned in a chat, to bring it into that conversation's context (doc 11 P6). */
-export type MentionKind = "character" | "location" | "scene" | "thread";
+export type MentionKind = "character" | "location" | "scene" | "thread" | "twist";
 
 export interface MentionedRef {
   kind: MentionKind;

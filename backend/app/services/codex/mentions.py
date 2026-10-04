@@ -13,6 +13,7 @@ from ...models.character import Character
 from ...models.location import Location
 from ...models.plot_thread import PlotThread
 from ...models.structure import StructureNode
+from ...models.twist import Twist
 from ...schemas.mentions import MentionedRef
 from ..worldbuilding_context import _location_to_dict
 
@@ -35,6 +36,10 @@ _LABELS = {
     "purpose": "Purpose",
     "status": "Status",
     "mice_type": "MICE kind",
+    "the_truth": "The truth",
+    "the_misdirection": "What the reader is led to believe",
+    "revealed_in": "Revealed in",
+    "clues": "Clues",
     "prose_preview": "Opens",
 }
 
@@ -75,6 +80,22 @@ def _thread(t: PlotThread) -> dict:
     return item
 
 
+def _twist(tw: Twist, db: Session) -> dict:
+    """A twist as the author planned it (doc 18 C8): the truth, the cover, its clues."""
+    item: dict = {"kind": "twist", "id": tw.id, "name": tw.name, "status": tw.status, "type": tw.twist_type}
+    for key in ("the_truth", "the_misdirection"):
+        if getattr(tw, key):
+            item[key] = getattr(tw, key)
+    if tw.revealed_at_node_id and (node := db.get(StructureNode, tw.revealed_at_node_id)):
+        item["revealed_in"] = node.title
+    clues = [
+        f"{c.text} ({'toward the truth' if c.points_to == 'truth' else 'away from it'})" for c in tw.clues if c.text
+    ]
+    if clues:
+        item["clues"] = "; ".join(clues)
+    return item
+
+
 def _resolve_one(story_id: str, ref: MentionedRef, db: Session) -> dict | None:
     if ref.kind == "character":
         c = db.get(Character, ref.id)
@@ -85,6 +106,9 @@ def _resolve_one(story_id: str, ref: MentionedRef, db: Session) -> dict | None:
     if ref.kind == "scene":
         node = db.get(StructureNode, ref.id)
         return _scene(node) if node and node.story_id == story_id else None
+    if ref.kind == "twist":
+        tw = db.get(Twist, ref.id)
+        return _twist(tw, db) if tw and tw.story_id == story_id else None
     t = db.get(PlotThread, ref.id)
     return _thread(t) if t and t.story_id == story_id else None
 

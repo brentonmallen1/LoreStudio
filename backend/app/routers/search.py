@@ -12,6 +12,7 @@ from ..models.plot_thread import PlotThread
 from ..models.setting import Setting
 from ..models.story import Story
 from ..models.structure import StructureNode
+from ..models.twist import Twist
 from ..models.user import User
 from ..services import change_log
 from ..services.prose_html import paragraphs
@@ -193,6 +194,31 @@ async def search(
                 "title": t.name,
                 "subtitle": story.title if story else None,
                 "excerpt": _excerpt(t.description, q),
+            }
+        )
+
+    # Twists (doc 18 C8): by name, the truth or the misdirection
+    twists = (
+        db.query(Twist)
+        .filter(
+            Twist.story_id.in_(story_ids),
+            or_(Twist.name.ilike(like), Twist.the_truth.ilike(like), Twist.the_misdirection.ilike(like)),
+        )
+        .limit(5)
+        .all()
+    )
+    for tw in twists:
+        story = story_map.get(tw.story_id)
+        # Show where the word is; a match on the name shows the truth.
+        in_cover = q.lower() in (tw.the_misdirection or "").lower() and q.lower() not in (tw.the_truth or "").lower()
+        results.append(
+            {
+                "type": "twist",
+                "id": tw.id,
+                "story_id": tw.story_id,
+                "title": tw.name,
+                "subtitle": story.title if story else None,
+                "excerpt": _excerpt(tw.the_misdirection if in_cover else tw.the_truth, q),
             }
         )
 

@@ -255,3 +255,8 @@
   border-color: var(--color-control-border);
   background: var(--color-surface);
 }
+
+/* A body whose children ask the width they have (the reader table folds narrow) */
+.contained {
+  container-type: inline-size;
+}

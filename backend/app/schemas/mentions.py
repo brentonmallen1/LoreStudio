@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-MentionKind = Literal["character", "location", "scene", "thread"]
+MentionKind = Literal["character", "location", "scene", "thread", "twist"]
 
 
 class MentionedRef(BaseModel):

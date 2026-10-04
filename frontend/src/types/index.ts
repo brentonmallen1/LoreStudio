@@ -637,7 +637,7 @@ export interface SceneLink {
 }
 
 export interface SearchResult {
-  type: "story" | "character" | "scene" | "setting" | "thread";
+  type: "story" | "character" | "scene" | "setting" | "thread" | "twist";
   id: string;
   story_id: string;
   title: string;

@@ -109,9 +109,24 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
         lines += ["", "## Plot threads active in this scene"]
         for t in ctx["threads_in_scene"]:
             line = f"- {t['name']} [{t['status']}]"
+            if t.get("here"):
+                line += f", this scene {t['here']}"
             if t.get("description"):
                 line += f": {t['description']}"
             lines.append(line)
+            if t.get("note"):
+                lines.append(f"  What the author says happens to it here: {t['note']}")
+    if ctx.get("twists_in_scene"):
+        lines += ["", "## Twists in this scene (the reader does not know the truth until the reveal)"]
+        for tw in ctx["twists_in_scene"]:
+            lines.append(f"- {tw['name']}: {tw['here']}")
+            if tw.get("the_truth"):
+                lines.append(f"  The truth: {tw['the_truth']}")
+            if tw.get("the_misdirection"):
+                lines.append(f"  What the reader is led to believe: {tw['the_misdirection']}")
+            for c in tw.get("clues_here") or []:
+                way = "toward the truth" if c["points_to"] == "truth" else "away from it"
+                lines.append(f"  Clue here ({way}): {c['text']}")
     if ctx["open_threads"]:
         open_names = [t["name"] for t in ctx["open_threads"] if t not in ctx["threads_in_scene"]]
         if open_names:

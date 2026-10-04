@@ -26,6 +26,7 @@ from ...models.location import Location
 from ...models.plot_thread import PlotThread, PlotThreadAppearance
 from ...models.story import Story
 from ...models.structure import StructureNode
+from ...models.twist import Twist
 from ...models.user import User
 from ...schemas.mentions import MentionedRef
 from ..character_journey import get_cached_journey
@@ -34,6 +35,7 @@ from ..llm.prompts.interviews import build_character_interview_system_prompt
 from ..llm.prompts.panel import build_panel_character_prompt
 from ..prose_html import paragraphs
 from ..prose_syntax import Known, Lexicon, find_mentions
+from ..thread_roles import role_label
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
 from .mentions import render_mentions, resolve_mentions, without
@@ -46,6 +48,7 @@ class ContextOptions(BaseModel):
     include_threads: bool = True
     include_settings: bool = True
     include_siblings: bool = True
+    include_twists: bool = True
 
 
 # How many characters of prose to include in context (keep tokens reasonable)
@@ -196,8 +199,16 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
             active_threads = (
                 db.query(PlotThread).filter(PlotThread.id.in_(active_thread_ids)).all() if active_thread_ids else []
             )
+            # What this scene does to each thread, and the author's note on it (doc 18 C8).
+            here = {a.thread_id: a for a in thread_appearances}
             threads_in_scene = [
-                {"name": t.name, "status": t.status, "description": t.description[:150] if t.description else None}
+                {
+                    "name": t.name,
+                    "status": t.status,
+                    "description": t.description[:150] if t.description else None,
+                    "here": role_label(here[t.id].role),
+                    "note": here[t.id].note or None,
+                }
                 for t in active_threads
             ]
         all_open_threads = [
@@ -205,6 +216,26 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
             for t in db.query(PlotThread).filter(PlotThread.story_id == story.id).all()
             if t.status in ("planned", "open")
         ]
+
+    # ── Twists planted or revealed in this scene (doc 18 C8) ──
+    twists_in_scene: list = []
+    if opts.include_twists and node_id_for_threads:
+        for tw in db.query(Twist).filter(Twist.story_id == story.id).all():
+            clues = [c for c in tw.clues if c.node_id == node_id_for_threads]
+            revealed = tw.revealed_at_node_id == node_id_for_threads
+            if not (clues or revealed):
+                continue
+            twists_in_scene.append(
+                {
+                    "name": tw.name,
+                    "here": "revealed in this scene" if revealed else "clues planted in this scene",
+                    "the_truth": tw.the_truth or None,
+                    "the_misdirection": tw.the_misdirection or None,
+                    "clues_here": [
+                        {"text": c.text, "points_to": c.points_to, "quote": c.quote or None} for c in clues if c.text
+                    ],
+                }
+            )
 
     # ── Sibling context (adjacent scenes) ──
     sibling_context: list = []
@@ -241,6 +272,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
         "settings_in_scene": mentioned_settings,
         "threads_in_scene": threads_in_scene,
         "open_threads": all_open_threads,
+        "twists_in_scene": twists_in_scene,
         "sibling_scenes": sibling_context,
         "mentioned": mentioned,
     }
@@ -350,6 +382,7 @@ def _blocks_for(packet: dict) -> list[Block]:
         ("characters_in_scene", "Characters in scene", "@mentioned in the prose"),
         ("settings_in_scene", "Settings", "[[mentioned]] in the prose"),
         ("threads_in_scene", "Plot threads", "the thread appears in this scene"),
+        ("twists_in_scene", "Twists", "a clue is planted or the twist revealed in this scene"),
         ("sibling_scenes", "Neighbouring scenes", "adjacent in the manuscript"),
         ("all_characters", "Cast summary", ""),
         ("open_threads", "Open threads", ""),

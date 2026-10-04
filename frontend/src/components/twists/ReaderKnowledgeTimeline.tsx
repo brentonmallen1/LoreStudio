@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Orbit, Brain, Plus, Trash2, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { Orbit, BookOpenCheck, Plus, Trash2, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { useAIAvailable } from "../../lib/mode";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
@@ -207,10 +207,8 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
     <div className={styles.wrap}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <Brain size={15} className={styles.headerIcon} />
-          <h3 className={styles.headerTitle}>
-            {ironyOnly ? "Dramatic irony" : "What the reader knows, scene by scene"}
-          </h3>
+          <BookOpenCheck size={15} className={styles.headerIcon} />
+          <h3 className={styles.headerTitle}>{ironyOnly ? "Dramatic irony" : "Your entries"}</h3>
           <span className={styles.eventCount}>{displayedEvents.length}</span>
         </div>
         <div className={styles.headerRight}>
@@ -260,13 +258,13 @@ export default function ReaderKnowledgeTimeline({ storyId, ironyOnly = false }: 
 
       {displayedEvents.length === 0 && (
         <div className={styles.empty}>
-          <Brain size={18} className={styles.emptyIcon} />
+          <BookOpenCheck size={18} className={styles.emptyIcon} />
           <p>
             {ironyOnly
               ? 'Nothing yet. Add one with "Only the reader knows" where the reader knows more than the characters.'
               : aiAvailable
                 ? '"Find what the reader learns" asks the Assistant to propose what the reader learns where, or add it yourself.'
-                : "Add what the reader learns, scene by scene: truths, misdirections, clues, and what only the reader knows."}
+                : "Nothing added yet. Add what a character learns, and what only the reader knows."}
           </p>
         </div>
       )}

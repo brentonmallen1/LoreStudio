@@ -41,6 +41,7 @@ def test_the_view_reads_front_to_back(client):
         f"/api/twists/{tw['id']}/clues", json={"node_id": s[0], "text": "honest man", "points_to": "misdirection"}
     )
     client.post(f"/api/twists/{tw['id']}/clues", json={"text": "unplaced"})
+    client.post(f"/api/twists/{tw['id']}/clues", json={"node_id": s[3], "quote": "a smell of smoke"})
     client.post(
         "/api/scene-links",
         json={"story_id": sid, "source_node_id": s[3], "target_node_id": s[0], "link_type": "callback", "note": "n"},
@@ -54,7 +55,7 @@ def test_the_view_reads_front_to_back(client):
     assert [(b["index"], b["role"]) for b in thread["beats"]] == [(0, "opens"), (1, "fails"), (3, "closes")]
     assert thread["status"] == "resolved"
     (twist,) = v["twists"]
-    assert [c["text"] for c in twist["clues"]] == ["honest man", "ash", "unplaced"]
+    assert [c["text"] for c in twist["clues"]] == ["honest man", "ash", "", "unplaced"]
     assert twist["reveal_index"] == 4 and twist["color_slot"] == 7
     (setup,) = v["setups"]
     assert (setup["from_index"], setup["to_index"], setup["link_type"]) == (0, 3, "callback")
@@ -62,6 +63,7 @@ def test_the_view_reads_front_to_back(client):
     rows = {r["index"]: r for r in v["reader"]}
     assert [i["text"] for i in rows[0]["believes"]] == ["honest man"]
     assert [i["text"] for i in rows[2]["learns"]] == ["ash"]
+    assert [i["text"] for i in rows[3]["learns"]] == ["“a smell of smoke”"]
     assert [i["text"] for i in rows[4]["learns"]] == ["He lied"]
     assert [(i["text"], i["over"]) for i in rows[4]["believes"]] == [("honest man", True)]
     assert v["checks"] == []
@@ -175,3 +177,35 @@ def test_the_checks_are_findings_on_the_sheet_and_in_the_scene(client):
     # Set aside, the thread's checks go quiet
     client.patch(f"/api/threads/{th['id']}", json={"set_aside": True})
     assert not any(f["check"] == "quiet_thread" for f in client.get(f"/api/stories/{sid}/findings").json()["findings"])
+
+
+def test_the_assistant_search_and_mentions_know_twists(client, db_session):
+    """Doc 18 C8: a twist is in the scene's context, in search and can be @mentioned."""
+    from app.models.story import Story
+    from app.models.structure import StructureNode
+    from app.schemas.mentions import MentionedRef
+    from app.services.codex.context import build_packet
+    from app.services.codex.mentions import resolve_mentions
+
+    sid = _story(client)
+    s = _scenes(client, sid, 3)
+    th = client.post(f"/api/stories/{sid}/threads", json={"name": "Logs"}).json()
+    client.post(f"/api/threads/{th['id']}/appearances", json={"node_id": s[1], "role": "fails", "note": "She hides it"})
+    tw = client.post(
+        f"/api/stories/{sid}/twists",
+        json={"name": "The keeper lied", "the_truth": "He burned the logbook", "revealed_at_node_id": s[2]},
+    ).json()
+    client.post(f"/api/twists/{tw['id']}/clues", json={"node_id": s[1], "text": "ash in the grate", "quote": "ash"})
+
+    packet = build_packet(db_session.get(Story, sid), db_session.get(StructureNode, s[1]), db_session)
+    (thread,) = packet["threads_in_scene"]
+    assert thread["here"] == "a try fails" and thread["note"] == "She hides it"
+    (twist,) = packet["twists_in_scene"]
+    assert twist["here"] == "clues planted in this scene" and twist["clues_here"][0]["quote"] == "ash"
+
+    hits = client.get("/api/search", params={"q": "burned the logbook"}).json()
+    assert any(h["type"] == "twist" and h["id"] == tw["id"] for h in hits)
+
+    (item,) = resolve_mentions(sid, [MentionedRef(kind="twist", id=tw["id"])], db_session)
+    assert item["the_truth"] == "He burned the logbook" and item["revealed_in"] == "S3"
+    assert "ash in the grate (toward the truth)" in item["clues"]

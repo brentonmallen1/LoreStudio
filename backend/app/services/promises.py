@@ -185,9 +185,11 @@ def reader_rows(twists: list[PromiseTwist], events: list, index: dict[str, int])
     rows = _Rows(index)
     for tw in twists:
         for c in tw.clues:
-            if c.node_id is None or c.index is None or not c.text:
+            # A clue planted on the words themselves may have no description yet: the words say it.
+            text = c.text or (f"“{c.quote}”" if c.quote else "")
+            if c.node_id is None or c.index is None or not text:
                 continue
-            item = ReaderItem(text=c.text, source="clue", twist_id=tw.id)
+            item = ReaderItem(text=text, source="clue", twist_id=tw.id)
             if c.points_to == "truth":
                 rows.at(c.node_id).learns.append(item)
             else:

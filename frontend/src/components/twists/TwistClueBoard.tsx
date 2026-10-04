@@ -87,7 +87,9 @@ export default function TwistClueBoard({ twist, leaves, onChanged }: Props) {
                     <span className={styles.dir}>
                       {c.points_to === "truth" ? "Toward the truth" : "Away from it"} · {c.subtlety}
                     </span>
-                    <span className={styles.text}>{c.text || "A clue, not described yet"}</span>
+                    <span className={styles.text}>
+                      {c.text || (c.quote ? "Planted on the words below" : "A clue, not described yet")}
+                    </span>
                     {c.quote && <q className={styles.quote}>{c.quote}</q>}
                   </button>
                 ))}

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUIStore } from "../../stores/uiStore";
+import { RESULT_ORDER, TYPE_ICONS, TYPE_LABELS } from "../../lib/commands/searchTypes";
 import { useStoryStore } from "../../stores/storyStore";
 import { api } from "../../api/client";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
@@ -9,10 +10,6 @@ import { useEntityCommands } from "../../lib/commands/entities";
 import type { CommandAction } from "../../lib/commands/registry";
 import type { SearchResult } from "../../types";
 import {
-  BookOpen,
-  Users,
-  Clapperboard,
-  MapPin,
   GitBranch,
   Loader2,
   Search,
@@ -25,22 +22,6 @@ import {
 } from "lucide-react";
 import { useStoryStore as _useStoryStoreForNav } from "../../stores/storyStore";
 import styles from "./CommandPalette.module.css";
-
-const TYPE_ICONS: Record<SearchResult["type"], React.ElementType> = {
-  story: BookOpen,
-  character: Users,
-  scene: Clapperboard,
-  setting: MapPin,
-  thread: GitBranch,
-};
-
-const TYPE_LABELS: Record<SearchResult["type"], string> = {
-  story: "Stories",
-  character: "Characters",
-  scene: "Manuscript",
-  setting: "Settings",
-  thread: "Threads",
-};
 
 export default function CommandPalette() {
   const { commandPaletteOpen, setCommandPaletteOpen } = useUIStore();
@@ -225,6 +206,9 @@ export default function CommandPalette() {
       case "thread":
         navigate(`/stories/${result.story_id}/promises/threads/${result.id}`);
         break;
+      case "twist":
+        navigate(`/stories/${result.story_id}/promises/twists/${result.id}`);
+        break;
     }
     close();
   }
@@ -362,7 +346,7 @@ export default function CommandPalette() {
     },
     {} as Record<string, SearchResult[]>,
   );
-  const resultTypeOrder: SearchResult["type"][] = ["story", "character", "scene", "setting", "thread"];
+  const resultTypeOrder = RESULT_ORDER;
 
   return (
     <div className={styles.overlay} onClick={close} aria-hidden="true">

@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { api } from "../../../api/client";
+import type { Twist } from "../../../types";
 import { X } from "lucide-react";
 import { useAIStore } from "../../../stores/aiStore";
 import { useStoryStore } from "../../../stores/storyStore";
@@ -14,11 +16,12 @@ const KIND_LABEL: Record<MentionedRef["kind"], string> = {
   location: "place",
   scene: "scene",
   thread: "thread",
+  twist: "twist",
 };
 
 /**
  * ChatInput plus @-mentions (doc 11 P6). Typing `@` opens a list of the story's characters,
- * places, scenes and threads; choosing one leaves `@Name` in the text and adds a chip. The
+ * places, scenes, threads and twists; choosing one leaves `@Name` in the text and adds a chip. The
  * chips are the session's `mentionedRefs`: every send adds them to the context the server
  * assembles on its own, and the transparency view shows them as "you @mentioned them".
  * They stay for the conversation until the author removes one.
@@ -32,20 +35,28 @@ export default function MentionComposer({ sessionId, ...props }: ChatInputProps 
   const structure = useStoryStore((s) => s.structure);
   const template = useStoryStore((s) => s.activeTemplate);
   const scenes = useMemo(() => sceneLeaves(structure, template), [structure, template]);
+  // Twists are not in the story store; the composer asks once per story (doc 18 C8).
+  const storyId = useStoryStore((s) => s.activeStory?.id);
+  const [twists, setTwists] = useState<Twist[]>([]);
+  useEffect(() => {
+    if (storyId) api.listTwists(storyId).then(setTwists, () => setTwists([]));
+  }, [storyId]);
   const slotById = useMemo(() => {
     const m = new Map<string, number>();
     for (const c of characters) m.set(c.id, c.color_slot);
     for (const l of locations) m.set(l.id, l.color_slot);
     for (const t of threads) m.set(t.id, t.color_slot);
+    for (const t of twists) m.set(t.id, t.color_slot);
     return m;
-  }, [characters, locations, threads]);
+  }, [characters, locations, threads, twists]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [mention, setMention] = useState<ActiveMention | null>(null);
   const [cursor, setCursor] = useState(0);
   const list = useMemo(
-    () => (mention ? candidates(mention.query, { characters, locations, scenes, threads }, refs) : []),
-    [mention, characters, locations, scenes, threads, refs],
+    () =>
+      mention ? candidates(mention.query, { characters, locations, scenes, threads, twists }, refs) : [],
+    [mention, characters, locations, scenes, threads, twists, refs],
   );
 
   function handleChange(value: string) {
