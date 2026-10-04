@@ -1,6 +1,7 @@
 import { request } from "./request";
 import type { LoreKind } from "../lib/lorebook/kinds";
 import type { Story } from "../types";
+import type { BookScene, BookStep } from "../types/promises";
 
 /** A book's place in its series (from 0). */
 export interface SeriesBook {
@@ -112,6 +113,59 @@ export interface SequelCreated extends Story {
   series_id: string;
 }
 
+/** One thread or twist the series shares, with what each book that has it does there. */
+export interface SeriesLane {
+  element_id: string;
+  kind: "thread" | "twist";
+  name: string;
+  color_slot: number;
+  status: "open" | "resolved" | "set_aside" | "planned" | "planted" | "revealed";
+  steps: BookStep[];
+}
+
+/** A setup in one book that pays off in another, earlier book first. */
+export interface SeriesLink {
+  id: string;
+  link_type: string;
+  note: string;
+  source: BookScene;
+  target: BookScene;
+}
+
+export interface SeriesPromises {
+  books: { position: number; story_id: string; title: string }[];
+  lanes: SeriesLane[];
+  setups: SeriesLink[];
+}
+
+export interface SoFarItem {
+  text: string;
+  source: "clue" | "reveal" | "you";
+  story_id: string;
+  node_id: string | null;
+  /** A belief a later scene overturns: "Book 3 · The Return". */
+  over: string | null;
+}
+
+/** One book as it leaves the reader: a card of The story so far. */
+export interface BookSoFar {
+  position: number;
+  story_id: string;
+  title: string;
+  summary: string;
+  characters: {
+    name: string;
+    kind: "character";
+    ref_id: string;
+    changed: Record<string, string>;
+    first_here: boolean;
+  }[];
+  learned: SoFarItem[];
+  believes: SoFarItem[];
+  only: SoFarItem[];
+  open: { kind: "thread" | "twist"; name: string; story_id: string; ref_id: string; said: string }[];
+}
+
 const json = (body: unknown) => ({ method: "POST", body: JSON.stringify(body) });
 
 export const seriesApi = {
@@ -161,6 +215,24 @@ export const seriesApi = {
       body: JSON.stringify({ kind, field, field_class: fieldClass }),
     }),
   findings: (id: string) => request<SeriesFinding[]>(`/series/${id}/findings`),
+
+  /** The series' promises: its tapestry by book and its setups across books. */
+  promises: (id: string) => request<SeriesPromises>(`/series/${id}/promises`),
+  storySoFar: (id: string) => request<BookSoFar[]>(`/series/${id}/story-so-far`),
+  /** A setup across books, made from this book's end: undoable in this book. */
+  addLink: (
+    id: string,
+    body: {
+      story_id: string;
+      node_id: string;
+      other_story_id: string;
+      other_node_id: string;
+      link_type: string;
+      note?: string;
+    },
+  ) => request<SeriesLink>(`/series/${id}/scene-links`, json(body)),
+  removeLink: (id: string, linkId: string) =>
+    request<void>(`/series/${id}/scene-links/${linkId}`, { method: "DELETE" }),
 
   carryOver: (storyId: string) => request<CarryCandidate[]>(`/stories/${storyId}/carry-over`),
   sequel: (

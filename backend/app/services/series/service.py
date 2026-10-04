@@ -89,7 +89,8 @@ def attach_story(db: Session, series: Series, story: Story, position: int | None
 
 
 def detach_story(db: Session, story_id: str) -> None:
-    """Take a book out of its series. Its rows stay in it, now its own; the links go.
+    """Take a book out of its series. Its rows stay in it, now its own; the links go, and so
+    do its setups that pay off in another book.
 
     An element left in no book goes, and so does a series left with no books.
     """
@@ -100,6 +101,11 @@ def detach_story(db: Session, story_id: str) -> None:
     for member in db.query(SeriesElementMember).filter(SeriesElementMember.story_id == story_id).all():
         member.element.members.remove(member)
         db.delete(member)
+    # Setups that pay off in another book join this book to that one: they go with it.
+    for link in list(series.scene_links):
+        if story_id in (link.source_story_id, link.target_story_id):
+            series.scene_links.remove(link)
+            db.delete(link)
     series.books.remove(book)
     db.delete(book)
     db.flush()
@@ -626,4 +632,7 @@ def prune_dead_members(db: Session, series: Series) -> int:
 
 def tidy(db: Session, series: Series) -> None:
     """What every series endpoint does first."""
+    from .setups import prune_links
+
     prune_dead_members(db, series)
+    prune_links(db, series)

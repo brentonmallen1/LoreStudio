@@ -1,6 +1,7 @@
 """Undo / redo and the change history for a story."""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -51,6 +52,10 @@ def undo(
     except change_log.UndoConflict as e:
         db.rollback()
         raise HTTPException(status_code=409, detail=str(e))
+    except IntegrityError as e:
+        # What it would put back points at something gone: a series this book has left.
+        db.rollback()
+        raise HTTPException(status_code=409, detail="That belongs to something no longer here.") from e
     return _result(res, "undo")
 
 
@@ -68,6 +73,9 @@ def redo(
     except change_log.UndoConflict as e:
         db.rollback()
         raise HTTPException(status_code=409, detail=str(e))
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="That belongs to something no longer here.") from e
     return _result(res, "redo")
 
 

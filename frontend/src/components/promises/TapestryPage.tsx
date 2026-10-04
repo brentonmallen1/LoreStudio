@@ -108,4 +108,5 @@ const PROMISE_CHECKS = new Set([
   "series-nesting",
 ]);
 
-const empty = (d: Promises) => d.threads.length === 0 && d.twists.length === 0 && d.setups.length === 0;
+const empty = (d: Promises) =>
+  d.threads.length === 0 && d.twists.length === 0 && d.setups.length === 0 && d.series_setups.length === 0;

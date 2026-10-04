@@ -7,18 +7,25 @@ import PageHeader from "../components/layout/PageHeader";
 import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
 import Canon from "../components/series/Canon";
+import SeriesTapestry from "../components/series/SeriesTapestry";
+import StorySoFar from "../components/series/StorySoFar";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
 import { sheetPath } from "../lib/series/kinds";
+import { SERIES_SECTIONS, seriesPath, seriesSection } from "../lib/series/sections";
 import { bookLabel, useSeriesStore } from "../stores/seriesStore";
 import { toast } from "../stores/toastStore";
 import styles from "../components/series/Series.module.css";
 
 /**
- * A series (series doc): what it is, its books in order, and the Canon, every character,
- * place and part of the world it shares, with how each changes from book to book.
+ * A series (series doc), in sections: the overview (what it is, its books in order, what needs
+ * the author's eye), the Canon (every character, place and part of the world it shares, and
+ * how each changes from book to book), its Promises (every thread and twist across the books,
+ * a column per book, and setups that pay off in another book) and The story so far (what each
+ * book leaves the reader with).
  */
 export default function SeriesPage() {
-  const { seriesId } = useParams<{ seriesId: string }>();
+  const { seriesId, section: sectionParam } = useParams<{ seriesId: string; section?: string }>();
+  const section = seriesSection(sectionParam);
   const navigate = useNavigate();
   const [series, setSeries] = useState<Series | null>(null);
   const [progress, setProgress] = useState<Record<string, StoryProgress>>({});
@@ -94,91 +101,138 @@ export default function SeriesPage() {
         summary={`A series of ${series.books.length} ${series.books.length === 1 ? "book" : "books"}, ${
           shared === 0 ? "nothing shared yet" : `${shared} shared ${shared === 1 ? "element" : "elements"}`
         }`}
+        views={[...SERIES_SECTIONS]}
+        view={section}
+        onView={(v) => navigate(seriesPath(series.id, seriesSection(v)))}
         primary={{ label: "New book", icon: Plus, onClick: () => setNewBook(true) }}
         more={[
           { label: "Delete the series…", icon: Trash2, danger: true, onSelect: () => setConfirmDelete(true) },
         ]}
       />
       <main className={styles.main}>
-        <SeriesIdentity
-          key={`${series.id}|${series.name}|${series.premise}|${series.intent}`}
-          series={series}
-          onSaved={accept}
-        />
+        {section === "overview" && (
+          <>
+            <SeriesIdentity
+              key={`${series.id}|${series.name}|${series.premise}|${series.intent}`}
+              series={series}
+              onSaved={accept}
+            />
 
-        <section className={styles.section} aria-labelledby="series-books">
-          <div className={styles.sectionHead}>
-            <h2 id="series-books" className={styles.sectionTitle}>
-              Books
-            </h2>
-            <p className={styles.sectionNote}>In reading order: each book starts from the one before it.</p>
-          </div>
-          <BooksList
-            series={series}
-            progress={progress}
-            onReorder={(ids) => run(() => seriesApi.reorder(series.id, ids), "The books could not be moved.")}
-            onLeave={(storyId) =>
-              run(async () => {
-                await seriesApi.leave(series.id, storyId);
-                if (series.books.length === 1) navigate("/");
-              }, "The book could not be taken out.")
-            }
-          />
-        </section>
+            <section className={styles.section} aria-labelledby="series-books">
+              <div className={styles.sectionHead}>
+                <h2 id="series-books" className={styles.sectionTitle}>
+                  Books
+                </h2>
+                <p className={styles.sectionNote}>
+                  In reading order: each book starts from the one before it.
+                </p>
+              </div>
+              <BooksList
+                series={series}
+                progress={progress}
+                onReorder={(ids) =>
+                  run(() => seriesApi.reorder(series.id, ids), "The books could not be moved.")
+                }
+                onLeave={(storyId) =>
+                  run(async () => {
+                    await seriesApi.leave(series.id, storyId);
+                    if (series.books.length === 1) navigate("/");
+                  }, "The book could not be taken out.")
+                }
+              />
+            </section>
 
-        {findings.length > 0 && (
-          <section className={styles.section} aria-labelledby="series-eye">
+            {findings.length > 0 && (
+              <section className={styles.section} aria-labelledby="series-eye">
+                <div className={styles.sectionHead}>
+                  <h2 id="series-eye" className={styles.sectionTitle}>
+                    Needs your eye
+                  </h2>
+                  <p className={styles.sectionNote}>
+                    Where the books disagree about what should stay true, and threads across them left open,
+                    opened twice or crossing. Dismissing one in any book dismisses it in all.
+                  </p>
+                </div>
+                <ul className={styles.eyeList}>
+                  {findings.map((f) => (
+                    <li key={f.id} className={styles.eyeRow}>
+                      <span className={styles.eyeText}>
+                        {f.text}
+                        {f.suggestion && <span className={styles.eyeEvidence}>{f.suggestion}</span>}
+                      </span>
+                      {f.check === "series-canon" && f.element_id ? (
+                        <button
+                          className={styles.textBtn}
+                          onClick={() => {
+                            setFocus({ id: f.element_id as string, n: (focus?.n ?? 0) + 1 });
+                            navigate(seriesPath(series.id, "canon"));
+                          }}
+                        >
+                          Compare the books
+                        </button>
+                      ) : (
+                        f.ref_id && (
+                          <Link
+                            className={styles.textBtn}
+                            to={sheetPath(f.story_ids[0], "plot_thread", f.ref_id)}
+                          >
+                            Open in{" "}
+                            {bookLabel(
+                              series.books.find((b) => b.story_id === f.story_ids[0])?.position ?? 0,
+                            )}
+                          </Link>
+                        )
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
+        )}
+
+        {section === "canon" && (
+          <section className={styles.section} aria-labelledby="series-canon">
             <div className={styles.sectionHead}>
-              <h2 id="series-eye" className={styles.sectionTitle}>
-                Needs your eye
+              <h2 id="series-canon" className={styles.sectionTitle}>
+                Canon
               </h2>
               <p className={styles.sectionNote}>
-                Where the books disagree about what should stay true, and threads across them left open,
-                opened twice or crossing. Dismissing one in any book dismisses it in all.
+                What the books share. Open one to see what stays true and how it changes from book to book.
               </p>
             </div>
-            <ul className={styles.eyeList}>
-              {findings.map((f) => (
-                <li key={f.id} className={styles.eyeRow}>
-                  <span className={styles.eyeText}>
-                    {f.text}
-                    {f.suggestion && <span className={styles.eyeEvidence}>{f.suggestion}</span>}
-                  </span>
-                  {f.check === "series-canon" && f.element_id ? (
-                    <button
-                      className={styles.textBtn}
-                      onClick={() => setFocus({ id: f.element_id as string, n: (focus?.n ?? 0) + 1 })}
-                    >
-                      Compare the books
-                    </button>
-                  ) : (
-                    f.ref_id && (
-                      <Link
-                        className={styles.textBtn}
-                        to={sheetPath(f.story_ids[0], "plot_thread", f.ref_id)}
-                      >
-                        Open in{" "}
-                        {bookLabel(series.books.find((b) => b.story_id === f.story_ids[0])?.position ?? 0)}
-                      </Link>
-                    )
-                  )}
-                </li>
-              ))}
-            </ul>
+            <Canon key={focus?.n ?? 0} series={series} onSeries={accept} focus={focus?.id} />
           </section>
         )}
 
-        <section className={styles.section} aria-labelledby="series-canon">
-          <div className={styles.sectionHead}>
-            <h2 id="series-canon" className={styles.sectionTitle}>
-              Canon
-            </h2>
-            <p className={styles.sectionNote}>
-              What the books share. Open one to see what stays true and how it changes from book to book.
-            </p>
-          </div>
-          <Canon key={focus?.n ?? 0} series={series} onSeries={accept} focus={focus?.id} />
-        </section>
+        {section === "promises" && (
+          <section className={styles.section} aria-labelledby="series-promises">
+            <div className={styles.sectionHead}>
+              <h2 id="series-promises" className={styles.sectionTitle}>
+                Promises across the books
+              </h2>
+              <p className={styles.sectionNote}>
+                Every thread and twist the books share, and what each book does with it. Open a cell for its
+                sheet in that book.
+              </p>
+            </div>
+            <SeriesTapestry series={series} />
+          </section>
+        )}
+
+        {section === "story-so-far" && (
+          <section className={styles.section} aria-labelledby="series-so-far">
+            <div className={styles.sectionHead}>
+              <h2 id="series-so-far" className={styles.sectionTitle}>
+                The story so far
+              </h2>
+              <p className={styles.sectionNote}>
+                What each book leaves the reader with: a reminder before you write the next.
+              </p>
+            </div>
+            <StorySoFar series={series} />
+          </section>
+        )}
       </main>
 
       {newBook && last && <CreateStoryDialog sequelTo={last.story_id} onClose={() => setNewBook(false)} />}

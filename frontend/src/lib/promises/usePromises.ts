@@ -15,6 +15,7 @@ export const PROMISE_ENTITIES = [
   "structure_node",
   // What the series shares: a thread brought in or taken out redraws what crosses books.
   "series_element_member",
+  "series_scene_link",
 ] as const;
 
 const CHANGED = "lorestudio:promises-changed";

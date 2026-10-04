@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { slotVar } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
+import { seriesPath } from "../../lib/series/sections";
 import type { ComingInItem, Promises, ReaderItem } from "../../types/promises";
 import styles from "./ReaderTable.module.css";
 
@@ -97,7 +98,10 @@ export default function ReaderTable({
           <span className={styles.scene} role="cell">
             Coming in
             {data.series_id && (
-              <Link to={`/series/${data.series_id}/story-so-far`} className={styles.twist}>
+              <Link
+                to={seriesPath(data.series_id, "story-so-far", `book-${Math.max((data.book ?? 1) - 1, 0)}`)}
+                className={styles.twist}
+              >
                 The story so far
               </Link>
             )}

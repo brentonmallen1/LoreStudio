@@ -38,7 +38,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
-from ..models.series import SeriesElementMember
+from ..models.series import SeriesElementMember, SeriesSceneLink
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.twist import Twist, TwistClue
@@ -76,6 +76,8 @@ ENTITY_MODELS: dict[str, type] = {
     "scene_link": SceneLink,
     # Which row in this book is a series element: added with the row, undone with it.
     "series_element_member": SeriesElementMember,
+    # A setup that pays off in another book: undone in the book it was made in.
+    "series_scene_link": SeriesSceneLink,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
@@ -109,6 +111,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "scene_presence": ScenePresence,
     "reader_knowledge_events": ReaderKnowledgeEvent,
     "series_element_members": SeriesElementMember,
+    "series_scene_links": SeriesSceneLink,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000

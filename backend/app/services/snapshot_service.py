@@ -179,9 +179,10 @@ SNAPSHOT_EXCLUDED_TABLES = {
     # rebuilds it exactly, so carrying a copy would only let the two disagree.
     # A series says which rows in different books are the same thing: identity across
     # stories, not content of one. Restoring one book must not rewrite another book's links,
-    # and an exported book is a standalone story. tests/services/test_series_lifecycle.py
+    # and an exported book is a standalone story; a setup that pays off in another book is a
+    # link between two books, not part of either. tests/services/test_series_lifecycle.py
     # covers what the series tables do when a book is deleted or restored.
-    "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs",
+    "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs", "series_scene_links",
     "codex_nodes", "codex_edges", "codex_chunks", "series", "series_stories", "series_elements", "series_element_members",
 }
 # fmt: on

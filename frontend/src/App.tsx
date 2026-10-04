@@ -145,7 +145,7 @@ function AppRoutes() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
-            <Route path="/series/:seriesId" element={<SeriesPage />} />
+            <Route path="/series/:seriesId/:section?" element={<SeriesPage />} />
             <Route path="/stories/:storyId/*" element={<StoryWorkspacePage />} />
             {/* Opened straight from a link, with nothing to cover: the frame over the app shell. */}
             {overlayRoutes(frame)}

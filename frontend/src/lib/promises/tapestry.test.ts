@@ -10,6 +10,7 @@ const data: Promises = {
   across: {},
   coming_in: null,
   open_from_earlier: [],
+  series_setups: [],
   scenes: [0, 1, 2, 3].map(scene),
   chapters: [],
   threads: [

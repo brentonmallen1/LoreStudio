@@ -190,6 +190,19 @@ class EarlierOpen(BaseModel):
     clues: list[str] = []
 
 
+class SeriesSetup(BaseModel):
+    """A setup across books, seen from this book: its scene here, and the other book's."""
+
+    id: str
+    link_type: str
+    note: str
+    #: "out": set up here, paid off in a later book; "in": set up in an earlier book, paid off here.
+    direction: str
+    node_id: str
+    index: int
+    other: BookScene
+
+
 class PromisesOut(BaseModel):
     scenes: list[PromiseScene]
     chapters: list[PromiseChapter]
@@ -205,3 +218,4 @@ class PromisesOut(BaseModel):
     across: dict[str, PromiseAcross] = {}
     coming_in: ComingIn | None = None
     open_from_earlier: list[EarlierOpen] = []
+    series_setups: list[SeriesSetup] = []

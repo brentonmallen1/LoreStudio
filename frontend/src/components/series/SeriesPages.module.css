@@ -1,0 +1,242 @@
+/* The series page's Promises and The story so far (v1.5) */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.quiet {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.note {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.ordinal {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.subTitle {
+  margin: 0 0 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.plainList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.plainList a {
+  color: var(--color-text);
+}
+
+/* ── The tapestry by book: a column per book, a row per thread or twist ── */
+
+.scroll {
+  overflow-x: auto;
+}
+
+.grid {
+  --name: 14rem;
+  min-width: calc(var(--name) + var(--cols) * 9rem);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+
+.headRow,
+.laneRow {
+  display: grid;
+  grid-template-columns: var(--name) repeat(var(--cols), minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.headRow {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.headRow > span {
+  align-self: end;
+  padding: 0.6rem 0.75rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.laneRow + .laneRow {
+  border-top: 1px dashed var(--color-border-light);
+}
+
+.bookHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  text-decoration: none;
+  border-left: 1px solid var(--color-border-light);
+}
+
+.bookHead:hover .bookTitle {
+  text-decoration: underline;
+}
+
+.bookTitle {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.laneName {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.laneStatus {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.dot,
+.diamond {
+  flex-shrink: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-top: 0.3rem;
+  background: var(--lane);
+}
+
+.dot {
+  border-radius: 50%;
+}
+
+.diamond {
+  transform: rotate(45deg) scale(0.85);
+}
+
+/* A cell the thread runs through: its colour as a line along the row */
+.cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-left: 1px solid var(--color-border-light);
+}
+
+.cellOn::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.3rem;
+  height: 2px;
+  background: var(--lane);
+  opacity: 0.55;
+}
+
+.cellLink {
+  position: relative;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.cellQuiet {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ── The story so far: a card per book ── */
+
+.soFarCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: var(--color-surface);
+  scroll-margin-top: 1rem;
+}
+
+.soFarHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.soFarTitle {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.soFarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.soFarLabel {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.over > a,
+.over {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-muted);
+}
+
+.over .note {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.changed {
+  display: block;
+  padding-left: 0.85rem;
+  color: var(--color-text);
+}
+
+.fieldName {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}

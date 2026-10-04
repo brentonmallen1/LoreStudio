@@ -6,6 +6,7 @@
 import { BookCopy, BookPlus } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
+import { seriesPath } from "../series/sections";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { useStoryStore } from "../../stores/storyStore";
 
@@ -55,3 +56,42 @@ commandRegistry.register({
     if (story) navigateTo(`/?sequel=${story.id}`);
   },
 });
+
+// The series page's sections (v1.5): each a way in from any book of the series.
+for (const [id, section, label, description, keywords] of [
+  [
+    "series-canon",
+    "canon",
+    "The series' Canon",
+    "Every character, place and part of the world the books share, and how each changes",
+    ["canon", "series", "shared", "progression", "enduring", "evolving"],
+  ],
+  [
+    "series-promises",
+    "promises",
+    "Promises across the books",
+    "Every thread and twist the series shares, a column per book",
+    ["promises", "threads", "twists", "series", "tapestry", "across books"],
+  ],
+  [
+    "series-story-so-far",
+    "story-so-far",
+    "The story so far",
+    "What each book of the series leaves the reader with",
+    ["story so far", "recap", "previously", "reader knows", "series", "reminder"],
+  ],
+] as const) {
+  commandRegistry.register({
+    id,
+    label,
+    description,
+    keywords: [...keywords],
+    icon: BookCopy,
+    group: "Navigation",
+    when: () => !!inSeries(),
+    action: () => {
+      const series = inSeries();
+      if (series) navigateTo(seriesPath(series.id, section));
+    },
+  });
+}

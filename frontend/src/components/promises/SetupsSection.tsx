@@ -6,6 +6,7 @@ import { usePromises } from "../../lib/promises/usePromises";
 import { SETUP_TYPES, setupSentence, setupType } from "../../lib/promises/setups";
 import { toast } from "../../stores/toastStore";
 import PageHeader from "../layout/PageHeader";
+import SetupsAcross from "../series/SetupsAcross";
 import styles from "./Promises.module.css";
 
 /**
@@ -103,6 +104,7 @@ export default function SetupsSection({ storyId }: { storyId: string }) {
             </div>
           )}
         </section>
+        {data && <SetupsAcross storyId={storyId} data={data} reload={reload} />}
         {scenes.length > 1 && (
           <section className={styles.card} aria-label="Link two scenes">
             <h2 className={styles.cardTitle}>Link two scenes</h2>

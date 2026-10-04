@@ -47,6 +47,9 @@ class Series(Base):
     elements: Mapped[list["SeriesElement"]] = relationship(
         "SeriesElement", back_populates="series", cascade="all, delete-orphan"
     )
+    scene_links: Mapped[list["SeriesSceneLink"]] = relationship(
+        "SeriesSceneLink", back_populates="series", cascade="all, delete-orphan"
+    )
 
 
 class SeriesStory(Base):
@@ -108,3 +111,33 @@ class SeriesElementMember(Base):
 
     element: Mapped["SeriesElement"] = relationship("SeriesElement", back_populates="members")
     story: Mapped["Story"] = relationship("Story", back_populates="series_element_members")
+
+
+class SeriesSceneLink(Base):
+    """A setup in one book that pays off in another (v1.5): the gun on the wall in Book 1
+    that fires in Book 3. A scene link joins two scenes of one book; this joins two books.
+
+    The scene ids have no foreign key, like a member's ``ref_id``: restoring a book's
+    snapshot puts its scenes back with the same ids, and the link holds. A link whose scene
+    is gone is skipped by every read and pruned by the series endpoints. It goes when either
+    book leaves the series. Its undo lives in the book it was made in.
+    """
+
+    __tablename__ = "series_scene_links"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    series_id: Mapped[str] = mapped_column(String, ForeignKey("series.id"), nullable=False, index=True)
+    #: The earlier scene, the setup, and its book.
+    source_story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
+    source_node_id: Mapped[str] = mapped_column(String, nullable=False)
+    #: The later scene, the payoff, and its book.
+    target_story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False, index=True)
+    target_node_id: Mapped[str] = mapped_column(String, nullable=False)
+    #: The scene links' own kinds: foreshadowing, callback, parallel, causes, contrast, echoes.
+    link_type: Mapped[str] = mapped_column(String, default="foreshadowing")
+    note: Mapped[str] = mapped_column(Text, default="")
+    #: The book it was made from, whose undo takes it back.
+    created_in_story_id: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+
+    series: Mapped["Series"] = relationship("Series", back_populates="scene_links")

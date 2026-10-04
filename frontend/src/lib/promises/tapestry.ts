@@ -163,6 +163,31 @@ export function tapestryLanes(data: Promises): LaneGroup[] {
       edgeOut: null,
     };
   });
+  for (const s of data.series_setups ?? []) {
+    const there = `${book(s.other.position)} · ${s.other.title}`;
+    const t = setupType(s.link_type);
+    setups.push({
+      id: s.id,
+      kind: "setup",
+      name:
+        s.direction === "out"
+          ? `${title(s.index)}, paid off in ${there}`
+          : `${title(s.index)}, set up in ${there}`,
+      color: "var(--color-text-muted)",
+      span: null,
+      marks: [
+        {
+          index: s.index,
+          nodeId: s.node_id,
+          shape: s.direction === "out" ? "setup" : "payoff",
+          label: `${title(s.index)}: ${t.label.toLowerCase()}, with ${there}${s.note ? `. ${s.note}` : ""}`,
+        },
+      ],
+      quiet: false,
+      edgeIn: s.direction === "in" ? `from ${book(s.other.position)}` : null,
+      edgeOut: s.direction === "out" ? `on to ${book(s.other.position)}` : null,
+    });
+  }
   return [
     { id: "threads", label: "Threads", lanes: threads },
     { id: "twists", label: "Twists", lanes: twists },

@@ -161,6 +161,18 @@ export interface EarlierOpen {
   clues: string[];
 }
 
+/** A setup across books, seen from this book: its scene here, and the other book's. */
+export interface SeriesSetup {
+  id: string;
+  link_type: string;
+  note: string;
+  /** "out": set up here, paid off later; "in": set up in an earlier book, paid off here. */
+  direction: "out" | "in";
+  node_id: string;
+  index: number;
+  other: BookScene;
+}
+
 export interface Promises {
   scenes: PromiseScene[];
   chapters: PromiseChapter[];
@@ -176,4 +188,5 @@ export interface Promises {
   across: Record<string, PromiseAcross>;
   coming_in: ComingIn | null;
   open_from_earlier: EarlierOpen[];
+  series_setups: SeriesSetup[];
 }

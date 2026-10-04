@@ -70,7 +70,7 @@ export default function ScenePromises({ storyId, nodeId }: { storyId: string; no
         </section>
       )}
 
-      <StillOpen storyId={storyId} data={data} onChanged={reload} />
+      <StillOpen storyId={storyId} nodeId={nodeId} data={data} onChanged={reload} />
 
       <section aria-label="What this scene does" className={styles.block}>
         <h4 className={styles.heading}>What this scene does</h4>

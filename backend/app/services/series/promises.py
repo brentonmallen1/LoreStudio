@@ -35,11 +35,13 @@ from ...schemas.promises import (
     PromisesOut,
     PromiseThread,
     PromiseTwist,
+    SeriesSetup,
 )
 from ..mice_validation import validate_thread_nesting
 from ..promises import LEARNS, PromiseFacts, promise_facts
 from ..thread_roles import role_label
 from . import service
+from .setups import live_links
 
 PromiseKindName = Literal["thread", "twist"]
 _TABLES: dict[str, PromiseKindName] = {"plot_threads": "thread", "twists": "twist"}
@@ -93,6 +95,9 @@ class Known:
     #: A belief overturned: where.
     over_book: int | None = None
     over_scene: str | None = None
+    #: The scene it comes from, and that scene's book.
+    node_id: str | None = None
+    story_id: str = ""
 
 
 @dataclass
@@ -172,6 +177,8 @@ class SeriesPromises:
         for chain in self.chains.values():
             chain.links.sort(key=lambda br: br[0].position)
         self._known: list[Known] | None = None
+        #: Setups that pay off in another book, both scenes still there.
+        self.links = live_links(db, series)
 
     @classmethod
     def for_story(cls, db: Session, story_id: str) -> SeriesPromises | None:
@@ -224,7 +231,18 @@ class SeriesPromises:
                 text = c.text or (f"“{c.quote}”" if c.quote else "")
                 if c.index is not None and text:
                     kind = "learned" if c.points_to == "truth" else "believes"
-                    out.append(Known(text, kind, "clue", book.position, c.index, self._key(tw.id)))
+                    out.append(
+                        Known(
+                            text,
+                            kind,
+                            "clue",
+                            book.position,
+                            c.index,
+                            self._key(tw.id),
+                            node_id=c.node_id,
+                            story_id=book.story_id,
+                        )
+                    )
 
     def _entries(self, book: Book, out: list[Known]) -> None:
         """The author's own entries in What the reader knows."""
@@ -244,7 +262,18 @@ class SeriesPromises:
                 else None
             )
             if kind is not None:
-                out.append(Known(e.subject, kind, "you", book.position, at, self._key(e.twist_id)))
+                out.append(
+                    Known(
+                        e.subject,
+                        kind,
+                        "you",
+                        book.position,
+                        at,
+                        self._key(e.twist_id),
+                        node_id=e.node_id,
+                        story_id=book.story_id,
+                    )
+                )
             old = by_event.get(e.supersedes_id or "")
             if old is not None and _is_belief(old):
                 for k in out:
@@ -257,7 +286,18 @@ class SeriesPromises:
                 continue
             key = self._key(tw.id)
             if tw.the_truth:
-                out.append(Known(tw.the_truth, "learned", "reveal", book.position, tw.reveal_index, key))
+                out.append(
+                    Known(
+                        tw.the_truth,
+                        "learned",
+                        "reveal",
+                        book.position,
+                        tw.reveal_index,
+                        key,
+                        node_id=tw.reveal_node_id,
+                        story_id=book.story_id,
+                    )
+                )
             for k in out:
                 if (
                     k.kind == "believes"
@@ -582,12 +622,37 @@ class BookAcross:
             last=book.facts.title(placed[-1].node_id) if placed else "",
         )
 
+    def setups(self) -> list[SeriesSetup]:
+        """Setups across books with an end in this book, each with the other book's scene."""
+        out: list[SeriesSetup] = []
+        for link in self.sp.links:
+            if self.here.story_id not in (link.source_story_id, link.target_story_id):
+                continue
+            here_is_source = link.source_story_id == self.here.story_id
+            node = link.source_node_id if here_is_source else link.target_node_id
+            other = self.sp.by_story.get(link.target_story_id if here_is_source else link.source_story_id)
+            if other is None or node not in self.here.facts.index:
+                continue
+            out.append(
+                SeriesSetup(
+                    id=link.id,
+                    link_type=link.link_type,
+                    note=link.note or "",
+                    direction="out" if here_is_source else "in",
+                    node_id=node,
+                    index=self.here.facts.index[node],
+                    other=self._scene(other, link.target_node_id if here_is_source else link.source_node_id),
+                )
+            )
+        return sorted(out, key=lambda x: x.index)
+
     def fill(self, out: PromisesOut) -> None:
         out.book = self.here.position
         out.series_id = self.sp.series.id
         out.across = self.across()
         out.coming_in = self.coming_in()
         out.open_from_earlier = self.open_from_earlier()
+        out.series_setups = self.setups()
 
     def checks(self) -> list[SeriesCheck]:
         return [c for c in self.sp.checks() if c.story_id == self.here.story_id]
