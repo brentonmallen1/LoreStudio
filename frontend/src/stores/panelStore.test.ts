@@ -1,43 +1,33 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { usePanelStore } from "./panelStore";
 
-/** Doc 12 P2: the panel is part of the desk while writing, a reference on every other page. */
-describe("panel open per side", () => {
+/** One choice for every page: moving between the prose and the other pages never changes it. */
+describe("panel open across pages", () => {
   beforeEach(() => {
-    usePanelStore.setState({ side: "writing", openBySide: { writing: true, pages: false }, open: true });
+    usePanelStore.setState({ side: "writing", open: false });
   });
 
-  it("collapses on leaving the prose and comes back on return", () => {
+  it("stays collapsed going back to the prose", () => {
     const { setSide } = usePanelStore.getState();
     setSide("pages");
-    expect(usePanelStore.getState().open).toBe(false);
     setSide("writing");
-    expect(usePanelStore.getState().open).toBe(true);
-  });
-
-  it("remembers each side's own choice", () => {
-    const s = usePanelStore.getState();
-    s.setSide("pages");
-    s.setOpen(true);
-    s.setSide("writing");
-    usePanelStore.getState().setOpen(false);
-    usePanelStore.getState().setSide("pages");
-    expect(usePanelStore.getState().open).toBe(true);
-    usePanelStore.getState().setSide("writing");
     expect(usePanelStore.getState().open).toBe(false);
   });
 
-  it("an explicit open wins on the side you are on", () => {
+  it("stays open across pages once the author opens it", () => {
     usePanelStore.getState().setSide("pages");
     usePanelStore.getState().openTool("characters");
+    usePanelStore.getState().setSide("writing");
     expect(usePanelStore.getState().open).toBe(true);
-    expect(usePanelStore.getState().openBySide.pages).toBe(true);
-    expect(usePanelStore.getState().openBySide.writing).toBe(true);
+    usePanelStore.getState().setSide("pages");
+    expect(usePanelStore.getState().open).toBe(true);
   });
 
-  it("toggle acts on the current side only", () => {
+  it("a collapse holds everywhere", () => {
+    usePanelStore.getState().setOpen(true);
     usePanelStore.getState().toggle();
-    expect(usePanelStore.getState().openBySide).toEqual({ writing: false, pages: false });
+    usePanelStore.getState().setSide("pages");
+    expect(usePanelStore.getState().open).toBe(false);
   });
 });
 
@@ -49,7 +39,6 @@ describe("closing back to the scene", () => {
   beforeEach(() => {
     usePanelStore.setState({
       side: "pages",
-      openBySide: { writing: true, pages: false },
       open: false,
       tabs: [{ id: "scene", kind: "scene" }],
       activeTabId: "scene",
@@ -62,7 +51,6 @@ describe("closing back to the scene", () => {
     usePanelStore.getState().close("entity:character:c1");
     const s = usePanelStore.getState();
     expect(s.open).toBe(false);
-    expect(s.openBySide.pages).toBe(false);
     expect(s.activeTabId).toBe("scene");
   });
 

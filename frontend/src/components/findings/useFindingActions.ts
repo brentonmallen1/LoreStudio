@@ -54,10 +54,10 @@ export function useFindingActions() {
   const openScene = useCallback(
     (nodeId: string) => {
       if (!storyId) return;
-      // The panel's This scene tab carries the scene's findings: show it on arrival.
+      // The panel's This scene tab carries the scene's findings: if the panel is open, show
+      // it on arrival. A collapsed panel stays collapsed; arriving is not asking for it.
       const panel = usePanelStore.getState();
-      panel.setSide("writing");
-      panel.activate("scene");
+      if (panel.open) panel.activate("scene");
       navigate(`/stories/${storyId}/write/${nodeId}`);
     },
     [navigate, storyId],

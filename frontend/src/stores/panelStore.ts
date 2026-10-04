@@ -19,9 +19,10 @@ import { DEFAULT_PROSE_AMOUNT, PROSE_AMOUNTS, type ProseAmount } from "../lib/pa
 export type PanelFrameMode = "docked" | "floating" | "window";
 
 /**
- * Which side of the app the author is on (doc 12 P2). Writing, the panel is part of the
- * desk and opens by default; on any other page it is a reference you call up, so it starts
- * as the collapsed rail. Each side remembers its own choice.
+ * Which side of the app the author is on (doc 12 P2): the prose, or any other page. It only
+ * changes what the panel says (a scene tab names its scene off the prose) and what closing
+ * the last tab does. Open or collapsed is one choice for every page: it starts as the
+ * collapsed rail and moving between pages never changes it, only the author does.
  */
 export type PanelSide = "writing" | "pages";
 
@@ -35,10 +36,9 @@ interface PanelState {
   storyId: string | null;
   tabs: PanelTab[];
   activeTabId: string;
-  /** Open on the side the author is on now: `openBySide[side]`. */
+  /** Open or collapsed, the same on every page until the author changes it. */
   open: boolean;
   side: PanelSide;
-  openBySide: Record<PanelSide, boolean>;
   /** Docked in the workspace row, floating over the page, or popped out to its own window. */
   frame: PanelFrameMode;
   /** The entity whose mentions light up in the prose and on the strip. */
@@ -49,7 +49,7 @@ interface PanelState {
   pinnedSceneId: string | null;
 
   loadForStory: (storyId: string) => void;
-  /** Called when the route changes between the prose and every other page. */
+  /** Called when the route changes between the prose and every other page; open stays as it is. */
   setSide: (side: PanelSide) => void;
   openEntity: (kind: EntityKind, id: string, label: string) => void;
   openTool: (tool: ToolId) => void;
@@ -72,8 +72,7 @@ interface PanelState {
 }
 
 const SCENE_TAB: PanelTab = { id: "scene", kind: "scene" };
-const OPEN_KEYS: Record<PanelSide, string> = { writing: "ls_panel_open", pages: "ls_panel_open_pages" };
-const OPEN_DEFAULTS: Record<PanelSide, boolean> = { writing: true, pages: false };
+const OPEN_KEY = "ls_panel_shown";
 const FRAME_KEY = "ls_panel_frame";
 const PROSE_KEY = "ls_panel_prose";
 const tabsKey = (storyId: string) => `ls_panel:${storyId}`;
@@ -105,13 +104,10 @@ function persistTabs(storyId: string | null, tabs: PanelTab[], activeTabId: stri
   write(tabsKey(storyId), { tabs: tabs.filter((t) => t.kind !== "scene"), activeTabId });
 }
 
-const initialOpen: Record<PanelSide, boolean> = {
-  writing: panelStartsOpen(
-    read<boolean>(OPEN_KEYS.writing, OPEN_DEFAULTS.writing),
-    typeof window === "undefined" ? Infinity : window.innerWidth,
-  ),
-  pages: read<boolean>(OPEN_KEYS.pages, OPEN_DEFAULTS.pages),
-};
+const initialOpen = panelStartsOpen(
+  read<boolean>(OPEN_KEY, false),
+  typeof window === "undefined" ? Infinity : window.innerWidth,
+);
 
 export const usePanelStore = create<PanelState>((set, get) => {
   /** What an open panel lights: its active entity tab. A shut panel lights nothing. */
@@ -120,11 +116,10 @@ export const usePanelStore = create<PanelState>((set, get) => {
     return open ? highlightOf(tabs.find((t) => t.id === activeTabId)) : null;
   }
 
-  /** Open or collapse the panel on the current side, and remember it for that side. */
-  function openOnSide(open: boolean): Pick<PanelState, "open" | "openBySide"> {
-    const { side, openBySide } = get();
-    write(OPEN_KEYS[side], open);
-    return { open, openBySide: { ...openBySide, [side]: open } };
+  /** Open or collapse the panel, and remember it for every page. */
+  function openOnSide(open: boolean): Pick<PanelState, "open"> {
+    write(OPEN_KEY, open);
+    return { open };
   }
 
   /**
@@ -143,8 +138,7 @@ export const usePanelStore = create<PanelState>((set, get) => {
     tabs: [SCENE_TAB],
     activeTabId: "scene",
     side: "writing",
-    openBySide: initialOpen,
-    open: initialOpen.writing,
+    open: initialOpen,
     // "window" is never restored: a pop-out that is not there any more would leave a strip and no panel.
     frame: read<PanelFrameMode>(FRAME_KEY, "docked") === "floating" ? "floating" : "docked",
     highlight: null,
@@ -176,9 +170,7 @@ export const usePanelStore = create<PanelState>((set, get) => {
     },
 
     setSide: (side) => {
-      if (get().side === side) return;
-      const open = get().openBySide[side];
-      set({ side, open, highlight: lit(open) });
+      if (get().side !== side) set({ side });
     },
 
     openEntity: (kind, id, label) => {

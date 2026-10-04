@@ -347,6 +347,9 @@ for (const stale of [
   "ls_ai_panel_width",
   "ls_ai_panel_rect",
   "ls_ai_panel_open",
+  // The panel's open state per side, writing open by default (now one choice, ls_panel_shown).
+  "ls_panel_open",
+  "ls_panel_open_pages",
   // Story Health's action toolbar (retired, doc 12 P4).
   "ls_health_actions_collapsed",
   "ls_health_actions_tab",

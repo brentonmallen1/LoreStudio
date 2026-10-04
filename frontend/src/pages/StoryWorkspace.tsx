@@ -59,8 +59,8 @@ export default function StoryWorkspacePage() {
       .finally(() => setLoading(false));
   }, [storyId, setActiveNode]);
 
-  // The panel remembers open or collapsed separately for the prose and for every other page
-  // (doc 12 P2): part of the desk while writing, a reference you call up elsewhere.
+  // The panel knows whether it is beside the prose (doc 12 P2). Open or collapsed is the
+  // author's one choice for every page: moving between them never changes it.
   const { pathname } = useLocation();
   const setPanelSide = usePanelStore((s) => s.setSide);
   const writing = pathname.includes("/write");

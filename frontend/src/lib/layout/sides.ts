@@ -1,5 +1,5 @@
 /**
- * The window below which the writing panel starts shut (doc 14 review): strip, a 360px
+ * The window below which the panel starts shut even if it was left open (doc 14 review): strip, a 360px
  * panel and a prose column of about 760px. Only the start: open it and it stays open.
  */
 export const PANEL_ROOM_PX = 1240;
