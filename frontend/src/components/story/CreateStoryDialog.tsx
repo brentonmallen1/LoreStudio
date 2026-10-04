@@ -8,10 +8,15 @@ import TemplateManagerDialog from "../templates/TemplateManagerDialog";
 import { Modal } from "../common";
 import styles from "./CreateStoryDialog.module.css";
 
-type Begin = "write" | "idea" | "plan";
+type Begin = "write" | "idea" | "plan" | "first";
 
-/** Three ways in (refactor doc 10 P7); none is a gate, and writing stays one click away. */
+/** Four ways in (refactor doc 10 P7, doc 18 C10); none is a gate, and writing stays one click away. */
 const BEGINNINGS: { id: Begin; label: string; hint: string }[] = [
+  {
+    id: "first",
+    label: "My first story",
+    hint: "Seven short steps, from an idea to the first scene. Each says what it becomes.",
+  },
   { id: "write", label: "Just write", hint: "Open the first scene and start typing." },
   { id: "idea", label: "Start from an idea", hint: "Write down what you know, then sort it into the story." },
   {
@@ -53,7 +58,8 @@ export default function CreateStoryDialog({ onClose }: Props) {
         scaffold,
       });
       upsertStory(story);
-      if (begin === "idea") navigate(`/stories/${story.id}/freewrite`);
+      if (begin === "first") navigate(`/stories/${story.id}/first-story`);
+      else if (begin === "idea") navigate(`/stories/${story.id}/freewrite`);
       else if (begin === "plan") navigate(`/stories/${story.id}/plan`);
       // Straight into the first scene of the new outline, ready to type.
       else

@@ -17,6 +17,7 @@ type Page = LazyExoticComponent<ComponentType<PageProps>> | LazyExoticComponent<
 export const ROUTE_ELEMENTS: Record<StoryRoute["id"], Page> = {
   overview: lazy(() => import("./StoryOverviewPage")),
   write: lazy(() => import("../components/editor/SceneEditor")),
+  "first-story": lazy(() => import("../components/firstStory/FirstStoryPage")),
   freewrite: lazy(() => import("../components/freewrite/FreewritePage")),
   plan: lazy(() => import("../components/plan/PlanPage")),
   proposals: lazy(() => import("./ProposalsPage")),

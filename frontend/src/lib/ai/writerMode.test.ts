@@ -39,6 +39,7 @@ const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 /** The story routes and sections open in writer mode (lib/routes.ts), as their components. */
 const WRITER_ENTRY_POINTS = [
   "src/pages/StoryOverviewPage.tsx",
+  "src/components/firstStory/FirstStoryPage.tsx",
   "src/pages/MediaPage.tsx",
   "src/pages/FindingsPage.tsx",
   "src/pages/NumbersPage.tsx",
@@ -138,6 +139,7 @@ describe("the story routes this test walks", () => {
       "compendium.notes",
       "compendium.research",
       "findings",
+      "first-story",
       "freewrite",
       "lorebook",
       "lorebook.calendars",

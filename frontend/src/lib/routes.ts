@@ -8,6 +8,7 @@ import {
   Clock,
   Diamond,
   Fingerprint,
+  Footprints,
   GitBranch,
   ScanEye,
   Landmark,
@@ -86,6 +87,24 @@ export const STORY_ROUTES: StoryRoute[] = [
     domain: "home",
     modes: BOTH,
     keywords: ["home", "dashboard", "summary"],
+  },
+  {
+    // Seven short steps for a new writer, from New story or the palette (doc 18 C10).
+    id: "first-story",
+    path: "/first-story",
+    label: "My first story",
+    icon: Footprints,
+    domain: "home",
+    modes: BOTH,
+    keywords: [
+      "walkthrough",
+      "tutorial",
+      "first steps",
+      "new writer",
+      "guide me",
+      "onboarding",
+      "start here",
+    ],
   },
   {
     id: "write",

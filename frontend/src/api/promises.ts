@@ -47,7 +47,16 @@ export const promisesApi = {
 
   // Twists
   listTwists: (storyId: string) => request<T.Twist[]>(`/stories/${storyId}/twists`),
-  createTwist: (storyId: string, data: { name: string; twist_type?: string; color_slot?: number }) =>
+  createTwist: (
+    storyId: string,
+    data: {
+      name: string;
+      twist_type?: string;
+      color_slot?: number;
+      the_truth?: string;
+      the_misdirection?: string;
+    },
+  ) =>
     request<T.Twist>(`/stories/${storyId}/twists`, {
       method: "POST",
       body: JSON.stringify(data),
@@ -65,6 +74,7 @@ export const promisesApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+  getTwist: (twistId: string) => request<T.Twist>(`/twists/${twistId}`),
   deleteTwist: (twistId: string) => request<void>(`/twists/${twistId}`, { method: "DELETE" }),
   getTwistsForScene: (nodeId: string) => request<T.Twist[]>(`/structure/${nodeId}/twists`),
   analyzeTwist: (twistId: string) =>
