@@ -26,6 +26,7 @@ from .promises import BookAcross, Chain, SeriesPromises
 
 #: A field's value on a card, cut to this: the card is a reminder, not the sheet.
 CARD_LIMIT = 200
+SUMMARY_LIMIT = 600
 
 
 def _thread_status(sp: SeriesPromises, chain: Chain) -> str:
@@ -165,7 +166,10 @@ def story_so_far(db: Session, sp: SeriesPromises) -> list[BookSoFar]:
     cards = []
     for book in sp.books:
         story = db.get(Story, book.story_id)
-        summary = (story.synopsis or story.paragraph_summary or story.logline or "") if story else ""
+        # A reminder, not the plan: the shortest summary the author has written, cut to a card.
+        summary = (story.paragraph_summary or story.logline or story.synopsis or "") if story else ""
+        if len(summary) > SUMMARY_LIMIT:
+            summary = summary[: SUMMARY_LIMIT - 1].rsplit(" ", 1)[0].rstrip(".,;:—- ") + "…"
         mine = [k for k in known if k.book == book.position]
 
         def items(kind: str, mine=mine) -> list[SoFarItem]:

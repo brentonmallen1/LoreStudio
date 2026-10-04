@@ -71,7 +71,9 @@ export default function SetupsSection({ storyId }: { storyId: string }) {
         <section className={styles.card} aria-label="Every setup">
           {setups.length === 0 ? (
             <p className={styles.quiet}>
-              No setups yet. Link the scene that plants something to the one that pays it off.
+              {data?.series_setups.length
+                ? "No setups inside this book yet: only across the books, below."
+                : "No setups yet. Link the scene that plants something to the one that pays it off."}
             </p>
           ) : (
             <div className={styles.list}>

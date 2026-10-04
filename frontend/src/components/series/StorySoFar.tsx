@@ -77,15 +77,13 @@ export default function StorySoFar({ series }: { series: Series }) {
                   <li key={ch.ref_id}>
                     <Link to={sheetPath(c.story_id, "character", ch.ref_id)}>{ch.name}</Link>
                     {ch.first_here && <span className={styles.note}> first in this book</span>}
-                    {Object.keys(ch.changed).length === 0 ? (
-                      <span className={styles.note}> as the book before left them</span>
-                    ) : (
-                      Object.entries(ch.changed).map(([key, value]) => (
-                        <span key={key} className={styles.changed}>
-                          <span className={styles.fieldName}>{fieldLabel("character", key)}</span> {value}
-                        </span>
-                      ))
-                    )}
+                    {Object.keys(ch.changed).length === 0
+                      ? !ch.first_here && <span className={styles.note}> as the book before left them</span>
+                      : Object.entries(ch.changed).map(([key, value]) => (
+                          <span key={key} className={styles.changed}>
+                            <span className={styles.fieldName}>{fieldLabel("character", key)}</span> {value}
+                          </span>
+                        ))}
                   </li>
                 ))}
               </ul>

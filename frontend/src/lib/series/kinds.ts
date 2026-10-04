@@ -56,7 +56,20 @@ export function sheetPath(storyId: string, kind: SeriesKind, refId: string): str
   return sectionPath(storyId, page, section, refId);
 }
 
+/** Fields a sheet shows outside its field list (a thread's name, a twist's truth), in words. */
+const OTHER_LABELS: Record<string, string> = {
+  name: "Name",
+  mice_type: "Kind of promise",
+  twist_type: "Kind of twist",
+  the_truth: "The truth",
+  the_misdirection: "What the reader is led to believe",
+};
+
 /** A field's label, from the Lorebook's own table. */
 export function fieldLabel(kind: SeriesKind, key: string): string {
-  return KINDS[loreKind(kind)].fields.find((f) => f.key === key)?.label ?? key.replace(/_/g, " ");
+  return (
+    KINDS[loreKind(kind)].fields.find((f) => f.key === key)?.label ??
+    OTHER_LABELS[key] ??
+    key.replace(/_/g, " ")
+  );
 }

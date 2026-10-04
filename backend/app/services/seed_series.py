@@ -200,8 +200,8 @@ def _shared_research(db: Session, series, book_one: Story) -> None:
         story_id=book_one.id,
         title="Keeping a light: the log",
         entry_type="note",
-        content="<p>Keepers logged the weather, the visibility and every vessel sighted: hourly in a storm. "
-        "A gap in a log was a matter for the Board, which is why Thomas's gap was a secret.</p>",
+        content="Keepers logged the weather, the visibility and every vessel sighted: hourly in a storm. "
+        "A gap in a log was a matter for the Board, which is why Thomas's gap was a secret.",
         tags=["lighthouse", "research"],
         category="history",
     )

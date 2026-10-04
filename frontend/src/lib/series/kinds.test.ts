@@ -39,5 +39,6 @@ describe("series kinds", () => {
     expect(fieldLabel("character", "mission_statement")).toBe("Wants");
     expect(fieldLabel("historical_event", "legacy_effects")).toBe("Legacy");
     expect(fieldLabel("character", "made_up_field")).toBe("made up field");
+    expect(fieldLabel("plot_thread", "mice_type")).toBe("Kind of promise");
   });
 });
