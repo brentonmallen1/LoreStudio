@@ -82,3 +82,55 @@ class MemberAdd(BaseModel):
     story_id: str
     #: A row this book already has (link it); left out, the element is copied in.
     ref_id: str | None = None
+
+
+class CarryCandidate(BaseModel):
+    """Something a sequel could start with (GET /stories/{id}/carry-over)."""
+
+    kind: str
+    lore_kind: str
+    #: The row in this book; None for a series element this book does not have.
+    ref_id: str | None
+    element_id: str | None
+    name: str
+    in_series: bool
+    parent_ref_id: str | None = None
+
+
+class CarryItem(BaseModel):
+    kind: str | None = None
+    ref_id: str | None = None
+    element_id: str | None = None
+
+
+class SequelCreate(BaseModel):
+    title: str
+    description: str = ""
+    #: Left out, the sequel is laid out like the book before it.
+    structure_template_id: str | None = None
+    scaffold: bool = True
+    carry: list[CarryItem] = []
+    #: For the series a sequel to a standalone book starts; defaults to that book's title.
+    series_name: str | None = None
+
+
+class FieldValueOut(BaseModel):
+    story_id: str
+    position: int
+    value: str
+
+
+class ElementFieldOut(BaseModel):
+    key: str
+    #: "enduring" (one truth across the series) or "evolving" (each book its own).
+    field_class: str
+    values: list[FieldValueOut]
+    #: Enduring only: the books do not agree.
+    differs: bool = False
+
+
+class ElementDetailOut(BaseModel):
+    """One element across its books, field by field (the progression and the disagreements)."""
+
+    element: SeriesElementOut
+    fields: list[ElementFieldOut]

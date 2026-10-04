@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
 import type { ListItem } from "../../lib/lorebook/rows";
+import type { SeriesKind } from "../../api/series";
+import FromTheSeries from "../series/FromTheSeries";
 import styles from "./Lorebook.module.css";
 
 export type { ListItem };
@@ -20,6 +22,8 @@ export default function LorebookList({
   secondaryAdd,
   footer,
   empty,
+  seriesKinds,
+  onFromSeries,
 }: {
   title: string;
   items: ListItem[];
@@ -31,6 +35,10 @@ export default function LorebookList({
   secondaryAdd?: { label: string; onClick: () => void };
   footer?: ReactNode;
   empty?: ReactNode;
+  /** In a book of a series: the kinds listed here, so what the series has can be brought in. */
+  seriesKinds?: SeriesKind[];
+  /** A series element was brought into this book as `refId`. */
+  onFromSeries?: (refId: string) => void;
 }) {
   const [q, setQ] = useState("");
   const [folded, setFolded] = useState<Set<string>>(new Set());
@@ -151,6 +159,7 @@ export default function LorebookList({
           ),
         )}
       </div>
+      {seriesKinds && <FromTheSeries kinds={seriesKinds} onAdded={onFromSeries} />}
       {footer}
     </div>
   );

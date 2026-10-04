@@ -24,6 +24,7 @@ import PageOverlay from "./components/layout/PageOverlay";
 import { useAuthStore } from "./stores/authStore";
 import LoginPage from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
+import SeriesPage from "./pages/SeriesPage";
 import StoryWorkspacePage from "./pages/StoryWorkspace";
 import SettingsPage from "./pages/Settings";
 import SettingsAIPage from "./pages/SettingsAI";
@@ -144,6 +145,7 @@ function AppRoutes() {
             }
           >
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/series/:seriesId" element={<SeriesPage />} />
             <Route path="/stories/:storyId/*" element={<StoryWorkspacePage />} />
             {/* Opened straight from a link, with nothing to cover: the frame over the app shell. */}
             {overlayRoutes(frame)}

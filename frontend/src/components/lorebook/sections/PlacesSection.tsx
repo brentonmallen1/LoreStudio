@@ -94,6 +94,8 @@ export default function PlacesSection() {
         selectedId={selectedId}
         onSelect={(id) => select(id)}
         onAdd={() => add(null)}
+        seriesKinds={["location"]}
+        onFromSeries={(id) => select(id)}
         empty={
           <p className={styles.listEmpty}>
             No places yet. Where the story happens, from a whole world to one room.
@@ -105,6 +107,7 @@ export default function PlacesSection() {
           <EntitySheet
             key={place.id}
             entityKey={place.id}
+            series={{ kind: "location", id: place.id }}
             name={place.name}
             startRenaming={renaming === place.id}
             onRename={(name) => {

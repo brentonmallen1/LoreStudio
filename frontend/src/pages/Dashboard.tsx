@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Clock, FileInput, Trash2, ArrowRight } from "lucide-react";
+import { Plus, Clock, FileInput, Trash2, ArrowRight, BookPlus } from "lucide-react";
 import { api } from "../api/client";
 import { progressApi, type StoryProgress } from "../api/progress";
+import { seriesApi, type SeriesSummary } from "../api/series";
+import { dashboardSegments } from "../lib/series/dashboard";
+import { bookLabel } from "../stores/seriesStore";
 import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
+import SeriesGroup from "../components/series/SeriesGroup";
 import ImportWizard from "../components/import/ImportWizard";
 import type { Story } from "../types";
 import styles from "./Dashboard.module.css";
@@ -16,6 +20,9 @@ export default function DashboardPage() {
   const { stories, setStories, removeStory } = useStoryStore();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
+  // The book a new one follows, when "Write a sequel" or a series' "New book" opened the dialog.
+  const [sequelTo, setSequelTo] = useState<string | null>(null);
+  const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -28,6 +35,14 @@ export default function DashboardPage() {
       .then((rows) => setProgress(Object.fromEntries(rows.map((r) => [r.story_id, r]))))
       .catch(() => {});
   }, [stories.length]);
+
+  useEffect(() => {
+    seriesApi
+      .list()
+      .then(setSeriesList)
+      .catch(() => {});
+  }, [stories.length]);
+  const segments = useMemo(() => dashboardSegments(stories, seriesList), [stories, seriesList]);
 
   // Fetched on every visit: the list is small, and a cached one showed stale "updated"
   // times and order after an evening of writing.
@@ -49,6 +64,66 @@ export default function DashboardPage() {
     setDeletingId(null);
   }
 
+  /** One story's card; `ordinal` is its place in its series, when it has one. */
+  function renderCard(story: Story, ordinal?: number) {
+    return (
+      <div key={story.id} className={styles.storyCardWrap}>
+        <button
+          onClick={() => navigate(`/stories/${story.id}`)}
+          className={styles.storyCard}
+          aria-label={`Open ${story.title}`}
+        >
+          {ordinal !== undefined && <span className={styles.ordinal}>{bookLabel(ordinal)}</span>}
+          <h3 className={styles.storyTitle}>{story.title}</h3>
+          {story.description && <p className={styles.storyDesc}>{story.description}</p>}
+          <StoryProgressLine progress={progress[story.id]} />
+          <div className={styles.storymeta}>
+            <Clock size={11} />
+            {formatRelative(story.updated_at)}
+          </div>
+        </button>
+        {progress[story.id]?.last_scene_id && (
+          <button
+            className={styles.continueLink}
+            onClick={() => navigate(`/stories/${story.id}/write?node=${progress[story.id].last_scene_id}`)}
+            title={`Continue writing “${progress[story.id].last_scene_title}”`}
+          >
+            Continue <ArrowRight size={12} />
+          </button>
+        )}
+        <button className={styles.sequelLink} onClick={() => setSequelTo(story.id)}>
+          <BookPlus size={12} aria-hidden />
+          Write a sequel
+        </button>
+        {pendingDeleteId === story.id ? (
+          <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>
+              Delete
+            </button>
+            <button
+              className={styles.deleteConfirmNo}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPendingDeleteId(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => confirmDelete(story, e)}
+            disabled={deletingId === story.id}
+            className={styles.deleteBtn}
+            aria-label={`Delete ${story.title}`}
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
@@ -61,6 +136,7 @@ export default function DashboardPage() {
               {stories.length === 0
                 ? "No stories yet"
                 : `${stories.length} ${stories.length === 1 ? "story" : "stories"}`}
+              {seriesList.length > 0 && `, ${seriesList.length} series`}
             </p>
           </div>
           <div className={styles.headActions}>
@@ -101,65 +177,39 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className={styles.grid}>
-            {stories.map((story) => (
-              <div key={story.id} className={styles.storyCardWrap}>
-                <button
-                  onClick={() => navigate(`/stories/${story.id}`)}
-                  className={styles.storyCard}
-                  aria-label={`Open ${story.title}`}
+          <div className={styles.segments}>
+            {segments.map((seg) =>
+              seg.type === "stories" ? (
+                <div key={`stories-${seg.stories[0].id}`} className={styles.grid}>
+                  {seg.stories.map((story) => renderCard(story))}
+                </div>
+              ) : (
+                <SeriesGroup
+                  key={seg.series.id}
+                  series={seg.series}
+                  onNewBook={() => setSequelTo(seg.books[seg.books.length - 1]?.id ?? null)}
                 >
-                  <h3 className={styles.storyTitle}>{story.title}</h3>
-                  {story.description && <p className={styles.storyDesc}>{story.description}</p>}
-                  <StoryProgressLine progress={progress[story.id]} />
-                  <div className={styles.storymeta}>
-                    <Clock size={11} />
-                    {formatRelative(story.updated_at)}
+                  <div className={`${styles.grid} ${styles.seriesGrid}`}>
+                    {seg.books.map((story) =>
+                      renderCard(story, seg.series.books.find((b) => b.story_id === story.id)?.position),
+                    )}
                   </div>
-                </button>
-                {progress[story.id]?.last_scene_id && (
-                  <button
-                    className={styles.continueLink}
-                    onClick={() =>
-                      navigate(`/stories/${story.id}/write?node=${progress[story.id].last_scene_id}`)
-                    }
-                    title={`Continue writing “${progress[story.id].last_scene_title}”`}
-                  >
-                    Continue <ArrowRight size={12} />
-                  </button>
-                )}
-                {pendingDeleteId === story.id ? (
-                  <div className={styles.deleteConfirm} onClick={(e) => e.stopPropagation()}>
-                    <button className={styles.deleteConfirmYes} onClick={(e) => doDelete(story, e)}>
-                      Delete
-                    </button>
-                    <button
-                      className={styles.deleteConfirmNo}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPendingDeleteId(null);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={(e) => confirmDelete(story, e)}
-                    disabled={deletingId === story.id}
-                    className={styles.deleteBtn}
-                    aria-label={`Delete ${story.title}`}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                )}
-              </div>
-            ))}
+                </SeriesGroup>
+              ),
+            )}
           </div>
         )}
       </main>
 
-      {creating && <CreateStoryDialog onClose={() => setCreating(false)} />}
+      {(creating || sequelTo) && (
+        <CreateStoryDialog
+          sequelTo={sequelTo ?? undefined}
+          onClose={() => {
+            setCreating(false);
+            setSequelTo(null);
+          }}
+        />
+      )}
       {importing && <ImportWizard onClose={() => setImporting(false)} />}
     </div>
   );

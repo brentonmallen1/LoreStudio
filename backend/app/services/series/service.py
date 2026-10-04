@@ -244,8 +244,10 @@ def adopt_into_book(
     actor_id: str | None,
     client_id: str | None,
     batch_id: str | None = None,
+    log: bool = True,
 ):
-    """Bring an element into a book, starting from where it last stood. Undoable in that book."""
+    """Bring an element into a book, starting from where it last stood. Undoable in that book,
+    unless ``log`` is off (a new book's carry-over: making the book is not undoable either)."""
     _require_book(series, story_id)
     if member_in(element, story_id) is not None:
         raise SeriesError(f"{element.name} is already in that book.", 409)
@@ -259,6 +261,8 @@ def adopt_into_book(
     element.members.append(member)
     db.flush()
     rels = _carry_relationships(db, series, src.id, row.id, story_id) if kind.kind == "character" else []
+    if not log:
+        return row
 
     batch_id = batch_id or str(uuid.uuid4())
     label = f"Bring {element.name} into this book from the series"
@@ -316,6 +320,121 @@ def unlift(db: Session, series: Series, element: SeriesElement) -> None:
     db.delete(element)
     db.flush()
     db.expire(series, ["elements"])
+
+
+# ── The next book ────────────────────────────────────────────────────────────────
+
+#: What a sequel takes from the book before it: how the books are told, not what happens.
+INHERITED_STORY_FIELDS = (
+    "structure_template_id",
+    "genre",
+    "tone",
+    "themes",
+    "target_audience",
+    "intended_length",
+    "narrative_perspective",
+    "author_name",
+)
+
+
+def carry_candidates(db: Session, story: Story) -> list[dict]:
+    """Everything a sequel to ``story`` could start with: this book's rows of every series
+    kind, and the series' elements this book does not have (they come from an earlier book)."""
+    book = membership(db, story.id)
+    series = book.series if book else None
+    out: list[dict] = []
+    for kind in SERIES_KINDS.values():
+        rows = db.query(kind.model).filter(kind.model.story_id == story.id).order_by(kind.model.name).all()
+        for row in rows:
+            if getattr(row, "is_stub", False):
+                continue
+            element = element_for_row(db, kind.table, row.id)
+            out.append(
+                {
+                    "kind": kind.kind,
+                    "ref_id": row.id,
+                    "element_id": element.id if element else None,
+                    "name": row.name,
+                    "in_series": element is not None,
+                    "parent_ref_id": getattr(row, "parent_id", None),
+                }
+            )
+        if series is None:
+            continue
+        for element in sorted(series.elements, key=lambda e: e.name.lower()):
+            if element.kind == kind.kind and member_in(element, story.id) is None and element.members:
+                out.append(
+                    {
+                        "kind": kind.kind,
+                        "ref_id": None,
+                        "element_id": element.id,
+                        "name": element.name,
+                        "in_series": True,
+                        "parent_ref_id": None,
+                    }
+                )
+    return out
+
+
+def _depth(row, by_id: dict) -> int:
+    depth, seen = 0, set()
+    while getattr(row, "parent_id", None) and row.parent_id in by_id and row.id not in seen:
+        seen.add(row.id)
+        row = by_id[row.parent_id]
+        depth += 1
+    return depth
+
+
+def start_next_book(
+    db: Session,
+    source: Story,
+    new_story: Story,
+    carry: list[dict],
+    *,
+    series_name: str | None = None,
+) -> Series:
+    """Make ``new_story`` the book after ``source``: the series made if there is none (named
+    after the first book), the book placed next, how the books are told carried over, and
+    each chosen element shared and brought in from where it last stood.
+
+    ``carry`` items are ``{"kind", "ref_id"}`` (a row of ``source``) or ``{"element_id"}``
+    (a series element ``source`` does not have).
+    """
+    book = membership(db, source.id)
+    series = book.series if book else create_series(db, source.user_id, series_name or source.title)
+    if book is None:
+        attach_story(db, series, source)
+    for key in INHERITED_STORY_FIELDS:
+        setattr(new_story, key, copy.deepcopy(getattr(source, key)))
+    attach_story(db, series, new_story, positions(series)[source.id] + 1)
+
+    elements: list[SeriesElement] = []
+    rows: list[tuple[SeriesKind, Any]] = []
+    for item in carry:
+        if item.get("element_id"):
+            element = next((e for e in series.elements if e.id == item["element_id"]), None)
+            if element is None:
+                raise SeriesError("That element is not in this series.", 404)
+            elements.append(element)
+        else:
+            kind = kind_of(item.get("kind") or "")
+            row = db.get(kind.model, item.get("ref_id"))
+            if row is None or row.story_id != source.id:
+                raise SeriesError(f"No such {kind.label.lower()} in “{source.title}”.", 404)
+            rows.append((kind, row))
+    # Parents before children, eras before their events, so each copy can find its own.
+    locations = {r.id: r for k, r in rows if k.kind == "location"}
+    order = list(SERIES_KINDS)
+    rows.sort(key=lambda kr: (order.index(kr[0].kind), _depth(kr[1], locations)))
+    for kind, row in rows:
+        elements.append(lift_element(db, series, kind.kind, source.id, row.id))
+    seen: set[str] = set()
+    for element in sorted(elements, key=lambda e: order.index(e.kind)):
+        if element.id in seen or member_in(element, new_story.id) is not None:
+            continue
+        seen.add(element.id)
+        adopt_into_book(db, series, element, new_story.id, actor_id=None, client_id=None, log=False)
+    return series
 
 
 # ── Housekeeping ─────────────────────────────────────────────────────────────────

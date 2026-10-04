@@ -4,11 +4,13 @@ import { originLabel } from "../../lib/overlay";
 import { sceneToResume } from "../../lib/resumeScene";
 import { useStoryStore } from "../../stores/storyStore";
 import BreadcrumbNav from "./BreadcrumbNav";
+import SeriesCrumb from "../series/SeriesCrumb";
 import styles from "./GlobalHeader.module.css";
 
 /**
  * The header's left side: the app name, or inside a story a way back to your stories,
- * the story's title, and while writing the breadcrumb of where you are (doc 11); on any
+ * the series it is a book of (series doc), the story's title, and while writing the
+ * breadcrumb of where you are (doc 11); on any
  * other page, that page's name (doc 12: the app bar names the story and the page).
  */
 export default function HeaderTitle() {
@@ -45,6 +47,7 @@ export default function HeaderTitle() {
         <LibraryBig size={16} aria-hidden />
         <span className={styles.srOnly}>All stories</span>
       </button>
+      <SeriesCrumb storyId={storyId} compact={pathname.includes("/write")} />
       <span className={styles.storyTitle} title={activeStory.title}>
         {activeStory.title}
       </span>

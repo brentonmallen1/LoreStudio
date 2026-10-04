@@ -1,6 +1,7 @@
 import { api } from "../../api/client";
 import { sceneCastApi } from "../../api/sceneCast";
 import { usePanelStore } from "../../stores/panelStore";
+import { useSeriesStore } from "../../stores/seriesStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { StructureNode } from "../../types";
 
@@ -20,6 +21,8 @@ export async function loadStoryIntoStores(storyId: string): Promise<StructureNod
     api.listThreads(storyId),
     sceneCastApi.get(storyId).catch(() => null),
   ]);
+  // The series it is in, if any: not waited for, nothing below depends on it.
+  void useSeriesStore.getState().load(storyId);
   const store = useStoryStore.getState();
   store.setActiveStory(story);
   store.setStructure(structure);

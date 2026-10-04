@@ -15,12 +15,18 @@ from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.series import Series, SeriesElement
 from ..models.story import Story
+from ..models.structure import StoryStructureTemplate
 from ..models.user import User
 from ..schemas.series import (
     BookJoin,
     BooksOrder,
+    CarryCandidate,
+    ElementDetailOut,
+    ElementFieldOut,
     ElementLift,
+    FieldValueOut,
     MemberAdd,
+    SequelCreate,
     SeriesBookOut,
     SeriesCreate,
     SeriesElementOut,
@@ -30,9 +36,12 @@ from ..schemas.series import (
     SeriesUpdate,
     StorySeriesOut,
 )
+from ..schemas.story import StoryCreated
 from ..services import change_log
 from ..services.series import service
-from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS
+from ..services.series.drift import disagree
+from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, field_class
+from ..services.structure_scaffold import scaffold_story
 
 router = APIRouter()
 
@@ -40,11 +49,12 @@ _KIND_ORDER = {k: i for i, k in enumerate(SERIES_KINDS)}
 
 
 @contextmanager
-def _said():
-    """SeriesError -> the HTTP error it names."""
+def _said(db: Session):
+    """SeriesError -> the HTTP error it names, with nothing half-made left behind."""
     try:
         yield
     except service.SeriesError as e:
+        db.rollback()
         raise HTTPException(status_code=e.status_code, detail=str(e)) from e
 
 
@@ -128,7 +138,7 @@ def list_series(db: Session = Depends(get_db), current_user: User = Depends(get_
 @router.post("/series", response_model=SeriesOut, status_code=status.HTTP_201_CREATED)
 def create_series(body: SeriesCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     stories = [_story(sid, db, current_user) for sid in body.story_ids]
-    with _said():
+    with _said(db):
         series = service.create_series(db, current_user.id, body.name, premise=body.premise, intent=body.intent)
         for story in stories:
             service.attach_story(db, series, story)
@@ -186,7 +196,7 @@ def reorder_books(
     current_user: User = Depends(get_current_user),
 ):
     series = _series(series_id, db, current_user)
-    with _said():
+    with _said(db):
         service.reorder(db, series, body.story_ids)
     return _tidied(series, db)
 
@@ -200,7 +210,7 @@ def join_series(
 ):
     series = _series(series_id, db, current_user)
     story = _story(body.story_id, db, current_user)
-    with _said():
+    with _said(db):
         service.attach_story(db, series, story, body.position)
     return _tidied(series, db)
 
@@ -228,7 +238,7 @@ def lift_element(
     current_user: User = Depends(get_current_user),
 ):
     series = _series(series_id, db, current_user)
-    with _said():
+    with _said(db):
         service.lift_element(db, series, body.kind, body.story_id, body.ref_id)
     return _tidied(series, db)
 
@@ -241,6 +251,35 @@ def unlift_element(
     series = _series(series_id, db, current_user)
     service.unlift(db, series, _element(series, element_id))
     return _tidied(series, db)
+
+
+@router.get("/series/{series_id}/elements/{element_id}", response_model=ElementDetailOut)
+def element_detail(
+    series_id: str, element_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    """Every field of the element in every book that has it, in series order."""
+    series = _series(series_id, db, current_user)
+    service.tidy(db, series)
+    db.commit()
+    element = _element(series, element_id)
+    kind = SERIES_KINDS[element.kind]
+    pos = service.positions(series)
+    rows = [
+        (m, row)
+        for m in sorted(element.members, key=lambda m: pos.get(m.story_id, 0))
+        if (row := service.member_row(db, m)) is not None
+    ]
+    fields = []
+    for key in kind.fields:
+        cls = field_class(kind, key, series.field_classes)
+        values = [
+            FieldValueOut(story_id=m.story_id, position=pos[m.story_id], value=str(getattr(row, key) or ""))
+            for m, row in rows
+        ]
+        differs = cls == "enduring" and disagree(v.value for v in values)
+        fields.append(ElementFieldOut(key=key, field_class=cls, values=values, differs=differs))
+    out = serialize(series)
+    return ElementDetailOut(element=next(e for e in out.elements if e.id == element.id), fields=fields)
 
 
 @router.post("/series/{series_id}/elements/{element_id}/members", response_model=SeriesOut)
@@ -256,7 +295,7 @@ def add_member(
     series = _series(series_id, db, current_user)
     service.tidy(db, series)
     element = _element(series, element_id)
-    with _said():
+    with _said(db):
         if body.ref_id:
             service.link_existing(db, series, element, body.story_id, body.ref_id)
         else:
@@ -293,6 +332,66 @@ def remove_member(
         client_id=client_id,
         undoable=len(element.members) > 1,
     )
-    with _said():
+    with _said(db):
         service.unlink_member(db, series, element, story_id)
     return _tidied(series, db)
+
+
+# ── The next book ────────────────────────────────────────────────────────────────
+
+
+class SequelCreated(StoryCreated):
+    series_id: str
+
+
+@router.get("/stories/{story_id}/carry-over", response_model=list[CarryCandidate])
+def carry_over(story_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """What a sequel to this book could start with, each kind in the Lorebook's order."""
+    story = _story(story_id, db, current_user)
+    book = service.membership(db, story_id)
+    if book is not None:
+        service.tidy(db, book.series)
+        db.commit()
+    return [
+        CarryCandidate(**c, lore_kind=FRONTEND_KIND.get(c["kind"], c["kind"]))
+        for c in service.carry_candidates(db, story)
+    ]
+
+
+@router.post("/stories/{story_id}/sequel", response_model=SequelCreated, status_code=status.HTTP_201_CREATED)
+def write_sequel(
+    story_id: str,
+    body: SequelCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """A new book after this one, in its series (made now if there is none), starting with
+    the characters, places and world the author chose to carry over."""
+    source = _story(story_id, db, current_user)
+    if not body.title.strip():
+        raise HTTPException(status_code=400, detail="A book needs a title.")
+    book = service.membership(db, story_id)
+    if book is not None:
+        service.tidy(db, book.series)
+    story = Story(user_id=current_user.id, title=body.title.strip(), description=body.description)
+    db.add(story)
+    db.flush()
+    with _said(db):
+        series = service.start_next_book(
+            db,
+            source,
+            story,
+            [c.model_dump() for c in body.carry],
+            series_name=body.series_name,
+        )
+    if body.structure_template_id:
+        story.structure_template_id = body.structure_template_id
+    start = None
+    if body.scaffold:
+        start = scaffold_story(story.id, db.get(StoryStructureTemplate, story.structure_template_id), db)
+    db.commit()
+    db.refresh(story)
+    created = StoryCreated.model_validate(story)
+    return SequelCreated(**created.model_dump(), series_id=series.id).model_copy(
+        update={"start_node_id": start.id if start else None}
+    )

@@ -44,6 +44,7 @@ export const SECTION_ELEMENTS: Record<string, Page> = {
   "lorebook.calendars": worldSection("CalendarsSection"),
   "lorebook.travel": worldSection("TravelSection"),
   "lorebook.connections": lazy(() => import("../components/lorebook/sections/ConnectionsSection")),
+  "lorebook.series": lazy(() => import("../components/lorebook/sections/SeriesSection")),
   "promises.tapestry": lazy(() => import("../components/promises/TapestryPage")),
   "promises.threads": lazy(() => import("../components/promises/ThreadsSection")),
   "promises.twists": lazy(() => import("../components/promises/TwistsSection")),

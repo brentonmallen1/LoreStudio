@@ -12,6 +12,7 @@ import {
   GitBranch,
   ScanEye,
   Landmark,
+  BookCopy,
   Library,
   Link2,
   Spline,
@@ -214,6 +215,14 @@ export const STORY_ROUTES: StoryRoute[] = [
         label: "Connections",
         icon: Network,
         keywords: ["codex", "knowledge graph", "graph", "network", "relationships map"],
+      },
+      {
+        // What this book shares with the other books of its series (series doc).
+        id: "series",
+        path: "/series",
+        label: "Series",
+        icon: BookCopy,
+        keywords: ["series", "sequel", "trilogy", "canon", "shared", "other books", "carry over"],
       },
     ],
   },

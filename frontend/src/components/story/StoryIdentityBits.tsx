@@ -1,5 +1,7 @@
 import { Check, FileText, Users } from "lucide-react";
 import { useStoryStore } from "../../stores/storyStore";
+import { SectionCard } from "../common";
+import SeriesMembership from "../series/SeriesMembership";
 import styles from "./StoryIdentityPanel.module.css";
 
 // Small presentational pieces used by StoryIdentityPanel.
@@ -78,5 +80,14 @@ export function HeroStats(_props: { storyId: string }) {
         </>
       )}
     </div>
+  );
+}
+
+/** Part of a series, or how to put it in one (series doc). */
+export function SeriesCard(props: { storyId: string; collapsed: boolean; onToggle: () => void }) {
+  return (
+    <SectionCard title="Series" collapsed={props.collapsed} onToggle={props.onToggle}>
+      <SeriesMembership storyId={props.storyId} />
+    </SectionCard>
   );
 }

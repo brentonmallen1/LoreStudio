@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { useReloadOnUndo } from "../../../hooks/useUndoRedo";
 import { KINDS, type FieldSpec, type LoreKind } from "../../../lib/lorebook/kinds";
+import { LORE_KIND, seriesKindsOf } from "../../../lib/series/kinds";
 import { useUIStore } from "../../../stores/uiStore";
 import type { MenuItem } from "../../common/PopoverMenu";
 import WorldBuildingAIPanel from "../../worldbuilding/WorldBuildingAIPanel";
@@ -91,6 +92,10 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
   useReloadOnUndo(config.undoTypes, () => void reload());
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
+  // In a book of a series: which series kinds this list holds, and which one the open entry is.
+  const seriesKinds = seriesKindsOf(config.section);
+  const selectedLore = (selected as { kind?: string } | null)?.kind ?? config.kind;
+  const selectedSeriesKind = seriesKinds.find((k) => LORE_KIND[k] === selectedLore);
   const nameOf = (e: T) =>
     config.nameOf?.(e, items) ?? String((e as unknown as { name?: string }).name ?? "");
   const blocked = config.cannotAdd?.() ?? null;
@@ -143,12 +148,15 @@ export default function SimpleSection<T extends Named>({ config }: { config: Sim
           }
         }
         empty={<p className={styles.listEmpty}>{blocked ?? config.empty}</p>}
+        seriesKinds={seriesKinds.length ? seriesKinds : undefined}
+        onFromSeries={(id) => void reload().then(() => select(id))}
       />
       <div className={styles.sheetScroll}>
         {selected ? (
           <EntitySheet
             key={selected.id}
             entityKey={selected.id}
+            series={selectedSeriesKind && { kind: selectedSeriesKind, id: selected.id }}
             name={nameOf(selected)}
             startRenaming={renaming === selected.id}
             onRename={

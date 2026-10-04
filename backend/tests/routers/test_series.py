@@ -170,3 +170,26 @@ def test_another_users_series_is_not_found(client, db_session, test_user):
     assert client.get(f"/api/series/{theirs.id}").status_code == 404
     assert client.get("/api/series").json() == []
     assert client.post("/api/series", json={"name": "Mine", "story_ids": [their_book.id]}).status_code == 404
+
+
+def test_an_element_book_by_book(client, db_session, test_user):
+    series, one, two = _make(client, db_session, test_user)
+    sid = series["id"]
+    el = client.post(
+        f"/api/series/{sid}/elements",
+        json={"kind": "character", "story_id": one.story.id, "ref_id": one.eleanor.id},
+    ).json()["elements"][0]
+    members = client.post(f"/api/series/{sid}/elements/{el['id']}/members", json={"story_id": two.id}).json()[
+        "elements"
+    ][0]["members"]
+    hers = db_session.get(Character, members[1]["ref_id"])
+    hers.personality = "Opening up."
+    hers.background = "Born inland."
+    db_session.commit()
+
+    detail = client.get(f"/api/series/{sid}/elements/{el['id']}").json()
+    fields = {f["key"]: f for f in detail["fields"]}
+    assert fields["personality"]["field_class"] == "evolving" and fields["personality"]["differs"] is False
+    assert [v["value"] for v in fields["personality"]["values"]] == ["Guarded.", "Opening up."]
+    assert fields["background"]["field_class"] == "enduring" and fields["background"]["differs"] is True
+    assert fields["appearance"]["differs"] is False

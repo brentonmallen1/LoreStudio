@@ -9,6 +9,8 @@ import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useStoryStore } from "../stores/storyStore";
 import { usePanelStore } from "../stores/panelStore";
 import { useFeedSync } from "../stores/findingsStore";
+import { useSeriesStore } from "../stores/seriesStore";
+import { SERIES_UNDO_TYPES } from "../lib/series/refresh";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
 import StoryStrip from "../components/strip/StoryStrip";
@@ -28,6 +30,8 @@ export default function StoryWorkspacePage() {
   const [stripRevealed, setStripRevealed] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useFeedSync(storyId);
+  // Undo can take an element back out of this book, or put it back.
+  useReloadOnUndo(SERIES_UNDO_TYPES, () => useSeriesStore.getState().refetch());
 
   // `navigate` changes identity whenever the location does; reading it through a ref keeps
   // this effect to "the story changed". Depending on it reloaded the whole story, and

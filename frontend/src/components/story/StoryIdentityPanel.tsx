@@ -10,7 +10,7 @@ import { SectionCard } from "../common";
 import PageHeader from "../layout/PageHeader";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import type { StoryGoal } from "../../types";
-import { CharCount, CompletionDots, GroupLabel, HeroStats } from "./StoryIdentityBits";
+import { CharCount, CompletionDots, GroupLabel, HeroStats, SeriesCard } from "./StoryIdentityBits";
 import { useWorkshopMenu } from "./useWorkshopMenu";
 import styles from "./StoryIdentityPanel.module.css";
 
@@ -407,6 +407,8 @@ export default function StoryIdentityPanel({ storyId }: { storyId: string }) {
             rows={3}
           />
         </SectionCard>
+
+        <SeriesCard storyId={storyId} collapsed={!!collapsed.series} onToggle={() => toggle("series")} />
 
         {/* ── Voice ── */}
         <GroupLabel label="Voice" description="How is it told?" />

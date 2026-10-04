@@ -126,6 +126,8 @@ export default function CharactersSection() {
         selectedId={selectedId}
         onSelect={(id) => select(id)}
         onAdd={() => setCreating(true)}
+        seriesKinds={["character"]}
+        onFromSeries={(id) => select(id)}
         empty={<p className={styles.listEmpty}>No characters yet. Who is this story about?</p>}
         footer={
           characters.length > 1 && (
@@ -148,6 +150,7 @@ export default function CharactersSection() {
           <EntitySheet
             key={character.id}
             entityKey={character.id}
+            series={{ kind: "character", id: character.id }}
             name={character.name}
             dot={slotVar(character.color_slot)}
             slot={{ value: character.color_slot, onChange: (color_slot) => void save({ color_slot }) }}

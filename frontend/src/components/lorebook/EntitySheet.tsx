@@ -4,6 +4,7 @@ import { MoreHorizontal, PanelRight, Tag } from "lucide-react";
 import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import SlotPicker from "../common/SlotPicker";
 import AlsoCalled from "./AlsoCalled";
+import { useSeriesSheet, type SheetSeries } from "../series/useSeriesSheet";
 import type { SceneRef } from "../../lib/lorebook/presence";
 import styles from "./Lorebook.module.css";
 
@@ -39,6 +40,7 @@ export default function EntitySheet({
   children,
   side,
   footer,
+  series,
 }: {
   entityKey: string;
   name: string;
@@ -68,14 +70,19 @@ export default function EntitySheet({
   side?: ReactNode;
   /** Under the body, full width: the Assistant row. */
   footer?: ReactNode;
+  /** Which series element this is, when the book is in a series: its line, fold and actions. */
+  series?: SheetSeries;
 }) {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
   const shownScenes = scenes.length > 6 ? scenes.slice(0, 5) : scenes;
   const [addingName, setAddingName] = useState(false);
-  const menu: MenuItem[] = alsoCalled
-    ? [...more, { label: "Add another name…", icon: Tag, onSelect: () => setAddingName(true) }]
-    : more;
+  const inSeries = useSeriesSheet(series, name);
+  const menu: MenuItem[] = [
+    ...more,
+    ...(alsoCalled ? [{ label: "Add another name…", icon: Tag, onSelect: () => setAddingName(true) }] : []),
+    ...inSeries.items,
+  ];
 
   return (
     <article className={styles.sheet} aria-label={name}>
@@ -103,6 +110,7 @@ export default function EntitySheet({
             />
           )}
           {presence && <div className={styles.presence}>{presence}</div>}
+          {inSeries.line}
           {scenes.length > 0 && (
             <div className={styles.sceneChips}>
               {shownScenes.map((s) => (
