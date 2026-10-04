@@ -35,11 +35,15 @@
 
 .row {
   display: grid;
-  grid-template-columns: minmax(6rem, 9rem) minmax(8rem, 10rem) minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-columns: minmax(6rem, 9rem) minmax(9rem, 11rem) minmax(0, 1fr) auto;
+  align-items: start;
   gap: 0.6rem;
-  padding: 0.4rem 0;
+  padding: 0.45rem 0;
   border-top: 1px solid var(--color-border-light);
+}
+
+.absent {
+  align-items: center;
 }
 
 .scene {
@@ -49,7 +53,7 @@
   color: var(--color-text);
   background: none;
   border: 0;
-  padding: 0;
+  padding: 0.2rem 0 0;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -58,6 +62,106 @@
 
 .scene:hover {
   text-decoration: underline;
+}
+
+.absent .scene,
+.notHere {
+  color: var(--color-text-subtle);
+}
+
+.notHere {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--text-xs);
+}
+
+.putOn {
+  justify-self: start;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px dashed var(--color-control-border);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.5rem;
+  min-height: 1.6rem;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.absent:hover .putOn,
+.putOn:focus-visible {
+  opacity: 1;
+}
+
+.roleCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* The tapestry's shape for each role, in the thread's colour */
+.glyph {
+  position: relative;
+  flex-shrink: 0;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.glyph::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--lane);
+}
+
+.glyph[data-role="opens"]::after,
+.glyph[data-role="closes"]::after {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 2px solid var(--lane);
+  background: var(--color-surface);
+}
+
+.glyph[data-role="closes"]::after {
+  background: var(--lane);
+  box-shadow: inset 0 0 0 2px var(--color-surface);
+}
+
+.glyph[data-role="turns"]::after,
+.glyph[data-role="complicates"]::after {
+  box-shadow:
+    0 0 0 2px var(--color-surface),
+    0 0 0 3.5px var(--lane);
+}
+
+.glyph[data-role="fails"]::after,
+.glyph[data-role="fails_worse"]::after,
+.glyph[data-role="costs"]::after,
+.glyph[data-role="succeeds"]::after {
+  border-radius: 0;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--lane);
+  background: var(--color-surface);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.glyph[data-role="costs"]::after,
+.glyph[data-role="succeeds"]::after {
+  background: var(--lane);
+}
+
+.glyph[data-role="none"]::after {
+  background: none;
+  border: 1px dashed var(--color-text-subtle);
 }
 
 .role,
@@ -70,6 +174,8 @@
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.3rem;
   min-height: 1.6rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .role[data-role="opens"],
@@ -80,12 +186,15 @@
 .note {
   font: inherit;
   font-size: var(--text-sm);
+  line-height: 1.45;
   color: var(--color-text);
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 0.2rem 0.35rem;
   min-width: 0;
+  resize: none;
+  overflow: hidden;
 }
 
 .note:hover,

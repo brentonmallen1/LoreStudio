@@ -1146,3 +1146,9 @@ button.cardRow:hover {
 .milestone:focus-within .quietSelect {
   opacity: 1;
 }
+
+/* A twist's mark (doc 18 D2) */
+.sheetDotDiamond {
+  border-radius: 2px;
+  transform: rotate(45deg) scale(0.85);
+}

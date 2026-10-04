@@ -37,7 +37,7 @@ export default function CompactThreadSheet({ thread }: { thread: PlotThread }) {
         />
         <AutosaveTextarea
           key={`${thread.id}:description`}
-          label="What it is"
+          label="What it asks"
           initial={thread.description ?? ""}
           placeholder="The question this thread asks, or the change it makes…"
           save={(value) => api.updateThread(thread.id, { description: value }).then(upsertThread)}

@@ -25,6 +25,7 @@ export default function EntitySheet({
   startRenaming = false,
   dot,
   slot,
+  dotShape,
   badges,
   alsoCalled,
   presence,
@@ -48,6 +49,8 @@ export default function EntitySheet({
   dot: string | null;
   /** The entry's palette slot, when it has one: the dot becomes its colour picker. */
   slot?: { value: number; onChange: (slot: number) => void };
+  /** A twist's mark is a diamond (doc 18 D2); everything else a dot. */
+  dotShape?: "diamond";
   badges?: ReactNode;
   /** A character's or place's other names, the ones mentions in the prose may use. */
   alsoCalled?: { names: string[]; onChange: (names: string[]) => void };
@@ -78,10 +81,10 @@ export default function EntitySheet({
     <article className={styles.sheet} aria-label={name}>
       <header className={styles.sheetHeader}>
         {slot ? (
-          <DotPicker dot={dot} slot={slot} name={name} />
+          <DotPicker dot={dot} slot={slot} name={name} diamond={dotShape === "diamond"} />
         ) : (
           <span
-            className={styles.sheetDot}
+            className={`${styles.sheetDot} ${dotShape === "diamond" ? styles.sheetDotDiamond : ""}`}
             style={dot ? { background: dot, borderColor: dot } : undefined}
             aria-hidden
           />
@@ -166,10 +169,12 @@ function DotPicker({
   dot,
   slot,
   name,
+  diamond,
 }: {
   dot: string | null;
   slot: { value: number; onChange: (slot: number) => void };
   name: string;
+  diamond?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -190,7 +195,7 @@ function DotPicker({
     <div ref={wrap} className={styles.dotWrap}>
       <button
         type="button"
-        className={`${styles.sheetDot} ${styles.sheetDotBtn}`}
+        className={`${styles.sheetDot} ${styles.sheetDotBtn} ${diamond ? styles.sheetDotDiamond : ""}`}
         style={dot ? { background: dot, borderColor: dot } : undefined}
         aria-label={`${name}'s colour`}
         aria-expanded={open}

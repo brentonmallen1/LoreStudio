@@ -161,8 +161,8 @@ export const KINDS: Record<LoreKind, KindSpec> = {
     fields: [
       {
         key: "description",
-        label: "What it is",
-        hint: "The question this thread asks the reader…",
+        label: "What it asks",
+        hint: "The question this thread asks the reader, or the change it makes…",
         compact: true,
       },
     ],

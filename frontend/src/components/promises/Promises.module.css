@@ -194,3 +194,84 @@
   text-underline-offset: 2px;
   min-height: 1.6rem;
 }
+
+/* The thread sheet's "What kind of promise" (doc 18 C5) */
+.kindCards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kindCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-align: left;
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.kindCard:hover {
+  border-color: var(--color-control-border);
+}
+
+.kindCardOn {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+}
+
+.kindLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.kindHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.smallPrint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-subtle);
+}
+
+.cardText {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+/* The twist sheet's truth beside what the reader is led to believe (doc 18 C5) */
+.truthBelief {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.85rem;
+}
+
+.prose {
+  font: inherit;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.3rem;
+  margin: 0 -0.3rem;
+  resize: none;
+  overflow: hidden;
+}
+
+.prose:hover,
+.prose:focus {
+  border-color: var(--color-control-border);
+  background: var(--color-surface);
+}

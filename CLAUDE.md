@@ -125,7 +125,9 @@ components/       — Feature components organized by domain
   common/         — Modal (focus trap), PopoverMenu, Toaster (stores/toastStore: report failures
                     with toast.error, never window.alert)
   characters/     — Character parts the Lorebook sheet uses: dialogue, arc, relationships, graph
-  threads/        — ThreadVisualization (the Lorebook's thread map)
+  promises/       — Promises (doc 18): the tapestry, thread and twist sheets, setups and payoffs,
+                    what the reader knows (data from GET /stories/{id}/promises, lib/promises)
+  threads/        — ThreadScenes (a thread scene by scene, each with its role), the analysis panel
   panels/         — Group interview (multi-character panel)
   analysis/       — Perspective summaries
 types/index.ts    — All shared TypeScript interfaces
@@ -169,7 +171,7 @@ The character's full profile becomes the LLM system prompt — the character IS 
 - Keyboard shortcuts: `frontend/src/lib/keyboard/shortcuts.ts` (`matchesCombo`, `formatCombo`). Never
   hard-code a key combo in a component or a title string.
 - Story pages: `frontend/src/lib/routes.ts` (More menu, palette nav commands, ModeGate). Grouped pages
-  (Lorebook, Compendium, Chronicle) declare `sections` (each a deep link, a More-menu row and a palette
+  (Lorebook, Promises, Compendium, Chronicle) declare `sections` (each a deep link, a More-menu row and a palette
   command with the old page names as keywords) and old paths go in `STORY_REDIRECTS`; bodies live in
   `pages/routeElements.ts`. Every page that is not the prose uses `components/layout/PageHeader`.
 - Settings sections: `frontend/src/pages/settings/sections.ts` (side nav, deep links, palette).

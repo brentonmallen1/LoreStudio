@@ -1,28 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Eye, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
-import { KINDS } from "../../lib/lorebook/kinds";
 import { useAIAvailable } from "../../lib/mode";
 import { sceneLeaves } from "../../lib/planning/methods";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Twist, TwistType } from "../../types";
 import TwistAnalysisPanel from "../twists/TwistAnalysisPanel";
-import TwistClueEditor from "../twists/TwistClueEditor";
+import TwistClueBoard from "../twists/TwistClueBoard";
+import CommitTextarea from "../common/CommitTextarea";
 import TwistImpactPanel from "../twists/TwistImpactPanel";
 import AssistantRow from "../lorebook/AssistantRow";
 import HealthCard from "../lorebook/HealthCard";
 import ConfirmDelete from "../lorebook/ConfirmDelete";
-import EntitySheet, { Badge, CardRow, SheetCard } from "../lorebook/EntitySheet";
-import FieldList from "../lorebook/FieldList";
+import EntitySheet, { Badge, SheetCard } from "../lorebook/EntitySheet";
 import LorebookList from "../lorebook/LorebookList";
 import { useLoreSelection } from "../lorebook/useLoreSelection";
 import { TYPES, cluesLine, statusLabel, typeLabel } from "../../lib/twists/labels";
 import { slotVar } from "../../lib/colorSlots";
 import { sectionPath } from "../../lib/routes";
 import styles from "../lorebook/Lorebook.module.css";
+import p from "./Promises.module.css";
+import { fairPlay, misdirectionLine } from "../../lib/twists/fairPlay";
 
 /**
  * Twists, under Promises (doc 18 C3): each twist's truth, its misdirection, where it lands and
@@ -31,7 +32,6 @@ import styles from "../lorebook/Lorebook.module.css";
 export default function TwistsSection() {
   const { structure, activeTemplate } = useStoryStore();
   const openEntity = usePanelStore((s) => s.openEntity);
-  const navigate = useNavigate();
   const [twists, setTwists] = useState<Twist[]>([]);
   const [loaded, setLoaded] = useState(false);
   const { storyId, selectedId, select } = useLoreSelection(
@@ -76,7 +76,8 @@ export default function TwistsSection() {
     setTwists((all) => all.map((t) => (t.id === saved.id ? saved : t)));
   }
 
-  const toTruth = twist?.clues.filter((c) => c.points_to === "truth").length ?? 0;
+  const index = new Map(leaves.map((n, i) => [n.id, i]));
+  const fair = twist ? fairPlay(twist, index) : { line: "", advice: "" };
 
   return (
     <div className={styles.section}>
@@ -121,6 +122,7 @@ export default function TwistsSection() {
               return save({ name });
             }}
             dot={slotVar(twist.color_slot)}
+            dotShape="diamond"
             slot={{ value: twist.color_slot, onChange: (color_slot) => void save({ color_slot }) }}
             badges={
               <>
@@ -140,21 +142,7 @@ export default function TwistsSection() {
             side={
               <>
                 <HealthCard anchor="twist_id" id={twist.id} storyId={storyId} />
-                <SheetCard title="Shape">
-                  <div className={styles.rowEdit}>
-                    <select
-                      aria-label="Type"
-                      className={styles.grow}
-                      value={twist.twist_type}
-                      onChange={(e) => void save({ twist_type: e.target.value as TwistType })}
-                    >
-                      {TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>
-                          {t.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <SheetCard title="When it lands">
                   <label className={styles.rowEdit}>
                     <span className={styles.rowLabel}>Revealed in</span>
                     <select
@@ -170,30 +158,28 @@ export default function TwistsSection() {
                       ))}
                     </select>
                   </label>
+                  <label className={styles.rowEdit}>
+                    <span className={styles.rowLabel}>Kind</span>
+                    <select
+                      className={styles.grow}
+                      value={twist.twist_type}
+                      onChange={(e) => void save({ twist_type: e.target.value as TwistType })}
+                    >
+                      {TYPES.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className={styles.cardHint}>{TYPES.find((t) => t.value === twist.twist_type)?.hint}.</p>
                 </SheetCard>
-                <SheetCard
-                  title="Clues"
-                  meta={
-                    twist.clues.length
-                      ? `${toTruth} to the truth · ${twist.clues.length - toTruth} away`
-                      : undefined
-                  }
-                >
-                  {twist.clues.length === 0 ? (
-                    <p className={styles.cardEmpty}>None planted yet.</p>
-                  ) : (
-                    twist.clues.map((c) => (
-                      <CardRow
-                        key={c.id}
-                        dot={c.points_to === "truth" ? "var(--color-success)" : "var(--color-warning)"}
-                        text={c.text || "A clue"}
-                        under={[c.node_id ? titleOf(c.node_id) : "", c.subtlety].filter(Boolean).join(" · ")}
-                        onClick={
-                          c.node_id ? () => navigate(`/stories/${storyId}/write/${c.node_id}`) : undefined
-                        }
-                      />
-                    ))
-                  )}
+                <SheetCard title="Is it fair?">
+                  <p className={p.cardText}>{fair.line}</p>
+                  {fair.advice && <p className={styles.cardHint}>{fair.advice}</p>}
+                </SheetCard>
+                <SheetCard title="The misdirection">
+                  <p className={p.cardText}>{misdirectionLine(twist, index, (id) => titleOf(id))}</p>
                 </SheetCard>
               </>
             }
@@ -222,16 +208,29 @@ export default function TwistsSection() {
               </>
             }
           >
-            <FieldList
-              entityKey={twist.id}
-              fields={KINDS.twist.fields}
-              values={twist as unknown as Record<string, unknown>}
-              save={(key, value) => save({ [key]: value } as Parameters<typeof api.updateTwist>[1])}
-            />
-            <div className={styles.field}>
-              <span className={styles.fieldLabel}>Clues</span>
-              <TwistClueEditor twist={twist} nodes={leaves} onChanged={() => void reload()} />
+            <div className={p.truthBelief}>
+              {(
+                [
+                  ["the_truth", "The truth", "What is really going on…"],
+                  [
+                    "the_misdirection",
+                    "What the reader is led to believe",
+                    "What they believe until the reveal…",
+                  ],
+                ] as const
+              ).map(([key, label, hint]) => (
+                <label key={key} className={p.card}>
+                  <span className={p.cardTitle}>{label}</span>
+                  <CommitTextarea
+                    className={p.prose}
+                    value={twist[key]}
+                    placeholder={hint}
+                    onCommit={(value) => void save({ [key]: value })}
+                  />
+                </label>
+              ))}
             </div>
+            <TwistClueBoard twist={twist} leaves={leaves} onChanged={() => void reload()} />
           </EntitySheet>
         ) : (
           <div className={styles.landing}>
