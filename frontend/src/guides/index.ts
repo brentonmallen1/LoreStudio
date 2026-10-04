@@ -4,6 +4,7 @@ import planning from "./planning.md?raw";
 import dialogue from "./dialogue-and-quotes.md?raw";
 import notes from "./notes-and-freewrite.md?raw";
 import promises from "./promises.md?raw";
+import series from "./writing-a-series.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
@@ -62,6 +63,23 @@ const GUIDE_LIST: Guide[] = [
       "foreshadowing",
       "dramatic irony",
       "try fail",
+    ],
+  },
+  {
+    id: "writing-a-series",
+    title: "Writing a series",
+    body: series,
+    modes: BOTH,
+    keywords: [
+      "series",
+      "sequel",
+      "trilogy",
+      "books",
+      "canon",
+      "carry over",
+      "enduring",
+      "evolving",
+      "retcon",
     ],
   },
   {

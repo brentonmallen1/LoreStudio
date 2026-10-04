@@ -16,6 +16,14 @@ import { GUIDES } from "../../guides";
 describe("command palette coverage", () => {
   const ids = new Set(commandRegistry.getAll().map((a) => a.id));
 
+  it("reaches the Series page, which is not a story route, and starts a sequel", () => {
+    expect([...ids].filter((id) => id.startsWith("series-")).sort()).toEqual([
+      "series-new-book",
+      "series-open",
+      "series-write-sequel",
+    ]);
+  });
+
   it("has a navigation command for every story route", () => {
     const missing = STORY_ROUTES.filter((r) => !ids.has(`nav-${r.id}`)).map((r) => r.id);
     expect(missing).toEqual([]);

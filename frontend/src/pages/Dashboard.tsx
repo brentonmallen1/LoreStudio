@@ -21,7 +21,10 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
   // The book a new one follows, when "Write a sequel" or a series' "New book" opened the dialog.
-  const [sequelTo, setSequelTo] = useState<string | null>(null);
+  // "Write a sequel to this book" from the palette arrives as ?sequel=<story>.
+  const [sequelTo, setSequelTo] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get("sequel"),
+  );
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   const [importing, setImporting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);

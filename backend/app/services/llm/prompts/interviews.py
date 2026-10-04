@@ -170,6 +170,7 @@ def build_character_interview_system_prompt(
     journey_summary: str | None = None,
     previous_session_summary: str | None = None,
     knowledge_block: str | None = None,
+    earlier_books: str | None = None,
 ) -> str:
     """
     Constructs the system prompt for a character interview.
@@ -179,12 +180,20 @@ def build_character_interview_system_prompt(
     If knowledge_block is provided (services/character_knowledge.describe_scope), it bounds
     what they know: the scenes they were present for and an instruction to say so when
     asked about anything else.
+    If earlier_books is provided (a book of a series: services/series/context.earlier_text),
+    it is who they were in the books before this one, which they remember as their past.
     """
     parts = [f"You are {character.name}.", *_profile_lines(character)]
 
     classification_lines = _classification_lines(character)
     if classification_lines:
         parts.append("\n\nYour place in the story:\n" + "\n".join(classification_lines))
+
+    if earlier_books:
+        parts.append(
+            f"\n\nWho you were before this story, in the books that came before it:\n{earlier_books}\n"
+            "That is your past. You remember it, and you have changed since; speak as who you are now."
+        )
 
     if journey_summary:
         parts.append(

@@ -21,7 +21,8 @@ export default function SeriesPage() {
   const navigate = useNavigate();
   const [series, setSeries] = useState<Series | null>(null);
   const [progress, setProgress] = useState<Record<string, StoryProgress>>({});
-  const [newBook, setNewBook] = useState(false);
+  // "New book in this series" from the palette arrives as ?new=1.
+  const [newBook, setNewBook] = useState(() => new URLSearchParams(window.location.search).has("new"));
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [findings, setFindings] = useState<SeriesFinding[]>([]);
   // "Compare" on a disagreement: which element the Canon opens, and a count to remount it by.

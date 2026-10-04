@@ -86,6 +86,7 @@ from .services.seed import (
     seed_short_story_demo,
     seed_structure_templates,
 )
+from .services.seed_series import seed_lighthouse_sequel
 
 logging.basicConfig(level=settings.log_level.upper(), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("lorestudio")
@@ -113,6 +114,7 @@ def seed_all() -> None:
         seed_flash_fiction_demo()
         seed_short_story_demo()
         seed_first_person_demo()
+        seed_lighthouse_sequel()
 
 
 @asynccontextmanager

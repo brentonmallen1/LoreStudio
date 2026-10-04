@@ -98,3 +98,31 @@ def test_a_standalone_book_gets_none(client, db_session, test_user):
     one = make_book(db_session, test_user)
     db_session.commit()
     assert _proposals(client, one.story.id) == []
+
+
+def test_a_first_name_is_enough_unless_this_book_has_its_own(client, db_session, test_user):
+    two = empty_book(db_session, test_user, "Book Two")
+    db_session.add(
+        StructureNode(
+            id=str(uuid.uuid4()),
+            story_id=two.id,
+            title="Kitchen",
+            level=0,
+            level_type="scene",
+            position=0,
+            content="<p>Margaret put the kettle on.</p>",
+        )
+    )
+    db_session.commit()
+    sid, one = _series(client, db_session, test_user, two)
+    margaret = Character(id=str(uuid.uuid4()), story_id=one.story.id, name="Margaret Holt")
+    db_session.add(margaret)
+    db_session.commit()
+    client.post(
+        f"/api/series/{sid}/elements", json={"kind": "character", "story_id": one.story.id, "ref_id": margaret.id}
+    )
+    assert [p["subject"] for p in _proposals(client, two.id)] == ["Margaret Holt"]
+
+    db_session.add(Character(id=str(uuid.uuid4()), story_id=two.id, name="Margaret Brook"))
+    db_session.commit()
+    assert _proposals(client, two.id) == []

@@ -25,11 +25,26 @@ def _names(row) -> list[str]:
     return [n for n in [row.name, *(getattr(row, "aliases", None) or [])] if n and n.strip()]
 
 
+#: First words that are not a first name ("The Visitor", "Old Tom").
+_NOT_FIRST_NAMES = {"the", "old", "young", "little", "mister", "miss", "doctor", "captain", "lady", "lord"}
+
+
+def _first_name(name: str) -> str | None:
+    """How prose usually names a person: "Margaret" for Margaret Holt. None when the first
+    word is not a name of its own, or too short to tell from an ordinary word."""
+    words = name.split()
+    first = words[0] if len(words) > 1 else ""
+    if len(first) < 4 or not first[0].isupper() or first.lower() in _NOT_FIRST_NAMES:
+        return None
+    return first
+
+
 def _pattern(names: list[str]) -> re.Pattern | None:
     names = sorted({n.strip() for n in names if len(n.strip()) > 2}, key=len, reverse=True)
     if not names:
         return None
-    return re.compile(r"(?<![\w'’])(" + "|".join(re.escape(n) for n in names) + r")(?![\w'’])")
+    # A whole name, or its possessive ("Margaret's"); never part of a longer word.
+    return re.compile(r"(?<![\w'’])(" + "|".join(re.escape(n) for n in names) + r")(?=['’]s\b|[^\w'’]|$)")
 
 
 def _snippet(text: str, start: int, end: int) -> str:
@@ -79,6 +94,15 @@ def series_proposals(story_id: str, db: Session, titles: dict[str, str]) -> list
                 )
             )
             continue
+        # A person is named by their first name too, when no one else in the book shares it.
+        if kind.kind == "character" and (first := _first_name(element.name)):
+            taken = {
+                w.lower()
+                for c in db.query(kind.model.name).filter(kind.model.story_id == story_id)
+                for w in c.name.split()[:1]
+            }
+            if first.lower() not in taken:
+                names = [*names, first]
         pattern = _pattern(names)
         if pattern is None:
             continue

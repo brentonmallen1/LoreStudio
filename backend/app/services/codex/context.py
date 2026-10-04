@@ -35,6 +35,7 @@ from ..llm.prompts.interviews import build_character_interview_system_prompt
 from ..llm.prompts.panel import build_panel_character_prompt
 from ..prose_html import paragraphs
 from ..prose_syntax import Known, Lexicon, find_mentions
+from ..series.context import earlier_states, earlier_text
 from ..thread_roles import role_label
 from .chunker import estimate_tokens
 from .embeddings import Hit, embed_base_url_for, embed_model_for, embed_texts, search
@@ -171,6 +172,9 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
                 profile["narrative_intent"] = c.narrative_intent
             if c.arc_milestones:
                 profile["arc_milestones_pending"] = [m["text"] for m in c.arc_milestones if not m.get("completed")]
+            # A book of a series: who they were in the books before this one (never after).
+            if earlier := earlier_states(db, "characters", c.id):
+                profile["in_earlier_books"] = earlier
             mentioned_char_profiles.append(profile)
 
     # ── Settings mentioned ──
@@ -182,6 +186,7 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
                 "name": p.name,
                 "description": p.description[:200] if p.description else None,
                 "atmosphere": p.atmosphere[:200] if p.atmosphere else None,
+                **({"in_earlier_books": earlier} if (earlier := earlier_states(db, "locations", p.id)) else {}),
             }
             for p in all_places
             if p.name in place_names_mentioned
@@ -715,8 +720,13 @@ async def assemble_interview(
     scope = build_scope(character, db, interview.context_node_id, interview.knowledge_scope)
 
     passages = await _remembered_passages(character, scope, question, db, user)
+    earlier = earlier_text(db, "characters", character.id)
     prompt = build_character_interview_system_prompt(
-        character, journey_summary, previous, describe_scope(character, scope) + "".join(_passage_lines(passages, db))
+        character,
+        journey_summary,
+        previous,
+        describe_scope(character, scope) + "".join(_passage_lines(passages, db)),
+        earlier_books=earlier or None,
     )
     if interview.compacted_summary:
         prompt = (
@@ -740,6 +750,7 @@ async def assemble_interview(
             why=SCOPE_REASONS.get(scope.mode, ""),
         ),
         Block("interview.facts", f"Facts they know ({len(scope.facts)})", bool(scope.facts)),
+        Block("interview.earlier", "Who they were in earlier books", bool(earlier), estimate_tokens(earlier)),
         Block("interview.journey", "Journey summary", bool(journey_summary), estimate_tokens(journey_summary or "")),
         Block("interview.previous", "Notes from an earlier session", bool(previous), estimate_tokens(previous or "")),
         Block("interview.compacted", "Compacted earlier conversation", bool(interview.compacted_summary)),
