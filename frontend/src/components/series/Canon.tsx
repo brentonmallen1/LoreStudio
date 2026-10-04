@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight, ExternalLink, Plus, Unlink } from "lucide-react";
 import { seriesApi, type Series, type SeriesElement } from "../../api/series";
@@ -19,12 +19,20 @@ export default function Canon({
   series,
   here,
   onSeries,
+  focus,
 }: {
   series: Series;
   here?: string;
   onSeries: (s: Series) => void;
+  /** An element to open and bring into view ("Compare" on a disagreement). Read when mounted:
+   * the page keys the Canon by each request, so asking again opens it again. */
+  focus?: string;
 }) {
-  const [open, setOpen] = useState<Set<string>>(new Set());
+  const [open, setOpen] = useState<Set<string>>(() => new Set(focus ? [focus] : []));
+  useEffect(() => {
+    if (focus)
+      document.getElementById(`canon-${focus}`)?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [focus]);
   const [busy, setBusy] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -62,7 +70,7 @@ export default function Canon({
     const isOpen = open.has(e.id);
     const mine = here ? e.members.find((m) => m.story_id === here) : undefined;
     return (
-      <li key={e.id} className={`${styles.element} ${isOpen ? styles.elementOpen : ""}`}>
+      <li key={e.id} id={`canon-${e.id}`} className={`${styles.element} ${isOpen ? styles.elementOpen : ""}`}>
         <div className={styles.elementRow}>
           <button className={styles.elementName} onClick={() => toggle(e.id)} aria-expanded={isOpen}>
             {isOpen ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />}
@@ -120,7 +128,7 @@ export default function Canon({
             ]}
           />
         </div>
-        {isOpen && <ElementProgression series={series} element={e} here={here} />}
+        {isOpen && <ElementProgression series={series} element={e} here={here} onSeries={onSeries} />}
       </li>
     );
   }

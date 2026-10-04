@@ -5,6 +5,8 @@ import { useAIAvailable } from "../../lib/mode";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
+import { useSeriesStore } from "../../stores/seriesStore";
+import { sheetPath } from "../../lib/series/kinds";
 import type { MentionedRef } from "../../types/mentions";
 import type { Finding } from "../../types/findings";
 
@@ -37,6 +39,7 @@ export function useFindingActions() {
         case "open_sheet":
           return SHEETS.some(([key]) => f.anchor[key]) ? "Open the sheet" : "Open Story Identity";
         case "fix":
+          if (f.fix?.kind === "series") return "Use this in every book";
           return f.fix ? `Change to “${f.fix.new}”` : null;
         case "ask":
           return aiAvailable ? "Ask about this" : f.run_id ? "Read the run" : null;
@@ -61,6 +64,12 @@ export function useFindingActions() {
     (f: Finding) => {
       if (!storyId) return;
       const sheet = SHEETS.find(([key]) => f.anchor[key]);
+      // A series element of a kind the anchor has no column for: its row in this book.
+      const element = f.anchor.series_element_id
+        ? useSeriesStore.getState().series?.elements.find((e) => e.id === f.anchor.series_element_id)
+        : undefined;
+      const mine = element?.members.find((m) => m.story_id === storyId);
+      if (!sheet && element && mine) return navigate(sheetPath(storyId, element.kind, mine.ref_id));
       navigate(
         sheet
           ? sectionPath(storyId, sheet[1], sheet[2], f.anchor[sheet[0]] ?? undefined)
@@ -112,5 +121,5 @@ export function useFindingActions() {
     [aiAvailable, ask, navigate, openScene, openSheet, readRun, storyId],
   );
 
-  return { verb, run, ask, readRun, openScene, aiAvailable };
+  return { verb, run, ask, readRun, openScene, openSheet, aiAvailable };
 }

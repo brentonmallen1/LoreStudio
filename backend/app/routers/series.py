@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.finding_dismissal import FindingDismissal
 from ..models.series import Series, SeriesElement
 from ..models.story import Story
 from ..models.structure import StoryStructureTemplate
@@ -24,12 +25,15 @@ from ..schemas.series import (
     ElementDetailOut,
     ElementFieldOut,
     ElementLift,
+    FieldClassSet,
+    FieldPropagate,
     FieldValueOut,
     MemberAdd,
     SequelCreate,
     SeriesBookOut,
     SeriesCreate,
     SeriesElementOut,
+    SeriesFindingOut,
     SeriesMemberOut,
     SeriesOut,
     SeriesSummary,
@@ -38,9 +42,11 @@ from ..schemas.series import (
 )
 from ..schemas.story import StoryCreated
 from ..services import change_log
+from ..services.findings.series import computed as canon_findings
+from ..services.findings.view import load_view
 from ..services.series import service
 from ..services.series.drift import disagree
-from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, field_class
+from ..services.series.kinds import FRONTEND_KIND, SERIES_KINDS, field_class, field_words
 from ..services.structure_scaffold import scaffold_story
 
 router = APIRouter()
@@ -335,6 +341,70 @@ def remove_member(
     with _said(db):
         service.unlink_member(db, series, element, story_id)
     return _tidied(series, db)
+
+
+# ── Keeping canon straight ───────────────────────────────────────────────────────
+
+
+@router.post("/series/{series_id}/elements/{element_id}/propagate", response_model=SeriesOut)
+def propagate(
+    series_id: str,
+    element_id: str,
+    body: FieldPropagate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """One book's value of something that stays true, made every book's. Each book logs it."""
+    series = _series(series_id, db, current_user)
+    element = _element(series, element_id)
+    with _said(db):
+        service.propagate_field(
+            db, series, element, body.field, body.source_story_id, actor_id=current_user.id, client_id=client_id
+        )
+    return _tidied(series, db)
+
+
+@router.patch("/series/{series_id}/field-classes", response_model=SeriesOut)
+def set_field_class(
+    series_id: str,
+    body: FieldClassSet,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """In this series, a field stays true across the books, or changes from one to the next."""
+    series = _series(series_id, db, current_user)
+    with _said(db):
+        service.set_field_class(series, body.kind, body.field, body.field_class)
+    return _tidied(series, db)
+
+
+@router.get("/series/{series_id}/findings", response_model=list[SeriesFindingOut])
+def series_findings(series_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Where the books disagree about what stays true, once each, minus what was dismissed."""
+    series = _series(series_id, db, current_user)
+    book_ids = [b.story_id for b in series.books]
+    dismissed = {
+        d.fingerprint for d in db.query(FindingDismissal).filter(FindingDismissal.story_id.in_(book_ids)).all()
+    }
+    seen: dict[str, SeriesFindingOut] = {}
+    for book in sorted(series.books, key=lambda b: b.position):
+        for f in canon_findings(load_view(book.story, db), db):
+            if f.id in dismissed or f.fix is None:
+                continue
+            if f.id in seen:
+                seen[f.id].story_ids.append(book.story_id)
+                continue
+            seen[f.id] = SeriesFindingOut(
+                id=f.id,
+                text=f"{f.where}'s {field_words(f.fix.field or '')}: the books disagree",
+                evidence=f.evidence,
+                suggestion=f.suggestion,
+                element_id=f.fix.element_id or "",
+                field=f.fix.field or "",
+                story_ids=[book.story_id],
+            )
+    return list(seen.values())
 
 
 # ── The next book ────────────────────────────────────────────────────────────────

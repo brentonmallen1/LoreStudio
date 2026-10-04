@@ -53,6 +53,8 @@ export interface Entry {
   aliases?: string[];
   role?: string;
   slot?: number;
+  /** Not in this book yet: the series element it would be brought in from (series doc). */
+  fromSeries?: string;
 }
 
 export interface Choice {
@@ -67,6 +69,8 @@ export interface Choice {
   create?: boolean;
   role?: string;
   slot?: number;
+  /** Choosing it brings this series element into the book first. */
+  fromSeries?: string;
 }
 
 const KINDS: Record<TriggerMode, Entry["kind"][]> = {
@@ -113,8 +117,17 @@ export function suggest(
       // already matches, and not as a second copy of everyone in an empty picker.
       if (via && (!q || nameMatched)) continue;
       scored.push({
-        choice: { kind: e.kind, name: e.name, words, via, role: e.role, slot: e.slot },
-        score: score + (e.name === preferred ? -2 : 0) + (via ? 0.5 : 0),
+        choice: {
+          kind: e.kind,
+          name: e.name,
+          words,
+          via,
+          role: e.role,
+          slot: e.slot,
+          ...(e.fromSeries ? { fromSeries: e.fromSeries } : {}),
+        },
+        // The book's own come before the series' ones it does not have yet.
+        score: score + (e.name === preferred ? -2 : 0) + (via ? 0.5 : 0) + (e.fromSeries ? 0.25 : 0),
       });
     }
   }

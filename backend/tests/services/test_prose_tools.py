@@ -57,7 +57,9 @@ def test_quote_endpoints_and_name_drift_in_the_feed(client):
     assert "“Go,”" in client.get(f"/api/structure/{node['id']}").json()["content"]
     feed = client.get(f"/api/stories/{sid}/findings").json()["findings"]
     assert any(
-        f["check"] == "name_drift" and f["fix"] == {"kind": "rename", "old": "Marra", "new": "Mara"} for f in feed
+        f["check"] == "name_drift"
+        and {k: f["fix"][k] for k in ("kind", "old", "new")} == {"kind": "rename", "old": "Marra", "new": "Mara"}
+        for f in feed
     )
 
 

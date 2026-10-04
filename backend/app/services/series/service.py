@@ -20,7 +20,7 @@ from ...models.character import CharacterRelationship
 from ...models.series import Series, SeriesElement, SeriesElementMember, SeriesStory
 from ...models.story import Story
 from .. import change_log
-from .kinds import NOT_COPIED, SERIES_KINDS, SeriesKind, kind_for_table
+from .kinds import NOT_COPIED, SERIES_KINDS, SeriesKind, field_class, field_words, kind_for_table
 
 
 class SeriesError(Exception):
@@ -435,6 +435,71 @@ def start_next_book(
         seen.add(element.id)
         adopt_into_book(db, series, element, new_story.id, actor_id=None, client_id=None, log=False)
     return series
+
+
+# ── Keeping canon straight ───────────────────────────────────────────────────────
+
+
+def propagate_field(
+    db: Session,
+    series: Series,
+    element: SeriesElement,
+    field: str,
+    source_story_id: str,
+    *,
+    actor_id: str | None,
+    client_id: str | None,
+) -> list[str]:
+    """One book's value of an enduring field, made the value in every book that has the
+    element. Each book logs its own edit (undo is per book). Returns the books changed."""
+    kind = kind_of(element.kind)
+    if field not in kind.fields:
+        raise SeriesError(f"A {kind.label.lower()} has no {field_words(field)}.")
+    if field_class(kind, field, series.field_classes) != "enduring":
+        raise SeriesError(f"The {field_words(field)} changes from book to book in this series; nothing to align.")
+    source = member_in(element, source_story_id)
+    src = member_row(db, source) if source else None
+    if src is None:
+        raise SeriesError(f"That book does not have {element.name}.", 404)
+    value = getattr(src, field)
+    changed = []
+    for m in element.members:
+        if m.story_id == source_story_id:
+            continue
+        row = member_row(db, m)
+        if row is None or getattr(row, field) == value:
+            continue
+        change_log.record_update(
+            db,
+            row,
+            {field: value},
+            entity_type=kind.kind,
+            story_id=m.story_id,
+            label=f"Make {element.name}'s {field_words(field)} the series' one",
+            actor_id=actor_id,
+            client_id=client_id,
+        )
+        setattr(row, field, copy.deepcopy(value))
+        changed.append(m.story_id)
+    db.flush()
+    return changed
+
+
+def set_field_class(series: Series, kind_name: str, field: str, cls: str | None) -> None:
+    """Say a field stays true across this series, or changes book to book; None: the default."""
+    kind = kind_of(kind_name)
+    if field not in kind.fields:
+        raise SeriesError(f"A {kind.label.lower()} has no {field_words(field)}.")
+    if cls not in (None, "enduring", "evolving"):
+        raise SeriesError("A field either stays true or changes from book to book.")
+    overrides = {k: dict(v) for k, v in (series.field_classes or {}).items()}
+    mine = overrides.setdefault(kind.kind, {})
+    default = "enduring" if field in kind.enduring else "evolving"
+    if cls is None or cls == default:
+        mine.pop(field, None)
+    else:
+        mine[field] = cls
+    series.field_classes = {k: v for k, v in overrides.items() if v}
 
 
 # ── Housekeeping ─────────────────────────────────────────────────────────────────

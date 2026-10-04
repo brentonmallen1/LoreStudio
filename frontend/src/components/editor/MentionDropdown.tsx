@@ -40,7 +40,9 @@ export default function MentionDropdown({ mention }: { mention: MentionDropdownS
                   c.name
                 )}
               </span>
-              {c.kind === "character" && c.role ? (
+              {c.fromSeries ? (
+                <span className={styles.mentionItemType}>from the series</span>
+              ) : c.kind === "character" && c.role ? (
                 <span className={styles.mentionItemRole}>{c.role}</span>
               ) : c.kind === "place" ? (
                 <span className={styles.mentionItemType}>place</span>

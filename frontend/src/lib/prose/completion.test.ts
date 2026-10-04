@@ -104,3 +104,20 @@ describe("quote marks for a new line", () => {
     expect(quotePair("“A”")).toEqual(["“", "”"]);
   });
 });
+
+describe("series elements in the picker", () => {
+  const book: Entry[] = [{ kind: "character", name: "Margot Vance" }];
+  const fromSeries: Entry[] = [{ kind: "character", name: "Margaret Holt", fromSeries: "el-1" }];
+
+  it("come after the book's own, marked to be brought in", () => {
+    const out = suggest("mention", "mar", [...book, ...fromSeries]);
+    expect(out.map((c) => c.name)).toEqual(["Margot Vance", "Margaret Holt", "mar"]);
+    expect(out.find((c) => c.name === "Margaret Holt")?.fromSeries).toBe("el-1");
+    expect(out.find((c) => c.name === "Margot Vance")).not.toHaveProperty("fromSeries");
+  });
+
+  it("are not offered as new when the name is the series' one", () => {
+    const out = suggest("mention", "Margaret Holt", [...book, ...fromSeries]);
+    expect(out.some((c) => c.create)).toBe(false);
+  });
+});

@@ -18,6 +18,7 @@ from ..dialogue_service import sync_scene_dialogue
 from ..findings.fingerprint import content_hash
 from ..findings.runs import latest_runs, result_of
 from ..text_utils import html_to_text
+from .series import series_proposals
 
 
 def name_key(kind: str, name: str) -> str:
@@ -278,4 +279,13 @@ def scene_hashes(story_id: str, db: Session) -> dict[str, str]:
     return {n.id: content_hash(n.content) for n in db.query(StructureNode).filter(StructureNode.story_id == story_id)}
 
 
-SOURCES = (stubs, discoveries, codex, relationships, unattributed, scanned_names, scanned_knowledge)
+SOURCES = (
+    stubs,
+    discoveries,
+    codex,
+    relationships,
+    unattributed,
+    scanned_names,
+    scanned_knowledge,
+    series_proposals,
+)

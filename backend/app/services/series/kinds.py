@@ -149,6 +149,27 @@ SERIES_KINDS: dict[str, SeriesKind] = {
 #: Server kind -> the frontend's LoreKind, where they differ.
 FRONTEND_KIND: dict[str, str] = {"world_system": "system", "historical_event": "event"}
 
+#: A field's name in a sentence, where the column's own reads wrong ("the source", not
+#: "the source origin"). Everything else is the column with spaces.
+FIELD_WORDS: dict[str, str] = {
+    "location_type": "kind of place",
+    "system_type": "kind of system",
+    "source_origin": "source",
+    "start_date": "start",
+    "end_date": "end",
+    "in_world_date": "date",
+    "epoch_name": "epoch",
+    "mission_statement": "want",
+    "conflict": "obstacle",
+    "legacy_effects": "legacy",
+    "arc_in_own_words": "arc in their own words",
+}
+
+
+def field_words(key: str) -> str:
+    return FIELD_WORDS.get(key, key.replace("_", " "))
+
+
 #: Never copied: the row's own identity and bookkeeping.
 NOT_COPIED = frozenset({"id", "story_id", "created_at", "updated_at"})
 

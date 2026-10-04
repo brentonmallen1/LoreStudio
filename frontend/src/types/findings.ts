@@ -12,6 +12,8 @@ export interface FindingAnchor {
   location_id: string | null;
   thread_id: string | null;
   twist_id: string | null;
+  /** A series element: the same finding stands in every book of its series. */
+  series_element_id?: string | null;
 }
 
 export interface Finding {
@@ -26,7 +28,11 @@ export interface Finding {
   where: string;
   anchor: FindingAnchor;
   action: FindingAction;
-  fix: { kind: "rename"; old: string; new: string } | null;
+  /** A misspelt name to rename, or (series) this book's value to make every book's. */
+  fix:
+    | { kind: "rename"; old: string; new: string }
+    | { kind: "series"; old: string; new: string; field: string; element_id: string }
+    | null;
   run_id: string | null;
   feature: string | null;
   created_at: string | null;

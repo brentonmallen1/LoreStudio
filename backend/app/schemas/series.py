@@ -134,3 +134,28 @@ class ElementDetailOut(BaseModel):
 
     element: SeriesElementOut
     fields: list[ElementFieldOut]
+
+
+class FieldPropagate(BaseModel):
+    field: str
+    #: The book whose value becomes every book's.
+    source_story_id: str
+
+
+class FieldClassSet(BaseModel):
+    kind: str
+    field: str
+    #: "enduring", "evolving", or None for the kind's default.
+    field_class: str | None = None
+
+
+class SeriesFindingOut(BaseModel):
+    """One canon finding, once for the series, with the books it stands in."""
+
+    id: str
+    text: str
+    evidence: str
+    suggestion: str
+    element_id: str
+    field: str
+    story_ids: list[str]

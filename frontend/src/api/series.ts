@@ -55,6 +55,17 @@ export interface ElementDetail {
   fields: ElementField[];
 }
 
+/** A canon finding once for the series, with the books it stands in. */
+export interface SeriesFinding {
+  id: string;
+  text: string;
+  evidence: string;
+  suggestion: string;
+  element_id: string;
+  field: string;
+  story_ids: string[];
+}
+
 export interface SeriesSummary {
   id: string;
   name: string;
@@ -120,6 +131,19 @@ export const seriesApi = {
     ),
   removeFromBook: (id: string, elementId: string, storyId: string) =>
     request<Series>(`/series/${id}/elements/${elementId}/members/${storyId}`, { method: "DELETE" }),
+
+  /** One book's value of something that stays true, made every book's. */
+  propagate: (id: string, elementId: string, field: string, sourceStoryId: string) =>
+    request<Series>(
+      `/series/${id}/elements/${elementId}/propagate`,
+      json({ field, source_story_id: sourceStoryId }),
+    ),
+  setFieldClass: (id: string, kind: SeriesKind, field: string, fieldClass: FieldClass | null) =>
+    request<Series>(`/series/${id}/field-classes`, {
+      method: "PATCH",
+      body: JSON.stringify({ kind, field, field_class: fieldClass }),
+    }),
+  findings: (id: string) => request<SeriesFinding[]>(`/series/${id}/findings`),
 
   carryOver: (storyId: string) => request<CarryCandidate[]>(`/stories/${storyId}/carry-over`),
   sequel: (

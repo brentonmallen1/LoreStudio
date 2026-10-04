@@ -81,7 +81,14 @@ export function useSeriesSheet(
           </button>
         )}
       </div>
-      {open && <ElementProgression series={series} element={element} here={storyId} />}
+      {open && (
+        <ElementProgression
+          series={series}
+          element={element}
+          here={storyId}
+          onSeries={useSeriesStore.getState().accept}
+        />
+      )}
     </div>
   );
   const items: MenuItem[] = [

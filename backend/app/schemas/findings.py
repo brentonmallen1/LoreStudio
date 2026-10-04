@@ -26,14 +26,20 @@ class FindingAnchor(BaseModel):
     location_id: str | None = None
     thread_id: str | None = None
     twist_id: str | None = None
+    #: A series element the finding is about: the same finding in every book that has it.
+    series_element_id: str | None = None
 
 
 class FindingFix(BaseModel):
-    """A fix the app can make for the author, on their word: only a misspelt name today."""
+    """A fix the app can make for the author, on their word: a misspelt name, or (``series``)
+    this book's value of an enduring field made the value in every book of the series."""
 
-    kind: Literal["rename"] = "rename"
+    kind: Literal["rename", "series"] = "rename"
     old: str
     new: str
+    #: ``series`` only: the field, and the element it is a field of.
+    field: str | None = None
+    element_id: str | None = None
 
 
 class Finding(BaseModel):
@@ -83,5 +89,6 @@ class FindingsCount(BaseModel):
 
 
 class FixResult(BaseModel):
-    node_id: str
+    #: The scene a rename rewrote; None for a series fix, which writes the books' sheets.
+    node_id: str | None
     replaced: int

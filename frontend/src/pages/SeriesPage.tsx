@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { BookCopy, Plus, Trash2 } from "lucide-react";
 import { progressApi, type StoryProgress } from "../api/progress";
-import { seriesApi, type Series } from "../api/series";
+import { seriesApi, type Series, type SeriesFinding } from "../api/series";
 import PageHeader from "../components/layout/PageHeader";
 import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
@@ -23,6 +23,19 @@ export default function SeriesPage() {
   const [progress, setProgress] = useState<Record<string, StoryProgress>>({});
   const [newBook, setNewBook] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [findings, setFindings] = useState<SeriesFinding[]>([]);
+  // "Compare" on a disagreement: which element the Canon opens, and a count to remount it by.
+  const [focus, setFocus] = useState<{ id: string; n: number } | null>(null);
+  // Every change made on this page can settle or raise a disagreement: read them again after each.
+  const [rev, setRev] = useState(0);
+
+  useEffect(() => {
+    if (!seriesId) return;
+    seriesApi
+      .findings(seriesId)
+      .then(setFindings)
+      .catch(() => {});
+  }, [seriesId, rev]);
 
   const load = useCallback(() => {
     if (!seriesId) return Promise.resolve();
@@ -53,6 +66,7 @@ export default function SeriesPage() {
   // The open book's copy (the header's trail, its Lorebook) follows any change made here.
   const accept = useCallback((s: Series) => {
     setSeries(s);
+    setRev((r) => r + 1);
     if (s.books.some((b) => b.story_id === useSeriesStore.getState().storyId))
       useSeriesStore.getState().accept(s);
   }, []);
@@ -110,6 +124,36 @@ export default function SeriesPage() {
           />
         </section>
 
+        {findings.length > 0 && (
+          <section className={styles.section} aria-labelledby="series-eye">
+            <div className={styles.sectionHead}>
+              <h2 id="series-eye" className={styles.sectionTitle}>
+                Needs your eye
+              </h2>
+              <p className={styles.sectionNote}>
+                Where the books disagree about what should stay true. Dismissing one in any book dismisses it
+                in all.
+              </p>
+            </div>
+            <ul className={styles.eyeList}>
+              {findings.map((f) => (
+                <li key={f.id} className={styles.eyeRow}>
+                  <span className={styles.eyeText}>
+                    {f.text}
+                    {f.suggestion && <span className={styles.eyeEvidence}>{f.suggestion}</span>}
+                  </span>
+                  <button
+                    className={styles.textBtn}
+                    onClick={() => setFocus({ id: f.element_id, n: (focus?.n ?? 0) + 1 })}
+                  >
+                    Compare the books
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className={styles.section} aria-labelledby="series-canon">
           <div className={styles.sectionHead}>
             <h2 id="series-canon" className={styles.sectionTitle}>
@@ -119,7 +163,7 @@ export default function SeriesPage() {
               What the books share. Open one to see what stays true and how it changes from book to book.
             </p>
           </div>
-          <Canon series={series} onSeries={accept} />
+          <Canon key={focus?.n ?? 0} series={series} onSeries={accept} focus={focus?.id} />
         </section>
       </main>
 

@@ -6,6 +6,7 @@ import { UNDO_APPLIED_EVENT } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { announceScenesRewritten } from "../lib/sceneEvents";
 import { useProposalsStore } from "./proposalsStore";
+import { useSeriesStore } from "./seriesStore";
 import type { Finding, FindingsOut } from "../types/findings";
 
 /**
@@ -24,7 +25,7 @@ interface FindingsStore {
   refetch: () => Promise<void>;
   dismiss: (id: string) => Promise<void>;
   restore: (id: string) => Promise<void>;
-  fix: (f: Finding) => Promise<{ node_id: string; replaced: number }>;
+  fix: (f: Finding) => Promise<{ node_id: string | null; replaced: number }>;
   runLocal: () => Promise<void>;
 }
 
@@ -73,8 +74,10 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
     set((s) => ({ hidden: [...s.hidden, f.id] }));
     try {
       const done = await findingsApi.fix(storyId, f.id);
-      // An open editor holds the old text; this makes it take the new.
-      announceScenesRewritten([done.node_id]);
+      // An open editor holds the old text; this makes it take the new. A series fix wrote
+      // the other books' sheets instead, which the series view shows.
+      if (done.node_id) announceScenesRewritten([done.node_id]);
+      else void useSeriesStore.getState().refetch();
       return done;
     } finally {
       await get().refetch();

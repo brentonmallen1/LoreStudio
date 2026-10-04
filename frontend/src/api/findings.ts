@@ -11,7 +11,7 @@ export const findingsApi = {
   restore: (storyId: string, id: string) =>
     request<void>(`/stories/${storyId}/findings/${id}/dismiss`, { method: "DELETE" }),
   fix: (storyId: string, id: string) =>
-    request<{ node_id: string; replaced: number }>(`/stories/${storyId}/findings/${id}/fix`, {
+    request<{ node_id: string | null; replaced: number }>(`/stories/${storyId}/findings/${id}/fix`, {
       method: "POST",
     }),
 };

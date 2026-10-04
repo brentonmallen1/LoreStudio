@@ -23,7 +23,7 @@ export default function FindingRow({
   here?: "scene";
   showWhere?: boolean;
 }) {
-  const { verb, run, ask, readRun, openScene, aiAvailable } = useFindingActions();
+  const { verb, run, ask, readRun, openScene, openSheet, aiAvailable } = useFindingActions();
   const dismiss = useFindingsStore((s) => s.dismiss);
   const fix = useFindingsStore((s) => s.fix);
   const [confirming, setConfirming] = useState(false);
@@ -33,6 +33,7 @@ export default function FindingRow({
   const more: MenuItem[] = [{ label: "It's intended", icon: Check, onSelect: () => void dismiss(f.id) }];
   if (f.action === "fix" && f.anchor.node_id && here !== "scene")
     more.push({ label: "Open the scene", onSelect: () => openScene(f.anchor.node_id!) });
+  if (f.fix?.kind === "series") more.push({ label: "Compare the books", onSelect: () => openSheet(f) });
   if (aiAvailable && f.action !== "ask")
     more.push({ label: "Ask about this", ai: true, onSelect: () => void ask(f) });
   if (f.run_id && !(f.action === "ask" && !aiAvailable))
@@ -58,7 +59,9 @@ export default function FindingRow({
         {confirming && f.fix && (
           <div className={styles.confirm} role="group" aria-label="Confirm the change">
             <span>
-              Change every “{f.fix.old}” in {f.where || "this scene"} to “{f.fix.new}”?
+              {f.fix.kind === "series"
+                ? `Make every book of the series say what this one says?`
+                : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button
               type="button"
@@ -74,7 +77,7 @@ export default function FindingRow({
                 }
               }}
             >
-              Change it
+              {f.fix.kind === "series" ? "Use it everywhere" : "Change it"}
             </button>
             <button type="button" className={styles.verb} onClick={() => setConfirming(false)}>
               Not now

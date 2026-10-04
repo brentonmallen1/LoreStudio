@@ -42,6 +42,15 @@ def act(story_id: str, p: Proposal, action: str, db: Session, actor: str, client
     if action not in {a.id for a in p.actions}:
         raise CannotAct(f"“{action}” is not something this proposal offers")
 
+    if source in ("series-in", "series-same"):
+        from ..series.service import SeriesError
+        from .series import act_series
+
+        try:
+            return act_series(story_id, p, db, actor, client)
+        except SeriesError as e:
+            raise CannotAct(str(e)) from e
+
     if source == "stub":
         loc = db.get(Location, ref)
         assert loc is not None

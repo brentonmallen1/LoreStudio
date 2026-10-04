@@ -3,6 +3,9 @@ import type { Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
 import { api } from "../../api/client";
 import { useStoryStore } from "../../stores/storyStore";
+import { useSeriesStore } from "../../stores/seriesStore";
+import { seriesApi } from "../../api/series";
+import { refreshBookLists } from "../../lib/series/refresh";
 import { toast } from "../../stores/toastStore";
 import type { Character, Location, Story } from "../../types";
 import {
@@ -72,6 +75,24 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
     [activeStory, characters, flatLocations],
   );
 
+  // What the series has that this book does not yet: offered, never decorated as known.
+  const series = useSeriesStore((s) => (s.storyId === activeStory?.id ? s.series : null));
+  const seriesEntries = useMemo<Entry[]>(
+    () =>
+      (series?.elements ?? [])
+        .filter(
+          (e) =>
+            (e.kind === "character" || e.kind === "location") &&
+            !e.members.some((m) => m.story_id === activeStory?.id),
+        )
+        .map((e) => ({
+          kind: e.kind === "character" ? "character" : "place",
+          name: e.name,
+          fromSeries: e.id,
+        })),
+    [series, activeStory?.id],
+  );
+
   const [open, setOpen_] = useState(false);
   const [mode, setMode] = useState<TriggerMode>("mention");
   const [query, setQuery] = useState("");
@@ -84,7 +105,10 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
   const wrapRef = useRef<{ from: number; to: number } | null>(null);
   const [wrapping, setWrapping] = useState(false);
 
-  const choices = useMemo(() => suggest(mode, query, entries, preferred), [mode, query, entries, preferred]);
+  const choices = useMemo(
+    () => suggest(mode, query, [...entries, ...seriesEntries], preferred),
+    [mode, query, entries, seriesEntries, preferred],
+  );
 
   // Read by ProseMirror callbacks (event time), so syncing after render is fine.
   const live = useRef({ choices, selIdx, mode });
@@ -179,6 +203,18 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
 
   const accept = useCallback(
     async (choice: Choice) => {
+      if (choice.fromSeries && activeStory && series) {
+        try {
+          useSeriesStore
+            .getState()
+            .accept(await seriesApi.addToBook(series.id, choice.fromSeries, activeStory.id));
+          await refreshBookLists(activeStory.id, choice.kind === "character" ? "character" : "location");
+          toast.success(`${choice.name} is in this book now, carried on from the book before`);
+          return write({ ...choice, fromSeries: undefined });
+        } catch (e) {
+          return toast.error(e instanceof Error ? e.message : "That didn't work; try again.");
+        }
+      }
       if (!choice.create || !activeStory) return write(choice);
       try {
         if (choice.kind === "character") {
@@ -195,7 +231,7 @@ export function useMentionDropdown({ editor, activeStory, characters, setCharact
         toast.error(e instanceof Error ? e.message : "That didn't work; try again.");
       }
     },
-    [activeStory, setCharacters, upsertLocation, write],
+    [activeStory, series, setCharacters, upsertLocation, write],
   );
 
   // Wire the ProseMirror-side callbacks; they read fresh state through refs.
