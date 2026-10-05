@@ -29,12 +29,12 @@ export function readingOrder(nodes: StructureNode[]): StructureNode[] {
   return out;
 }
 
-/** The placed scenes in timeline order, then the ones not yet placed in reading order. */
+/** The placed scenes in timeline order, then the ones not yet placed in reading order.
+ * `leaves` are the book's scenes in reading order (the Plan's `sceneLeaves`). */
 export function timelineRows(
-  nodes: StructureNode[],
+  leaves: StructureNode[],
   eras: Era[],
 ): { placed: TimelineRow[]; unplaced: TimelineRow[] } {
-  const leaves = readingOrder(nodes);
   const rank = new Map(leaves.map((n, i) => [n.id, i + 1]));
   const eraById = new Map(eras.map((e) => [e.id, e]));
   const placedNodes = leaves

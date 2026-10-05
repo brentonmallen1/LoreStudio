@@ -86,7 +86,16 @@ export function BeatChips({
 }
 
 /** A book planned before it is written, added at the end. */
-export function AddBookForm({ series, onSeries }: { series: Series; onSeries: (s: Series) => void }) {
+export function AddBookForm({
+  series,
+  onSeries,
+  stacked = false,
+}: {
+  series: Series;
+  onSeries: (s: Series) => void;
+  /** One above the other, for a narrow column. */
+  stacked?: boolean;
+}) {
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
   async function submit(e: FormEvent) {
@@ -104,7 +113,7 @@ export function AddBookForm({ series, onSeries }: { series: Series; onSeries: (s
     }
   }
   return (
-    <form className={styles.addRow} onSubmit={submit}>
+    <form className={stacked ? styles.addStack : styles.addRow} onSubmit={submit}>
       <input
         className={styles.input}
         value={title}

@@ -272,7 +272,7 @@ def test_a_shape_starts_the_plan_and_changes_nothing_written(client, db_session,
     r = client.post(f"/api/series/{sid}/shape", json={"shape_id": "generational"})
     assert r.status_code == 200, r.text
     s = r.json()
-    assert [b["title"] for b in s["books"]] == ["The Last Lighthouse", "Book 2", "Book 3"]
+    assert [b["title"] for b in s["books"]] == ["The Last Lighthouse", "The second book", "The third book"]
     assert s["books"][0]["role"] == "Mine already."
     assert s["books"][1]["role"].startswith("The second")
     assert [b["name"] for b in s["arc"]] == shapes["generational"]["beats"]

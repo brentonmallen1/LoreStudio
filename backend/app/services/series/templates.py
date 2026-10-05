@@ -111,6 +111,13 @@ SHAPES: tuple[Shape, ...] = (
 
 BY_ID = {s.id: s for s in SHAPES}
 
+_ORDINALS = ("first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth")
+
+
+def _working_title(n: int) -> str:
+    """A planned book's title until it has one: "The second book", not "Book 2" twice over."""
+    return f"The {_ORDINALS[n]} book" if n < len(_ORDINALS) else f"Book {n + 1}"
+
 
 def preview(shape: Shape, series: Series) -> dict:
     """What applying the shape would do here, in numbers, before it does it."""
@@ -133,7 +140,7 @@ def apply(db: Session, series: Series, shape_id: str) -> dict:
         raise SeriesError("This series already has an arc; a shape only starts one.", 409)
     done = preview(shape, series)
     for n in range(len(series.books), len(shape.roles)):
-        add_planned_book(db, series, f"Book {n + 1}")
+        add_planned_book(db, series, _working_title(n))
     books = sorted(series.books, key=lambda b: b.position)
     for book, role in zip(books, shape.roles, strict=False):
         if not (book.role or "").strip():

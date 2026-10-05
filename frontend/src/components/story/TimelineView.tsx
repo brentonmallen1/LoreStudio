@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { api } from "../../api/client";
 import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { sceneLeaves } from "../../lib/planning/methods";
 import { movedPositions, timelineRows, type TimelineRow } from "../../lib/timeline";
 import { useStoryStore } from "../../stores/storyStore";
 import { toast } from "../../stores/toastStore";
@@ -17,7 +18,7 @@ import styles from "./TimelineView.module.css";
  */
 export default function TimelineView({ storyId }: { storyId: string }) {
   const navigate = useNavigate();
-  const { structure, setStructure } = useStoryStore();
+  const { structure, setStructure, activeTemplate } = useStoryStore();
   const [eras, setEras] = useState<Era[]>([]);
   const dragIdx = useRef<number | null>(null);
 
@@ -29,7 +30,8 @@ export default function TimelineView({ storyId }: { storyId: string }) {
   }, [storyId]);
   useReloadOnUndo(["era"], () => api.listEras(storyId).then(setEras));
 
-  const { placed, unplaced } = timelineRows(structure, eras);
+  // The scenes as the Plan reads them: an act with nothing in it yet is not a scene.
+  const { placed, unplaced } = timelineRows(sceneLeaves(structure, activeTemplate), eras);
 
   async function save(positions: Map<string, number>) {
     try {

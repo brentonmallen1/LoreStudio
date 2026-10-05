@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Era, StructureNode } from "../types";
-import { movedPositions, timelineRows } from "./timeline";
+import { movedPositions, readingOrder, timelineRows } from "./timeline";
 
 const scene = (id: string, position: number, extra: Partial<StructureNode> = {}) =>
   ({
@@ -37,7 +37,7 @@ describe("the timeline", () => {
         scene("a", 0, { timeline_position: 1, era_id: "gone" }),
       ],
     });
-    const { placed } = timelineRows([chapter], []);
+    const { placed } = timelineRows(readingOrder([chapter]), []);
     expect(placed.map((r) => [r.node.id, r.readingRank, r.outOfOrder, r.era])).toEqual([
       ["a", 1, false, null],
       ["b", 2, false, null],

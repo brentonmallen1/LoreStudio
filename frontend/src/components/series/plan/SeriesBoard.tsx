@@ -57,7 +57,7 @@ export default function SeriesBoard({
           <span className={styles.rowLabel}>
             {series.books.length === 0 ? "The first book" : "The next book"}
           </span>
-          <AddBookForm series={series} onSeries={onSeries} />
+          <AddBookForm series={series} onSeries={onSeries} stacked />
         </section>
       </div>
     </div>
