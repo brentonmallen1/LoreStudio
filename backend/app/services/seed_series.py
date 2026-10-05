@@ -31,6 +31,7 @@ from ..database import engine
 from ..models.character import Character
 from ..models.compendium import CompendiumEntry
 from ..models.diagram import Diagram
+from ..models.historical_event import Era
 from ..models.location import Location
 from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.reader_knowledge import ReaderKnowledgeEvent
@@ -38,7 +39,7 @@ from ..models.story import Story
 from ..models.structure import StoryStructureTemplate, StructureNode
 from ..models.twist import Twist, TwistClue
 from ..models.user import User
-from .series import service, setups, sync
+from .series import plan, service, setups, sync
 from .structure_scaffold import scaffold_story
 from .word_count import recount_story
 
@@ -232,6 +233,104 @@ def _shared_research(db: Session, series, book_one: Story) -> None:
         sync.share(db, series, kind, book_one.id, row.id, actor_id=None, client_id=None, log=False)
 
 
+BOOK_THREE = "After the Light"
+
+#: The series' arc, each beat with the books (from 0) that carry it.
+ARC = (
+    ("The secret surfaces", "What Thomas hid comes out, and Eleanor stays to face it.", (0,)),
+    ("Staying becomes a choice", "With nothing left to guard, staying has to be chosen again.", (1,)),
+    ("The light goes dark", "The island learns what it is without its keeper.", (2,)),
+)
+PARTS = (
+    "The secret about the Ardent surfaces, and Eleanor stays to face it.",
+    "The truth is out; staying is now a choice she has to make again, and someone wants her gone.",
+    "Seen through Margaret: the light goes dark, and the island decides what it is without it.",
+)
+
+FLASHBACK = (
+    "The Storm of '62",
+    "Thomas keeps the log through the storm that drowned the village, and leaves out what he saw.",
+    "<p>The glass fell all afternoon. By dark Thomas had stopped writing down the readings and started "
+    "writing down the boats.</p><p>At two he saw a light where no light should be, and by three it was "
+    "gone. He wrote <em>Nothing to report</em> and underlined it, which he had never done before.</p>",
+)
+
+
+def _flashback(db: Session, sequel: Story, thomas_id: str | None) -> None:
+    """A scene of Book 2 from before Book 1: told by Thomas, dated, read last but happening first."""
+    letter = _scene(db, sequel, "The Letter")
+    year = _scene(db, sequel, "One Year On")
+    if letter is None or year is None:
+        return
+    title, synopsis, content = FLASHBACK
+    db.add(
+        StructureNode(
+            story_id=sequel.id,
+            parent_id=letter.parent_id,
+            title=title,
+            synopsis=synopsis,
+            content=content,
+            level=letter.level,
+            level_type=letter.level_type,
+            position=letter.position + 1,
+            pov_character_id=thomas_id,
+            in_world_date="November 1962",
+            timeline_position=1,
+        )
+    )
+    year.in_world_date, year.timeline_position = "A year after the storm", 2
+    letter.in_world_date, letter.timeline_position = "The same autumn", 3
+    db.flush()
+
+
+def _series_plan(db: Session, series, book_one: Story, sequel: Story, chars: dict) -> None:
+    """The plan of the series (v2): its arc across three books, each book's part, a viewpoint
+    and an era for each, and a third book planned before it is written. Book 3's viewpoint is
+    Margaret, who is not in it yet; its era is still an idea."""
+    third = plan.add_planned_book(db, series, BOOK_THREE)
+    plan.set_arc(series, [{"name": n, "description": d} for n, d, _ in ARC])
+    books = sorted(series.books, key=lambda b: b.position)
+    for book, part in zip(books, PARTS, strict=False):
+        book.role = part
+    for beat, (_, _, on) in zip(series.arc, ARC, strict=True):
+        for i in on:
+            books[i].arc_beats = [*books[i].arc_beats, beat["id"]]
+    plan.set_axes(series, [{"kind": "character", "label": "Viewpoint", "pov": True}, {"kind": "era", "label": "Era"}])
+    view, era = (a["id"] for a in series.axes)
+    eleanor = service.element_for_row(db, "characters", chars["Eleanor Vance"].id) if "Eleanor Vance" in chars else None
+    margaret = (
+        service.element_for_row(db, "characters", chars["Margaret Holt"].id) if "Margaret Holt" in chars else None
+    )
+    keepers = db.query(Era).filter(Era.story_id == book_one.id, Era.name == "The Keeper's Era").first()
+    era_el = service.lift_element(db, series, "era", book_one.id, keepers.id) if keepers else None
+    slots: list[dict] = [{}, {}, {}]
+    for i in (0, 1):
+        if eleanor:
+            slots[i][view] = {"element_id": eleanor.id, "text": eleanor.name}
+        if era_el:
+            slots[i][era] = {"element_id": era_el.id, "text": era_el.name}
+    if margaret:
+        slots[2][view] = {"element_id": margaret.id, "text": margaret.name}
+    slots[2][era] = {"element_id": None, "text": "After the light goes dark"}
+    for book, slot in zip(books, slots, strict=True):
+        book.slots = slot
+    if era_el and service.member_in(era_el, sequel.id) is None:
+        service.adopt_into_book(db, series, era_el, sequel.id, actor_id=None, client_id=None, log=False)
+    # Book 2 is seen through Eleanor, as Book 1 is.
+    mine = service.member_in(eleanor, sequel.id) if eleanor else None
+    sequel.pov_character_id = mine.ref_id if mine else None
+    sequel.narrative_perspective = "multiple_pov"
+    third_story = third.story
+    third_story.description = "The light goes dark, and the island has to decide what it is without it."
+    # The question Book 2 leaves open is Book 3's to answer: it starts there, as planned.
+    staying = db.query(PlotThread).filter(PlotThread.story_id == sequel.id, PlotThread.name == STAYING).first()
+    if staying is not None:
+        service.carry_into(
+            db, series, sequel, third_story.id, [{"kind": "plot_thread", "ref_id": staying.id}], log=False
+        )
+    db.flush()
+
+
 def seed_lighthouse_sequel() -> None:
     with Session(engine) as db:
         admin = db.query(User).filter(User.username == settings.admin_username).first()
@@ -280,5 +379,11 @@ def seed_lighthouse_sequel() -> None:
         _fill_scenes(db, sequel)
         _book_two_promises(db, series, book_one, sequel)
         _shared_research(db, series, book_one)
+        thomas = (
+            service.element_for_row(db, "characters", chars["Thomas Vance"].id) if "Thomas Vance" in chars else None
+        )
+        theirs = service.member_in(thomas, sequel.id) if thomas else None
+        _flashback(db, sequel, theirs.ref_id if theirs else None)
+        _series_plan(db, series, book_one, sequel, chars)
         recount_story(sequel.id, db)
         db.commit()

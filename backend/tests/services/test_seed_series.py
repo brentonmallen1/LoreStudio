@@ -31,7 +31,7 @@ def test_the_sequel_is_book_two_and_carries_eleanor_on(db_session: Session, monk
     one, two = _seed(db_session, monkeypatch)
     [series] = db_session.query(Series).all()
     assert series.name == "The Lighthouse Years"
-    assert service.positions(series) == {one.id: 0, two.id: 1}
+    assert {sid: p for sid, p in service.positions(series).items() if p < 2} == {one.id: 0, two.id: 1}
     assert two.structure_template_id == one.structure_template_id and two.genre == one.genre
     words = sum(n.word_count or 0 for n in db_session.query(StructureNode).filter(StructureNode.story_id == two.id))
     assert words > 50, "its scenes are counted, so the dashboard does not call it not started"
@@ -87,9 +87,33 @@ def test_its_promises_run_across_the_books(db_session: Session, monkeypatch):
         assert not quiet & {f.check for f in collect(story, db_session).findings}, story.title
 
     for model, title in ((CompendiumEntry, "Keeping a light: the log"), (Diagram, "Harrow Island")):
-        assert {r.story_id for r in db_session.query(model).filter(model.title == title)} == {one.id, two.id}
+        assert {one.id, two.id} < {r.story_id for r in db_session.query(model).filter(model.title == title)}
 
     offered = {c["name"]: c["preselect"] for c in service.carry_candidates(db_session, two)}
     assert offered[seed_series.STAYING] is True, "still open: Book 3 would carry it"
     assert seed_series.SENT not in offered, "revealed"
-    assert db_session.query(PlotThread).filter(PlotThread.name == seed_series.STAYING).count() == 2
+    assert db_session.query(PlotThread).filter(PlotThread.name == seed_series.STAYING).count() == 3, "Book 3 too"
+
+
+def test_it_shows_a_series_planned_ahead(db_session: Session, monkeypatch):
+    one, two = _seed(db_session, monkeypatch)
+    [series] = db_session.query(Series).all()
+    books = sorted(series.books, key=lambda b: b.position)
+    assert [b.story.title for b in books] == [one.title, two.title, seed_series.BOOK_THREE]
+    assert all(b.role for b in books) and [len(b.arc_beats) for b in books] == [1, 1, 1]
+    assert [a["label"] for a in series.axes] == ["Viewpoint", "Era"]
+    three = books[2].story
+    assert not any((n.word_count or 0) for n in three.structure_nodes), "Book 3 is planned, not written"
+
+    # Book 3 is seen through Margaret, who is not in it yet; its era is still an idea.
+    missing = [f for f in collect(three, db_session).findings if f.check == "series-axis-missing"]
+    assert [f.where for f in missing] == ["Margaret Holt"]
+    era = series.axes[1]["id"]
+    assert books[2].slots[era] == {"element_id": None, "text": "After the light goes dark"}
+
+    # Book 2's flashback is told by Thomas: read last, it happens first.
+    pov = [f for f in collect(two, db_session).findings if f.check == "series-axis-pov"]
+    assert [f.where for f in pov] == ["The Storm of '62"]
+    assert not [f for f in collect(one, db_session).findings if f.check.startswith("series-axis")]
+    storm = db_session.query(StructureNode).filter(StructureNode.title == "The Storm of '62").one()
+    assert (storm.in_world_date, storm.timeline_position) == ("November 1962", 1)

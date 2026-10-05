@@ -1,6 +1,34 @@
 # Writing a series
 
-Most series aren't planned as series. You finish a book and find the story isn't done with its people. LoreStudio works the same way: any book can become the first of a series the moment you start the next one.
+Some series are planned from the start: a trilogy with its ending in mind, a book for each of four sisters, three generations of one family. Others aren't planned at all: you finish a book and find the story isn't done with its people. LoreStudio works both ways. Start with the series and plan as much of it as helps, or start with a book and let it become the first of a series the moment you start the next one.
+
+## Starting with the series
+
+On the dashboard, **New series** makes a series before any book of it: a name and, if you know it yet, what the books are about together. You can start it from a **shape** (a duology, a trilogy, an open-ended saga, a viewpoint each book, a generational saga), which says what it would add before it adds it, or start blank. It opens on the series' **Plan**.
+
+Already writing the first book? In **New story**, tick **The first book of a series** and the series is made with it.
+
+## Planning the series
+
+The **Plan** walks the series a step at a time, the way a book's Plan does, each step with why it matters and an example from The Lighthouse Years. What the books are about together, why it takes more than one, the books, and what each one does: its **part**, a line saying what it does that the others don't. Then, if they help, the **arc** across the books (the series' own turning points, each placed on the books that carry it, and a beat can span books) and **what changes from book to book**. Nothing is required, and none of it stops you writing.
+
+Rather see every book at once? **Every book at once** shows the plan as a board, a column per book: its part, its place on each axis and the arc beats it carries, with a last column for the next book.
+
+A book can be planned before it is written: **Add a planned book** makes a story with no words yet, told the way the book before it is. It has its own Plan, Lorebook and outline from the start, and starting it is just opening it. When the book before it has its cast, **Bring into** that book offers the same choice a sequel makes: who carries over, the threads still open and the twists not yet revealed.
+
+Inside a book, Lorebook › **Series** starts with **This book in the series**, where its part can be written too (one value, wherever you write it), and the book's Plan says which book of which series it is.
+
+## What changes from book to book
+
+Some series turn on one thing: each book seen through a different character, set in a different time or a different place. Say so in the Plan's **What changes from book to book**: a **viewpoint character**, an **era**, a **place**, or **something else** said in words (a season, a generation). Then say where each book stands: choose the character, era or place from the Lorebook (it is shared with the series to stand there), or write the idea down until it is someone. An idea can be made real in the book later, and someone the book doesn't have yet can be brought in.
+
+A viewpoint can be marked as the eyes each book is seen through. Then the books are checked against it, as questions, never verdicts: a book whose viewpoint isn't in it yet (**Bring into this book**), a book or a scene told by someone else, a scene set in another era. A prologue in another voice, or a flashback, is meant to be: dismiss it. A scene with no point of view of its own is never asked about.
+
+## Whose eyes, and when
+
+Every book has two views of its own that a long story needs. On **Numbers**, **Whose eyes** draws the rotation of point-of-view characters through the book, a square for each scene seen through each of them, planned scenes too, and says when a viewpoint has been away far longer than its usual turn. The story strip's **Whose eyes** colour shows the same, scene by scene.
+
+A scene can say **when** it happens, in the story's own words (_November 1962_, _the third winter_), and which era it falls in. The Plan's **Timeline** lays the scenes out in the order they happen, banded by era, against the order the reader meets them, and marks a flashback as read out of order.
 
 ## Starting the next book
 
@@ -64,4 +92,4 @@ In Studio mode, the Assistant working on a book knows what its characters and pl
 
 ## What undo covers
 
-Bringing something into a book, taking it out, and making a value every book's are undone in that book. A setup across books is undone in the book you made it in. An edit to shared research is undone in the book you made it in, and the other books follow. The series' own shape (its name, its order, which things are shared) isn't undone, because undo belongs to one book.
+Bringing something into a book, taking it out, and making a value every book's are undone in that book. So is a book's own part of the plan (its part, where it stands on each axis, the arc beats it carries): undo it in that book, even if you wrote it on the series page. A setup across books is undone in the book you made it in. An edit to shared research is undone in the book you made it in, and the other books follow. The series' own shape (its name, its order, which things are shared, its arc, what changes from book to book, a shape it started from) isn't undone, because undo belongs to one book.

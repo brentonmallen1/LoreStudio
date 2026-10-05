@@ -873,6 +873,7 @@ def seed_demo_story():  # noqa: PLR0915
             position=0,
             status="final",
             timeline_position=2,
+            in_world_date="The first night of the storm",
             entry_state="Eleanor alone in her lighthouse, mid-routine — log entry made, barometer falling, the world predictably hers.",
             exit_state="Eleanor has spotted an unexpected boat in the storm and her equilibrium is broken; something outside her control is approaching.",
             key_events="Barometer reading logged; lamp room climb; sight of the unexpected boat in the storm.",
@@ -1044,6 +1045,7 @@ def seed_demo_story():  # noqa: PLR0915
             beat_id="midpoint",
             synopsis="Eleanor notices six months of entries missing. The Visitor is not surprised.",
             position=1,
+            in_world_date="Five years earlier",
             timeline_position=1,  # Flashback: chronologically first — represents the period five years ago when Thomas removed these entries
             status="draft",
             entry_state="Eleanor and the Visitor are in the watch room with the logbooks open on the desk.",
@@ -1317,6 +1319,7 @@ def seed_demo_story():  # noqa: PLR0915
             synopsis="Calder leaves the island. Eleanor watches the boat until it disappears.",
             position=0,
             timeline_position=8,
+            in_world_date="The morning after the storm",
             status="draft",
             entry_state="The truth has been exchanged. Calder has what she came for.",
             exit_state="Eleanor is alone again — but not the same alone she was before.",
