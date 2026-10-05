@@ -206,17 +206,24 @@ def _fix_series(story: Story, finding: Finding, db: Session, user: User, client_
 
 
 def _fix_carry(story: Story, finding: Finding, db: Session, user: User, client_id: str | None) -> FixResult:
-    """A thread left open, brought into the next book where it stands now: shared with the
-    series if it was this book's own, and undoable in the book it is brought into."""
+    """Something a book is missing, brought in where it stands now: a thread left open (shared
+    with the series if it was this book's own), or a book's viewpoint or era from the series'
+    plan. Undoable in the book it is brought into."""
     fix = finding.fix
     book = series_service.membership(db, story.id)
-    thread_id = finding.anchor.thread_id
-    if book is None or fix is None or not fix.story_id or not thread_id:
+    thread_id, element_id = finding.anchor.thread_id, finding.anchor.series_element_id
+    if book is None or fix is None or not fix.story_id or not (thread_id or element_id):
         raise HTTPException(status_code=422, detail="This finding has no fix to make")
     try:
-        element = series_service.element_for_row(db, "plot_threads", thread_id) or series_service.lift_element(
-            db, book.series, "plot_thread", story.id, thread_id
-        )
+        if element_id:
+            element = next((e for e in book.series.elements if e.id == element_id), None)
+            if element is None:
+                raise series_service.SeriesError("That is no longer in the series.", 404)
+        else:
+            assert thread_id is not None
+            element = series_service.element_for_row(db, "plot_threads", thread_id) or series_service.lift_element(
+                db, book.series, "plot_thread", story.id, thread_id
+            )
         series_service.adopt_into_book(db, book.series, element, fix.story_id, actor_id=user.id, client_id=client_id)
     except series_service.SeriesError as e:
         db.rollback()

@@ -129,3 +129,128 @@ def test_a_planned_book_is_given_its_cast_later_in_one_undo(client, db_session, 
     assert client.post(f"/api/stories/{two}/undo").status_code == 200
     db_session.expire_all()
     assert db_session.query(Character).filter(Character.story_id == two).count() == 0
+
+
+# ── Axes ─────────────────────────────────────────────────────────────────────────
+
+
+def _findings(client, story_id, check):
+    return [f for f in client.get(f"/api/stories/{story_id}/findings").json()["findings"] if f["check"] == check]
+
+
+def _two_books_with_axes(client, db_session, test_user):
+    from tests.fixtures.series_factory import make_book, scenes
+
+    one = make_book(db_session, test_user)
+    scenes(db_session, one.story, "The Light", "The Gap")
+    db_session.commit()
+    sid = client.post("/api/series", json={"name": "Keepers", "story_ids": [one.story.id]}).json()["id"]
+    two = client.post(f"/api/series/{sid}/books", json={"title": "Two"}).json()["story_id"]
+    axes = client.put(
+        f"/api/series/{sid}/axes",
+        json={
+            "axes": [
+                {"kind": "character", "label": "Viewpoint", "pov": True},
+                {"kind": "era", "label": "Era"},
+                {"kind": "character", "label": "Antagonist"},
+            ]
+        },
+    ).json()["axes"]
+    return sid, one, two, axes
+
+
+def test_axes_and_each_books_place_on_them(client, db_session, test_user):
+    sid, one, two, axes = _two_books_with_axes(client, db_session, test_user)
+    view, era, foe = (a["id"] for a in axes)
+    assert [a["pov"] for a in axes] == [True, False, False]
+
+    r = client.patch(
+        f"/api/series/{sid}/books/{one.story.id}",
+        json={"slots": {view: {"kind": "character", "story_id": one.story.id, "ref_id": one.eleanor.id}}},
+    )
+    assert r.status_code == 200, r.text
+    slot = r.json()["books"][0]["slots"][view]
+    assert slot["text"] == "Eleanor" and slot["element_id"]
+    assert any(e["id"] == slot["element_id"] for e in r.json()["elements"]), "shared with the series to stand there"
+
+    # An idea in words, then the same element chosen for another book.
+    r = client.patch(f"/api/series/{sid}/books/{two}", json={"slots": {era: {"text": "  The war years "}}})
+    assert r.json()["books"][1]["slots"][era] == {"element_id": None, "text": "The war years"}
+    r = client.patch(f"/api/series/{sid}/books/{two}", json={"slots": {view: {"element_id": slot["element_id"]}}})
+    assert r.json()["books"][1]["slots"][view]["element_id"] == slot["element_id"]
+
+    # The wrong kind, an unknown axis, and clearing one.
+    bad = {"slots": {era: {"element_id": slot["element_id"]}}}
+    assert client.patch(f"/api/series/{sid}/books/{two}", json=bad).status_code == 400
+    assert client.patch(f"/api/series/{sid}/books/{two}", json={"slots": {"nope": {"text": "x"}}}).status_code == 404
+    r = client.patch(f"/api/series/{sid}/books/{two}", json={"slots": {era: None}})
+    assert era not in r.json()["books"][1]["slots"]
+
+    # An axis taken out leaves every book.
+    r = client.put(f"/api/series/{sid}/axes", json={"axes": [axes[1], axes[2]]})
+    assert all(view not in b["slots"] for b in r.json()["books"])
+    assert client.put(f"/api/series/{sid}/axes", json={"axes": [{"kind": "mood", "label": "x"}]}).status_code == 400
+    assert foe
+
+
+def test_a_book_missing_its_viewpoint_is_offered_it(client, db_session, test_user):
+    sid, one, two, axes = _two_books_with_axes(client, db_session, test_user)
+    view = axes[0]["id"]
+    el = client.patch(
+        f"/api/series/{sid}/books/{one.story.id}",
+        json={"slots": {view: {"kind": "character", "story_id": one.story.id, "ref_id": one.eleanor.id}}},
+    ).json()["books"][0]["slots"][view]["element_id"]
+    client.patch(f"/api/series/{sid}/books/{two}", json={"slots": {view: {"element_id": el}}})
+
+    [f] = _findings(client, two, "series-axis-missing")
+    assert "Eleanor" in f["text"] and f["fix"]["kind"] == "carry"
+    assert _findings(client, one.story.id, "series-axis-missing") == []
+    assert any(g["check"] == "series-axis-missing" for g in client.get(f"/api/series/{sid}/findings").json())
+
+    assert client.post(f"/api/stories/{two}/findings/{f['id']}/fix").status_code == 200
+    assert _findings(client, two, "series-axis-missing") == []
+    assert client.post(f"/api/stories/{two}/undo").status_code == 200
+    assert len(_findings(client, two, "series-axis-missing")) == 1
+
+
+def test_a_scene_told_by_someone_else_or_set_in_another_era_is_asked_about(client, db_session, test_user):
+    from app.models import Era
+    from app.models.structure import StructureNode
+
+    sid, one, _, axes = _two_books_with_axes(client, db_session, test_user)
+    view, era_axis, foe = (a["id"] for a in axes)
+    client.patch(
+        f"/api/series/{sid}/books/{one.story.id}",
+        json={
+            "slots": {
+                view: {"kind": "character", "story_id": one.story.id, "ref_id": one.eleanor.id},
+                era_axis: {"kind": "era", "story_id": one.story.id, "ref_id": one.era.id},
+                foe: {"kind": "character", "story_id": one.story.id, "ref_id": one.visitor.id},
+            }
+        },
+    )
+    light, gap = (
+        db_session.query(StructureNode)
+        .filter(StructureNode.story_id == one.story.id)
+        .order_by(StructureNode.position)
+        .all()
+    )
+    assert _findings(client, one.story.id, "series-axis-pov") == []
+
+    # A scene with no POV of its own raises nothing; one told by the visitor does.
+    light.pov_character_id = one.visitor.id
+    war = Era(story_id=one.story.id, name="The War")
+    db_session.add(war)
+    db_session.flush()
+    gap.era_id = war.id
+    db_session.commit()
+    [pov] = _findings(client, one.story.id, "series-axis-pov")
+    assert "The Light" in pov["text"] and pov["anchor"]["node_id"] == light.id
+    [era] = _findings(client, one.story.id, "series-axis-era")
+    assert "The Gap" in era["text"] and "The Lamp Years" in era["text"]
+
+    # The antagonist axis is not a point of view: the book's own POV is only checked against the viewpoint.
+    one.story.pov_character_id = one.visitor.id
+    db_session.commit()
+    texts = [f["text"] for f in _findings(client, one.story.id, "series-axis-pov")]
+    assert len(texts) == 2 and any("the book's point of view is The Visitor" in t for t in texts)

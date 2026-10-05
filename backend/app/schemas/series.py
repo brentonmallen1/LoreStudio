@@ -226,6 +226,19 @@ class ArcSet(BaseModel):
     arc: list[ArcBeatIn]
 
 
+class AxisIn(BaseModel):
+    id: str | None = None
+    #: character, era, location or custom.
+    kind: str
+    label: str
+    #: A character axis each book is seen through: its scenes' POV is checked against it.
+    pov: bool = False
+
+
+class AxesSet(BaseModel):
+    axes: list[AxisIn]
+
+
 class BookPlanUpdate(BaseModel):
     role: str | None = None
     arc_beats: list[str] | None = None

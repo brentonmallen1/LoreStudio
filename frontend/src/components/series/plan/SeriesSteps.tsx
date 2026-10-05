@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { seriesApi, type Series, type SeriesBook } from "../../../api/series";
 import type { StoryProgress } from "../../../api/progress";
@@ -8,6 +8,8 @@ import { toast } from "../../../stores/toastStore";
 import StepRail from "../../plan/StepRail";
 import { useAutosaveField } from "../../plan/useAutosaveField";
 import ArcStep from "./ArcStep";
+import AxesStep from "./AxesStep";
+import SlotCell from "./SlotCell";
 import CarryIntoBook from "./CarryIntoBook";
 import { AddBookForm, RoleField } from "./cells";
 import styles from "./SeriesPlan.module.css";
@@ -83,6 +85,10 @@ function StepEditor({ step, series, progress, onSeries, books }: Props & { step:
       );
     case "arc":
       return <ArcStep series={series} onSeries={onSeries} />;
+    case "axes":
+      return <AxesStep series={series} onSeries={onSeries} />;
+    case "slots":
+      return <SlotsStep series={series} onSeries={onSeries} />;
     default:
       return null;
   }
@@ -148,6 +154,32 @@ function BooksStep({ series, progress, onSeries, books }: Omit<Props, "step">) {
           onClose={() => setCarrying(null)}
         />
       )}
+    </div>
+  );
+}
+
+/** Every book on every axis, a row per book. */
+function SlotsStep({ series, onSeries }: { series: Series; onSeries: (s: Series) => void }) {
+  const axes = series.axes ?? [];
+  if (series.books.length === 0) return <p className={styles.note}>Add the books first.</p>;
+  return (
+    <div className={styles.slotGrid} style={{ "--axes": axes.length } as React.CSSProperties}>
+      <span />
+      {axes.map((a) => (
+        <span key={a.id} className={styles.slotHead}>
+          {a.label}
+        </span>
+      ))}
+      {series.books.map((b) => (
+        <Fragment key={b.story_id}>
+          <span className={styles.ordinal} title={b.title}>
+            {bookLabel(b.position)}
+          </span>
+          {axes.map((a) => (
+            <SlotCell key={a.id} series={series} book={b} axis={a} onSeries={onSeries} />
+          ))}
+        </Fragment>
+      ))}
     </div>
   );
 }

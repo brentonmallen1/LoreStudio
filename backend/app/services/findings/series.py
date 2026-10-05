@@ -17,6 +17,7 @@ from ..series.kinds import SERIES_KINDS, enduring_fields, field_words
 from ..series.promises import BookAcross, SeriesCheck
 from .fingerprint import normalise
 from .make import make
+from .series_axes import axis_findings
 from .view import StoryView
 
 CHECK = "series-canon"
@@ -38,7 +39,7 @@ def computed(view: StoryView, db: Session, ctx: BookAcross | None = None) -> lis
     book = service.membership(db, view.story.id)
     if book is None:
         return []
-    out = canon(view, db, book)
+    out = canon(view, db, book) + axis_findings(view, db, book)
     return out + promise_findings(ctx.checks()) if ctx is not None else out
 
 

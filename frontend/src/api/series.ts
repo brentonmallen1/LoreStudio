@@ -40,8 +40,10 @@ export interface AxisSlot {
   text: string;
 }
 
-/** What a slot is set to: a row of a book (made a series element), an idea in words, or nothing. */
-export type SlotInput = { kind: string; story_id: string; ref_id: string } | { text: string } | null;
+/** What a slot is set to: a row of a book (made a series element), a series element, an
+ * idea in words, or nothing. */
+export type SlotInput =
+  { kind: string; story_id: string; ref_id: string } | { element_id: string } | { text: string } | null;
 
 export interface BookPlanUpdate {
   role?: string;
@@ -258,6 +260,9 @@ export const seriesApi = {
   /** The arc across the books, in order; a beat with no id is new. */
   setArc: (id: string, arc: Array<Omit<ArcBeat, "id"> & { id?: string }>) =>
     request<Series>(`/series/${id}/arc`, { method: "PUT", body: JSON.stringify({ arc }) }),
+  /** What changes from book to book; an axis with no id is new. */
+  setAxes: (id: string, axes: Array<Omit<SeriesAxis, "id"> & { id?: string }>) =>
+    request<Series>(`/series/${id}/axes`, { method: "PUT", body: JSON.stringify({ axes }) }),
   /** One book's own part of the plan: undoable in that book. */
   updateBook: (id: string, storyId: string, body: BookPlanUpdate) =>
     request<Series>(`/series/${id}/books/${storyId}`, { method: "PATCH", body: JSON.stringify(body) }),

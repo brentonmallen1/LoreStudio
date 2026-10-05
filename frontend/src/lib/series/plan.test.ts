@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Series, SeriesBook } from "../../api/series";
 import { firstOpen } from "../planning/methods";
-import { beatsOf, seriesStepProgress, seriesSteps } from "./plan";
+import { beatsOf, seriesStepProgress, seriesSteps, slotOf } from "./plan";
 
 const book = (n: number, extra: Partial<SeriesBook> = {}): SeriesBook => ({
   story_id: `b${n}`,
@@ -25,10 +25,25 @@ const series = (extra: Partial<Series> = {}): Series => ({
 });
 
 describe("the series plan", () => {
+  it("asks where each book stands once there is something that changes between them", () => {
+    const s = series({
+      axes: [{ id: "v", kind: "character", label: "Viewpoint", pov: true }],
+      books: [book(1, { slots: { v: { element_id: "el", text: "Eleanor" } } }), book(2)],
+      elements: [
+        { id: "el", kind: "character", lore_kind: "character", name: "Eleanor", synced: false, members: [] },
+      ],
+    });
+    const steps = seriesSteps(s);
+    expect(steps.map((st) => st.id).slice(-2)).toEqual(["axes", "slots"]);
+    expect(seriesStepProgress(steps[steps.length - 1], s)).toEqual({ done: 1, total: 2 });
+    expect(slotOf(s, "b1", "v")).toEqual({ name: "Eleanor", element: s.elements[0], inBook: false });
+    expect(slotOf(s, "b2", "v")).toBeNull();
+  });
+
   it("asks for what the books are about first, and never owes the arc", () => {
     const s = series();
     const steps = seriesSteps(s);
-    expect(steps.map((st) => st.id)).toEqual(["premise", "intent", "books", "roles", "arc"]);
+    expect(steps.map((st) => st.id)).toEqual(["premise", "intent", "books", "roles", "arc", "axes"]);
     const progress = (st: (typeof steps)[number]) => seriesStepProgress(st, s);
     expect(firstOpen(steps, progress)?.id).toBe("premise");
 

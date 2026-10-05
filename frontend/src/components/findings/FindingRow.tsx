@@ -4,6 +4,7 @@ import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import { useFindingsStore } from "../../stores/findingsStore";
 import type { Finding } from "../../types/findings";
 import { carryBook } from "../../lib/series/promises";
+import { useSeriesStore } from "../../stores/seriesStore";
 import { useFindingActions } from "./useFindingActions";
 import styles from "./Findings.module.css";
 
@@ -63,7 +64,9 @@ export default function FindingRow({
               {f.fix.kind === "series"
                 ? `Make every book of the series say what this one says?`
                 : f.fix.kind === "carry"
-                  ? `Bring ${f.where} into ${carryBook(f.fix.story_id)}, where this book leaves it?`
+                  ? f.fix.story_id === useSeriesStore.getState().storyId
+                    ? `Bring ${f.where} into this book, from where the books before left it?`
+                    : `Bring ${f.where} into ${carryBook(f.fix.story_id)}, where this book leaves it?`
                   : `Change every “${f.fix.old}” in ${f.where || "this scene"} to “${f.fix.new}”?`}
             </span>
             <button

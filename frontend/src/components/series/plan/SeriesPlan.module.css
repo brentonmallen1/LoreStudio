@@ -306,3 +306,35 @@
   flex-shrink: 0;
   transform: translateY(2px);
 }
+
+/* A book's place on an axis, as a button that opens its choice. */
+.slotBtn {
+  text-align: left;
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: none;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.55rem;
+  min-height: 1.75rem;
+  cursor: pointer;
+}
+
+.slotBtn:hover {
+  border-style: solid;
+  background: var(--color-surface-2);
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: 4.5rem repeat(var(--axes), minmax(9rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  align-items: start;
+}
+
+.slotHead {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}

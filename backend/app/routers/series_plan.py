@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.user import User
-from ..schemas.series import ArcSet, BookCarry, BookPlanUpdate, PlannedBookCreate, PlannedBookOut, SeriesOut
+from ..schemas.series import ArcSet, AxesSet, BookCarry, BookPlanUpdate, PlannedBookCreate, PlannedBookOut, SeriesOut
 from ..services import change_log
 from ..services.series import plan, service
 from .series import _said, _series, _story, _tidied
@@ -45,6 +45,20 @@ def set_arc(
     series = _series(series_id, db, current_user)
     with _said(db):
         plan.set_arc(series, [b.model_dump() for b in body.arc])
+    return _tidied(series, db)
+
+
+@router.put("/series/{series_id}/axes", response_model=SeriesOut)
+def set_axes(
+    series_id: str,
+    body: AxesSet,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """What changes from book to book: a viewpoint character, an era, a place, or words."""
+    series = _series(series_id, db, current_user)
+    with _said(db):
+        plan.set_axes(series, [a.model_dump() for a in body.axes])
     return _tidied(series, db)
 
 

@@ -44,6 +44,7 @@ from ..schemas.story import StoryCreated
 from ..services import change_log
 from ..services.findings.series import canon as canon_findings
 from ..services.findings.series import promise_findings as series_promise_findings
+from ..services.findings.series_axes import axis_findings
 from ..services.findings.view import load_view
 from ..services.series import service
 from ..services.series.drift import disagree
@@ -406,7 +407,8 @@ def series_findings(series_id: str, db: Session = Depends(get_db), current_user:
     seen: dict[str, SeriesFindingOut] = {}
     for book in sorted(series.books, key=lambda b: b.position):
         ctx = sp.book(book.story_id)
-        found = canon_findings(load_view(book.story, db), db, book)
+        view = load_view(book.story, db)
+        found = canon_findings(view, db, book) + axis_findings(view, db, book)
         found += series_promise_findings(ctx.checks()) if ctx else []
         for f in found:
             if f.id in dismissed:

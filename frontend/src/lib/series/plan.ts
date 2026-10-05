@@ -68,7 +68,7 @@ const ARC: SeriesStep = {
   optional: true,
 };
 
-export const AXES: SeriesStep = {
+const AXES: SeriesStep = {
   id: "axes",
   label: "What changes from book to book",
   why: "Some series turn on one thing: a different viewpoint each book, a different time, a different place.",
@@ -78,7 +78,7 @@ export const AXES: SeriesStep = {
   optional: true,
 };
 
-export const SLOTS: SeriesStep = {
+const SLOTS: SeriesStep = {
   id: "slots",
   label: "Each book on each axis",
   why: "Linked to the Lorebook, a book's viewpoint or era can be checked against its scenes.",
@@ -90,8 +90,7 @@ export const SLOTS: SeriesStep = {
 
 /** The steps for this series, as it stands. */
 export function seriesSteps(series: Pick<Series, "axes">): SeriesStep[] {
-  void series;
-  return [PREMISE, INTENT, BOOKS, ROLES, ARC];
+  return [PREMISE, INTENT, BOOKS, ROLES, ARC, AXES, ...(series.axes?.length ? [SLOTS] : [])];
 }
 
 /** How far along a step is. A step with nothing to count yet reads 0 of 1. */
@@ -131,4 +130,25 @@ export function seriesStepProgress(step: SeriesStep, series: Series): { done: nu
 export function beatsOf(series: Series, storyId: string) {
   const ids = new Set(series.books.find((b) => b.story_id === storyId)?.arc_beats ?? []);
   return (series.arc ?? []).filter((b) => ids.has(b.id));
+}
+
+/** The series kind an axis is filled from; a custom axis is words only. */
+export const AXIS_SERIES_KIND = {
+  character: "character",
+  era: "era",
+  location: "location",
+  custom: null,
+} as const;
+
+/** What a book is on an axis: a series element, an idea, or nothing yet. */
+export function slotOf(series: Series, storyId: string, axisId: string) {
+  const slot = series.books.find((b) => b.story_id === storyId)?.slots?.[axisId];
+  if (!slot) return null;
+  const element = slot.element_id ? (series.elements.find((e) => e.id === slot.element_id) ?? null) : null;
+  return {
+    name: element?.name ?? slot.text,
+    element,
+    /** Linked, and the book has its own row of it. */
+    inBook: !!element?.members.some((m) => m.story_id === storyId),
+  };
 }
