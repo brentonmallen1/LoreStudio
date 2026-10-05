@@ -3,21 +3,13 @@ import { useOpenFindings } from "../../stores/findingsStore";
 import { useOpenProposals } from "../../stores/proposalsStore";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
-import { TOOL_ICONS } from "../panel/toolIcons";
 import { useMode } from "../../lib/mode";
 import { useAIAvailable } from "../../lib/mode";
 import { routesFor, sectionModes, sectionPath, storyPath, type Domain } from "../../lib/routes";
-import { usePanelStore } from "../../stores/panelStore";
-import { toolTabId, type ToolId } from "../../types/panel";
 import styles from "./Strip.module.css";
 
-const TOOLS: { tool: ToolId; label: string; icon: (typeof TOOL_ICONS)[ToolId] }[] = [
-  { tool: "characters", label: "Characters", icon: TOOL_ICONS.characters },
-  { tool: "places", label: "Places", icon: TOOL_ICONS.places },
-  { tool: "threads", label: "Plot threads", icon: TOOL_ICONS.threads },
-  { tool: "freewrite", label: "Freewrite", icon: TOOL_ICONS.freewrite },
-  { tool: "notes", label: "Notes", icon: TOOL_ICONS.notes },
-];
+/** The pages the bar shows one click away; every page and its sections are under More. */
+const BAR: string[] = ["plan", "lorebook", "promises", "compendium", "numbers", "findings"];
 
 /** Groups of the More menu, divided by a rule: home and plan, canon, research, AI, history, the rest. */
 const DOMAIN_ORDER: Domain[][] = [
@@ -29,20 +21,22 @@ const DOMAIN_ORDER: Domain[][] = [
   ["system"],
 ];
 
-/** The tools at the foot of the strip: each opens as a tab beside the page; More lists every page. */
-export default function ToolRail({ wide }: { wide: boolean }) {
+/**
+ * The story's pages at the foot of the strip: the ones most often visited as icons, the one
+ * you are on marked, and More with every page and its sections. What opens beside the page
+ * (characters, places, notes, the Assistant) is on the panel's rail at the right edge.
+ */
+export default function PageBar({ wide }: { wide: boolean }) {
   const { storyId } = useParams<{ storyId: string }>();
   const { pathname } = useLocation();
   const mode = useMode();
   const aiAvailable = useAIAvailable();
-  const { tabs, activeTabId, openTool } = usePanelStore();
   const openFindings = useOpenFindings().length;
   const openProposals = useOpenProposals().length;
   const badges: Record<string, number | undefined> = {
     findings: openFindings || undefined,
     proposals: openProposals || undefined,
   };
-  const badgeTotal = Object.values(badges).reduce<number>((n, b) => n + (b ?? 0), 0);
   const [moreOpen, setMoreOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -63,23 +57,31 @@ export default function ToolRail({ wide }: { wide: boolean }) {
   }, [moreOpen]);
 
   const routes = routesFor(mode).filter((r) => r.id !== "write" && (!r.ai || aiAvailable));
-  const openIds = new Set(tabs.map((t) => t.id));
+  const bar = BAR.flatMap((id) => routes.filter((r) => r.id === id));
+  // More's count is what the bar does not already show.
+  const moreBadge = Object.entries(badges).reduce<number>(
+    (n, [id, b]) => n + (BAR.includes(id) ? 0 : (b ?? 0)),
+    0,
+  );
+  const here = (path: string) => pathname.startsWith(path);
 
   return (
     <>
-      {TOOLS.map(({ tool, label, icon: Icon }) => {
-        const id = toolTabId(tool);
+      {bar.map((r) => {
+        const Icon = r.icon;
+        const to = storyPath(storyId!, r);
         return (
-          <button
-            key={tool}
-            className={`${styles.toolBtn} ${openIds.has(id) ? styles.toolBtnOpen : ""} ${activeTabId === id ? styles.toolBtnOn : ""}`}
-            onClick={() => openTool(tool)}
-            title={`${label}: open beside the page`}
-            aria-label={label}
-            aria-pressed={activeTabId === id}
+          <Link
+            key={r.id}
+            to={to}
+            className={`${styles.toolBtn} ${here(to) ? styles.toolBtnOn : ""}`}
+            title={r.label}
+            aria-label={r.label}
+            aria-current={here(to) ? "page" : undefined}
           >
             <Icon size={16} />
-          </button>
+            {badges[r.id] && <span className={styles.badge}>{badges[r.id]}</span>}
+          </Link>
         );
       })}
       <div ref={ref} style={{ position: "relative" }}>
@@ -87,17 +89,17 @@ export default function ToolRail({ wide }: { wide: boolean }) {
           className={styles.toolBtn}
           onClick={() => setMoreOpen((v) => !v)}
           aria-expanded={moreOpen}
-          aria-label="More pages"
-          title="More pages"
+          aria-label="Every page"
+          title="Every page"
         >
           <MoreHorizontal size={16} />
-          {badgeTotal > 0 && <span className={styles.badge}>{badgeTotal}</span>}
+          {moreBadge > 0 && <span className={styles.badge}>{moreBadge}</span>}
         </button>
         {moreOpen && (
           <div
             className={styles.menu}
             role="menu"
-            aria-label="More pages"
+            aria-label="Every page"
             style={{ bottom: wide ? 0 : 8, maxHeight: "calc(100vh - 72px)", overflowY: "auto" }}
           >
             {DOMAIN_ORDER.map((domains, gi) => {

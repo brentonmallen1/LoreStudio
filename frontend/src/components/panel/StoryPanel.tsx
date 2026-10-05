@@ -3,7 +3,7 @@ import { useAIAvailable } from "../../lib/mode";
 import { usePanelStore } from "../../stores/panelStore";
 import EntityTab from "./EntityTab";
 import PanelFrame from "./PanelFrame";
-import CollapsedRail from "./CollapsedRail";
+import PanelRail from "./PanelRail";
 import TabStrip from "./TabStrip";
 import ThisSceneTab from "./ThisSceneTab";
 import ToolTab from "./ToolTab";
@@ -20,30 +20,34 @@ const AssistantTabBody = lazy(() => import("../ai/AssistantTabBody"));
 export default function StoryPanel({ fill = false }: { fill?: boolean }) {
   const { open, tabs, activeTabId, frame } = usePanelStore();
   const aiAvailable = useAIAvailable();
-  // Hidden, the docked panel leaves a slim rail of its tabs so it can come back on any of
-  // them; floating or popped out there is nothing to leave behind.
-  if (!open && !fill) return frame === "docked" ? <CollapsedRail /> : null;
+  // The rail down the right edge is always there beside the page, open or not; popped out to
+  // its own window, the panel leaves only the strip saying where it went.
+  const rail = !fill && frame !== "window" ? <PanelRail /> : null;
+  if (!open && !fill) return rail;
   const showAssistant = activeTabId === "assistant" && aiAvailable;
   const active = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
 
   return (
-    <PanelFrame frame={fill ? "docked" : frame} fill={fill}>
-      <TabStrip inWindow={fill} />
-      <div className={styles.body}>
-        {showAssistant ? (
-          <Suspense fallback={<p className={`${styles.section} ${styles.empty}`}>Loading…</p>}>
-            <div className={styles.aiBody}>
-              <AssistantTabBody />
-            </div>
-          </Suspense>
-        ) : active.kind === "scene" ? (
-          <ThisSceneTab />
-        ) : active.kind === "entity" ? (
-          <EntityTab key={active.id} tab={active} />
-        ) : (
-          <ToolTab key={active.id} tab={active} />
-        )}
-      </div>
-    </PanelFrame>
+    <>
+      <PanelFrame frame={fill ? "docked" : frame} fill={fill}>
+        <TabStrip inWindow={fill} />
+        <div className={styles.body}>
+          {showAssistant ? (
+            <Suspense fallback={<p className={`${styles.section} ${styles.empty}`}>Loading…</p>}>
+              <div className={styles.aiBody}>
+                <AssistantTabBody />
+              </div>
+            </Suspense>
+          ) : active.kind === "scene" ? (
+            <ThisSceneTab />
+          ) : active.kind === "entity" ? (
+            <EntityTab key={active.id} tab={active} />
+          ) : (
+            <ToolTab key={active.id} tab={active} />
+          )}
+        </div>
+      </PanelFrame>
+      {rail}
+    </>
   );
 }

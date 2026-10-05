@@ -436,7 +436,7 @@
   flex-shrink: 0;
 }
 
-/* ── Footer: colour picker, key, tools ── */
+/* ── Footer: colour picker, key, the story's pages ── */
 .foot {
   flex-shrink: 0;
   display: flex;
@@ -449,9 +449,9 @@
 
 .footWide {
   flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  gap: 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 2px;
   padding: 0.4rem 0.5rem;
 }
 
@@ -658,11 +658,6 @@
 
 .toolBtn:hover {
   background: var(--color-surface-3);
-  color: var(--color-text);
-}
-
-.toolBtnOpen {
-  background: var(--color-surface);
   color: var(--color-text);
 }
 

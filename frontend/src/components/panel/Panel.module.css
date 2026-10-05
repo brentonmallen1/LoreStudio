@@ -635,7 +635,7 @@
   text-decoration: underline;
 }
 
-/* ── Collapsed: a slim rail of the tabs down the right edge (doc 11 P7) ── */
+/* ── The rail down the right edge: what opens beside the page, open or collapsed ── */
 .rail {
   flex: 0 0 auto;
   display: flex;
@@ -680,6 +680,18 @@
 .railBtn:hover {
   background: var(--color-surface-3);
   color: var(--color-text);
+}
+
+/* A tab that is open in the panel, though not the one showing. */
+.railBtnOpen {
+  color: var(--color-text);
+}
+
+.railRule {
+  flex-shrink: 0;
+  width: 1.2rem;
+  margin: 0.2rem 0;
+  border-top: 1px solid var(--color-border-light);
 }
 
 .railBtnOn {

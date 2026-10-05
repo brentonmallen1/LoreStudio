@@ -19,7 +19,7 @@ import ColourModePicker from "./ColourModePicker";
 import FullTree from "./FullTree";
 import StripEdge from "./StripEdge";
 import StripKey from "./StripKey";
-import ToolRail from "./ToolRail";
+import PageBar from "./PageBar";
 import TransitStrip from "./TransitStrip";
 import styles from "./Strip.module.css";
 
@@ -184,7 +184,7 @@ export default function StoryStrip() {
           line={line}
           ctx={ctx}
         />
-        <ToolRail wide={width !== "strip"} />
+        <PageBar wide={width !== "strip"} />
       </div>
       {(hovering || pickerOpen) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
     </nav>
