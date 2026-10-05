@@ -89,7 +89,15 @@ def _element(series: Series, element_id: str) -> SeriesElement:
 
 def _books(series: Series) -> list[SeriesBookOut]:
     return [
-        SeriesBookOut(story_id=b.story_id, title=b.story.title, position=i, updated_at=b.story.updated_at)
+        SeriesBookOut(
+            story_id=b.story_id,
+            title=b.story.title,
+            position=i,
+            updated_at=b.story.updated_at,
+            role=b.role or "",
+            slots=b.slots or {},
+            arc_beats=b.arc_beats or [],
+        )
         for i, b in enumerate(sorted(series.books, key=lambda b: b.position))
     ]
 
@@ -125,6 +133,8 @@ def serialize(series: Series) -> SeriesOut:
         field_classes=series.field_classes or {},
         books=_books(series),
         elements=elements,
+        arc=series.arc or [],
+        axes=series.axes or [],
     )
 
 
@@ -141,7 +151,7 @@ def _tidied(series: Series, db: Session) -> SeriesOut:
 @router.get("/series", response_model=list[SeriesSummary])
 def list_series(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     rows = db.query(Series).filter(Series.user_id == current_user.id).order_by(Series.name).all()
-    return [SeriesSummary(id=s.id, name=s.name, books=_books(s)) for s in rows]
+    return [SeriesSummary(id=s.id, name=s.name, books=_books(s), updated_at=s.updated_at) for s in rows]
 
 
 @router.post("/series", response_model=SeriesOut, status_code=status.HTTP_201_CREATED)

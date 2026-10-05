@@ -60,6 +60,7 @@ from .routers.scene_planner import router as scene_planner_router
 from .routers.scratch_pad import router as scratch_pad_router
 from .routers.search import router as search_router
 from .routers.series import router as series_router
+from .routers.series_plan import router as series_plan_router
 from .routers.series_promises import router as series_promises_router
 from .routers.series_shared import router as series_shared_router
 from .routers.snapshots import router as snapshots_router
@@ -176,6 +177,7 @@ app.include_router(numbers_router, prefix="/api", tags=["numbers"])
 app.include_router(promises_router, prefix="/api", tags=["promises"])
 app.include_router(proposals_router, prefix="/api", tags=["proposals"])
 app.include_router(series_router, prefix="/api", tags=["series"])
+app.include_router(series_plan_router, prefix="/api", tags=["series"])
 app.include_router(series_promises_router, prefix="/api", tags=["series"])
 app.include_router(series_shared_router, prefix="/api", tags=["series"])
 app.include_router(search_router, prefix="/api", tags=["search"])

@@ -3,6 +3,7 @@ import { BookCopy } from "lucide-react";
 import PageHeader from "../../layout/PageHeader";
 import Canon from "../../series/Canon";
 import SeriesMembership from "../../series/SeriesMembership";
+import ThisBookCard from "../../series/plan/ThisBookCard";
 import { bookLabel, useSeriesStore } from "../../../stores/seriesStore";
 import styles from "../../series/Series.module.css";
 
@@ -39,6 +40,7 @@ export default function SeriesSection({ storyId }: { storyId: string }) {
       />
       <main className={styles.main}>
         <SeriesMembership storyId={storyId} />
+        <ThisBookCard storyId={storyId} />
         {series && (
           <section className={styles.section} aria-labelledby="series-canon-here">
             <div className={styles.sectionHead}>

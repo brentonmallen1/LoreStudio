@@ -31,7 +31,9 @@ export type PlanTarget =
   /** MICE: the scene where each thread opens and the one where it closes. */
   | { kind: "threadPlacement" };
 
-export interface PlanStep {
+/** A step of a method. Generic over what it edits, so the series plan (lib/series/plan.ts)
+ * walks the same rail with its own targets. */
+export interface PlanStep<T = PlanTarget> {
   id: string;
   label: string;
   /** One line: what the step is for. */
@@ -40,7 +42,9 @@ export interface PlanStep {
   how: string;
   /** From The Last Lighthouse, where there is one. */
   example?: string;
-  target: PlanTarget;
+  target: T;
+  /** Worth doing, not owed: the next step to suggest passes it by (a series' axes). */
+  optional?: boolean;
   /** A story field shown above the editor as the thing this step grows from. */
   buildsOn?: StoryPlanField;
   /** Snowflake guidance layer for the AI (Studio mode only). */
@@ -49,11 +53,11 @@ export interface PlanStep {
   rows?: number;
 }
 
-export interface PlanMethod {
+export interface PlanMethod<T = PlanTarget> {
   id: string;
   label: string;
   summary: string;
-  steps: PlanStep[];
+  steps: PlanStep<T>[];
 }
 
 const CHARACTER_CORE: CharacterPlanField[] = ["mission_statement", "motivation", "conflict", "epiphany"];
@@ -295,9 +299,23 @@ export function isStepDone(step: PlanStep, data: PlanData): boolean {
   return done === total;
 }
 
+/** The first step owed and not yet done, given how to measure one; null when none is. */
+export function firstOpen<T>(
+  steps: PlanStep<T>[],
+  progress: (step: PlanStep<T>) => { done: number; total: number },
+): PlanStep<T> | null {
+  return (
+    steps.find((s) => {
+      if (s.optional) return false;
+      const { done, total } = progress(s);
+      return done < total;
+    }) ?? null
+  );
+}
+
 /** The first step not yet done, or null when the whole method is. */
 export function nextStep(method: PlanMethod, data: PlanData): PlanStep | null {
-  return method.steps.find((s) => !isStepDone(s, data)) ?? null;
+  return firstOpen(method.steps, (s) => stepProgress(s, data));
 }
 
 /**

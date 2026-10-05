@@ -19,8 +19,10 @@ describe("command palette coverage", () => {
   it("reaches the Series page, which is not a story route, and starts a sequel", () => {
     expect([...ids].filter((id) => id.startsWith("series-")).sort()).toEqual([
       "series-canon",
+      "series-new",
       "series-new-book",
       "series-open",
+      "series-plan",
       "series-promises",
       "series-research",
       "series-story-so-far",

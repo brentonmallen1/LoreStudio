@@ -34,6 +34,13 @@ describe("dashboardSegments", () => {
     expect(out[2].type === "stories" && out[2].stories.map((s) => s.id)).toEqual(["old"]);
   });
 
+  it("places a series with no books yet by its own last edit", () => {
+    const planned: SeriesSummary = { id: "p", name: "Planned", books: [], updated_at: "2026-02-15" };
+    const out = dashboardSegments([story("a", "2026-01-01"), story("b", "2026-03-01")], [planned]);
+    expect(out.map((s) => s.type)).toEqual(["stories", "series", "stories"]);
+    expect(out[1].type === "series" && out[1].books).toEqual([]);
+  });
+
   it("skips books it has not loaded", () => {
     const series: SeriesSummary = { id: "s", name: "Keepers", books: [book("one", 0), book("gone", 1)] };
     const out = dashboardSegments([story("one", "2026-01-01")], [series]);

@@ -8,7 +8,8 @@ export type DashboardSegment =
 /**
  * The dashboard in the order stories were last touched (series doc): a series is one group
  * where its most recently edited book would be, its books inside in series order; the
- * standalone stories between groups stay together in one grid.
+ * standalone stories between groups stay together in one grid. A series planned before any
+ * book of it exists sits where its own last edit would be.
  */
 export function dashboardSegments(stories: Story[], series: SeriesSummary[]): DashboardSegment[] {
   const byId = new Map(stories.map((s) => [s.id, s]));
@@ -16,11 +17,20 @@ export function dashboardSegments(stories: Story[], series: SeriesSummary[]): Da
   for (const s of series) for (const b of s.books) seriesOf.set(b.story_id, s);
 
   const recency = (s: Story) => serverTime(s.updated_at) || 0;
-  const ordered = [...stories].sort((a, b) => recency(b) - recency(a));
+  const empty = series.filter((s) => !s.books.some((b) => byId.has(b.story_id)));
+  const ordered = [
+    ...stories.map((story) => ({ story, at: recency(story) })),
+    ...empty.map((group) => ({ group, at: serverTime(group.updated_at ?? "") || 0 })),
+  ].sort((a, b) => b.at - a.at);
 
   const out: DashboardSegment[] = [];
   const placed = new Set<string>();
-  for (const story of ordered) {
+  for (const item of ordered) {
+    if ("group" in item) {
+      out.push({ type: "series", series: item.group, books: [] });
+      continue;
+    }
+    const story = item.story;
     const group = seriesOf.get(story.id);
     if (!group) {
       const last = out[out.length - 1];

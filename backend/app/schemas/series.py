@@ -22,6 +22,10 @@ class SeriesBookOut(BaseModel):
     title: str
     position: int
     updated_at: datetime | None = None
+    #: The book's part in the series (v2), where it stands on each axis, the arc beats it carries.
+    role: str = ""
+    slots: dict = {}
+    arc_beats: list[str] = []
 
 
 class SeriesMemberOut(BaseModel):
@@ -50,12 +54,17 @@ class SeriesOut(BaseModel):
     field_classes: dict
     books: list[SeriesBookOut]
     elements: list[SeriesElementOut]
+    #: The series' plan (v2): its arc's beats and what changes from book to book.
+    arc: list[dict] = []
+    axes: list[dict] = []
 
 
 class SeriesSummary(BaseModel):
     id: str
     name: str
     books: list[SeriesBookOut]
+    #: For placing a series with no books yet among the stories.
+    updated_at: datetime | None = None
 
 
 class StorySeriesOut(BaseModel):
@@ -189,3 +198,44 @@ class SyncFrom(BaseModel):
     """Make this book's copy every book's."""
 
     source_story_id: str
+
+
+# ── The plan (v2) ────────────────────────────────────────────────────────────────
+
+
+class PlannedBookCreate(BaseModel):
+    title: str
+    #: Where it goes, from 0; the end when left out.
+    position: int | None = None
+    role: str = ""
+
+
+class PlannedBookOut(BaseModel):
+    series: SeriesOut
+    story_id: str
+
+
+class ArcBeatIn(BaseModel):
+    #: Left out for a new beat; the server gives it one.
+    id: str | None = None
+    name: str
+    description: str = ""
+
+
+class ArcSet(BaseModel):
+    arc: list[ArcBeatIn]
+
+
+class BookPlanUpdate(BaseModel):
+    role: str | None = None
+    arc_beats: list[str] | None = None
+    #: ``{axis_id: {"kind", "story_id", "ref_id"} | {"text"} | None}``: a row of a book (made
+    #: a series element), an idea in words, or nothing.
+    slots: dict[str, dict | None] | None = None
+
+
+class BookCarry(BaseModel):
+    """Bring elements into a planned book from the book before it (or any book of the series)."""
+
+    source_story_id: str
+    carry: list[CarryItem] = []

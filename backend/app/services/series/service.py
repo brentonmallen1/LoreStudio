@@ -92,11 +92,18 @@ def attach_story(db: Session, series: Series, story: Story, position: int | None
     return book
 
 
+def has_plan(series: Series) -> bool:
+    """Whether the series says something of its own: a premise, an intent, an arc or axes. A
+    series like that is worth keeping with no books in it; one that only grouped books is not."""
+    return any(((series.premise or "").strip(), (series.intent or "").strip(), series.arc, series.axes))
+
+
 def detach_story(db: Session, story_id: str) -> None:
     """Take a book out of its series. Its rows stay in it, now its own; the links go, and so
     do its setups that pay off in another book.
 
-    An element left in no book goes, and so does a series left with no books.
+    An element left in no book goes, and so does a series left with no books, unless it has
+    a plan of its own (``has_plan``): that one waits for its next book.
     """
     book = membership(db, story_id)
     if book is None:
@@ -114,7 +121,7 @@ def detach_story(db: Session, story_id: str) -> None:
     db.delete(book)
     db.flush()
     gc_elements(db, series)
-    if not series.books:
+    if not series.books and not has_plan(series):
         db.delete(series)
     else:
         _renumber(series)
@@ -515,6 +522,28 @@ def start_next_book(
         setattr(new_story, key, copy.deepcopy(getattr(source, key)))
     attach_story(db, series, new_story, positions(series)[source.id] + 1)
 
+    carry_into(db, series, source, new_story.id, carry, log=False)
+    return series
+
+
+def carry_into(
+    db: Session,
+    series: Series,
+    source: Story,
+    target_id: str,
+    carry: list[dict],
+    *,
+    log: bool = True,
+    actor_id: str | None = None,
+    client_id: str | None = None,
+) -> list[SeriesElement]:
+    """Bring the chosen elements into ``target_id``, each from where it last stood: rows of
+    ``source`` are shared first. What the book already has is passed by. With ``log``, all of
+    them are one undo in that book (a planned book given its cast later).
+
+    ``carry`` items are ``{"kind", "ref_id"}`` (a row of ``source``) or ``{"element_id"}``
+    (a series element ``source`` does not have).
+    """
     elements: list[SeriesElement] = []
     rows: list[tuple[SeriesKind, Any]] = []
     for item in carry:
@@ -536,12 +565,15 @@ def start_next_book(
     for kind, row in rows:
         elements.append(lift_element(db, series, kind.kind, source.id, row.id))
     seen: set[str] = set()
+    batch_id = str(uuid.uuid4())
     for element in sorted(elements, key=lambda e: order.index(e.kind)):
-        if element.id in seen or member_in(element, new_story.id) is not None:
+        if element.id in seen or member_in(element, target_id) is not None:
             continue
         seen.add(element.id)
-        adopt_into_book(db, series, element, new_story.id, actor_id=None, client_id=None, log=False)
-    return series
+        adopt_into_book(
+            db, series, element, target_id, actor_id=actor_id, client_id=client_id, batch_id=batch_id, log=log
+        )
+    return [e for e in series.elements if e.id in seen]
 
 
 # ── Keeping canon straight ───────────────────────────────────────────────────────

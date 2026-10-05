@@ -3,12 +3,50 @@ import type { LoreKind } from "../lib/lorebook/kinds";
 import type { Story } from "../types";
 import type { BookScene, BookStep } from "../types/promises";
 
-/** A book's place in its series (from 0). */
+/** A book's place in its series (from 0), and its part of the series' plan (v2). */
 export interface SeriesBook {
   story_id: string;
   title: string;
   position: number;
   updated_at: string | null;
+  /** What this book does in the series, in the author's words. */
+  role?: string;
+  /** Where it stands on each axis: a series element, or an idea in words. */
+  slots?: Record<string, AxisSlot>;
+  /** The ids of the series arc's beats it carries. */
+  arc_beats?: string[];
+}
+
+/** One beat of a series' arc, placed on the books that carry it. */
+export interface ArcBeat {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export type AxisKind = "character" | "era" | "location" | "custom";
+
+/** Something that changes from book to book: a viewpoint character, an era, a place. */
+export interface SeriesAxis {
+  id: string;
+  kind: AxisKind;
+  label: string;
+  /** Whose eyes each book is seen through: scenes' POV is checked against it. */
+  pov?: boolean;
+}
+
+export interface AxisSlot {
+  element_id: string | null;
+  text: string;
+}
+
+/** What a slot is set to: a row of a book (made a series element), an idea in words, or nothing. */
+export type SlotInput = { kind: string; story_id: string; ref_id: string } | { text: string } | null;
+
+export interface BookPlanUpdate {
+  role?: string;
+  arc_beats?: string[];
+  slots?: Record<string, SlotInput>;
 }
 
 /** An element as it is in one book: which row there is the series element. */
@@ -73,6 +111,8 @@ export interface Series {
   field_classes: Partial<Record<SeriesKind, Record<string, FieldClass>>>;
   books: SeriesBook[];
   elements: SeriesElement[];
+  arc?: ArcBeat[];
+  axes?: SeriesAxis[];
 }
 
 export interface ElementField {
@@ -109,6 +149,8 @@ export interface SeriesSummary {
   id: string;
   name: string;
   books: SeriesBook[];
+  /** For placing a series with no books yet among the stories. */
+  updated_at?: string | null;
 }
 
 export interface StorySeries {
@@ -210,6 +252,18 @@ export const seriesApi = {
     request<Series>(`/series/${id}/stories`, json({ story_id: storyId, position })),
   leave: (id: string, storyId: string) =>
     request<void>(`/series/${id}/stories/${storyId}`, { method: "DELETE" }),
+  /** A book planned before it is written: a story with no words yet, in its place (v2). */
+  addBook: (id: string, body: { title: string; position?: number; role?: string }) =>
+    request<{ series: Series; story_id: string }>(`/series/${id}/books`, json(body)),
+  /** The arc across the books, in order; a beat with no id is new. */
+  setArc: (id: string, arc: Array<Omit<ArcBeat, "id"> & { id?: string }>) =>
+    request<Series>(`/series/${id}/arc`, { method: "PUT", body: JSON.stringify({ arc }) }),
+  /** One book's own part of the plan: undoable in that book. */
+  updateBook: (id: string, storyId: string, body: BookPlanUpdate) =>
+    request<Series>(`/series/${id}/books/${storyId}`, { method: "PATCH", body: JSON.stringify(body) }),
+  /** Bring elements into a book already in the series (a planned book given its cast later). */
+  carryInto: (id: string, storyId: string, sourceStoryId: string, carry: CarryItem[]) =>
+    request<Series>(`/series/${id}/books/${storyId}/carry`, json({ source_story_id: sourceStoryId, carry })),
 
   /** Share one book's row with the series. */
   lift: (id: string, kind: SeriesKind, storyId: string, refId: string) =>

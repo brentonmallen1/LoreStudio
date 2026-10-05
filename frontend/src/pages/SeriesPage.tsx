@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { BookCopy, Plus, Trash2 } from "lucide-react";
 import { progressApi, type StoryProgress } from "../api/progress";
 import { seriesApi, type Series, type SeriesFinding } from "../api/series";
@@ -7,13 +7,15 @@ import PageHeader from "../components/layout/PageHeader";
 import { Modal } from "../components/common";
 import BooksList from "../components/series/BooksList";
 import Canon from "../components/series/Canon";
+import SeriesEye from "../components/series/SeriesEye";
+import SeriesIdentity from "../components/series/SeriesIdentity";
 import SeriesTapestry from "../components/series/SeriesTapestry";
+import SeriesPlan from "../components/series/plan/SeriesPlan";
 import SharedResearch from "../components/series/SharedResearch";
 import StorySoFar from "../components/series/StorySoFar";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
-import { sheetPath } from "../lib/series/kinds";
 import { SERIES_SECTIONS, seriesPath, seriesSection } from "../lib/series/sections";
-import { bookLabel, useSeriesStore } from "../stores/seriesStore";
+import { useSeriesStore } from "../stores/seriesStore";
 import { toast } from "../stores/toastStore";
 import styles from "../components/series/Series.module.css";
 
@@ -94,18 +96,43 @@ export default function SeriesPage() {
   if (!series) return <div className={styles.page} />;
 
   const last = series.books[series.books.length - 1];
+  // The books in order, on the Overview and in the Plan's Books step alike.
+  const books = (
+    <BooksList
+      series={series}
+      progress={progress}
+      onReorder={(ids) => run(() => seriesApi.reorder(series.id, ids), "The books could not be moved.")}
+      onLeave={(storyId) =>
+        run(async () => {
+          await seriesApi.leave(series.id, storyId);
+          // A series with a plan of its own waits for its next book; one that only grouped books goes.
+          if (series.books.length > 1) return;
+          try {
+            return await seriesApi.get(series.id);
+          } catch {
+            navigate("/");
+            return { ...series, books: [] };
+          }
+        }, "The book could not be taken out.")
+      }
+    />
+  );
   const shared = series.elements.length;
   return (
     <div className={styles.page}>
       <PageHeader
         title={series.name}
-        summary={`A series of ${series.books.length} ${series.books.length === 1 ? "book" : "books"}, ${
+        summary={`${series.books.length === 0 ? "A series with no books yet" : `A series of ${series.books.length} ${series.books.length === 1 ? "book" : "books"}`}, ${
           shared === 0 ? "nothing shared yet" : `${shared} shared ${shared === 1 ? "element" : "elements"}`
         }`}
         views={[...SERIES_SECTIONS]}
         view={section}
         onView={(v) => navigate(seriesPath(series.id, seriesSection(v)))}
-        primary={{ label: "New book", icon: Plus, onClick: () => setNewBook(true) }}
+        primary={
+          last
+            ? { label: "New book", icon: Plus, onClick: () => setNewBook(true) }
+            : { label: "Plan a book", icon: Plus, onClick: () => navigate(seriesPath(series.id, "plan")) }
+        }
         more={[
           { label: "Delete the series…", icon: Trash2, danger: true, onSelect: () => setConfirmDelete(true) },
         ]}
@@ -128,68 +155,37 @@ export default function SeriesPage() {
                   In reading order: each book starts from the one before it.
                 </p>
               </div>
-              <BooksList
-                series={series}
-                progress={progress}
-                onReorder={(ids) =>
-                  run(() => seriesApi.reorder(series.id, ids), "The books could not be moved.")
-                }
-                onLeave={(storyId) =>
-                  run(async () => {
-                    await seriesApi.leave(series.id, storyId);
-                    if (series.books.length === 1) navigate("/");
-                  }, "The book could not be taken out.")
-                }
-              />
+              {series.books.length ? (
+                books
+              ) : (
+                <p className={styles.quiet}>No books yet: plan them in the Plan.</p>
+              )}
             </section>
 
-            {findings.length > 0 && (
-              <section className={styles.section} aria-labelledby="series-eye">
-                <div className={styles.sectionHead}>
-                  <h2 id="series-eye" className={styles.sectionTitle}>
-                    Needs your eye
-                  </h2>
-                  <p className={styles.sectionNote}>
-                    Where the books disagree about what should stay true, and threads across them left open,
-                    opened twice or crossing. Dismissing one in any book dismisses it in all.
-                  </p>
-                </div>
-                <ul className={styles.eyeList}>
-                  {findings.map((f) => (
-                    <li key={f.id} className={styles.eyeRow}>
-                      <span className={styles.eyeText}>
-                        {f.text}
-                        {f.suggestion && <span className={styles.eyeEvidence}>{f.suggestion}</span>}
-                      </span>
-                      {f.check === "series-canon" && f.element_id ? (
-                        <button
-                          className={styles.textBtn}
-                          onClick={() => {
-                            setFocus({ id: f.element_id as string, n: (focus?.n ?? 0) + 1 });
-                            navigate(seriesPath(series.id, "canon"));
-                          }}
-                        >
-                          Compare the books
-                        </button>
-                      ) : (
-                        f.ref_id && (
-                          <Link
-                            className={styles.textBtn}
-                            to={sheetPath(f.story_ids[0], "plot_thread", f.ref_id)}
-                          >
-                            Open in{" "}
-                            {bookLabel(
-                              series.books.find((b) => b.story_id === f.story_ids[0])?.position ?? 0,
-                            )}
-                          </Link>
-                        )
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            <SeriesEye
+              series={series}
+              findings={findings}
+              onCompare={(id) => {
+                setFocus({ id, n: (focus?.n ?? 0) + 1 });
+                navigate(seriesPath(series.id, "canon"));
+              }}
+            />
           </>
+        )}
+
+        {section === "plan" && (
+          <section className={styles.section} aria-labelledby="series-plan">
+            <div className={styles.sectionHead}>
+              <h2 id="series-plan" className={styles.sectionTitle}>
+                Plan
+              </h2>
+              <p className={styles.sectionNote}>
+                The books, what each one does and the arc across them. All of it optional: plan as much as
+                helps, and change it as the books find their own way.
+              </p>
+            </div>
+            <SeriesPlan series={series} progress={progress} onSeries={accept} books={books} />
+          </section>
         )}
 
         {section === "canon" && (
@@ -283,58 +279,5 @@ export default function SeriesPage() {
         </p>
       </Modal>
     </div>
-  );
-}
-
-/** The series' own name, premise and intent, saved as each field is left (keyed: a saved
- * change remounts it with the new values). */
-function SeriesIdentity({ series, onSaved }: { series: Series; onSaved: (s: Series) => void }) {
-  const [draft, setDraft] = useState({ name: series.name, premise: series.premise, intent: series.intent });
-
-  async function save(key: keyof typeof draft) {
-    const value = draft[key];
-    if (value === series[key] || (key === "name" && !value.trim())) {
-      setDraft((d) => ({ ...d, [key]: series[key] }));
-      return;
-    }
-    try {
-      onSaved(await seriesApi.update(series.id, { [key]: value }));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "That could not be saved.");
-    }
-  }
-
-  return (
-    <section className={styles.identity} aria-label="About the series">
-      <label className={`${styles.field} ${styles.fieldWide}`}>
-        <span className={styles.label}>Name</span>
-        <input
-          className={styles.input}
-          value={draft.name}
-          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-          onBlur={() => save("name")}
-        />
-      </label>
-      <label className={styles.field}>
-        <span className={styles.label}>Premise: what the books are about, together</span>
-        <textarea
-          className={styles.textarea}
-          value={draft.premise}
-          onChange={(e) => setDraft({ ...draft, premise: e.target.value })}
-          onBlur={() => save("premise")}
-          placeholder="A lighthouse, and the three generations who keep it…"
-        />
-      </label>
-      <label className={styles.field}>
-        <span className={styles.label}>Intent: what the series is for</span>
-        <textarea
-          className={styles.textarea}
-          value={draft.intent}
-          onChange={(e) => setDraft({ ...draft, intent: e.target.value })}
-          onBlur={() => save("intent")}
-          placeholder="Where it is going across the books, and why it needs more than one…"
-        />
-      </label>
-    </section>
   );
 }

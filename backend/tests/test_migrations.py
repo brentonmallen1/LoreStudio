@@ -215,3 +215,27 @@ def test_0024_turns_unsorted_ideas_into_notes(tmp_path):
         cols = [r[1] for r in conn.execute(text("PRAGMA table_info(stories)"))]
     assert [tuple(r) for r in ideas] == [("f1", "idea", "A keeper who stayed.", "s")]
     assert "freewrite" in cols and "idea_fragments" not in cols
+
+
+def test_0031_gives_an_existing_series_an_empty_plan(tmp_path):
+    from alembic.config import Config
+
+    from alembic import command
+    from app.services.db_migrate import BACKEND_DIR
+
+    engine = _engine(tmp_path, "series.db")
+    with engine.connect() as conn:
+        cfg = Config(str(BACKEND_DIR / "alembic.ini"))
+        cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
+        cfg.attributes["connection"] = conn
+        command.upgrade(cfg, "0030_series_scene_links")
+        _insert(conn, "users", id="u", username="u", password_hash="x", display_name="U", is_admin=True, settings={})
+        _insert(conn, "stories", id="s", user_id="u", title="T")
+        _insert(conn, "series", id="ser", user_id="u", name="Keepers")
+        _insert(conn, "series_stories", id="b", series_id="ser", story_id="s", position=0)
+        conn.commit()
+        command.upgrade(cfg, "head")
+        series = conn.execute(text("SELECT arc, axes FROM series")).one()
+        book = conn.execute(text("SELECT role, slots, arc_beats FROM series_stories")).one()
+    assert tuple(series) == ("[]", "[]")
+    assert tuple(book) == ("", "{}", "[]")

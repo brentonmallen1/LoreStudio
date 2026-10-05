@@ -1,0 +1,153 @@
+import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { seriesApi, type Series, type SeriesBook } from "../../../api/series";
+import type { StoryProgress } from "../../../api/progress";
+import { seriesStepProgress, seriesSteps, type SeriesStep } from "../../../lib/series/plan";
+import { bookLabel } from "../../../stores/seriesStore";
+import { toast } from "../../../stores/toastStore";
+import StepRail from "../../plan/StepRail";
+import { useAutosaveField } from "../../plan/useAutosaveField";
+import ArcStep from "./ArcStep";
+import CarryIntoBook from "./CarryIntoBook";
+import { AddBookForm, RoleField } from "./cells";
+import styles from "./SeriesPlan.module.css";
+
+const STEP_KEY = (id: string) => `ls_series_plan_step:${id}`;
+
+function readStep(id: string): string | null {
+  try {
+    return localStorage.getItem(STEP_KEY(id));
+  } catch {
+    return null;
+  }
+}
+
+function writeStep(id: string, step: string) {
+  try {
+    localStorage.setItem(STEP_KEY(id), step);
+  } catch {
+    // The step to come back to is a convenience.
+  }
+}
+
+interface Props {
+  series: Series;
+  progress: Record<string, StoryProgress>;
+  onSeries: (s: Series) => void;
+  /** The series' books in order, with moving and taking out (the Overview's list). */
+  books: ReactNode;
+}
+
+/** The series' plan, a step at a time: the rail a book's Plan uses, over the series. */
+export default function SeriesSteps({ series, progress, onSeries, books }: Props) {
+  return (
+    <StepRail
+      label="The series' plan"
+      steps={seriesSteps(series)}
+      progress={(s) => seriesStepProgress(s, series)}
+      renderEditor={(step) => (
+        <StepEditor step={step} series={series} progress={progress} onSeries={onSeries} books={books} />
+      )}
+      initialStep={readStep(series.id)}
+      onStepChange={(step) => writeStep(series.id, step)}
+      exampleFrom="The Lighthouse Years"
+    />
+  );
+}
+
+function StepEditor({ step, series, progress, onSeries, books }: Props & { step: SeriesStep }) {
+  const t = step.target;
+  switch (t.kind) {
+    case "seriesField":
+      return <SeriesField key={t.field} series={series} field={t.field} onSeries={onSeries} />;
+    case "books":
+      return <BooksStep series={series} progress={progress} onSeries={onSeries} books={books} />;
+    case "roles":
+      return (
+        <div className={styles.stack}>
+          {series.books.length === 0 && (
+            <p className={styles.note}>Add the books first, in the step before.</p>
+          )}
+          {series.books.map((b) => (
+            <div key={b.story_id} className={styles.bookRow}>
+              <span className={styles.ordinal}>{bookLabel(b.position)}</span>
+              <div className={styles.stack}>
+                <Link to={`/stories/${b.story_id}`} className={styles.bookName}>
+                  {b.title}
+                </Link>
+                <RoleField series={series} book={b} onSeries={onSeries} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    case "arc":
+      return <ArcStep series={series} onSeries={onSeries} />;
+    default:
+      return null;
+  }
+}
+
+function SeriesField({
+  series,
+  field,
+  onSeries,
+}: {
+  series: Series;
+  field: "premise" | "intent";
+  onSeries: (s: Series) => void;
+}) {
+  const { value, change, flush } = useAutosaveField(series[field] ?? "", (v) =>
+    seriesApi
+      .update(series.id, { [field]: v })
+      .then(onSeries)
+      .catch((err) => toast.error(err instanceof Error ? err.message : "That could not be saved.")),
+  );
+  return (
+    <textarea
+      className={styles.textarea}
+      rows={4}
+      value={value}
+      onChange={(e) => change(e.target.value)}
+      onBlur={flush}
+      aria-label={
+        field === "premise" ? "What the books are about, together" : "Why it takes more than one book"
+      }
+    />
+  );
+}
+
+/** The books in order, a new planned one, and a planned book's cast from the book before. */
+function BooksStep({ series, progress, onSeries, books }: Omit<Props, "step">) {
+  const [carrying, setCarrying] = useState<{ book: SeriesBook; from: SeriesBook } | null>(null);
+  const unstarted = series.books.filter((b, i) => i > 0 && !(progress[b.story_id]?.word_count ?? 0));
+  return (
+    <div className={styles.stack}>
+      {series.books.length > 0 && books}
+      <AddBookForm series={series} onSeries={onSeries} />
+      {unstarted.length > 0 && (
+        <p className={styles.note}>
+          A book not yet started can take its cast from the book before it:{" "}
+          {unstarted.map((b) => (
+            <button
+              key={b.story_id}
+              className={styles.textBtn}
+              onClick={() => setCarrying({ book: b, from: series.books[b.position - 1] })}
+            >
+              Bring into {b.title}
+            </button>
+          ))}
+        </p>
+      )}
+      {carrying && (
+        <CarryIntoBook
+          series={series}
+          book={carrying.book}
+          from={carrying.from}
+          onSeries={onSeries}
+          onClose={() => setCarrying(null)}
+        />
+      )}
+    </div>
+  );
+}

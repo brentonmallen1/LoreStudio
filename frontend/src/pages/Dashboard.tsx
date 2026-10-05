@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Clock, FileInput, Trash2, ArrowRight, BookPlus } from "lucide-react";
+import { Plus, Clock, FileInput, Trash2, ArrowRight, BookPlus, BookCopy } from "lucide-react";
 import { api } from "../api/client";
 import { progressApi, type StoryProgress } from "../api/progress";
 import { seriesApi, type SeriesSummary } from "../api/series";
@@ -10,7 +10,9 @@ import { useAuthStore } from "../stores/authStore";
 import { useStoryStore } from "../stores/storyStore";
 import { formatRelative } from "../lib/utils";
 import CreateStoryDialog from "../components/story/CreateStoryDialog";
+import NewSeriesDialog from "../components/series/NewSeriesDialog";
 import SeriesGroup from "../components/series/SeriesGroup";
+import { seriesPath } from "../lib/series/sections";
 import ImportWizard from "../components/import/ImportWizard";
 import type { Story } from "../types";
 import styles from "./Dashboard.module.css";
@@ -27,6 +29,10 @@ export default function DashboardPage() {
   );
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
   const [importing, setImporting] = useState(false);
+  // "New series" from the palette arrives as ?newSeries=1.
+  const [newSeries, setNewSeries] = useState(() =>
+    new URLSearchParams(window.location.search).has("newSeries"),
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   // Words, progress toward the target and the scene to continue in, per story.
@@ -147,6 +153,10 @@ export default function DashboardPage() {
               <FileInput size={14} />
               Import
             </button>
+            <button onClick={() => setNewSeries(true)} className={styles.importBtn}>
+              <BookCopy size={14} />
+              New series
+            </button>
             <button onClick={() => setCreating(true)} className={styles.createBtn}>
               <Plus size={15} />
               New story
@@ -154,7 +164,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {stories.length === 0 ? (
+        {stories.length === 0 && seriesList.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyBody}>
               <p className={styles.emptyHeadline}>A thinking space for writers.</p>
@@ -171,6 +181,10 @@ export default function DashboardPage() {
                 <button onClick={() => setCreating(true)} className={styles.emptyBtn}>
                   <Plus size={14} />
                   Start a new story
+                </button>
+                <button onClick={() => setNewSeries(true)} className={styles.emptyImportBtn}>
+                  <BookCopy size={14} />
+                  Plan a series
                 </button>
                 <button onClick={() => setImporting(true)} className={styles.emptyImportBtn}>
                   <FileInput size={14} />
@@ -190,13 +204,19 @@ export default function DashboardPage() {
                 <SeriesGroup
                   key={seg.series.id}
                   series={seg.series}
-                  onNewBook={() => setSequelTo(seg.books[seg.books.length - 1]?.id ?? null)}
+                  onNewBook={() =>
+                    seg.books.length
+                      ? setSequelTo(seg.books[seg.books.length - 1].id)
+                      : navigate(seriesPath(seg.series.id, "plan"))
+                  }
                 >
-                  <div className={`${styles.grid} ${styles.seriesGrid}`}>
-                    {seg.books.map((story) =>
-                      renderCard(story, seg.series.books.find((b) => b.story_id === story.id)?.position),
-                    )}
-                  </div>
+                  {seg.books.length > 0 && (
+                    <div className={`${styles.grid} ${styles.seriesGrid}`}>
+                      {seg.books.map((story) =>
+                        renderCard(story, seg.series.books.find((b) => b.story_id === story.id)?.position),
+                      )}
+                    </div>
+                  )}
                 </SeriesGroup>
               ),
             )}
@@ -214,6 +234,7 @@ export default function DashboardPage() {
         />
       )}
       {importing && <ImportWizard onClose={() => setImporting(false)} />}
+      {newSeries && <NewSeriesDialog onClose={() => setNewSeries(false)} />}
     </div>
   );
 }

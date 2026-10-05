@@ -4,6 +4,7 @@
  */
 export const SERIES_SECTIONS = [
   { id: "overview", label: "Overview" },
+  { id: "plan", label: "Plan" },
   { id: "canon", label: "Canon" },
   { id: "promises", label: "Promises" },
   { id: "story-so-far", label: "The story so far" },

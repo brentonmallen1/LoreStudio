@@ -3,6 +3,7 @@ import type { BeatSheet, Character, PlotThread, Story, StructureNode } from "../
 import {
   PLAN_METHODS,
   crossingThreads,
+  firstOpen,
   methodById,
   nextStep,
   planMethods,
@@ -44,6 +45,19 @@ describe("planning methods", () => {
     expect(nextStep(essentials, data)?.id).toBe("logline");
     data.story = story({ logline: "A keeper hides a truth.", central_conflict: "Silence against truth." });
     expect(nextStep(essentials, data)?.id).toBe("characters");
+  });
+
+  it("passes an optional step by when suggesting the next one", () => {
+    const steps = [
+      { id: "a", label: "A", why: "", how: "", target: 1 },
+      { id: "b", label: "B", why: "", how: "", target: 2, optional: true },
+      { id: "c", label: "C", why: "", how: "", target: 3 },
+    ];
+    const done = new Set(["a"]);
+    const progress = (s: { id: string }) => ({ done: done.has(s.id) ? 1 : 0, total: 1 });
+    expect(firstOpen(steps, progress)?.id).toBe("c");
+    done.add("c");
+    expect(firstOpen(steps, progress)).toBeNull();
   });
 
   it("counts main characters only, and every field of each", () => {

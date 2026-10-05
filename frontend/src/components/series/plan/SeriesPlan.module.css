@@ -1,0 +1,308 @@
+/* The series' Plan (series v2): the guided steps' editors and the Board. */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bookRow {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: start;
+}
+
+.ordinal {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding-top: 0.45rem;
+}
+
+.bookName {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.bookName:hover {
+  text-decoration: underline;
+}
+
+.textarea,
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.6rem;
+  resize: vertical;
+}
+
+.textarea:focus,
+.input:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.addRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.addRow .input {
+  flex: 1;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--color-surface-3);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.textBtn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0.3rem;
+  min-height: 1.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.textBtn:hover {
+  color: var(--color-text);
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.iconBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* Chips: which books carry a beat, which beats a book carries. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 1.5rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.chip:hover {
+  color: var(--color-text);
+}
+
+.chipOn {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+.chipOn:hover {
+  color: var(--color-accent-fg);
+  background: var(--color-accent-hover);
+}
+
+/* The arc: one beat per row. */
+.beat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.beatHead {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.beatHead .input {
+  flex: 1;
+  font-weight: 600;
+}
+
+.beatNum {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  min-width: 1.25rem;
+}
+
+/* ── The Board: a column per book ── */
+.boardScroll {
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(13rem, 1fr);
+  grid-template-rows: auto;
+  gap: 0;
+  min-width: min-content;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border-light);
+  min-width: 13rem;
+}
+
+.column:last-child {
+  border-right: none;
+}
+
+.columnHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-surface-2);
+}
+
+.columnMeta {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.cellBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.cellBlock:last-child {
+  border-bottom: none;
+}
+
+.rowLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+}
+
+.addColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  min-width: 13rem;
+}
+
+.viewBar {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.toggle {
+  composes: chip;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.8rem;
+  font-size: var(--text-sm);
+}
+
+.toggleOn {
+  composes: chipOn;
+}
+
+@media (max-width: 640px) {
+  .bookRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A book's Plan: which book of which series, and its part. */
+.seriesLine {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  max-width: 960px;
+  margin: 0.5rem auto 0;
+  padding: 0 2rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.seriesLine svg {
+  flex-shrink: 0;
+  transform: translateY(2px);
+}

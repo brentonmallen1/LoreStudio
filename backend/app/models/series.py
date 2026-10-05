@@ -32,6 +32,14 @@ class Series(Base):
     #: Per-kind overrides of which fields stay true across the series:
     #: ``{"character": {"appearance": "evolving"}}``. Defaults live in services/series/kinds.py.
     field_classes: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+    #: The series' plan (v2), all optional. Its arc: beats owned by the series,
+    #: ``[{"id", "name", "description"}]``, each placed on the books that carry it
+    #: (``SeriesStory.arc_beats``).
+    arc: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    #: What changes from book to book: ``[{"id", "kind", "label", "pov"}]``, kind one of
+    #: character, era, location, custom. ``pov`` marks the axis whose character each book is
+    #: seen through, the one scenes' POV is checked against.
+    axes: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
@@ -62,6 +70,13 @@ class SeriesStory(Base):
     series_id: Mapped[str] = mapped_column(String, ForeignKey("series.id"), nullable=False, index=True)
     story_id: Mapped[str] = mapped_column(String, ForeignKey("stories.id"), nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0)
+    #: This book's part in the series, in the author's words: what it does that the others don't.
+    role: Mapped[str] = mapped_column(Text, default="", server_default="")
+    #: This book on each axis: ``{axis_id: {"element_id": str | None, "text": str}}``. An
+    #: element when it is linked to the canon; else the text is an idea not yet made real.
+    slots: Mapped[dict] = mapped_column(JSON, default=dict, server_default="{}")
+    #: The ids of the series arc's beats this book carries.
+    arc_beats: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     series: Mapped["Series"] = relationship("Series", back_populates="books")

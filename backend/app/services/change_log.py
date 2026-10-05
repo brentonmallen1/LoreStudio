@@ -40,7 +40,7 @@ from ..models.plot_thread import PlotThread, PlotThreadAppearance
 from ..models.proposal_decline import ProposalDecline
 from ..models.reader_knowledge import ReaderKnowledgeEvent
 from ..models.scene_link import SceneLink
-from ..models.series import SeriesElementMember, SeriesSceneLink
+from ..models.series import SeriesElementMember, SeriesSceneLink, SeriesStory
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.twist import Twist, TwistClue
@@ -80,6 +80,8 @@ ENTITY_MODELS: dict[str, type] = {
     "series_element_member": SeriesElementMember,
     # A setup that pays off in another book: undone in the book it was made in.
     "series_scene_link": SeriesSceneLink,
+    # A book's own part of its series' plan (v2): its part, its axes, its arc beats.
+    "series_story": SeriesStory,
     # Images and diagrams (v1.5: a portrait carried into a book, research shared with a series).
     "story_asset": StoryAsset,
     "asset_attachment": AssetAttachment,

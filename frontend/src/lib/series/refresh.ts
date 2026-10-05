@@ -6,6 +6,8 @@ import { refreshThreads } from "../story/refreshThreads";
 /** Entity types whose undo can change what a book shares with its series. */
 export const SERIES_UNDO_TYPES = [
   "series_element_member",
+  // A book's own part of the series' plan (v2).
+  "series_story",
   "character",
   "location",
   "world_system",

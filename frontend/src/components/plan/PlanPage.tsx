@@ -6,6 +6,7 @@ import { isStepDone, type PlanMethod } from "../../lib/planning/methods";
 import { usePlanData } from "../../lib/planning/usePlanData";
 import AIFeatureInfoTrigger from "../ai/AIFeatureInfoTrigger";
 import PageHeader from "../layout/PageHeader";
+import BookInSeriesLine from "../series/plan/BookInSeriesLine";
 import MethodSteps from "./MethodSteps";
 import styles from "./Plan.module.css";
 
@@ -76,6 +77,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
           ) : undefined
         }
       />
+      <BookInSeriesLine storyId={storyId} />
 
       {view === "boards" ? (
         <Suspense fallback={null}>

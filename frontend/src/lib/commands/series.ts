@@ -44,6 +44,16 @@ commandRegistry.register({
 });
 
 commandRegistry.register({
+  id: "series-new",
+  label: "New series",
+  description: "Plan a series before any book of it: its books, their parts and what changes between them",
+  keywords: ["series", "new series", "trilogy", "saga", "plan", "books", "epic"],
+  icon: BookCopy,
+  group: "Create",
+  action: () => navigateTo("/?newSeries=1"),
+});
+
+commandRegistry.register({
   id: "series-write-sequel",
   label: "Write a sequel to this book",
   description: "A new book after this one, starting with whoever you carry over",
@@ -59,6 +69,13 @@ commandRegistry.register({
 
 // The series page's sections (v1.5): each a way in from any book of the series.
 for (const [id, section, label, description, keywords] of [
+  [
+    "series-plan",
+    "plan",
+    "The series' Plan",
+    "The books, what each one does, the arc across them and what changes from book to book",
+    ["plan", "series", "arc", "books", "parts", "axes", "viewpoint", "era", "outline"],
+  ],
   [
     "series-canon",
     "canon",

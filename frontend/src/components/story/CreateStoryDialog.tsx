@@ -61,6 +61,8 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
   const [seriesOfBook, setSeriesOfBook] = useState<{ of: string; name: string | null } | null>(null);
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [seriesName, setSeriesName] = useState("");
+  // Known from the start to be the first of several (series v2): the series is made with it.
+  const [firstOfSeries, setFirstOfSeries] = useState(false);
   const previous = stories.find((s) => s.id === sequelOf) ?? null;
   const candidates = carry && carry.of === sequelOf ? carry.list : null;
   const seriesOf = seriesOfBook && seriesOfBook.of === sequelOf ? seriesOfBook.name : null;
@@ -115,6 +117,12 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
             scaffold,
           });
       upsertStory(story);
+      if (!previous && firstOfSeries)
+        await seriesApi
+          .create({ name: seriesName.trim() || title.trim(), story_ids: [story.id] })
+          .catch(() =>
+            toast.error("The story was made, but its series could not be: start it from its Lorebook."),
+          );
       if (begin === "first") navigate(`/stories/${story.id}/first-story`);
       else if (begin === "idea") navigate(`/stories/${story.id}/freewrite`);
       else if (begin === "plan") navigate(`/stories/${story.id}/plan`);
@@ -237,7 +245,22 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                   )}
                 </div>
               )}
-              {previous && !seriesOf && (
+              {!previous && (
+                <label className={styles.scaffold}>
+                  <input
+                    type="checkbox"
+                    checked={firstOfSeries}
+                    onChange={(e) => setFirstOfSeries(e.target.checked)}
+                  />
+                  <span>
+                    The first book of a series
+                    <span className={styles.scaffoldHint}>
+                      The series is made with it, ready to plan the books to come on its own page.
+                    </span>
+                  </span>
+                </label>
+              )}
+              {((previous && !seriesOf) || (!previous && firstOfSeries)) && (
                 <div className={styles.field}>
                   <label className={styles.label} htmlFor="series-name">
                     The series is called
@@ -246,7 +269,7 @@ export default function CreateStoryDialog({ onClose, sequelTo }: Props) {
                     id="series-name"
                     value={seriesName}
                     onChange={(e) => setSeriesName(e.target.value)}
-                    placeholder={previous.title}
+                    placeholder={previous?.title ?? (title.trim() || "The Lighthouse Years")}
                     className={styles.input}
                   />
                 </div>

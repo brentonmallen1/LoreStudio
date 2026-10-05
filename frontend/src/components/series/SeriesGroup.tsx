@@ -25,7 +25,8 @@ function writeFolded(ids: string[]) {
 
 /**
  * One series on the dashboard (series doc): its name, which opens the series, how many
- * books, the way to the next one, and its books in order. Folds away, and stays folded.
+ * books, the way to the next one, and its books in order. Folds away, and stays folded. One
+ * planned before any book of it exists says so, and leads to its Plan.
  */
 export default function SeriesGroup({
   series,
@@ -62,11 +63,11 @@ export default function SeriesGroup({
           {series.name}
         </Link>
         <span className={styles.count}>
-          {count} {count === 1 ? "book" : "books"}
+          {count === 0 ? "No books yet" : `${count} ${count === 1 ? "book" : "books"}`}
         </span>
         <button className={styles.newBook} onClick={onNewBook}>
           <Plus size={13} aria-hidden />
-          New book
+          {count === 0 ? "Plan it" : "New book"}
         </button>
       </header>
       {!folded && children}
