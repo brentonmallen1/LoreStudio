@@ -26,6 +26,16 @@ export interface ArcBeat {
 
 export type AxisKind = "character" | "era" | "location" | "custom";
 
+/** A ready-made start for a series' plan: its books' parts, its arc, what changes between books. */
+export interface SeriesShape {
+  id: string;
+  name: string;
+  summary: string;
+  roles: string[];
+  beats: string[];
+  axes: Array<Omit<SeriesAxis, "id">>;
+}
+
 /** Something that changes from book to book: a viewpoint character, an era, a place. */
 export interface SeriesAxis {
   id: string;
@@ -260,6 +270,10 @@ export const seriesApi = {
   /** The arc across the books, in order; a beat with no id is new. */
   setArc: (id: string, arc: Array<Omit<ArcBeat, "id"> & { id?: string }>) =>
     request<Series>(`/series/${id}/arc`, { method: "PUT", body: JSON.stringify({ arc }) }),
+  shapes: () => request<SeriesShape[]>("/series-shapes"),
+  /** Start the plan from a shape: fills what is empty, adds what is missing. */
+  applyShape: (id: string, shapeId: string) =>
+    request<Series>(`/series/${id}/shape`, json({ shape_id: shapeId })),
   /** What changes from book to book; an axis with no id is new. */
   setAxes: (id: string, axes: Array<Omit<SeriesAxis, "id"> & { id?: string }>) =>
     request<Series>(`/series/${id}/axes`, { method: "PUT", body: JSON.stringify({ axes }) }),

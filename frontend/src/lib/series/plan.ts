@@ -7,7 +7,7 @@
  * planned by; the arc and the axes are there for the author who wants them.
  */
 import type { PlanStep } from "../planning/methods";
-import type { Series } from "../../api/series";
+import type { Series, SeriesShape } from "../../api/series";
 
 export type SeriesPlanTarget =
   | { kind: "seriesField"; field: "premise" | "intent" }
@@ -151,4 +151,17 @@ export function slotOf(series: Series, storyId: string, axisId: string) {
     /** Linked, and the book has its own row of it. */
     inBook: !!element?.members.some((m) => m.story_id === storyId),
   };
+}
+
+/** What a shape would do to this series, said before it does it. */
+export function shapePreview(shape: SeriesShape, series: Pick<Series, "books" | "axes">): string {
+  const books = Math.max(0, shape.roles.length - series.books.length);
+  const have = new Set((series.axes ?? []).map((a) => `${a.kind}|${a.label.toLowerCase()}`));
+  const axes = shape.axes.filter((a) => !have.has(`${a.kind}|${a.label.toLowerCase()}`));
+  const parts = [
+    books > 0 && `${books} planned ${books === 1 ? "book" : "books"}`,
+    `an arc of ${shape.beats.length} beats`,
+    axes.length > 0 && `${axes.map((a) => a.label).join(" and ")} from book to book`,
+  ].filter(Boolean);
+  return `Adds ${parts.join(", ")}, and a part for each book that has none. Changes nothing you've written.`;
 }

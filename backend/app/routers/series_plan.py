@@ -11,9 +11,19 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.user import User
-from ..schemas.series import ArcSet, AxesSet, BookCarry, BookPlanUpdate, PlannedBookCreate, PlannedBookOut, SeriesOut
+from ..schemas.series import (
+    ArcSet,
+    AxesSet,
+    BookCarry,
+    BookPlanUpdate,
+    PlannedBookCreate,
+    PlannedBookOut,
+    SeriesOut,
+    SeriesShapeOut,
+    ShapeApply,
+)
 from ..services import change_log
-from ..services.series import plan, service
+from ..services.series import plan, service, templates
 from .series import _said, _series, _story, _tidied
 
 router = APIRouter()
@@ -110,4 +120,39 @@ def carry_into_book(
             actor_id=current_user.id,
             client_id=client_id,
         )
+    return _tidied(series, db)
+
+
+# ── Shapes ───────────────────────────────────────────────────────────────────────
+
+
+@router.get("/series-shapes", response_model=list[SeriesShapeOut])
+def list_shapes(current_user: User = Depends(get_current_user)):
+    """Ready-made starts for a series' plan: a duology, a trilogy, a saga, a viewpoint each
+    book, a generational saga."""
+    return [
+        SeriesShapeOut(
+            id=s.id,
+            name=s.name,
+            summary=s.summary,
+            roles=list(s.roles),
+            beats=[name for name, _, _ in s.arc],
+            axes=[{"kind": k, "label": label, "pov": pov} for k, label, pov in s.axes],
+        )
+        for s in templates.SHAPES
+    ]
+
+
+@router.post("/series/{series_id}/shape", response_model=SeriesOut)
+def apply_shape(
+    series_id: str,
+    body: ShapeApply,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Start the plan from a shape: planned books up to its count, its arc placed on them, the
+    axes it is missing and a part for each book with none. Changes nothing already written."""
+    series = _series(series_id, db, current_user)
+    with _said(db):
+        templates.apply(db, series, body.shape_id)
     return _tidied(series, db)

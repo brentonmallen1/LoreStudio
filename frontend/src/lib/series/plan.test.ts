@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Series, SeriesBook } from "../../api/series";
 import { firstOpen } from "../planning/methods";
-import { beatsOf, seriesStepProgress, seriesSteps, slotOf } from "./plan";
+import { beatsOf, seriesStepProgress, seriesSteps, shapePreview, slotOf } from "./plan";
 
 const book = (n: number, extra: Partial<SeriesBook> = {}): SeriesBook => ({
   story_id: `b${n}`,
@@ -68,5 +68,25 @@ describe("the series plan", () => {
     expect(seriesStepProgress(arc, s)).toEqual({ done: 1, total: 2 });
     expect(beatsOf(s, "b1").map((b) => b.name)).toEqual(["Lit"]);
     expect(beatsOf(s, "b2")).toEqual([]);
+  });
+});
+
+describe("a shape's preview", () => {
+  it("says what it adds and that nothing written changes", () => {
+    const shape = {
+      id: "generational",
+      name: "Generational saga",
+      summary: "",
+      roles: ["a", "b", "c"],
+      beats: ["x", "y", "z"],
+      axes: [
+        { kind: "character" as const, label: "Viewpoint", pov: true },
+        { kind: "era" as const, label: "Era" },
+      ],
+    };
+    const s = series({ books: [book(1)], axes: [{ id: "e", kind: "era", label: "era" }] });
+    expect(shapePreview(shape, s)).toBe(
+      "Adds 2 planned books, an arc of 3 beats, Viewpoint from book to book, and a part for each book that has none. Changes nothing you've written.",
+    );
   });
 });

@@ -252,3 +252,19 @@ class BookCarry(BaseModel):
 
     source_story_id: str
     carry: list[CarryItem] = []
+
+
+class SeriesShapeOut(BaseModel):
+    """A ready-made start for a series' plan (v2)."""
+
+    id: str
+    name: str
+    summary: str
+    roles: list[str]
+    beats: list[str]
+    #: What changes from book to book: ``{"kind", "label", "pov"}``.
+    axes: list[dict]
+
+
+class ShapeApply(BaseModel):
+    shape_id: str

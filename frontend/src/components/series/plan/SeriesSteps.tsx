@@ -9,6 +9,7 @@ import StepRail from "../../plan/StepRail";
 import { useAutosaveField } from "../../plan/useAutosaveField";
 import ArcStep from "./ArcStep";
 import AxesStep from "./AxesStep";
+import ShapePicker from "./ShapePicker";
 import SlotCell from "./SlotCell";
 import CarryIntoBook from "./CarryIntoBook";
 import { AddBookForm, RoleField } from "./cells";
@@ -126,11 +127,49 @@ function SeriesField({
 /** The books in order, a new planned one, and a planned book's cast from the book before. */
 function BooksStep({ series, progress, onSeries, books }: Omit<Props, "step">) {
   const [carrying, setCarrying] = useState<{ book: SeriesBook; from: SeriesBook } | null>(null);
+  const [shaping, setShaping] = useState(false);
+  const [shape, setShape] = useState<string | null>(null);
   const unstarted = series.books.filter((b, i) => i > 0 && !(progress[b.story_id]?.word_count ?? 0));
   return (
     <div className={styles.stack}>
       {series.books.length > 0 && books}
       <AddBookForm series={series} onSeries={onSeries} />
+      {!(series.arc ?? []).length &&
+        (shaping ? (
+          <div className={styles.stack}>
+            <ShapePicker series={series} value={shape} onChange={setShape} />
+            <div className={styles.addRow}>
+              <button
+                className={styles.btn}
+                disabled={!shape}
+                onClick={() =>
+                  shape &&
+                  seriesApi
+                    .applyShape(series.id, shape)
+                    .then((s) => {
+                      onSeries(s);
+                      setShaping(false);
+                    })
+                    .catch((err) =>
+                      toast.error(err instanceof Error ? err.message : "The shape could not be applied."),
+                    )
+                }
+              >
+                Use this shape
+              </button>
+              <button className={styles.textBtn} onClick={() => setShaping(false)}>
+                Not now
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className={styles.note}>
+            Not sure how many books, or how they fit together?{" "}
+            <button className={styles.textBtn} onClick={() => setShaping(true)}>
+              Start from a shape
+            </button>
+          </p>
+        ))}
       {unstarted.length > 0 && (
         <p className={styles.note}>
           A book not yet started can take its cast from the book before it:{" "}

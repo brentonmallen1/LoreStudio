@@ -254,3 +254,36 @@ def test_a_scene_told_by_someone_else_or_set_in_another_era_is_asked_about(clien
     db_session.commit()
     texts = [f["text"] for f in _findings(client, one.story.id, "series-axis-pov")]
     assert len(texts) == 2 and any("the book's point of view is The Visitor" in t for t in texts)
+
+
+# ── Shapes ───────────────────────────────────────────────────────────────────────
+
+
+def test_a_shape_starts_the_plan_and_changes_nothing_written(client, db_session, test_user):
+    shapes = {s["id"]: s for s in client.get("/api/series-shapes").json()}
+    assert {"duology", "trilogy", "saga", "viewpoint-cycle", "generational"} <= set(shapes)
+
+    one = empty_book(db_session, test_user, "The Last Lighthouse")
+    db_session.commit()
+    sid = client.post("/api/series", json={"name": "Keepers", "story_ids": [one.id]}).json()["id"]
+    client.patch(f"/api/series/{sid}/books/{one.id}", json={"role": "Mine already."})
+    client.put(f"/api/series/{sid}/axes", json={"axes": [{"kind": "era", "label": "era"}]})
+
+    r = client.post(f"/api/series/{sid}/shape", json={"shape_id": "generational"})
+    assert r.status_code == 200, r.text
+    s = r.json()
+    assert [b["title"] for b in s["books"]] == ["The Last Lighthouse", "Book 2", "Book 3"]
+    assert s["books"][0]["role"] == "Mine already."
+    assert s["books"][1]["role"].startswith("The second")
+    assert [b["name"] for b in s["arc"]] == shapes["generational"]["beats"]
+    assert [len(b["arc_beats"]) for b in s["books"]] == [1, 1, 1]
+    assert [(a["label"], a["pov"]) for a in s["axes"]] == [("era", False), ("Viewpoint", True)], "Era not doubled"
+
+    assert client.post(f"/api/series/{sid}/shape", json={"shape_id": "trilogy"}).status_code == 409
+    assert client.post(f"/api/series/{sid}/shape", json={"shape_id": "nope"}).status_code == 404
+
+
+def test_a_shape_on_an_empty_series_makes_its_books(client):
+    s = _new_series(client)
+    out = client.post(f"/api/series/{s['id']}/shape", json={"shape_id": "viewpoint-cycle"}).json()
+    assert len(out["books"]) == 4 and [b["arc_beats"] != [] for b in out["books"]] == [True, True, True, True]

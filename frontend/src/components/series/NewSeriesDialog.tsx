@@ -5,6 +5,7 @@ import { seriesApi } from "../../api/series";
 import { seriesPath } from "../../lib/series/sections";
 import { toast } from "../../stores/toastStore";
 import { Modal } from "../common";
+import ShapePicker from "./plan/ShapePicker";
 import styles from "../story/CreateStoryDialog.module.css";
 
 /**
@@ -15,6 +16,7 @@ import styles from "../story/CreateStoryDialog.module.css";
 export default function NewSeriesDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [premise, setPremise] = useState("");
+  const [shape, setShape] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
@@ -24,6 +26,12 @@ export default function NewSeriesDialog({ onClose }: { onClose: () => void }) {
     setBusy(true);
     try {
       const series = await seriesApi.create({ name: name.trim(), premise: premise.trim(), story_ids: [] });
+      if (shape)
+        await seriesApi
+          .applyShape(series.id, shape)
+          .catch(() =>
+            toast.error("The series was made, but its shape could not be applied: try it from its Plan."),
+          );
       onClose();
       navigate(seriesPath(series.id, "plan"));
     } catch (err) {
@@ -86,6 +94,7 @@ export default function NewSeriesDialog({ onClose }: { onClose: () => void }) {
             step is optional; start writing whenever you like.
           </p>
         </div>
+        <ShapePicker series={{ books: [], axes: [] }} value={shape} onChange={setShape} />
       </form>
     </Modal>
   );
