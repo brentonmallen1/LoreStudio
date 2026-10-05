@@ -145,6 +145,16 @@ export type ShortcutId = keyof typeof SHORTCUTS;
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
+/** A click with ⌘ (Ctrl elsewhere) held: open it as a tab of its own beside the page. */
+export function isModClick(e: { metaKey: boolean; ctrlKey: boolean }): boolean {
+  return IS_MAC ? e.metaKey : e.ctrlKey;
+}
+
+/** "⌘Click", or "Ctrl+Click": how a modified click is named in a tooltip. */
+export function modClickLabel(): string {
+  return formatCombo("mod+Click");
+}
+
 /** Does this keyboard event match the combo? `mod` means ⌘ on macOS and Ctrl elsewhere. */
 export function matchesCombo(e: KeyboardEvent | React.KeyboardEvent, combo: string): boolean {
   const parts = combo.toLowerCase().split("+");

@@ -101,6 +101,10 @@ export default function TwistsSection() {
           setPanel(null);
           select(id);
         }}
+        onOpenBeside={(id) => {
+          const t = twists.find((x) => x.id === id);
+          if (t) openEntity("twist", t.id, t.name);
+        }}
         onAdd={add}
         seriesKinds={["twist"]}
         onFromSeries={(id) => void reload().then(() => select(id))}

@@ -96,6 +96,10 @@ export default function ThreadsSection() {
         }))}
         selectedId={selectedId}
         onSelect={(id) => select(id)}
+        onOpenBeside={(id) => {
+          const t = threads.find((x) => x.id === id);
+          if (t) openEntity("thread", t.id, t.name);
+        }}
         onAdd={add}
         seriesKinds={["plot_thread"]}
         onFromSeries={(id) => select(id)}

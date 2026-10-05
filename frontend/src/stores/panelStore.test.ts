@@ -54,6 +54,20 @@ describe("closing back to the scene", () => {
     expect(s.activeTabId).toBe("scene");
   });
 
+  it("opens a tab behind the one showing, so several can be opened from a list", () => {
+    usePanelStore.getState().openTool("characters");
+    usePanelStore.getState().openEntity("character", "c1", "Eleanor Vance", true);
+    usePanelStore.getState().openEntity("character", "c2", "Thomas Vance", true);
+    const s = usePanelStore.getState();
+    expect(s.activeTabId).toBe("tool:characters");
+    expect(s.tabs.map((t) => t.id)).toEqual([
+      "scene",
+      "tool:characters",
+      "entity:character:c1",
+      "entity:character:c2",
+    ]);
+  });
+
   it("stays open on a page while another tab you opened is left", () => {
     usePanelStore.getState().openEntity("character", "c1", "Eleanor Vance");
     usePanelStore.getState().openTool("places");

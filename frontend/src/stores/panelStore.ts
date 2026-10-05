@@ -51,7 +51,8 @@ interface PanelState {
   loadForStory: (storyId: string) => void;
   /** Called when the route changes between the prose and every other page; open stays as it is. */
   setSide: (side: PanelSide) => void;
-  openEntity: (kind: EntityKind, id: string, label: string) => void;
+  /** Open it as a tab and show it; `behind` adds the tab and leaves the one showing (⌘-click in a list). */
+  openEntity: (kind: EntityKind, id: string, label: string, behind?: boolean) => void;
   openTool: (tool: ToolId) => void;
   activate: (id: string) => void;
   close: (id: string) => void;
@@ -173,12 +174,16 @@ export const usePanelStore = create<PanelState>((set, get) => {
       if (get().side !== side) set({ side });
     },
 
-    openEntity: (kind, id, label) => {
+    openEntity: (kind, id, label, behind = false) => {
       const tabId = entityTabId(kind, id);
-      const { tabs, storyId } = get();
+      const { tabs, storyId, activeTabId } = get();
       const next = tabs.some((t) => t.id === tabId)
         ? tabs
         : [...tabs, { id: tabId, kind: "entity" as const, entityKind: kind, entityId: id, label }];
+      if (behind) {
+        persistTabs(storyId, next, activeTabId);
+        return set({ tabs: next });
+      }
       persistTabs(storyId, next, tabId);
       set({ tabs: next, activeTabId: tabId, highlight: { kind, id, name: label }, ...openOnSide(true) });
     },

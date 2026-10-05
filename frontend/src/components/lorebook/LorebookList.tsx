@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
 import type { ListItem } from "../../lib/lorebook/rows";
 import type { SeriesKind } from "../../api/series";
+import { isModClick, modClickLabel } from "../../lib/keyboard/shortcuts";
 import FromTheSeries from "../series/FromTheSeries";
 import styles from "./Lorebook.module.css";
 
@@ -24,6 +25,7 @@ export default function LorebookList({
   empty,
   seriesKinds,
   onFromSeries,
+  onOpenBeside,
 }: {
   title: string;
   items: ListItem[];
@@ -39,6 +41,8 @@ export default function LorebookList({
   seriesKinds?: SeriesKind[];
   /** A series element was brought into this book as `refId`. */
   onFromSeries?: (refId: string) => void;
+  /** ⌘-click (or a middle click) on an entry: open it as a tab beside the page, leaving this one. */
+  onOpenBeside?: (id: string) => void;
 }) {
   const [q, setQ] = useState("");
   const [folded, setFolded] = useState<Set<string>>(new Set());
@@ -140,7 +144,11 @@ export default function LorebookList({
                 aria-selected={item.id === selectedId}
                 data-id={item.id}
                 className={`${styles.listRow} ${item.id === selectedId ? styles.listRowOn : ""}`}
-                onClick={() => onSelect(item.id)}
+                onClick={(e) => (onOpenBeside && isModClick(e) ? onOpenBeside(item.id) : onSelect(item.id))}
+                onAuxClick={(e) => {
+                  if (onOpenBeside && e.button === 1) onOpenBeside(item.id);
+                }}
+                title={onOpenBeside ? `${modClickLabel()} to open beside the page` : undefined}
               >
                 {item.dot !== undefined && (
                   <span

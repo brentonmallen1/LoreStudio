@@ -1,3 +1,4 @@
+import { isModClick, modClickLabel } from "../../lib/keyboard/shortcuts";
 import { entityPresence } from "../../lib/panel/presence";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
@@ -52,7 +53,12 @@ function EntityList({ tool }: { tool: Exclude<ToolId, "freewrite" | "notes"> }) 
               <button
                 key={row.id}
                 className={styles.row}
-                onClick={() => openEntity(kind, row.id, row.title)}
+                title={`${modClickLabel()} to open it as a tab and stay on this list`}
+                // ⌘-click opens it behind, so several can be opened without leaving the list.
+                onClick={(e) => openEntity(kind, row.id, row.title, isModClick(e))}
+                onAuxClick={(e) => {
+                  if (e.button === 1) openEntity(kind, row.id, row.title, true);
+                }}
                 onMouseEnter={() => setHighlight({ kind, id: row.id, name: row.title })}
                 onMouseLeave={() => setHighlight(null)}
               >

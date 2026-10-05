@@ -5,6 +5,7 @@ import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
 import SlotPicker from "../common/SlotPicker";
 import AlsoCalled from "./AlsoCalled";
 import { useSeriesSheet, type SheetSeries } from "../series/useSeriesSheet";
+import { modClickLabel } from "../../lib/keyboard/shortcuts";
 import type { SceneRef } from "../../lib/lorebook/presence";
 import styles from "./Lorebook.module.css";
 
@@ -136,7 +137,7 @@ export default function EntitySheet({
             type="button"
             className={styles.sheetBtn}
             onClick={onOpenBeside}
-            title="Keep it open beside the page"
+            title={`Keep it open beside the page (or ${modClickLabel()} it in the list)`}
             aria-label="Open beside the page"
           >
             <PanelRight size={13} aria-hidden />

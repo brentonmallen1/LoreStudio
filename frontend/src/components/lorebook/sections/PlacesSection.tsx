@@ -93,6 +93,10 @@ export default function PlacesSection() {
         items={rows}
         selectedId={selectedId}
         onSelect={(id) => select(id)}
+        onOpenBeside={(id) => {
+          const l = locations.find((x) => x.id === id);
+          if (l) openEntity("location", l.id, l.name);
+        }}
         onAdd={() => add(null)}
         seriesKinds={["location"]}
         onFromSeries={(id) => select(id)}

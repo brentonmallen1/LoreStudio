@@ -125,6 +125,10 @@ export default function CharactersSection() {
         }))}
         selectedId={selectedId}
         onSelect={(id) => select(id)}
+        onOpenBeside={(id) => {
+          const c = characters.find((x) => x.id === id);
+          if (c) openEntity("character", c.id, c.name);
+        }}
         onAdd={() => setCreating(true)}
         seriesKinds={["character"]}
         onFromSeries={(id) => select(id)}
