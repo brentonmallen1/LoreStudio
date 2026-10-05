@@ -39,6 +39,8 @@ class StructureNodeUpdate(BaseModel):
     exit_state: str | None = None
     key_events: str | None = None
     timeline_position: int | None = None
+    in_world_date: str | None = None
+    era_id: str | None = None
     content_summary: str | None = None
     summary_stale: bool | None = None
     beat_id: str | None = None
@@ -65,6 +67,8 @@ class StructureNodeOut(BaseModel):
     exit_state: str = ""
     key_events: str = ""
     timeline_position: int | None = None
+    in_world_date: str = ""
+    era_id: str | None = None
     content_summary: str = ""
     summary_stale: bool = True
     summary_updated_at: datetime | None = None
@@ -96,6 +100,8 @@ class StructureNodeMeta(BaseModel):
     exit_state: str = ""
     key_events: str = ""
     timeline_position: int | None = None
+    in_world_date: str = ""
+    era_id: str | None = None
     summary_stale: bool = True
     summary_updated_at: datetime | None = None
     beat_id: str | None = None

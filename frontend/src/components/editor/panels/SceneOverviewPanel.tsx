@@ -3,6 +3,7 @@ import { api } from "../../../api/client";
 import type { Character, Location, Story, StructureNode } from "../../../types";
 import { useStoryStore } from "../../../stores/storyStore";
 import SceneSettingsField from "./SceneSettingsField";
+import SceneWhenField from "./SceneWhenField";
 import ChecksField from "./ChecksField";
 import QuotesField from "./QuotesField";
 import styles from "../SceneEditor.module.css";
@@ -208,6 +209,9 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
         </div>
       )}
 
+      {activeStory && (
+        <SceneWhenField key={activeNode.id} activeNode={activeNode} storyId={activeStory.id} patch={patch} />
+      )}
       <SceneSettingsField activeNode={activeNode} locations={locations} />
       <QuotesField activeNode={activeNode} />
     </div>

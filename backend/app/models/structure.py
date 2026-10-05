@@ -55,6 +55,11 @@ class StructureNode(Base):
     exit_state: Mapped[str] = mapped_column(Text, default="")
     key_events: Mapped[str] = mapped_column(Text, default="")
     timeline_position: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    #: When the scene happens, in the story's own words ("November 1962", "the third winter").
+    in_world_date: Mapped[str] = mapped_column(String, default="", server_default="")
+    #: The era it happens in. No foreign key: a snapshot restore puts scenes back before eras,
+    #: and a scene whose era is gone simply has none (as ``beat_id`` does).
+    era_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
     content_summary: Mapped[str] = mapped_column(Text, default="", server_default="")
     summary_stale: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     summary_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, default=None)

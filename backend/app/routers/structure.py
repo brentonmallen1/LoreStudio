@@ -59,6 +59,9 @@ def get_node(node_id: str, db: Session = Depends(get_db), current_user: User = D
     return _verify_node_access(node_id, db, current_user)
 
 
+_CLEARABLE = ("pov_character_id", "beat_id", "era_id")
+
+
 @router.patch("/{node_id}", response_model=StructureNodeOut)
 def update_node(
     node_id: str,
@@ -69,6 +72,10 @@ def update_node(
 ):
     node = _verify_node_access(node_id, db, current_user)
     data = body.model_dump(exclude_none=True)
+    # A link sent as null (or "") is cleared: a scene's POV back to the story's, its beat or era off.
+    for key in _CLEARABLE:
+        if key in body.model_fields_set and not getattr(body, key):
+            data[key] = None
     expected = data.pop("expected_updated_at", None)
     if expected is not None and node.updated_at is not None and _differs(expected, node.updated_at):
         # Someone (another tab, an undo, a restore) changed this node since the client loaded it.

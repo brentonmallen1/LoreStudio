@@ -1,102 +1,65 @@
-import { useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { api } from "../../api/client";
+import { useReloadOnUndo } from "../../hooks/useUndoRedo";
+import { movedPositions, timelineRows, type TimelineRow } from "../../lib/timeline";
 import { useStoryStore } from "../../stores/storyStore";
-import type { StructureNode } from "../../types";
+import { toast } from "../../stores/toastStore";
+import type { Era } from "../../types";
 import styles from "./TimelineView.module.css";
 
-function flattenLeaves(nodes: StructureNode[]): StructureNode[] {
-  const result: StructureNode[] = [];
-  function walk(n: StructureNode) {
-    if (!n.children || n.children.length === 0) {
-      result.push(n);
-    } else {
-      n.children.forEach(walk);
-    }
-  }
-  nodes.forEach(walk);
-  return result;
-}
-
-function buildNodeMap(nodes: StructureNode[]): Map<string, StructureNode> {
-  const map = new Map<string, StructureNode>();
-  function walk(n: StructureNode) {
-    map.set(n.id, n);
-    (n.children ?? []).forEach(walk);
-  }
-  nodes.forEach(walk);
-  return map;
-}
-
-function getParentLabel(node: StructureNode, nodeMap: Map<string, StructureNode>): string {
-  const path: string[] = [];
-  let current = node.parent_id ? nodeMap.get(node.parent_id) : null;
-  while (current) {
-    path.unshift(current.title);
-    current = current.parent_id ? nodeMap.get(current.parent_id) : null;
-  }
-  return path.join(" › ");
-}
-
-export default function TimelineView() {
+/**
+ * The story in the order it happened (the Plan's Timeline, series v2): each scene placed on
+ * the timeline, with its date and era, against the order the reader meets it. A scene the
+ * reader meets out of order is marked; eras band the scenes they hold. Drag a scene, or move
+ * it with its arrows; a scene not placed yet waits below.
+ */
+export default function TimelineView({ storyId }: { storyId: string }) {
   const navigate = useNavigate();
-  const { storyId } = useParams<{ storyId: string }>();
-  const { structure, setStructure, setActiveNode } = useStoryStore();
-
+  const { structure, setStructure } = useStoryStore();
+  const [eras, setEras] = useState<Era[]>([]);
   const dragIdx = useRef<number | null>(null);
 
-  // Collect leaf nodes in narrative (depth-first) order
-  const allLeaves = flattenLeaves(structure);
-  const nodeMap = buildNodeMap(structure);
+  useEffect(() => {
+    api
+      .listEras(storyId)
+      .then(setEras)
+      .catch(() => {});
+  }, [storyId]);
+  useReloadOnUndo(["era"], () => api.listEras(storyId).then(setEras));
 
-  // Build narrative rank map (1-indexed position in depth-first traversal)
-  const narrativeRankMap = new Map<string, number>();
-  allLeaves.forEach((n, i) => narrativeRankMap.set(n.id, i + 1));
+  const { placed, unplaced } = timelineRows(structure, eras);
 
-  // Split into positioned (sorted) and unset
-  const positioned = allLeaves
-    .filter((n) => n.timeline_position != null)
-    .sort((a, b) => a.timeline_position! - b.timeline_position!);
-  const unset = allLeaves.filter((n) => n.timeline_position == null);
-  const sortedScenes = [...positioned, ...unset];
-
-  const maxPosition = positioned.length > 0 ? Math.max(...positioned.map((n) => n.timeline_position!)) : 0;
-
-  async function assignPosition(node: StructureNode) {
-    await api.updateNode(node.id, { timeline_position: maxPosition + 1 });
-    const updated = await api.getStructure(storyId!);
-    setStructure(updated);
-  }
-
-  async function handleDrop(toIdx: number) {
-    const fromIdx = dragIdx.current;
-    if (fromIdx === null || fromIdx === toIdx) return;
-
-    // Only reorder within the positioned section
-    const posCount = positioned.length;
-    if (fromIdx >= posCount || toIdx >= posCount) return;
-
-    const reordered = [...positioned];
-    const [moved] = reordered.splice(fromIdx, 1);
-    reordered.splice(toIdx, 0, moved);
-
-    // Assign sequential timeline_position (1-based)
-    for (let i = 0; i < reordered.length; i++) {
-      const newPos = i + 1;
-      if (reordered[i].timeline_position !== newPos) {
-        await api.updateNode(reordered[i].id, { timeline_position: newPos });
+  async function save(positions: Map<string, number>) {
+    try {
+      for (const row of [...placed, ...unplaced]) {
+        const at = positions.get(row.node.id);
+        if (at !== undefined && row.node.timeline_position !== at)
+          await api.updateNode(row.node.id, { timeline_position: at });
       }
+      setStructure(await api.getStructure(storyId));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "The timeline could not be saved.");
     }
-
-    const updated = await api.getStructure(storyId!);
-    setStructure(updated);
-    dragIdx.current = null;
   }
 
-  if (allLeaves.length === 0) {
+  const move = (from: number, to: number) =>
+    save(
+      movedPositions(
+        placed.map((r) => r.node),
+        from,
+        to,
+      ),
+    );
+  const place = (row: TimelineRow) => save(new Map([[row.node.id, placed.length + 1]]));
+
+  if (placed.length + unplaced.length === 0) {
     return (
       <div className={styles.empty}>
-        <p className={styles.emptyText}>No scenes yet. Add sections in the tree view to get started.</p>
+        <p className={styles.emptyText}>
+          No scenes yet. Once there are, place them here in the order they happen.
+        </p>
       </div>
     );
   }
@@ -104,64 +67,106 @@ export default function TimelineView() {
   return (
     <div className={styles.timeline}>
       <div className={styles.inner}>
-        {sortedScenes.map((node, idx) => {
-          const isUnset = node.timeline_position == null;
-          const narrativeRank = narrativeRankMap.get(node.id) ?? null;
-          const isReordered = !isUnset && narrativeRank !== null && node.timeline_position !== narrativeRank;
-          const parentLabel = getParentLabel(node, nodeMap);
-
-          return (
+        {placed.length === 0 && (
+          <p className={styles.emptyText}>
+            Nothing placed yet. Place the scenes below in the order they happen; until then they read in the
+            order the reader meets them.
+          </p>
+        )}
+        {placed.map((row, idx) => (
+          <div key={row.node.id} className={styles.placedItem}>
+            {row.eraStarts && row.era && (
+              <div className={styles.eraBand}>
+                <span className={styles.eraName}>{row.era.name}</span>
+                {(row.era.start_date || row.era.end_date) && (
+                  <span className={styles.eraDates}>
+                    {[row.era.start_date, row.era.end_date].filter(Boolean).join(" – ")}
+                  </span>
+                )}
+              </div>
+            )}
             <div
-              key={node.id}
-              className={`${styles.row} ${isUnset ? styles.rowUnset : ""}`}
-              draggable={!isUnset}
+              className={styles.row}
+              draggable
               onDragStart={() => {
                 dragIdx.current = idx;
               }}
               onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDrop(idx)}
+              onDrop={() => {
+                if (dragIdx.current !== null && dragIdx.current !== idx) void move(dragIdx.current, idx);
+                dragIdx.current = null;
+              }}
             >
               <div className={styles.positionCol}>
-                {isUnset ? (
-                  <span className={styles.unsetLabel}>Unset</span>
-                ) : (
-                  <span className={styles.posNum}>{node.timeline_position}</span>
-                )}
+                <span className={styles.posNum}>{idx + 1}</span>
               </div>
-              <div
-                className={styles.card}
-                onClick={() => {
-                  setActiveNode(node);
-                  navigate(`/stories/${storyId}`);
-                }}
-              >
-                <div className={styles.cardTop}>
-                  <span className={styles.cardTitle}>{node.title}</span>
-                  {isReordered && <span className={styles.reorderedBadge}>⇄ Reordered</span>}
-                </div>
-                {parentLabel && <span className={styles.parentLabel}>{parentLabel}</span>}
-                <div className={styles.cardMeta}>
-                  <span className={`${styles.statusBadge} ${styles[node.status]}`}>{node.status}</span>
-                  {node.word_count > 0 && (
-                    <span className={styles.wordCount}>{node.word_count.toLocaleString()}w</span>
-                  )}
-                </div>
-              </div>
-              {isUnset && (
+              <SceneCard row={row} onOpen={() => navigate(`/stories/${storyId}/write/${row.node.id}`)} />
+              <div className={styles.moveCol}>
                 <button
-                  className={styles.setPositionBtn}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    assignPosition(node);
-                  }}
+                  className={styles.moveBtn}
+                  disabled={idx === 0}
+                  onClick={() => move(idx, idx - 1)}
+                  aria-label={`${row.node.title} happens earlier`}
                 >
-                  + Set position
+                  <ArrowUp size={13} />
                 </button>
-              )}
+                <button
+                  className={styles.moveBtn}
+                  disabled={idx === placed.length - 1}
+                  onClick={() => move(idx, idx + 1)}
+                  aria-label={`${row.node.title} happens later`}
+                >
+                  <ArrowDown size={13} />
+                </button>
+              </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
+        {unplaced.length > 0 && (
+          <>
+            <p className={styles.unplacedHead}>Not on the timeline yet, in reading order</p>
+            {unplaced.map((row) => (
+              <div key={row.node.id} className={`${styles.row} ${styles.rowUnset}`}>
+                <div className={styles.positionCol}>
+                  <span className={styles.unsetLabel}>–</span>
+                </div>
+                <SceneCard row={row} onOpen={() => navigate(`/stories/${storyId}/write/${row.node.id}`)} />
+                <button className={styles.setPositionBtn} onClick={() => place(row)}>
+                  Place it next
+                </button>
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
+}
+
+function SceneCard({ row, onOpen }: { row: TimelineRow; onOpen: () => void }) {
+  const { node } = row;
+  const when = [node.in_world_date?.trim(), row.era?.name].filter(Boolean).join(" · ");
+  return (
+    <button className={styles.card} onClick={onOpen}>
+      <span className={styles.cardTop}>
+        <span className={styles.cardTitle}>{node.title}</span>
+        {row.outOfOrder && (
+          <span
+            className={styles.reorderedBadge}
+            title="The reader meets this scene out of the order it happens"
+          >
+            Out of order · read {ordinal(row.readingRank)}
+          </span>
+        )}
+      </span>
+      {when && <span className={styles.parentLabel}>{when}</span>}
+      {node.synopsis && <span className={styles.synopsis}>{node.synopsis}</span>}
+    </button>
+  );
+}
+
+function ordinal(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 }

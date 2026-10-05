@@ -11,11 +11,13 @@ import MethodSteps from "./MethodSteps";
 import styles from "./Plan.module.css";
 
 const OutlineManager = lazy(() => import("../outline/OutlineManager"));
+const TimelineView = lazy(() => import("../story/TimelineView"));
 
-type View = "method" | "boards";
+type View = "method" | "boards" | "timeline";
 
 function viewFrom(params: URLSearchParams): View {
   if (params.has("tab") || params.get("view") === "boards") return "boards";
+  if (params.get("view") === "timeline") return "timeline";
   return "method";
 }
 
@@ -23,7 +25,8 @@ function viewFrom(params: URLSearchParams): View {
  * The Plan page (refactor doc 10). A method walks the author through the story's
  * foundations one small step at a time; every step writes the same shared fields, so the
  * answers show up on Story Identity, the character sheets and the structure tree.
- * Beat boards are the free-form outline lists, for brainstorming beats loosely.
+ * Beat boards are the free-form outline lists, for brainstorming beats loosely. The
+ * Timeline lays the scenes out in the order they happen, with their dates and eras.
  */
 export default function PlanPage({ storyId }: { storyId: string }) {
   const [params, setParams] = useSearchParams();
@@ -60,6 +63,7 @@ export default function PlanPage({ storyId }: { storyId: string }) {
         views={[
           { id: "method", label: method ? method.label : "Method" },
           { id: "boards", label: "Beat boards" },
+          { id: "timeline", label: "Timeline" },
         ]}
         view={view}
         onView={(id) => show(id as View)}
@@ -74,6 +78,8 @@ export default function PlanPage({ storyId }: { storyId: string }) {
             </>
           ) : view === "boards" ? (
             "Loose outlines for brainstorming beats. Turn any beat into a scene."
+          ) : view === "timeline" ? (
+            "The scenes in the order they happen, with their dates and eras, against the order the reader meets them."
           ) : undefined
         }
       />
@@ -83,6 +89,12 @@ export default function PlanPage({ storyId }: { storyId: string }) {
         <Suspense fallback={null}>
           <OutlineManager storyId={storyId} />
         </Suspense>
+      ) : view === "timeline" ? (
+        <div className={styles.body}>
+          <Suspense fallback={null}>
+            <TimelineView storyId={storyId} />
+          </Suspense>
+        </div>
       ) : !method || choosing ? (
         <MethodPicker
           current={method}

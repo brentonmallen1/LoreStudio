@@ -2,7 +2,7 @@
  * Planning commands (refactor doc 10): Freewrite and the Notes tab (doc 15), and the side
  * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
-import { FileText, MapIcon, NotebookPen, StickyNote } from "lucide-react";
+import { CalendarClock, FileText, MapIcon, NotebookPen, StickyNote } from "lucide-react";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
@@ -73,4 +73,18 @@ commandRegistry.register({
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,
   action: showSceneTab,
+});
+
+commandRegistry.register({
+  id: "plan-timeline",
+  label: "Timeline: scenes in the order they happen",
+  description: "Each scene's date and era, against the order the reader meets them",
+  keywords: ["timeline", "chronology", "chronological", "flashback", "date", "era", "when", "order"],
+  icon: CalendarClock,
+  group: "Navigation",
+  when: () => !!useStoryStore.getState().activeStory,
+  action: () => {
+    const story = useStoryStore.getState().activeStory;
+    if (story) navigateTo(`/stories/${story.id}/plan?view=timeline`);
+  },
 });

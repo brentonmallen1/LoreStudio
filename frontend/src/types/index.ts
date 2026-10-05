@@ -117,6 +117,9 @@ export interface StructureNode {
   exit_state: string;
   key_events: string;
   timeline_position: number | null;
+  /** When it happens, in the story's words, and its era (an Era id): series v2. */
+  in_world_date?: string;
+  era_id?: string | null;
   content_summary: string;
   summary_stale: boolean;
   summary_updated_at: string | null;

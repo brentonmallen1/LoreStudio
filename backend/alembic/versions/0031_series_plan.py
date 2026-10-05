@@ -31,10 +31,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    with op.batch_alter_table("series_stories", schema=None) as batch_op:
-        batch_op.drop_column("arc_beats")
-        batch_op.drop_column("slots")
-        batch_op.drop_column("role")
-    with op.batch_alter_table("series", schema=None) as batch_op:
-        batch_op.drop_column("axes")
-        batch_op.drop_column("arc")
+    # Native DROP COLUMN: a batch rebuild of a table other rows point at fails with
+    # foreign_keys=ON (as 0016 and 0018 found).
+    for column in ("arc_beats", "slots", "role"):
+        op.execute(f"ALTER TABLE series_stories DROP COLUMN {column}")
+    for column in ("axes", "arc"):
+        op.execute(f"ALTER TABLE series DROP COLUMN {column}")
