@@ -158,6 +158,15 @@ describe("colours and shapes", () => {
     expect(colourFor("cast", line.stops[3], ctx)).toEqual([]); // planned stays dashed and bare
   });
 
+  it("colours a stop by whose eyes it is seen through, a planned scene too", () => {
+    const eleanor = characters[0];
+    const planned = line.stops[3];
+    expect(colourFor("pov", planned, { ...ctx, storyPov: eleanor.id })).toEqual([
+      { color: "var(--cat-1)", label: "Eleanor" },
+    ]);
+    expect(colourFor("pov", planned, ctx)).toEqual([]);
+  });
+
   it("builds a key with each colour once", () => {
     expect(legendFor("threads", line.stops, ctx)).toEqual([{ color: "var(--cat-3)", label: "Logs" }]);
     expect(legendFor("status", line.stops, ctx).map((s) => s.label)).toEqual(["Draft", "Revised", "Final"]);

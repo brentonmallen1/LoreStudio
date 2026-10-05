@@ -4,11 +4,13 @@ import { numbersApi } from "../api/numbers";
 import PageHeader from "../components/layout/PageHeader";
 import Dialogue from "../components/numbers/Dialogue";
 import Prose from "../components/numbers/Prose";
+import Rotation from "../components/numbers/Rotation";
 import Score from "../components/numbers/Score";
 import Words from "../components/numbers/Words";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
 import { beatMarks, castGrid, pacing, threadLanes } from "../lib/numbers/charts";
+import { povRotation } from "../lib/numbers/pov";
 import { sceneLeaves } from "../lib/planning/methods";
 import { useFindingsStore } from "../stores/findingsStore";
 import { useStoryStore } from "../stores/storyStore";
@@ -50,8 +52,19 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
       beats: sheet ? beatMarks(sheet.beats, scenes) : [],
       lanes: threadLanes(threads, scenes, cast),
       cast: castGrid(characters, scenes, cast),
+      scenes,
+      rotation: povRotation(scenes, activeStory?.pov_character_id, characters),
     };
-  }, [structure, activeTemplate, sceneCast, threads, characters, beatSheets, activeStory?.beat_sheet_id]);
+  }, [
+    structure,
+    activeTemplate,
+    sceneCast,
+    threads,
+    characters,
+    beatSheets,
+    activeStory?.beat_sheet_id,
+    activeStory?.pov_character_id,
+  ]);
 
   async function measure() {
     setRunning(true);
@@ -76,7 +89,16 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
         {data && (
           <>
             <Words words={data.words} />
-            {charts.bars.length > 0 && <Score storyId={storyId} {...charts} />}
+            {charts.bars.length > 0 && (
+              <Score
+                storyId={storyId}
+                bars={charts.bars}
+                beats={charts.beats}
+                lanes={charts.lanes}
+                cast={charts.cast}
+              />
+            )}
+            <Rotation storyId={storyId} scenes={charts.scenes} rotation={charts.rotation} />
             <Dialogue storyId={storyId} dialogue={data.dialogue} />
             <Prose prose={data.prose} running={running} onMeasure={() => void measure()} />
             {aiAvailable && s && s.fresh + s.stale + s.missing > 0 && (

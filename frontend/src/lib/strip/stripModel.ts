@@ -17,6 +17,7 @@ export type StripWidth = (typeof STRIP_WIDTHS)[number];
 export const COLOUR_MODES = [
   { id: "none", label: "Nothing, just position", short: "Plain", sub: "Behind you solid, ahead hollow" },
   { id: "cast", label: "Who's on the page", short: "Who", sub: "The character each scene is mostly about" },
+  { id: "pov", label: "Whose eyes", short: "POV", sub: "The point-of-view character, planned scenes too" },
   { id: "threads", label: "Plot threads", short: "Threads", sub: "Every thread the scene carries" },
   { id: "status", label: "Draft status", short: "Status", sub: "Planned, draft, revised, final" },
   { id: "beat", label: "Story beat", short: "Beats", sub: "The beat sheet beat it carries" },
@@ -208,6 +209,8 @@ export interface ColourContext {
   beatSheet: BeatSheet | null;
   /** The open findings, for the Findings mode. */
   findings?: Finding[];
+  /** The book's own POV character, for a scene with none of its own (the Whose eyes mode). */
+  storyPov?: string | null;
 }
 
 const SEVERITY_COLOUR = {
@@ -232,6 +235,12 @@ export function colourFor(mode: ColourMode, stop: Stop, ctx: ColourContext): Swa
       .sort(bySeverity)
       .slice(0, MAX_PIPS)
       .map((f) => ({ color: SEVERITY_COLOUR[f.severity], label: SEVERITY_LABELS[f.severity] }));
+  }
+  if (mode === "pov") {
+    // The viewpoint is decided while planning, so a planned scene shows it too.
+    const id = stop.node.pov_character_id ?? ctx.storyPov;
+    const c = id ? ctx.characters.find((x) => x.id === id) : undefined;
+    return c ? [{ color: slotVar(c.color_slot), label: c.name }] : [];
   }
   if (stop.planned || mode === "none") return [];
   if (mode === "status") return [{ color: `var(--status-${stop.status})`, label: stop.status }];

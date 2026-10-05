@@ -62,6 +62,7 @@ export default function StoryStrip() {
     threads,
     beatSheet: beatSheets.find((b) => b.id === activeStory?.beat_sheet_id) ?? null,
     findings,
+    storyPov: activeStory?.pov_character_id ?? null,
   };
   const cycle = () => setStripWidth(toggleStrip(width, stripDepth, line.hasStations));
 

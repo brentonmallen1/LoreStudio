@@ -374,3 +374,15 @@
     display: none;
   }
 }
+
+/* Whose eyes (series v2): a square that opens its scene. */
+.cellBtn {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.cellBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
