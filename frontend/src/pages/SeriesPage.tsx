@@ -180,8 +180,8 @@ export default function SeriesPage() {
                 Plan
               </h2>
               <p className={styles.sectionNote}>
-                The books, what each one does and the arc across them. All of it optional: plan as much as
-                helps, and change it as the books find their own way.
+                Every book side by side: its part, what changes from book to book and the arc across them. All
+                of it optional: plan as much as helps, and change it as the books find their own way.
               </p>
             </div>
             <SeriesPlan series={series} progress={progress} onSeries={accept} books={books} />

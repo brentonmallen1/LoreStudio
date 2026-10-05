@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Series, SeriesBook } from "../../api/series";
 import { firstOpen } from "../planning/methods";
-import { beatsOf, seriesStepProgress, seriesSteps, shapePreview, slotOf } from "./plan";
+import {
+  axesInWords,
+  beatsOf,
+  planIsEmpty,
+  seriesStepProgress,
+  seriesSteps,
+  shapePreview,
+  slotOf,
+} from "./plan";
 
 const book = (n: number, extra: Partial<SeriesBook> = {}): SeriesBook => ({
   story_id: `b${n}`,
@@ -35,6 +43,7 @@ describe("the series plan", () => {
     });
     const steps = seriesSteps(s);
     expect(steps.map((st) => st.id).slice(-2)).toEqual(["axes", "slots"]);
+    expect(steps[steps.length - 1].label).toBe("Each book's viewpoint");
     expect(seriesStepProgress(steps[steps.length - 1], s)).toEqual({ done: 1, total: 2 });
     expect(slotOf(s, "b1", "v")).toEqual({ name: "Eleanor", element: s.elements[0], inBook: false });
     expect(slotOf(s, "b2", "v")).toBeNull();
@@ -88,5 +97,21 @@ describe("a shape's preview", () => {
     expect(shapePreview(shape, s)).toBe(
       "Adds 2 planned books, an arc of 3 beats, Viewpoint from book to book, and a part for each book that has none. Changes nothing you've written.",
     );
+  });
+});
+
+describe("naming the plan's rows", () => {
+  it("says the rows a series has as words", () => {
+    expect(axesInWords([])).toBe("");
+    expect(axesInWords([{ label: "Viewpoint" }])).toBe("viewpoint");
+    expect(axesInWords([{ label: "Viewpoint" }, { label: "Era" }, { label: "Place" }])).toBe(
+      "viewpoint, era and place",
+    );
+  });
+
+  it("walks a series through only while nothing is planned", () => {
+    expect(planIsEmpty(series({ premise: "A lighthouse." }))).toBe(true);
+    expect(planIsEmpty(series({ books: [book(1)] }))).toBe(false);
+    expect(planIsEmpty(series({ axes: [{ id: "e", kind: "era", label: "Era" }] }))).toBe(false);
   });
 });

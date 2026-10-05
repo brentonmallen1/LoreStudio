@@ -11,7 +11,7 @@
 - **Enduring / evolving.** Of a series element's fields: one truth for every book (where she was born), or each book its own (what she wants now).
 - **A book's part.** What a book does in its series that the others don't, in a line: written on the series' Plan or inside the book.
 - **Planned book.** A book of a series made before it is written: a story with no words yet, with its own Plan and Lorebook from the start.
-- **Axis.** What changes from book to book in a series: a viewpoint character, an era, a place, or something said in words.
+- **Axis.** What changes from book to book in a series, a row of its Plan: a viewpoint character, an era, a place, or something said in words.
 - **Left open.** A thread still open at the end of a book that no later book picks up: the question a sequel most easily drops.
 - **Coming in.** What the reader knows, believes and alone knows at the start of a book, from the books before it.
 - **The story so far.** A card per book of a series: what each leaves the reader with, a reminder before the next.

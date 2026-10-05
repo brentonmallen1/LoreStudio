@@ -7,7 +7,7 @@
  * planned by; the arc and the axes are there for the author who wants them.
  */
 import type { PlanStep } from "../planning/methods";
-import type { Series, SeriesShape } from "../../api/series";
+import type { Series, SeriesAxis, SeriesShape } from "../../api/series";
 
 export type SeriesPlanTarget =
   | { kind: "seriesField"; field: "premise" | "intent" }
@@ -23,8 +23,8 @@ const filled = (v: string | null | undefined) => !!v && v.trim().length > 0;
 
 const PREMISE: SeriesStep = {
   id: "premise",
-  label: "What the books are about",
-  why: "The thread that runs through every book, before any one of them.",
+  label: "Premise",
+  why: "What the books are about together: the thread that runs through every book, before any one of them.",
   how: "A sentence or two: the place, the people or the question the series keeps coming back to.",
   example: "A lighthouse on Harrow Island, and what keeping it costs the people who do.",
   target: { kind: "seriesField", field: "premise" },
@@ -32,8 +32,8 @@ const PREMISE: SeriesStep = {
 
 const INTENT: SeriesStep = {
   id: "intent",
-  label: "Why it takes more than one book",
-  why: "What the series does that no single book of it could.",
+  label: "Intent",
+  why: "Why it takes more than one book: what the series does that no single book of it could.",
   how: "Where it is going across the books, and what changes between the first and the last.",
   example:
     "Each book asks the keeper the same question from further off: is staying a promise, a habit or a choice?",
@@ -51,7 +51,7 @@ const BOOKS: SeriesStep = {
 
 const ROLES: SeriesStep = {
   id: "roles",
-  label: "What each book does",
+  label: "Each book's part",
   why: "A sequel that does not know its part retells the first book.",
   how: "For each book, a line: what it does in the series that the others do not.",
   example: "The Keeper's Daughter: the truth is out, and staying is now a choice she has to make again.",
@@ -60,7 +60,7 @@ const ROLES: SeriesStep = {
 
 const ARC: SeriesStep = {
   id: "arc",
-  label: "The arc across the books",
+  label: "Series arc",
   why: "The series has a shape of its own, larger than any book's: where it turns, and where it lands.",
   how: "Name the series' turning points in order, then say which book carries each. A beat can span books.",
   example: "The secret surfaces (Book 1) · Staying becomes a choice (Book 2) · The light goes out (Book 3).",
@@ -70,9 +70,9 @@ const ARC: SeriesStep = {
 
 const AXES: SeriesStep = {
   id: "axes",
-  label: "What changes from book to book",
-  why: "Some series turn on one thing: a different viewpoint each book, a different time, a different place.",
-  how: "Add what changes, if anything does: a viewpoint character, an era, a place, or something of your own.",
+  label: "Viewpoint, era, place",
+  why: "What changes from book to book, if anything does. Some series turn on one thing: a different viewpoint each book, a different time, a different place.",
+  how: "Add what changes: a viewpoint character, an era, a place, or something of your own. Each becomes a row on the board.",
   example: "Viewpoint: whose eyes each book is seen through. Era: the decade it is set in.",
   target: { kind: "axes" },
   optional: true,
@@ -80,7 +80,7 @@ const AXES: SeriesStep = {
 
 const SLOTS: SeriesStep = {
   id: "slots",
-  label: "Each book on each axis",
+  label: "Each book on each row",
   why: "Linked to the Lorebook, a book's viewpoint or era can be checked against its scenes.",
   how: "For each book, choose who or what it is on each axis, or write the idea down until it is someone.",
   example:
@@ -88,9 +88,22 @@ const SLOTS: SeriesStep = {
   target: { kind: "slots" },
 };
 
-/** The steps for this series, as it stands. */
+/** "viewpoint and era": the rows a series has, as words in a sentence. */
+export function axesInWords(axes: Pick<SeriesAxis, "label">[]): string {
+  const words = axes.map((a) => a.label.toLowerCase());
+  return words.length < 2 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words.at(-1)}`;
+}
+
+/** The steps for this series, as it stands: the last is named by the rows it fills. */
 export function seriesSteps(series: Pick<Series, "axes">): SeriesStep[] {
-  return [PREMISE, INTENT, BOOKS, ROLES, ARC, AXES, ...(series.axes?.length ? [SLOTS] : [])];
+  const axes = series.axes ?? [];
+  const slots = axes.length ? [{ ...SLOTS, label: `Each book's ${axesInWords(axes)}` }] : [];
+  return [PREMISE, INTENT, BOOKS, ROLES, ARC, AXES, ...slots];
+}
+
+/** Nothing planned yet: no books, no arc, nothing that changes. The Plan walks it through. */
+export function planIsEmpty(series: Pick<Series, "books" | "arc" | "axes">): boolean {
+  return series.books.length === 0 && !series.arc?.length && !series.axes?.length;
 }
 
 /** How far along a step is. A step with nothing to count yet reads 0 of 1. */
@@ -131,6 +144,14 @@ export function beatsOf(series: Series, storyId: string) {
   const ids = new Set(series.books.find((b) => b.story_id === storyId)?.arc_beats ?? []);
   return (series.arc ?? []).filter((b) => ids.has(b.id));
 }
+
+/** Ready ways in: the shapes a series most often changes by. */
+export const AXIS_PRESETS: { label: string; axis: Omit<SeriesAxis, "id"> }[] = [
+  { label: "A viewpoint character", axis: { kind: "character", label: "Viewpoint", pov: true } },
+  { label: "An era", axis: { kind: "era", label: "Era" } },
+  { label: "A place", axis: { kind: "location", label: "Place" } },
+  { label: "Something else", axis: { kind: "custom", label: "" } },
+];
 
 /** The series kind an axis is filled from; a custom axis is words only. */
 export const AXIS_SERIES_KIND = {

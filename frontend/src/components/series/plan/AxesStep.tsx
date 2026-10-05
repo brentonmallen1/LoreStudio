@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { seriesApi, type AxisKind, type Series, type SeriesAxis } from "../../../api/series";
+import { AXIS_PRESETS as PRESETS } from "../../../lib/series/plan";
 import { toast } from "../../../stores/toastStore";
 import styles from "./SeriesPlan.module.css";
 
@@ -12,14 +13,6 @@ const KIND_WORDS: Record<AxisKind, string> = {
   location: "A place",
   custom: "In words",
 };
-
-/** Ready ways in: the shapes a series most often changes by. */
-const PRESETS: { label: string; axis: Omit<SeriesAxis, "id"> }[] = [
-  { label: "A viewpoint character", axis: { kind: "character", label: "Viewpoint", pov: true } },
-  { label: "An era", axis: { kind: "era", label: "Era" } },
-  { label: "A place", axis: { kind: "location", label: "Place" } },
-  { label: "Something else", axis: { kind: "custom", label: "" } },
-];
 
 /**
  * What changes from book to book, if anything does: a viewpoint each book is seen through, an

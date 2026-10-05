@@ -14,6 +14,38 @@ import styles from "./SeriesPlan.module.css";
 const failed = (err: unknown, what: string) =>
   toast.error(err instanceof Error ? err.message : `${what} could not be saved.`);
 
+/** The series' premise or intent. */
+export function SeriesField({
+  series,
+  field,
+  onSeries,
+  rows = 4,
+}: {
+  series: Series;
+  field: "premise" | "intent";
+  onSeries: (s: Series) => void;
+  rows?: number;
+}) {
+  const { value, change, flush } = useAutosaveField(series[field] ?? "", (v) =>
+    seriesApi
+      .update(series.id, { [field]: v })
+      .then(onSeries)
+      .catch((err) => failed(err, "That")),
+  );
+  return (
+    <textarea
+      className={styles.textarea}
+      rows={rows}
+      value={value}
+      onChange={(e) => change(e.target.value)}
+      onBlur={flush}
+      aria-label={
+        field === "premise" ? "What the books are about, together" : "Why it takes more than one book"
+      }
+    />
+  );
+}
+
 /** A book's part in the series, in the author's words. Key it by the book. */
 export function RoleField({
   series,

@@ -1,18 +1,16 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { seriesApi, type Series, type SeriesBook } from "../../../api/series";
+import type { Series, SeriesBook } from "../../../api/series";
 import type { StoryProgress } from "../../../api/progress";
 import { seriesStepProgress, seriesSteps, type SeriesStep } from "../../../lib/series/plan";
 import { bookLabel } from "../../../stores/seriesStore";
-import { toast } from "../../../stores/toastStore";
 import StepRail from "../../plan/StepRail";
-import { useAutosaveField } from "../../plan/useAutosaveField";
 import ArcStep from "./ArcStep";
 import AxesStep from "./AxesStep";
-import ShapePicker from "./ShapePicker";
+import { ShapePrompt } from "./ShapePicker";
 import SlotCell from "./SlotCell";
 import CarryIntoBook from "./CarryIntoBook";
-import { AddBookForm, RoleField } from "./cells";
+import { AddBookForm, RoleField, SeriesField } from "./cells";
 import styles from "./SeriesPlan.module.css";
 
 const STEP_KEY = (id: string) => `ls_series_plan_step:${id}`;
@@ -95,81 +93,15 @@ function StepEditor({ step, series, progress, onSeries, books }: Props & { step:
   }
 }
 
-function SeriesField({
-  series,
-  field,
-  onSeries,
-}: {
-  series: Series;
-  field: "premise" | "intent";
-  onSeries: (s: Series) => void;
-}) {
-  const { value, change, flush } = useAutosaveField(series[field] ?? "", (v) =>
-    seriesApi
-      .update(series.id, { [field]: v })
-      .then(onSeries)
-      .catch((err) => toast.error(err instanceof Error ? err.message : "That could not be saved.")),
-  );
-  return (
-    <textarea
-      className={styles.textarea}
-      rows={4}
-      value={value}
-      onChange={(e) => change(e.target.value)}
-      onBlur={flush}
-      aria-label={
-        field === "premise" ? "What the books are about, together" : "Why it takes more than one book"
-      }
-    />
-  );
-}
-
 /** The books in order, a new planned one, and a planned book's cast from the book before. */
 function BooksStep({ series, progress, onSeries, books }: Omit<Props, "step">) {
   const [carrying, setCarrying] = useState<{ book: SeriesBook; from: SeriesBook } | null>(null);
-  const [shaping, setShaping] = useState(false);
-  const [shape, setShape] = useState<string | null>(null);
   const unstarted = series.books.filter((b, i) => i > 0 && !(progress[b.story_id]?.word_count ?? 0));
   return (
     <div className={styles.stack}>
       {series.books.length > 0 && books}
       <AddBookForm series={series} onSeries={onSeries} />
-      {!(series.arc ?? []).length &&
-        (shaping ? (
-          <div className={styles.stack}>
-            <ShapePicker series={series} value={shape} onChange={setShape} />
-            <div className={styles.addRow}>
-              <button
-                className={styles.btn}
-                disabled={!shape}
-                onClick={() =>
-                  shape &&
-                  seriesApi
-                    .applyShape(series.id, shape)
-                    .then((s) => {
-                      onSeries(s);
-                      setShaping(false);
-                    })
-                    .catch((err) =>
-                      toast.error(err instanceof Error ? err.message : "The shape could not be applied."),
-                    )
-                }
-              >
-                Use this shape
-              </button>
-              <button className={styles.textBtn} onClick={() => setShaping(false)}>
-                Not now
-              </button>
-            </div>
-          </div>
-        ) : (
-          <p className={styles.note}>
-            Not sure how many books, or how they fit together?{" "}
-            <button className={styles.textBtn} onClick={() => setShaping(true)}>
-              Start from a shape
-            </button>
-          </p>
-        ))}
+      <ShapePrompt series={series} onSeries={onSeries} />
       {unstarted.length > 0 && (
         <p className={styles.note}>
           A book not yet started can take its cast from the book before it:{" "}

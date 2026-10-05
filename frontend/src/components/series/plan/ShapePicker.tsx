@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { seriesApi, type Series, type SeriesShape } from "../../../api/series";
 import { shapePreview } from "../../../lib/series/plan";
+import { toast } from "../../../stores/toastStore";
 import styles from "../../story/CreateStoryDialog.module.css";
+import plan from "./SeriesPlan.module.css";
 
 /**
  * Ready-made starts for a series' plan, each saying what it would add before it does. "Start
@@ -49,5 +51,52 @@ export default function ShapePicker({
       )}
       {chosen && <p className={styles.templateHint}>{shapePreview(chosen, series)}</p>}
     </fieldset>
+  );
+}
+
+/**
+ * "Start from a shape", offered while the series has no arc of its own: a shape only starts
+ * an arc, never redraws one.
+ */
+export function ShapePrompt({ series, onSeries }: { series: Series; onSeries: (s: Series) => void }) {
+  const [shaping, setShaping] = useState(false);
+  const [shape, setShape] = useState<string | null>(null);
+  if ((series.arc ?? []).length) return null;
+  if (!shaping)
+    return (
+      <p className={plan.note}>
+        Not sure how many books, or how they fit together?{" "}
+        <button className={plan.textBtn} onClick={() => setShaping(true)}>
+          Start from a shape
+        </button>
+      </p>
+    );
+  return (
+    <div className={plan.stack}>
+      <ShapePicker series={series} value={shape} onChange={setShape} />
+      <div className={plan.addRow}>
+        <button
+          className={plan.btn}
+          disabled={!shape}
+          onClick={() =>
+            shape &&
+            seriesApi
+              .applyShape(series.id, shape)
+              .then((s) => {
+                onSeries(s);
+                setShaping(false);
+              })
+              .catch((err) =>
+                toast.error(err instanceof Error ? err.message : "The shape could not be applied."),
+              )
+          }
+        >
+          Use this shape
+        </button>
+        <button className={plan.textBtn} onClick={() => setShaping(false)}>
+          Not now
+        </button>
+      </div>
+    </div>
   );
 }
