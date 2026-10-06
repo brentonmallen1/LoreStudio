@@ -7,7 +7,7 @@
  */
 
 export type NumbersSection =
-  "words" | "pacing" | "threads" | "cast" | "pov" | "dialogue" | "prose" | "summaries";
+  "time" | "words" | "pacing" | "threads" | "cast" | "pov" | "dialogue" | "prose" | "summaries";
 
 export interface AboutSection {
   measures: string[];
@@ -18,6 +18,24 @@ export interface AboutSection {
 }
 
 export const ABOUT: Record<NumbersSection, AboutSection> = {
+  time: {
+    measures: [
+      "Five of the page's figures at every reading the numbers have kept: the words, the scenes, the dialogue balance, the share of sentences in the passive and the open findings. Each line is one figure from the first reading to now; beside it are its value now and how far it has moved since the first reading.",
+      "A reading is taken when a writing session starts (the story opened after three hours away), at most once more a day while the book changes, with every version saved, after a restore and with Measure now. Every reading is kept for two weeks, then one a day to ninety days, then one a week. A version's reading is never thinned.",
+    ],
+    why: [
+      "The rest of the page is the book at one moment. These lines show how it came to be so: when the words arrived, when scenes were added or cut, when a figure moved and whether it stayed moved.",
+    ],
+    reading: [
+      "Each line has its own scale, from its lowest reading to its highest, so its shape shows the direction and the timing of a change, not its size. The figures beside it give the size.",
+      "The ticks along the bottom are the readings, placed by when they were taken, and a dashed rule is a named version. Pointing at the lines gives every figure at one reading; choosing a reading compares the whole page with it.",
+      "Passive is counted only when the prose is measured, so its line can start later than the others. Open findings are what Findings had open when the reading was taken; a reading measured from an older version has none.",
+    ],
+    compared: [
+      "The reading compared with is a solid rule with a ringed point on every line, and each figure says what it was then. Comparing two readings, the later one takes the place of now.",
+    ],
+  },
+
   words: {
     measures: [
       "Every word in the book's scenes, counted the way the editor counts as you type: a speaker tag is not a word, the name in a mention is.",

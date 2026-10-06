@@ -36,6 +36,46 @@
   color: var(--color-nlp);
 }
 
+/* A heading that opens and closes its section (Over time). */
+.foldButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: -0.3rem;
+  padding: 0 0.3rem 0 0.1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.foldButton:hover {
+  background: var(--color-surface-2);
+}
+
+.foldButton:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.foldChevron {
+  flex: none;
+  color: var(--color-text-muted);
+  transition: transform var(--transition);
+}
+
+.foldChevron[data-open] {
+  transform: rotate(90deg);
+}
+
+.headingNote {
+  margin-left: 0.4rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
 /* The heading and its ⓘ: what the section measures, opened in a modal (lib/numbers/about). */
 .headingRow {
   display: flex;

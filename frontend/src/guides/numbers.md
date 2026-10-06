@@ -21,6 +21,6 @@ While comparing:
 
 - **What changed** says it in a few sentences;
 - the earlier side is drawn quieter than now: outlines for earlier lengths and shares, a ring on what is new, faint marks for what has gone, "was" beside a figure that moved;
-- the row of small lines under the header shows each headline figure across every reading; choose a point to compare with it.
+- Over time, at the top of the page, draws five headline figures across every reading on one time axis, with each version as a dashed rule; point at the lines to read a reading, choose it to compare with it.
 
 A change is never coloured as good or bad. More words is not better; the page states what moved and by how much.
