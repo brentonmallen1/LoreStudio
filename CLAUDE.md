@@ -117,7 +117,9 @@ components/       — Feature components organized by domain
   story/          — CorkboardView, StoryboardView, StorySummaryPanel, StoryIdentityPanel
   overview/       — The Overview's cards: vitals, needs your eye, words by chapter, cast, lately
   numbers/        — The Numbers page: words, pacing, thread lanes, who is on the page, dialogue,
-                    prose (GET /stories/{id}/numbers; the per-scene charts come from /scene-cast)
+                    prose (GET /stories/{id}/numbers; the per-scene charts come from /scene-cast).
+                    Compare ▾ (doc 19): readings (services/numbers_reading.py measures, now or from a
+                    snapshot; numbers_history.py takes and thins them) drawn through lib/numbers/figures
   compendium/     — Research entries and the Everything index (lib/compendium); media/ has images
   notes/          — Notes of every kind (note, question, to-do, idea): NotesBoard (Compendium › Notes and
                     the panel tab), NoteItem, SubjectNotes on sheets; the margin is editor/NoteMargin

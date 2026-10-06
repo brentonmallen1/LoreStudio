@@ -8,7 +8,7 @@ Three layers protect your work.
 
 ## Snapshots (minutes to days)
 
-**Versions** stores whole-story snapshots: manual ones you name, and automatic ones on the schedule in Settings › Backups. Restore always offers a safety snapshot first. Snapshots include every table the story owns and can be exported as a `.lorestudio.zip` and imported elsewhere.
+**Versions** stores whole-story snapshots: manual ones you name, and automatic ones on the schedule in Settings › Backups. Restore always offers a safety snapshot first. Snapshots include every table the story owns and can be exported as a `.lorestudio.zip` and imported elsewhere. A version also keeps the story's numbers as they stood, for **Numbers › Compare** (see _The story in numbers_).
 
 ## Database backups (nightly)
 

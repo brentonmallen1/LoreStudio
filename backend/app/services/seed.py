@@ -28,6 +28,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from .seed_chronicle import seed_lighthouse_chronicle
+from .seed_numbers import seed_lighthouse_numbers
 from .word_count import recount_story
 
 STRUCTURE_TEMPLATES = [
@@ -2486,6 +2487,9 @@ def seed_demo_story():  # noqa: PLR0915
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
         db.commit()
+
+        # A few weeks of Numbers readings, so Compare has a history to show (doc 19).
+        seed_lighthouse_numbers(db, story)
 
 
 def seed_scifi_demo_story():  # noqa: PLR0915

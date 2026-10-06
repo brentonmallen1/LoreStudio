@@ -719,3 +719,231 @@
     display: none;
   }
 }
+
+/* ── Compared (doc 19): the earlier side, always quieter than the book as it is ── */
+
+.was {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.legend .was {
+  margin-left: -0.15rem;
+}
+
+.stackWrap {
+  position: relative;
+}
+
+/* The earlier total: an outline over the state bar, at its own length on the same scale. */
+.ghost {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 0;
+  box-sizing: border-box;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.targetThen {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 0.933rem;
+  margin-left: -1px;
+  background: var(--color-text-muted);
+}
+
+/* A column's earlier height: an outline behind the bar, the same width. */
+.col {
+  position: relative;
+}
+
+.barThen {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 1.75rem;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  border: 1.5px solid var(--color-text-muted);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+
+.bar[data-new] {
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 3.5px var(--color-text-muted);
+}
+
+.medianThen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-text-muted) 45%, transparent);
+  pointer-events: none;
+}
+
+.yAxis > span[data-then] {
+  color: var(--color-text-subtle);
+}
+
+/* Two medians close together: the earlier one's label steps aside. */
+.yAxis > span[data-near="below"] {
+  transform: translateY(150%);
+}
+
+.yAxis > span[data-near="above"] {
+  transform: translateY(-50%);
+}
+
+.thenKey {
+  width: 0.7rem;
+  height: 0.7rem;
+  box-sizing: border-box;
+  border: 1.5px solid var(--color-text-muted);
+  border-bottom: none;
+}
+
+.newKey {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  background: var(--color-text-subtle);
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 3.5px var(--color-text-muted);
+}
+
+/* Threads: a mark new since then is ringed; one gone since then is faint. */
+.lane [data-new]::before {
+  content: "";
+  position: absolute;
+  inset: 0.1rem;
+  border: 1.5px solid var(--color-text-muted);
+  border-radius: 50%;
+}
+
+.markGone {
+  opacity: 0.35;
+  pointer-events: auto;
+}
+
+/* The cast: a cell gained since then has a dot; a cell lost is a faint outline. */
+.cell[data-change] {
+  position: relative;
+}
+
+.cell[data-change="gained"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--color-bg);
+}
+
+.cell[data-change="lost"] {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--who) 70%, var(--color-surface-2));
+}
+
+/* Whose eyes: the earlier viewpoint as a band under a scene whose viewpoint changed. */
+.cell[data-was] {
+  position: relative;
+}
+
+.cell[data-was]::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  bottom: -5px;
+  height: 3px;
+  border-radius: 1px;
+  background: var(--then);
+}
+
+/* Dialogue: each speaker's share then, a firmer tick than the even share. */
+.shareThen {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--color-text);
+}
+
+.wasKey {
+  width: 2px;
+  height: 0.8rem;
+  background: var(--color-text);
+}
+
+.histPlot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+}
+
+.histThen {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 2.5rem;
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  border: 1.5px solid var(--color-text-muted);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
+}
+
+/* Save a version */
+.nameForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.nameForm input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-base);
+}
+
+.nameForm p {
+  margin: 0.75rem 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.verbPlain {
+  padding: 0.35rem 0.875rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}

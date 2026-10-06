@@ -44,6 +44,11 @@ def test_a_reading_matches_the_page(demo: Story, db_session: Session, client, te
         assert scene["characters"] == cast[scene["id"]]["character_ids"], scene["title"]
         assert Counter(t["id"] for t in scene["threads"]) == Counter(cast[scene["id"]]["thread_ids"])
     assert reading["findings"] and sum(reading["findings"].values()) > 0
+    # A thread's status is not stored; the reading says what the thread says.
+    from app.models.plot_thread import PlotThread
+
+    live = {t.id: t.status for t in db_session.query(PlotThread).filter(PlotThread.story_id == demo.id)}
+    assert {t["id"]: t["status"] for t in reading["threads"]} == live
 
 
 def test_the_scenes_are_the_charts_scenes(demo: Story, db_session: Session):
@@ -93,3 +98,21 @@ def test_an_old_snapshot_without_newer_fields_is_still_measured():
     assert reading["scenes"][0]["status"] == "draft"
     assert reading["characters"][0]["arc"] == {"done": 0, "total": 0}
     assert reading["dialogue"]["total_lines"] == 0
+
+
+def test_the_demo_has_a_history_to_compare(demo: Story, db_session: Session):
+    from app.models.numbers_reading import NumbersReading
+
+    readings = (
+        db_session.query(NumbersReading)
+        .filter(NumbersReading.story_id == demo.id)
+        .order_by(NumbersReading.taken_at)
+        .all()
+    )
+    assert [r.label for r in readings if r.label] == ["First draft", "Before the storm rewrite"]
+    first_draft, grown, before_rewrite, yesterday = (r.data["words"]["total"] for r in readings)
+    assert first_draft < grown < before_rewrite  # the book grew
+    assert yesterday < before_rewrite  # and the storm chapters were cut in the rewrite
+    first = readings[0].data
+    assert len(first["chapters"]) == 4
+    assert all("Staying" not in t["name"] for t in first["threads"])

@@ -29,6 +29,7 @@ import "./planning";
 import "./panel";
 import "./strip";
 import "./findings";
+import "./numbers";
 import "./sessions";
 import "./appearance";
 import "./series";

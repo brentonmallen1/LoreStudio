@@ -16,10 +16,16 @@ import styles from "./Numbers.module.css";
 export default function Summaries({
   storyId,
   summaries: s,
+  then,
+  live = true,
   onDone,
 }: {
   storyId: string;
   summaries: NumbersSummaries;
+  /** The earlier side's counts, when comparing (doc 19). */
+  then?: NumbersSummaries;
+  /** False when the page shows an earlier reading rather than the book as it is: no button. */
+  live?: boolean;
   onDone: () => void;
 }) {
   const { active, refresh, cancel } = useJobs(storyId);
@@ -46,9 +52,12 @@ export default function Summaries({
       <p className={styles.lede}>
         The Assistant&rsquo;s short summaries of each written scene: <strong>{s.fresh}</strong> up to date,{" "}
         <strong>{s.stale}</strong> written before the scene last changed, <strong>{s.missing}</strong> not
-        written yet. Every run is in the <Link to={`/stories/${storyId}/chronicle`}>Chronicle</Link>.
+        written yet.
+        {then &&
+          ` Then: ${then.fresh} up to date, ${then.stale} out of date, ${then.missing} not written.`}{" "}
+        Every run is in the <Link to={`/stories/${storyId}/chronicle`}>Chronicle</Link>.
       </p>
-      {job ? (
+      {!live ? null : job ? (
         <div className={styles.jobRow}>
           <span className={styles.jobState} role="status">
             {job.total > 0

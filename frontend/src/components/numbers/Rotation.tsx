@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { slotVar } from "../../lib/colorSlots";
-import { chapterStarts, type ChapterSpan } from "../../lib/numbers/charts";
-import type { PovRotation } from "../../lib/numbers/pov";
-import type { StructureNode } from "../../types";
+import { chapterStarts } from "../../lib/numbers/charts";
+import type { Figures } from "../../lib/numbers/figures";
 import ChapterRow from "./SceneAxis";
 import SectionHeading from "./SectionHeading";
 import styles from "./Numbers.module.css";
@@ -14,19 +13,29 @@ import styles from "./Numbers.module.css";
  */
 export default function Rotation({
   storyId,
-  scenes,
-  rotation,
-  chapters,
+  now,
+  then,
 }: {
   storyId: string;
-  scenes: StructureNode[];
-  rotation: PovRotation;
-  chapters: ChapterSpan[];
+  now: Figures;
+  then: Figures | null;
 }) {
   const navigate = useNavigate();
+  const { scenes, rotation, chapters } = now;
   const { rows, perScene } = rotation;
   if (rows.length < 2) return null;
   const byId = new Map(rows.map((r) => [r.character.id, r.character]));
+  // Compared (doc 19): whose eyes each scene there then was seen through, and each one's count.
+  const thenPov = new Map(then?.scenes.map((s, i) => [s.id, then.rotation.perScene[i]]) ?? []);
+  const thenCount = new Map(then?.rotation.rows.map((r) => [r.character.id, r.scenes.length]) ?? []);
+  const colourOf = (id: string | null | undefined) => {
+    const c = id ? (byId.get(id) ?? then?.characters.find((x) => x.id === id)) : undefined;
+    return c ? slotVar(c.color_slot) : "var(--color-surface-2)";
+  };
+  const was = (id: string, pov: string | null | undefined) =>
+    then && thenPov.has(id) && (thenPov.get(id) ?? null) !== (pov ?? null)
+      ? (thenPov.get(id) ?? null)
+      : undefined;
   const overdue = rows.filter((r) => r.overdue);
   const starts = chapterStarts(chapters);
   return (
@@ -42,25 +51,36 @@ export default function Rotation({
         <div className={styles.cols} role="group" aria-label="Whose eyes each scene is seen through">
           {scenes.map((s, i) => {
             const c = byId.get(perScene[i] ?? "");
+            const before = was(s.id, perScene[i]);
+            const name = (id: string | null) =>
+              id
+                ? (byId.get(id)?.name ?? then?.characters.find((x) => x.id === id)?.name ?? "someone")
+                : "no one";
+            const since = before !== undefined ? `; seen through ${name(before)} then` : "";
+            const mark = {
+              "data-tall": true,
+              "data-chapter": starts.has(i) || undefined,
+              "data-was": before !== undefined || undefined,
+            };
+            const thenStyle = { "--then": colourOf(before) } as React.CSSProperties;
             return c ? (
               <button
                 key={s.id}
                 type="button"
                 className={`${styles.cell} ${styles.cellBtn}`}
-                data-tall
-                data-chapter={starts.has(i) || undefined}
-                style={{ background: slotVar(c.color_slot) }}
-                title={`${s.title}: seen through ${c.name}`}
-                aria-label={`${s.title}, seen through ${c.name}`}
+                {...mark}
+                style={{ ...thenStyle, background: slotVar(c.color_slot) }}
+                title={`${s.title}: seen through ${c.name}${since}`}
+                aria-label={`${s.title}, seen through ${c.name}${since}`}
                 onClick={() => navigate(`/stories/${storyId}/write/${s.id}`)}
               />
             ) : (
               <span
                 key={s.id}
                 className={styles.cell}
-                data-tall
-                data-chapter={starts.has(i) || undefined}
-                title={`${s.title}: no point of view set`}
+                {...mark}
+                style={thenStyle}
+                title={`${s.title}: no point of view set${since}`}
               />
             );
           })}
@@ -74,6 +94,9 @@ export default function Rotation({
             {r.character.name}
             <span className={styles.muted}>
               {r.scenes.length} scene{r.scenes.length === 1 ? "" : "s"}
+              {then && (thenCount.get(r.character.id) ?? 0) !== r.scenes.length
+                ? ` (was ${thenCount.get(r.character.id) ?? 0})`
+                : ""}
             </span>
           </span>
         ))}

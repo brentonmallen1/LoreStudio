@@ -7,6 +7,7 @@ describe("the Numbers page's ⓘ text", () => {
       expect(about.measures.length).toBeGreaterThan(0);
       expect(about.why.length).toBeGreaterThan(0);
       expect(about.reading.length).toBeGreaterThan(0);
+      expect(about.compared.length).toBeGreaterThan(0);
     }
   });
 
@@ -15,7 +16,7 @@ describe("the Numbers page's ⓘ text", () => {
   it("never tells the author what to do", () => {
     const advice = /\b(should|ought|consider|try (to|\w+ing)|aim|avoid|too (many|few|long|short|much))\b/i;
     for (const [section, about] of Object.entries(ABOUT)) {
-      for (const line of [...about.measures, ...about.why, ...about.reading]) {
+      for (const line of [...about.measures, ...about.why, ...about.reading, ...about.compared]) {
         expect(line, section).not.toMatch(advice);
       }
     }

@@ -1,0 +1,309 @@
+/* The numbers over time (doc 19): the picker, the comparing bar, What changed, the trend row. */
+
+/* ── Compare ▾ ── */
+
+.pickerWrap {
+  position: relative;
+}
+
+.pickerButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 1.867rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.pickerButton:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.pickerButton[data-on] {
+  border-color: var(--color-text-muted);
+  background: var(--color-surface-2);
+}
+
+.pickerButton:disabled {
+  color: var(--color-text-subtle);
+  cursor: default;
+}
+
+.pickerButton:focus-visible,
+.option:focus-visible,
+.off:focus-visible,
+.barClose:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 30;
+  width: 24rem;
+  max-width: calc(100vw - 2rem);
+  max-height: min(32rem, 70vh);
+  overflow-y: auto;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.group {
+  padding: 0.5rem 0.5rem 0.25rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.option[aria-checked="true"] {
+  background: var(--color-surface-2);
+  font-weight: 600;
+}
+
+.option:disabled {
+  color: var(--color-text-subtle);
+  cursor: default;
+}
+
+.optionName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.optionWhen,
+.optionWords {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.option:disabled .optionWhen {
+  color: var(--color-text-subtle);
+}
+
+.earlier {
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.earlier summary {
+  padding: 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.earlierList {
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.against {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--color-border-light);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.against select {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.note {
+  margin: 0;
+  padding: 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.off {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.5rem;
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.off:hover {
+  background: var(--color-surface-2);
+}
+
+/* ── The comparing bar, in the header's chips row ── */
+
+.bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.35rem 0.25rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.bar strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.barClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.barClose:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* ── What changed ── */
+
+.changed {
+  margin: 1.25rem 0 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.changedTitle {
+  margin: 0 0 0.35rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.changed p {
+  margin: 0.2rem 0 0;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text);
+}
+
+/* ── The trend row ── */
+
+.trend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding: 1.1rem 0 0.4rem;
+}
+
+.spark {
+  display: grid;
+  grid-template-columns: auto;
+  gap: 0.15rem;
+}
+
+.sparkName {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.sparkLine {
+  fill: none;
+  stroke: var(--color-text-subtle);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sparkPoint {
+  fill: var(--color-text-subtle);
+  stroke: var(--color-bg);
+  stroke-width: 1.5;
+  cursor: pointer;
+}
+
+.sparkPoint:hover {
+  fill: var(--color-text);
+}
+
+.sparkPoint[data-from] {
+  fill: var(--color-bg);
+  stroke: var(--color-text);
+  stroke-width: 2;
+}
+
+.sparkNow {
+  fill: var(--color-text);
+  stroke: var(--color-bg);
+  stroke-width: 1.5;
+}
+
+.sparkValue {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkWas {
+  margin-left: 0.4rem;
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

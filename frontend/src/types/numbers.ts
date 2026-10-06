@@ -50,3 +50,57 @@ export interface NumbersSummaries {
   stale: number;
   missing: number;
 }
+
+/** A reading in the picker and the trend row (doc 19): when, why, and its headline figures. */
+export interface ReadingSummary {
+  id: string;
+  taken_at: string;
+  trigger: "session" | "daily" | "manual" | "snapshot" | "restore" | "backfill";
+  /** The version's name, for a reading taken with a named snapshot. */
+  label: string | null;
+  snapshot_id: string | null;
+  words: number;
+  scenes: number;
+  balance: number | null;
+  passive_pct: number | null;
+  open_findings: number | null;
+}
+
+export interface ReadingsList {
+  readings: ReadingSummary[];
+  unmeasured_versions: number;
+}
+
+/** A reading's figures (backend services/numbers_reading.py `measure`). */
+export interface ReadingData {
+  version: number;
+  story_pov: string | null;
+  words: NumbersWords;
+  scenes: {
+    id: string;
+    title: string;
+    parent_id: string | null;
+    words: number;
+    status: string;
+    pov: string | null;
+    beat_id: string | null;
+    characters: string[];
+    threads: { id: string; role: string; note: string }[];
+  }[];
+  chapters: { id: string; title: string }[];
+  characters: { id: string; name: string; color_slot: number | null; arc: { done: number; total: number } }[];
+  threads: { id: string; name: string; status: string; color_slot: number | null }[];
+  beats: { id: string; name: string; at: number }[];
+  dialogue: Pick<NumbersDialogue, "total_lines" | "unattributed" | "balance" | "speakers">;
+  prose: (NumbersProse & { run_id: string }) | null;
+  findings: Record<string, number> | null;
+  summaries: NumbersSummaries;
+}
+
+export interface Reading {
+  id: string;
+  taken_at: string;
+  trigger: ReadingSummary["trigger"];
+  label: string | null;
+  data: ReadingData;
+}

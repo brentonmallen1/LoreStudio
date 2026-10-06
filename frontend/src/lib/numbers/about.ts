@@ -13,6 +13,8 @@ export interface AboutSection {
   measures: string[];
   why: string[];
   reading: string[];
+  /** How the section draws a comparison with an earlier reading (doc 19). */
+  compared: string[];
 }
 
 export const ABOUT: Record<NumbersSection, AboutSection> = {
@@ -30,6 +32,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "When the mean is well above the median, a few long scenes carry much of the length; when it is well below, a few short ones pull the average down.",
       "The states are only as current as the scenes' own settings: a scene revised but still marked draft counts as draft.",
     ],
+    compared: [
+      "The earlier total is an outline on the state bar, on the same scale, and the total says what it was. Each state in the legend says its change (+412, −120).",
+    ],
   },
 
   pacing: {
@@ -44,6 +49,10 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "Length is not speed: a long scene can move quickly and a short one slowly. The chart shows where the book spends its words, not how they read.",
       "A beat's dot is where the sheet expects it, not where its scene is. A dot some way from the scene assigned to it means this book's proportions differ from the sheet's at that point.",
       "A scene with no words yet is a dashed mark on the baseline, so a planned stretch shows as a run of them until it is drafted. Choose a column to open its scene.",
+    ],
+    compared: [
+      "Each column's earlier height is an outline behind it; a scene new since then is ringed and has no outline. The earlier median is a fainter line with its value beside it. Scenes removed or moved since then are listed under the chart.",
+      "Scenes are matched by identity, not title or place: a renamed scene is the same scene, and a moved one is drawn where it is now.",
     ],
   },
 
@@ -61,6 +70,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "A thread only appears in the scenes it has been linked to, so an unlinked scene where the thread still matters will not show here.",
       "The lanes share the pacing chart's columns, so a thread can be read against the length of the scenes it runs through.",
     ],
+    compared: [
+      "A mark new since then is ringed; a mark there then and gone now is drawn faint where its scene is. A changed status says what it was (“Resolved · was Open”); a thread that did not exist then says “new”.",
+    ],
   },
 
   cast: {
@@ -76,6 +88,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "Being named counts as presence, so a passing mention fills a square just as a scene of their own does, and a character who is there but never named and never tagged as speaking does not, unless placed by hand.",
       "“Quiet lately” is a fixed count of three written scenes, whatever the character's part in the book. It says only that they have not been on the page recently.",
     ],
+    compared: [
+      "A cell gained since then has a dot; a cell lost is a faint outline in the character's colour. Each count says its change. Only scenes that existed then can gain or lose someone: a scene new since then is marked in Pacing.",
+    ],
   },
 
   pov: {
@@ -89,6 +104,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
     reading: [
       "An even rotation and an uneven one are both shapes a book can have; the chart shows which this one has.",
       "“Away a while” is measured against this book's own rhythm, not a standard, so the same gap can be marked in one book and not in another. Choose a square to open its scene.",
+    ],
+    compared: [
+      "A scene whose point of view changed has a thin band under it in the colour of whose eyes it was seen through then. Each viewpoint's count says what it was.",
     ],
   },
 
@@ -107,6 +125,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "A scene listed for one voice may be a confession, an interrogation or a lecture. The figure says only that one speaker held the floor.",
       "Speakers are found by reading the text around each line, so some will be wrong or missing until confirmed; untagged lines leave the shares short until they have a speaker.",
     ],
+    compared: [
+      "A firmer tick on each speaker's track is their share then, and the row reads “47%, was 52%”. The balance says what it was.",
+    ],
   },
 
   prose: {
@@ -123,6 +144,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
       "The figures are most informative against themselves, this book at an earlier measure, or another of yours, rather than against a general norm.",
       "The parser makes mistakes, more often in dialogue and fragments. The passages these checks flag, scene by scene, are in Findings.",
     ],
+    compared: [
+      "Each figure says what it was, and the earlier run's shares are outlines beside the columns. A reading taken before the prose was ever measured is said to be so, not drawn as zero; a run not repeated since is said to be the same run.",
+    ],
   },
 
   summaries: {
@@ -135,6 +159,9 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
     reading: [
       "A summary counts as out of date as soon as its scene's text changes, however small the change, so it may still be accurate.",
       "Write summaries writes only the ones missing or out of date, one scene at a time, and can be stopped between scenes. Each call to the model is logged in the Chronicle. Findings' ⋯ menu starts the same job.",
+    ],
+    compared: [
+      "The counts then follow the counts now. While two earlier readings are compared, the button that writes summaries is hidden: it acts on the book as it is.",
     ],
   },
 };

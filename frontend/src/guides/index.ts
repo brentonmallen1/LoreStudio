@@ -6,6 +6,7 @@ import notes from "./notes-and-freewrite.md?raw";
 import promises from "./promises.md?raw";
 import series from "./writing-a-series.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
+import numbers from "./numbers.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
@@ -116,6 +117,13 @@ const GUIDE_LIST: Guide[] = [
     body: snapshots,
     modes: BOTH,
     keywords: ["versions", "restore", "undo", "history"],
+  },
+  {
+    id: "numbers",
+    title: "The story in numbers",
+    body: numbers,
+    modes: BOTH,
+    keywords: ["numbers", "compare", "history", "over time", "readings", "versions", "trend", "statistics"],
   },
   {
     id: "import-and-export",

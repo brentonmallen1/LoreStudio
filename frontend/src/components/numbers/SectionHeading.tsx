@@ -8,6 +8,7 @@ const PARTS = [
   ["measures", "What it measures"],
   ["why", "Why it is here"],
   ["reading", "How to read it"],
+  ["compared", "When comparing"],
 ] as const;
 
 /** A section's heading, with an ⓘ beside it that says what the section measures and how to read it. */

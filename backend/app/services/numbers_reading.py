@@ -170,6 +170,17 @@ def _words(leaves: list[SimpleNamespace], form: str) -> dict[str, Any]:
     }
 
 
+def _thread_status(thread: Any, roles: dict[str, list[str]]) -> str:
+    """``PlotThread.status`` over a snapshot's rows: a thread's status is not stored, it follows
+    from its scenes (doc 18): set aside, resolved once a scene closes it, open, or planned."""
+    if thread.set_aside:
+        return "set_aside"
+    mine = roles.get(thread.id, [])
+    if "closes" in mine:
+        return "resolved"
+    return "open" if mine else "planned"
+
+
 def measure(
     state: dict[str, Any],
     *,
@@ -193,8 +204,10 @@ def measure(
     for row in _rows(state.get("scene_presence", [])):
         answers.setdefault(row.node_id, []).append(row)
     carried: dict[str, list[dict[str, Any]]] = {}
+    roles: dict[str, list[str]] = {}
     for a in _rows(state.get("plot_thread_appearances", [])):
         carried.setdefault(a.node_id, []).append({"id": a.thread_id, "role": a.role, "note": a.note or ""})
+        roles.setdefault(a.thread_id, []).append(a.role or "moves")
 
     titles = {n.id: n.title or "" for n in leaves}
     blocks = [b for b in _rows(state.get("dialogue_blocks", [])) if b.dialogue_type != "thought"]
@@ -242,7 +255,7 @@ def measure(
             for c in characters
         ],
         "threads": [
-            {"id": t.id, "name": t.name or "", "status": t.status, "color_slot": t.color_slot}
+            {"id": t.id, "name": t.name or "", "status": _thread_status(t, roles), "color_slot": t.color_slot}
             for t in _rows(state.get("plot_threads", []))
         ],
         "beats": beats,
