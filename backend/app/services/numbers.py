@@ -9,6 +9,7 @@ scene) are drawn in the browser from ``/scene-cast``, which already has every fi
 from __future__ import annotations
 
 from statistics import median
+from typing import Any
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -76,25 +77,14 @@ def _by_words(share: SpeakerShare) -> int:
     return share.word_count
 
 
-def dialogue(view: StoryView, db: Session) -> NumbersDialogue:
-    """Who speaks and how much, out loud: a thought is nobody's line. Lines nobody has been
-    given to are counted, and left out of the shares, or "unknown" would be the loudest voice."""
-    sync_story_dialogue(view.story.id, db)
-    titles = {n.id: n.title or "" for n in view.leaves}
-    blocks = (
-        db.query(DialogueBlock)
-        .filter(
-            DialogueBlock.scene_id.in_(list(titles)),
-            or_(DialogueBlock.dialogue_type.is_(None), DialogueBlock.dialogue_type != "thought"),
-        )
-        .all()
-        if titles
-        else []
-    )
+def spoken_shares(blocks: list[Any], titles: dict[str, str], names: dict[str, str]) -> dict[str, Any]:
+    """Who speaks and how much, from lines already filtered to speech (a thought is nobody's
+    line). Lines nobody has been given to are counted, and left out of the shares, or
+    "unknown" would be the loudest voice. Shared with the Numbers readings (doc 19), which
+    pass the same fields read from a snapshot."""
     spoken = [b for b in blocks if b.attribution_method != "unattributed" and b.speaker_name]
 
     # A character is one speaker however the line named them ("Calder", "The Visitor").
-    names = {c.id: c.name for c in view.characters}
     shares: dict[str, SpeakerShare] = {}
     per_scene: dict[str, dict[str, int]] = {}
     for b in spoken:
@@ -124,13 +114,34 @@ def dialogue(view: StoryView, db: Session) -> NumbersDialogue:
 
     counts = [s.word_count for s in shares.values()]
     order = list(titles)
-    speakers: list[SpeakerShare] = sorted(shares.values(), key=_by_words, reverse=True)
     monologues.sort(key=lambda m: order.index(m.scene_id))
+    return {
+        "total_lines": len(blocks),
+        "unattributed": len(blocks) - len(spoken),
+        "balance": round((1 - gini(counts)) * 100) if len(counts) >= 2 else None,
+        "speakers": sorted(shares.values(), key=_by_words, reverse=True),
+        "monologue_scenes": monologues,
+    }
+
+
+def dialogue(view: StoryView, db: Session) -> NumbersDialogue:
+    """Who speaks and how much, out loud: a thought is nobody's line. Lines nobody has been
+    given to are counted, and left out of the shares, or "unknown" would be the loudest voice."""
+    sync_story_dialogue(view.story.id, db)
+    titles = {n.id: n.title or "" for n in view.leaves}
+    blocks = (
+        db.query(DialogueBlock)
+        .filter(
+            DialogueBlock.scene_id.in_(list(titles)),
+            or_(DialogueBlock.dialogue_type.is_(None), DialogueBlock.dialogue_type != "thought"),
+        )
+        .all()
+        if titles
+        else []
+    )
+    shares = spoken_shares(blocks, titles, {c.id: c.name for c in view.characters})
     return NumbersDialogue(
-        total_lines=len(blocks),
-        unattributed=len(blocks) - len(spoken),
-        balance=round((1 - gini(counts)) * 100) if len(counts) >= 2 else None,
-        speakers=speakers,
+        **shares,
         pairs=[
             SpeakerPair(
                 a_id=p["character_a_id"],
@@ -141,16 +152,19 @@ def dialogue(view: StoryView, db: Session) -> NumbersDialogue:
             )
             for p in get_interaction_matrix(view.story.id, db)
         ],
-        monologue_scenes=monologues,
     )
 
 
 def prose(view: StoryView, db: Session) -> NumbersProse | None:
     """The latest local prose run, added up across the scenes it read."""
     log = latest_runs(view.story.id, db).get("prose-analysis")
-    if log is None:
-        return None
-    scenes = [s for s in result_of(log).get("scenes", []) if s.get("scene_id") in view.by_id]
+    return prose_from_run(log, set(view.by_id)) if log is not None else None
+
+
+def prose_from_run(log: Any, scene_ids: set[str]) -> NumbersProse:
+    """One prose run's figures over the scenes still in the book. A reading (doc 19) copies
+    these in, since restoring a snapshot replaces the activity log the run lives in."""
+    scenes = [s for s in result_of(log).get("scenes", []) if s.get("scene_id") in scene_ids]
     sentences = passive = words_seen = adverbs = 0
     length_total = 0.0
     buckets: dict[str, int] = {}

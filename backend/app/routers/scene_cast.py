@@ -9,7 +9,6 @@ own "who is here" answers, and names in the prose. Read-only, so nothing is logg
 """
 
 import re
-from collections import Counter
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -23,7 +22,8 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.scene_cast import SceneCastEntry, SceneCastOut
-from ..services.codex.presence import known_as, name_patterns, plain_text
+from ..services.codex.presence import plain_text
+from ..services.scene_cast import cast_patterns, on_the_page
 from ..services.structure_order import order_of
 
 router = APIRouter()
@@ -58,7 +58,7 @@ def get_scene_cast(story_id: str, db: Session = Depends(get_db), current_user: U
     scenes = sorted(_leaf_scenes(nodes), key=lambda n: order.get(n.id, 0))
     scene_ids = [s.id for s in scenes]
     characters = db.query(Character).filter(Character.story_id == story_id).all()
-    patterns = name_patterns({c.id: known_as(c) for c in characters})
+    patterns = cast_patterns(characters)
     locations = db.query(Location).filter(Location.story_id == story_id).all()
     # A place answers to its name and to its aliases (a found place merged into it, doc 13 P4).
     location_by_name = {
@@ -84,25 +84,9 @@ def get_scene_cast(story_id: str, db: Session = Depends(get_db), current_user: U
     out: list[SceneCastEntry] = []
     for scene in scenes:
         text = plain_text(scene.content or "")
-        counts: Counter[str] = Counter()
-        for cid, pats in patterns.items():
-            hits = sum(len(p.findall(text)) for p in pats)
-            if hits:
-                counts[cid] = hits
-        # The author's answer for a scene outranks anything read off the page: someone
-        # marked absent is out even if named, someone placed here is in even if not.
-        for row in authored.get(scene.id, []):
-            if row.role == "absent":
-                counts.pop(row.character_id, None)
-            else:
-                counts[row.character_id] = max(counts.get(row.character_id, 0), 1) + 1000
-        # The point of view is in the scene whether or not the prose says their name:
-        # a first-person narrator rarely does. An "absent" answer still wins.
-        pov = scene.pov_character_id or story.pov_character_id
-        absent = {row.character_id for row in authored.get(scene.id, []) if row.role == "absent"}
-        ordered = [cid for cid, _ in counts.most_common()]
-        if pov and pov not in absent:
-            ordered = [pov, *[c for c in ordered if c != pov]]
+        ordered = on_the_page(
+            scene.content, patterns, authored.get(scene.id, []), scene.pov_character_id or story.pov_character_id
+        )
 
         place_ids = list(settings.get(scene.id, []))
         for name in _SETTING.findall(scene.content or ""):
