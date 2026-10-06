@@ -5,7 +5,66 @@
  */
 import type { Beat } from "../../types/beats";
 import type { SceneCastEntry } from "../../types/panel";
-import type { Character, PlotThread, StructureNode } from "../../types";
+import type { Character, PlotThread, StructureNode, ThreadRole } from "../../types";
+
+/** Draft states in the order a scene moves through them, and their names. */
+export const STATUSES = ["final", "revised", "draft", "planned"] as const;
+export const STATUS_LABEL: Record<string, string> = {
+  final: "Final",
+  revised: "Revised",
+  draft: "Draft",
+  planned: "Planned",
+};
+
+export interface ChapterSpan {
+  id: string;
+  title: string;
+  /** The first scene's index, and how many scenes in a row it holds. */
+  first: number;
+  count: number;
+}
+
+/**
+ * The chapters (or whatever holds the scenes) as runs of columns, for the row of names over
+ * every chart that has a column per scene. A book with no level above its scenes has none.
+ */
+export function chapterSpans(structure: StructureNode[], scenes: StructureNode[]): ChapterSpan[] {
+  const byId = new Map<string, StructureNode>();
+  const walk = (list: StructureNode[]) =>
+    list.forEach((n) => {
+      byId.set(n.id, n);
+      if (n.children?.length) walk(n.children);
+    });
+  walk(structure);
+  const spans: ChapterSpan[] = [];
+  scenes.forEach((s, i) => {
+    const last = spans[spans.length - 1];
+    if (s.parent_id && last?.id === s.parent_id) last.count++;
+    else if (s.parent_id)
+      spans.push({ id: s.parent_id, title: byId.get(s.parent_id)?.title ?? "", first: i, count: 1 });
+  });
+  return spans;
+}
+
+/** The columns that open a chapter (the first excepted), where a grid draws its chapter rule. */
+export function chapterStarts(chapters: ChapterSpan[]): Set<number> {
+  return new Set(chapters.length > 1 ? chapters.slice(1).map((c) => c.first) : []);
+}
+
+/** A round number at or just above `max`, for the top of a scale: 560 becomes 600. */
+export function niceCeil(max: number): number {
+  if (max <= 0) return 1;
+  const step = 10 ** Math.floor(Math.log10(max));
+  const m = max / step;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : m <= 6 ? 6 : m <= 8 ? 8 : 10) * step;
+}
+
+export function median(values: number[]): number {
+  if (!values.length) return 0;
+  const v = [...values].sort((a, b) => a - b);
+  const mid = v.length >> 1;
+  return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
+}
 
 export interface PacingBar {
   id: string;
@@ -53,28 +112,39 @@ export function beatMarks(beats: Beat[], scenes: StructureNode[]): BeatMark[] {
   }));
 }
 
-export interface Lane {
-  thread: PlotThread;
-  /** Indices of the scenes the thread appears in, in reading order. */
-  hits: number[];
+export interface LaneMark {
+  /** The scene's index in reading order. */
+  index: number;
+  nodeId: string;
+  /** What the scene does to the thread (doc 18). */
+  role: ThreadRole;
+  note: string;
 }
 
-export function threadLanes(
-  threads: PlotThread[],
-  scenes: StructureNode[],
-  cast: Map<string, SceneCastEntry>,
-): Lane[] {
+export interface Lane {
+  thread: PlotThread;
+  /** The scenes the thread is in, in reading order, each with what it does there. */
+  marks: LaneMark[];
+}
+
+export function threadLanes(threads: PlotThread[], scenes: StructureNode[]): Lane[] {
+  const at = new Map(scenes.map((s, i) => [s.id, i]));
   return threads
     .map((thread) => ({
       thread,
-      hits: scenes.flatMap((s, i) => (cast.get(s.id)?.thread_ids.includes(thread.id) ? [i] : [])),
+      marks: (thread.appearances ?? [])
+        .filter((a) => at.has(a.node_id))
+        .map((a) => ({ index: at.get(a.node_id)!, nodeId: a.node_id, role: a.role, note: a.note }))
+        .sort((a, b) => a.index - b.index),
     }))
-    .sort((a, b) => (a.hits[0] ?? Infinity) - (b.hits[0] ?? Infinity));
+    .sort((a, b) => (a.marks[0]?.index ?? Infinity) - (b.marks[0]?.index ?? Infinity));
 }
 
 export interface CastRow {
   character: Character;
   present: boolean[];
+  /** The scenes seen through them: a stronger mark than only being on the page. */
+  seenThrough: boolean[];
   count: number;
   first: number | null;
   last: number | null;
@@ -88,6 +158,8 @@ export function castGrid(
   scenes: StructureNode[],
   cast: Map<string, SceneCastEntry>,
   quietAfter = 3,
+  /** Each scene's point-of-view character, as `povRotation` reads it. */
+  povs: (string | null)[] = [],
 ): CastRow[] {
   const written = scenes.map((s) => (cast.get(s.id)?.word_count ?? s.word_count ?? 0) > 0);
   const lastWritten = written.lastIndexOf(true);
@@ -104,6 +176,7 @@ export function castGrid(
       return {
         character,
         present,
+        seenThrough: scenes.map((_, i) => present[i] && povs[i] === character.id),
         count,
         first: first < 0 ? null : first,
         last: last < 0 ? null : last,

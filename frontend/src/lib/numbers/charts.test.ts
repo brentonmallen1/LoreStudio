@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 import type { Character, PlotThread, StructureNode } from "../../types";
 import type { Beat } from "../../types/beats";
 import type { SceneCastEntry } from "../../types/panel";
-import { beatMarks, castGrid, pacing, threadLanes } from "./charts";
+import {
+  beatMarks,
+  castGrid,
+  chapterSpans,
+  chapterStarts,
+  median,
+  niceCeil,
+  pacing,
+  threadLanes,
+} from "./charts";
 
 const scene = (id: string, parent: string, words: number, extra: Partial<StructureNode> = {}) =>
   ({
@@ -49,18 +58,66 @@ describe("pacing", () => {
 });
 
 describe("threadLanes", () => {
-  it("lists the scenes each thread is in, earliest thread first", () => {
+  const seen = (node_id: string, role: string) => ({ node_id, role, note: "" });
+  it("lists the scenes each thread is in with what each does to it, earliest thread first", () => {
     const threads = [
-      { id: "t2", name: "Late" },
-      { id: "t1", name: "Early" },
-      { id: "t3", name: "None" },
-    ] as PlotThread[];
-    const lanes = threadLanes(threads, scenes, cast);
-    expect(lanes.map((l) => [l.thread.id, l.hits])).toEqual([
-      ["t1", [0, 2]],
-      ["t2", [2]],
+      { id: "t2", name: "Late", appearances: [seen("c", "opens")] },
+      {
+        id: "t1",
+        name: "Early",
+        appearances: [seen("c", "closes"), seen("a", "opens"), seen("gone", "moves")],
+      },
+      { id: "t3", name: "None", appearances: [] },
+    ] as unknown as PlotThread[];
+    const lanes = threadLanes(threads, scenes);
+    expect(lanes.map((l) => [l.thread.id, l.marks.map((m) => [m.index, m.role])])).toEqual([
+      [
+        "t1",
+        [
+          [0, "opens"],
+          [2, "closes"],
+        ],
+      ],
+      ["t2", [[2, "opens"]]],
       ["t3", []],
     ]);
+  });
+});
+
+describe("chapterSpans", () => {
+  it("runs each chapter across the scenes it holds, named from the tree", () => {
+    const tree = [
+      { id: "c1", title: "Arrival", children: [scenes[0], scenes[1]] },
+      { id: "c2", title: "Storm", children: [scenes[2], scenes[3]] },
+    ] as unknown as StructureNode[];
+    expect(chapterSpans(tree, scenes)).toEqual([
+      { id: "c1", title: "Arrival", first: 0, count: 2 },
+      { id: "c2", title: "Storm", first: 2, count: 2 },
+    ]);
+  });
+});
+
+describe("chapterStarts", () => {
+  it("marks the columns that open a chapter, not the first", () => {
+    const spans = [
+      { id: "a", title: "", first: 0, count: 2 },
+      { id: "b", title: "", first: 2, count: 3 },
+      { id: "c", title: "", first: 5, count: 1 },
+    ];
+    expect([...chapterStarts(spans)]).toEqual([2, 5]);
+    expect([...chapterStarts(spans.slice(0, 1))]).toEqual([]);
+  });
+});
+
+describe("scales", () => {
+  it("rounds the top of a scale up to a round number", () => {
+    expect([560, 1000, 1240, 87, 0].map(niceCeil)).toEqual([600, 1000, 2000, 100, 1]);
+  });
+
+  it("takes the middle value, or the mean of the middle two", () => {
+    expect(median([5, 1, 3])).toBe(3);
+    expect(median([4, 1, 3, 2])).toBe(2.5);
+    expect(median([])).toBe(0);
   });
 });
 
@@ -75,6 +132,13 @@ describe("castGrid", () => {
     expect(rows[0].character.id).toBe("el");
     expect(rows[0].present).toEqual([true, true, true, false]);
     expect(rows[0]).toMatchObject({ count: 3, first: 0, last: 2, quiet: false });
+  });
+
+  it("marks the scenes seen through a character apart from the ones they are only in", () => {
+    const rows = castGrid(characters, scenes, cast, 2, ["el", "ma", null, null]);
+    expect(rows.find((r) => r.character.id === "el")!.seenThrough).toEqual([true, false, false, false]);
+    // Margaret is the point of view of b on paper, but not on its page: no mark.
+    expect(rows.find((r) => r.character.id === "ma")!.seenThrough).toEqual([false, false, false, false]);
   });
 
   it("calls someone quiet who has been absent from the last written scenes", () => {

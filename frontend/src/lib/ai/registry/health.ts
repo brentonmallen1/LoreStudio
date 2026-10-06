@@ -11,6 +11,16 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
       "Scans every scene for passive voice, excessive adverbs, said-bookisms, repeated words, and sentence variety. Runs locally: no AI or internet required.",
     contextSources: ["Scene prose text (all scenes)"],
   },
+  "scene-summaries": {
+    id: "scene-summaries",
+    label: "Scene Summaries",
+    type: "ai",
+    shortDescription: "Write the missing and out-of-date scene summaries",
+    fullDescription:
+      "Writes a short summary of each written scene that has none, or whose text changed after its summary was written. Other Assistant features read these when they need scenes they are not reading in full.",
+    contextSources: ["Scene prose text (each scene that needs a summary)"],
+    backendFeatureId: "scene-summary-batch",
+  },
   "entity-discovery": {
     id: "entity-discovery",
     label: "Lorebook Scan",

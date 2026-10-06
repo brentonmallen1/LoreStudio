@@ -52,6 +52,10 @@
 .lg {
   max-width: 720px;
 }
+/* A chart read at full size (the Numbers page's cast grid). */
+.xl {
+  max-width: min(1120px, calc(100vw - 2rem));
+}
 
 /* Header */
 .header {

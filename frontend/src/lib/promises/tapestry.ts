@@ -47,7 +47,8 @@ export interface LaneGroup {
   lanes: Lane[];
 }
 
-const ROLE_SHAPE: Record<string, MarkShape> = {
+/** The mark a thread role is drawn with: the tapestry's and the Numbers page's threads alike. */
+export const ROLE_SHAPE: Record<string, MarkShape> = {
   opens: "opens",
   moves: "moves",
   turns: "turns",

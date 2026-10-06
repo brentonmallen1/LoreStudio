@@ -54,7 +54,9 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "character-dimensionality",
     "arc-analysis",
     "editorial-pass",
+    "scene-summaries",
   ],
+  numbers: ["prose-nlp", "scene-summaries"],
   "ai-panel": [
     "session-interview",
     "session-panel",
@@ -142,6 +144,7 @@ export function visibleFeatures(pageId: string, mode: UIMode): AIFeatureInfo[] {
  */
 export const PAGE_LABELS: Record<string, string> = {
   findings: "Findings",
+  numbers: "The story in numbers",
   "ai-panel": "AI Assistant",
   "character-sheet": "Character sheet",
   worldbuilding: "World building",

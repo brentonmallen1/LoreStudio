@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { numbersApi } from "../api/numbers";
+import AIFeatureInfoTrigger from "../components/ai/AIFeatureInfoTrigger";
 import PageHeader from "../components/layout/PageHeader";
 import Dialogue from "../components/numbers/Dialogue";
 import Prose from "../components/numbers/Prose";
 import Rotation from "../components/numbers/Rotation";
-import Score from "../components/numbers/Score";
+import Cast from "../components/numbers/Cast";
+import Pacing from "../components/numbers/Pacing";
+import Threads from "../components/numbers/Threads";
 import Words from "../components/numbers/Words";
 import { useReloadOnUndo } from "../hooks/useUndoRedo";
 import { useAIAvailable } from "../lib/mode";
-import { beatMarks, castGrid, pacing, threadLanes } from "../lib/numbers/charts";
+import { beatMarks, castGrid, chapterSpans, pacing, threadLanes } from "../lib/numbers/charts";
 import { povRotation } from "../lib/numbers/pov";
 import { sceneLeaves } from "../lib/planning/methods";
 import { useFindingsStore } from "../stores/findingsStore";
 import { useStoryStore } from "../stores/storyStore";
 import type { StoryNumbers } from "../types/numbers";
+import Summaries from "../components/numbers/Summaries";
 import styles from "../components/numbers/Numbers.module.css";
 
 /**
@@ -41,19 +44,22 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
   useEffect(() => {
     void load();
   }, [load]);
+  const reload = useCallback(() => void load(), [load]);
   useReloadOnUndo(["structure_node", "character", "plot_thread"], () => void load());
 
   const charts = useMemo(() => {
     const scenes = sceneLeaves(structure, activeTemplate);
     const cast = new Map((sceneCast?.scenes ?? []).map((e) => [e.node_id, e]));
     const sheet = beatSheets.find((b) => b.id === activeStory?.beat_sheet_id);
+    const rotation = povRotation(scenes, activeStory?.pov_character_id, characters);
     return {
       bars: pacing(scenes, cast),
       beats: sheet ? beatMarks(sheet.beats, scenes) : [],
-      lanes: threadLanes(threads, scenes, cast),
-      cast: castGrid(characters, scenes, cast),
+      lanes: threadLanes(threads, scenes),
+      chapters: chapterSpans(structure, scenes),
+      cast: castGrid(characters, scenes, cast, 3, rotation.perScene),
       scenes,
-      rotation: povRotation(scenes, activeStory?.pov_character_id, characters),
+      rotation,
     };
   }, [
     structure,
@@ -81,8 +87,15 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
     <div className={styles.page}>
       <PageHeader
         title="The story in numbers"
+        aside={<AIFeatureInfoTrigger pageId="numbers" size="md" />}
         summary={
-          data ? `${data.words.total.toLocaleString()} words · ${data.words.scenes} scenes` : "Counting…"
+          <>
+            {data ? `${data.words.total.toLocaleString()} words · ${data.words.scenes} scenes` : "Counting…"}
+            <span className={styles.stance}>
+              The book as it stands, measured: nothing here is a verdict or a suggestion. The ⓘ beside each
+              section says what it counts and how to read it.
+            </span>
+          </>
         }
       />
       <div className={styles.column}>
@@ -90,28 +103,36 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
           <>
             <Words words={data.words} />
             {charts.bars.length > 0 && (
-              <Score
-                storyId={storyId}
-                bars={charts.bars}
-                beats={charts.beats}
-                lanes={charts.lanes}
-                cast={charts.cast}
-              />
+              <>
+                <Pacing
+                  storyId={storyId}
+                  bars={charts.bars}
+                  beats={charts.beats}
+                  chapters={charts.chapters}
+                />
+                {charts.lanes.length > 0 && (
+                  <Threads
+                    storyId={storyId}
+                    lanes={charts.lanes}
+                    scenes={charts.scenes}
+                    chapters={charts.chapters}
+                  />
+                )}
+                {charts.cast.length > 0 && (
+                  <Cast cast={charts.cast} scenes={charts.scenes} chapters={charts.chapters} />
+                )}
+              </>
             )}
-            <Rotation storyId={storyId} scenes={charts.scenes} rotation={charts.rotation} />
+            <Rotation
+              storyId={storyId}
+              scenes={charts.scenes}
+              rotation={charts.rotation}
+              chapters={charts.chapters}
+            />
             <Dialogue storyId={storyId} dialogue={data.dialogue} />
             <Prose prose={data.prose} running={running} onMeasure={() => void measure()} />
             {aiAvailable && s && s.fresh + s.stale + s.missing > 0 && (
-              <section className={styles.section} aria-labelledby="numbers-summaries">
-                <h2 className={styles.heading} id="numbers-summaries">
-                  Scene summaries
-                </h2>
-                <p className={styles.lede}>
-                  The Assistant&rsquo;s short summaries of each scene: {s.fresh} up to date, {s.stale} written
-                  before the scene last changed, {s.missing} not written yet. They are refreshed from{" "}
-                  <Link to={`/stories/${storyId}/findings`}>Findings</Link>.
-                </p>
-              </section>
+              <Summaries storyId={storyId} summaries={s} onDone={reload} />
             )}
           </>
         )}

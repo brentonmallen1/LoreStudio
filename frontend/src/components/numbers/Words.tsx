@@ -1,13 +1,8 @@
+import { STATUS_LABEL, STATUSES } from "../../lib/numbers/charts";
 import type { NumbersWords } from "../../types/numbers";
+import SectionHeading from "./SectionHeading";
 import styles from "./Numbers.module.css";
 
-const STATUSES = ["final", "revised", "draft", "planned"] as const;
-const STATUS_LABEL: Record<string, string> = {
-  final: "Final",
-  revised: "Revised",
-  draft: "Draft",
-  planned: "Planned",
-};
 const FORM_LABEL: Record<string, string> = {
   flash_fiction: "flash fiction",
   short_story: "short story",
@@ -25,14 +20,13 @@ export default function Words({ words }: { words: NumbersWords }) {
   const t = words.target;
   return (
     <section className={styles.section} aria-labelledby="numbers-words">
-      <h2 className={styles.heading} id="numbers-words">
-        Words
-      </h2>
+      <SectionHeading section="words" title="Words" />
       <p className={styles.lede}>
         <strong>{n(words.total)}</strong> words in {words.written_scenes} of {words.scenes} scenes
         {words.written_scenes > 0 && (
           <>
-            , about {n(words.mean_per_scene)} a scene (the middle scene has {n(words.median_per_scene)}).
+            , about {n(words.mean_per_scene)} a scene on average. Half the scenes run longer than{" "}
+            {n(words.median_per_scene)}, half shorter (the median).
           </>
         )}
       </p>

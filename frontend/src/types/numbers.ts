@@ -41,5 +41,12 @@ export interface StoryNumbers {
   words: NumbersWords;
   dialogue: NumbersDialogue;
   prose: NumbersProse | null;
-  summaries: { fresh: number; stale: number; missing: number };
+  summaries: NumbersSummaries;
+}
+
+/** The Assistant's scene summaries over the written scenes: current, out of date, not written. */
+export interface NumbersSummaries {
+  fresh: number;
+  stale: number;
+  missing: number;
 }

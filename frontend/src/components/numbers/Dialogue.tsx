@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { slotVar } from "../../lib/colorSlots";
 import { useStoryStore } from "../../stores/storyStore";
 import type { NumbersDialogue } from "../../types/numbers";
+import SectionHeading from "./SectionHeading";
 import styles from "./Numbers.module.css";
 
 function balanceWords(b: number): string {
@@ -14,15 +15,18 @@ function balanceWords(b: number): string {
 export default function Dialogue({ storyId, dialogue }: { storyId: string; dialogue: NumbersDialogue }) {
   const navigate = useNavigate();
   const characters = useStoryStore((s) => s.characters);
-  const top = dialogue.speakers.slice(0, 8);
-  const most = Math.max(1, ...top.map((s) => s.word_count));
+  const { speakers } = dialogue;
+  const spoken = speakers.reduce((a, s) => a + s.word_count, 0);
+  // Eight rows at most: past that, the rest share one row, so the shares still add up.
+  const top = speakers.length > 8 ? speakers.slice(0, 7) : speakers;
+  const rest = speakers.slice(top.length);
+  const share = (words: number) => (spoken ? (words / spoken) * 100 : 0);
+  const even = speakers.length ? 100 / speakers.length : 0;
   const colour = (id: string | null) => slotVar(characters.find((c) => c.id === id)?.color_slot);
 
   return (
     <section className={styles.section} aria-labelledby="numbers-dialogue">
-      <h2 className={styles.heading} id="numbers-dialogue">
-        Dialogue
-      </h2>
+      <SectionHeading section="dialogue" title="Dialogue" />
       {dialogue.total_lines === 0 ? (
         <p className={styles.lede}>
           Nobody speaks yet. Lines in quotation marks are counted here as you write them.
@@ -46,17 +50,37 @@ export default function Dialogue({ storyId, dialogue }: { storyId: string; dialo
               </>
             )}
           </p>
-          <div className={styles.share}>
+          <div
+            className={styles.share}
+            data-one={speakers.length < 2 ? true : undefined}
+            style={{ "--even": `${even}%` } as React.CSSProperties}
+          >
             {top.map((s) => (
               <SpeakerLine
                 key={s.speaker_name}
                 name={s.speaker_name}
-                width={(s.word_count / most) * 100}
+                share={share(s.word_count)}
                 colour={colour(s.character_id)}
                 meta={`${s.word_count.toLocaleString()} words · ${s.line_count} ${s.line_count === 1 ? "line" : "lines"}`}
               />
             ))}
+            {rest.length > 0 && (
+              <SpeakerLine
+                name={`${rest.length} others`}
+                share={share(rest.reduce((a, s) => a + s.word_count, 0))}
+                colour="var(--color-text-subtle)"
+                meta={`${rest.reduce((a, s) => a + s.word_count, 0).toLocaleString()} words`}
+              />
+            )}
           </div>
+          {speakers.length > 1 && (
+            <div className={styles.legend}>
+              <span>
+                <i className={styles.evenKey} />
+                an even share, {Math.round(even)}% each among {speakers.length} speakers
+              </span>
+            </div>
+          )}
           {(dialogue.pairs.length > 0 || dialogue.monologue_scenes.length > 0) && (
             <ul className={styles.list}>
               {dialogue.pairs.slice(0, 5).map((p) => (
@@ -86,14 +110,19 @@ export default function Dialogue({ storyId, dialogue }: { storyId: string; dialo
   );
 }
 
+function percent(share: number): string {
+  return share > 0 && share < 1 ? "<1%" : `${Math.round(share)}%`;
+}
+
+/** A speaker's share of every word spoken: the track is the whole, the fill is theirs. */
 function SpeakerLine({
   name,
-  width,
+  share,
   colour,
   meta,
 }: {
   name: string;
-  width: number;
+  share: number;
   colour: string;
   meta: string;
 }) {
@@ -102,13 +131,16 @@ function SpeakerLine({
       <span className={styles.rowLabel} title={name}>
         {name}
       </span>
-      <div>
-        <div
-          className={styles.shareBar}
-          style={{ width: `${Math.max(1, width)}%`, ["--bar" as string]: colour }}
-        />
+      <div
+        className={styles.shareTrack}
+        role="img"
+        aria-label={`${name}: ${percent(share)} of the words spoken`}
+      >
+        <div className={styles.shareBar} style={{ width: `${share}%`, ["--bar" as string]: colour }} />
       </div>
-      <span className={styles.rowMeta}>{meta}</span>
+      <span className={styles.rowMeta}>
+        <strong>{percent(share)}</strong> · {meta}
+      </span>
     </>
   );
 }
