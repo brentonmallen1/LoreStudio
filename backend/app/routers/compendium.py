@@ -20,6 +20,7 @@ from ..schemas.compendium import (
     CompendiumUrlCreate,
 )
 from ..services import change_log
+from ..services.dangling import detach_research
 from ..services.series import sync as series_sync
 from ..services.text_utils import html_to_text
 
@@ -319,6 +320,7 @@ def delete_entry(
     client_id: str | None = Depends(change_log.get_client_id),
 ):
     entry = _verify_entry_access(entry_id, db, current_user)
+    batch = detach_research(db, entry.story_id, entry.id, actor_id=current_user.id, client_id=client_id)
     change_log.record(
         db,
         story_id=entry.story_id,
@@ -330,6 +332,7 @@ def delete_entry(
         label=f"Delete “{entry.title}”",
         actor_id=current_user.id,
         client_id=client_id,
+        batch_id=batch,
     )
     db.delete(entry)
     db.commit()

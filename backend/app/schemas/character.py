@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from .who_they_are import WhoAreTheyOut, WhoAreTheyPatch
+
 
 class DiscoveryNote(BaseModel):
     id: str
@@ -60,7 +62,7 @@ class CharacterCreate(BaseModel):
     color_slot: int = 0
 
 
-class CharacterUpdate(BaseModel):
+class CharacterUpdate(WhoAreTheyPatch):
     name: str | None = None
     role: str | None = None
     character_type: str | None = None
@@ -90,7 +92,7 @@ class CharacterUpdate(BaseModel):
     aliases: list[str] | None = None
 
 
-class CharacterOut(BaseModel):
+class CharacterOut(WhoAreTheyOut):
     id: str
     story_id: str
     name: str

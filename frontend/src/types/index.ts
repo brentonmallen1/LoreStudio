@@ -1,3 +1,7 @@
+import type { WhoAreThey } from "./whoAreThey";
+
+export type { Facet, FacetArea, Formative, Known, WhoAreThey } from "./whoAreThey";
+
 export interface User {
   id: string;
   username: string;
@@ -154,9 +158,11 @@ export interface CharacterAttributes {
   disposition?: string;
   temperament?: string;
   social_manner?: string;
+  /** How they take things (doc 20 P2). */
+  sensitivity?: string;
 }
 
-export interface Character {
+export interface Character extends WhoAreThey {
   id: string;
   story_id: string;
   name: string;

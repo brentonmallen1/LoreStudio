@@ -73,6 +73,34 @@ class Character(Base):
     epiphany: Mapped[str] = mapped_column(Text, default="", server_default="")
     arc_in_own_words: Mapped[str] = mapped_column(Text, default="", server_default="")
     # Format: [{"id": "uuid", "text": "First moment of doubt", "completed": false}]
+
+    # Who are they (doc 20): every one optional, free text in the author's words.
+    # Identity (P1): one line each, then paragraphs.
+    gender: Mapped[str] = mapped_column(String, default="", server_default="")
+    presentation: Mapped[str] = mapped_column(String, default="", server_default="")
+    sex: Mapped[str] = mapped_column(String, default="", server_default="")
+    age: Mapped[str] = mapped_column(String, default="", server_default="")
+    orientation: Mapped[str] = mapped_column(String, default="", server_default="")
+    languages: Mapped[str] = mapped_column(String, default="", server_default="")
+    heritage: Mapped[str] = mapped_column(Text, default="", server_default="")
+    faith: Mapped[str] = mapped_column(Text, default="", server_default="")
+    family: Mapped[str] = mapped_column(Text, default="", server_default="")
+    circumstances: Mapped[str] = mapped_column(Text, default="", server_default="")
+    # How they think and how they take things (P2).
+    thinking: Mapped[str] = mapped_column(Text, default="", server_default="")
+    sore_spots: Mapped[str] = mapped_column(Text, default="", server_default="")
+    takes_personally: Mapped[str] = mapped_column(Text, default="", server_default="")
+    shows_hurt: Mapped[str] = mapped_column(Text, default="", server_default="")
+    copes: Mapped[str] = mapped_column(Text, default="", server_default="")
+    holds_on: Mapped[str] = mapped_column(Text, default="", server_default="")
+    # The arc beside Wants (P5): what they need, the lie they believe, what failing would cost.
+    need: Mapped[str] = mapped_column(Text, default="", server_default="")
+    lie: Mapped[str] = mapped_column(Text, default="", server_default="")
+    stakes: Mapped[str] = mapped_column(Text, default="", server_default="")
+    # Body and mind (P4) and What formed them (P5): small lists, schemas/who_they_are.py.
+    facets: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    formative: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,

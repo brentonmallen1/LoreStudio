@@ -312,6 +312,10 @@ def adopt_into_book(
     element.members.append(member)
     db.flush()
     rels = _carry_relationships(db, series, src.id, row.id, story_id) if kind.kind == "character" else []
+    if kind.kind == "character":
+        from .entries import carry_entries
+
+        carry_entries(db, series, src, row, story_id)
     images = _carry_images(db, kind, src, row) if kind.kind in ("character", "location") else []
     if not log:
         return row
