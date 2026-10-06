@@ -25,7 +25,7 @@ export type EditorFontFamily =
   | "cutive"
   | "special-elite";
 export type EditorFontSize = "small" | "medium" | "large" | "xl";
-export type EditorLineWidth = "narrow" | "medium" | "wide";
+export type EditorLineWidth = "narrow" | "medium" | "wide" | "full";
 
 export type FontCategory = "serif" | "sans" | "mono" | "typewriter";
 
@@ -93,11 +93,21 @@ export function getFontStack(fontFamily: EditorFontFamily): string {
 
 // Characters of the prose font, not px (doc 17): a larger writing size keeps its words per
 // line. Medium is today's 640px column in Merriweather at 15px.
+// Full is a share of the space the page has, not of the font: three quarters of it.
 export const LINE_WIDTHS: Record<EditorLineWidth, string> = {
   narrow: "48ch",
   medium: "60ch",
   wide: "76ch",
+  full: "75%",
 };
+
+/** The widths as every picker offers them (Settings, the editor's menu, the header). */
+export const LINE_WIDTH_OPTIONS: { value: EditorLineWidth; label: string }[] = [
+  { value: "narrow", label: "Narrow" },
+  { value: "medium", label: "Medium" },
+  { value: "wide", label: "Wide" },
+  { value: "full", label: "Full" },
+];
 
 // In px, not rem: the interface size scales the root, and the prose must not follow it (doc 17 D2).
 export const FONT_SIZES: Record<EditorFontSize, string> = {
@@ -310,7 +320,7 @@ const FONT_MIGRATION: Record<string, EditorFontFamily> = {
 
 const VALID_FONT_FAMILIES = FONT_OPTIONS.map((f) => f.value);
 const VALID_FONT_SIZES: EditorFontSize[] = ["small", "medium", "large", "xl"];
-const VALID_LINE_WIDTHS: EditorLineWidth[] = ["narrow", "medium", "wide"];
+const VALID_LINE_WIDTHS: EditorLineWidth[] = ["narrow", "medium", "wide", "full"];
 
 const rawEditorFont = localStorage.getItem("ls_editor_font") ?? "";
 const migratedFont = FONT_MIGRATION[rawEditorFont] ?? rawEditorFont;

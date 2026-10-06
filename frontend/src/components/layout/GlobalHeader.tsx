@@ -22,14 +22,14 @@ import UndoRedoButtons from "./UndoRedoButtons";
 import InterfaceSizeButtons from "../settings/InterfaceSizeButtons";
 import HeaderTitle from "./HeaderTitle";
 import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
-import { useUIStore, THEME_META, FONT_OPTIONS, FONT_CATEGORIES } from "../../stores/uiStore";
-import type {
-  ThemeName,
-  ColorMode,
-  EditorFontFamily,
-  EditorFontSize,
-  EditorLineWidth,
+import {
+  useUIStore,
+  THEME_META,
+  FONT_OPTIONS,
+  FONT_CATEGORIES,
+  LINE_WIDTH_OPTIONS,
 } from "../../stores/uiStore";
+import type { ThemeName, ColorMode, EditorFontFamily, EditorFontSize } from "../../stores/uiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { scratchPadHasWords, useScratchPadStore } from "../../stores/scratchPadStore";
 import { api } from "../../api/client";
@@ -61,12 +61,6 @@ const sizeOptions: { value: EditorFontSize; label: string }[] = [
   { value: "large", label: "L" },
   { value: "xl", label: "XL" },
 ];
-const widthOptions: { value: EditorLineWidth; label: string }[] = [
-  { value: "narrow", label: "Narrow" },
-  { value: "medium", label: "Medium" },
-  { value: "wide", label: "Wide" },
-];
-
 export default function GlobalHeader() {
   const navigate = useNavigate();
   const { storyId } = useParams<{ storyId: string }>();
@@ -437,7 +431,7 @@ export default function GlobalHeader() {
                 <div className={styles.dropdownSection}>
                   <span className={styles.dropdownLabel}>Line width</span>
                   <div className={styles.btnRow}>
-                    {widthOptions.map(({ value, label }) => (
+                    {LINE_WIDTH_OPTIONS.map(({ value, label }) => (
                       <button
                         key={value}
                         onClick={() => setEditorLineWidth(value)}

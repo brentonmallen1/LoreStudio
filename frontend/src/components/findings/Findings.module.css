@@ -386,8 +386,8 @@
   right: 0;
   top: calc(100% + 6px);
   z-index: var(--z-popover);
-  width: min(22rem, calc(100vw - 2rem));
-  max-height: min(38rem, calc(100vh - 8rem));
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: min(42rem, calc(100vh - 8rem));
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -415,7 +415,7 @@
 
 .runItem {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.6rem;
   width: 100%;
   padding: 0.32rem 0.5rem;
@@ -445,6 +445,7 @@ button.runItem:focus-visible {
 
 .runDot {
   flex-shrink: 0;
+  margin-top: 0.4rem;
   width: 0.467rem;
   height: 0.467rem;
   border-radius: 50%;
@@ -455,13 +456,54 @@ button.runItem:focus-visible {
   background: var(--color-ai);
 }
 
-.runLabel {
+.runText {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
+}
+
+.runLabel {
+  min-width: 0;
+}
+
+.runHint {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+/* Pinned to the menu's foot, so it is there however far the list scrolls. */
+.runAbout {
+  position: sticky;
+  bottom: -0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.5rem;
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  border-radius: 0;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.runAbout:hover,
+.runAbout:focus-visible {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  outline: none;
 }
 
 .runWhen {
   flex-shrink: 0;
+  margin-top: 0.12rem;
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }

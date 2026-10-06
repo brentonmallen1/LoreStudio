@@ -12,6 +12,18 @@ export interface AssistantCheck {
   run: (storyId: string, signal: AbortSignal) => Promise<unknown>;
 }
 
+/** The local checks, in a line each: what they look for (services/findings/local.py, data.py). */
+export const LOCAL_CHECKS = {
+  always: {
+    label: "Names, speakers, cast, threads, chapters",
+    hint: "Names that drift from the Lorebook, speakers it does not know, characters and threads gone quiet, chapter and length checks",
+  },
+  prose: {
+    label: "Prose habits, tense, point of view",
+    hint: "Passive voice, adverbs, tags other than said, repeated words, slips of tense and point of view",
+  },
+};
+
 export const ASSISTANT_CHECKS: AssistantCheck[] = [
   {
     id: "pacing-analysis",

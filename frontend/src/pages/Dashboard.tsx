@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Clock, FileInput, Trash2, ArrowRight, BookPlus, BookCopy } from "lucide-react";
+import {
+  Plus,
+  Clock,
+  FileInput,
+  Trash2,
+  ArrowRight,
+  BookPlus,
+  BookCopy,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { api } from "../api/client";
 import { progressApi, type StoryProgress } from "../api/progress";
 import { seriesApi, type SeriesSummary } from "../api/series";
@@ -14,8 +24,22 @@ import NewSeriesDialog from "../components/series/NewSeriesDialog";
 import SeriesGroup from "../components/series/SeriesGroup";
 import { seriesPath } from "../lib/series/sections";
 import ImportWizard from "../components/import/ImportWizard";
+import StoryListRow from "../components/story/StoryListRow";
+import list from "../components/story/StoryList.module.css";
 import type { Story } from "../types";
 import styles from "./Dashboard.module.css";
+
+type Layout = "cards" | "list";
+const LAYOUT_KEY = "ls_dashboard_layout";
+
+/** Cards or a list, as this browser last left it. */
+function savedLayout(): Layout {
+  try {
+    return localStorage.getItem(LAYOUT_KEY) === "list" ? "list" : "cards";
+  } catch {
+    return "cards";
+  }
+}
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -37,6 +61,15 @@ export default function DashboardPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   // Words, progress toward the target and the scene to continue in, per story.
   const [progress, setProgress] = useState<Record<string, StoryProgress>>({});
+  const [layout, setLayoutState] = useState<Layout>(savedLayout);
+  function setLayout(next: Layout) {
+    setLayoutState(next);
+    try {
+      localStorage.setItem(LAYOUT_KEY, next);
+    } catch {
+      // Site data blocked: it still switches, it just forgets.
+    }
+  }
 
   useEffect(() => {
     progressApi
@@ -64,13 +97,42 @@ export default function DashboardPage() {
     setPendingDeleteId(story.id);
   }
 
-  async function doDelete(story: Story, e: React.MouseEvent) {
-    e.stopPropagation();
+  async function doDelete(story: Story, e?: React.MouseEvent) {
+    e?.stopPropagation();
     setPendingDeleteId(null);
     setDeletingId(story.id);
     await api.deleteStory(story.id);
     removeStory(story.id);
     setDeletingId(null);
+  }
+
+  /** A run of stories, as cards or as a list; `ordinal` gives a book its place in its series. */
+  function renderStories(rows: Story[], ordinal?: (story: Story) => number | undefined, series = false) {
+    if (layout === "list")
+      return (
+        <ul className={list.list}>
+          {rows.map((story) => (
+            <StoryListRow
+              key={story.id}
+              story={story}
+              ordinal={ordinal?.(story)}
+              progress={progress[story.id]}
+              deleting={deletingId === story.id}
+              onOpen={() => navigate(`/stories/${story.id}`)}
+              onContinue={() =>
+                navigate(`/stories/${story.id}/write?node=${progress[story.id]?.last_scene_id}`)
+              }
+              onSequel={() => setSequelTo(story.id)}
+              onDelete={() => void doDelete(story)}
+            />
+          ))}
+        </ul>
+      );
+    return (
+      <div className={series ? `${styles.grid} ${styles.seriesGrid}` : styles.grid}>
+        {rows.map((story) => renderCard(story, ordinal?.(story)))}
+      </div>
+    );
   }
 
   /** One story's card; `ordinal` is its place in its series, when it has one. */
@@ -149,6 +211,28 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className={styles.headActions}>
+            {stories.length > 0 && (
+              <div className={styles.layoutToggle} role="group" aria-label="Show stories as">
+                <button
+                  type="button"
+                  aria-pressed={layout === "cards"}
+                  onClick={() => setLayout("cards")}
+                  title="Show stories as cards"
+                >
+                  <LayoutGrid size={14} aria-hidden />
+                  Cards
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={layout === "list"}
+                  onClick={() => setLayout("list")}
+                  title="Show stories as a list"
+                >
+                  <List size={14} aria-hidden />
+                  List
+                </button>
+              </div>
+            )}
             <button onClick={() => setImporting(true)} className={styles.importBtn}>
               <FileInput size={14} />
               Import
@@ -197,9 +281,7 @@ export default function DashboardPage() {
           <div className={styles.segments}>
             {segments.map((seg) =>
               seg.type === "stories" ? (
-                <div key={`stories-${seg.stories[0].id}`} className={styles.grid}>
-                  {seg.stories.map((story) => renderCard(story))}
-                </div>
+                <div key={`stories-${seg.stories[0].id}`}>{renderStories(seg.stories)}</div>
               ) : (
                 <SeriesGroup
                   key={seg.series.id}
@@ -210,13 +292,12 @@ export default function DashboardPage() {
                       : navigate(seriesPath(seg.series.id, "plan"))
                   }
                 >
-                  {seg.books.length > 0 && (
-                    <div className={`${styles.grid} ${styles.seriesGrid}`}>
-                      {seg.books.map((story) =>
-                        renderCard(story, seg.series.books.find((b) => b.story_id === story.id)?.position),
-                      )}
-                    </div>
-                  )}
+                  {seg.books.length > 0 &&
+                    renderStories(
+                      seg.books,
+                      (story) => seg.series.books.find((b) => b.story_id === story.id)?.position,
+                      true,
+                    )}
                 </SeriesGroup>
               ),
             )}

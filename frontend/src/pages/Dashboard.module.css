@@ -36,6 +36,48 @@
   gap: 0.5rem;
 }
 
+/* Cards or a list: two halves of one control. */
+.layoutToggle {
+  display: inline-flex;
+  margin-right: 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.layoutToggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.layoutToggle button + button {
+  border-left: 1px solid var(--color-border);
+}
+
+.layoutToggle button:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.layoutToggle button[aria-pressed="true"] {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.layoutToggle button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
 .importBtn {
   display: flex;
   align-items: center;

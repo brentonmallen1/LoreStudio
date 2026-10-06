@@ -11,6 +11,7 @@ import { useUIStore } from "../../stores/uiStore";
 import { scaledPx } from "../../lib/appearance/uiScale";
 import type { PanelTab } from "../../types/panel";
 import { tabLabel } from "../../lib/panel/tabLabel";
+import OpenMenu from "./OpenMenu";
 import OverflowMenu from "./OverflowMenu";
 import { tabColor } from "./entityColor";
 import styles from "./Panel.module.css";
@@ -20,6 +21,7 @@ const SCENE_TAB_WIDTH = 92;
 const OVERFLOW_RESERVE = 58;
 const CONTROLS_RESERVE = 78;
 const ASSISTANT_RESERVE = 70;
+const OPEN_RESERVE = 32;
 
 /**
  * The tabs across the top of the panel (doc 11). Fixed-width tabs so what fits is
@@ -53,7 +55,8 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
   const widths = Object.fromEntries(
     tabs.map((t) => [t.id, px(t.kind === "scene" ? SCENE_TAB_WIDTH : TAB_WIDTH)]),
   );
-  const reserved = (aiAvailable ? px(ASSISTANT_RESERVE) : 0) + (inWindow ? 0 : px(CONTROLS_RESERVE));
+  const reserved =
+    px(OPEN_RESERVE) + (aiAvailable ? px(ASSISTANT_RESERVE) : 0) + (inWindow ? 0 : px(CONTROLS_RESERVE));
   const { visible, hidden } = fitTabs(
     tabs,
     widths,
@@ -122,6 +125,7 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
           </div>
         );
       })}
+      <OpenMenu />
       <div className={styles.stripSpacer} />
       {!inWindow && (
         <div className={styles.controls}>

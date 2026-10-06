@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Loader2, Play } from "lucide-react";
+import { ChevronDown, Info, Loader2, Play } from "lucide-react";
 import { useAIAvailable } from "../../lib/mode";
 import { ago } from "../../lib/serverDate";
 import { useFindingsStore } from "../../stores/findingsStore";
 import { useStoryStore } from "../../stores/storyStore";
-import { ASSISTANT_CHECKS } from "./checks";
+import AIFeatureInfoModal from "../ai/AIFeatureInfoModal";
+import { ASSISTANT_CHECKS, LOCAL_CHECKS } from "./checks";
 import EditorialPassDialog from "./EditorialPassDialog";
 import styles from "./Findings.module.css";
 
 /**
  * "Run checks" (doc 12 P4): the local checks, which are instant and mostly always current,
  * and, where the Assistant is available, its checks, each with when it last ran. A run
- * keeps going if the menu closes; the list refreshes when it lands.
+ * keeps going if the menu closes; the list refreshes when it lands. Each says in a line what
+ * it looks for, and About these checks opens the page's full descriptions.
  */
 export default function RunChecksMenu() {
   const storyId = useStoryStore((s) => s.activeStory?.id);
@@ -24,6 +26,7 @@ export default function RunChecksMenu() {
   const [running, setRunning] = useState<Record<string, AbortController>>({});
   const [failed, setFailed] = useState<Record<string, string>>({});
   const [editorial, setEditorial] = useState(false);
+  const [about, setAbout] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
@@ -103,7 +106,7 @@ export default function RunChecksMenu() {
           <div className={styles.runHeading}>Local · no model, nothing leaves your machine</div>
           <div className={styles.runItem} data-static>
             <span className={styles.runDot} data-source="local" />
-            <span className={styles.runLabel}>Names, speakers, cast, threads, chapters</span>
+            <RunText label={LOCAL_CHECKS.always.label} hint={LOCAL_CHECKS.always.hint} />
             <span className={styles.runWhen}>always current</span>
           </div>
           <button
@@ -114,7 +117,7 @@ export default function RunChecksMenu() {
             onClick={() => void runLocal()}
           >
             <span className={styles.runDot} data-source="local" />
-            <span className={styles.runLabel}>Prose habits, tense, point of view</span>
+            <RunText label={LOCAL_CHECKS.prose.label} hint={LOCAL_CHECKS.prose.hint} />
             <span className={styles.runWhen}>{runningLocal ? "running…" : ago(data?.last_local_run)}</span>
           </button>
           {aiAvailable && (
@@ -130,11 +133,11 @@ export default function RunChecksMenu() {
                     type="button"
                     role="menuitem"
                     className={styles.runItem}
-                    title={failed[c.id] ?? c.hint}
+                    title={failed[c.id]}
                     onClick={() => (active ? active.abort() : void runCheck(c.id, c.run))}
                   >
                     <span className={styles.runDot} data-source="ai" />
-                    <span className={styles.runLabel}>{c.label}</span>
+                    <RunText label={c.label} hint={c.hint} />
                     <span className={styles.runWhen} data-failed={failed[c.id] ? true : undefined}>
                       {active
                         ? "running… click to stop"
@@ -155,15 +158,38 @@ export default function RunChecksMenu() {
                 }}
               >
                 <span className={styles.runDot} data-source="ai" />
-                <span className={styles.runLabel}>Editorial pass…</span>
+                <RunText label="Editorial pass…" hint="A fresh-eyes read: what to fix first, margin notes" />
                 <span className={styles.runWhen}>{ago(data?.last_ai_run_by_feature["editorial-pass"])}</span>
               </button>
             </>
           )}
           <div className={styles.runNote}>{notes.join(" ")}</div>
+          <button
+            type="button"
+            role="menuitem"
+            className={styles.runAbout}
+            onClick={() => {
+              setOpen(false);
+              setAbout(true);
+            }}
+          >
+            <Info size={13} aria-hidden />
+            About these checks
+          </button>
         </div>
       )}
+      <AIFeatureInfoModal isOpen={about} onClose={() => setAbout(false)} pageId="findings" />
       {editorial && <EditorialPassDialog onClose={() => setEditorial(false)} onDone={() => void refetch()} />}
     </div>
+  );
+}
+
+/** A check's name, and under it a line of what it looks for. */
+function RunText({ label, hint }: { label: string; hint: string }) {
+  return (
+    <span className={styles.runText}>
+      <span className={styles.runLabel}>{label}</span>
+      <span className={styles.runHint}>{hint}</span>
+    </span>
   );
 }

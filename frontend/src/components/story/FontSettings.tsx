@@ -2,9 +2,9 @@ import {
   useUIStore,
   FONT_OPTIONS,
   FONT_CATEGORIES,
+  LINE_WIDTH_OPTIONS,
   type EditorFontFamily,
   type EditorFontSize,
-  type EditorLineWidth,
 } from "../../stores/uiStore";
 import styles from "./FontSettings.module.css";
 
@@ -13,12 +13,6 @@ const sizeOptions: { value: EditorFontSize; label: string }[] = [
   { value: "medium", label: "M" },
   { value: "large", label: "L" },
   { value: "xl", label: "XL" },
-];
-
-const widthOptions: { value: EditorLineWidth; label: string }[] = [
-  { value: "narrow", label: "Narrow" },
-  { value: "medium", label: "Medium" },
-  { value: "wide", label: "Wide" },
 ];
 
 /** The prose's font, size and line width: a pane of the editor's menu (doc 14 Q1). */
@@ -79,7 +73,7 @@ export default function FontSettings() {
       <div className={styles.section}>
         <span className={styles.sectionLabel}>Line width</span>
         <div className={styles.sizeRow}>
-          {widthOptions.map(({ value, label }) => (
+          {LINE_WIDTH_OPTIONS.map(({ value, label }) => (
             <button
               key={value}
               className={`${styles.sizeBtn} ${editorLineWidth === value ? styles.active : ""}`}

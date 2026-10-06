@@ -1,5 +1,5 @@
-import { FONT_CATEGORIES, FONT_OPTIONS, useUIStore } from "../../stores/uiStore";
-import type { EditorFontFamily, EditorFontSize, EditorLineWidth } from "../../stores/uiStore";
+import { FONT_CATEGORIES, FONT_OPTIONS, LINE_WIDTH_OPTIONS, useUIStore } from "../../stores/uiStore";
+import type { EditorFontFamily, EditorFontSize } from "../../stores/uiStore";
 import InterfaceSizeButtons from "./InterfaceSizeButtons";
 import styles from "../../pages/Settings.module.css";
 
@@ -8,12 +8,6 @@ const FONT_SIZES: { value: EditorFontSize; label: string }[] = [
   { value: "medium", label: "Medium" },
   { value: "large", label: "Large" },
   { value: "xl", label: "X-Large" },
-];
-
-const LINE_WIDTHS: { value: EditorLineWidth; label: string }[] = [
-  { value: "narrow", label: "Narrow" },
-  { value: "medium", label: "Medium" },
-  { value: "wide", label: "Wide" },
 ];
 
 /** Interface size, then the writing's font, size and line width. */
@@ -80,7 +74,7 @@ export default function TypographySection() {
       <div className={styles.settingGroup}>
         <p className={styles.settingGroupLabel}>Line width</p>
         <div className={styles.themeRow}>
-          {LINE_WIDTHS.map(({ value, label }) => (
+          {LINE_WIDTH_OPTIONS.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => setEditorLineWidth(value)}
