@@ -53,7 +53,7 @@ const ANALYSES: AnalysisDef[] = [
   {
     id: "voice-fidelity",
     label: "Voice Fidelity",
-    description: "Does dialogue match this character's intelligence, education, and social manner?",
+    description: "Does dialogue match how this character thinks, their education and their social manner?",
     type: "ai",
     Icon: UserCheck,
     run: (id, signal) => api.analyzeCharacterVoiceFidelity(id, signal),

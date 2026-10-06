@@ -4332,6 +4332,7 @@ def seed_short_story_demo():  # noqa: PLR0915
         elena = Character(
             story_id=story.id,
             name="Elena Sorokina",
+            pronouns="she/her",
             role="protagonist",
             character_type="static",
             jungian_archetype="creator",
@@ -4671,6 +4672,7 @@ def seed_short_story_demo():  # noqa: PLR0915
         student = Character(
             story_id=story.id,
             name="Mira Osei",
+            pronouns="she/her",
             role="tertiary",
             character_type="round",
             jungian_archetype="innocent",

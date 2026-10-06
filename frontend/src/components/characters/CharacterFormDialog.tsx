@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { UserRound, Plus, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
+import { useAIAvailable } from "../../lib/mode";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
 import { Modal, SectionCard } from "../common";
@@ -217,6 +218,7 @@ const PRONOUN_PRESETS = ["he/him", "she/her", "they/them"];
 
 export default function CharacterFormDialog({ storyId, character, onClose, onSaved }: Props) {
   const { upsertCharacter } = useStoryStore();
+  const aiAvailable = useAIAvailable();
   const isEditing = !!character;
 
   const initialPronouns = character?.pronouns ?? "";
@@ -315,7 +317,8 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
         const saved = await api.updateCharacter(character!.id, data);
         upsertCharacter(saved);
 
-        if (pronounsChanged) {
+        // The rewrite asks the model which pronouns are theirs: never in Writer mode (doc 20).
+        if (pronounsChanged && aiAvailable) {
           setPronounRefactorState({
             characterId: saved.id,
             newPronouns: effectivePronouns,

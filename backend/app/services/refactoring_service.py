@@ -8,6 +8,7 @@ the preview counts exactly what the rename changes: a mention ending a paragraph
 followed by ’s or a dash, a name with an ampersand.
 """
 
+from collections.abc import Callable
 from typing import Literal
 
 from sqlalchemy.orm import Session
@@ -57,14 +58,22 @@ def apply_entity_rename(
     new_name: str,
     node_ids: list[str],
     db: Session,
+    write: Callable[[StructureNode, str], None] | None = None,
 ) -> list[StructureNode]:
-    """Apply rename to selected scenes. Returns updated nodes."""
+    """Apply rename to selected scenes. Returns updated nodes.
+
+    ``write`` sets a scene's new content in place of a bare assignment: the route passes
+    ``change_log.prose_writer`` so the rename is recorded and undoes with the name.
+    """
     nodes = db.query(StructureNode).filter(StructureNode.id.in_(node_ids)).all()
     updated: list[StructureNode] = []
     for node in nodes:
         content, changed = rename(node.content or "", entity_type, old_name, new_name)
         if changed:
-            node.content = content
+            if write:
+                write(node, content)
+            else:
+                node.content = content
             node.summary_stale = True
             updated.append(node)
     db.flush()

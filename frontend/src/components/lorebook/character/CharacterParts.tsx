@@ -207,11 +207,20 @@ export function DiscoveryNotes({ character, onSaved }: { character: Character; o
   );
 }
 
-const ATTRIBUTES: { key: keyof CharacterAttributes; label: string; options: string[] }[] = [
+type Option = string | { value: string; label: string };
+
+const ATTRIBUTES: { key: keyof CharacterAttributes; label: string; options: Option[] }[] = [
   {
+    // How they think, not how well (doc 20 P2): the stored values stay, the words no longer rank.
     key: "intelligence",
-    label: "Intelligence",
-    options: ["Brilliant", "Sharp", "Average", "Simple", "Slow"],
+    label: "Thinks",
+    options: [
+      { value: "brilliant", label: "Abstractly" },
+      { value: "sharp", label: "Quickly" },
+      { value: "average", label: "Practically" },
+      { value: "simple", label: "Concretely" },
+      { value: "slow", label: "Unhurriedly" },
+    ],
   },
   { key: "education", label: "Education", options: ["Scholarly", "Educated", "Common", "Unlettered"] },
   {
@@ -247,7 +256,7 @@ export function Attributes({ character, onSaved }: { character: Character; onSav
     return (
       <button type="button" className={styles.quietBtn} onClick={() => setOpen(true)}>
         <Plus size={11} aria-hidden />
-        Intelligence, temperament, manner…
+        How they think, temperament, manner…
       </button>
     );
   }
@@ -276,11 +285,15 @@ export function Attributes({ character, onSaved }: { character: Character; onSav
                 }
               >
                 <option value="unknown">Unknown</option>
-                {options.map((o) => (
-                  <option key={o} value={o.toLowerCase().replace(" ", "_")}>
-                    {o}
-                  </option>
-                ))}
+                {options.map((o) => {
+                  const { value: v, label: text } =
+                    typeof o === "string" ? { value: o.toLowerCase().replace(" ", "_"), label: o } : o;
+                  return (
+                    <option key={v} value={v}>
+                      {text}
+                    </option>
+                  );
+                })}
               </select>
             </label>
           );

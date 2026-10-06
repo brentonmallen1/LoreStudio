@@ -7,12 +7,13 @@ from ....models.character import Character
 # Attribute guidance: maps each (attribute, value) to a specific speech/behavior instruction.
 # Only non-"unknown" values are included in the prompt.
 _ATTR_GUIDANCE: dict[str, dict[str, str]] = {
+    # How they think, not how well (doc 20 P2): the stored values stay, the scale no longer ranks.
     "intelligence": {
-        "brilliant": "Your intelligence is exceptional. You think in abstractions, see patterns others miss, and reach conclusions before others have framed the question. You use precise Latinate vocabulary naturally — words like 'circumspect', 'tenuous', 'iterate'. Your sentences are layered. You may sometimes outpace the conversation.",
-        "sharp": "You're quick-witted and perceptive. You grasp implications fast, ask pointed questions, and express yourself with clarity. You use a broad vocabulary comfortably but don't show it off.",
-        "average": "You think things through in ordinary terms. You use everyday language — mostly Germanic-root words: 'bold' not 'audacious', 'help' not 'assist', 'end' not 'conclusion'. You're capable but not analytical by instinct.",
-        "simple": "You think and speak plainly. Concrete words over abstract ones. Short sentences. You express complex feelings through comparison or story rather than analysis. You might say 'it felt wrong, like stepping on rotten wood' instead of 'I sensed instability'.",
-        "slow": "You struggle to keep up with fast exchanges. You speak haltingly, sometimes lose your thread, and use very simple words. You're not stupid — you feel things deeply — but ideas don't come easy.",
+        "brilliant": "You think in abstractions and patterns, often a step ahead of the question. Precise, Latinate words come to you without effort ('circumspect', 'tenuous', 'iterate'). Your sentences are layered, and you may outpace the conversation.",
+        "sharp": "You're quick on the uptake: you catch implications fast, ask pointed questions, and say things clearly. You use a broad vocabulary comfortably but don't show it off.",
+        "average": "You think in practical, everyday terms and use everyday words, mostly Germanic-root: 'bold' not 'audacious', 'help' not 'assist', 'end' not 'conclusion'. You trust what works over what sounds clever.",
+        "simple": "You think and speak concretely. Concrete words over abstract ones. Short sentences. You express complex feelings through comparison or story rather than analysis. You might say 'it felt wrong, like stepping on rotten wood' instead of 'I sensed instability'.",
+        "slow": "You take ideas at your own pace and think before you answer. You don't rush to fill a silence, and what you say you've thought about.",
     },
     "education": {
         "scholarly": "You were formally educated and it shows. You reference history, literature, philosophy or science naturally in conversation. You use technical or academic vocabulary when it fits. You may quote or paraphrase without thinking.",
@@ -51,7 +52,7 @@ _ATTR_GUIDANCE: dict[str, dict[str, str]] = {
 }
 
 _ATTR_LABELS: dict[str, str] = {
-    "intelligence": "Intelligence",
+    "intelligence": "Thinks",
     "education": "Education",
     "moral_alignment": "Moral alignment",
     "disposition": "Disposition",
@@ -136,6 +137,8 @@ def _profile_lines(character: Character) -> list[str]:
         ("way of speaking", character.speech_patterns),
     )
     lines = [f"\nYour {label}: {value}" for label, value in fields if value]
+    if character.pronouns:
+        lines.insert(0, f"\nYour pronouns: {character.pronouns}")
 
     if character.traits:
         trait_lines = "\n".join(f"  - {k}: {v}" for k, v in character.traits.items())

@@ -287,11 +287,11 @@ def apply_proposals_to_html(
     new_pronouns: str,
 ) -> str:
     """
-    Apply selected proposals to scene HTML content, then fix conjugation.
+    Apply selected proposals to scene HTML content, fixing conjugation in each.
 
     Proposals contain 6–10 word context phrases that don't span HTML tags,
     so direct string replacement is safe. Conjugation is fixed with a
-    targeted regex pass afterward.
+    targeted regex pass over each rewritten phrase, never the rest of the scene.
     """
     target_subject = _parse_target_subject(new_pronouns)
 
@@ -303,12 +303,12 @@ def apply_proposals_to_html(
     for prop in sorted_props:
         original: str = prop["original"]
         rewritten: str = prop["rewritten"]
+        # Agreement inside the changed phrase only ("they was" → "they were"): a pass over the
+        # whole scene "corrected" a character's own dialect elsewhere in it (doc 20).
+        if target_subject:
+            rewritten = _fix_conjugation(rewritten, target_subject)
         if original in html:
             html = html.replace(original, rewritten, 1)
-
-    # Fix conjugation (e.g. "They was" → "They were")
-    if target_subject:
-        html = _fix_conjugation(html, target_subject)
 
     return html
 

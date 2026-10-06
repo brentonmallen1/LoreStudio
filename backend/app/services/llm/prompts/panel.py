@@ -7,14 +7,7 @@ and a history labeled by speaker so each character knows exactly who said what.
 """
 
 from ....models.character import Character, CharacterRelationship
-from .interviews import (
-    _CHARACTER_TYPE_GUIDANCE,
-    _JUNGIAN_GUIDANCE,
-    _NARRATIVE_GUIDANCE,
-    _ROLE_GUIDANCE,
-    _build_attribute_guidance,
-    _normalise,
-)
+from .interviews import _classification_lines, _profile_lines
 
 
 def _relationship_summary(
@@ -32,8 +25,10 @@ def _relationship_summary(
             (r for r in relationships if r.character_id == other.id and r.related_character_id == character.id),
             None,
         )
+    # Their pronouns, so the people in the room can speak of each other rightly.
+    who = f"{other.name} ({other.pronouns})" if other.pronouns else other.name
     if not rel:
-        return f"{other.name} — no established relationship"
+        return f"{who} — no established relationship"
 
     parts = []
     if rel.description:
@@ -48,7 +43,7 @@ def _relationship_summary(
     if rel.narrative_purpose:
         parts.append(f"dynamic: {', '.join(rel.narrative_purpose)}")
 
-    return f"{other.name} — {'; '.join(parts)}" if parts else f"{other.name}"
+    return f"{who} — {'; '.join(parts)}" if parts else who
 
 
 def format_history_with_labels(messages: list[dict]) -> str:
@@ -119,7 +114,7 @@ def build_panel_orchestrator_prompt(
     )
 
 
-def build_panel_character_prompt(  # noqa: C901, PLR0912
+def build_panel_character_prompt(
     character: Character,
     other_characters: list[Character],
     relationships: list[CharacterRelationship],
@@ -131,44 +126,9 @@ def build_panel_character_prompt(  # noqa: C901, PLR0912
     Full character persona prompt (equivalent to single-character interview) plus
     room context: who else is present and what the relationship dynamic is.
     """
-    parts = [f"You are {character.name}."]
-
-    if character.mission_statement:
-        parts.append(f"\nYour core drive: {character.mission_statement}")
-    if character.personality:
-        parts.append(f"\nYour personality: {character.personality}")
-    if character.motivation:
-        parts.append(f"\nYour motivation: {character.motivation}")
-    if character.background:
-        parts.append(f"\nYour background: {character.background}")
-    if character.appearance:
-        parts.append(f"\nYour appearance: {character.appearance}")
-    if character.traits:
-        trait_lines = "\n".join(f"  - {k}: {v}" for k, v in character.traits.items())
-        parts.append(f"\nYour traits:\n{trait_lines}")
-
-    if character.attributes:
-        attr_guidance = _build_attribute_guidance(character.attributes)
-        if attr_guidance:
-            parts.append(f"\n\nHow you speak, think, and carry yourself:\n{attr_guidance}")
-
-    classification_lines: list[str] = []
-    role_key = _normalise(character.role or "")
-    role_match = next((v for k, v in _ROLE_GUIDANCE.items() if _normalise(k) == role_key), None)
-    if role_match:
-        classification_lines.append(role_match)
-    char_type_key = _normalise(getattr(character, "character_type", "") or "")
-    char_type_match = next((v for k, v in _CHARACTER_TYPE_GUIDANCE.items() if _normalise(k) == char_type_key), None)
-    if char_type_match:
-        classification_lines.append(char_type_match)
-    jungian_key = _normalise(getattr(character, "jungian_archetype", "") or "")
-    jungian_match = next((v for k, v in _JUNGIAN_GUIDANCE.items() if _normalise(k) == jungian_key), None)
-    if jungian_match:
-        classification_lines.append(jungian_match)
-    narrative_key = _normalise(getattr(character, "narrative_archetype", "") or "")
-    narrative_match = next((v for k, v in _NARRATIVE_GUIDANCE.items() if _normalise(k) == narrative_key), None)
-    if narrative_match:
-        classification_lines.append(narrative_match)
+    # The interview's own profile and place in the story, so the two personas cannot drift.
+    parts = [f"You are {character.name}.", *_profile_lines(character)]
+    classification_lines = _classification_lines(character)
     if classification_lines:
         parts.append("\n\nYour place in the story:\n" + "\n".join(classification_lines))
 

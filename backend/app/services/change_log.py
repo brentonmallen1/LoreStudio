@@ -242,6 +242,7 @@ def rewrite_prose(
     batch_id: str,
     actor_id: str | None,
     client_id: str | None,
+    undoable: bool = False,
 ) -> None:
     """
     Replace a scene's prose on the author's behalf, and say so.
@@ -249,22 +250,40 @@ def rewrite_prose(
     For the bulk tools — quote conversion, story-wide replace — that rewrite many scenes
     in one go. Logged as prose edits are: visible under Chronicle › Changes, one batch per
     operation, and not undoable here, because the editor's own history owns prose.
+
+    ``undoable`` is for a rewrite that goes with a change to the record, a rename or new
+    pronouns (doc 20): the sheet and the scenes undo together, and an undo leaves alone a
+    scene written in since (the before/after check every update gets).
     """
     record(
         db,
         story_id=node.story_id,
         entity_type="structure_node",
         entity_id=node.id,
-        action="content",
+        action="update" if undoable else "content",
         before={"content": node.content},
         after={"content": content},
         label=label,
         actor_id=actor_id,
         client_id=client_id,
         batch_id=batch_id,
-        undoable=False,
+        undoable=undoable,
     )
     node.content = content
+
+
+def prose_writer(
+    db: Session, *, label: str, batch_id: str, actor_id: str | None, client_id: str | None
+) -> Callable[[StructureNode, str], None]:
+    """``rewrite_prose`` bound to one undoable batch: for a rename or new pronouns, whose scenes
+    undo together with the record that changed (doc 20)."""
+
+    def write(node: StructureNode, content: str) -> None:
+        rewrite_prose(
+            db, node, content, label=label, batch_id=batch_id, actor_id=actor_id, client_id=client_id, undoable=True
+        )
+
+    return write
 
 
 def capture_node_tree(node: StructureNode, db: Session) -> dict[str, list[dict]]:

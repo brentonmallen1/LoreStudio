@@ -1241,9 +1241,9 @@ def build_voice_fidelity_prompt(
     Build a prompt that asks the AI to evaluate whether a character's dialogue
     is authentic to their defined attributes (intelligence, education, social_manner, etc.).
 
-    Key signal: word etymology — Germanic-root words (help, bold, end, buy) indicate
-    lower intelligence/education; Latinate/Greek words (assist, audacious, conclusion,
-    purchase) indicate higher. The mix should match the character's profile.
+    Key signal: word etymology — Germanic-root words (help, bold, end, buy) mark plain,
+    concrete or practical speech; Latinate/Greek words (assist, audacious, conclusion,
+    purchase) mark abstract or formal speech. The mix should match the character's profile.
     """
     # Gather relevant attribute labels and their expected speech patterns
     attr_sections: list[str] = []
@@ -1270,15 +1270,15 @@ DEFINED ATTRIBUTES AND EXPECTED SPEECH PATTERNS:
 {attribute_block}
 
 KEY LINGUISTIC SIGNAL — WORD ETYMOLOGY:
-Word origins are one of the strongest markers of intelligence and education level:
-- Germanic-root words (help, bold, end, start, buy, think, begin, house, strong) → expected for simple/average intelligence or common/unlettered education
-- Latinate or Greek-root words (assist, audacious, conclusion, commence, purchase, contemplate, initiate, domicile, robust) → expected for brilliant/sharp intelligence or scholarly/educated characters
-- The MIX of word origins should align with the character's intelligence and education level. An "unlettered" character using "facilitate" or "expedite" is a red flag. A "brilliant" character never escaping Anglo-Saxon vocabulary is also a signal.
+Word origins are one of the strongest markers of register: how plain or formal, concrete or abstract, a person's speech is. They say nothing about how clever someone is.
+- Germanic-root words (help, bold, end, start, buy, think, begin, house, strong) → expected for someone who thinks concretely or practically, or whose education was common or unlettered
+- Latinate or Greek-root words (assist, audacious, conclusion, commence, purchase, contemplate, initiate, domicile, robust) → expected for someone who thinks abstractly, or a scholarly or educated character
+- The MIX of word origins should align with how the character thinks and their education. An "unlettered" character using "facilitate" or "expedite" is a red flag. A character who thinks abstractly never escaping Anglo-Saxon vocabulary is also a signal.
 
 DIALOGUE TO EVALUATE:
 {dialogue_block}
 
-Evaluate each line of dialogue against the character's attributes. Flag lines that feel inconsistent with their intelligence, education, or social manner. Also identify lines that feel authentically right.
+Evaluate each line of dialogue against the character's attributes. Flag lines that feel inconsistent with how they think, their education, or their social manner. Also identify lines that feel authentically right.
 
 Respond with ONLY valid JSON matching this exact schema:
 

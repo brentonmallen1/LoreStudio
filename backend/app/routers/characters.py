@@ -422,14 +422,27 @@ def apply_character_rename(
     body: ApplyRenameRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Rename character and propagate change to selected scenes."""
+    """Rename character and propagate change to selected scenes, as one undoable change."""
     character = _verify_character_access(character_id, db, current_user)
-    # Apply prose changes first
-    apply_entity_rename("character", body.old_name, body.new_name, body.node_ids, db)
+    batch, label = str(uuid.uuid4()), f"Rename {body.old_name} to {body.new_name}"
+    write = change_log.prose_writer(db, label=label, batch_id=batch, actor_id=current_user.id, client_id=client_id)
+    apply_entity_rename("character", body.old_name, body.new_name, body.node_ids, db, write=write)
     # Update character name; scenes left out still say the old one, so it stays an alias.
     data = {"name": body.new_name}
     other_names.settle(character, data, "character", db)
+    change_log.record_update(
+        db,
+        character,
+        data,
+        entity_type="character",
+        story_id=character.story_id,
+        label=label,
+        actor_id=current_user.id,
+        client_id=client_id,
+        batch_id=batch,
+    )
     for key, value in data.items():
         setattr(character, key, value)
     db.commit()
@@ -531,9 +544,12 @@ def apply_pronoun_refactor(
     body: ApplyPronounRefactorRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Apply selected pronoun rewrites to scenes and update character pronouns."""
+    """Apply selected pronoun rewrites to scenes and update character pronouns, as one undoable change."""
     character = _verify_character_access(character_id, db, current_user)
+    batch, label = str(uuid.uuid4()), f"Pronouns of {character.name} to {body.new_pronouns}"
+    write = change_log.prose_writer(db, label=label, batch_id=batch, actor_id=current_user.id, client_id=client_id)
 
     from collections import defaultdict
 
@@ -548,9 +564,20 @@ def apply_pronoun_refactor(
         props = [{"original": rw.original, "rewritten": rw.rewritten} for rw in rewrites]
         new_content = apply_proposals_to_html(node.content, props, body.new_pronouns)
         if new_content != node.content:
-            node.content = new_content
+            write(node, new_content)
             node.summary_stale = True
 
+    change_log.record_update(
+        db,
+        character,
+        {"pronouns": body.new_pronouns},
+        entity_type="character",
+        story_id=character.story_id,
+        label=label,
+        actor_id=current_user.id,
+        client_id=client_id,
+        batch_id=batch,
+    )
     character.pronouns = body.new_pronouns
     db.commit()
     db.refresh(character)
