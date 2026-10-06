@@ -45,6 +45,10 @@ class StoryBackupSettings(Base):
     max_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=30)
     max_age_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
     last_auto_backup_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: The Numbers readings' clock (doc 19): when the story was last open (a gap of three hours
+    #: starts a session), and when it was last checked for a daily reading.
+    numbers_seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    numbers_checked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     include_diagrams: Mapped[bool] = mapped_column(Boolean, default=True)
     include_interviews: Mapped[bool] = mapped_column(Boolean, default=True)
     include_chat_sessions: Mapped[bool] = mapped_column(Boolean, default=True)

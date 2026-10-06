@@ -21,6 +21,7 @@ from .location import Location, ScenePresence, SceneSetting
 from .location_travel import LocationTravel
 from .media import AssetAttachment, StoryAsset
 from .note import Note
+from .numbers_reading import NumbersReading
 from .outline import Outline, OutlineItem
 from .panel_interview import PanelInterview
 from .plot_thread import PlotThread, PlotThreadAppearance
@@ -77,6 +78,7 @@ __all__ = [
     "TwistClue",
     "OutlineItem",
     "StorySnapshot",
+    "NumbersReading",
     "StoryBackupSettings",
     "UserBackupDefaults",
     "PlotThread",

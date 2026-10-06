@@ -92,3 +92,34 @@ class NumbersOut(BaseModel):
     dialogue: NumbersDialogue
     prose: NumbersProse | None
     summaries: NumbersSummaries
+
+
+class ReadingSummary(BaseModel):
+    """A reading in the picker and the trend row: when, why, and its headline figures."""
+
+    id: str
+    taken_at: datetime
+    #: session · daily · manual · snapshot · restore · backfill
+    trigger: str
+    #: The version's name, for a reading taken with a named snapshot.
+    label: str | None
+    snapshot_id: str | None
+    words: int
+    scenes: int
+    balance: int | None
+    passive_pct: float | None
+    open_findings: int | None
+
+
+class ReadingsOut(BaseModel):
+    readings: list[ReadingSummary]
+    #: Versions not measured yet; the page starts the backfill job when there are any.
+    unmeasured_versions: int
+
+
+class ReadingOut(BaseModel):
+    id: str
+    taken_at: datetime
+    trigger: str
+    label: str | None
+    data: dict

@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from ..database import get_db
 from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from ..models.story import Story
 from ..models.user import User
+from ..services import numbers_history
 from ..services.series import sync as series_sync
 from ..services.snapshot_export import export_snapshot, import_snapshot_file
 from ..services.snapshot_service import (
@@ -191,6 +192,7 @@ class UserBackupDefaultsUpdate(BaseModel):
 def create_manual_snapshot(
     story_id: str,
     body: CreateSnapshotBody,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -199,6 +201,15 @@ def create_manual_snapshot(
     snap = create_snapshot(story_id, db, trigger="manual", name=body.name, force=True)
     if snap is None:
         raise HTTPException(status_code=500, detail="Snapshot was not created")
+    # A version carries the Numbers as they stood (doc 19), measured after this answers.
+    background.add_task(
+        numbers_history.in_background,
+        db.get_bind(),
+        story_id,
+        trigger="snapshot",
+        label=snap.name,
+        snapshot_id=snap.id,
+    )
     return SnapshotOut.from_orm_snap(snap)
 
 
@@ -231,11 +242,19 @@ def get_status(
 @router.post("/stories/{story_id}/snapshots/check-auto")
 def check_auto_backup(
     story_id: str,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Called on story load and on a timer. Creates an auto-backup if the interval has elapsed."""
+    """Called on story load and on a timer. Creates an auto-backup if the interval has elapsed,
+    and takes the Numbers reading a new session or a new day calls for (doc 19), whether or
+    not auto-backups are on: the reading runs after this answers."""
     _verify_story_access(story_id, db, current_user)
+    reading = numbers_history.visit(story_id, db)
+    if reading:
+        background.add_task(
+            numbers_history.in_background, db.get_bind(), story_id, trigger=reading, only_if_changed=reading == "daily"
+        )
     settings = _get_or_create_settings(story_id, db)
 
     if not settings.auto_enabled:
@@ -317,6 +336,7 @@ def restore_to_snapshot(
     story_id: str,
     snapshot_id: str,
     body: RestoreBody,
+    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -326,6 +346,8 @@ def restore_to_snapshot(
     # A book of a series: the research it shares is what every book now says (v1.5).
     series_sync.after_restore(db, story_id)
     db.commit()
+    # Restoring does not rewind the Numbers' history; it adds a reading of the restored book.
+    background.add_task(numbers_history.in_background, db.get_bind(), story_id, trigger="restore")
     return {"restored": True, "snapshot_id": snapshot_id}
 
 
@@ -384,6 +406,7 @@ async def import_into_story(
 
     _delete_story_content(story_id, db)
     _insert_story_content(state, db)
+    numbers_history.adopt(story_id, parsed.get("readings", []), db)
     db.commit()
     return {"imported": True, "manifest": parsed["manifest"]}
 
@@ -426,6 +449,7 @@ async def import_as_new_story(
     db.add(new_story)
     db.flush()
     _insert_story_content(state, db)
+    numbers_history.adopt(new_story_id, parsed.get("readings", []), db)
     db.commit()
     return {"imported": True, "story_id": new_story_id, "manifest": parsed["manifest"]}
 

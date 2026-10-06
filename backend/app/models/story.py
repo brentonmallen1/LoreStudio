@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from .location import Location
     from .media import StoryAsset
     from .note import Note
+    from .numbers_reading import NumbersReading
     from .outline import Outline
     from .panel_interview import PanelInterview
     from .plot_thread import PlotThread
@@ -145,6 +146,9 @@ class Story(Base):
     )
     snapshots: Mapped[list["StorySnapshot"]] = relationship(
         "StorySnapshot", back_populates="story", cascade="all, delete-orphan"
+    )
+    numbers_readings: Mapped[list["NumbersReading"]] = relationship(
+        "NumbersReading", back_populates="story", cascade="all, delete-orphan"
     )
     backup_settings: Mapped["StoryBackupSettings | None"] = relationship(
         "StoryBackupSettings", back_populates="story", uselist=False, cascade="all, delete-orphan"

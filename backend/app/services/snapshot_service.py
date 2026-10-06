@@ -182,9 +182,12 @@ SNAPSHOT_EXCLUDED_TABLES = {
     # and an exported book is a standalone story; a setup that pays off in another book is a
     # link between two books, not part of either. tests/services/test_series_lifecycle.py
     # covers what the series tables do when a book is deleted or restored.
+    # The Numbers readings are the book's history, not its content: restoring a version must
+    # not rewind the history (doc 19); a restore adds a reading instead. They travel in an
+    # export beside story.json (snapshot_export.py).
     "stories", "story_snapshots", "story_backup_settings", "changes", "ai_call_payloads", "ai_jobs", "series_scene_links",
     "codex_nodes", "codex_edges", "codex_chunks", "series", "series_stories", "series_elements", "series_element_members",
-}
+    "numbers_readings"}
 # fmt: on
 
 

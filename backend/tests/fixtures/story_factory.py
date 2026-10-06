@@ -32,6 +32,7 @@ from app.models import (
     Location,
     LocationTravel,
     Note,
+    NumbersReading,
     Outline,
     OutlineItem,
     PanelInterview,
@@ -173,6 +174,7 @@ def build_full_story(db: Session, user: User, title: str = "Factory Story") -> S
     db.add(ActivityLog(id=_uid(), user_id=user.id, story_id=sid, event_type="test", category="ai", description="x"))
     db.add(ScenePresence(id=_uid(), node_id=scene1.id, character_id=hero.id, role="participant"))
     db.add(AIJob(id=_uid(), user_id=user.id, story_id=sid, kind="scene-summaries", label="Scene summaries"))
+    db.add(NumbersReading(id=_uid(), story_id=sid, trigger="manual", data={"words": {"total": 0}}))
 
     db.commit()
     db.refresh(story)
