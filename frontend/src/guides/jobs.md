@@ -16,7 +16,7 @@ Choose the header's sign, or **Show jobs** in the palette ({{key:palette}}), to 
 - **Queued**: what runs next, in order. **Run next** moves a job to the front; **Remove** takes it out.
 - **While you were away**, then **Earlier**: the last day's finished jobs, each with **Open** (where its result is: Findings for a check, the report for a pass, Numbers for a measurement), **Retry** for one that failed or was stopped, and **Details**, which opens it in the Chronicle with every call it made.
 
-A reply or a summary streaming into this window is listed too, while it runs.
+The Assistant's replies and summaries are listed too while they are being written, by name ("Character Interview · Eleanor"), from whichever window they started in, a popped-out panel included. **Stop** on one ends it from any window, keeping what was written so far.
 
 A failure is said plainly. "The model is not running. Start Ollama, then Retry." is the usual one.
 
@@ -24,7 +24,7 @@ A failure is said plainly. "The model is not running. Start Ollama, then Retry."
 
 There is one model, and it answers one thing at a time. When you ask the Assistant something (an interview, a chat, a summary) while a job is using the model, your reply goes first: the job's call stops, and the job goes back to the front of the queue, to carry on from where it was. The Chronicle shows that call as "Made way for a reply".
 
-After your last reply the model's jobs wait a minute before starting again, so a conversation is never held up between turns. The job says so ("Waiting: starts 40 s after your last reply"). **Start now** skips the wait for that job. You can change how long it waits, or turn the wait off, under Settings › AI.
+After your last reply the model's jobs wait a minute before starting again, so a conversation is never held up between turns. The job says so: "Waiting: Character Interview · Eleanor goes first" while the reply runs, then "Waiting: starts 40 s after your last reply". **Start now** skips the wait for that job. You can change how long it waits, or turn the wait off, under Settings › AI.
 
 If the model is not answering, or you have switched AI off, the jobs wait instead of failing one after another, and **Try now** tries again.
 

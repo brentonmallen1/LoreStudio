@@ -1,6 +1,19 @@
 import { request } from "./request";
 import type { ActivityLog } from "../types";
 
+/** A reply in flight: a chat, an interview, a summary streaming into some window. The server
+ *  lists it, so every window shows it and any of them can stop it. */
+export interface LiveCall {
+  id: string;
+  /** "Character Interview · Eleanor" */
+  label: string;
+  started_at: string;
+  /** The Assistant session it answers, if any. */
+  session_id: string | null;
+  /** A stream can be stopped; a one-shot call runs out in seconds. */
+  can_stop: boolean;
+}
+
 /**
  * Long-running work, AI or local (doc 06 §8, doc 21 Jobs). Kept out of client.ts (size budget).
  */
@@ -66,6 +79,11 @@ export const jobsApi = {
   /** The Jobs list showed these finished: no longer unseen in any window. */
   seen: (ids: string[]) =>
     request<{ marked: number }>(`/jobs/seen`, { method: "POST", body: JSON.stringify({ ids }) }),
+  /** The author's replies in flight, from any window or device (doc 21 follow-up). */
+  live: () => request<LiveCall[]>(`/jobs/live`),
+  /** Stop a reply from any window: a stream ends at its next chunk. */
+  stopLive: (callId: string) =>
+    request<{ stopped: boolean }>(`/jobs/live/${callId}/stop`, { method: "POST" }),
   /** Queue one Assistant check from Run checks (an AI_FEATURES id). Asking twice gives one job. */
   check: (storyId: string, feature: string) =>
     request<AIJob>(`/stories/${storyId}/checks/${feature}`, { method: "POST" }),

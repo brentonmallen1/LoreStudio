@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { jobsApi, type AIJob } from "../api/jobs";
+import { jobsApi, type AIJob, type LiveCall } from "../api/jobs";
 import { MUTATION_EVENT } from "../api/request";
 import { finishedSince, isActive, isUnseen, jobDetailsPath, jobOpen } from "../lib/jobs/jobs";
 import { getAIAvailable } from "../lib/mode";
@@ -26,6 +26,8 @@ function readTitlePref(): boolean {
 
 interface JobsState {
   jobs: AIJob[];
+  /** Replies in flight, from the server: the same in every window (doc 21 follow-up). */
+  live: LiveCall[];
   loaded: boolean;
   /** The header's list is open. */
   open: boolean;
@@ -40,6 +42,7 @@ interface JobsState {
   runNext: (id: string) => Promise<void>;
   retry: (id: string) => Promise<void>;
   startNow: (id: string) => Promise<void>;
+  stopLive: (id: string) => Promise<void>;
   markSeen: (ids: string[]) => Promise<void>;
   /** Start polling while something needs the list; returns the matching stop. */
   watch: () => () => void;
@@ -87,6 +90,7 @@ function announce(job: AIJob) {
 
 export const useJobsStore = create<JobsState>((set, get) => ({
   jobs: [],
+  live: [],
   loaded: false,
   open: false,
   away: [],
@@ -114,9 +118,14 @@ export const useJobsStore = create<JobsState>((set, get) => ({
 
   refresh: async () => {
     let list: AIJob[];
+    let live: LiveCall[];
     try {
       // Writer mode asks for local work only: it never sees that a model job exists (D6).
-      list = await jobsApi.list({ sinceHours: SINCE_HOURS, lane: getAIAvailable() ? undefined : "local" });
+      const ai = getAIAvailable();
+      [list, live] = await Promise.all([
+        jobsApi.list({ sinceHours: SINCE_HOURS, lane: ai ? undefined : "local" }),
+        ai ? jobsApi.live() : Promise.resolve([]),
+      ]);
     } catch {
       return get().jobs; // a list that cannot load must not break the page it sits in
     }
@@ -124,7 +133,7 @@ export const useJobsStore = create<JobsState>((set, get) => ({
     const done = get().loaded ? finishedSince(wasActive, known, firstLookMs, list) : [];
     wasActive = new Set(list.filter(isActive).map((j) => j.id));
     known = new Set(list.map((j) => j.id));
-    set({ jobs: list, loaded: true });
+    set({ jobs: list, live, loaded: true });
     // What finishes while the list is open is seen as it happens.
     if (get().open) void get().markSeen(list.filter(isUnseen).map((j) => j.id));
     for (const job of done) {
@@ -150,6 +159,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
     await jobsApi.startNow(id);
     await get().refresh();
   },
+  stopLive: async (id) => {
+    await jobsApi.stopLive(id);
+    await get().refresh();
+  },
   markSeen: async (ids) => {
     if (!ids.length) return;
     const now = new Date().toISOString();
@@ -167,6 +180,13 @@ export const useJobsStore = create<JobsState>((set, get) => ({
   },
 }));
 
+/** A reply just started or ended in this window: look in a moment, so the list has it by name. */
+export function lookSoon(ms = 400) {
+  if (watchers === 0) return;
+  clearTimeout(timer);
+  timer = setTimeout(tick, ms);
+}
+
 function onMutation(e: Event) {
   // Our own "seen" write is not news; anything else may have queued a job.
   if ((e as CustomEvent<{ path?: string }>).detail?.path === "/jobs/seen") return;
@@ -179,7 +199,8 @@ async function tick() {
   const list = await useJobsStore.getState().refresh();
   if (watchers === 0) return;
   clearTimeout(timer);
-  timer = setTimeout(tick, list.some(isActive) ? BUSY_MS : IDLE_MS);
+  const busy = list.some(isActive) || useJobsStore.getState().live.length > 0;
+  timer = setTimeout(tick, busy ? BUSY_MS : IDLE_MS);
 }
 
 function start() {

@@ -18,7 +18,7 @@ from ..models.ai_job import AIJob
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.chronicle import ActivityLogOut
-from ..schemas.jobs import JobIds, JobOut
+from ..schemas.jobs import JobIds, JobOut, LiveCallOut
 from ..services.chronicle_timeline import job_activity
 from ..services.job_queue import (
     ACTIVE,
@@ -99,8 +99,8 @@ def _waiting(job: AIJob, next_model: str | None) -> dict:
         return {}
     if job.status == "queued" and job.id != next_model:
         return {}
-    reason = model_gate.waiting_reason(job.id)
-    return {"waiting": reason, "can_start_now": bool(reason) and "reply goes first" not in reason}
+    reason = model_gate.waiting_reason(job.id, job.user_id)
+    return {"waiting": reason, "can_start_now": bool(reason) and not model_gate.replying()}
 
 
 def _stop_mode(kind: str) -> str:
@@ -131,6 +131,18 @@ def list_jobs(
         since = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=since_hours)
         q = q.filter(or_(AIJob.status.in_(ACTIVE), AIJob.finished_at >= since))
     return _out(q.order_by(AIJob.created_at.desc()).limit(min(limit, 200)).all(), db)
+
+
+@router.get("/jobs/live", response_model=list[LiveCallOut])
+def list_live(user: User = Depends(get_current_user)):
+    """The author's replies in flight, from whichever window or device started them."""
+    return model_gate.calls(user.id)
+
+
+@router.post("/jobs/live/{call_id}/stop")
+def stop_live(call_id: str, user: User = Depends(get_current_user)):
+    """Stop a reply from any window: it ends at its next chunk and is logged as stopped."""
+    return {"stopped": model_gate.stop(call_id, user.id)}
 
 
 @router.get("/jobs/{job_id}", response_model=JobOut)

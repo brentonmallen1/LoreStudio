@@ -42,3 +42,17 @@ class JobOut(BaseModel):
 
 class JobIds(BaseModel):
     ids: list[str]
+
+
+class LiveCallOut(BaseModel):
+    """A reply in flight (doc 21 follow-up): listed in Jobs in every window, from the server."""
+
+    id: str
+    label: str
+    started_at: datetime
+    #: The Assistant session it answers, so the window holding it can open it.
+    session_id: str | None = None
+    #: A stream stops at its next chunk; a one-shot call cannot be reached.
+    can_stop: bool = False
+
+    model_config = {"from_attributes": True}

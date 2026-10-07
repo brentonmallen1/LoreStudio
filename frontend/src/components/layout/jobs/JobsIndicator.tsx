@@ -2,55 +2,41 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { arrange, countLabel, counted, isUnseen, titleWithCount } from "../../../lib/jobs/jobs";
-import { sessionLabel } from "../../../lib/ai/sessionLabel";
 import { useAIAvailable } from "../../../lib/mode";
 import { navigateTo } from "../../../lib/navigation";
 import { serverTime } from "../../../lib/serverDate";
+import { clockTime } from "../../chronicle/timelineFormat";
 import { sectionPath } from "../../../lib/routes";
 import { useAIStore } from "../../../stores/aiStore";
-import { jobsFirstLook, useJobsStore } from "../../../stores/jobsStore";
+import { jobsFirstLook, lookSoon, useJobsStore } from "../../../stores/jobsStore";
 import { useLLMStore } from "../../../stores/llmStore";
 import { usePanelStore } from "../../../stores/panelStore";
 import JobRow, { JobMark } from "./JobRow";
 import styles from "./Jobs.module.css";
 
-/** A reply or a summary streaming into this window: shown with the jobs, never saved
- *  (the gateway logs the call). */
-interface Live {
-  id: string;
-  label: string;
-  line: string;
-  stop: () => void;
-  open?: () => void;
-}
-
-function useLive(aiAvailable: boolean): Live[] {
+/** Replies streaming from this window, counted at once while the server's list catches up.
+ *  A session synced from another window has no abort controller here: that window counts it. */
+function useOwnStreams(aiAvailable: boolean): number {
   const requests = useLLMStore((s) => s.requests);
   const sessions = useAIStore((s) => s.sessions);
   return useMemo(() => {
-    if (!aiAvailable) return [];
-    const streams: Live[] = Object.values(requests)
-      .filter((r) => r.status === "streaming")
-      .map((r) => ({
-        id: `llm:${r.id}`,
-        label: r.label,
-        line: "Writing… · stops if you close this window",
-        stop: () => useLLMStore.getState().cancelRequest(r.id),
-      }));
-    const replies: Live[] = sessions
-      .filter((s) => s.isStreaming)
-      .map((s) => ({
-        id: `session:${s.id}`,
-        label: sessionLabel(s),
-        line: "Replying… · stops if you close this window",
-        stop: () => useAIStore.getState().cancelStreaming(s.id),
-        open: () => {
-          useAIStore.getState().setActiveSession(s.id);
-          usePanelStore.getState().openAssistant();
-        },
-      }));
-    return [...streams, ...replies];
+    if (!aiAvailable) return 0;
+    const streams = Object.values(requests).filter((r) => r.status === "streaming").length;
+    return streams + sessions.filter((s) => s.isStreaming && s._abortController).length;
   }, [aiAvailable, requests, sessions]);
+}
+
+/** Open the Assistant on the session a reply answers, if this window has it. */
+function sessionOpener(sessionId: string | null): (() => void) | undefined {
+  if (!sessionId) return undefined;
+  const session = useAIStore
+    .getState()
+    .sessions.find((s) => s.backendSessionId === sessionId || s.chronicleSessionId === sessionId);
+  if (!session) return undefined;
+  return () => {
+    useAIStore.getState().setActiveSession(session.id);
+    usePanelStore.getState().openAssistant();
+  };
 }
 
 /**
@@ -66,21 +52,27 @@ export default function JobsIndicator() {
   const open = useJobsStore((s) => s.open);
   const inTitle = useJobsStore((s) => s.inTitle);
   const away = useJobsStore((s) => s.away);
-  const { setOpen, setInTitle, watch } = useJobsStore.getState();
-  const live = useLive(aiAvailable);
+  const serverLive = useJobsStore((s) => s.live);
+  const { setOpen, setInTitle, watch, stopLive } = useJobsStore.getState();
+  // Replies come from the server, so a popped-out panel's show here and Stop reaches them.
+  const live = aiAvailable ? serverLive : [];
+  const own = useOwnStreams(aiAvailable);
   const [now, setNow] = useState(() => Date.now());
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
   useEffect(() => watch(), [watch]);
+  // A reply starting or ending here: the server's list has it in a moment.
+  useEffect(() => lookSoon(), [own]);
 
   const jobs = useMemo(() => (aiAvailable ? all : all.filter((j) => j.lane === "local")), [all, aiAvailable]);
   const { running, queued, finished } = arrange(jobs);
-  const count = counted(jobs).length + live.length;
+  const replies = Math.max(live.length, own);
+  const count = counted(jobs).length + replies;
   const unseen = jobs.filter(isUnseen);
-  const ai = live.length > 0 || running.some((j) => j.lane !== "local");
+  const ai = replies > 0 || running.some((j) => j.lane !== "local");
   // Queued and nothing started: a reply going first, or the cool-down after one.
-  const idle = live.length === 0 && running.length === 0;
+  const idle = replies === 0 && running.length === 0;
 
   // D13: "(2) LoreStudio", only when the author asked for it.
   useEffect(() => {
@@ -173,35 +165,43 @@ export default function JobsIndicator() {
                 {running.map((j) => (
                   <JobRow key={j.id} job={j} now={now} onLeave={close} />
                 ))}
-                {live.map((l) => (
-                  <li key={l.id} className={styles.row}>
-                    <span className={styles.mark}>
-                      <JobMark status="running" ai />
-                    </span>
-                    <div className={styles.rowBody}>
-                      {l.open ? (
-                        <button
-                          type="button"
-                          className={styles.rowTitleBtn}
-                          onClick={() => {
-                            close();
-                            l.open?.();
-                          }}
-                        >
-                          {l.label}
-                        </button>
-                      ) : (
-                        <span className={styles.rowTitle}>{l.label}</span>
+                {live.map((l) => {
+                  const open = sessionOpener(l.session_id);
+                  return (
+                    <li key={l.id} className={styles.row}>
+                      <span className={styles.mark}>
+                        <JobMark status="running" ai />
+                      </span>
+                      <div className={styles.rowBody}>
+                        {open ? (
+                          <button
+                            type="button"
+                            className={styles.rowTitleBtn}
+                            onClick={() => {
+                              close();
+                              open();
+                            }}
+                          >
+                            {l.label}
+                          </button>
+                        ) : (
+                          <span className={styles.rowTitle}>{l.label}</span>
+                        )}
+                        <span className={styles.line}>
+                          Writing now
+                          <span className={styles.quiet}> · started {clockTime(l.started_at)}</span>
+                        </span>
+                      </div>
+                      {l.can_stop && (
+                        <div className={styles.actions}>
+                          <button type="button" className={styles.action} onClick={() => void stopLive(l.id)}>
+                            Stop
+                          </button>
+                        </div>
                       )}
-                      <span className={styles.line}>{l.line}</span>
-                    </div>
-                    <div className={styles.actions}>
-                      <button type="button" className={styles.action} onClick={l.stop}>
-                        Stop
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           )}

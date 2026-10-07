@@ -168,11 +168,19 @@ class AIGateway:
         """
         self.provider = provider or ollama_provider
 
-    def _turn(self, user: User):
+    def _turn(self, user: User, context: AICallContext, db: Session, *, stream: bool = False):
         """The model gate (doc 21 P3): a job's call waits its turn and gives way to a reply;
-        a reply goes at once, and starts the cool-down when it ends."""
+        a reply goes at once, is listed in Jobs by name, and starts the cool-down when it ends."""
         job_id = current_job_id.get()
-        return model_gate.job(job_id) if job_id else model_gate.live(cooldown_for(user))
+        if job_id:
+            return model_gate.job(job_id)
+        return model_gate.live(
+            cooldown_for(user),
+            user_id=user.id,
+            label=_live_label(context, db),
+            session_id=context.session_id,
+            can_stop=stream,
+        )
 
     def _refuse_if_disabled(self, user: User) -> None:
         if (user.settings or {}).get("ai", {}).get("enabled") is False:
@@ -291,8 +299,8 @@ class AIGateway:
         _logged = False  # guard against finally running more than once
 
         try:
-            async with self._turn(user):
-                async for chunk in self.provider.chat_stream_with_metrics(
+            async with self._turn(user, context, db, stream=True) as call:
+                chunks = self.provider.chat_stream_with_metrics(
                     messages,
                     system_prompt,
                     temperature=params.temperature,
@@ -302,7 +310,15 @@ class AIGateway:
                     num_ctx=params.num_ctx,
                     base_url=user_url,
                     model=user_model,
-                ):
+                )
+                async for chunk in chunks:
+                    if call is not None and call.stop_requested:
+                        # Stop from the Jobs list, perhaps in another window: the stream ends
+                        # here, cleanly, and closing the provider's stream stops the model.
+                        status, error = "cancelled", "Stopped from Jobs"
+                        if close := getattr(chunks, "aclose", None):
+                            await close()
+                        break
                     if isinstance(chunk, StreamMetrics):
                         metrics = chunk
                     else:
@@ -381,7 +397,7 @@ class AIGateway:
         schema = decoding_schema(response_model)
 
         try:
-            async with self._turn(user):
+            async with self._turn(user, context, db):
                 raw_text, metrics = await self.provider.generate_structured(
                     messages,
                     system_prompt,
@@ -564,6 +580,23 @@ class AIGateway:
             # Logging must never break the AI call itself
             logger.exception("failed to record AI call for feature=%s", context.feature)
             db.rollback()
+
+
+def _live_label(context: AICallContext, db: Session) -> str:
+    """A reply as Jobs names it: "Character Interview · Eleanor", "Scene Summary · The Gap"."""
+    from ...models.character import Character
+    from ...models.structure import StructureNode
+
+    feature = FEATURES_BY_ID.get(context.feature)
+    label = feature.label if feature else context.feature
+    try:
+        if context.character_id and (person := db.get(Character, context.character_id)):
+            return f"{label} · {person.name}"
+        if context.node_id and (node := db.get(StructureNode, context.node_id)):
+            return f"{label} · {node.title}"
+    except Exception:  # a name is a nicety; the call must not fail for want of one
+        logger.debug("No name for the live call %s", context.feature, exc_info=True)
+    return label
 
 
 def _why_stopped() -> str | None:

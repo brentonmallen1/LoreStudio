@@ -202,6 +202,8 @@ the model). Every model call passes `services/llm/gate.py`: a live call preempts
 `stores/jobsStore.ts`; pages use `useJobs` / `useOnJobFinished`; the header's
 `layout/jobs/JobsIndicator` is the list. A stream whose result is kept runs to the end after
 its window closes (`sse.carry_on`); Stop posts `/streams/{id}/stop`.
+Replies in flight are listed by the gate (`GET /jobs/live`), so every window, a popped-out panel
+included, shows them by name and can stop them (`POST /jobs/live/{id}/stop`, at the next chunk).
 
 ### Writer and Studio modes
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,

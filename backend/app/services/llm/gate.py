@@ -26,8 +26,11 @@ from __future__ import annotations
 
 import asyncio
 import time
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 #: The cool-down when the author has not chosen one (Settings › AI).
 DEFAULT_COOLDOWN = 60
@@ -36,11 +39,26 @@ PAUSE_SECONDS = 30
 POLL = 0.25
 
 
+@dataclass
+class LiveCall:
+    """A reply in flight, as the Jobs list shows it in every window: what it is, whose, and
+    whether Stop can reach it (a stream checks between chunks; a one-shot call cannot)."""
+
+    user_id: str
+    label: str
+    session_id: str | None = None
+    can_stop: bool = False
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    stop_requested: bool = False
+
+
 class ModelGate:
     def __init__(self) -> None:
         self.exclusive = True
         self.cooldown = float(DEFAULT_COOLDOWN)
-        self._live = 0
+        #: Replies in flight, by id.
+        self._live: dict[str, LiveCall] = {}
         self._last_live_end = 0.0
         #: Jobs with a model call in flight, by job id.
         self._job_calls: set[str] = set()
@@ -56,8 +74,12 @@ class ModelGate:
             return 0.0
         return max(0.0, self._last_live_end + self.cooldown - (now or time.monotonic()))
 
-    def waiting_reason(self, job_id: str | None = None) -> str | None:
-        """Why a model job is not running yet, in the author's words, or None if it may."""
+    def replying(self) -> bool:
+        return bool(self._live)
+
+    def waiting_reason(self, job_id: str | None = None, user_id: str | None = None) -> str | None:
+        """Why a model job is not running yet, in the author's words, or None if it may.
+        A reply of the job's own author is named; anyone else's is not."""
         if job_id and job_id in self._start_now:
             return None
         if self._paused_until > time.monotonic():
@@ -66,7 +88,8 @@ class ModelGate:
         if not self.exclusive:
             return None
         if self._live:
-            return "Waiting: your reply goes first"
+            mine = next((c for c in self._live.values() if user_id and c.user_id == user_id), None)
+            return f"Waiting: {mine.label} goes first" if mine else "Waiting: a reply goes first"
         left = self.cooldown_left()
         if left > 0:
             return f"Waiting: starts {int(left) + 1} s after your last reply"
@@ -96,19 +119,40 @@ class ModelGate:
 
     # ── calls ─────────────────────────────────────────────────────────────
 
+    def calls(self, user_id: str) -> list[LiveCall]:
+        """This author's replies in flight, oldest first."""
+        return sorted((c for c in self._live.values() if c.user_id == user_id), key=lambda c: c.started_at)
+
+    def stop(self, call_id: str, user_id: str) -> bool:
+        """Stop a reply from any window: the stream ends at its next chunk, logged as stopped."""
+        call = self._live.get(call_id)
+        if call is None or call.user_id != user_id or not call.can_stop:
+            return False
+        call.stop_requested = True
+        return True
+
     @asynccontextmanager
-    async def live(self, cooldown: float | None = None) -> AsyncIterator[None]:
+    async def live(
+        self,
+        cooldown: float | None = None,
+        *,
+        user_id: str = "",
+        label: str = "A reply",
+        session_id: str | None = None,
+        can_stop: bool = False,
+    ) -> AsyncIterator[LiveCall]:
         """A reply: it goes now, and makes any job's call in flight give way."""
         from ..job_queue import interrupt
 
-        self._live += 1
+        call = LiveCall(user_id=user_id, label=label, session_id=session_id, can_stop=can_stop)
+        self._live[call.id] = call
         if self.exclusive:
             for job_id in list(self._job_calls):
                 interrupt(job_id, "yield")
         try:
-            yield
+            yield call
         finally:
-            self._live -= 1
+            self._live.pop(call.id, None)
             self._last_live_end = time.monotonic()
             if cooldown is not None:
                 self.cooldown = float(cooldown)
@@ -119,7 +163,7 @@ class ModelGate:
         await self.wait_turn(job_id)
         self._job_calls.add(job_id)
         try:
-            yield
+            yield None
         finally:
             self._job_calls.discard(job_id)
 

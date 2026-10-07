@@ -75,7 +75,7 @@ async def test_a_reply_stops_the_job_and_sends_it_back_to_the_front(db_session, 
 async def test_nothing_starts_during_the_cool_down_unless_started_now(db_session, test_user, story):
     job = _queue(db_session, test_user, story)
     async with model_gate.live(cooldown=60):
-        assert model_gate.waiting_reason() == "Waiting: your reply goes first"
+        assert model_gate.waiting_reason() == "Waiting: a reply goes first"
         assert not _model_may_start(db_session)
     assert "after your last reply" in model_gate.waiting_reason()
     assert not _model_may_start(db_session)
