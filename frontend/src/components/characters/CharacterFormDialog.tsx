@@ -1,12 +1,10 @@
 import { useState, FormEvent } from "react";
 import { UserRound, Plus, Trash2 } from "lucide-react";
 import { api } from "../../api/client";
-import { useAIAvailable } from "../../lib/mode";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
 import { Modal, SectionCard } from "../common";
-import RenamePreviewDialog from "./RenamePreviewDialog";
-import PronounRefactorDialog from "./PronounRefactorDialog";
+import ManuscriptReview, { type ReviewChange } from "./ManuscriptReview";
 import PronounsAndGender from "./PronounsAndGender";
 import styles from "./CharacterFormDialog.module.css";
 
@@ -217,7 +215,6 @@ const NARRATIVE_ARCHETYPES: ClassificationOption[] = [
 
 export default function CharacterFormDialog({ storyId, character, onClose, onSaved }: Props) {
   const { upsertCharacter } = useStoryStore();
-  const aiAvailable = useAIAvailable();
   const isEditing = !!character;
 
   const [name, setName] = useState(character?.name ?? "");
@@ -236,17 +233,8 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
   const [interviewPrompts, setInterviewPrompts] = useState<string[]>(character?.interview_prompts ?? [""]);
   const [loading, setLoading] = useState(false);
 
-  // Post-save dialogs
-  const [renameState, setRenameState] = useState<{
-    preview: import("../../types").RenamePreviewResponse;
-    pendingSaved: Character;
-  } | null>(null);
-  const [pronounRefactorState, setPronounRefactorState] = useState<{
-    characterId: string;
-    newPronouns: string;
-    oldPronouns: string;
-    saved: Character;
-  } | null>(null);
+  // After a save that changed the name or pronouns: the manuscript, sentence by sentence.
+  const [reviewing, setReviewing] = useState<{ saved: Character; change: ReviewChange } | null>(null);
 
   function updatePrompt(i: number, value: string) {
     setInterviewPrompts((prev) => prev.map((p, idx) => (idx === i ? value : p)));
@@ -284,39 +272,30 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
       if (isEditing) {
         const nameChanged = name.trim() !== character!.name;
         const pronounsChanged =
-          effectivePronouns !== (character!.pronouns ?? "") &&
-          effectivePronouns.trim() !== "" &&
-          (character!.pronouns ?? "").trim() !== "";
-
-        if (nameChanged) {
-          // Preview rename before saving name
-          const preview = await api.previewCharacterRename(character!.id, name.trim());
-          if (preview.affected_scenes.length > 0) {
-            // Save character first (without name change to avoid confusion), then show rename dialog
-            const saved = await api.updateCharacter(character!.id, { ...data, name: character!.name });
-            upsertCharacter(saved);
-            setRenameState({
-              preview: { ...preview, old_name: character!.name, new_name: name.trim() },
-              pendingSaved: saved,
-            });
-            return;
-          }
-        }
-
-        const saved = await api.updateCharacter(character!.id, data);
-        upsertCharacter(saved);
-
-        // The rewrite asks the model which pronouns are theirs: never in Writer mode (doc 20).
-        if (pronounsChanged && aiAvailable) {
-          setPronounRefactorState({
-            characterId: saved.id,
-            newPronouns: effectivePronouns,
-            oldPronouns: character!.pronouns ?? "",
+          effectivePronouns !== (character!.pronouns ?? "") && (character!.pronouns ?? "").trim() !== "";
+        // A new name or pronouns go through the review (doc 20 P3): the rest saves now, and the
+        // review's Apply (or Skip) changes them with the sentences that follow, as one Undo.
+        if (nameChanged || pronounsChanged) {
+          const saved = await api.updateCharacter(character!.id, {
+            ...data,
+            name: character!.name,
+            pronouns: character!.pronouns ?? "",
+          });
+          upsertCharacter(saved);
+          setReviewing({
             saved,
+            change: {
+              ...(pronounsChanged && {
+                pronouns: [character!.pronouns ?? "", effectivePronouns] as [string, string],
+              }),
+              ...(nameChanged && { name: [character!.name, name.trim()] as [string, string] }),
+            },
           });
           return;
         }
 
+        const saved = await api.updateCharacter(character!.id, data);
+        upsertCharacter(saved);
         onSaved?.(saved);
         onClose();
       } else {
@@ -377,40 +356,19 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     </>
   );
 
-  // Rename preview dialog: user selects which scenes to propagate rename to
-  if (renameState) {
+  if (reviewing) {
     return (
-      <RenamePreviewDialog
-        preview={renameState.preview}
-        onApplied={(saved) => {
-          upsertCharacter(saved);
-          onSaved?.(saved);
-          onClose();
-        }}
-        onSkip={() => {
-          onSaved?.(renameState.pendingSaved);
-          onClose();
-        }}
-        characterId={character!.id}
-      />
-    );
-  }
-
-  // Pronoun refactor dialog: offer AI-assisted rewriting
-  if (pronounRefactorState) {
-    return (
-      <PronounRefactorDialog
-        characterId={pronounRefactorState.characterId}
-        oldPronouns={pronounRefactorState.oldPronouns}
-        newPronouns={pronounRefactorState.newPronouns}
-        saved={pronounRefactorState.saved}
+      <ManuscriptReview
+        character={reviewing.saved}
+        storyId={storyId}
+        change={reviewing.change}
         onDone={(saved) => {
           upsertCharacter(saved);
           onSaved?.(saved);
           onClose();
         }}
-        onSkip={() => {
-          onSaved?.(pronounRefactorState.saved);
+        onClose={() => {
+          onSaved?.(reviewing.saved);
           onClose();
         }}
       />

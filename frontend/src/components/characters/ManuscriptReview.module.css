@@ -1,0 +1,231 @@
+/* The review step (doc 20 P3): sentences under their scenes, each with its tick. */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.lede {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.lede strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tier {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.2rem 0.15rem 0.6rem;
+  border: 1px solid var(--color-nlp);
+  border-radius: 14px;
+}
+
+.tierName {
+  font-size: var(--text-sm);
+  color: var(--color-nlp);
+}
+
+.about,
+.edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.about:hover,
+.edit:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.about:focus-visible,
+.edit:focus-visible,
+.open:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.misses {
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.misses p {
+  margin: 0 0 0.4rem;
+}
+
+.misses ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.misses li + li {
+  margin-top: 0.25rem;
+}
+
+.note,
+.count {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.scene {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.sceneHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.sceneTitle {
+  margin: 0;
+  font-family: var(--font-editor);
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+.open {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  text-underline-offset: 2px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.row + .row {
+  border-top: 1px solid var(--color-border-light);
+}
+
+.row[data-kind="gendered"] {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.row input[type="checkbox"] {
+  margin: 0.3rem 0 0;
+  accent-color: var(--color-accent);
+}
+
+.sentence p {
+  margin: 0;
+  font-family: var(--font-editor);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.sentence mark {
+  padding: 0 0.1rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-nlp) 22%, transparent);
+  color: var(--color-text);
+}
+
+.sentence .was {
+  margin-top: 0.15rem;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.tag {
+  margin-top: 0.15rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 10px;
+  background: var(--color-surface-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.tag[data-sure] {
+  color: var(--color-text);
+}
+
+.handInput {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-editor);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.secondary,
+.primary {
+  height: 2.133rem;
+  padding: 0 0.9rem;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.primary {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-weight: 500;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

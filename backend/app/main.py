@@ -20,6 +20,7 @@ from .routers.calendars import router as calendars_router
 from .routers.changes import router as changes_router
 from .routers.character_milestones import router as character_milestones_router
 from .routers.character_relationships import router as character_relationships_router
+from .routers.character_review import router as character_review_router
 from .routers.characters import router as characters_router
 from .routers.chat import router as chat_router
 from .routers.chronicle import router as chronicle_router
@@ -163,6 +164,7 @@ app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(stories_router, prefix="/api/stories", tags=["stories"])
 app.include_router(structure_router, prefix="/api/structure", tags=["structure"])
 app.include_router(characters_router, prefix="/api/characters", tags=["characters"])
+app.include_router(character_review_router, prefix="/api/characters", tags=["characters"])
 app.include_router(character_milestones_router, prefix="/api/characters", tags=["characters"])
 app.include_router(character_relationships_router, prefix="/api/characters", tags=["characters"])
 app.include_router(interviews_router, prefix="/api/interviews", tags=["interviews"])

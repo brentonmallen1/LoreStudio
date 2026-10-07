@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, Pencil, Trash2, User, Users } from "lucide-react";
+import { Eye, EyeOff, Pencil, SpellCheck, Trash2, User, Users } from "lucide-react";
 import { api } from "../../../api/client";
 import { CHARACTER_QUESTIONS, KINDS } from "../../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
@@ -18,6 +18,7 @@ import AttributeGeneratorDialog from "../../characters/AttributeGeneratorDialog"
 import CharacterDialogueTab from "../../characters/CharacterDialogueTab";
 import CharacterDimensionalityPanel from "../../characters/CharacterDimensionalityPanel";
 import CharacterFormDialog from "../../characters/CharacterFormDialog";
+import ManuscriptReview from "../../characters/ManuscriptReview";
 import RelationshipGraph from "../../characters/RelationshipGraph";
 import StartInterviewDialog from "../../characters/StartInterviewDialog";
 import GlobalRelationshipsView from "../../characters/relationships/GlobalRelationshipsView";
@@ -71,6 +72,7 @@ export default function CharactersSection() {
   );
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [reviewingPronouns, setReviewingPronouns] = useState(false);
   const [deleting, setDeleting] = useState<Character | null>(null);
   const [interviewing, setInterviewing] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
@@ -171,6 +173,15 @@ export default function CharactersSection() {
             onView={(id) => setParams(id === "overview" ? {} : { tab: id }, { replace: true })}
             more={[
               { label: "Edit name, role, pronouns…", icon: Pencil, onSelect: () => setEditing(true) },
+              ...(character.pronouns
+                ? [
+                    {
+                      label: "Review pronouns…",
+                      icon: SpellCheck,
+                      onSelect: () => setReviewingPronouns(true),
+                    },
+                  ]
+                : []),
               ...(aiAvailable
                 ? [
                     {
@@ -349,6 +360,18 @@ export default function CharactersSection() {
           character={character}
           onClose={() => setEditing(false)}
           onSaved={upsertCharacter}
+        />
+      )}
+      {reviewingPronouns && character && (
+        <ManuscriptReview
+          character={character}
+          storyId={storyId}
+          change={null}
+          onDone={(c) => {
+            upsertCharacter(c);
+            setReviewingPronouns(false);
+          }}
+          onClose={() => setReviewingPronouns(false)}
         />
       )}
       {suggesting && character && (
