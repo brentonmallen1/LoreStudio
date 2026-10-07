@@ -30,6 +30,7 @@ import SettingsPage from "./pages/Settings";
 import SettingsAIPage from "./pages/SettingsAI";
 import GuidePage from "./pages/GuidePage";
 import CommandPalette from "./components/layout/CommandPalette";
+import Toaster from "./components/common/Toaster";
 import ScratchPadDrawer from "./components/common/ScratchPadDrawer";
 import GlobalLayout from "./components/layout/GlobalLayout";
 import PanelWindowPage from "./pages/PanelWindowPage";
@@ -171,6 +172,9 @@ export default function App() {
       <CommandPalette />
       <ScratchPadDrawer />
       <AppRoutes />
+      {/* Outside the routes: under Settings or a guide the page is inert, and a toast with
+          an action (Open, Undo, Details) has to stay clickable above the overlay. */}
+      <Toaster />
     </BrowserRouter>
   );
 }

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Orbit, Cpu, Loader2 } from "lucide-react";
 import { api } from "../../api/client";
 import { codexApi, type CodexIndexStats, type CodexSettings } from "../../api/codex";
-import { useJobs } from "../../hooks/useJobs";
+import type { AIJob } from "../../api/jobs";
+import { useJobs, useOnJobFinished } from "../../hooks/useJobs";
+import { plainError } from "../../lib/jobs/jobs";
+import { clockTime } from "../chronicle/timelineFormat";
 import { useStoryStore } from "../../stores/storyStore";
 import styles from "./CodexSection.module.css";
 
@@ -10,6 +13,25 @@ import styles from "./CodexSection.module.css";
 const SUGGESTED = ["nomic-embed-text", "mxbai-embed-large", "all-minilm"];
 
 const CODEX_JOB_KINDS = ["codex-sync", "codex-index"];
+
+/** What the last run of a kind did, so pressing the button visibly does something: the graph
+ *  build takes a second and leaves the passage count as it was. */
+function lastRun(jobs: AIJob[], kind: string): string | null {
+  const job = jobs
+    .filter((j) => j.kind === kind && j.finished_at)
+    .sort((a, b) => (b.finished_at ?? "").localeCompare(a.finished_at ?? ""))[0];
+  if (!job?.finished_at) return null;
+  const at = clockTime(job.finished_at);
+  const r = job.result ?? {};
+  const what = kind === "codex-sync" ? "Graph built" : "Indexed";
+  if (job.status === "error") return `${what} failed at ${at}: ${plainError(job.error)}`;
+  if (job.status === "cancelled") return `${what}: stopped at ${at}.`;
+  const n = (count: unknown, one: string, many: string) =>
+    `${Number(count ?? 0)} ${count === 1 ? one : many}`;
+  if (kind === "codex-sync")
+    return `Graph built at ${at}: ${n(r.nodes, "entry", "entries")}, ${n(r.edges, "link", "links")}.`;
+  return `Indexed at ${at}: ${n(r.chunks, "passage", "passages")}, ${r.embedded ?? 0} embedded, ${r.reused ?? 0} unchanged.`;
+}
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -78,10 +100,9 @@ export default function CodexSection() {
   }, [storyId]);
 
   useEffect(loadStats, [loadStats]);
-  // A finished job changes the numbers, so re-read them when the queue drains.
-  useEffect(() => {
-    if (running.length === 0) loadStats();
-  }, [running.length, loadStats]);
+  // A finished job changes the numbers. Watching the running count missed a job that
+  // started and finished between two looks, which a graph build always does.
+  useOnJobFinished(CODEX_JOB_KINDS, loadStats);
 
   async function saveModel(next: string) {
     setModel(next);
@@ -205,6 +226,14 @@ export default function CodexSection() {
             </span>
           )}
         </div>
+        {running.length === 0 &&
+          CODEX_JOB_KINDS.map((kind) => lastRun(jobs, kind))
+            .filter(Boolean)
+            .map((line) => (
+              <p key={line} className={styles.running}>
+                {line}
+              </p>
+            ))}
       </div>
     </>
   );

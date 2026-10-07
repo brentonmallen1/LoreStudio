@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import GlobalHeader from "./GlobalHeader";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal";
 import FocusExit from "./FocusExit";
-import Toaster from "../common/Toaster";
 import { mentionIsOpen } from "../story/MentionDropdown";
 import { slashIsOpen } from "../story/SlashCommandExtension";
 import { useUIStore } from "../../stores/uiStore";
@@ -85,7 +84,6 @@ export default function GlobalLayout() {
         <Outlet />
       </div>
       {isFocused && <FocusExit />}
-      <Toaster />
       <KeyboardShortcutsModal isOpen={shortcutsOpen} onClose={closeShortcuts} />
     </div>
   );
