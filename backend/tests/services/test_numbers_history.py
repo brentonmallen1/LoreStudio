@@ -3,7 +3,7 @@
 import io
 import json
 import zipfile
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.orm import Session
@@ -60,7 +60,9 @@ def test_an_unchanged_book_is_not_measured_twice_a_day(story: Story, db_session:
 
 def test_thinning_keeps_two_weeks_then_a_day_then_a_week(story: Story, db_session: Session):
     base = record(story.id, db_session, trigger="manual")
-    now = base.taken_at
+    # A fixed noon on a Wednesday, so the day and week buckets never depend on when this runs:
+    # at 00:30 UTC, 30 and 30.2 days back fell on different days and both were kept.
+    now = datetime(2026, 6, 10, 12, 0)
 
     def at(days: float, **kw) -> NumbersReading:
         r = NumbersReading(story_id=story.id, taken_at=now - timedelta(days=days), data=base.data, **kw)
