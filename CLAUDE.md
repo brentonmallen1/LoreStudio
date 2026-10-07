@@ -113,7 +113,11 @@ components/       — Feature components organized by domain
   proposals/      — The Proposals inbox row (stores/proposalsStore; gathered server-side)
   chronicle/      — Activity, conversations, changes; analysis/ draws any past run in full
   lorebook/       — The Lorebook browser: one EntitySheet for every kind (fields from
-                    lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/
+                    lib/lorebook/kinds.ts; an empty field is a word in the Add row), sections/.
+                    A character's Who are they view (doc 20, lib/lorebook/whoAreThey.ts): identity,
+                    body and mind, what formed them; prompts read it through llm/prompts/who_they_are.py,
+                    which also attaches the care rules. Pronoun/name changes go through
+                    characters/ManuscriptReview (services/pronoun_review.py, Quick and Careful)
   story/          — CorkboardView, StoryboardView, StorySummaryPanel, StoryIdentityPanel
   overview/       — The Overview's cards: vitals, needs your eye, words by chapter, cast, lately
   numbers/        — The Numbers page: words, pacing, thread lanes, who is on the page, dialogue,

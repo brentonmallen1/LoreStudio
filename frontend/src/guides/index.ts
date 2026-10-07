@@ -7,6 +7,7 @@ import promises from "./promises.md?raw";
 import series from "./writing-a-series.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
 import numbers from "./numbers.md?raw";
+import whoAreThey from "./who-are-they.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
@@ -124,6 +125,24 @@ const GUIDE_LIST: Guide[] = [
     body: numbers,
     modes: BOTH,
     keywords: ["numbers", "compare", "history", "over time", "readings", "versions", "trend", "statistics"],
+  },
+  {
+    id: "who-are-they",
+    title: "Who are they: writing people",
+    body: whoAreThey,
+    modes: BOTH,
+    keywords: [
+      "gender",
+      "pronouns",
+      "disability",
+      "mental health",
+      "trauma",
+      "wound",
+      "identity",
+      "goal motivation conflict",
+      "bechdel",
+      "rename",
+    ],
   },
   {
     id: "import-and-export",

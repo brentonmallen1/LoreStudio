@@ -29,6 +29,7 @@ from ..models.user import User
 from ..models.world_system import WorldSystem
 from .seed_chronicle import seed_lighthouse_chronicle
 from .seed_numbers import seed_lighthouse_numbers
+from .seed_who import seed_audition_who, seed_lighthouse_who
 from .word_count import recount_story
 
 STRUCTURE_TEMPLATES = [
@@ -2488,6 +2489,10 @@ def seed_demo_story():  # noqa: PLR0915
         recount_story(story.id, db)
         db.commit()
 
+        # Who they are (doc 20): from the canon above, and Margaret's arthritis.
+        seed_lighthouse_who(db, story.id)
+        db.commit()
+
         # A few weeks of Numbers readings, so Compare has a history to show (doc 19).
         seed_lighthouse_numbers(db, story)
 
@@ -4870,6 +4875,10 @@ def seed_short_story_demo():  # noqa: PLR0915
                 text="The Student — Mira asks how Elena got through it. Elena tells her. Thirty-one years compressed into twenty minutes. Character MICE thread closes.",
             )
         )
+
+        # Elena's Parkinson's as one Body and mind entry, with who knows (doc 20).
+        db.flush()
+        seed_audition_who(db, story.id)
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)
