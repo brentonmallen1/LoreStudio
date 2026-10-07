@@ -15,8 +15,10 @@ replies always go first:
 - **A pause.** When the model is not answering, or the author switched AI off, the lane waits
   rather than failing each job in turn; Start now ends the wait.
 
-A provider that serves several calls at once would not need any of this; the only provider
-today is Ollama, so `exclusive` is always on.
+A model that serves several calls at once (Ollama with OLLAMA_NUM_PARALLEL above one, a hosted
+service) needs none of this, and the author says so in Settings › AI (`parallel_for`): each call
+passes `exclusive=False`, so a reply stops nothing and starts no cool-down, and a job waits only
+for a pause. Jobs still run one at a time on their lane.
 
 State lives in this process, like the queue's workers. Waiting is a short poll, not an
 asyncio primitive, so the gate is not tied to one event loop (tests run several).
@@ -48,6 +50,8 @@ class LiveCall:
     label: str
     session_id: str | None = None
     can_stop: bool = False
+    #: A model that answers one call at a time: this reply holds the jobs back.
+    exclusive: bool = True
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     stop_requested: bool = False
@@ -55,7 +59,6 @@ class LiveCall:
 
 class ModelGate:
     def __init__(self) -> None:
-        self.exclusive = True
         self.cooldown = float(DEFAULT_COOLDOWN)
         #: Replies in flight, by id.
         self._live: dict[str, LiveCall] = {}
@@ -70,14 +73,16 @@ class ModelGate:
     # ── what the lane is waiting for ──────────────────────────────────────
 
     def cooldown_left(self, now: float | None = None) -> float:
-        if not self.exclusive or self._last_live_end == 0:
+        if self._last_live_end == 0:
             return 0.0
         return max(0.0, self._last_live_end + self.cooldown - (now or time.monotonic()))
 
     def replying(self) -> bool:
-        return bool(self._live)
+        return any(c.exclusive for c in self._live.values())
 
-    def waiting_reason(self, job_id: str | None = None, user_id: str | None = None) -> str | None:
+    def waiting_reason(
+        self, job_id: str | None = None, user_id: str | None = None, *, exclusive: bool = True
+    ) -> str | None:
         """Why a model job is not running yet, in the author's words, or None if it may.
         A reply of the job's own author is named; anyone else's is not."""
         if job_id and job_id in self._start_now:
@@ -85,22 +90,23 @@ class ModelGate:
         if self._paused_until > time.monotonic():
             left = int(self._paused_until - time.monotonic()) + 1
             return f"{self._pause_reason} Trying again in {left} s"
-        if not self.exclusive:
+        if not exclusive:
             return None
-        if self._live:
-            mine = next((c for c in self._live.values() if user_id and c.user_id == user_id), None)
+        holding = [c for c in self._live.values() if c.exclusive]
+        if holding:
+            mine = next((c for c in holding if user_id and c.user_id == user_id), None)
             return f"Waiting: {mine.label} goes first" if mine else "Waiting: a reply goes first"
         left = self.cooldown_left()
         if left > 0:
             return f"Waiting: starts {int(left) + 1} s after your last reply"
         return None
 
-    def may_start(self, job_id: str | None = None) -> bool:
-        return self.waiting_reason(job_id) is None
+    def may_start(self, job_id: str | None = None, *, exclusive: bool = True) -> bool:
+        return self.waiting_reason(job_id, exclusive=exclusive) is None
 
-    async def wait_turn(self, job_id: str | None = None) -> None:
+    async def wait_turn(self, job_id: str | None = None, *, exclusive: bool = True) -> None:
         """Until a job may use the model: no reply running, the cool-down over, no pause."""
-        while not self.may_start(job_id):
+        while not self.may_start(job_id, exclusive=exclusive):
             await asyncio.sleep(POLL)
 
     # ── the author's word ─────────────────────────────────────────────────
@@ -140,28 +146,33 @@ class ModelGate:
         label: str = "A reply",
         session_id: str | None = None,
         can_stop: bool = False,
+        exclusive: bool = True,
     ) -> AsyncIterator[LiveCall]:
-        """A reply: it goes now, and makes any job's call in flight give way."""
+        """A reply: it goes now, and on a model that answers one at a time makes any job's call
+        in flight give way, and starts the cool-down when it ends."""
         from ..job_queue import interrupt
 
-        call = LiveCall(user_id=user_id, label=label, session_id=session_id, can_stop=can_stop)
+        call = LiveCall(user_id=user_id, label=label, session_id=session_id, can_stop=can_stop, exclusive=exclusive)
         self._live[call.id] = call
-        if self.exclusive:
+        if exclusive:
             for job_id in list(self._job_calls):
                 interrupt(job_id, "yield")
         try:
             yield call
         finally:
             self._live.pop(call.id, None)
-            self._last_live_end = time.monotonic()
+            if exclusive:
+                self._last_live_end = time.monotonic()
             if cooldown is not None:
                 self.cooldown = float(cooldown)
 
     @asynccontextmanager
-    async def job(self, job_id: str) -> AsyncIterator[None]:
-        """A job's call: it waits its turn, then is marked in flight so a reply can stop it."""
-        await self.wait_turn(job_id)
-        self._job_calls.add(job_id)
+    async def job(self, job_id: str, *, exclusive: bool = True) -> AsyncIterator[None]:
+        """A job's call: it waits its turn, then is marked in flight so a reply can stop it
+        (on a model that answers several at once, no reply needs to)."""
+        await self.wait_turn(job_id, exclusive=exclusive)
+        if exclusive:
+            self._job_calls.add(job_id)
         try:
             yield None
         finally:
@@ -176,3 +187,9 @@ def cooldown_for(user: object) -> int:
     settings = getattr(user, "settings", None) or {}
     value = settings.get("ai", {}).get("jobs_cooldown_seconds")
     return int(value) if isinstance(value, int | float) and value >= 0 else DEFAULT_COOLDOWN
+
+
+def parallel_for(user: object) -> bool:
+    """Whether the author's model answers several calls at once (Settings › AI); off unless said."""
+    settings = getattr(user, "settings", None) or {}
+    return settings.get("ai", {}).get("model_parallel") is True

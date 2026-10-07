@@ -15,7 +15,7 @@ from ..database import get_db
 from ..models.user import User
 from ..schemas.ai_settings import AISettingsDefaults, AISettingsRead, AISettingsUpdate
 from ..services.llm.features import AI_FEATURES
-from ..services.llm.gate import cooldown_for, model_gate
+from ..services.llm.gate import cooldown_for, model_gate, parallel_for
 from ..services.llm.prompts import FEATURE_DEFAULT_INSTRUCTIONS, FEATURE_LABELS
 from ..services.llm.prompts.core import CORE_SYSTEM_PROMPT
 
@@ -37,6 +37,7 @@ def get_ai_settings(
     return AISettingsRead(
         enabled=ai.get("enabled", True),
         jobs_cooldown_seconds=cooldown_for(current_user),
+        model_parallel=parallel_for(current_user),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=ai.get("feature_prompts", {}),
@@ -74,6 +75,8 @@ def update_ai_settings(
     if body.jobs_cooldown_seconds is not None:
         ai["jobs_cooldown_seconds"] = body.jobs_cooldown_seconds
         model_gate.cooldown = float(body.jobs_cooldown_seconds)
+    if body.model_parallel is not None:
+        ai["model_parallel"] = body.model_parallel
 
     if body.core_prompt is not None:
         ai["core_prompt"] = body.core_prompt
@@ -98,6 +101,7 @@ def update_ai_settings(
     return AISettingsRead(
         enabled=ai.get("enabled", True),
         jobs_cooldown_seconds=cooldown_for(current_user),
+        model_parallel=parallel_for(current_user),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=ai.get("feature_prompts", {}),
@@ -120,6 +124,7 @@ def reset_core_prompt(
     return AISettingsRead(
         enabled=ai.get("enabled", True),
         jobs_cooldown_seconds=cooldown_for(current_user),
+        model_parallel=parallel_for(current_user),
         core_prompt=CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=False,
         feature_prompts=ai.get("feature_prompts", {}),
@@ -146,6 +151,7 @@ def reset_feature_prompt(
     return AISettingsRead(
         enabled=ai.get("enabled", True),
         jobs_cooldown_seconds=cooldown_for(current_user),
+        model_parallel=parallel_for(current_user),
         core_prompt=core_custom or CORE_SYSTEM_PROMPT,
         core_prompt_is_custom=bool(core_custom),
         feature_prompts=fp,

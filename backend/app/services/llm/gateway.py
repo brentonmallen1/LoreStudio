@@ -50,7 +50,7 @@ from ...schemas.llm_params import LLMParams, LLMParamsOverride
 from ..job_queue import current_job_id, interrupt_reason
 from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget, thinking_mode, thinks
-from .gate import cooldown_for, model_gate
+from .gate import cooldown_for, model_gate, parallel_for
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
 from .prompts.who_they_are import CARE_RULES, MARKER
@@ -172,10 +172,12 @@ class AIGateway:
         """The model gate (doc 21 P3): a job's call waits its turn and gives way to a reply;
         a reply goes at once, is listed in Jobs by name, and starts the cool-down when it ends."""
         job_id = current_job_id.get()
+        exclusive = not parallel_for(user)
         if job_id:
-            return model_gate.job(job_id)
+            return model_gate.job(job_id, exclusive=exclusive)
         return model_gate.live(
             cooldown_for(user),
+            exclusive=exclusive,
             user_id=user.id,
             label=_live_label(context, db),
             session_id=context.session_id,

@@ -33,7 +33,7 @@ from ..services.job_queue import (
     run_next,
     wake,
 )
-from ..services.llm.gate import model_gate
+from ..services.llm.gate import model_gate, parallel_for
 from ..services.scene_summaries import refresh_scene_summaries
 
 router = APIRouter()
@@ -84,23 +84,29 @@ def _out(jobs: list[AIJob], db: Session) -> list[JobOut]:
             .all()
         )
         places.update({jid: i + 1 for i, (jid,) in enumerate(queued)})
+    owners = {uid: db.get(User, uid) for uid in {j.user_id for j in jobs}}
     next_model = next_queued(db, "model") if any(j.lane == "model" and j.status == "queued" for j in jobs) else None
     return [
         JobOut.model_validate(j).model_copy(
-            update={"queue_position": places.get(j.id), "stop": _stop_mode(j.kind), **_waiting(j, next_model)},
+            update={
+                "queue_position": places.get(j.id),
+                "stop": _stop_mode(j.kind),
+                **_waiting(j, next_model, owners.get(j.user_id)),
+            },
         )
         for j in jobs
     ]
 
 
-def _waiting(job: AIJob, next_model: str | None) -> dict:
+def _waiting(job: AIJob, next_model: str | None, owner: User | None) -> dict:
     """The gate's word on a model job: the next one in line says why it waits (doc 21 P3)."""
     if job.lane != "model" or job.status not in ACTIVE:
         return {}
     if job.status == "queued" and job.id != next_model:
         return {}
-    reason = model_gate.waiting_reason(job.id, job.user_id)
-    return {"waiting": reason, "can_start_now": bool(reason) and not model_gate.replying()}
+    exclusive = not parallel_for(owner)
+    reason = model_gate.waiting_reason(job.id, job.user_id, exclusive=exclusive)
+    return {"waiting": reason, "can_start_now": bool(reason) and not (exclusive and model_gate.replying())}
 
 
 def _stop_mode(kind: str) -> str:

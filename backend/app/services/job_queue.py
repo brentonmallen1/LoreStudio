@@ -263,10 +263,14 @@ def next_queued(db: Session, lane: str) -> str | None:
 def _model_may_start(db: Session) -> bool:
     """Replies first: nothing new starts on the model while one runs, during the cool-down
     after it, or while the lane is paused, unless the author said Start now."""
-    from .llm.gate import model_gate
+    from .llm.gate import model_gate, parallel_for
 
     next_id = next_queued(db, "model")
-    return next_id is None or model_gate.may_start(next_id)
+    if next_id is None:
+        return True
+    job = db.get(AIJob, next_id)
+    owner = db.get(User, job.user_id) if job else None
+    return model_gate.may_start(next_id, exclusive=not parallel_for(owner))
 
 
 def _claim_next(db: Session, lane: str = "model") -> AIJob | None:

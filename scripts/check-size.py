@@ -53,7 +53,7 @@ SKIP_FILES = ("backend/app/services/seed.py",)
 #: it comes under budget. Never raise one.
 OVER_BUDGET: dict[str, int] = {
     "backend/app/routers/analysis.py": 1458,
-    "frontend/src/types/index.ts": 1500,
+    "frontend/src/types/index.ts": 1493,
     "frontend/src/api/client.ts": 1085,
     "backend/app/services/llm/prompts/analysis.py": 1179,
     "backend/app/services/import_service.py": 878,

@@ -198,7 +198,8 @@ calls (checks, the editorial pass, summaries, readings, local checks, an import'
 registers a handler in `services/job_queue.py` with `@handler(kind, lane=, stop=, quiet=, unique=)`
 and is queued with `enqueue`. Two lanes: `model` (one call at a time) and `local` (never waits on
 the model). Every model call passes `services/llm/gate.py`: a live call preempts a job's call
-(the job requeues at the front) and starts a cool-down. The client reads one poller,
+(the job requeues at the front) and starts a cool-down, unless the author's model answers several
+at once (Settings › AI, `gate.parallel_for`: every call passes `exclusive=False`). The client reads one poller,
 `stores/jobsStore.ts`; pages use `useJobs` / `useOnJobFinished`; the header's
 `layout/jobs/JobsIndicator` is the list. A stream whose result is kept runs to the end after
 its window closes (`sse.carry_on`); Stop posts `/streams/{id}/stop`.

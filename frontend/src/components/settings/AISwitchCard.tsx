@@ -22,7 +22,8 @@ const COOLDOWNS = [
 ];
 
 /**
- * The AI master switch, the context ceiling (doc 06 §7) and the jobs' cool-down (doc 21).
+ * The AI master switch, the context ceiling (doc 06 §7), the jobs' cool-down (doc 21) and
+ * whether the model answers several requests at once.
  *
  * Off is not cosmetic: every AI surface disappears and the gateway refuses calls, so a
  * stale tab or a keyboard shortcut cannot reach a model after you have said no.
@@ -32,6 +33,7 @@ export default function AISwitchCard() {
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [ceiling, setCeiling] = useState<number>(0);
   const [cooldown, setCooldown] = useState<number>(60);
+  const [parallel, setParallel] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function AISwitchCard() {
         if (!live) return;
         setEnabled(s.enabled);
         setCooldown(s.jobs_cooldown_seconds ?? 60);
+        setParallel(s.model_parallel ?? false);
       })
       .catch(() => live && setEnabled(true));
     api
@@ -66,6 +69,11 @@ export default function AISwitchCard() {
   async function saveCooldown(next: number) {
     setCooldown(next);
     await api.updateAISettings({ jobs_cooldown_seconds: next });
+  }
+
+  async function saveParallel(next: boolean) {
+    setParallel(next);
+    await api.updateAISettings({ model_parallel: next });
   }
 
   async function saveCeiling(next: number) {
@@ -121,7 +129,7 @@ export default function AISwitchCard() {
           aria-label="After a reply, jobs wait"
           className={styles.input}
           value={COOLDOWNS.some((c) => c.value === cooldown) ? cooldown : 60}
-          disabled={enabled === false}
+          disabled={enabled === false || parallel}
           onChange={(e) => void saveCooldown(Number(e.target.value))}
         >
           {COOLDOWNS.map((c) => (
@@ -135,6 +143,24 @@ export default function AISwitchCard() {
           is running, which carries on from where it was. After your last reply, jobs wait this long before
           starting again, so a conversation is never held up between turns. Start now, in Jobs, skips the
           wait.
+        </p>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>
+          <input
+            type="checkbox"
+            checked={parallel}
+            disabled={enabled === false}
+            onChange={(e) => void saveParallel(e.target.checked)}
+          />{" "}
+          My model answers several requests at once
+        </label>
+        <p className={styles.sectionHint}>
+          Turn this on for Ollama started with OLLAMA_NUM_PARALLEL above 1, or a hosted model. Then a reply no
+          longer stops a job and there is no wait after it: replies and jobs share the model side by side.
+          Jobs still run one at a time. Leave it off if you are not sure: on a model that answers one thing at
+          a time, your replies would wait behind a job.
         </p>
       </div>
     </div>

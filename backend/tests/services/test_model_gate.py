@@ -139,3 +139,34 @@ def test_the_cool_down_is_a_setting(client, test_user):
     out = client.patch("/api/ai-settings", json={"jobs_cooldown_seconds": 15}).json()
     assert out["jobs_cooldown_seconds"] == 15 and model_gate.cooldown == 15
     assert client.patch("/api/ai-settings", json={"jobs_cooldown_seconds": -1}).status_code == 422
+
+
+@pytest.mark.anyio
+async def test_a_model_that_answers_several_at_once_needs_no_turns(db_session, test_user, story):
+    """Settings › AI says the model serves several calls at once: a reply stops no job, starts
+    no cool-down, and a job does not wait for it. A pause still holds the lane."""
+    job = _queue(db_session, test_user, story)
+    running = asyncio.ensure_future(run_job(_claim_next(db_session), db_session))
+    await asyncio.sleep(0.05)
+
+    async with model_gate.live(cooldown=60, exclusive=False):
+        await asyncio.sleep(0.1)
+        assert not running.done()  # the job's call was not stopped
+        assert model_gate.waiting_reason(exclusive=False) is None
+        assert not model_gate.replying()
+    assert model_gate.cooldown_left() == 0  # no cool-down after it
+    running.cancel()
+
+    model_gate.pause("Paused: the model is not answering.")
+    assert not model_gate.may_start(job.id, exclusive=False)
+
+
+def test_the_setting_reaches_the_jobs_list(client, db_session, test_user, story):
+    first = _queue(db_session, test_user, story)
+    model_gate._last_live_end = __import__("time").monotonic()  # a reply just ended
+    listed = {j["id"]: j for j in client.get("/api/jobs?since_hours=1").json()}
+    assert listed[first.id]["waiting"].startswith("Waiting: starts")
+
+    assert client.patch("/api/ai-settings", json={"model_parallel": True}).json()["model_parallel"] is True
+    listed = {j["id"]: j for j in client.get("/api/jobs?since_hours=1").json()}
+    assert listed[first.id]["waiting"] is None

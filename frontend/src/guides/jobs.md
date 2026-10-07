@@ -28,6 +28,8 @@ After your last reply the model's jobs wait a minute before starting again, so a
 
 If the model is not answering, or you have switched AI off, the jobs wait instead of failing one after another, and **Try now** tries again.
 
+All of this assumes the model answers one thing at a time, which is how Ollama starts. If yours answers several at once (Ollama started with `OLLAMA_NUM_PARALLEL` above 1, or a hosted model), say so under Settings › AI: replies and jobs then share the model side by side, with no stopping and no wait.
+
 ## Leaving and coming back
 
 - **Going to another page** never stops anything. Coming back to Findings shows a check still running.

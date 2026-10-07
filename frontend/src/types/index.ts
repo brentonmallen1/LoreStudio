@@ -1277,29 +1277,7 @@ export interface ChronicleStats {
   ai_interactions: number;
 }
 
-export interface AISettings {
-  /** The master switch: off hides every AI surface and the backend refuses calls. */
-  enabled: boolean;
-  jobs_cooldown_seconds: number;
-  core_prompt: string;
-  core_prompt_is_custom: boolean;
-  feature_prompts: Record<string, string | null>;
-}
-
-export interface AISettingsDefaults {
-  core_prompt: string;
-  feature_labels: Record<string, string>;
-  feature_defaults: Record<string, string>;
-  /** feature id -> co-author class, so a prompt card can say what it may return. */
-  feature_classes: Record<string, string>;
-}
-
-export interface AISettingsUpdate {
-  enabled?: boolean;
-  jobs_cooldown_seconds?: number;
-  core_prompt?: string | null;
-  feature_prompts?: Record<string, string | null> | null;
-}
+export type { AISettings, AISettingsDefaults, AISettingsUpdate } from "./aiSettings";
 
 // ── World Building ──
 

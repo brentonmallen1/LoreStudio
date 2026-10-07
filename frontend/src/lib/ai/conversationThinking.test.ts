@@ -18,13 +18,17 @@ describe("conversationThinking", () => {
     list.mockResolvedValue({ sessions: [{ id: "rec-1", thinking: true }] });
     const interview = { type: "interview", backendSessionId: "int-9", context: { storyId: "s1" } };
     expect(await loadThinking(interview)).toBe(true);
-    expect(list).toHaveBeenCalledWith(expect.objectContaining({ context_type: "interview", context_id: "int-9" }));
+    expect(list).toHaveBeenCalledWith(
+      expect.objectContaining({ context_type: "interview", context_id: "int-9" }),
+    );
 
     await saveThinking(interview, undefined);
     expect(update).toHaveBeenLastCalledWith("rec-1", { thinking: null });
 
     get.mockResolvedValue({ thinking: false });
-    expect(await loadThinking({ type: "scene-assistant", chronicleSessionId: "rec-2", context: {} })).toBe(false);
+    expect(await loadThinking({ type: "scene-assistant", chronicleSessionId: "rec-2", context: {} })).toBe(
+      false,
+    );
   });
 
   it("does nothing for a conversation with no record yet", async () => {
