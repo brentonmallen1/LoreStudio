@@ -952,14 +952,24 @@ async def extract_entities_ai(  # noqa: C901, PLR0915
     ctx,
     db: Session,
     user,
+    on_progress=None,
 ) -> list:
     """
     Enrich NLP candidates with AI-extracted attributes.
 
     Character and location extractions run concurrently (bounded by semaphore)
     since each is an independent Ollama call. Relationship detection runs after,
-    as it depends on the enriched character list.
+    as it depends on the enriched character list. `on_progress(done, total)`: the job's count.
     """
+    progress = [0, 0]  # calls done, calls in all
+
+    async def counted(coro):
+        try:
+            return await coro
+        finally:
+            progress[0] += 1
+            _ = on_progress and on_progress(*progress)
+
     import uuid as _uuid
 
     from ..schemas.import_extraction import (
@@ -1030,8 +1040,9 @@ async def extract_entities_ai(  # noqa: C901, PLR0915
             tasks.append(_enrich_location(i, candidate))
 
     enriched = list(candidates)
+    progress[1] = len(tasks)
     if tasks:
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        results = await asyncio.gather(*(counted(t) for t in tasks), return_exceptions=True)
         for result in results:
             if isinstance(result, BaseException):
                 logger.warning("AI enrichment task failed: %s", result)
@@ -1105,7 +1116,8 @@ async def extract_entities_ai(  # noqa: C901, PLR0915
             if len(scenes) >= 2
         ]
         if rel_tasks:
-            rel_results = await asyncio.gather(*rel_tasks, return_exceptions=True)
+            progress[1] += len(rel_tasks)
+            rel_results = await asyncio.gather(*(counted(t) for t in rel_tasks), return_exceptions=True)
             for rel in rel_results:
                 if rel and not isinstance(rel, Exception):
                     enriched.append(rel)

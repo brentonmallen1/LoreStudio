@@ -74,6 +74,22 @@ export const jobsApi = {
     storyId: string,
     body: { context_level: string; scope_type: string; scope_ids: string[] },
   ) => request<AIJob>(`/stories/${storyId}/editorial/jobs`, { method: "POST", body: JSON.stringify(body) }),
+  /** Queue the Assistant's reading of an import's approved people and places (no story yet). */
+  importEnrich: (
+    sessionId: string,
+    candidates: import("../types").ExtractionCandidate[],
+    options: import("../types").AIEnrichOptions,
+  ) =>
+    request<AIJob>(`/import/${sessionId}/enrich-candidates/jobs`, {
+      method: "POST",
+      body: JSON.stringify({ candidates, options }),
+    }),
+  /** Whether an import is still open on the server (30 minutes from its last step). */
+  importAlive: (sessionId: string) =>
+    request<{ alive: boolean }>(`/import/${sessionId}`).then(
+      () => true,
+      () => false,
+    ),
   /** Queue a summary refresh for a whole manuscript. */
   sceneSummaries: (storyId: string, forceRefresh = false) =>
     request<AIJob>(`/stories/${storyId}/jobs/scene-summaries`, {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,8 +10,13 @@ import {
   X,
   Cpu,
   Orbit,
+  Square,
 } from "lucide-react";
 import { api } from "../../api/client";
+import { jobsApi, type AIJob } from "../../api/jobs";
+import { useJobs, useOnJobFinished } from "../../hooks/useJobs";
+import { plainError } from "../../lib/jobs/jobs";
+import { useJobsStore } from "../../stores/jobsStore";
 import type {
   AIEnrichOptions,
   ExtractionCandidate,
@@ -47,15 +52,48 @@ const DEFAULT_AI_OPTIONS: AIEnrichOptions = {
 
 type Phase = "idle" | "nlp-loading" | "nlp-done" | "ai-loading" | "ai-done";
 
+/** The Assistant's reading, running as a job (doc 21 R8), remembered so a reopened wizard
+ *  picks it up: which import, which job, and the candidates it was given. */
+const ENRICH_KEY = "ls_import_enrich";
+interface SavedEnrich {
+  sessionId: string;
+  jobId: string;
+  candidates: ExtractionCandidate[];
+}
+
+function readSaved(sessionId: string): SavedEnrich | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ENRICH_KEY) ?? "null") as SavedEnrich | null;
+    return saved?.sessionId === sessionId ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSaved(saved: SavedEnrich | null) {
+  try {
+    if (saved) localStorage.setItem(ENRICH_KEY, JSON.stringify(saved));
+    else localStorage.removeItem(ENRICH_KEY);
+  } catch {
+    // Private window: the reading still runs; only reopening loses it.
+  }
+}
+
+const ENRICH_JOBS = ["import-enrich"] as const;
+
 export default function EntityExtractionStep({ uploadResponse, preview, onComplete, onSkip, onBack }: Props) {
+  const [saved] = useState(() => readSaved(preview.session_id));
   const [nlpOptions, setNlpOptions] = useState<ExtractionOptions>(DEFAULT_NLP_OPTIONS);
   const [aiOptions, setAiOptions] = useState<AIEnrichOptions>(DEFAULT_AI_OPTIONS);
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>(saved ? "ai-loading" : "idle");
   const [nlpError, setNlpError] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(saved?.jobId ?? null);
+  const { jobs } = useJobs();
+  const job = jobs.find((j) => j.id === jobId);
 
   // NLP results: all found, and which are approved (user can remove false positives)
-  const [nlpCandidates, setNlpCandidates] = useState<ExtractionCandidate[]>([]);
+  const [nlpCandidates, setNlpCandidates] = useState<ExtractionCandidate[]>(saved?.candidates ?? []);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
   // Final (possibly AI-enriched) candidates and user selection for Lorebook creation
@@ -126,19 +164,51 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
     }
   }
 
+  // The reading ended: take its result, or say why not. From the job's finish event, or on
+  // opening the wizard again after it finished while closed.
+  const applyJob = useCallback((ended: AIJob) => {
+    if (ended.status === "queued" || ended.status === "running") return;
+    writeSaved(null);
+    setJobId(null);
+    const result = ended.result as { candidates?: ExtractionCandidate[] } | null;
+    if (ended.status === "done" && result?.candidates) {
+      setFinalCandidates(result.candidates);
+      setSelectedIds(new Set(result.candidates.map((c) => c.id)));
+      setPhase("ai-done");
+      return;
+    }
+    if (ended.status === "error") setAiError(plainError(ended.error));
+    setPhase("nlp-done");
+  }, []);
+  useOnJobFinished(
+    ENRICH_JOBS,
+    useCallback((ended: AIJob) => ended.id === jobId && applyJob(ended), [jobId, applyJob]),
+  );
+  useEffect(() => {
+    if (!saved) return;
+    jobsApi
+      .get(saved.jobId)
+      .then(applyJob)
+      .catch(() => applyJob({ status: "error", error: "The reading could not be found." } as AIJob));
+  }, [saved, applyJob]);
+
+  // A job (doc 21 R8): it carries on if the wizard is closed, and Jobs follows it.
   async function handleAiEnrich() {
     if (approvedNlpCandidates.length === 0) return;
     setPhase("ai-loading");
     setAiError(null);
     try {
-      const result = await api.importEnrichCandidates(preview.session_id, approvedNlpCandidates, aiOptions);
-      setFinalCandidates(result.candidates);
-      setSelectedIds(new Set(result.candidates.map((c) => c.id)));
-      setPhase("ai-done");
+      const queued = await jobsApi.importEnrich(preview.session_id, approvedNlpCandidates, aiOptions);
+      setJobId(queued.id);
+      writeSaved({ sessionId: preview.session_id, jobId: queued.id, candidates: approvedNlpCandidates });
     } catch (e: unknown) {
       setAiError(e instanceof Error ? e.message : "AI enrichment failed");
       setPhase("nlp-done");
     }
+  }
+
+  function stopEnrich() {
+    if (jobId) void useJobsStore.getState().cancel(jobId);
   }
 
   function handleContinue() {
@@ -319,19 +389,35 @@ export default function EntityExtractionStep({ uploadResponse, preview, onComple
             </div>
           )}
 
-          {!aiDone && aiAvailable && (
+          {!aiDone && aiAvailable && phase !== "ai-loading" && (
             <button
               className={`${styles.phaseBtn} ${styles.aiBtn}`}
               onClick={handleAiEnrich}
-              disabled={phase === "ai-loading" || !anyAiOptionEnabled}
+              disabled={!anyAiOptionEnabled}
             >
-              {phase === "ai-loading" ? (
-                <Loader2 size={13} className={styles.spinner} />
-              ) : (
-                <Orbit size={13} />
-              )}
-              {phase === "ai-loading" ? "Enriching…" : "Enrich with AI"}
+              <Orbit size={13} />
+              Enrich with AI
             </button>
+          )}
+          {phase === "ai-loading" && (
+            <>
+              <button className={`${styles.phaseBtn} ${styles.aiBtn}`} onClick={stopEnrich}>
+                <Square size={13} />
+                Cancel
+              </button>
+              <p className={styles.phaseHint}>
+                <Loader2 size={12} className={styles.spinner} aria-hidden />
+                <span>
+                  {job && job.total > 0
+                    ? `Reading ${job.progress} of ${job.total} people, places and pairs. `
+                    : job?.waiting
+                      ? `${job.waiting}. `
+                      : "Reading people and places. "}
+                  You can close the import: it carries on, Jobs at the top follows it, and opening the import
+                  again picks it up.
+                </span>
+              </p>
+            </>
           )}
 
           {aiError && <div className={styles.errorMsg}>{aiError}</div>}

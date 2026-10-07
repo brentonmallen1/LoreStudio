@@ -52,7 +52,8 @@ export default function DashboardPage() {
     new URLSearchParams(window.location.search).get("sequel"),
   );
   const [seriesList, setSeriesList] = useState<SeriesSummary[]>([]);
-  const [importing, setImporting] = useState(false);
+  // Jobs › Open on a finished import reading comes back here with ?import (doc 21 R8).
+  const [importing, setImporting] = useState(() => new URLSearchParams(window.location.search).has("import"));
   // "New series" from the palette arrives as ?newSeries=1.
   const [newSeries, setNewSeries] = useState(() =>
     new URLSearchParams(window.location.search).has("newSeries"),

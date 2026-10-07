@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileInput } from "lucide-react";
+import { jobsApi } from "../../api/jobs";
 import { Modal } from "../common";
 import UploadStep from "./UploadStep";
 import StructureReviewStep from "./StructureReviewStep";
@@ -15,10 +16,51 @@ interface Props {
 
 type Step = 1 | 2 | 3 | 4;
 
+/** Where the wizard was (doc 21 R8): closing it mid-import, while the Assistant reads, does not
+ *  lose the import. Kept while the server still has the import open (30 minutes). */
+const WIZARD_KEY = "ls_import_wizard";
+interface SavedWizard {
+  step: Step;
+  uploadResponse: ImportUploadResponse;
+  preview: ImportPreviewTree;
+}
+
+function readWizard(): SavedWizard | null {
+  try {
+    return JSON.parse(localStorage.getItem(WIZARD_KEY) ?? "null") as SavedWizard | null;
+  } catch {
+    return null;
+  }
+}
+
+function writeWizard(saved: SavedWizard | null) {
+  try {
+    if (saved) localStorage.setItem(WIZARD_KEY, JSON.stringify(saved));
+    else localStorage.removeItem(WIZARD_KEY);
+  } catch {
+    // Private window: the wizard just starts over next time.
+  }
+}
+
 export default function ImportWizard({ onClose }: Props) {
   const [step, setStep] = useState<Step>(1);
   const [uploadResponse, setUploadResponse] = useState<ImportUploadResponse | null>(null);
   const [preview, setPreview] = useState<ImportPreviewTree | null>(null);
+
+  // Pick up an import left open, if the server still has it.
+  useEffect(() => {
+    const saved = readWizard();
+    if (!saved) return;
+    void jobsApi.importAlive(saved.preview.session_id).then((alive) => {
+      if (!alive) return writeWizard(null);
+      setUploadResponse(saved.uploadResponse);
+      setPreview(saved.preview);
+      setStep(saved.step);
+    });
+  }, []);
+  useEffect(() => {
+    if (uploadResponse && preview && step > 1) writeWizard({ step, uploadResponse, preview });
+  }, [step, uploadResponse, preview]);
   const [extractionCandidates, setExtractionCandidates] = useState<ExtractionCandidate[]>([]);
   const [extractionSelected, setExtractionSelected] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
@@ -46,6 +88,7 @@ export default function ImportWizard({ onClose }: Props) {
   }
 
   function handleFinalized(storyId: string) {
+    writeWizard(null);
     onClose();
     navigate(`/stories/${storyId}`);
   }

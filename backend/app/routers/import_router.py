@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.ai_job import AIJob
 from ..models.structure import StoryStructureTemplate
 from ..models.user import User
 from ..schemas.import_extraction import (
@@ -36,6 +37,7 @@ from ..schemas.import_schemas import (
     UpdatePreviewRequest,
     UploadResponse,
 )
+from ..schemas.jobs import JobOut
 from ..services.import_service import (
     _merge_breaks,
     apply_adjustment,
@@ -49,6 +51,7 @@ from ..services.import_service import (
     extract_entities_nlp,
     parse_document,
 )
+from ..services.job_queue import enqueue, handler
 
 router = APIRouter()
 
@@ -444,6 +447,72 @@ async def enrich_candidates(
         ai_available=True,
         nlp_elapsed_ms=0,
         ai_elapsed_ms=ai_elapsed,
+    )
+
+
+@router.get("/import/{session_id}")
+def import_status(session_id: str, current_user: User = Depends(get_current_user)):
+    """Whether an import is still open here: the wizard resumes one only while it is."""
+    _get_session(session_id, current_user.id)
+    return {"alive": True}
+
+
+@handler("import-enrich", stop="now", unique=True)
+async def _run_enrich(job: AIJob, db: Session, user: User, report) -> dict:
+    """The Assistant reading people and places in an import, as a job (doc 21 R8): it carries
+    on if the wizard is closed, and the wizard reads its result back when reopened. No story
+    exists yet, so the job has none; it needs the import's session, kept in this process."""
+    from ..services.llm.gateway import AICallContext
+
+    session = _sessions.get(job.params.get("session_id", ""))
+    if session is None or session.user_id != user.id or session.is_expired():
+        raise RuntimeError("This import has closed. Upload the document again.")
+    session.created_at = time.monotonic()  # a long read keeps the import open
+    body = EnrichCandidatesRequest.model_validate(job.params)
+    options = ExtractionOptions(
+        characters_nlp=False,
+        locations_nlp=False,
+        characters_ai=body.options.characters_ai,
+        locations_ai=body.options.locations_ai,
+        relationships_ai=body.options.relationships_ai,
+    )
+    report(0, 0, "Reading people and places")
+    started = time.monotonic()
+    enriched = await extract_entities_ai(
+        candidates=body.candidates,
+        paragraphs=session.paragraphs,
+        preview_nodes=session.preview.nodes,
+        options=options,
+        ctx=AICallContext(feature="import-extraction", user_id=user.id),
+        db=db,
+        user=user,
+        on_progress=lambda done, total: report(done, total),
+    )
+    session.created_at = time.monotonic()
+    return ExtractionPreview(
+        candidates=enriched,
+        ai_available=True,
+        nlp_elapsed_ms=0,
+        ai_elapsed_ms=int((time.monotonic() - started) * 1000),
+    ).model_dump(mode="json")
+
+
+@router.post("/import/{session_id}/enrich-candidates/jobs", response_model=JobOut, status_code=201)
+def queue_enrich(
+    session_id: str,
+    body: EnrichCandidatesRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Queue the Assistant's reading of the approved candidates."""
+    session = _get_session(session_id, current_user.id)
+    title = session.preview.detected_title or "the document"
+    return enqueue(
+        db,
+        kind="import-enrich",
+        user_id=current_user.id,
+        label=f"Import: reading people and places in {title}",
+        params={"session_id": session_id, **body.model_dump(mode="json")},
     )
 
 

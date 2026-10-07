@@ -199,6 +199,17 @@
   padding: 0.4rem 0.6rem;
 }
 
+/* While the Assistant reads, as a job (doc 21 R8): how far, and that it may be left. */
+.phaseHint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
 /* ── NLP review (chip cloud) ── */
 .nlpReview {
   display: flex;

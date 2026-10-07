@@ -1203,15 +1203,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(options),
     }),
-  importEnrichCandidates: (
-    sessionId: string,
-    candidates: import("../types").ExtractionCandidate[],
-    options: import("../types").AIEnrichOptions,
-  ) =>
-    request<import("../types").ExtractionPreview>(`/import/${sessionId}/enrich-candidates`, {
-      method: "POST",
-      body: JSON.stringify({ candidates, options }),
-    }),
   importFinalize: (sessionId: string, data: import("../types").ImportFinalizeRequest) =>
     request<{ id: string; title: string }>(`/import/${sessionId}/finalize`, {
       method: "POST",
