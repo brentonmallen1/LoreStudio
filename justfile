@@ -102,6 +102,7 @@ aio-run: aio-build
 ci:
     #!/usr/bin/env bash
     set -euo pipefail
+    echo "── personal data ──"         && python3 scripts/check-pii.py
     echo "── file-length budget ──"     && python3 scripts/check-size.py
     echo "── design tokens ──"         && python3 scripts/check-tokens.py
     echo "── tracked documents ──"     && python3 scripts/check-docs.py

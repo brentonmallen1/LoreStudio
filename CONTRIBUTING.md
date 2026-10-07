@@ -37,6 +37,7 @@ docs/             for people running LoreStudio
 
 | Gate | What it holds |
 |---|---|
+| `scripts/check-pii.py` | No runtime data (databases, uploads, exports) tracked; no denied personal terms |
 | `scripts/check-size.py` | File-length budget. Files over it are locked at their size and may only shrink |
 | `scripts/check-tokens.py` | No hard-coded colours, no undefined tokens |
 | `scripts/check-docs.py` | Markdown only where it ships; every relative link resolves |
