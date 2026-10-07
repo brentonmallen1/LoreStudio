@@ -1,3 +1,5 @@
+import { request } from "../../api/request";
+
 /**
  * Reading the typed LLM stream.
  *
@@ -70,6 +72,15 @@ function deltaOf(frame: SSEFrame): string {
 }
 
 /** Consume a typed stream to the end. Never throws on a model failure — see `error`. */
+/**
+ * A summary or a reply whose result is kept runs to the end on the server even when its
+ * window closes (doc 21 R7). The server cannot tell Stop from a closed window, so Stop says so.
+ */
+function stopOnServer(res: Response) {
+  const id = res.headers.get("X-Stream-Id");
+  if (id) void request(`/streams/${id}/stop`, { method: "POST" }).catch(() => undefined);
+}
+
 export async function readEventStream(res: Response, handlers: StreamHandlers = {}): Promise<StreamResult> {
   const result: StreamResult = { text: "", thinking: "", usage: null, error: null };
   if (!res.body) {
@@ -113,10 +124,19 @@ export async function readEventStream(res: Response, handlers: StreamHandlers = 
 
   for (;;) {
     if (handlers.stop?.()) {
+      stopOnServer(res);
       await reader.cancel();
       return result;
     }
-    const { done, value } = await reader.read();
+    let chunk: ReadableStreamReadResult<Uint8Array>;
+    try {
+      chunk = await reader.read();
+    } catch (e) {
+      // Aborted: the author pressed Stop. A stream whose result is kept would otherwise carry on.
+      if (e instanceof Error && e.name === "AbortError") stopOnServer(res);
+      throw e;
+    }
+    const { done, value } = chunk;
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
     const { frames, rest } = parseFrames(buffer);

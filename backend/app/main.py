@@ -67,6 +67,7 @@ from .routers.series_promises import router as series_promises_router
 from .routers.series_shared import router as series_shared_router
 from .routers.snapshots import router as snapshots_router
 from .routers.stories import router as stories_router
+from .routers.streams import router as streams_router
 from .routers.structure import router as structure_router
 from .routers.system import router as system_router
 from .routers.templates import router as templates_router
@@ -174,6 +175,7 @@ app.include_router(interviews_router, prefix="/api/interviews", tags=["interview
 app.include_router(templates_router, prefix="/api/templates", tags=["templates"])
 app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(checks_router, prefix="/api", tags=["analysis"])
+app.include_router(streams_router, prefix="/api", tags=["ai"])
 app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])

@@ -21,6 +21,7 @@ Consumers ignore events they do not know, so a new one is additive.
 import asyncio
 import json
 import logging
+import uuid
 from collections.abc import AsyncIterator, Callable
 from typing import TYPE_CHECKING, Any
 
@@ -233,6 +234,60 @@ def sse_message(text: str) -> StreamingResponse:
     return sse_response(sse_text(text))
 
 
+#: Streams carrying on without their reader, by id, with the user who started each: what
+#: Stop reaches when the reader has gone (routers/streams.py).
+CARRYING: dict[str, tuple[asyncio.Task, str]] = {}
+_END = object()
+
+
+async def carry_on(frames: AsyncIterator[str], stream_id: str, user_id: str) -> AsyncIterator[str]:
+    """
+    The frames of a stream whose result is kept (doc 21 R7, D16), generated to the end
+    even when the reader goes away.
+
+    Closing the window used to cancel the call: a scene summary half-written was thrown
+    away and an interview reply was never kept. Now the call runs in a task of its own and
+    the response only reads from it. If the reader leaves, the response waits for the task,
+    shielded from the cancellation, so the request's session is still open when the result
+    is saved. Only Stop (POST /streams/{id}/stop) ends it early.
+    """
+    import anyio
+
+    queue: asyncio.Queue = asyncio.Queue()
+
+    async def pump() -> None:
+        try:
+            async for frame in frames:
+                queue.put_nowait(frame)
+        except asyncio.CancelledError:
+            pass  # Stop: the gateway has logged the call as cancelled
+        except Exception as exc:  # the reader turns it into an error event
+            queue.put_nowait(exc)
+        finally:
+            queue.put_nowait(_END)
+
+    task = asyncio.ensure_future(pump())
+    CARRYING[stream_id] = (task, user_id)
+    try:
+        while (item := await queue.get()) is not _END:
+            if isinstance(item, Exception):
+                raise item
+            yield item
+    finally:
+        if not task.done():
+            with anyio.CancelScope(shield=True):
+                await asyncio.wait({task})
+        CARRYING.pop(stream_id, None)
+
+
+def _kept(context: "AICallContext", on_complete: Any, on_text: Any) -> bool:
+    """Whether a stream's result is kept: it saves something, or it is one of the Chronicle's
+    Results (a summary, a recap, a brainstorm)."""
+    from ..chronicle_timeline import RESULT_FEATURES
+
+    return bool(on_complete or on_text) or context.feature in RESULT_FEATURES
+
+
 def sse_stream(
     gateway: Any,
     *,
@@ -257,23 +312,23 @@ def sse_stream(
     calling module is what actually runs.
     """
     probe = UsageProbe()
-    return sse_response(
-        sse_events(
-            gateway.stream(
-                messages=messages,
-                feature_prompt=feature_prompt,
-                context=context,
-                db=db,
-                user=user,
-                llm_params=llm_params,
-                include_core_prompt=include_core_prompt,
-                on_complete=on_complete,
-                on_result=probe,
-            ),
-            # Which endpoint failed, in the vocabulary the call log already uses.
-            where=context.feature,
-            usage=probe,
-            on_text=on_text,
-        ),
-        headers=headers,
+    tokens = gateway.stream(
+        messages=messages,
+        feature_prompt=feature_prompt,
+        context=context,
+        db=db,
+        user=user,
+        llm_params=llm_params,
+        include_core_prompt=include_core_prompt,
+        on_complete=on_complete,
+        on_result=probe,
     )
+    # Which endpoint failed, in the vocabulary the call log already uses.
+    events = sse_events(tokens, where=context.feature, usage=probe, on_text=on_text)
+    if _kept(context, on_complete, on_text):
+        # The events, not just the tokens, so on_text still sees the whole answer.
+        stream_id = str(uuid.uuid4())
+        events = carry_on(events, stream_id, user.id)
+        expose = ", ".join(filter(None, [(headers or {}).get("Access-Control-Expose-Headers"), "X-Stream-Id"]))
+        headers = {**(headers or {}), "X-Stream-Id": stream_id, "Access-Control-Expose-Headers": expose}
+    return sse_response(events, headers=headers)
