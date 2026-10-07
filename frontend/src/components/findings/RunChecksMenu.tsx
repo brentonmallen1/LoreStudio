@@ -92,7 +92,7 @@ export default function RunChecksMenu() {
   const notes = [
     sizing && !sizing.has_chapters ? "No chapters, so no chapter checks." : "",
     sizing && !sizing.has_target ? "No target length, so no length check." : "",
-    "Every run is kept in the Chronicle.",
+    "Each runs as a job: leave the page and it carries on. Every run is kept in the Chronicle.",
   ].filter(Boolean);
 
   return (

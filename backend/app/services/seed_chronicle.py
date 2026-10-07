@@ -128,6 +128,7 @@ def seed_lighthouse_chronicle(
         created_at=start,
         started_at=start + timedelta(seconds=1),
         finished_at=start + timedelta(seconds=11),
+        seen_at=start + timedelta(seconds=11),
     )
     db.add(summary_job)
     db.flush()
@@ -184,6 +185,7 @@ def seed_lighthouse_chronicle(
         created_at=start,
         started_at=start + timedelta(seconds=1),
         finished_at=start + timedelta(seconds=2),
+        seen_at=start + timedelta(seconds=2),
     )
     db.add(failed_job)
     db.flush()

@@ -11,7 +11,7 @@ The page keeps a history of itself. A **reading** is its figures at one moment, 
 - after a restore, which never rewinds the history;
 - whenever you choose ⋯ › **Measure now**.
 
-Everything is measured on the server after you have moved on, so saving and walking away never waits. Earlier versions are measured the first time the page sees them, in the background (Chronicle lists the job). Every reading is kept for two weeks, then one a day for ninety days, then one a week; a version's is never thinned. Readings travel in a story's export.
+Each reading is a job of its own (see **Jobs: work that runs while you write**), measured on this machine as soon as it is asked for, so saving and walking away never waits; the automatic ones are quiet. Earlier versions are measured the first time the page sees them, as a job too. Every reading is kept for two weeks, then one a day for ninety days, then one a week; a version's is never thinned. Readings travel in a story's export.
 
 ## Comparing
 

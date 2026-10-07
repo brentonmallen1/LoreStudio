@@ -192,6 +192,17 @@ story data records a change in the same transaction (`record`, `record_update`, 
 Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`
 through `useReloadOnUndo([entity types], reload)` (`reselect` re-points a selected row at the fresh list).
 
+### Jobs (doc 21)
+Long work is a job; a page never holds it. Anything over the whole story, many scenes or many
+calls (checks, the editorial pass, summaries, readings, local checks, an import's reading)
+registers a handler in `services/job_queue.py` with `@handler(kind, lane=, stop=, quiet=, unique=)`
+and is queued with `enqueue`. Two lanes: `model` (one call at a time) and `local` (never waits on
+the model). Every model call passes `services/llm/gate.py`: a live call preempts a job's call
+(the job requeues at the front) and starts a cool-down. The client reads one poller,
+`stores/jobsStore.ts`; pages use `useJobs` / `useOnJobFinished`; the header's
+`layout/jobs/JobsIndicator` is the list. A stream whose result is kept runs to the end after
+its window closes (`sse.carry_on`); Stop posts `/streams/{id}/stop`.
+
 ### Writer and Studio modes
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,
 `getMode()`, `setMode()`; saved through `PATCH /api/auth/me`). **Writer mode renders no AI

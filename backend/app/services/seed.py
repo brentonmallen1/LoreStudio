@@ -28,6 +28,7 @@ from ..models.twist import Twist, TwistClue
 from ..models.user import User
 from ..models.world_system import WorldSystem
 from .seed_chronicle import seed_lighthouse_chronicle
+from .seed_jobs import seed_lighthouse_jobs
 from .seed_numbers import seed_lighthouse_numbers
 from .seed_who import seed_audition_who, seed_lighthouse_who
 from .word_count import recount_story
@@ -2484,6 +2485,8 @@ def seed_demo_story():  # noqa: PLR0915
             scenes=[scene1, scene2, scene3, scene4, scene5, scene6, scene7, scene8, scene9, scene10],
             cast=[eleanor.name, visitor.name, thomas.name],
         )
+        # Jobs (doc 21): a check that finished while the author was away, a stopped pass.
+        seed_lighthouse_jobs(db, user=admin, story=story)
 
         # Counted from the prose, as the editor counts, not written in by hand.
         recount_story(story.id, db)

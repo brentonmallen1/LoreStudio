@@ -8,6 +8,7 @@ import series from "./writing-a-series.md?raw";
 import snapshots from "./snapshots-and-backups.md?raw";
 import numbers from "./numbers.md?raw";
 import whoAreThey from "./who-are-they.md?raw";
+import jobs from "./jobs.md?raw";
 import importExport from "./import-and-export.md?raw";
 import search from "./search-and-replace.md?raw";
 import glossary from "./glossary.md?raw";
@@ -125,6 +126,23 @@ const GUIDE_LIST: Guide[] = [
     body: numbers,
     modes: BOTH,
     keywords: ["numbers", "compare", "history", "over time", "readings", "versions", "trend", "statistics"],
+  },
+  {
+    id: "jobs",
+    title: "Jobs: work that runs while you write",
+    body: jobs,
+    modes: BOTH,
+    keywords: [
+      "jobs",
+      "background",
+      "running",
+      "queue",
+      "stop",
+      "cancel",
+      "waiting",
+      "cool-down",
+      "in flight",
+    ],
   },
   {
     id: "who-are-they",
