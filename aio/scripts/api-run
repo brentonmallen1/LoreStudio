@@ -1,0 +1,13 @@
+#!/bin/sh
+# The API, as the app user, on localhost only (nginx is the way in). Migrations and seeding
+# run in the app's own startup (app/services/db_migrate.py).
+set -e
+cd /app
+# Not root's home: fontconfig (PDF export) and spaCy keep their caches somewhere writable.
+export HOME=/tmp XDG_CACHE_HOME=/tmp/cache
+if [ -z "$SECRET_KEY" ]; then
+    SECRET_KEY=$(cat /data/.secret_key)
+    export SECRET_KEY
+fi
+exec s6-setuidgid lorestudio python -m uvicorn app.main:app \
+    --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1

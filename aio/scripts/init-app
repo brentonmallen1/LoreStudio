@@ -1,0 +1,26 @@
+#!/bin/sh
+# Once, before anything else: the app user takes PUID/PGID (Unraid: 99/100), /data gets its
+# folders and belongs to that user, and SECRET_KEY, when not given, is made once and kept in
+# /data so sign-ins survive a restart or an update.
+set -e
+
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+
+groupmod -o -g "$PGID" lorestudio
+usermod -o -u "$PUID" lorestudio
+
+mkdir -p /data/snapshots /data/uploads /data/backups
+if [ "$(stat -c %u:%g /data)" != "$PUID:$PGID" ]; then
+    echo "Giving /data to $PUID:$PGID..."
+    chown -R lorestudio:lorestudio /data
+fi
+
+if [ -z "$SECRET_KEY" ] && [ ! -s /data/.secret_key ]; then
+    echo "No SECRET_KEY given: making one, kept in /data/.secret_key."
+    python -c "import secrets; print(secrets.token_hex(32))" > /data/.secret_key
+    chown lorestudio:lorestudio /data/.secret_key
+    chmod 600 /data/.secret_key
+fi
+
+echo "LoreStudio ${APP_VERSION:-dev}: running as $PUID:$PGID, data in /data."

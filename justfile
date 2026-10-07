@@ -73,6 +73,7 @@ db-reset:
     rm -f backend/data/lorestudio.db backend/data/lorestudio.db-wal backend/data/lorestudio.db-shm
 
 # ── Docker ─────────────────────────────────────
+# Two containers (docker-compose.yml): build the API and web images
 build:
     docker compose build
 
@@ -87,6 +88,14 @@ logs:
 
 restart:
     docker compose restart
+
+# One container (Dockerfile.aio): build it as ghcr.io/brentonmallen1/lorestudio:dev
+aio-build:
+    docker build -f Dockerfile.aio --build-arg APP_VERSION=dev -t ghcr.io/brentonmallen1/lorestudio:dev .
+
+# Run the all-in-one on WEB_PORT (8080) with ./data as /data (ADMIN_PASSWORD from .env)
+aio-run: aio-build
+    LORESTUDIO_TAG=dev docker compose -f docker-compose.aio.yml up -d --no-build
 
 # ── Quality gates ──────────────────────────────
 # Exactly what GitHub CI runs (.github/workflows/ci.yml), locally. Run before pushing.

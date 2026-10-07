@@ -1,0 +1,38 @@
+# LoreStudio in one container: the API and the web front under s6, one port, one /data volume.
+# For two containers, see docker-compose.yml. Configuration: docs/CONFIGURATION.md.
+#
+#   docker compose -f docker-compose.aio.yml up -d
+#   open http://localhost:8080
+
+services:
+  lorestudio:
+    image: ghcr.io/brentonmallen1/lorestudio:${LORESTUDIO_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile.aio
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Required: the app refuses a default admin password.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      # Optional: made once and kept in /data when not set.
+      SECRET_KEY: ${SECRET_KEY:-}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-UTC}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      # The image's own layout; .env values for these are for running outside Docker.
+      DATABASE_URL: sqlite:////data/lorestudio.db
+      SNAPSHOTS_PATH: /data/snapshots
+      UPLOADS_PATH: /data/uploads
+      BACKUPS_PATH: /data/backups
+      ENV: ${ENV:-prod}
+      WEB_PORT: "8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    volumes:
+      - ${DATA_PATH:-./data}:/data
+    restart: unless-stopped

@@ -1,0 +1,15 @@
+#!/bin/sh
+# The way in: the web front's own nginx.conf, pointed at the API on localhost and listening on
+# WEB_PORT. Waits for the API, so the first page never meets a 502.
+set -e
+
+until python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)" 2>/dev/null; do
+    sleep 1
+done
+
+sed -e "s|listen 8080;|listen ${WEB_PORT:-8080};|" \
+    -e "s|http://backend:8000|http://127.0.0.1:8000|" \
+    /etc/nginx/lorestudio.conf.template > /etc/nginx/conf.d/lorestudio.conf
+
+echo "Serving on port ${WEB_PORT:-8080}."
+exec nginx -g "daemon off;"
