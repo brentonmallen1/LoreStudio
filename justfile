@@ -95,6 +95,7 @@ ci:
     set -euo pipefail
     echo "── file-length budget ──"     && python3 scripts/check-size.py
     echo "── design tokens ──"         && python3 scripts/check-tokens.py
+    echo "── tracked documents ──"     && python3 scripts/check-docs.py
     echo "── generated files ──"        && (cd backend && uv run python scripts/gen_ai_features.py --check)
     echo "── backend: ruff ──"          && (cd backend && uv run ruff check app/ tests/ scripts/ && uv run ruff format --check app/ tests/ scripts/)
     echo "── backend: ty ──"            && (cd backend && uv run ty check app/)

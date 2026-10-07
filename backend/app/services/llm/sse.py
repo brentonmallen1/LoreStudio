@@ -173,7 +173,7 @@ async def sse_events(
             error = _message_for(exc)
     finally:
         # Half an answer is still an answer, and the author asked for it. Sync only: an
-        # async generator may not await while unwinding a disconnect (see CHAT_REVIEW 2.2).
+        # async generator may not await while unwinding a disconnect (a disconnect cancels the generator mid-unwind).
         if on_text:
             try:
                 on_text("".join(prose))
