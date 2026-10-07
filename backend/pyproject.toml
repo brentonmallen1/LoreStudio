@@ -62,8 +62,9 @@ max-statements = 60
 source = ["app"]
 omit = ["app/services/seed.py", "app/services/llm/prompts/*"]
 [tool.coverage.report]
-# Ratchet: raise when coverage rises, never lower. Stage 0 baseline.
-fail_under = 64.5  # measured 65.55%. A point of margin, so it fails on a regression, not on noise.
+# Ratchet: raise when coverage rises, never lower. Stage 0 baseline 64.5 (measured 65.55%);
+# raised 2026-10-07 (doc 23 P6), when it had long since passed it unnoticed.
+fail_under = 82  # measured 83.10%. A point of margin, so it fails on a regression, not on noise.
 skip_covered = false
 show_missing = false
 
