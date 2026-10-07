@@ -1,221 +1,191 @@
-<!-- 
-  Logo placeholder: Replace with actual logo
-  Recommended: 400-600px wide, transparent background
--->
 <p align="center">
-  <img src="docs/assets/logo-placeholder.png" alt="LoreStudio" width="400">
+  <img src="docs/images/lorestudio-icon.svg" alt="LoreStudio" width="120" height="120" />
 </p>
 
 <h1 align="center">LoreStudio</h1>
 
 <p align="center">
-  <strong>Where stories take shape.</strong>
+  <strong>Where stories take shape.<br/>A self-hosted workspace for novelists. You write; it helps you see what you are building.</strong>
 </p>
 
 <p align="center">
   <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="docs/INSTALLATION.md">Installation</a> •
-  <a href="docs/CONFIGURATION.md">Configuration</a>
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#getting-started">Getting started</a> •
+  <a href="docs/deployment.md">Deployment</a> •
+  <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
-<!-- Badges: uncomment and update when applicable
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.13+-blue" alt="Python 3.13+">
-  <img src="https://img.shields.io/badge/node-20+-green" alt="Node 20+">
-  <img src="https://img.shields.io/badge/license-MIT-orange" alt="License">
+  <img src="https://img.shields.io/badge/python-3.13-3a6c49" alt="Python 3.13" />
+  <img src="https://img.shields.io/badge/FastAPI-SQLite-3a6c49" alt="FastAPI and SQLite" />
+  <img src="https://img.shields.io/badge/React-19-3a6c49" alt="React 19" />
+  <img src="https://img.shields.io/badge/AI-Ollama%2C%20optional-765783" alt="Ollama, optional" />
+  <img src="https://img.shields.io/badge/deploy-Docker%20%7C%20Unraid-3a6c49" alt="Docker and Unraid" />
+  <img src="https://img.shields.io/badge/license-AGPL--3.0-6a675f" alt="AGPL-3.0" />
 </p>
--->
 
 ---
 
-## What is LoreStudio?
+## Why LoreStudio?
 
-LoreStudio is a self-hosted writing platform that helps you build, organize, and refine your stories. It gives you a place to develop characters, map relationships, track plot threads, structure your narrative, write your prose, and analyze what you've written. All in one workspace.
+LoreStudio is a writing room you run yourself. It keeps everything a long story accumulates in
+one place: the characters and who they are, the places, the threads and twists you have promised
+the reader, the plan, the research, the manuscript itself, and the history of all of it. It reads
+what you write and tells you what it notices: a name spelled two ways, a thread gone quiet, a
+scene that slips out of its tense. Then it gets out of the way.
 
-There are AI tools if you want them. They run locally on your machine through [Ollama](https://ollama.ai), so your work stays private. You can interview your characters to discover who they are, get coaching on a tricky passage, check your pacing, explore "what if" scenarios. You can even ignore the AI entirely and everything else still works.
+**It won't write your book for you.** It is not a ghostwriter and it does not generate chapters.
+When you ask for help you get questions, analysis and suggestions, never replacement prose. Your
+voice stays your voice.
 
----
+**Your story stays yours.**
 
-## What LoreStudio is Not
-
-LoreStudio won't write your book for you.
-
-It's not a ghostwriter. It's not a content mill. It won't generate chapters or "finish" your scenes. The AI features are there to help you think through problems, not to think for you.
-
-When you ask for writing help, you get analysis, questions, and suggestions — not replacement prose. Your voice stays your voice. The words on the page are yours.
-
-If you're looking for something that generates content, this isn't it.
-
----
-
-## Philosophy
-
-**You write. The tools support you.** AI features analyze, question, and suggest. They help you see your story from new angles. They don't put words in your mouth.
-
-**Privacy is the default.** All AI runs locally via Ollama. Your stories never leave your machine. No cloud services, no telemetry, no one training models on your work.
-
-**Transparency, not magic.** Every AI interaction is logged in the Chronicle. You can see exactly what context was sent, what the model returned, and how many tokens it used. No black boxes. If you ever use a commercial model, you'll know precisely what left your machine.
-
-**AI is entirely optional.** Character sheets, plot tracking, worldbuilding, export, versioning — none of it requires AI. The organizational tools stand on their own. AI adds depth if you want it; it's not a dependency.
-
-**Your data belongs to you.** Self-hosted means you control it. SQLite database you can backup, inspect, or migrate. Export to standard formats whenever you want. Built-in versioning keeps snapshots of your work — automatic or manual — so you can compare changes, restore earlier states, or just have peace of mind that nothing is lost.
-
----
+- **Local by default.** The optional AI runs on your own [Ollama](https://ollama.com); nothing
+  is sent to anyone else's servers, and there is no telemetry.
+- **Transparent.** Every AI call is logged in the Chronicle with exactly what was sent and what
+  came back. Everything LoreStudio does by itself is listed, scheduled and switchable.
+- **AI is optional.** Writer mode removes every AI surface. Characters, plans, findings,
+  numbers, export and versions all work without a model.
+- **Yours to keep.** One SQLite database in one folder; export to DOCX, EPUB, PDF and more; save
+  and compare versions; undo almost anything.
 
 ## Screenshots
 
-<!-- 
-  Screenshot placeholders: Replace with actual screenshots
-  Recommended: 1200px wide, PNG or WebP
-  
-  Suggested screenshots:
-  1. Story workspace with scene editor
-  2. Character sheet with relationship graph
-  3. Story health dashboard
-  4. AI character interview
--->
-
 <p align="center">
-  <em>Screenshots coming soon</em>
-</p>
-
-<!--
-<p align="center">
-  <img src="docs/assets/screenshot-workspace.png" alt="Story Workspace" width="800">
-  <br><em>The writing workspace with scene editor and story structure</em>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/write-dark.png" />
+    <img src="docs/images/screenshots/write-light.png" alt="The manuscript with the story strip and the This scene panel" width="900" />
+  </picture>
+  <br/><em>Writing a scene: the story strip on the left, the scene's plan and findings beside the prose.</em>
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshot-characters.png" alt="Character Management" width="800">
-  <br><em>Character profiles with relationship visualization</em>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/promises-dark.png" />
+    <img src="docs/images/screenshots/promises-light.png" alt="The Promises tapestry: threads, twists and setups across the book" width="900" />
+  </picture>
+  <br/><em>Promises: every thread, twist and setup across the book, scene by scene.</em>
 </p>
--->
 
----
+<p align="center"><a href="docs/screenshots.md">See more →</a></p>
 
 ## Features
 
-### Story Organization
+### Lorebook: what is true in your story
 
-- **Flexible structure** — Acts, chapters, scenes, beats — or define your own hierarchy with custom templates
-- **Any story length** — Flash fiction to multi-book epics, with word count tracking and form-appropriate guidance
-- **Multiple views** — Tree outline, corkboard for visual planning, timeline for chronological order
-- **Beat sheet integration** — Save the Cat, Hero's Journey, Story Circle, or create your own
+- **One sheet for every kind of thing**: characters, places, cultures, systems, eras, calendars,
+  each with the fields that matter and nothing else in the way.
+- **Who they are**: identity, body and mind, what formed them, and the three questions (what do
+  they want, why, what stands in the way). Pronoun and name changes reviewed across the manuscript.
+- **Relationships, arcs and milestones**, with a character web and each character's dialogue.
+- **Series**: books that share characters, places and world, each book with its own version of
+  them, planned from the start or grown book by book.
 
-### Characters & Worldbuilding
+### Manuscript: the prose
 
-- **Rich character profiles** — Personality, motivation, background, arc milestones, narrative intent
-- **Relationship mapping** — Track connections between characters with an interactive graph
-- **Worldbuilding hub** — Locations, cultures, world systems (magic, technology), historical events, calendars
-- **Discovery tracking** — As you write, the system helps identify new characters and settings in your prose
+- **A quiet editor** with focus mode, sprints, notes in the margin and a scratch pad.
+- **`@Character`, `[[Place]]` and `"…"<Speaker>`** in the prose itself: mentions with hover
+  cards, dialogue attributed to whoever says it.
+- **The story strip**: the whole book as a line of stops down the side, coloured by status,
+  point of view or findings.
+- **Any shape**: acts, chapters and scenes or your own levels; flash fiction to multi-book epics;
+  beat sheets, the Snowflake method and MICE threads as ways to plan.
+- **Freewrite** for loose writing, with any phrase made into a note, a character or a scene.
 
-### Writing Tools
+### Promises: what the reader is waiting for
 
-- **Distraction-free editor** — TipTap-based rich text with focus mode and sprint timer
-- **Smart references** — `@Character` and `[[Location]]` mentions with autocomplete and hover cards
-- **Dialogue tracking** — Attribution analysis, character voice distinctness, balance metrics
-- **Scene linking** — Connect related scenes (foreshadowing, callbacks, parallels) and visualize the web
+- **The tapestry**: threads, twists and setups across the book, with what each scene does to them.
+- **Twists** with their truth beside what the reader believes and their clues in reading order.
+- **What the reader knows**, scene by scene.
 
-### AI Assistant (Optional, Local)
+### Findings: what needs your eye
 
-All AI features run through [Ollama](https://ollama.ai) on your machine. Nothing is sent to external servers.
+- **One feed** for everything the checks notice: name slips (with a one-click fix), prose habits,
+  tense and point-of-view slips, quiet threads, absent characters, empty chapters, and the
+  Assistant's checks when you run them.
+- **Show me the passage**: a finding that quotes your prose opens the scene at those words.
+- **Numbers**: words, pacing, who is on the page, dialogue and prose over the whole book, and how
+  they change over time.
 
-- **Character interviews** — Have conversations with your characters to discover who they really are
-- **Panel discussions** — Interview multiple characters together; they respond to each other
-- **Writing coach** — Highlight a passage for analysis and suggestions (never rewrites for you)
-- **Story analysis** — Pacing, continuity, plot holes, theme tracking, cliché detection
-- **What-If simulator** — Explore "what if I killed this character?" with ripple-effect analysis
-- **Scene planning** — AI-assisted brainstorming for scenes you haven't written yet
+### Compendium and Chronicle
 
-### Export & Versioning
+- **Research** (notes, links, images, diagrams), shared across a series when you want it.
+- **The Chronicle**: every conversation, analysis, change and AI call, kept and searchable.
+- **Undo** for every change to the story, from any page, and **versions** you can compare and
+  restore.
 
-- **Multiple formats** — DOCX, EPUB, PDF, Markdown, HTML, ODT
-- **PDF layouts** — Novel, manuscript (Courier double-spaced), compact, dark mode
-- **Version snapshots** — Manual or automatic backups with diff comparison
-- **Full export** — Download your entire story as a portable archive
+### Assistant (optional, local)
 
----
+- **Interview your characters**, alone or as a panel, with the character's sheet as their mind.
+- **Ask about the story** with `@mentions` for what you mean; get a writing coach on a passage,
+  "what if" explorations, scene planning, pacing, continuity and plot-hole checks.
+- **Codex**: the story's knowledge graph and semantic index, so the Assistant reads the right
+  passages, not the whole book.
 
-## Quick Start
+## Getting started
 
-### 1. Install Ollama (optional, for AI features)
+### Run it
 
-```bash
-brew install ollama
-ollama serve
-ollama pull gemma4
-```
-
-### 2. Clone and configure
-
-```bash
-git clone https://github.com/your-username/LoreStudio.git
-cd LoreStudio
-just init-env
-# Edit .env to set ADMIN_PASSWORD and SECRET_KEY
-```
-
-### 3. Install dependencies
+The all-in-one image needs one port and one folder. With Docker:
 
 ```bash
-just setup
+docker run -d --name lorestudio -p 8080:8080 \
+  -e ADMIN_PASSWORD='a strong password' \
+  -v ./data:/data \
+  ghcr.io/brentonmallen1/lorestudio:latest
 ```
 
-### 4. Start the application
+Open <http://localhost:8080> and sign in as `admin`. The demo story, "The Last Lighthouse", shows
+how everything is meant to be used. For AI, point `OLLAMA_BASE_URL` at your Ollama and
+`ollama pull gemma4`.
+
+**On Unraid**, add `https://github.com/brentonmallen1/LoreStudio` under *Docker → Template
+Repositories* and install **lorestudio**; see [docs/unraid.md](docs/unraid.md).
+
+Compose files, reverse proxies, backups and every option: [docs/deployment.md](docs/deployment.md)
+and [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Updating: [docs/upgrading.md](docs/upgrading.md).
+
+### Develop it
+
+Requires [uv](https://docs.astral.sh/uv/), Node 22 and [just](https://github.com/casey/just).
 
 ```bash
-just dev
+git clone https://github.com/brentonmallen1/LoreStudio.git && cd LoreStudio
+just init-env      # .env from .env.example
+just setup         # dependencies
+just dev           # the app on http://localhost:5173
 ```
 
-### 5. Open in browser
+[docs/INSTALLATION.md](docs/INSTALLATION.md) has the details; [CONTRIBUTING.md](CONTRIBUTING.md)
+the conventions and quality gates.
 
-Visit [http://localhost:5173](http://localhost:5173)
+## Architecture
 
-Default login: `admin` / (password from your `.env`)
+| Part | What |
+|---|---|
+| Backend | Python 3.13, FastAPI, SQLAlchemy, Alembic, SQLite (WAL) |
+| Frontend | React 19, TypeScript, TipTap, Zustand, Vite |
+| AI | Ollama, built around Gemma 4; every call through one gateway that logs it |
+| Local analysis | spaCy for prose checks; `sqlite-vec` for semantic search |
+| Background work | Jobs in two lanes (the model's, one call at a time, and local work); automatic work on a schedule |
+| Deployment | An all-in-one image (nginx and the API under s6) or two containers; amd64 and arm64 |
 
----
+## Roadmap
 
-## Documentation
+- The Assistant at the level of a whole series.
+- Read-only access for other tools through MCP.
+- Concept art from your descriptions, with guardrails and provenance.
+- Audio narration of the manuscript.
 
-| Document | Description |
-|----------|-------------|
-| [Installation Guide](docs/INSTALLATION.md) | Full setup instructions, Docker deployment, troubleshooting |
-| [Configuration Reference](docs/CONFIGURATION.md) | Environment variables, Ollama setup, model recommendations |
+## Contributing
 
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Backend | Python 3.13, FastAPI, SQLAlchemy, SQLite |
-| Frontend | React 18, TypeScript, TipTap, Zustand, Tailwind CSS |
-| AI | Ollama (local), optimized for Gemma 4 |
-| NLP | spaCy (local prose analysis) |
-
----
-
-## Story Types Supported
-
-LoreStudio adapts to your project's scope:
-
-- **Flash fiction** (under 1,000 words)
-- **Short stories** (1,000–7,500 words)
-- **Novelettes** (7,500–17,500 words)
-- **Novellas** (17,500–40,000 words)
-- **Novels** (40,000–100,000 words)
-- **Epics** (100,000+ words)
-- **Series** (multi-book projects)
-
-Word count tracking, pacing guidance, and AI analysis adapt to your chosen form.
-
----
+Issues and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md); `just ci`
+runs every check CI does.
 
 ## License
 
-<!-- Update with your chosen license -->
-MIT License — see [LICENSE](LICENSE) for details.
+[AGPL-3.0](LICENSE). If you run a modified LoreStudio for other people, share your changes.
 
 ---
 

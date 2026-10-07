@@ -162,6 +162,10 @@ test-watch:
 test-frontend:
     cd frontend && npm test
 
+# Retake the README's screenshots from the demo stories (own servers, throwaway database)
+screenshots:
+    uv run --no-project --with playwright python scripts/screenshots.py
+
 # ── Release ────────────────────────────────────
 # Cut a release: `just release 2026.10.1 notes.md`. Creates the GitHub release and its tag;
 # release-images.yml then publishes the images. Notes are written, never generated: feature
