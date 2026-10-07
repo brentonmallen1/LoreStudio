@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>lorestudio</Name>
+  <Repository>ghcr.io/brentonmallen1/lorestudio:latest</Repository>
+  <Registry>https://ghcr.io/brentonmallen1/lorestudio</Registry>
+  <Network>bridge</Network>
+  <Support>https://github.com/brentonmallen1/LoreStudio/issues</Support>
+  <Project>https://github.com/brentonmallen1/LoreStudio</Project>
+  <Overview>LoreStudio: a self-hosted workspace for novelists. Plan, organise and understand your story (characters, places, threads, the manuscript, research and its history) with optional AI help from your own Ollama. You do the writing. All-in-one: the app and its web interface in one container, data in one folder. See https://github.com/brentonmallen1/LoreStudio for documentation.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <TemplateURL>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/unraid/lorestudio.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/docs/images/lorestudio-icon.png</Icon>
+  <WebUI>http://[IP]:[PORT:8080]</WebUI>
+
+  <!-- Single-quoted on purpose in descriptions: double quotes come back out through Unraid's
+       own markup, where they can cut the text short. -->
+
+  <!-- Required -->
+  <Config Name="Admin Password" Target="ADMIN_PASSWORD" Default="" Mode="" Description="REQUIRED - the password for the 'admin' account, created on first start. The app refuses to start on an empty or default value." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+
+  <!-- Port and data -->
+  <Config Name="Web Port" Target="8080" Default="8080" Mode="tcp" Description="Port for the web interface." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Data" Target="/data" Default="/mnt/user/appdata/lorestudio" Mode="rw" Description="Everything LoreStudio keeps: the database, uploads, snapshots and backups. Back this folder up." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lorestudio</Config>
+
+  <!-- AI (optional) -->
+  <Config Name="Ollama URL" Target="OLLAMA_BASE_URL" Default="http://192.168.1.10:11434" Mode="" Description="Optional - the Ollama server for AI features, e.g. http://[your server IP]:11434 for an Ollama container on this host. Without one, everything but the AI features works." Type="Variable" Display="always" Required="false" Mask="false">http://192.168.1.10:11434</Config>
+  <Config Name="Ollama Model" Target="OLLAMA_MODEL" Default="gemma4" Mode="" Description="The model to use. LoreStudio is built around Gemma 4 (pull it with 'ollama pull gemma4')." Type="Variable" Display="always" Required="false" Mask="false">gemma4</Config>
+
+  <!-- Advanced -->
+  <Config Name="Admin Username" Target="ADMIN_USERNAME" Default="admin" Mode="" Description="The admin account's username." Type="Variable" Display="advanced" Required="false" Mask="false">admin</Config>
+  <Config Name="Secret Key" Target="SECRET_KEY" Default="" Mode="" Description="Optional - signs sign-in tokens. Left empty, one is made on first start and kept in the data folder. Set your own with: openssl rand -hex 32" Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Demo Story" Target="SEED_DEMO" Default="true" Mode="" Description="Add the demo story 'The Last Lighthouse' on first start (only when there are no stories)." Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="The user that owns the data folder (Unraid: 99, nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="The group that owns the data folder (Unraid: 100, users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="Timezone" Target="TZ" Default="America/New_York" Mode="" Description="Timezone for dates in the app and the schedule of automatic work." Type="Variable" Display="advanced" Required="false" Mask="false">America/New_York</Config>
+  <Config Name="Log Level" Target="LOG_LEVEL" Default="INFO" Mode="" Description="DEBUG, INFO, WARNING or ERROR." Type="Variable" Display="advanced" Required="false" Mask="false">INFO</Config>
+</Container>

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>lorestudio-backend</Name>
+  <Repository>ghcr.io/brentonmallen1/lorestudio-backend:latest</Repository>
+  <Registry>https://ghcr.io/brentonmallen1/lorestudio-backend</Registry>
+  <Network>lorestudio</Network>
+  <Support>https://github.com/brentonmallen1/LoreStudio/issues</Support>
+  <Project>https://github.com/brentonmallen1/LoreStudio</Project>
+  <Overview>LoreStudio API, for running LoreStudio as two containers (with lorestudio-frontend) on a custom 'lorestudio' network. Most people want the all-in-one 'lorestudio' template instead. See https://github.com/brentonmallen1/LoreStudio/blob/main/docs/unraid.md</Overview>
+  <Category>Productivity: Tools:</Category>
+  <TemplateURL>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/unraid/lorestudio-backend.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/docs/images/lorestudio-icon.png</Icon>
+
+  <Config Name="Admin Password" Target="ADMIN_PASSWORD" Default="" Mode="" Description="REQUIRED - the password for the 'admin' account, created on first start." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Secret Key" Target="SECRET_KEY" Default="" Mode="" Description="REQUIRED - signs sign-in tokens. Generate with: openssl rand -hex 32" Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Data" Target="/app/data" Default="/mnt/user/appdata/lorestudio" Mode="rw" Description="The database, uploads, snapshots and backups. Must be writable by uid 1000." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/lorestudio</Config>
+  <Config Name="Ollama URL" Target="OLLAMA_BASE_URL" Default="http://192.168.1.10:11434" Mode="" Description="Optional - the Ollama server for AI features." Type="Variable" Display="always" Required="false" Mask="false">http://192.168.1.10:11434</Config>
+  <Config Name="Ollama Model" Target="OLLAMA_MODEL" Default="gemma4" Mode="" Description="The model to use." Type="Variable" Display="always" Required="false" Mask="false">gemma4</Config>
+  <Config Name="Timezone" Target="TZ" Default="America/New_York" Mode="" Description="Timezone for dates and automatic work." Type="Variable" Display="advanced" Required="false" Mask="false">America/New_York</Config>
+</Container>

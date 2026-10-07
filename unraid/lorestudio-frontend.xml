@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>lorestudio-frontend</Name>
+  <Repository>ghcr.io/brentonmallen1/lorestudio-frontend:latest</Repository>
+  <Registry>https://ghcr.io/brentonmallen1/lorestudio-frontend</Registry>
+  <Network>lorestudio</Network>
+  <Support>https://github.com/brentonmallen1/LoreStudio/issues</Support>
+  <Project>https://github.com/brentonmallen1/LoreStudio</Project>
+  <Overview>LoreStudio web interface (nginx), for running LoreStudio as two containers with lorestudio-backend on a custom 'lorestudio' network. Most people want the all-in-one 'lorestudio' template instead.</Overview>
+  <Category>Productivity: Tools:</Category>
+  <TemplateURL>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/unraid/lorestudio-frontend.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/docs/images/lorestudio-icon.png</Icon>
+  <WebUI>http://[IP]:[PORT:8080]</WebUI>
+
+  <Config Name="Web Port" Target="8080" Default="8480" Mode="tcp" Description="Port for the web interface." Type="Port" Display="always" Required="true" Mask="false">8480</Config>
+  <Config Name="API" Target="API_UPSTREAM" Default="lorestudio-backend:8000" Mode="" Description="Where the API container is: its name on the lorestudio network and port 8000." Type="Variable" Display="advanced" Required="false" Mask="false">lorestudio-backend:8000</Config>
+</Container>
