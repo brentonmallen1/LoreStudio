@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { codexApi, type ScenePresenceRow } from "../../../api/codex";
+import { pageLine } from "../../../lib/lorebook/whoAreThey";
+import { useStoryStore } from "../../../stores/storyStore";
 import type { StructureNode } from "../../../types";
 import styles from "../SceneEditor.module.css";
 
@@ -50,6 +52,7 @@ export default function WhoIsHereField({
   const [rows, setRows] = useState<ScenePresenceRow[] | null>(null);
   const [synced, setSynced] = useState(true);
   const [adding, setAdding] = useState("");
+  const characters = useStoryStore((s) => s.characters);
 
   const load = useCallback(() => {
     codexApi
@@ -134,6 +137,11 @@ export default function WhoIsHereField({
                 {row.basis && (
                   <span className={styles.linkChipLabel}>{BASIS_LABELS[row.basis] ?? row.basis}</span>
                 )}
+                {(() => {
+                  // How their body and mind show, in the author's words (doc 20 P7).
+                  const shows = pageLine(characters.find((c) => c.id === row.character_id) ?? { facets: [] });
+                  return shows ? <span className={styles.whoShows}>{shows}</span> : null;
+                })()}
               </span>
               <select
                 value={row.role ?? "absent"}

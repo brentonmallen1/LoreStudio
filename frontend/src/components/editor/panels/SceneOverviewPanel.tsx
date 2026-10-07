@@ -7,6 +7,7 @@ import SceneWhenField from "./SceneWhenField";
 import ChecksField from "./ChecksField";
 import QuotesField from "./QuotesField";
 import styles from "../SceneEditor.module.css";
+import { POV_AREAS, pageLine } from "../../../lib/lorebook/whoAreThey";
 
 interface Props {
   activeNode: StructureNode;
@@ -85,8 +86,16 @@ function TextField({
 export default function SceneOverviewPanel({ activeNode, activeStory, characters, locations }: Props) {
   // The scene's point of view, or the story's default: the person entry and exit states are about.
   const povId = activeNode.pov_character_id ?? activeStory?.pov_character_id;
-  const povName = characters.find((c) => c.id === povId)?.name;
-  const { setActiveNode, beatSheets } = useStoryStore();
+  const pov = characters.find((c) => c.id === povId);
+  const povName = pov?.name;
+  // What the point of view perceives and carries, in the author's words (doc 20 P7).
+  const povShows = pov ? pageLine(pov, POV_AREAS) : "";
+  const { setActiveNode, beatSheets, sceneCast } = useStoryStore();
+  // The others on the page, with how their body and mind show (doc 20 P7), in both modes.
+  const onPage = (sceneCast?.scenes.find((e) => e.node_id === activeNode.id)?.character_ids ?? [])
+    .filter((id) => id !== povId)
+    .map((id) => characters.find((c) => c.id === id))
+    .flatMap((c) => (c && pageLine(c) ? [{ name: c.name, shows: pageLine(c) }] : []));
   // Seeded once per node: the parent renders this panel with key={activeNode.id}.
   const [synopsis, setSynopsis] = useState(activeNode.synopsis ?? "");
   const [purpose, setPurpose] = useState(activeNode.purpose ?? "");
@@ -117,6 +126,20 @@ export default function SceneOverviewPanel({ activeNode, activeStory, characters
   return (
     <div className={styles.overviewPanel}>
       <ChecksField activeNode={activeNode} />
+      {(povShows || onPage.length > 0) && (
+        <div className={styles.povShows} aria-label="How bodies and minds show in this scene">
+          {povShows && (
+            <p>
+              Seen through {povName} · {povShows}
+            </p>
+          )}
+          {onPage.map((p) => (
+            <p key={p.name}>
+              {p.name} · {p.shows}
+            </p>
+          ))}
+        </div>
+      )}
       <TextField
         label="Entry state"
         value={entryState}

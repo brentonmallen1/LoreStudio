@@ -334,3 +334,17 @@ export function arcLine(c: Character): { label: string; value: string }[] {
     { label: "learns", value: c.epiphany },
   ].map((s) => ({ ...s, value: (s.value ?? "").trim() }));
 }
+
+/**
+ * How someone's body and mind show on the page, for the scene panel's Who is here (doc 20 P7):
+ * the author's own words beside the prose while it is written, never advice.
+ */
+export function pageLine(c: Pick<Character, "facets">, areas?: FacetArea[]): string {
+  return (c.facets ?? [])
+    .filter((f) => f.name.trim() && f.page.trim() && (!areas || areas.includes(f.area)))
+    .map((f) => `${f.name.trim()}: ${f.page.trim()}`)
+    .join(" · ");
+}
+
+/** The areas a point of view is told through: what they perceive, how they move, how they feel. */
+export const POV_AREAS: FacetArea[] = ["senses", "moving", "mental_health"];

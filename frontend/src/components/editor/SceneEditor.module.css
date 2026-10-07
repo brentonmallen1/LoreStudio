@@ -377,6 +377,37 @@
   background: var(--color-surface);
 }
 
+/* Who is here and the point of view: how a body and mind show, in the author's words (doc 20). */
+.linkChipContent:has(.whoShows) {
+  flex-wrap: wrap;
+}
+
+.whoShows {
+  display: block;
+  flex-basis: 100%;
+  margin-top: 0.1rem;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  white-space: normal;
+}
+
+.povShows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.6rem;
+  border-left: 2px solid var(--color-border);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+.povShows p {
+  margin: 0;
+}
+
 .overviewHint {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
