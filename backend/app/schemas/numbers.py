@@ -123,3 +123,49 @@ class ReadingOut(BaseModel):
     trigger: str
     label: str | None
     data: dict
+
+
+class TalkValue(BaseModel):
+    value: str
+    count: int
+
+
+class TalkExchange(BaseModel):
+    id: str
+    speakers: list[str]
+    lines: int
+    #: Studio: what it is about, in a few words, and whether that is a man in the story.
+    about: str | None = None
+    about_a_man: bool | None = None
+
+
+class TalkScene(BaseModel):
+    node_id: str
+    title: str
+    exchanges: list[TalkExchange]
+
+
+class TalkOut(BaseModel):
+    """Talking to each other (doc 20 P7): never a score or a pass."""
+
+    values: list[TalkValue]
+    group: list[str]
+    people: int
+    scenes: list[TalkScene]
+    scene_count: int
+    unattributed: int
+    described_at: str | None = None
+
+
+class TalkSubjectsRequest(BaseModel):
+    group: list[str] | None = None
+
+
+class TalkSubject(BaseModel):
+    id: str
+    about: str = ""
+    about_a_man: bool = False
+
+
+class TalkSubjectsResponse(BaseModel):
+    exchanges: list[TalkSubject] = []

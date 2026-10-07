@@ -56,7 +56,7 @@ export const PAGE_FEATURES: Record<string, string[]> = {
     "editorial-pass",
     "scene-summaries",
   ],
-  numbers: ["prose-nlp", "scene-summaries"],
+  numbers: ["prose-nlp", "scene-summaries", "talk-subjects"],
   "ai-panel": [
     "session-interview",
     "session-panel",

@@ -21,6 +21,19 @@ export const HEALTH_FEATURES: Record<string, AIFeatureInfo> = {
     contextSources: ["Scene prose text (each scene that needs a summary)"],
     backendFeatureId: "scene-summary-batch",
   },
+  "talk-subjects": {
+    id: "talk-subjects",
+    label: "What They Talk About",
+    type: "ai",
+    shortDescription: "What each conversation in Talking to each other is about",
+    fullDescription:
+      "Reads only the conversations Talking to each other found, and says in a few words what each is about and whether its subject is a man in the story. It describes; it never says whether anything passes or fails.",
+    contextSources: [
+      "The conversations found between the chosen group",
+      "Each speaker's gender as you wrote it",
+    ],
+    backendFeatureId: "talk-subjects",
+  },
   "entity-discovery": {
     id: "entity-discovery",
     label: "Lorebook Scan",

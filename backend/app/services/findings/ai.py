@@ -19,7 +19,8 @@ from .view import StoryView
 
 #: Runs that are not findings: proposals (P5) and summaries.
 # Runs whose results are proposals, not findings (doc 12 P5, doc 13 P4).
-NOT_FINDINGS = {"entity-suggestions", "reader-knowledge-scan", *LOCAL_FEATURES}
+#: Runs that describe rather than find: Numbers' Talking to each other (doc 20 P7) is one.
+NOT_FINDINGS = {"entity-suggestions", "reader-knowledge-scan", "talk-subjects", *LOCAL_FEATURES}
 
 
 class _Run:

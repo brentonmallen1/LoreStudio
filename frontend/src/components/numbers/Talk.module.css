@@ -1,0 +1,77 @@
+/* Talking to each other (doc 20 P7): which gender values count, and what the talk is about. */
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  margin: 0.35rem 0 0.6rem;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.groupLabel {
+  color: var(--color-text-muted);
+}
+
+.value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+.value input {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.studio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.studioNote {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.subjects li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.subjects a {
+  color: var(--color-accent);
+  text-underline-offset: 2px;
+}
+
+.about {
+  color: var(--color-text);
+}
+
+.man {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

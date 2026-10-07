@@ -13,6 +13,7 @@ import Pacing from "../components/numbers/Pacing";
 import Prose from "../components/numbers/Prose";
 import Rotation from "../components/numbers/Rotation";
 import Summaries from "../components/numbers/Summaries";
+import Talk from "../components/numbers/Talk";
 import Threads from "../components/numbers/Threads";
 import Trend from "../components/numbers/Trend";
 import Words from "../components/numbers/Words";
@@ -148,6 +149,8 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
             )}
             <Rotation storyId={storyId} now={now} then={then} />
             <Dialogue storyId={storyId} dialogue={now.dialogue} then={then} />
+            {/* The book as it is: not kept in readings yet (doc 20 P7). */}
+            {!compare.to && <Talk storyId={storyId} now={now} />}
             <Prose
               prose={now.prose}
               then={then ? then.prose : undefined}

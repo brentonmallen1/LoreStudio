@@ -319,6 +319,15 @@ export const AI_FEATURES: AIFeatureRow[] = [
     budget: 32768,
   },
   {
+    id: "talk-subjects",
+    label: "What They Talk About",
+    group: "analyse",
+    classification: "analyse",
+    description: "Says in a few words what each conversation between the chosen group is about, and whether it is about a man.",
+    context: ["The conversations found between the chosen group", "Each speaker's gender as the author wrote it"],
+    budget: 16384,
+  },
+  {
     id: "pacing-analysis",
     label: "Pacing Analysis",
     group: "analyse",

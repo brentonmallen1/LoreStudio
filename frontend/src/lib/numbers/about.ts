@@ -7,7 +7,7 @@
  */
 
 export type NumbersSection =
-  "time" | "words" | "pacing" | "threads" | "cast" | "pov" | "dialogue" | "prose" | "summaries";
+  "time" | "words" | "pacing" | "threads" | "cast" | "pov" | "dialogue" | "talk" | "prose" | "summaries";
 
 export interface AboutSection {
   measures: string[];
@@ -165,6 +165,23 @@ export const ABOUT: Record<NumbersSection, AboutSection> = {
     compared: [
       "Each figure says what it was, and the earlier run's shares are outlines beside the columns. A reading taken before the prose was ever measured is said to be so, not drawn as zero; a run not repeated since is said to be the same run.",
     ],
+  },
+
+  talk: {
+    measures: [
+      "Scenes where two or more people in the chosen group talk to each other: two or more lines of dialogue in a row, each given to someone in the group, from at least two of them, with nobody outside the group speaking between. Who is in the group comes from the Gender field on each character sheet, as you wrote it; nothing is read from pronouns or names.",
+      "In Studio, What do they talk about asks the Assistant to say in a few words what each of those conversations is about, and whether its subject is a man in the story.",
+    ],
+    why: [
+      "The Bechdel–Wallace test, from Alison Bechdel's 1985 strip and the rule her friend Liz Wallace gave her, asks whether a story has two named women who talk to each other about something other than a man. This section measures the first part and, in Studio, describes the second, so it can be seen in the book's own pages.",
+    ],
+    reading: [
+      "It is a floor, not a measure of quality: a book can meet it and still treat its women as set dressing, and a book about one woman alone can miss it and be about nothing else.",
+      "Dialogue lines record who speaks, not who is spoken to, so “to each other” means one after another. A line with no speaker breaks a conversation, so the more lines have their speakers, the more complete this is.",
+      "Two related tests are context only and not computed here: the Mako Mori test (does a woman have her own arc that isn't there to support a man's?) and the Sexy Lamp test (could she be replaced with a lamp and the plot still work?).",
+      "Any other group can be looked at the same way, one at a time, by choosing which gender values count. There is no breakdown of every group together.",
+    ],
+    compared: ["Not kept in readings yet, so a comparison shows this section as the book is now."],
   },
 
   summaries: {

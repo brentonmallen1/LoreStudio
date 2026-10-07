@@ -104,3 +104,23 @@ export interface Reading {
   label: string | null;
   data: ReadingData;
 }
+
+/** Talking to each other (doc 20 P7): never a score or a pass. */
+export interface TalkExchange {
+  id: string;
+  speakers: string[];
+  lines: number;
+  /** Studio: what it is about, in a few words, and whether that is a man in the story. */
+  about?: string | null;
+  about_a_man?: boolean | null;
+}
+
+export interface Talk {
+  values: { value: string; count: number }[];
+  group: string[];
+  people: number;
+  scenes: { node_id: string; title: string; exchanges: TalkExchange[] }[];
+  scene_count: number;
+  unattributed: number;
+  described_at: string | null;
+}

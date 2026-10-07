@@ -344,6 +344,14 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         budget=BUDGET_LARGE,
     ),
     AIFeature(
+        id="talk-subjects",
+        label="What They Talk About",
+        group="analyse",
+        classification="analyse",
+        description="Says in a few words what each conversation between the chosen group is about, and whether it is about a man.",
+        context=("The conversations found between the chosen group", "Each speaker's gender as the author wrote it"),
+    ),
+    AIFeature(
         id="pacing-analysis",
         label="Pacing Analysis",
         group="analyse",

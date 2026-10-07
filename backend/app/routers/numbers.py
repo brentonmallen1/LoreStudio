@@ -1,17 +1,31 @@
 import asyncio
+import re
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.activity_log import ActivityLog
 from ..models.ai_job import AIJob
 from ..models.numbers_reading import NumbersReading
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.jobs import JobOut
-from ..schemas.numbers import NumbersOut, ReadingOut, ReadingsOut, ReadingSummary
+from ..schemas.numbers import (
+    NumbersOut,
+    ReadingOut,
+    ReadingsOut,
+    ReadingSummary,
+    TalkOut,
+    TalkSubjectsRequest,
+    TalkSubjectsResponse,
+)
+from ..services import talk as talking
+from ..services.findings.view import load_view
 from ..services.job_queue import enqueue, handler
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.talk import build_talk_subjects_prompt
 from ..services.numbers import numbers
 from ..services.numbers_history import in_background, measure_version, thin, unmeasured_snapshots
 
@@ -130,3 +144,66 @@ def queue_backfill(story_id: str, db: Session = Depends(get_db), user: User = De
     return enqueue(
         db, kind=BACKFILL, user_id=user.id, story_id=story_id, label=f"Measuring earlier versions: {story.title}"
     )
+
+
+@router.get("/stories/{story_id}/numbers/talk", response_model=TalkOut)
+def story_talk(
+    story_id: str,
+    group: list[str] | None = Query(None),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Talking to each other (doc 20 P7): which scenes have the chosen group talking together."""
+    story = _story_or_404(story_id, db, user)
+    out = talking.talk(load_view(story, db), db, group)
+    db.commit()  # the dialogue was brought up to date with the prose
+    return out
+
+
+@router.post("/stories/{story_id}/numbers/talk/subjects", response_model=TalkOut)
+async def story_talk_subjects(
+    story_id: str,
+    body: TalkSubjectsRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """What they talk about (Studio): a few words per exchange, and whether it is about a man.
+    Logged as a run; an exchange whose words change later loses its description."""
+    story = _story_or_404(story_id, db, user)
+    view = load_view(story, db)
+    exchanges = talking.exchange_text(view, db, body.group)
+    if exchanges:
+        men = [c.name for c in view.characters if re.search(r"\bm[ae]n\b", c.gender or "", re.I)]
+        result = await ai_gateway.generate_structured(
+            response_model=TalkSubjectsResponse,
+            messages=[{"role": "user", "content": "Describe each conversation."}],
+            feature_prompt=build_talk_subjects_prompt(exchanges, men),
+            context=AICallContext(
+                feature="talk-subjects",
+                user_id=user.id,
+                story_id=story.id,
+                tags=["numbers", "dialogue", "user-initiated"],
+            ),
+            db=db,
+            user=user,
+        )
+        if not result.success or not result.data:
+            raise HTTPException(status_code=502, detail="The Assistant did not answer in shape")
+        known = {e["id"] for e in exchanges}
+        described = {
+            x["id"]: {"about": x.get("about", ""), "about_a_man": bool(x.get("about_a_man"))}
+            for x in result.data.get("exchanges", [])
+            if x.get("id") in known
+        }
+        db.add(
+            ActivityLog(
+                user_id=user.id,
+                story_id=story.id,
+                event_type="analysis_run",
+                category="health",
+                description=f"What they talk about: {len(described)} conversations",
+                metadata_={"feature": talking.FEATURE, "group": body.group, "result": {"exchanges": described}},
+            )
+        )
+        db.commit()
+    return talking.talk(view, db, body.group)
