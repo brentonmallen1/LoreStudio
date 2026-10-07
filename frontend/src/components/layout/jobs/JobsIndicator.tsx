@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { arrange, countLabel, isActive, isUnseen, titleWithCount } from "../../../lib/jobs/jobs";
+import { arrange, countLabel, counted, isUnseen, titleWithCount } from "../../../lib/jobs/jobs";
 import { sessionLabel } from "../../../lib/ai/sessionLabel";
 import { useAIAvailable } from "../../../lib/mode";
 import { navigateTo } from "../../../lib/navigation";
@@ -76,11 +76,11 @@ export default function JobsIndicator() {
 
   const jobs = useMemo(() => (aiAvailable ? all : all.filter((j) => j.lane === "local")), [all, aiAvailable]);
   const { running, queued, finished } = arrange(jobs);
-  const count = jobs.filter((j) => isActive(j) && !j.quiet).length + live.length;
+  const count = counted(jobs).length + live.length;
   const unseen = jobs.filter(isUnseen);
   const ai = live.length > 0 || running.some((j) => j.lane !== "local");
   // Queued and nothing started: a reply going first, or the cool-down after one.
-  const idle = live.length === 0 && running.every((j) => j.quiet);
+  const idle = live.length === 0 && running.length === 0;
 
   // D13: "(2) LoreStudio", only when the author asked for it.
   useEffect(() => {

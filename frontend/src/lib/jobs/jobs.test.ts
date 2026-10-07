@@ -3,6 +3,7 @@ import type { AIJob } from "../../api/jobs";
 import {
   arrange,
   countLabel,
+  counted,
   finishedSince,
   isUnseen,
   jobLine,
@@ -115,6 +116,16 @@ describe("jobs", () => {
       "/stories/s1/chronicle?item=log:r1",
     );
     expect(jobOpen(job({ status: "done", kind: "check" }))?.to).toBe("/stories/s1/findings");
+  });
+
+  it("counts automatic work while it runs, but not while it waits", () => {
+    const list = [
+      job({ id: "a", status: "queued" }),
+      job({ id: "b", status: "running", quiet: true }),
+      job({ id: "c", status: "queued", quiet: true }),
+      job({ id: "d", status: "done" }),
+    ];
+    expect(counted(list).map((j) => j.id)).toEqual(["a", "b"]);
   });
 
   it("words the count and the tab title", () => {

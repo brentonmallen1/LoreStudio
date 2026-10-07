@@ -121,6 +121,13 @@ export function jobLine(job: AIJob, nowMs: number): string {
 }
 
 /** "2 jobs running", or "1 job waiting" when none has started (a reply going first, the cool-down). */
+/** What the header counts: every job the author queued, and automatic work while it runs.
+ *  An automatic job uses the machine like any other, so it is never hidden while it runs;
+ *  only its finishing is quiet (no note, no dot). */
+export function counted(jobs: AIJob[]): AIJob[] {
+  return jobs.filter((j) => (j.quiet ? j.status === "running" : isActive(j)));
+}
+
 export function countLabel(n: number, waiting = false): string {
   const word = waiting ? "waiting" : "running";
   return n === 1 ? `1 job ${word}` : `${n} jobs ${word}`;

@@ -41,7 +41,7 @@ Writer mode lists local work only: the local checks, measurements, the Codex syn
 
 ## Automatic work
 
-Some jobs you did not ask for: the reading Numbers takes when you open a story after a few hours away, or with a version you save. They are **quiet**: listed, marked "automatic" and in the Chronicle, but never a note on screen.
+Some jobs you did not ask for: the reading Numbers takes when you open a story after a few hours away, or with a version you save. While one runs, the header shows it like any other job, since it is your computer doing the work. Its finishing is **quiet**: it is listed, marked "automatic" and in the Chronicle, but never a note on screen or a dot in the header.
 
 ## In the Chronicle
 
