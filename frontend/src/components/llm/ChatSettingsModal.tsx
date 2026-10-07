@@ -3,22 +3,22 @@ import { Settings2 } from "lucide-react";
 import { Modal } from "../common";
 import { api } from "../../api/client";
 import type { LLMParams, LLMSettings, ImageTokenBudget } from "../../types";
-import { thinksFor } from "../../lib/ai/thinking";
+import { useSessionThinking } from "../../hooks/useThinking";
 import styles from "./ChatSettingsModal.module.css";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  /** Called when the user applies settings for this session. */
-  onApply: (params: LLMParams) => void;
+  /** Called when the user applies settings for this session: only what differs from Settings. */
+  onApply: (params: LLMParams | undefined) => void;
   /** Current session-level overrides, if any. */
   sessionParams?: LLMParams;
   /** Whether auto-summarize is currently enabled for this session. */
   autoSummarize?: boolean;
   /** Called when the user toggles auto-summarize. */
   onAutoSummarizeChange?: (enabled: boolean) => void;
-  /** The feature this conversation calls: its thinking default under "Where it helps". */
-  featureId?: string;
+  /** The conversation: Thinking here is its Think first, the same switch as the composer's. */
+  sessionId: string;
 }
 
 const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
@@ -37,13 +37,13 @@ export default function ChatSettingsModal({
   sessionParams,
   autoSummarize = false,
   onAutoSummarizeChange,
-  featureId,
+  sessionId,
 }: Props) {
   const [globalSettings, setGlobalSettings] = useState<LLMSettings | null>(null);
   const [temperature, setTemperature] = useState(1.0);
   const [topP, setTopP] = useState(0.95);
   const [topK, setTopK] = useState(64);
-  const [thinking, setThinking] = useState(false);
+  const thinking = useSessionThinking(sessionId);
   const [tokenBudget, setTokenBudget] = useState<ImageTokenBudget | 0>(0);
 
   useEffect(() => {
@@ -56,20 +56,24 @@ export default function ChatSettingsModal({
         setTemperature(sessionParams?.temperature ?? s.temperature);
         setTopP(sessionParams?.top_p ?? s.top_p);
         setTopK(sessionParams?.top_k ?? s.top_k);
-        setThinking(sessionParams?.thinking_enabled ?? thinksFor(featureId, s.thinking_mode));
         setTokenBudget(sessionParams?.image_token_budget ?? s.image_token_budget ?? 0);
       })
       .catch(() => {});
   }, [isOpen]);
 
   function handleApply() {
-    onApply({
-      temperature,
-      top_p: topP,
-      top_k: topK,
-      thinking_enabled: thinking,
-      image_token_budget: tokenBudget || undefined,
-    });
+    // Only what differs from Settings: a value left alone keeps following it. Thinking is the
+    // conversation's own switch, saved as it is flipped.
+    const g = globalSettings;
+    const changed: LLMParams = {
+      ...(g && temperature !== g.temperature ? { temperature } : {}),
+      ...(g && topP !== g.top_p ? { top_p: topP } : {}),
+      ...(g && topK !== g.top_k ? { top_k: topK } : {}),
+      ...(g && tokenBudget !== (g.image_token_budget ?? 0) && tokenBudget
+        ? { image_token_budget: tokenBudget }
+        : {}),
+    };
+    onApply(Object.keys(changed).length ? changed : undefined);
     onClose();
   }
 
@@ -78,7 +82,7 @@ export default function ChatSettingsModal({
     setTemperature(globalSettings.temperature);
     setTopP(globalSettings.top_p);
     setTopK(globalSettings.top_k);
-    setThinking(thinksFor(featureId, globalSettings.thinking_mode));
+    thinking.set(thinking.fallback);
     setTokenBudget(globalSettings.image_token_budget ?? 0);
   }
 
@@ -180,14 +184,19 @@ export default function ChatSettingsModal({
         {/* Thinking mode */}
         <div className={styles.toggleRow}>
           <div className={styles.toggleLabel}>
-            <label className={styles.label}>Thinking mode</label>
+            <label className={styles.label}>Think first</label>
             <span className={styles.hint}>
               Gemma 4 reasons before responding: a more considered answer, later. Its earlier thoughts are
               never sent back with the conversation.
             </span>
           </div>
           <label className={styles.toggle}>
-            <input type="checkbox" checked={thinking} onChange={(e) => setThinking(e.target.checked)} />
+            <input
+              type="checkbox"
+              aria-label="Think first"
+              checked={thinking.on}
+              onChange={(e) => thinking.set(e.target.checked)}
+            />
             <span className={styles.toggleTrack} />
           </label>
         </div>

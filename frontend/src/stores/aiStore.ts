@@ -44,6 +44,8 @@ export interface AISession {
   title?: string;
   /** Pinned sessions sit at the top of their group and survive the tidy-up. */
   pinned?: boolean;
+  /** Think first, chosen in the composer for this conversation; unset follows its feature's default. */
+  thinking?: boolean;
   /** What the author @-mentioned in the composer (doc 11 P6): added to the context of every send. */
   mentionedRefs?: MentionedRef[];
   /** A structured analysis this session was opened to show (doc 06 §2.1, result sessions). */
@@ -112,6 +114,7 @@ interface AIStore {
   /** Add a user message and start streaming the assistant response */
   sendMessage: (sessionId: string, content: string, images?: string[], llmParams?: LLMParams) => void;
   setMentionedRefs: (sessionId: string, refs: MentionedRef[]) => void;
+  setThinking: (sessionId: string, thinking: boolean | undefined) => void;
   /** Cancel an in-progress streaming response */
   cancelStreaming: (sessionId: string) => void;
   /** Ask the last question again, dropping the answer that came back. */
@@ -360,9 +363,17 @@ export const useAIStore = create<AIStore>((set, get) => ({
       sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, mentionedRefs: refs } : sess)),
     })),
 
-  sendMessage: (sessionId, content, images, llmParams) => {
+  setThinking: (sessionId, thinking) =>
+    set((s) => ({
+      sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, thinking } : sess)),
+    })),
+
+  sendMessage: (sessionId, content, images, sentParams) => {
     const session = get().sessions.find((s) => s.id === sessionId);
     if (!session || session.isStreaming) return;
+    // The conversation's own Think first wins over anything else sent with it.
+    const llmParams =
+      session.thinking === undefined ? sentParams : { ...sentParams, thinking_enabled: session.thinking };
 
     const sessionType = getSessionType(session.type);
     if (!sessionType) return;

@@ -130,7 +130,7 @@ export default function AIModeWrapper({
         sessionParams={sessionParams}
         autoSummarize={session.autoSummarize ?? false}
         onAutoSummarizeChange={(enabled) => setAutoSummarize(session.id, enabled)}
-        featureId={sessionType?.backendFeatureId}
+        sessionId={session.id}
       />
       <SummarizePreviewModal
         isOpen={showSummarize}

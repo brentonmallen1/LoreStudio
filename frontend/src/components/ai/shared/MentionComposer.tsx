@@ -9,6 +9,7 @@ import { slotVar } from "../../../lib/colorSlots";
 import { acceptMention, activeMention, candidates, type ActiveMention } from "../../../lib/ai/mentionTokens";
 import type { MentionedRef } from "../../../types/mentions";
 import ChatInput, { type ChatInputProps } from "./ChatInput";
+import ThinkToggle from "./ThinkToggle";
 import styles from "./MentionComposer.module.css";
 
 const KIND_LABEL: Record<MentionedRef["kind"], string> = {
@@ -176,6 +177,7 @@ export default function MentionComposer({ sessionId, ...props }: ChatInputProps 
       above={above}
       textareaRef={textareaRef}
       hintLeft={props.hintLeft ?? "Shift+Enter for newline · @ to mention"}
+      footerStart={<ThinkToggle sessionId={sessionId} />}
     />
   );
 }

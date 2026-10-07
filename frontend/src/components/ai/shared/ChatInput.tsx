@@ -11,6 +11,8 @@ export interface ChatInputProps {
   placeholder?: string;
   hintLeft?: React.ReactNode;
   hintRight?: React.ReactNode;
+  /** Controls at the start of the hint row (Think first). */
+  footerStart?: React.ReactNode;
   /** A wrapper's first look at a key; returning true means it was handled (the mention popover). */
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => boolean;
   /** Rendered above the row: chips, a popover. */
@@ -27,6 +29,7 @@ export default function ChatInput({
   placeholder = "Send a message…",
   hintLeft,
   hintRight,
+  footerStart,
   onKeyDown,
   above,
   textareaRef,
@@ -77,9 +80,12 @@ export default function ChatInput({
           </button>
         )}
       </div>
-      {(hintLeft || hintRight) && (
+      {(hintLeft || hintRight || footerStart) && (
         <div className={styles.hints}>
-          <span className={styles.hint}>{hintLeft ?? "Shift+Enter for newline"}</span>
+          <span className={styles.hintStart}>
+            {footerStart}
+            <span className={styles.hint}>{hintLeft ?? "Shift+Enter for newline"}</span>
+          </span>
           {hintRight && <span className={styles.hintRight}>{hintRight}</span>}
         </div>
       )}
