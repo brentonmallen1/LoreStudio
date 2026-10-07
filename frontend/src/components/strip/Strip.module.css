@@ -57,7 +57,7 @@
   min-height: 3.067rem;
   padding: 0.35rem 0.5rem;
   /* 2px: at 1px the line between the header and the stops did not read as a division. */
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-separator);
 }
 
 .headNarrow {
@@ -445,7 +445,7 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.4rem 0.35rem 0.5rem;
-  border-top: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-separator);
 }
 
 .footWide {
