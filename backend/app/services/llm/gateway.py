@@ -51,6 +51,7 @@ from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
+from .prompts.who_they_are import CARE_RULES, MARKER
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +221,7 @@ class AIGateway:
         user: User,
         include_core: bool = True,
         feature_id: str = "",
+        messages: list[dict] | None = None,
     ) -> str:
         """
         Merge the core prompt, the feature's co-author contract and the feature prompt.
@@ -237,6 +239,10 @@ class AIGateway:
         parts = [core] if include_core else []
         if contract:
             parts.append(contract)
+        # Who a person is (doc 20 P8): any call that carries those fields carries the rules.
+        sent = [feature_prompt, *(str(m.get("content", "")) for m in messages or [])]
+        if any(MARKER in text for text in sent):
+            parts.append(CARE_RULES)
         parts.append(feature_prompt)
         return "\n\n---\n\n".join(parts)
 
@@ -263,7 +269,7 @@ class AIGateway:
         """
         self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
+        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or self.provider.model, user_url
@@ -354,7 +360,7 @@ class AIGateway:
         """
         self._refuse_if_disabled(user)
         params = self._get_effective_params(user, llm_params)
-        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature)
+        system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
             context.feature, params, user, user_model or self.provider.model, user_url

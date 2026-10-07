@@ -39,6 +39,7 @@ from ..services.llm.prompts.interviews import (
     build_interview_summary_prompt,
 )
 from ..services.llm.prompts.summaries import build_story_summary_prompt
+from ..services.llm.prompts.who_they_are import entries
 
 router = APIRouter()
 
@@ -108,6 +109,25 @@ def _character_sources(char: Character, prefix: str = "") -> list[ContextSource]
         ContextSource(source="character_appearance", label=f"{name}'s appearance", included=bool(char.appearance)),
         ContextSource(source="character_traits", label=f"{name}'s traits", included=bool(char.traits)),
         ContextSource(source="character_arc_notes", label=f"{name}'s arc notes", included=bool(char.arc_notes)),
+        # Who are they (doc 20 P8), so the transparency view names exactly what was sent.
+        ContextSource(
+            source="character_identity",
+            label=f"Who {name} is",
+            included=any(getattr(char, f, "") for f in ("gender", "presentation", "age", "orientation", "heritage")),
+        ),
+        ContextSource(
+            source="character_takes_things",
+            label=f"How {name} takes things",
+            included=any(getattr(char, f, "") for f in ("sore_spots", "takes_personally", "shows_hurt", "copes")),
+        ),
+        ContextSource(
+            source="character_facets", label=f"{name}'s body and mind", included=bool(entries(char, "facets"))
+        ),
+        ContextSource(
+            source="character_formative",
+            label=f"What formed {name}",
+            included=bool(entries(char, "formative")),
+        ),
     ]
 
 

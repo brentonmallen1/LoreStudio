@@ -10,6 +10,7 @@ Distinct from the What's Next? brainstormer (which helps during/after writing):
 """
 
 from ...series.promises import render_earlier
+from .who_they_are import render_packet_profile
 
 
 def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
@@ -89,6 +90,7 @@ def build_scene_planner_system_prompt(ctx: dict, initial_notes: str | None = Non
                 lines.append(f"Author's plan: {c['narrative_intent']}")
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending milestones: {'; '.join(c['arc_milestones_pending'])}")
+            lines += render_packet_profile(c)
     if ctx["all_characters"]:
         lines += ["", "## All story characters"]
         for c in ctx["all_characters"]:

@@ -4,6 +4,7 @@ Chat prompts — scene-aware chat assistant and writing coach.
 
 from ...codex.mentions import render_mentions
 from ...series.promises import render_earlier
+from .who_they_are import render_packet_profile
 
 
 def build_writing_coach_system_prompt(ctx: dict) -> str:
@@ -55,6 +56,7 @@ def build_writing_coach_system_prompt(ctx: dict) -> str:
             if c.get("personality"):
                 line += f": {c['personality']}"
             lines.append(line)
+            lines += [f"  {who}" for who in render_packet_profile(c)]
     elif ctx["all_characters"]:
         lines += ["", "## Story characters"]
         for c in ctx["all_characters"]:
@@ -132,6 +134,7 @@ def build_scene_chat_system_prompt(ctx: dict) -> str:  # noqa: C901, PLR0912, PL
                 lines.append(f"Author's plan for this character: {c['narrative_intent']}")
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
+            lines += render_packet_profile(c)
     elif ctx["all_characters"]:
         lines += ["", "## Story characters (all)"]
         for c in ctx["all_characters"]:

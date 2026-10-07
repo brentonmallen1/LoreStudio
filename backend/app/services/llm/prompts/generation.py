@@ -38,7 +38,11 @@ def build_attribute_generation_prompt(character: Character, attribute_type: str)
         f"You are helping an author develop the character {character.name} (role: {character.role}).\n\n"
         f"Existing profile:\n{profile}\n\n"
         f"Task: {type_instruction}\n\n"
-        "Be specific. Avoid generic descriptions. Suggestions should follow from the profile above.\n\n"
+        "Be specific. Avoid generic descriptions. Suggestions should follow from the profile above.\n"
+        # Who a person is is the author's to say (doc 20 D5): never offered as a way to add depth.
+        "Never suggest a disability, an illness, a mental health condition, a trauma, a gender, a "
+        "sexuality or an identity for them, and never a sore spot built on one; those are the author's "
+        "to decide.\n\n"
         "Respond with a JSON object matching this exact schema:\n"
         "{\n"
         '  "suggestions": [\n'

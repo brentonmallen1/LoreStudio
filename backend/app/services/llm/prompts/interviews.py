@@ -3,6 +3,7 @@ Interview prompts — character interviews and panel interviews.
 """
 
 from ....models.character import Character
+from .who_they_are import persona_lines
 
 # Attribute guidance: maps each (attribute, value) to a specific speech/behavior instruction.
 # Only non-"unknown" values are included in the prompt.
@@ -42,6 +43,14 @@ _ATTR_GUIDANCE: dict[str, dict[str, str]] = {
         "volatile": "Your emotions are close to the surface. You can shift quickly — from engaged to angry, from warm to cold. You don't always mean it, but you feel it hard in the moment.",
         "explosive": "You have a short fuse. Frustration comes fast, and when you hit your limit you don't hold back. There may be real warmth underneath, but people learn to watch for the signs.",
     },
+    # How they take things (doc 20 P2): what hurts, beside temperament's how fast they boil.
+    "sensitivity": {
+        "unflappable": "Very little gets to you. Criticism and slights slide off, and you can be puzzled when others are hurt by things that don't touch you.",
+        "thickskinned": "You take knocks without much show. Things do land, but you shrug most of them off and rarely take a remark to heart.",
+        "even": "Things affect you about as much as they'd affect anyone. A real slight stings; a careless word mostly doesn't.",
+        "sensitive": "Things reach you. A careless word can stay with you, you notice tone and what isn't said, and you feel a slight before you've decided whether it was meant.",
+        "feelseverything": "You feel everything, and fully: praise, criticism, a change in someone's voice. It makes you perceptive and easily hurt, and you may take things personally that weren't meant that way.",
+    },
     "social_manner": {
         "refined": "You move and speak with deliberate grace. You know the right words for every situation, choose them carefully, and almost never let anything slip that you didn't intend to.",
         "polished": "You're socially fluent — easy with people, comfortable in conversation, aware of how you come across. You're not performing; it just comes naturally.",
@@ -58,6 +67,7 @@ _ATTR_LABELS: dict[str, str] = {
     "disposition": "Disposition",
     "temperament": "Temperament",
     "social_manner": "Social manner",
+    "sensitivity": "Sensitivity",
 }
 
 # Role guidance: how structural position shapes the character's self-awareness and manner
@@ -148,6 +158,8 @@ def _profile_lines(character: Character) -> list[str]:
         attr_guidance = _build_attribute_guidance(character.attributes)
         if attr_guidance:
             lines.append(f"\n\nHow you speak, think, and carry yourself:\n{attr_guidance}")
+    # Who are they (doc 20): identity, how they take things, body and mind, what formed them.
+    lines += persona_lines(character)
     return lines
 
 

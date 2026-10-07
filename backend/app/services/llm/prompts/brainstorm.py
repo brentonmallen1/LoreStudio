@@ -7,6 +7,7 @@ and references story context — it never drafts narrative text.
 """
 
 from ...series.promises import render_earlier
+from .who_they_are import render_packet_profile
 
 
 def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None) -> str:  # noqa: C901, PLR0912, PLR0915
@@ -98,6 +99,7 @@ def build_brainstorm_system_prompt(ctx: dict, author_intent: dict | None = None)
                 lines.append(f"Author's plan for this character: {c['narrative_intent']}")
             if c.get("arc_milestones_pending"):
                 lines.append(f"Pending arc milestones: {'; '.join(c['arc_milestones_pending'])}")
+            lines += render_packet_profile(c)
     elif ctx["all_characters"]:
         lines += ["", "## Story characters"]
         for c in ctx["all_characters"]:

@@ -58,6 +58,7 @@ from ..services.llm.prompts.analysis import (
     build_theme_tracker_prompt,
 )
 from ..services.llm.prompts.summaries import build_structure_section_summary_prompt
+from ..services.llm.prompts.who_they_are import continuity_profile
 from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_runs import run_editorial_consistency, run_entity_scan, run_prose_analysis
 from ..services.scene_summaries import refresh_scene_summaries
@@ -870,6 +871,8 @@ async def analyze_continuity(
         parts = [f"- {c.name} ({c.role})"]
         if c.motivation:
             parts.append(f"  Motivation: {c.motivation}")
+        if who := continuity_profile(c):  # pronouns, how a body shows (doc 20 P7)
+            parts.append(f"  {who.strip()}")
         characters_summary.append("\n".join(parts))
 
     scenes_with_content = []

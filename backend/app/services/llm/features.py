@@ -83,7 +83,11 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="talk",
         classification="reflect",
         description="Think through the scene you are in: questions, angles, what is missing.",
-        context=("Scene title, synopsis and purpose", "Characters and threads in the scene", "Adjacent scenes"),
+        context=(
+            "Scene title, synopsis and purpose",
+            "Characters and threads in the scene, with how their body and mind show",
+            "Adjacent scenes",
+        ),
     ),
     AIFeature(
         id="writing-coach",
@@ -125,7 +129,13 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="cast",
         classification="persona",
         description="Talk to a character as themselves, limited to what they know.",
-        context=("Full character profile", "Relationships", "Arc milestones", "Scenes they were present for"),
+        context=(
+            "Full character profile",
+            "Who they are: identity, body and mind, what formed them (unless kept out)",
+            "Relationships",
+            "Arc milestones",
+            "Scenes they were present for",
+        ),
     ),
     AIFeature(
         id="interview-summary",
@@ -226,7 +236,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         group="analyse",
         classification="analyse",
         description="Timeline, knowledge and detail contradictions between scenes.",
-        context=("Scene prose", "Character profiles", "Story structure"),
+        context=("Scene prose", "Character profiles, pronouns and how their bodies show", "Story structure"),
         budget=BUDGET_LARGE,
     ),
     AIFeature(

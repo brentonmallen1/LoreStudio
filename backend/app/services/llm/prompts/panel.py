@@ -8,6 +8,7 @@ and a history labeled by speaker so each character knows exactly who said what.
 
 from ....models.character import Character, CharacterRelationship
 from .interviews import _classification_lines, _profile_lines
+from .who_they_are import about_other
 
 
 def _relationship_summary(
@@ -148,7 +149,9 @@ def build_panel_character_prompt(
         room_lines = []
         for other in other_characters:
             rel_text = _relationship_summary(character, other, relationships)
-            room_lines.append(f"  - {rel_text}")
+            # How they present and what this speaker knows of them, never more (doc 20 P8).
+            seen = about_other(character.id, other)
+            room_lines.append(f"  - {rel_text}" + (f"; {seen}" if seen else ""))
         parts.append(
             "\n\n--- GROUP CONVERSATION ---\n"
             "You are speaking with the author and the following characters:\n"

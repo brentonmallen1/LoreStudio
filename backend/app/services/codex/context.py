@@ -33,6 +33,7 @@ from ..character_journey import get_cached_journey
 from ..character_knowledge import build_scope, describe_scope
 from ..llm.prompts.interviews import build_character_interview_system_prompt
 from ..llm.prompts.panel import build_panel_character_prompt
+from ..llm.prompts.who_they_are import packet_profile
 from ..prose_html import paragraphs
 from ..prose_syntax import Known, Lexicon, find_mentions
 from ..series.context import earlier_states, earlier_text
@@ -173,6 +174,8 @@ def build_packet(  # noqa: C901, PLR0912, PLR0915
                 profile["narrative_intent"] = c.narrative_intent
             if c.arc_milestones:
                 profile["arc_milestones_pending"] = [m["text"] for m in c.arc_milestones if not m.get("completed")]
+            # Who they are (doc 20 P8): what shows on the page, what stings, what formed them.
+            profile.update(packet_profile(c))
             # A book of a series: who they were in the books before this one (never after).
             if earlier := earlier_states(db, "characters", c.id):
                 profile["in_earlier_books"] = earlier
