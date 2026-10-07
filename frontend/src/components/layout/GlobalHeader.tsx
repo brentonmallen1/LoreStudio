@@ -163,7 +163,7 @@ export default function GlobalHeader() {
   }, [undoRedo]);
 
   function handleAssistantToggle() {
-    if (!aiAvailable) return;
+    if (!aiAvailable || !storyId) return;
     usePanelStore.getState().toggleAssistant();
   }
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -281,8 +281,8 @@ export default function GlobalHeader() {
         <div className={styles.right}>
           <JobsIndicator />
           <UndoRedoButtons undoRedo={undoRedo} />
-          {/* AI Assistant — absent in Writer mode */}
-          {aiAvailable && (
+          {/* AI Assistant: absent in Writer mode, and outside a story (it works on one book) */}
+          {aiAvailable && storyId && (
             <button
               onClick={handleAssistantToggle}
               className={`${styles.assistantBtn} ${panelOpen ? styles.assistantBtnActive : ""}`}

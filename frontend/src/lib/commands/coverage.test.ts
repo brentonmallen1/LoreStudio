@@ -7,6 +7,8 @@ import type { Story } from "../../types";
 import { SETTINGS_SECTIONS } from "../../pages/settings/sections";
 import { SHORTCUTS, type ShortcutDef } from "../keyboard/shortcuts";
 import { GUIDES } from "../../guides";
+import { getAllSessionTypes } from "../ai/sessionTypes";
+import type { StructureNode } from "../../types";
 
 /**
  * "Everything from navigation to functionality is accessible in the command palette."
@@ -91,6 +93,40 @@ describe("command palette coverage", () => {
   it("has a command for every guide", () => {
     const missing = GUIDES.filter((g) => !ids.has(`guide-${g.id}`)).map((g) => g.id);
     expect(missing).toEqual([]);
+  });
+
+  it("has a command for every Assistant tool, all in the AI group Writer mode hides", () => {
+    const missing = getAllSessionTypes()
+      .filter((t) => t.id !== "assistant" && !ids.has(`ai-new-${t.id}`))
+      .map((t) => t.id);
+    expect(missing).toEqual([]);
+    const notAI = commandRegistry
+      .getAll()
+      .filter((a) => a.id.startsWith("ai-new-") && a.group !== "AI")
+      .map((a) => a.id);
+    expect(notAI).toEqual([]);
+  });
+
+  it.each([
+    ["coach", ["ai-new-writing-coach", "ai-new-cliche-coach"]],
+    ["cliche", ["ai-new-cliche-coach"]],
+    ["cliché", ["ai-new-cliche-coach"]],
+    ["blurb", ["ai-new-book-description"]],
+    ["logline", ["ai-new-story-identity-workshop"]],
+  ])("finds the Assistant's tools by what they do: %s", (query, wanted) => {
+    window.location.pathname = "/stories/s1"; // the setup file stubs location
+    useStoryStore.setState({ activeStory: { id: "s1" } as Story, activeNode: { id: "n1" } as StructureNode });
+    const found = commandRegistry
+      .search(query)
+      .slice(0, 5)
+      .map((a) => a.id);
+    for (const id of wanted) expect(found).toContain(id);
+    window.location.pathname = "/";
+  });
+
+  it("offers no Assistant tool outside a story", () => {
+    window.location.pathname = "/";
+    expect(commandRegistry.search("coach").filter((a) => a.group === "AI")).toEqual([]);
   });
 
   it("route and section ids are unique", () => {

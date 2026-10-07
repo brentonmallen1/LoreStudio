@@ -57,7 +57,7 @@ export default function ClicheCoachMode({ session }: Props) {
       session={session}
       state={state}
       icon={Feather}
-      title="Cliche Coach"
+      title="Cliché Coach"
       hideTokenBadge
       hideSettings
       headerExtra={
@@ -98,7 +98,7 @@ export default function ClicheCoachMode({ session }: Props) {
       {!hasMessages && !selectedText && (
         <div className={styles.empty}>
           <Feather size={22} className={styles.emptyIcon} />
-          <p className={styles.emptyTitle}>Cliche Coach</p>
+          <p className={styles.emptyTitle}>Cliché Coach</p>
           <p className={styles.emptyHint}>
             Select a passage in your scene and click Cliche to discuss it with your coach.
           </p>

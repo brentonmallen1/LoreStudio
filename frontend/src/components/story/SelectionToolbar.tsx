@@ -147,7 +147,7 @@ export default function SelectionToolbar({
           <button
             className={styles.btn}
             onClick={onClicheCoach}
-            title="Cliche Coach: discuss and address clichés in this passage"
+            title="Cliché Coach: discuss and address clichés in this passage"
           >
             <Feather size={12} />
             Cliche

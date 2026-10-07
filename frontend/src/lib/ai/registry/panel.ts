@@ -72,7 +72,7 @@ export const PANEL_FEATURES: Record<string, AIFeatureInfo> = {
   },
   "session-cliche-coach": {
     id: "session-cliche-coach",
-    label: "Cliche Coach",
+    label: "Cliché Coach",
     type: "ai",
     shortDescription: "Flag clichés and suggest fresher alternatives",
     fullDescription:

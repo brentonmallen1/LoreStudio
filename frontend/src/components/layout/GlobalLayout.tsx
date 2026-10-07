@@ -47,9 +47,11 @@ export default function GlobalLayout() {
         const { viewState: v, setViewState } = useUIStore.getState();
         setViewState(v === "focus" ? "normal" : "focus");
       }
-      // The Assistant tab shows or hides with ⌘J, inert in Writer mode and with the switch
-      // off; the whole side panel floats or docks with ⌘⇧J in both modes (doc 11 P5).
-      if (aiAvailable && matchesCombo(e, SHORTCUTS.toggleAIPanel.combo)) {
+      // The Assistant tab shows or hides with ⌘J, inert in Writer mode, with the switch off
+      // and outside a story (it works on one book); the whole side panel floats or docks with
+      // ⌘⇧J in both modes (doc 11 P5).
+      const inStory = window.location.pathname.startsWith("/stories/");
+      if (aiAvailable && inStory && matchesCombo(e, SHORTCUTS.toggleAIPanel.combo)) {
         e.preventDefault();
         usePanelStore.getState().toggleAssistant();
       }

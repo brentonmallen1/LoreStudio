@@ -20,9 +20,16 @@ export interface CommandAction {
   secondaryAction?: { label: string; run: () => void | Promise<void> };
 }
 
-function tokenize(str: string): string[] {
+/** Lower case without accents, so "cliche" finds "Cliché" and "cliché" finds "cliche". */
+function fold(str: string): string {
   return str
-    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function tokenize(str: string): string[] {
+  return fold(str)
     .split(/[\s\-_:./]+/)
     .filter(Boolean);
 }
@@ -69,10 +76,10 @@ function subseqScore(text: string, query: string): number {
  *  10–19 — character subsequence match on any keyword
  */
 function score(action: CommandAction, query: string): number {
-  const q = query.toLowerCase().trim();
+  const q = fold(query).trim();
   if (!q) return 1; // no query → everything matches
 
-  const labelLower = action.label.toLowerCase();
+  const labelLower = fold(action.label);
 
   // Build a flat corpus of individual word-tokens from label + keywords + group
   const labelTokens = tokenize(action.label);
@@ -81,11 +88,7 @@ function score(action: CommandAction, query: string): number {
   const allTokens = [...labelTokens, ...keywordTokens, ...groupTokens];
 
   // Also keep the raw keyword strings for substring matching
-  const allStrings = [
-    labelLower,
-    ...(action.keywords ?? []).map((k) => k.toLowerCase()),
-    action.group.toLowerCase(),
-  ];
+  const allStrings = [labelLower, ...(action.keywords ?? []).map(fold), fold(action.group)];
 
   // Tier 1: exact label prefix
   if (labelLower.startsWith(q)) return 100;

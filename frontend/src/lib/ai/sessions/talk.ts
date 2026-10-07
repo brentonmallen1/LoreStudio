@@ -297,8 +297,8 @@ registerSessionType({
 
 registerSessionType({
   id: "cliche-coach",
-  label: "Cliche Coach",
-  contextTitle: (_ctx, names) => (names.nodeName ? `Cliche Coach: ${names.nodeName}` : "Cliche Coach"),
+  label: "Cliché Coach",
+  contextTitle: (_ctx, names) => (names.nodeName ? `Cliché Coach: ${names.nodeName}` : "Cliché Coach"),
   contextItemLabel: (_, names) => names.nodeName ?? "Scene",
   icon: Feather,
   accentVar: "--color-ai",
@@ -322,7 +322,7 @@ registerSessionType({
 
   sendMessage: (session, _content, signal, llmParams) => {
     const { storyId, nodeId, selectedText } = session.context;
-    if (!storyId || !nodeId) throw new Error("Story and scene required for Cliche Coach");
+    if (!storyId || !nodeId) throw new Error("Story and scene required for Cliché Coach");
     return api.sendClicheCoachMessage(
       storyId,
       nodeId,

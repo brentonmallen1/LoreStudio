@@ -10,11 +10,9 @@ import {
   Maximize2,
   LogOut,
   Palette,
-  MessageSquare,
   Feather,
   BookOpen,
   Compass,
-  Users,
   Orbit,
   Search,
   Quote,
@@ -182,6 +180,7 @@ commandRegistry.register({
   icon: Feather,
   group: "AI",
   shortcut: formatCombo(SHORTCUTS.assistant.combo),
+  when: () => window.location.pathname.startsWith("/stories/"),
   action: async () => {
     const { sessions, createSession, setActiveSession } = useAIStore.getState();
     const { activeStory, activeNode } = useStoryStore.getState();
@@ -195,67 +194,6 @@ commandRegistry.register({
         nodeId: activeNode?.id,
       });
     }
-  },
-});
-
-commandRegistry.register({
-  id: "ai-interview",
-  label: "Interview character…",
-  keywords: ["interview", "int", "talk", "chat", "character", "persona"],
-  icon: MessageSquare,
-  group: "AI",
-  when: () => useStoryStore.getState().characters.length > 0,
-  getSubItems: () => {
-    const { characters } = useStoryStore.getState();
-    return characters.map((c) => ({
-      id: `ai-interview-${c.id}`,
-      label: c.name,
-      description: c.role ?? undefined,
-      keywords: [c.name.toLowerCase(), "interview"],
-      icon: Users,
-      group: "Characters",
-      action: async () => {
-        const { createSession } = useAIStore.getState();
-        await createSession("interview", {
-          characterId: c.id,
-          storyId: c.story_id,
-        });
-      },
-    }));
-  },
-  action: () => {}, // Opens sub-menu via getSubItems
-});
-
-commandRegistry.register({
-  id: "ai-scene-assistant",
-  label: "Scene assistant",
-  keywords: ["scene", "assistant", "help", "chat", "write", "narrate"],
-  icon: Feather,
-  group: "AI",
-  when: () => !!useStoryStore.getState().activeStory,
-  action: async () => {
-    const { activeStory, activeNode } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    await createSession("scene-assistant", {
-      storyId: activeStory?.id,
-      nodeId: activeNode?.id,
-    });
-  },
-});
-
-commandRegistry.register({
-  id: "ai-story-assistant",
-  label: "Story assistant",
-  keywords: ["story", "assistant", "arc", "theme", "plot", "help", "overview"],
-  icon: BookOpen,
-  group: "AI",
-  when: () => !!useStoryStore.getState().activeStory,
-  action: async () => {
-    const { activeStory } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    await createSession("story-assistant", {
-      storyId: activeStory?.id,
-    });
   },
 });
 
@@ -319,52 +257,6 @@ commandRegistry.register({
 // ── Editor Actions ────────────────────────────────────────────────────────────
 
 commandRegistry.register({
-  id: "editor-writing-coach",
-  label: "Writing Coach",
-  keywords: ["coach", "feedback", "improve", "write", "prose"],
-  icon: Feather,
-  group: "Editor",
-  shortcut: formatCombo(SHORTCUTS.writingCoach.combo),
-  when: () => !!useStoryStore.getState().activeNode,
-  action: async () => {
-    const { activeStory, activeNode } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    if (!activeStory || !activeNode) return;
-    await createSession("writing-coach", { storyId: activeStory.id, nodeId: activeNode.id });
-  },
-});
-
-commandRegistry.register({
-  id: "editor-show-dont-tell",
-  label: "Show/tell analysis",
-  keywords: ["show", "tell", "show dont tell", "analysis", "prose"],
-  icon: Orbit,
-  group: "Editor",
-  when: () => !!useStoryStore.getState().activeNode,
-  action: async () => {
-    const { activeStory, activeNode } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    if (!activeStory || !activeNode) return;
-    await createSession("show-dont-tell", { storyId: activeStory.id, nodeId: activeNode.id });
-  },
-});
-
-commandRegistry.register({
-  id: "editor-audience",
-  label: "Audience Fit",
-  keywords: ["audience", "reader", "adherence", "tone"],
-  icon: Orbit,
-  group: "Editor",
-  when: () => !!useStoryStore.getState().activeNode,
-  action: async () => {
-    const { activeStory, activeNode } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    if (!activeStory || !activeNode) return;
-    await createSession("audience-adherence", { storyId: activeStory.id, nodeId: activeNode.id });
-  },
-});
-
-commandRegistry.register({
   id: "editor-scene-search",
   label: "Find in scene",
   keywords: ["find", "search", "replace", "scene"],
@@ -423,6 +315,7 @@ commandRegistry.register({
   icon: Feather,
   group: "AI",
   shortcut: formatCombo(SHORTCUTS.toggleAIPanel.combo),
+  when: () => window.location.pathname.startsWith("/stories/"),
   action: () => {
     usePanelStore.getState().toggleAssistant();
   },
@@ -510,20 +403,5 @@ commandRegistry.register({
   when: () => !!useStoryStore.getState().activeNode,
   action: () => {
     useUIStore.getState().openWritingGuides("essential");
-  },
-});
-
-commandRegistry.register({
-  id: "ai-scene-assistant-from-cmd",
-  label: "Scene Assistant",
-  keywords: ["scene", "assistant", "ai", "help"],
-  icon: Feather,
-  group: "AI",
-  when: () => !!useStoryStore.getState().activeNode,
-  action: async () => {
-    const { activeStory, activeNode } = useStoryStore.getState();
-    const { createSession } = useAIStore.getState();
-    if (!activeStory || !activeNode) return;
-    await createSession("scene-assistant", { storyId: activeStory.id, nodeId: activeNode.id });
   },
 });
