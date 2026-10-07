@@ -67,9 +67,8 @@ const OTHER_LABELS: Record<string, string> = {
 
 /** A field's label, from the Lorebook's own table. */
 export function fieldLabel(kind: SeriesKind, key: string): string {
-  return (
-    KINDS[loreKind(kind)].fields.find((f) => f.key === key)?.label ??
-    OTHER_LABELS[key] ??
-    key.replace(/_/g, " ")
+  const spec = [...KINDS[loreKind(kind)].fields, ...(KINDS[loreKind(kind)].extra ?? [])].find(
+    (f) => f.key === key,
   );
+  return (spec && (spec.name ?? spec.label)) ?? OTHER_LABELS[key] ?? key.replace(/_/g, " ");
 }

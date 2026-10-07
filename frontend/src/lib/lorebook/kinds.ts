@@ -1,3 +1,5 @@
+import { WHO_FIELDS } from "./whoAreThey";
+
 /**
  * Every kind of Lorebook entry, declared once (doc 12 P2, D2): the text fields its sheet
  * shows, in order, with the hint an empty one gives; which of them the side panel's compact
@@ -22,12 +24,15 @@ export interface FieldSpec {
   /** The model column. */
   key: string;
   label: string;
+  /** A short name where the label is a question: the Add row's chip, a comparison across books. */
+  name?: string;
   /** What an empty field asks, shown as the textarea's placeholder once revealed. */
   hint: string;
   /** One line (an input) rather than a paragraph. */
   short?: boolean;
-  /** Suggestions for a short field (a datalist, so anything else can still be typed). */
-  options?: string[];
+  /** Suggestions for a short field (a datalist, so anything else can still be typed); a note
+   *  says where a word comes from without becoming part of it. */
+  options?: (string | { value: string; note: string })[];
   /** Carried by the compact sheet in the side panel. */
   compact?: boolean;
 }
@@ -36,7 +41,15 @@ export interface KindSpec {
   label: string;
   plural: string;
   fields: FieldSpec[];
+  /** Fields another view of the sheet shows (a character's Who are they), for labels elsewhere. */
+  extra?: FieldSpec[];
 }
+
+/**
+ * The three questions (doc 20 P5): Debra Dixon's Goal, Motivation and Conflict, and the stakes
+ * many writers add. The character sheet shows them first, together, as questions.
+ */
+export const CHARACTER_QUESTIONS = ["mission_statement", "motivation", "conflict", "stakes"];
 
 /** Place types as the old editor stored them (snake case); shown with spaces. */
 const LOCATION_TYPE_VALUES = [
@@ -77,18 +90,34 @@ export const KINDS: Record<LoreKind, KindSpec> = {
   character: {
     label: "Character",
     plural: "Characters",
+    extra: WHO_FIELDS,
     fields: [
       {
         key: "mission_statement",
-        label: "Wants",
-        hint: "One sentence: what do they fundamentally want or need?",
+        label: "What do they want?",
+        name: "Wants",
+        hint: "What they're after: the goal they'd tell you, in one sentence…",
+        compact: true,
+      },
+      { key: "motivation", label: "Why?", name: "Why", hint: "Why they want it…", compact: true },
+      {
+        key: "conflict",
+        label: "What stands in the way?",
+        name: "Against",
+        hint: "What stands between them and what they want…",
         compact: true,
       },
       {
-        key: "conflict",
-        label: "Against",
-        hint: "What stands between them and what they want…",
-        compact: true,
+        key: "stakes",
+        label: "What if they don't get it?",
+        name: "Stakes",
+        hint: "What happens if they fail: what they lose, what it costs…",
+      },
+      { key: "need", label: "Needs", hint: "What they actually need, often without knowing it…" },
+      {
+        key: "lie",
+        label: "Believes",
+        hint: "The lie: what they believe that isn't so, and the story will test…",
       },
       {
         key: "personality",
@@ -96,7 +125,6 @@ export const KINDS: Record<LoreKind, KindSpec> = {
         hint: "How they come across, and what is underneath…",
         compact: true,
       },
-      { key: "motivation", label: "Motivation", hint: "Why they want it…", compact: true },
       { key: "epiphany", label: "Epiphany", hint: "What they learn by the end, or refuse to…" },
       {
         key: "flaws",

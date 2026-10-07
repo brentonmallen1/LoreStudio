@@ -43,6 +43,8 @@ class CharacterCreate(BaseModel):
     narrative_archetype: str = ""
     mission_statement: str = ""
     pronouns: str = ""
+    # The form asks gender beside pronouns (doc 20); the rest of Who are they is on the sheet.
+    gender: str = ""
     personality: str = ""
     motivation: str = ""
     background: str = ""

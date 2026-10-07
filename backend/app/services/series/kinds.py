@@ -312,6 +312,18 @@ FIELD_WORDS: dict[str, str] = {
     "conflict": "obstacle",
     "legacy_effects": "legacy",
     "arc_in_own_words": "arc in their own words",
+    # Who are they (doc 20).
+    "presentation": "how they present",
+    "circumstances": "money and class",
+    "thinking": "how they think",
+    "lie": "what they believe",
+    "sore_spots": "what gets under their skin",
+    "takes_personally": "how personally they take things",
+    "shows_hurt": "how hurt shows",
+    "copes": "how they cope",
+    "holds_on": "how long they hold on",
+    "facets": "body and mind",
+    "formative": "what formed them",
 }
 
 

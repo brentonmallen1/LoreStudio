@@ -33,11 +33,17 @@ describe("lorebook kinds", () => {
     }
     expect(KINDS.character.fields.filter((f) => f.compact).map((f) => f.key)).toEqual([
       "mission_statement",
+      "motivation",
       "conflict",
       "personality",
-      "motivation",
       "flaws",
     ]);
+  });
+
+  it("the three questions come first, in order, as questions (doc 20 P5)", () => {
+    const keys = KINDS.character.fields.map((f) => f.key);
+    expect(keys.slice(0, 4)).toEqual(["mission_statement", "motivation", "conflict", "stakes"]);
+    for (const f of KINDS.character.fields.slice(0, 4)) expect(f.label.endsWith("?"), f.key).toBe(true);
   });
 
   it("splits filled from empty, so an empty field is a word in the Add row", () => {

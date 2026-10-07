@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Pencil, Trash2, User, Users } from "lucide-react";
 import { api } from "../../../api/client";
-import { KINDS } from "../../../lib/lorebook/kinds";
+import { CHARACTER_QUESTIONS, KINDS } from "../../../lib/lorebook/kinds";
 import { presenceLine, scenesWith } from "../../../lib/lorebook/presence";
 import { sceneLeaves } from "../../../lib/planning/methods";
 import { slotVar } from "../../../lib/colorSlots";
@@ -32,21 +32,22 @@ import EntitySheet, { Badge, SheetCard } from "../EntitySheet";
 import FieldList from "../FieldList";
 import LorebookList from "../LorebookList";
 import { useLoreSelection } from "../useLoreSelection";
-import {
-  ArcMilestones,
-  Attributes,
-  DiscoveryNotes,
-  InterviewPrompts,
-  Traits,
-} from "../character/CharacterParts";
+import ArcLine from "../character/ArcLine";
+import { ArcMilestones, DiscoveryNotes, InterviewPrompts, Traits } from "../character/CharacterParts";
+import ThreeQuestions from "../character/ThreeQuestions";
+import WhoAreTheyView from "../character/WhoAreTheyView";
 import styles from "../Lorebook.module.css";
 
 const VIEWS = [
   { id: "overview", label: "Overview" },
+  { id: "who", label: "Who are they" },
   { id: "dialogue", label: "Dialogue" },
   { id: "arc", label: "Arc journey" },
   { id: "relationships", label: "Relationships" },
 ];
+
+/** Overview's fields after the three questions (doc 20 P5). */
+const OVERVIEW_REST = KINDS.character.fields.filter((f) => !CHARACTER_QUESTIONS.includes(f.key));
 
 const label = (v: string) => v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -103,7 +104,9 @@ export default function CharactersSection() {
     <>
       {character.role && <Badge>{label(character.role)}</Badge>}
       {character.character_type && <Badge title="Character type">{label(character.character_type)}</Badge>}
+      {character.gender && <Badge title="Gender">{character.gender}</Badge>}
       {character.pronouns && <Badge>{character.pronouns}</Badge>}
+      {character.age && <Badge title="Age">{character.age}</Badge>}
       {character.jungian_archetype && (
         <Badge title="Jungian archetype">{label(character.jungian_archetype)}</Badge>
       )}
@@ -264,23 +267,28 @@ export default function CharactersSection() {
           >
             {view === "overview" && (
               <>
+                <ThreeQuestions
+                  character={character}
+                  save={(key, value) => save({ [key]: value } as Partial<Character>)}
+                />
                 <FieldList
                   entityKey={character.id}
-                  fields={KINDS.character.fields}
+                  fields={OVERVIEW_REST}
                   values={character as unknown as Record<string, unknown>}
                   save={(key, value) => save({ [key]: value } as Partial<Character>)}
                 />
                 <DiscoveryNotes character={character} onSaved={upsertCharacter} />
                 <Traits character={character} onSaved={upsertCharacter} />
-                <Attributes character={character} onSaved={upsertCharacter} />
                 <AssetPicker storyId={storyId} objectType="character" objectId={character.id} />
               </>
             )}
+            {view === "who" && <WhoAreTheyView character={character} save={save} onSaved={upsertCharacter} />}
             {view === "dialogue" && (
               <CharacterDialogueTab characterId={character.id} characterName={character.name} />
             )}
             {view === "arc" && (
               <>
+                <ArcLine character={character} />
                 <ArcTimelineView characterId={character.id} characterName={character.name} />
                 <ArcAnalysisPanel characterId={character.id} />
               </>

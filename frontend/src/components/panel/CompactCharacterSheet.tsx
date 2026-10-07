@@ -3,7 +3,10 @@ import { useReloadOnUndo } from "../../hooks/useUndoRedo";
 import { useStoryStore } from "../../stores/storyStore";
 import type { Character } from "../../types";
 import SubjectNotes from "../notes/SubjectNotes";
+import { Link } from "react-router-dom";
 import { KINDS } from "../../lib/lorebook/kinds";
+import { whoLine } from "../../lib/lorebook/whoAreThey";
+import { sectionPath } from "../../lib/routes";
 import FieldList from "../lorebook/FieldList";
 import SlotPicker from "../common/SlotPicker";
 import styles from "./Panel.module.css";
@@ -22,9 +25,20 @@ export default function CompactCharacterSheet({ character }: { character: Charac
     if (activeStory) api.listCharacters(activeStory.id).then(setCharacters);
   });
 
+  const who = whoLine(character);
   return (
     <>
       <section className={styles.section}>
+        {who && activeStory && (
+          // Who they are, in one quiet line, to the sheet's view of it (doc 20 P6).
+          <Link
+            className={styles.whoLine}
+            to={`${sectionPath(activeStory.id, "lorebook", "characters", character.id)}?tab=who`}
+            title="Who are they, on the full sheet"
+          >
+            {who}
+          </Link>
+        )}
         <SlotPicker
           size="sm"
           value={character.color_slot}

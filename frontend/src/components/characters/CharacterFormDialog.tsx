@@ -7,6 +7,7 @@ import type { Character } from "../../types";
 import { Modal, SectionCard } from "../common";
 import RenamePreviewDialog from "./RenamePreviewDialog";
 import PronounRefactorDialog from "./PronounRefactorDialog";
+import PronounsAndGender from "./PronounsAndGender";
 import styles from "./CharacterFormDialog.module.css";
 
 interface Props {
@@ -214,29 +215,18 @@ const NARRATIVE_ARCHETYPES: ClassificationOption[] = [
   },
 ];
 
-const PRONOUN_PRESETS = ["he/him", "she/her", "they/them"];
-
 export default function CharacterFormDialog({ storyId, character, onClose, onSaved }: Props) {
   const { upsertCharacter } = useStoryStore();
   const aiAvailable = useAIAvailable();
   const isEditing = !!character;
-
-  const initialPronouns = character?.pronouns ?? "";
-  const initialPronounSelect = PRONOUN_PRESETS.includes(initialPronouns)
-    ? initialPronouns
-    : initialPronouns
-      ? "custom"
-      : "";
 
   const [name, setName] = useState(character?.name ?? "");
   const [role, setRole] = useState(character?.role ?? "deuteragonist");
   const [characterType, setCharacterType] = useState(character?.character_type ?? "");
   const [jungianArchetype, setJungianArchetype] = useState(character?.jungian_archetype ?? "");
   const [narrativeArchetype, setNarrativeArchetype] = useState(character?.narrative_archetype ?? "");
-  const [pronounSelect, setPronounSelect] = useState(initialPronounSelect);
-  const [pronounCustom, setPronounCustom] = useState(
-    initialPronounSelect === "custom" ? initialPronouns : "",
-  );
+  const [effectivePronouns, setPronouns] = useState(character?.pronouns ?? "");
+  const [gender, setGender] = useState(character?.gender ?? "");
   const [missionStatement, setMissionStatement] = useState(character?.mission_statement ?? "");
   const [personality, setPersonality] = useState(character?.personality ?? "");
   const [motivation, setMotivation] = useState(character?.motivation ?? "");
@@ -257,8 +247,6 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
     oldPronouns: string;
     saved: Character;
   } | null>(null);
-
-  const effectivePronouns = pronounSelect === "custom" ? pronounCustom : pronounSelect;
 
   function updatePrompt(i: number, value: string) {
     setInterviewPrompts((prev) => prev.map((p, idx) => (idx === i ? value : p)));
@@ -283,6 +271,7 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
       jungian_archetype: jungianArchetype,
       narrative_archetype: narrativeArchetype,
       pronouns: effectivePronouns,
+      gender,
       mission_statement: missionStatement,
       personality,
       motivation,
@@ -491,35 +480,12 @@ export default function CharacterFormDialog({ storyId, character, onClose, onSav
                 })()}
             </div>
           </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Pronouns</label>
-            <div className={styles.pronounsRow}>
-              <select
-                value={pronounSelect}
-                onChange={(e) => {
-                  setPronounSelect(e.target.value);
-                  if (e.target.value !== "custom") setPronounCustom("");
-                }}
-                className={styles.select}
-              >
-                <option value="">Not specified</option>
-                {PRONOUN_PRESETS.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-                <option value="custom">Custom…</option>
-              </select>
-              {pronounSelect === "custom" && (
-                <input
-                  value={pronounCustom}
-                  onChange={(e) => setPronounCustom(e.target.value)}
-                  placeholder="e.g. xe/xem"
-                  className={styles.input}
-                />
-              )}
-            </div>
-          </div>
+          <PronounsAndGender
+            pronouns={effectivePronouns}
+            gender={gender}
+            onPronouns={setPronouns}
+            onGender={setGender}
+          />
         </SectionCard>
 
         {/* ── Archetypes ── */}

@@ -45,6 +45,7 @@ export default function FieldList({
       {shown.map((f) => (
         <FieldBlock
           key={`${entityKey}:${f.key}`}
+          id={`field-${entityKey}-${f.key}`}
           field={f}
           value={String(merged[f.key] ?? "")}
           editing={editing === f.key}
@@ -62,7 +63,7 @@ export default function FieldList({
           {rest.map((f) => (
             <button key={f.key} type="button" className={styles.addChip} onClick={() => setEditing(f.key)}>
               <Plus size={11} aria-hidden />
-              {f.label}
+              {f.name ?? f.label}
             </button>
           ))}
         </div>
@@ -72,6 +73,7 @@ export default function FieldList({
 }
 
 function FieldBlock({
+  id,
   field,
   value,
   editing,
@@ -79,6 +81,8 @@ function FieldBlock({
   onDone,
   save,
 }: {
+  /** Unique on the page: a sheet can hold several lists (an entry card's own fields). */
+  id: string;
   field: FieldSpec;
   value: string;
   editing: boolean;
@@ -95,7 +99,6 @@ function FieldBlock({
     el?.setSelectionRange?.(el.value.length, el.value.length);
   }, [editing]);
 
-  const id = `field-${field.key}`;
   const listId = field.options ? `${id}-options` : undefined;
   const finish = () => {
     auto.flush();
@@ -151,9 +154,13 @@ function FieldBlock({
           />
           {field.options && (
             <datalist id={listId}>
-              {field.options.map((o) => (
-                <option key={o} value={o} />
-              ))}
+              {field.options.map((o) =>
+                typeof o === "string" ? (
+                  <option key={o} value={o} />
+                ) : (
+                  <option key={o.value} value={o.value} label={`${o.value} (${o.note})`} />
+                ),
+              )}
             </datalist>
           )}
         </>

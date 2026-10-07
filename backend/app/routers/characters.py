@@ -54,6 +54,7 @@ from ..services.llm.sse import sse_message, sse_stream
 from ..services.nlp_analysis_service import analyze_character_dialogue_prose, analyze_voice_distinctness
 from ..services.pronoun_service import apply_proposals_to_html, build_pronoun_proposals
 from ..services.refactoring_service import apply_entity_rename, preview_entity_rename
+from ..services.series.kinds import field_words
 from ..services.text_utils import html_to_text as _html_to_text
 
 router = APIRouter()
@@ -95,7 +96,7 @@ def update_character(
             action="update",
             before=before,
             after=after,
-            label=f"Edit {', '.join(sorted(after))} on {character.name}",
+            label=f"Edit {', '.join(field_words(k) for k in sorted(after))} on {character.name}",
             actor_id=current_user.id,
             client_id=client_id,
         )

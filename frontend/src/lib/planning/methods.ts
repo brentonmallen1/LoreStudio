@@ -18,7 +18,7 @@ import type {
 
 export type StoryPlanField = "logline" | "premise" | "central_conflict" | "paragraph_summary" | "synopsis";
 export type CharacterPlanField =
-  "mission_statement" | "motivation" | "conflict" | "epiphany" | "arc_in_own_words";
+  "mission_statement" | "motivation" | "conflict" | "stakes" | "epiphany" | "arc_in_own_words";
 
 export type PlanTarget =
   | { kind: "story"; field: StoryPlanField }
@@ -61,11 +61,21 @@ export interface PlanMethod<T = PlanTarget> {
 }
 
 const CHARACTER_CORE: CharacterPlanField[] = ["mission_statement", "motivation", "conflict", "epiphany"];
+/** The three questions and the stakes (doc 20 P5); the stakes are asked, never required. */
+const WHO_WANTS_WHAT: CharacterPlanField[] = [
+  "mission_statement",
+  "motivation",
+  "conflict",
+  "stakes",
+  "epiphany",
+];
+const OPTIONAL_FIELDS = new Set<CharacterPlanField>(["stakes"]);
 
 export const CHARACTER_FIELD_LABELS: Record<CharacterPlanField, { label: string; placeholder: string }> = {
   mission_statement: { label: "Goal", placeholder: "What they want, in one sentence…" },
   motivation: { label: "Motivation", placeholder: "Why they want it…" },
   conflict: { label: "Conflict", placeholder: "What stands between them and what they want…" },
+  stakes: { label: "Stakes (optional)", placeholder: "What happens if they don't get it…" },
   epiphany: { label: "Epiphany", placeholder: "What they learn by the end, or refuse to…" },
   arc_in_own_words: { label: "In their own words", placeholder: "I came back to the island because…" },
 };
@@ -111,10 +121,10 @@ export const PLAN_METHODS: PlanMethod[] = [
         id: "characters",
         label: "Who wants what",
         why: "Characters who want things make scenes that move.",
-        how: "For each main character: their goal, why they want it, what stands in the way, and what they learn.",
+        how: "For each main character: their goal, why they want it, what stands in the way, what happens if they fail, and what they learn.",
         example:
           "Goal: to learn the truth about her brother's death. Conflict: the keeper is hiding something.",
-        target: { kind: "characters", fields: CHARACTER_CORE },
+        target: { kind: "characters", fields: WHO_WANTS_WHAT },
       },
       SCENE_LIST,
     ],
@@ -265,7 +275,7 @@ export function mainCharacters(characters: Character[]): Character[] {
 const filled = (v: string | null | undefined) => !!v && v.trim().length > 0;
 
 export function characterDone(c: Character, fields: CharacterPlanField[]): boolean {
-  return fields.every((f) => filled(c[f]));
+  return fields.every((f) => OPTIONAL_FIELDS.has(f) || filled(c[f]));
 }
 
 /** How far along a step is. A step with nothing to count yet reads 0 of 1. */

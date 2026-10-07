@@ -736,3 +736,18 @@
   background: var(--color-ai);
   color: var(--color-ai-fg);
 }
+
+/* A character's who-they-are line on the compact sheet (doc 20 P6). */
+.whoLine {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.whoLine:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

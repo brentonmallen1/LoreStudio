@@ -87,6 +87,7 @@ export default function MentionHoverCard({
           ) : (
             card.excerpt && <p className={styles.hoverCardExcerpt}>{card.excerpt}</p>
           )}
+          {card.seen && <p className={styles.hoverCardSeen}>{card.seen}</p>}
           {storyId && (
             <div className={styles.hoverCardActions}>
               {/* Beside the page first (doc 11): the full sheet is a page away when needed. */}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { seenByEveryone } from "../../lib/lorebook/whoAreThey";
 import type { Character, Location } from "../../types";
 
 export type HoverCard =
@@ -17,6 +18,8 @@ export type HoverCard =
       /** A character's plan: what they want and what stands in the way. */
       goal?: string;
       conflict?: string;
+      /** Body and mind that everyone in the story knows about, as it shows (doc 20 P6). */
+      seen?: string;
       rect: DOMRect;
     };
 
@@ -74,6 +77,12 @@ export function useMentionHoverCard(
             excerpt: excerptOf(char.personality || char.motivation || ""),
             goal: excerptOf(char.mission_statement || "") || undefined,
             conflict: excerptOf(char.conflict || "") || undefined,
+            seen:
+              excerptOf(
+                seenByEveryone(char)
+                  .map((f) => (f.page ? `${f.name}: ${f.page}` : f.name))
+                  .join(" · "),
+              ) || undefined,
             rect,
           };
         }

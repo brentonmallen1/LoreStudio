@@ -243,6 +243,18 @@ const ATTRIBUTES: { key: keyof CharacterAttributes; label: string; options: Opti
     label: "Social manner",
     options: ["Refined", "Polished", "Casual", "Rough", "Crude"],
   },
+  {
+    // How they take things (doc 20 P2): what hurts, beside how fast they boil.
+    key: "sensitivity",
+    label: "Sensitivity",
+    options: [
+      { value: "unflappable", label: "Unflappable" },
+      { value: "thick_skinned", label: "Thick-skinned" },
+      { value: "even", label: "Even" },
+      { value: "sensitive", label: "Sensitive" },
+      { value: "feels_everything", label: "Feels everything" },
+    ],
+  },
 ];
 
 /** How they think and carry themselves; shapes their voice in interviews. Quiet until set. */
@@ -256,7 +268,7 @@ export function Attributes({ character, onSaved }: { character: Character; onSav
     return (
       <button type="button" className={styles.quietBtn} onClick={() => setOpen(true)}>
         <Plus size={11} aria-hidden />
-        How they think, temperament, manner…
+        How they think, temperament, sensitivity…
       </button>
     );
   }
