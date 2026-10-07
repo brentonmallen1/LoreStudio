@@ -69,6 +69,7 @@ class _Run:
                 text,
                 anchor=anchor,
                 evidence=passage or evidence,
+                passages=[passage.strip()] if node and passage.strip() else [],
                 suggestion=(suggestion or "").strip(),
                 where=where,
                 action=action,

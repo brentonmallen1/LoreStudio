@@ -42,6 +42,7 @@ def computed(view: StoryView, db: Session) -> list[Finding]:
                 anchor=FindingAnchor(node_id=f.node_id),
                 key=f.text,
                 evidence=f.excerpt,
+                passages=[f.text],
                 where=f.node_title or "Untitled scene",
                 action="fix",
                 fix=FindingFix(old=f.text, new=f.suggestion),
@@ -58,11 +59,17 @@ def computed(view: StoryView, db: Session) -> list[Finding]:
                 anchor=FindingAnchor(node_id=f.node_id),
                 key=f.text,
                 evidence=f.excerpt,
+                passages=[f.excerpt] if f.excerpt else [],
                 suggestion=f.suggestion,
                 where=f.node_title or "Untitled scene",
             )
         )
     return out
+
+
+def _quotes(passages) -> list[str]:
+    """The sentences a finding rests on, each once, for the editor to light up."""
+    return list(dict.fromkeys(p.strip() for p in passages if p and p.strip()))
 
 
 def _run_fields(log: ActivityLog, node) -> dict:
@@ -98,6 +105,7 @@ def from_prose_run(view: StoryView, log: ActivityLog) -> list[Finding]:
                     anchor=FindingAnchor(node_id=node.id),
                     key=check,
                     evidence=flagged[0].get("passage", ""),
+                    passages=_quotes(f.get("passage") for f in flagged),
                     suggestion=flagged[0].get("suggestion") or flagged[0].get("explanation", ""),
                     **_run_fields(log, node),
                 )
@@ -163,6 +171,7 @@ def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
                     anchor=FindingAnchor(node_id=node.id),
                     key="tense_shift",
                     evidence=shifts[0].get("sentence", ""),
+                    passages=_quotes(f.get("sentence") for f in shifts),
                     **_run_fields(log, node),
                 )
             )
@@ -180,6 +189,7 @@ def from_editorial_run(view: StoryView, log: ActivityLog) -> list[Finding]:
                     anchor=FindingAnchor(node_id=node.id),
                     key="pov_drift",
                     evidence=first.get("sentence", ""),
+                    passages=_quotes([first.get("sentence")]),
                     **_run_fields(log, node),
                 )
             )

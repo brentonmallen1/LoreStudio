@@ -1,10 +1,11 @@
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { sectionPath } from "../../lib/routes";
 import { useAIAvailable } from "../../lib/mode";
 import { useAIStore } from "../../stores/aiStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
+import { useEditorBridge } from "../../stores/editorBridge";
 import { useSeriesStore } from "../../stores/seriesStore";
 import { isCanon } from "../../api/series";
 import { sheetPath } from "../../lib/series/kinds";
@@ -23,10 +24,13 @@ const SHEETS = [
 /**
  * What a finding's verb does, shared by the Findings page, the This scene card and the
  * sheets' Health cards (doc 12 P4). The label is null when the verb is not available here:
- * "Ask about this" in Writer mode, or "Open the scene" from inside that scene.
+ * "Ask about this" in Writer mode, or "Open the scene" from inside that scene. A finding
+ * that quotes the prose opens the scene at those words, lit for a moment ("Show in the
+ * scene", or "Show me" from inside it).
  */
 export function useFindingActions() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const storyId = useStoryStore((s) => s.activeStory?.id);
   const activeNodeId = useStoryStore((s) => s.activeNode?.id);
   const aiAvailable = useAIAvailable();
@@ -35,7 +39,9 @@ export function useFindingActions() {
     (f: Finding, here?: "scene"): string | null => {
       switch (f.action) {
         case "open_scene":
-          return here === "scene" && f.anchor.node_id === activeNodeId ? null : "Open the scene";
+          if (here === "scene" && f.anchor.node_id === activeNodeId)
+            return f.passages?.length ? "Show me" : null;
+          return f.passages?.length ? "Show in the scene" : "Open the scene";
         case "open_chapter":
           return "Open the chapter";
         case "open_sheet":
@@ -55,15 +61,18 @@ export function useFindingActions() {
   );
 
   const openScene = useCallback(
-    (nodeId: string) => {
+    (nodeId: string, passages?: string[]) => {
       if (!storyId) return;
+      // The editor shows the words once the scene's prose is in (usePassageJump).
+      useEditorBridge.getState().showPassage(passages?.length ? { nodeId, passages } : null);
       // The panel's This scene tab carries the scene's findings: if the panel is open, show
       // it on arrival. A collapsed panel stays collapsed; arriving is not asking for it.
       const panel = usePanelStore.getState();
       if (panel.open) panel.activate("scene");
-      navigate(`/stories/${storyId}/write/${nodeId}`);
+      const scene = `/stories/${storyId}/write/${nodeId}`;
+      if (pathname !== scene) navigate(scene);
     },
-    [navigate, storyId],
+    [navigate, pathname, storyId],
   );
 
   const openSheet = useCallback(
@@ -119,7 +128,7 @@ export function useFindingActions() {
   const run = useCallback(
     (f: Finding) => {
       const node = f.anchor.node_id;
-      if ((f.action === "open_scene" || f.action === "fix") && node) return openScene(node);
+      if ((f.action === "open_scene" || f.action === "fix") && node) return openScene(node, f.passages);
       if (f.action === "open_chapter" && node && storyId)
         return navigate(`/stories/${storyId}/write/${node}`);
       if (f.action === "open_sheet") return openSheet(f);

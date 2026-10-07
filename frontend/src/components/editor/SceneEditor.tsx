@@ -27,6 +27,7 @@ import {
 import { DialogueExtension } from "../story/DialogueExtension";
 import { SlashCommandExtension } from "../story/SlashCommandExtension";
 import { SearchAndReplaceExtension } from "../story/SearchAndReplaceExtension";
+import { PassageFlashExtension } from "../story/PassageFlashExtension";
 import ImageInsertModal from "../story/ImageInsertModal";
 import WritingGuidesModal, { type WritingGuideTab } from "../help/WritingGuidesModal";
 import AutoTagDialoguePanel from "../story/AutoTagDialoguePanel";
@@ -43,6 +44,7 @@ import { useSlashCommands } from "./useSlashCommands";
 import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
+import { usePassageJump } from "./usePassageJump";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
@@ -112,6 +114,7 @@ export default function SceneEditor() {
       SlashCommandExtension,
       DialogueExtension,
       SearchAndReplaceExtension,
+      PassageFlashExtension,
     ],
     content: activeNode?.content ?? "",
     editorProps: { attributes: { "aria-label": "Scene text" } },
@@ -185,6 +188,8 @@ export default function SceneEditor() {
     }
     if (editor.getHTML() !== activeNode.content) editor.commands.setContent(activeNode.content ?? "");
   }, [activeNode?.id, needsProse, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+  // A finding's words, shown once the prose above is in.
+  usePassageJump(editor, activeNode?.id, !!activeNode && !needsProse);
 
   // An empty scene is somewhere to type: put the cursor there. A new story used to open
   // its first scene with the cursor nowhere, so the first words went missing. A scene

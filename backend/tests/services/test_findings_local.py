@@ -31,6 +31,7 @@ def test_name_drift_is_found_with_its_fix(db_session, test_user):
     assert f.action == "fix" and f.fix is not None
     assert (f.fix.old, f.fix.new) == ("Elenor", "Eleanor")
     assert "Elenor lit the lamp" in f.evidence
+    assert f.passages == ["Elenor"]  # the slip itself, for the editor to light up
 
 
 def test_reading_the_feed_writes_nothing(db_session, test_user):
@@ -59,8 +60,9 @@ def test_prose_run_findings_drop_passages_the_author_rewrote(db_session, test_us
     adverbs = by_check[("adverb_overuse", lamp.id)]
     assert adverbs.text == "Leans on an adverb"  # the rewritten one no longer counts
     assert adverbs.suggestion == "Cut it?" and adverbs.source == "local" and adverbs.run_id == "log-prose-analysis"
+    assert adverbs.passages == ["listened to the sea below the rocks"]
     assert ("passive_voice", supper.id) not in by_check  # every passage gone: answered
-    assert ("sentence_variety", supper.id) in by_check
+    assert by_check[("sentence_variety", supper.id)].passages == []  # a statistic, not a quote
     assert all(f.anchor.node_id != "deleted-scene" for f in found)
 
 
@@ -75,6 +77,7 @@ def test_a_count_change_keeps_the_same_id(db_session, test_user):
         return from_prose_run(load_view(story, db_session), _log(story, test_user, "prose-analysis", result))[0]
 
     assert run([one]).id == run([one, two]).id
+    assert run([one, two, one]).passages == ["lit the lamp", "listened to the sea"]  # every one, once
 
 
 def test_editorial_run_gives_tense_and_pov_findings(db_session, test_user):
@@ -98,6 +101,8 @@ def test_editorial_run_gives_tense_and_pov_findings(db_session, test_user):
         "tense_shift": "Slips out of past tense once",
         "pov_drift": "Point of view slips into Margaret's head",
     }
+    passages = {f.check: f.passages for f in found}
+    assert passages == {"tense_shift": ["Elenor lit the lamp"], "pov_drift": ["listened to the sea"]}
 
 
 def test_pov_drift_needs_another_character(db_session, test_user):

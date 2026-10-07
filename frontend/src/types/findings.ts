@@ -24,6 +24,9 @@ export interface Finding {
   check: string;
   text: string;
   evidence: string;
+  /** The scene's own words it rests on, verbatim, for the editor to show. Empty when the
+   * evidence explains rather than quotes. */
+  passages?: string[];
   suggestion: string;
   where: string;
   anchor: FindingAnchor;

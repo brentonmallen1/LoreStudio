@@ -35,6 +35,7 @@ def test_pacing_slow_spots_anchor_to_the_scene_they_name(db_session, test_user):
     story, nodes = build_findings_story(db_session, test_user)
     [f] = _run(db_session, story, test_user, "pacing-analysis", {"slow_spots": ['"The Storm" drags in the middle']})
     assert f.anchor.node_id == nodes["The Storm"].id and f.where == "The Storm"
+    assert f.passages == []  # an explanation, not a quote
     assert (f.kind, f.source, f.action, f.feature) == ("structure", "ai", "open_scene", "pacing-analysis")
 
 
@@ -82,6 +83,7 @@ def test_cliches_keep_only_passages_still_in_the_prose(db_session, test_user):
     }
     [f] = _run(db_session, story, test_user, "cliche-analysis", data)
     assert f.evidence == "listened to the sea" and f.severity == "low" and f.anchor.node_id == lamp
+    assert f.passages == ["listened to the sea"]
 
 
 def test_meaning_checks(db_session, test_user):
@@ -103,7 +105,14 @@ def test_the_editorial_pass(db_session, test_user):
     report = {
         "priorities": {
             "priorities": [
-                {"rank": 1, "section_title": "Supper", "issue": "Nothing happens", "impact": "high", "suggestion": "?"}
+                {
+                    "rank": 1,
+                    "section_title": "Supper",
+                    "issue": "Nothing happens",
+                    "impact": "high",
+                    "suggestion": "?",
+                    "anchor": "counted the ships",
+                }
             ]
         },
         "intent_gaps": {
@@ -121,6 +130,7 @@ def test_the_editorial_pass(db_session, test_user):
         ("meaning", "mid", nodes["Morning"].id),
         ("continuity", "low", nodes["The Letter"].id),
     ]
+    assert [f.passages for f in found] == [["counted the ships"], [], []]
 
 
 def test_a_check_with_no_adapter_still_shows_once(db_session, test_user):

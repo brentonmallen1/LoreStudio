@@ -1848,6 +1848,31 @@
   background: rgba(255, 160, 40, 0.45);
 }
 
+/* A finding's words, shown for a moment (usePassageJump): lit, held, then faded. */
+.editorWrap :global(.ls-passage-flash) {
+  border-radius: 2px;
+  animation: passageFlash 3.5s ease-out forwards;
+}
+
+@keyframes passageFlash {
+  0%,
+  65% {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorWrap :global(.ls-passage-flash) {
+    animation: none;
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+}
+
 .nlpIcon {
   color: var(--color-nlp);
   vertical-align: middle;

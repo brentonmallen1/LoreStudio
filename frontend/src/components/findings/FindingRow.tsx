@@ -21,7 +21,7 @@ export default function FindingRow({
   showWhere = true,
 }: {
   finding: Finding;
-  /** Inside the scene the finding is about: no "Open the scene". */
+  /** Inside the scene the finding is about: no "Open the scene", only "Show me". */
   here?: "scene";
   showWhere?: boolean;
 }) {
@@ -33,8 +33,14 @@ export default function FindingRow({
   const label = verb(f, here);
 
   const more: MenuItem[] = [{ label: "It's intended", icon: Check, onSelect: () => void dismiss(f.id) }];
-  if (f.action === "fix" && f.anchor.node_id && here !== "scene")
-    more.push({ label: "Open the scene", onSelect: () => openScene(f.anchor.node_id!) });
+  if (f.action === "fix" && f.anchor.node_id) {
+    const shows = !!f.passages?.length;
+    if (here !== "scene" || shows)
+      more.push({
+        label: here === "scene" ? "Show me" : shows ? "Show in the scene" : "Open the scene",
+        onSelect: () => openScene(f.anchor.node_id!, f.passages),
+      });
+  }
   if (f.fix?.kind === "series") more.push({ label: "Compare the books", onSelect: () => openSheet(f) });
   if (aiAvailable && f.action !== "ask")
     more.push({ label: "Ask about this", ai: true, onSelect: () => void ask(f) });

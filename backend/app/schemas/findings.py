@@ -55,6 +55,9 @@ class Finding(BaseModel):
     text: str
     #: The passage or fact it rests on.
     evidence: str = ""
+    #: The scene's own words it rests on, verbatim, for the editor to find and show. Empty
+    #: when the evidence is an explanation rather than a quote.
+    passages: list[str] = []
     #: A question or direction, never a rewrite.
     suggestion: str = ""
     #: Human words for the anchor: the scene title, the character's name.
