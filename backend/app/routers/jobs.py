@@ -55,6 +55,7 @@ async def _run_scene_summaries(job: AIJob, db: Session, user: User, report) -> d
         up_to_node_id=job.params.get("up_to_node_id"),
         on_progress=report,
         should_stop=should_stop,
+        pause_when_unreachable=True,
     )
 
 

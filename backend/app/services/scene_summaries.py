@@ -18,6 +18,7 @@ from ..models.activity_log import ActivityLog
 from ..models.character_journey import CharacterJourneySummary
 from ..models.structure import StructureNode
 from ..models.user import User
+from .job_queue import _pause_reason
 from .llm.gateway import AICallContext, ai_gateway
 from .llm.prompts.summaries import build_scene_summary_prompt
 from .text_utils import prose_text
@@ -71,6 +72,7 @@ async def refresh_scene_summaries(
     up_to_node_id: str | None = None,
     on_progress: Callable[[int, int], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
+    pause_when_unreachable: bool = False,
 ) -> dict:
     """
     Summarise every scene that needs it, reporting progress and stopping when asked.
@@ -117,7 +119,12 @@ async def refresh_scene_summaries(
                 summarized += 1
             else:
                 failed += 1
-        except Exception:
+        except Exception as exc:
+            # The model not answering, or AI switched off, is not this scene's fault: a job
+            # pauses and comes back to the scenes still to do (doc 21 P3), instead of
+            # failing every one in turn.
+            if pause_when_unreachable and _pause_reason(exc):
+                raise
             logger.exception("scene summary failed for node %s", node.id)
             failed += 1
         if on_progress:
