@@ -3,6 +3,7 @@ import { usePanelStore } from "./panelStore";
 import { create } from "zustand";
 import type { ChatMessage, LLMParams } from "../types";
 import type { SessionContext, ResolvedNames } from "../lib/ai/sessionTypes";
+import { loadThinking, saveThinking } from "../lib/ai/conversationThinking";
 import { getSessionType } from "../lib/ai/sessionTypes";
 import { maybeAutoSummarize } from "../lib/ai/autoSummarize";
 import { conversationsApi } from "../api/conversations";
@@ -190,6 +191,19 @@ async function resolveNames(context: SessionContext): Promise<ResolvedNames> {
   return { characterName, storyTitle, nodeName };
 }
 
+/** A resumed conversation takes back the Think first it was left with (lib/ai/conversationThinking). */
+function restoreThinking(sessionId: string) {
+  const session = useAIStore.getState().sessions.find((s) => s.id === sessionId);
+  if (!session || session.thinking !== undefined) return;
+  void loadThinking(session).then((thinking) => {
+    if (thinking === undefined) return;
+    // Set, not setThinking: it came from the record, so there is nothing to save back.
+    useAIStore.setState((st) => ({
+      sessions: st.sessions.map((x) => (x.id === sessionId ? { ...x, thinking } : x)),
+    }));
+  });
+}
+
 export const useAIStore = create<AIStore>((set, get) => ({
   sessions: [],
   activeSessionId: null,
@@ -225,6 +239,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
     }));
     // A new session is something to look at: show the Assistant tab.
     usePanelStore.getState().openAssistant();
+    restoreThinking(session.id);
 
     return session;
   },
@@ -322,6 +337,7 @@ export const useAIStore = create<AIStore>((set, get) => ({
         };
       }),
     }));
+    restoreThinking(sessionId);
   },
 
   discardPendingResume: (sessionId) => {
@@ -363,10 +379,13 @@ export const useAIStore = create<AIStore>((set, get) => ({
       sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, mentionedRefs: refs } : sess)),
     })),
 
-  setThinking: (sessionId, thinking) =>
+  setThinking: (sessionId, thinking) => {
     set((s) => ({
       sessions: s.sessions.map((sess) => (sess.id === sessionId ? { ...sess, thinking } : sess)),
-    })),
+    }));
+    const session = get().sessions.find((s) => s.id === sessionId);
+    if (session) void saveThinking(session, thinking);
+  },
 
   sendMessage: (sessionId, content, images, sentParams) => {
     const session = get().sessions.find((s) => s.id === sessionId);
@@ -512,6 +531,9 @@ export const useAIStore = create<AIStore>((set, get) => ({
         sess.id === sessionId ? { ...sess, chronicleSessionId: chronicleId } : sess,
       ),
     }));
+    // The first reply names the record: a choice made before it is kept now.
+    const session = get().sessions.find((s) => s.id === sessionId);
+    if (session?.thinking !== undefined) void saveThinking(session, session.thinking);
   },
 
   _setBackendSessionId: (sessionId, backendSessionId) => {

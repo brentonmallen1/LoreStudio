@@ -65,7 +65,10 @@ export const chronicleApi = {
     }),
   getChronicleSession: (sessionId: string) =>
     request<import("../types").ChronicleSessionDetail>(`/chronicle/sessions/${sessionId}`),
-  updateChronicleSession: (sessionId: string, data: { title?: string; archived?: boolean }) =>
+  updateChronicleSession: (
+    sessionId: string,
+    data: { title?: string; archived?: boolean; thinking?: boolean | null },
+  ) =>
     request<import("../types").ChronicleSession>(`/chronicle/sessions/${sessionId}`, {
       method: "PATCH",
       body: JSON.stringify(data),

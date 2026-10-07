@@ -45,6 +45,8 @@ class ChatSessionOut(BaseModel):
     updated_at: datetime
     message_count: int = 0
     last_message_preview: str | None = None  # truncated preview of most recent message
+    #: Think first, chosen in the conversation: None follows its feature's default.
+    thinking: bool | None = None
 
     model_config = {"from_attributes": True}
 
@@ -64,6 +66,8 @@ class ChatSessionCreate(BaseModel):
 class ChatSessionUpdate(BaseModel):
     title: str | None = None
     archived: bool | None = None
+    #: Sent as null, clears the choice: the conversation follows its default again.
+    thinking: bool | None = None
 
 
 # ── Activity Logs ──────────────────────────────────────────────────────

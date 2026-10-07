@@ -28,6 +28,8 @@ class ChatSession(Base):
 
     title: Mapped[str] = mapped_column(String, default="")  # auto-generated or user-set
     archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    #: Think first, chosen in the conversation's composer: None follows its feature's default.
+    thinking: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(

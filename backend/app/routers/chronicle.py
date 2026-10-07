@@ -89,6 +89,7 @@ def _session_to_out(
         updated_at=s.updated_at,
         message_count=message_count,
         last_message_preview=last_message_preview,
+        thinking=s.thinking,
     )
 
 
@@ -211,6 +212,8 @@ def update_session(
         s.title = body.title
     if body.archived is not None:
         s.archived = body.archived
+    if "thinking" in body.model_fields_set:
+        s.thinking = body.thinking
     db.commit()
     db.refresh(s)
     return _session_to_out(s)
@@ -233,6 +236,7 @@ def fork_session(
         title=f"{original.title or original.context_label} (fork)"
         if (original.title or original.context_label)
         else "Forked session",
+        thinking=original.thinking,
     )
     db.add(fork)
     db.flush()  # get fork.id
