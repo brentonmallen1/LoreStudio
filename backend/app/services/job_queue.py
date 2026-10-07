@@ -412,17 +412,22 @@ async def worker_loop(engine: Engine, lane: Lane = "model") -> None:
             pass
 
 
-def recover_interrupted(db: Session) -> int:
+def recover_interrupted(db: Session, *, resume: bool = True) -> int:
     """
     A job that was running when the process stopped goes back to the front of its lane
     once, to resume at its step (D11). Interrupted a second time, it fails and offers Retry
     rather than looping. A job the author had already stopped stays stopped. Called at
-    startup.
+    startup. With `resume` off (Settings › Automatic work), every one is marked interrupted.
     """
     stuck = db.query(AIJob).filter(AIJob.status == "running").all()
     for job in stuck:
         if job.cancel_requested:
             job.status = "cancelled"
+            job.finished_at = _now()
+        elif not resume:
+            job.status = "error"
+            job.error = "Interrupted by a restart."
+            job.step_label = None
             job.finished_at = _now()
         elif job.attempts < 1:
             job.attempts += 1

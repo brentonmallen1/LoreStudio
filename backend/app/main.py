@@ -14,6 +14,7 @@ from .database import Base, engine
 from .routers.ai_calls import router as ai_calls_router
 from .routers.ai_settings import router as ai_settings_router
 from .routers.analysis import router as analysis_router
+from .routers.automatic import router as automatic_router
 from .routers.beat_sheets import router as beat_sheets_router
 from .routers.brainstorm import router as brainstorm_router
 from .routers.calendars import router as calendars_router
@@ -76,11 +77,9 @@ from .routers.users import router as users_router
 from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
-from .services.ai_call_log import prune_payloads
-from .services.change_log import prune_all
-from .services.db_backup import backup_loop
+from .services.automatic import at_start, automatic_loop
 from .services.db_migrate import run_migrations
-from .services.job_queue import LANES, prune_quiet, recover_interrupted, worker_loop
+from .services.job_queue import LANES, worker_loop
 from .services.llm.gateway import AIDisabledError
 from .services.seed import (
     seed_admin,
@@ -132,25 +131,17 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
     seed_all()
     with Session(engine) as db:
-        removed = prune_all(db)
-        if removed:
-            logger.info("change log pruned: %d rows", removed)
-        payloads = prune_payloads(db, settings.ai_payload_retention_days)
-        if payloads:
-            logger.info("AI call payloads pruned: %d rows", payloads)
-        interrupted = recover_interrupted(db)
-        if interrupted:
-            logger.info("jobs interrupted by the last shutdown: %d", interrupted)
-        prune_quiet(db)
-    backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
+        # Housekeeping is on a schedule now (doc 22, Settings › Automatic work); only resuming
+        # what a restart cut off belongs to the start.
+        at_start(db)
+    automatic_task = asyncio.create_task(automatic_loop(engine))
     # One worker per lane, in this process: a single container stays a single container.
     job_tasks = [asyncio.create_task(worker_loop(engine, lane)) for lane in LANES]
     logger.info("startup complete (env=%s)", settings.env)
     yield
     for task in job_tasks:
         task.cancel()
-    if backup_task:
-        backup_task.cancel()
+    automatic_task.cancel()
 
 
 app = FastAPI(title="LoreStudio API", version="0.1.0", lifespan=lifespan)
@@ -176,6 +167,7 @@ app.include_router(templates_router, prefix="/api/templates", tags=["templates"]
 app.include_router(analysis_router, prefix="/api", tags=["analysis"])
 app.include_router(checks_router, prefix="/api", tags=["analysis"])
 app.include_router(streams_router, prefix="/api", tags=["ai"])
+app.include_router(automatic_router, prefix="/api", tags=["automatic"])
 app.include_router(panel_interviews_router, prefix="/api", tags=["panels"])
 app.include_router(plot_threads_router, prefix="/api", tags=["threads"])
 app.include_router(scene_links_router, prefix="/api", tags=["scene-links"])

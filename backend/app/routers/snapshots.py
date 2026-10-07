@@ -1,6 +1,6 @@
 """Snapshots & backup settings router."""
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
@@ -12,7 +12,7 @@ from ..database import get_db
 from ..models.snapshot import StoryBackupSettings, StorySnapshot, UserBackupDefaults
 from ..models.story import Story
 from ..models.user import User
-from ..services import numbers_history
+from ..services import automatic, numbers_history
 from ..services.series import sync as series_sync
 from ..services.snapshot_export import export_snapshot, import_snapshot_file
 from ..services.snapshot_service import (
@@ -201,9 +201,10 @@ def create_manual_snapshot(
     if snap is None:
         raise HTTPException(status_code=500, detail="Snapshot was not created")
     # A version carries the Numbers as they stood (doc 19), measured as a quiet job.
-    numbers_history.queue_reading(
-        db, story_id, current_user.id, trigger="snapshot", label=snap.name, snapshot_id=snap.id
-    )
+    if automatic.reading_on(db, "with_versions"):
+        numbers_history.queue_reading(
+            db, story_id, current_user.id, trigger="snapshot", label=snap.name, snapshot_id=snap.id
+        )
     return SnapshotOut.from_orm_snap(snap)
 
 
@@ -242,15 +243,20 @@ def check_auto_backup(
     """Called on story load and on a timer. Creates an auto-backup if the interval has elapsed,
     and takes the Numbers reading a new session or a new day calls for (doc 19), whether or
     not auto-backups are on: the reading is a quiet job."""
-    _verify_story_access(story_id, db, current_user)
-    reading = numbers_history.visit(story_id, db)
-    if reading:
-        numbers_history.queue_reading(
-            db, story_id, current_user.id, trigger=reading, only_if_changed=reading == "daily"
+    story = _verify_story_access(story_id, db, current_user)
+    # What may run, and how often, is Settings › Automatic work's (doc 22).
+    if automatic.is_on(db, "numbers-readings"):
+        options = automatic.task_settings(db, "numbers-readings")
+        reading = numbers_history.visit(
+            story_id, db, gap=timedelta(hours=options["away_hours"]), daily=options["daily"]
         )
+        if reading:
+            numbers_history.queue_reading(
+                db, story_id, current_user.id, trigger=reading, only_if_changed=reading == "daily"
+            )
     settings = _get_or_create_settings(story_id, db)
 
-    if not settings.auto_enabled:
+    if not settings.auto_enabled or not automatic.is_on(db, "story-backups"):
         return {"created": False}
 
     now = datetime.now(UTC)
@@ -265,6 +271,7 @@ def check_auto_backup(
     snap = create_snapshot(story_id, db, trigger="auto", settings=settings)
     if snap is None:
         return {"created": False, "reason": "no_changes"}
+    automatic.record_run(db, "story-backups", f"Backed up {story.title}")
     return {"created": True, "snapshot": SnapshotOut.from_orm_snap(snap)}
 
 
@@ -339,7 +346,8 @@ def restore_to_snapshot(
     series_sync.after_restore(db, story_id)
     db.commit()
     # Restoring does not rewind the Numbers' history; it adds a reading of the restored book.
-    numbers_history.queue_reading(db, story_id, current_user.id, trigger="restore")
+    if automatic.reading_on(db, "after_restore"):
+        numbers_history.queue_reading(db, story_id, current_user.id, trigger="restore")
     return {"restored": True, "snapshot_id": snapshot_id}
 
 

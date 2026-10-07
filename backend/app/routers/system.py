@@ -8,6 +8,7 @@ from ..auth.dependencies import get_current_user
 from ..config import settings
 from ..database import engine, get_db
 from ..models.user import User
+from ..services import automatic
 from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
@@ -32,16 +33,27 @@ def system_status(db: Session = Depends(get_db), current_user: User = Depends(ge
             if engine.url.get_backend_name() == "sqlite"
             else None,
         },
-        "backups": backup_status(),
+        "backups": {
+            **backup_status(),
+            # When it runs is Settings › Automatic work's (doc 22).
+            "enabled": automatic.is_on(db, "db-backup"),
+            "keep": automatic.option(db, "db-backup", "keep"),
+            "every_hours": automatic.option(db, "db-backup", "every_hours"),
+        },
         "insecure_defaults": settings.insecure_defaults() if settings.is_dev else [],
     }
 
 
 @router.post("/system/backups")
-def run_backup_now(current_user: User = Depends(get_current_user)):
+def run_backup_now(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
-    path = create_backup(engine)
+    path = create_backup(engine, keep=automatic.option(db, "db-backup", "keep"))
     if path is None:
         raise HTTPException(status_code=400, detail="Backups are only supported for file-based SQLite databases")
-    return backup_status()
+    automatic.record_run(db, "db-backup", f"Wrote {path.name} (Back up now)")
+    return {
+        **backup_status(),
+        "enabled": automatic.is_on(db, "db-backup"),
+        "keep": automatic.option(db, "db-backup", "keep"),
+    }

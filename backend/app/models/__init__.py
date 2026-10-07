@@ -1,6 +1,7 @@
 from .activity_log import ActivityLog
 from .ai_call import AICallPayload
 from .ai_job import AIJob
+from .app_setting import AppSetting
 from .beat_sheet import BeatSheet
 from .calendar import Calendar
 from .change import Change
@@ -79,6 +80,7 @@ __all__ = [
     "OutlineItem",
     "StorySnapshot",
     "NumbersReading",
+    "AppSetting",
     "StoryBackupSettings",
     "UserBackupDefaults",
     "PlotThread",

@@ -92,19 +92,20 @@ def record(
     return reading
 
 
-def visit(story_id: str, db: Session) -> str | None:
+def visit(story_id: str, db: Session, *, gap: timedelta = SESSION_GAP, daily: bool = True) -> str | None:
     """The story is open (the workspace calls this on load and every five minutes): which
-    reading, if any, this visit calls for. Moves the clock either way."""
+    reading, if any, this visit calls for. Moves the clock either way. `gap` and `daily` are
+    Settings › Automatic work's (doc 22)."""
     settings = _get_or_create_settings(story_id, db)
     now = _now()
     seen = settings.numbers_seen_at
     settings.numbers_seen_at = now
-    if seen is None or now - _naive(seen) >= SESSION_GAP:
+    if seen is None or now - _naive(seen) >= gap:
         settings.numbers_checked_at = now
         db.commit()
         return "session"
     checked = settings.numbers_checked_at
-    if checked is not None and now - _naive(checked) < DAILY_CHECK:
+    if not daily or (checked is not None and now - _naive(checked) < DAILY_CHECK):
         db.commit()
         return None
     settings.numbers_checked_at = now
@@ -219,6 +220,15 @@ def queue_reading(db: Session, story_id: str, user_id: str, *, trigger: str, **k
 async def _run_reading(job: AIJob, db: Session, user: User, report) -> dict:
     """`record`, in a thread: a measurement is seconds of spaCy."""
     reading = await asyncio.to_thread(record, job.story_id or "", db, **job.params)
+    trigger = job.params.get("trigger")
+    if trigger != "manual":  # Settings › Automatic work's "last ran" (doc 22)
+        from . import automatic
+
+        when = _WHEN.get(trigger, "")
+        what = (
+            f"Measured {job.story_title or 'a story'}" if reading else f"{job.story_title or 'A story'} had not changed"
+        )
+        automatic.record_run(db, "numbers-readings", f"{what}, {when}" if when else what)
     return {"taken": reading is not None}
 
 

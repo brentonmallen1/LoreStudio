@@ -1,4 +1,5 @@
-"""Nightly SQLite backup with retention, plus status for the System settings page.
+"""SQLite backup with retention, plus status for Settings › Backups. When it runs is Settings ›
+Automatic work's (services/automatic.py, doc 22).
 
 ``VACUUM INTO`` writes a consistent copy of the live database without locking
 writers for long. Files are named ``lorestudio-YYYYMMDD-HHMMSS-ffffff.db``.
@@ -6,7 +7,6 @@ writers for long. Files are named ``lorestudio-YYYYMMDD-HHMMSS-ffffff.db``.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import re
 from datetime import UTC, datetime
@@ -20,7 +20,6 @@ from ..config import settings
 logger = logging.getLogger(__name__)
 
 _NAME = re.compile(r"^lorestudio-(\d{8}-\d{6}-\d{6})\.db$")
-INTERVAL_SECONDS = 24 * 60 * 60
 
 
 def _is_sqlite(engine: Engine) -> bool:
@@ -71,13 +70,3 @@ def backup_status(backups_dir: Path | None = None) -> dict:
         "count": len(backups),
         "latest": backups[0] if backups else None,
     }
-
-
-async def backup_loop(engine: Engine) -> None:
-    """Run at start, then once a day. Cancelled with the app lifespan."""
-    while True:
-        try:
-            await asyncio.to_thread(create_backup, engine)
-        except Exception:  # pragma: no cover - never let a backup failure kill the app
-            logger.exception("nightly db backup failed")
-        await asyncio.sleep(INTERVAL_SECONDS)
