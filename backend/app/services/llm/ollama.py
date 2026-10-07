@@ -46,17 +46,25 @@ def extract_thoughts(content: str) -> str | None:
     return "\n\n".join(b.strip() for b in blocks) or None
 
 
+#: What a history message may carry to the model. Anything else (a `thinking` field a
+#: client kept, an id, a timestamp) stays behind: Ollama renders a `thinking` field on an
+#: assistant turn back into the prompt.
+_SENT_KEYS = ("role", "content", "images")
+
+
 def strip_thoughts_from_messages(messages: list[dict]) -> list[dict]:
     """
-    Return a copy of messages with thought blocks removed from all assistant turns.
-    Gemma 4 requires that previous turn thoughts are not re-sent to the model.
+    The history as the model may see it (Gemma 4's model card, multi-turn): earlier turns
+    carry only their final answers, never their thoughts, whether inline in the text or in a
+    field of their own. LoreStudio makes no tool calls, the one case where thoughts stay.
+    Every call goes through this, streamed or structured.
     """
     cleaned = []
     for msg in messages:
-        if msg.get("role") == "assistant" and isinstance(msg.get("content"), str):
-            cleaned.append({**msg, "content": strip_thoughts(msg["content"])})
-        else:
-            cleaned.append(msg)
+        kept = {k: msg[k] for k in _SENT_KEYS if k in msg}
+        if kept.get("role") == "assistant" and isinstance(kept.get("content"), str):
+            kept["content"] = strip_thoughts(kept["content"])
+        cleaned.append(kept)
     return cleaned
 
 
@@ -346,7 +354,7 @@ class OllamaProvider(LLMProvider):
         schema_fallback = False
         payload = {
             "model": effective_model,
-            "messages": [{"role": "system", "content": system_prompt}] + messages,
+            "messages": [{"role": "system", "content": system_prompt}] + strip_thoughts_from_messages(messages),
             "stream": False,
             "format": response_schema if response_schema is not None else "json",
             # Always sent. Left out, gemma4 on current Ollama reasons by default — a

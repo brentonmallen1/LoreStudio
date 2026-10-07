@@ -19,6 +19,7 @@ import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
 import type { ImageTokenBudget } from "../types";
 import { useModelSettings, type ConnStatus } from "./settings/useModelSettings";
+import ThinkingField from "./settings/ThinkingField";
 import AutomaticWorkSection from "../components/settings/AutomaticWorkSection";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
@@ -479,24 +480,10 @@ export default function SettingsPage() {
                     </p>
                   </div>
 
-                  {/* Thinking mode */}
-                  <div className={styles.toggleRow}>
-                    <div className={styles.toggleLabel}>
-                      <label className={styles.label}>Thinking mode</label>
-                      <span className={styles.toggleHint}>
-                        Gemma 4 reasons before responding. Improves accuracy, increases latency.
-                      </span>
-                    </div>
-                    <label className={styles.toggle}>
-                      <input
-                        type="checkbox"
-                        aria-label="Thinking mode"
-                        checked={params?.thinking_enabled ?? false}
-                        onChange={(e) => setParam("thinking_enabled", e.target.checked)}
-                      />
-                      <span className={styles.toggleTrack} />
-                    </label>
-                  </div>
+                  <ThinkingField
+                    value={params?.thinking_mode ?? "helps"}
+                    onChange={(mode) => setParam("thinking_mode", mode)}
+                  />
 
                   <div className={styles.cardFooter}>
                     <button onClick={resetLlmSettings} className={styles.resetBtn}>

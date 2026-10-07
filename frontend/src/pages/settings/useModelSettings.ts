@@ -14,7 +14,7 @@ export type ConnStatus =
       base_url: string;
     };
 
-type Params = Pick<LLMSettings, "temperature" | "top_p" | "top_k" | "thinking_enabled"> & {
+type Params = Pick<LLMSettings, "temperature" | "top_p" | "top_k" | "thinking_mode"> & {
   image_token_budget: ImageTokenBudget | 0;
 };
 
@@ -50,7 +50,7 @@ export function useModelSettings() {
       temperature: s.temperature,
       top_p: s.top_p,
       top_k: s.top_k,
-      thinking_enabled: s.thinking_enabled,
+      thinking_mode: s.thinking_mode,
       image_token_budget: s.image_token_budget ?? 0,
     };
     heldParams.current = loaded;

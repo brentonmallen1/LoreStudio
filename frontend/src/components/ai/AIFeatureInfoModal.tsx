@@ -5,6 +5,7 @@ import { Modal } from "../common";
 import { api } from "../../api/client";
 import type { AISettings } from "../../types";
 import { PAGE_LABELS, visibleFeatures } from "../../lib/ai/featureRegistry";
+import { AI_FEATURES_BY_ID } from "../../lib/ai/features.generated";
 import { useMode } from "../../lib/mode";
 import type { AIFeatureInfo } from "../../lib/ai/featureRegistry";
 import styles from "./AIFeatureInfoModal.module.css";
@@ -151,6 +152,9 @@ function FeatureCard({ feature, prompt, expanded, onToggle }: CardProps) {
       </div>
 
       <p className={styles.cardDesc}>{feature.fullDescription}</p>
+      {feature.backendFeatureId && AI_FEATURES_BY_ID[feature.backendFeatureId]?.thinks && (
+        <p className={styles.defaultNote}>Thinks before answering, unless Thinking is Off in Settings.</p>
+      )}
 
       {expanded && (
         <div className={styles.cardDetails}>

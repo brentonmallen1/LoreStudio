@@ -38,6 +38,8 @@ class LLMSettingsRead(LLMParams):
     """LLM settings as returned by the API — includes whether they're defaults."""
 
     is_default: bool
+    #: When Gemma reasons first: off, helps (the features that benefit), always.
+    thinking_mode: Literal["off", "helps", "always"] = "helps"
     num_ctx_max: int | None = None  # user ceiling on the context window; None = no ceiling
     ollama_url: str | None = None  # None = use server default
     ollama_model: str | None = None  # None = use server default
@@ -54,6 +56,7 @@ class LLMSettingsUpdate(BaseModel):
     top_p: float | None = Field(default=None, ge=0.0, le=1.0)
     top_k: int | None = Field(default=None, ge=1, le=200)
     thinking_enabled: bool | None = None
+    thinking_mode: Literal["off", "helps", "always"] | None = None
     image_token_budget: Literal[70, 140, 280, 560, 1120] | None = None
     #: Ceiling on the context window, whatever a feature's budget asks for. VRAM lives here.
     num_ctx_max: int | None = Field(default=None, ge=512, le=1_000_000)

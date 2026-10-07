@@ -293,8 +293,13 @@ DATABASE_URL=sqlite:///./data/lorestudio.db
 LoreStudio is built around **Gemma 4** (`gemma4`) served via Ollama. Key integration points:
 
 - **Thinking mode**: Enabled by prepending `<|think|>` to the system prompt. The model then generates `<|channel>thought\n[reasoning]<channel|>` blocks before its final answer. Disable by omitting the token (default).
+  Whether a call thinks is per feature: Settings › Model parameters chooses Off, Where it helps
+  (default) or Always, and "where it helps" reads `AIFeature.thinks_first` in `features.py`
+  (conversations that reflect, What-If and the planner, whole-book analyses; not interviews,
+  summaries, drafts or suggestions). A conversation's own setting wins.
 - **Recommended parameters**: Temperature 1.0, top-p 0.95, top-k 64 — these are Google's published best-practice defaults.
-- **Multi-turn history**: Strip `<|channel>thought\n...<channel|>` blocks from assistant messages before appending them to conversation history. Thoughts from previous turns must not be re-sent to the model.
+- **Multi-turn history**: Strip `<|channel>thought\n...<channel|>` blocks from assistant messages before appending them to conversation history. Thoughts from previous turns must not be re-sent to the model. Enforced for every call in
+  `ollama.strip_thoughts_from_messages`, which also sends only `role`, `content` and `images`.
 - **Multi-modal**: Images must be placed before text in the prompt. Image detail is controlled by token budgets: 70/140 (fast, classification), 280 (balanced default), 560/1120 (high detail, OCR).
 - **Context windows**: 128K tokens (E2B/E4B), 256K tokens (26B/31B and above).
 

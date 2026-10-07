@@ -3,6 +3,7 @@ import { Settings2 } from "lucide-react";
 import { Modal } from "../common";
 import { api } from "../../api/client";
 import type { LLMParams, LLMSettings, ImageTokenBudget } from "../../types";
+import { thinksFor } from "../../lib/ai/thinking";
 import styles from "./ChatSettingsModal.module.css";
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
   autoSummarize?: boolean;
   /** Called when the user toggles auto-summarize. */
   onAutoSummarizeChange?: (enabled: boolean) => void;
+  /** The feature this conversation calls: its thinking default under "Where it helps". */
+  featureId?: string;
 }
 
 const TOKEN_BUDGET_OPTIONS: { value: ImageTokenBudget | 0; label: string }[] = [
@@ -34,6 +37,7 @@ export default function ChatSettingsModal({
   sessionParams,
   autoSummarize = false,
   onAutoSummarizeChange,
+  featureId,
 }: Props) {
   const [globalSettings, setGlobalSettings] = useState<LLMSettings | null>(null);
   const [temperature, setTemperature] = useState(1.0);
@@ -52,7 +56,7 @@ export default function ChatSettingsModal({
         setTemperature(sessionParams?.temperature ?? s.temperature);
         setTopP(sessionParams?.top_p ?? s.top_p);
         setTopK(sessionParams?.top_k ?? s.top_k);
-        setThinking(sessionParams?.thinking_enabled ?? s.thinking_enabled);
+        setThinking(sessionParams?.thinking_enabled ?? thinksFor(featureId, s.thinking_mode));
         setTokenBudget(sessionParams?.image_token_budget ?? s.image_token_budget ?? 0);
       })
       .catch(() => {});
@@ -74,7 +78,7 @@ export default function ChatSettingsModal({
     setTemperature(globalSettings.temperature);
     setTopP(globalSettings.top_p);
     setTopK(globalSettings.top_k);
-    setThinking(globalSettings.thinking_enabled);
+    setThinking(thinksFor(featureId, globalSettings.thinking_mode));
     setTokenBudget(globalSettings.image_token_budget ?? 0);
   }
 
@@ -178,7 +182,8 @@ export default function ChatSettingsModal({
           <div className={styles.toggleLabel}>
             <label className={styles.label}>Thinking mode</label>
             <span className={styles.hint}>
-              Gemma 4 reasons before responding: improves accuracy, increases latency.
+              Gemma 4 reasons before responding: a more considered answer, later. Its earlier thoughts are
+              never sent back with the conversation.
             </span>
           </div>
           <label className={styles.toggle}>

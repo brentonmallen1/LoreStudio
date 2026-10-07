@@ -18,6 +18,7 @@ from ..config import settings
 from ..database import get_db
 from ..models.user import User
 from ..schemas.llm_params import LLMSettingsRead, LLMSettingsUpdate
+from ..services.llm.features import thinking_mode
 from ..services.llm.ollama import ollama_provider
 
 router = APIRouter()
@@ -42,6 +43,7 @@ def _build_response(user_llm: dict) -> LLMSettingsRead:
         top_p=user_llm.get("top_p", _DEFAULTS["top_p"]),
         top_k=user_llm.get("top_k", _DEFAULTS["top_k"]),
         thinking_enabled=user_llm.get("thinking_enabled", _DEFAULTS["thinking_enabled"]),
+        thinking_mode=thinking_mode(user_llm, bool(_DEFAULTS["thinking_enabled"])),
         image_token_budget=user_llm.get("image_token_budget"),
         num_ctx_max=user_llm.get("num_ctx_max"),
         is_default=is_default,
@@ -76,6 +78,7 @@ def update_llm_settings(
         "top_p",
         "top_k",
         "thinking_enabled",
+        "thinking_mode",
         "image_token_budget",
         "num_ctx_max",
         "ollama_url",
@@ -88,6 +91,8 @@ def update_llm_settings(
             elif value is not None:
                 llm[field_name] = value
 
+    if body.thinking_mode is not None:
+        llm.pop("thinking_enabled", None)  # the switch it replaces
     user_settings["llm"] = llm
     current_user.settings = user_settings
     flag_modified(current_user, "settings")

@@ -73,6 +73,23 @@ class AIFeature:
     description: str
     context: tuple[str, ...] = field(default_factory=tuple)
     budget: int = BUDGET_MEDIUM
+    #: Whether Gemma reasons before answering when the author's choice is "Where it helps".
+    #: None takes the class's default (`thinks_first`); a row sets it where that is wrong.
+    thinks: bool | None = None
+
+    @property
+    def thinks_first(self) -> bool:
+        """
+        Thinking costs time before the first word, so it goes where the answer is a judgement:
+        the conversations that reflect on the story, the options that reason about what could
+        happen, and the analyses that read the whole book. Not where the answer is a voice
+        (a character speaking), a summary, a draft, a short suggestion or an extraction.
+        """
+        if self.thinks is not None:
+            return self.thinks
+        if self.classification == "reflect":
+            return True
+        return self.classification == "analyse" and self.group == "analyse" and self.budget >= BUDGET_LARGE
 
 
 AI_FEATURES: tuple[AIFeature, ...] = (
@@ -298,6 +315,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         description="Turns written scenes into a structured outline you can correct.",
         context=("Scene prose", "Story title and genre"),
         budget=BUDGET_LARGE,
+        thinks=False,
     ),
     AIFeature(
         id="first-pass",
@@ -333,6 +351,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         description="Proposes the act/chapter/scene split of an imported document.",
         context=("Imported document headings and paragraphs",),
         budget=BUDGET_LARGE,
+        thinks=False,
     ),
     AIFeature(
         id="outline-alignment",
@@ -468,6 +487,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="analyse",
         description="Clue quality, distribution and whether the reveal lands.",
         context=("The truth and the misdirection", "Clues, before or after the reveal", "The reveal scene"),
+        thinks=True,
     ),
     AIFeature(
         id="twist-impact",
@@ -482,6 +502,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
             "Characters",
             "Scene synopses",
         ),
+        thinks=True,
     ),
     AIFeature(
         id="voice-fidelity",
@@ -499,6 +520,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="option",
         description="Short labelled directions the scene could take.",
         context=("Scene synopsis and purpose", "Plot threads", "Character arcs", "Adjacent scenes"),
+        thinks=True,
     ),
     AIFeature(
         id="whatif",
@@ -508,6 +530,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         description="Consequences of an alternate choice — never the alternate scene.",
         context=("Story structure", "Plot threads", "Character motivations", "Lorebook"),
         budget=BUDGET_LARGE,
+        thinks=True,
     ),
     AIFeature(
         id="scene-plan",
@@ -516,6 +539,7 @@ AI_FEATURES: tuple[AIFeature, ...] = (
         classification="option",
         description="Questions and a few one-line beat options for a scene you are about to write.",
         context=("Scene title, synopsis and purpose", "Adjacent scenes", "Characters", "Active threads"),
+        thinks=True,
     ),
     AIFeature(
         id="scene-atmosphere",
@@ -681,3 +705,29 @@ def feature_budget(feature_id: str) -> int:
     """Context budget in tokens for a feature id (doc 06 §4)."""
     feature = FEATURES_BY_ID.get(feature_id)
     return feature.budget if feature else BUDGET_MEDIUM
+
+
+#: Settings › Model parameters: when Gemma reasons before answering.
+ThinkingMode = Literal["off", "helps", "always"]
+THINKING_MODES: tuple[ThinkingMode, ...] = ("off", "helps", "always")
+
+
+def thinking_mode(user_llm: dict, server_thinks: bool = False) -> ThinkingMode:
+    """The author's choice, or what it was before there was a choice: thinking switched on
+    is "always"; otherwise "Where it helps", unless the server's own default thinks."""
+    mode = user_llm.get("thinking_mode")
+    for known in THINKING_MODES:
+        if mode == known:
+            return known
+    if user_llm.get("thinking_enabled") is True or server_thinks:
+        return "always"
+    return "helps"
+
+
+def thinks(feature_id: str, mode: str) -> bool:
+    """Whether a call to this feature thinks under this choice. An unlisted feature does not
+    under "Where it helps"."""
+    if mode in ("off", "always"):
+        return mode == "always"
+    feature = FEATURES_BY_ID.get(feature_id)
+    return bool(feature and feature.thinks_first)

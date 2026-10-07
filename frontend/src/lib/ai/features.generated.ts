@@ -18,6 +18,8 @@ export interface AIFeatureRow {
   context: string[];
   /** num_ctx budget in tokens, capped at call time by the model and the user ceiling. */
   budget: number;
+  /** Gemma reasons before answering under Settings' "Where it helps". */
+  thinks: boolean;
 }
 
 export const AI_FEATURE_GROUP_LABELS: Record<AIFeatureGroup, string> = {
@@ -56,6 +58,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Think through the scene you are in: questions, angles, what is missing.",
     context: ["Scene title, synopsis and purpose", "Characters and threads in the scene, with how their body and mind show", "Adjacent scenes"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "writing-coach",
@@ -65,6 +68,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Craft feedback on a passage you select — what the prose is doing, not a rewrite.",
     context: ["Selected text", "Scene prose", "Story tone and genre"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "cliche-coach",
@@ -74,6 +78,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Names the tired phrasing in a passage and asks what you meant instead.",
     context: ["Selected text", "Scene prose"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "identity-workshop",
@@ -83,6 +88,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "A conversation that helps you say what your story is about.",
     context: ["Story identity fields", "Character roles and motivations", "Scene synopses"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "snowflake-guidance",
@@ -92,6 +98,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Guidance for the Snowflake Method step you are on.",
     context: ["Current Snowflake step", "Existing outline", "Story premise"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "interview",
@@ -101,6 +108,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Talk to a character as themselves, limited to what they know.",
     context: ["Full character profile", "Who they are: identity, body and mind, what formed them (unless kept out)", "Relationships", "Arc milestones", "Scenes they were present for"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "interview-summary",
@@ -110,6 +118,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Condenses an interview into what was revealed.",
     context: ["Interview transcript"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "interview-compaction",
@@ -119,6 +128,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Compresses older interview turns so a long conversation keeps fitting.",
     context: ["Older interview messages"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "panel-compaction",
@@ -128,6 +138,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Compresses the older turns of a group interview so a long one keeps fitting.",
     context: ["Older group interview messages"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "panel-character",
@@ -137,6 +148,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Several characters answer the same question, each in their own voice.",
     context: ["Each character's profile", "Relationships between them", "Panel transcript"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "panel-orchestrator",
@@ -146,6 +158,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Decides which panel members have something to say to a question.",
     context: ["Character names and roles", "Panel transcript"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "arc-analysis",
@@ -155,6 +168,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "How the story arc is tracking against its stated shape.",
     context: ["Story structure", "Scene synopses", "Narrative intent"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "audience-adherence",
@@ -164,6 +178,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Whether the content matches the audience you named.",
     context: ["Scene prose", "Target audience", "Genre and tone"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "character-arc",
@@ -173,6 +188,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Where a character stands in their arc right now.",
     context: ["Character profile and arc notes", "Arc milestones", "Scenes mentioning them"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "character-dimensionality",
@@ -182,6 +198,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Contradictions, relationship complexity and flatness across the cast.",
     context: ["Character profiles", "Scene prose", "Relationships", "Thread involvement"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "character-journey",
@@ -191,6 +208,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "A running account of what a character has been through so far.",
     context: ["Scenes the character appears in", "Arc milestones", "Interview history"],
     budget: 32768,
+    thinks: false,
   },
   {
     id: "cliche-analysis",
@@ -200,6 +218,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Overused phrasing, tropes and tired description, with locations.",
     context: ["Scene prose"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "continuity-check",
@@ -209,6 +228,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Timeline, knowledge and detail contradictions between scenes.",
     context: ["Scene prose", "Character profiles, pronouns and how their bodies show", "Story structure"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "dialogue-attribution",
@@ -218,6 +238,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Who is speaking in blocks the deterministic pass could not settle.",
     context: ["Dialogue blocks", "Characters in the scene"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "discovery",
@@ -227,6 +248,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Names in the prose that look like unrecorded characters or places.",
     context: ["Scene prose", "Existing Lorebook entries"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "discovery-questions",
@@ -236,6 +258,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Questions whose answers would firm up the parts of the story you have not decided.",
     context: ["Story identity", "Character profiles", "Plot threads"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "economy-analysis",
@@ -245,6 +268,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Thread balance, scene economy and MICE tightness.",
     context: ["Story structure", "MICE threads", "Scene synopses", "Word counts"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "editorial-pass",
@@ -254,6 +278,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Fresh-eyes read: priorities, intent gaps, voice notes, marginal comments.",
     context: ["Scene prose", "Stated intent and purpose", "Story identity"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "essential-questions",
@@ -263,6 +288,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Whether the six essential story questions can be answered from what exists.",
     context: ["Story intent and premise", "Character goals", "Plot threads", "Structure"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "extract-outline",
@@ -272,6 +298,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Turns written scenes into a structured outline you can correct.",
     context: ["Scene prose", "Story title and genre"],
     budget: 32768,
+    thinks: false,
   },
   {
     id: "first-pass",
@@ -281,6 +308,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Reads the prose against the intent and arc milestones you recorded.",
     context: ["Scene prose", "Scene purpose and intent", "Arc milestones", "Narrative goals"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "image-analysis",
@@ -290,6 +318,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Describes what is visible in an image you attached.",
     context: ["The image", "Its caption and attachment context"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "import-extraction",
@@ -299,6 +328,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Pulls character, location and relationship details out of an imported manuscript.",
     context: ["Prose excerpts naming the candidate", "Other candidates in the same scenes"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "import-structure",
@@ -308,6 +338,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Proposes the act/chapter/scene split of an imported document.",
     context: ["Imported document headings and paragraphs"],
     budget: 32768,
+    thinks: false,
   },
   {
     id: "outline-alignment",
@@ -317,6 +348,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Where the manuscript has drifted from the outline.",
     context: ["Outline items", "Scene synopses", "Story structure"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "talk-subjects",
@@ -326,6 +358,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Says in a few words what each conversation between the chosen group is about, and whether it is about a man.",
     context: ["The conversations found between the chosen group", "Each speaker's gender as the author wrote it"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "pacing-analysis",
@@ -335,6 +368,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Act balance, tension curve and structural rhythm.",
     context: ["Story structure", "Scene synopses", "Word counts"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "plot-holes",
@@ -344,6 +378,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Logical gaps, dropped questions and inconsistencies.",
     context: ["Scene prose", "Story structure", "Plot threads", "Twists", "Character motivations"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "pronoun-identification",
@@ -353,6 +388,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Finds the pronouns that refer to a character before the deterministic refactor runs.",
     context: ["Scene prose", "Character names and aliases"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "reader-knowledge-scan",
@@ -362,6 +398,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Detects reveals, misdirections and clues from scene synopses.",
     context: ["Scene synopses (or openings)", "Characters", "Twists", "What the reader already knows"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "session-recap",
@@ -371,6 +408,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "What changed in the story during this working session.",
     context: ["Activity log for the session", "Scene synopses touched"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "show-dont-tell",
@@ -380,6 +418,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Points at passages that state what could be shown, and names the telling.",
     context: ["Scene prose", "Genre and tone"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "story-summary",
@@ -389,6 +428,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "A summary of everything written so far, with nothing added.",
     context: ["All scene prose", "Story title and narrative intent"],
     budget: 32768,
+    thinks: false,
   },
   {
     id: "structure-summary",
@@ -398,6 +438,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Summarises one act, chapter or section on its own terms.",
     context: ["Prose within the section", "Section purpose"],
     budget: 32768,
+    thinks: false,
   },
   {
     id: "system-analysis",
@@ -407,6 +448,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Edge cases and story consequences of a world system's rules.",
     context: ["System rules", "Other world systems", "Cultures that use it"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "theme-tracker",
@@ -416,6 +458,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Recurring themes and motifs, and where they develop.",
     context: ["Scene prose", "Story intent"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "thread-analysis",
@@ -425,6 +468,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "How a plot thread progresses, and where it goes quiet.",
     context: ["Thread description", "Where it opens and closes", "Try/fail cycles", "Its scenes in reading order, with your notes"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "travel-analysis",
@@ -434,6 +478,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Hazards, tensions and story potential along a route.",
     context: ["Origin and destination", "World systems on the route", "Cultures along the way"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "twist-analysis",
@@ -443,6 +488,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Clue quality, distribution and whether the reveal lands.",
     context: ["The truth and the misdirection", "Clues, before or after the reveal", "The reveal scene"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "twist-impact",
@@ -452,6 +498,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "What changes downstream once a twist resolves.",
     context: ["The truth and the misdirection", "Clues and the reveal", "Plot threads", "Characters", "Scene synopses"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "voice-fidelity",
@@ -461,6 +508,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Whether a character's dialogue stays in their own voice.",
     context: ["The character's dialogue lines", "Their voice notes"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "brainstorm",
@@ -470,6 +518,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Short labelled directions the scene could take.",
     context: ["Scene synopsis and purpose", "Plot threads", "Character arcs", "Adjacent scenes"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "whatif",
@@ -479,6 +528,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Consequences of an alternate choice — never the alternate scene.",
     context: ["Story structure", "Plot threads", "Character motivations", "Lorebook"],
     budget: 32768,
+    thinks: true,
   },
   {
     id: "scene-plan",
@@ -488,6 +538,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Questions and a few one-line beat options for a scene you are about to write.",
     context: ["Scene title, synopsis and purpose", "Adjacent scenes", "Characters", "Active threads"],
     budget: 16384,
+    thinks: true,
   },
   {
     id: "scene-atmosphere",
@@ -497,6 +548,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Short sensory cues per sense to write from — not description to paste.",
     context: ["Scene setting and purpose", "Story tone"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "what-exists",
@@ -506,6 +558,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "What would plausibly exist at a location, given the world you built.",
     context: ["Location details", "World systems", "Connected cultures"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "element-suggest",
@@ -515,6 +568,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Naming, ritual and detail directions for a world element.",
     context: ["The element's own fields", "Associated systems", "Related cultures and eras"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "historical-implications",
@@ -524,6 +578,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Present-day ripples of a historical event.",
     context: ["Event details", "Era context", "Cultures and systems affected"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "calendar-suggestions",
@@ -533,6 +588,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Festivals, seasons and observed days for a calendar.",
     context: ["Calendar structure", "Associated cultures", "Historical events"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "character-attributes",
@@ -542,6 +598,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Short suggestions for one Lorebook field, for you to pick from or edit.",
     context: ["Character name, role and personality", "Existing traits", "Story context"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "character-from-image",
@@ -551,6 +608,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "What is visible in a reference image, plus attributes marked as suggestions.",
     context: ["The image", "Existing character fields"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "codex-suggest",
@@ -560,6 +618,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Reads a scene and proposes who was in it and what it establishes, each quoting the line it read that from. Nothing counts until you confirm it.",
     context: ["The scene's prose", "The cast, and who the graph already places in the scene", "Facts already recorded"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "relationship-suggest",
@@ -569,6 +628,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Dynamics worth recording between characters, confirmed before anything is created.",
     context: ["Character profiles", "Existing relationships"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "book-description",
@@ -578,6 +638,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Back-cover copy to rewrite in your own voice.",
     context: ["Story identity", "Main characters", "Central conflict", "Themes"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "query-letter",
@@ -587,6 +648,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "A query draft to rewrite — agents can tell when a letter was not written by the author.",
     context: ["Story identity and word count", "Main characters and conflict", "Comp titles"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "comp-titles",
@@ -596,6 +658,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Published books your story sits beside, with why.",
     context: ["Genre, audience and tone", "Logline and premise", "Themes"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "conversation-summarize",
@@ -605,6 +668,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Compresses a long AI conversation so it keeps fitting in context.",
     context: ["The conversation so far"],
     budget: 16384,
+    thinks: false,
   },
   {
     id: "session-title-generation",
@@ -614,6 +678,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Names an AI session from its first exchange.",
     context: ["First messages of the session"],
     budget: 8192,
+    thinks: false,
   },
   {
     id: "scene-summary-batch",
@@ -623,6 +688,7 @@ export const AI_FEATURES: AIFeatureRow[] = [
     description: "Refreshes scene synopses in bulk so context assembly has something to use.",
     context: ["Scene prose"],
     budget: 16384,
+    thinks: false,
   },
 ];
 

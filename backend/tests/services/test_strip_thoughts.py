@@ -50,3 +50,19 @@ def test_strip_thoughts_from_messages_no_mutation():
     # Original dict should not be mutated
     assert original["content"] == "<|channel>thought\nThinking...\n<channel|>Answer."
     assert result[0]["content"] == "Answer."
+
+
+def test_a_thinking_field_never_reaches_the_model():
+    """Gemma 4's multi-turn rule: earlier turns carry their answers only. Ollama renders an
+    assistant turn's `thinking` field back into the prompt, so it is dropped with any other
+    field the model does not need."""
+    messages = [
+        {"role": "user", "content": "Who knocked?", "id": "m1"},
+        {"role": "assistant", "content": "A stranger.", "thinking": "Eleanor fears the Visitor.", "ts": 1},
+        {"role": "user", "content": "Look.", "images": ["b64"]},
+    ]
+    assert strip_thoughts_from_messages(messages) == [
+        {"role": "user", "content": "Who knocked?"},
+        {"role": "assistant", "content": "A stranger."},
+        {"role": "user", "content": "Look.", "images": ["b64"]},
+    ]

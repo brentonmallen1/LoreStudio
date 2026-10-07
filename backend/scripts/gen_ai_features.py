@@ -70,6 +70,8 @@ def build() -> str:
         "  context: string[];",
         "  /** num_ctx budget in tokens, capped at call time by the model and the user ceiling. */",
         "  budget: number;",
+        '  /** Gemma reasons before answering under Settings\' "Where it helps". */',
+        "  thinks: boolean;",
         "}",
         "",
         record("AI_FEATURE_GROUP_LABELS", "AIFeatureGroup", GROUP_LABELS),
@@ -92,6 +94,7 @@ def build() -> str:
             f"    description: {ts(f.description)},",
             f"    context: [{context}],",
             f"    budget: {f.budget},",
+            f"    thinks: {'true' if f.thinks_first else 'false'},",
             "  },",
         ]
 

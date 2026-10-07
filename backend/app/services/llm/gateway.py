@@ -49,7 +49,7 @@ from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
 from ..job_queue import current_job_id, interrupt_reason
 from .base import LLMProvider
-from .features import FEATURES_BY_ID, feature_budget
+from .features import FEATURES_BY_ID, feature_budget, thinking_mode, thinks
 from .gate import cooldown_for, model_gate
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
@@ -191,10 +191,15 @@ class AIGateway:
         user_llm = (user.settings or {}).get("llm", {})
         return user_llm.get("ollama_url") or None, user_llm.get("ollama_model") or None
 
-    def _get_effective_params(self, user: User, request_params: LLMParamsOverride | None) -> LLMParams:
+    def _get_effective_params(
+        self, user: User, request_params: LLMParamsOverride | None, feature_id: str = ""
+    ) -> LLMParams:
         """
         Resolve effective LLM params with three-layer priority:
           request_params (highest) > user saved settings > config defaults (lowest)
+
+        Thinking is the author's choice (off, where it helps, always) applied to this feature:
+        "where it helps" asks the feature table. A conversation's own setting still wins.
 
         A request field counts as provided when it is not None — never by comparing it
         against the default value, which used to drop a deliberate "temperature 1.0".
@@ -206,7 +211,7 @@ class AIGateway:
             temperature=user_llm.get("temperature", defaults.temperature),
             top_p=user_llm.get("top_p", defaults.top_p),
             top_k=user_llm.get("top_k", defaults.top_k),
-            thinking_enabled=user_llm.get("thinking_enabled", defaults.thinking_enabled),
+            thinking_enabled=thinks(feature_id, thinking_mode(user_llm, defaults.thinking_enabled)),
             image_token_budget=user_llm.get("image_token_budget"),
         )
 
@@ -284,7 +289,7 @@ class AIGateway:
           3. Calls on_complete(result) if provided
         """
         self._refuse_if_disabled(user)
-        params = self._get_effective_params(user, llm_params)
+        params = self._get_effective_params(user, llm_params, context.feature)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(
@@ -385,7 +390,7 @@ class AIGateway:
         - success=False: result.raw_data has the parsed JSON (if any), result.raw_text has raw response
         """
         self._refuse_if_disabled(user)
-        params = self._get_effective_params(user, llm_params)
+        params = self._get_effective_params(user, llm_params, context.feature)
         system_prompt = self.compose_prompt(feature_prompt, user, include_core_prompt, context.feature, messages)
         user_url, user_model = self._get_ollama_config(user)
         params.num_ctx = await self._resolve_num_ctx(

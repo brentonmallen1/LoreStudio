@@ -24,3 +24,32 @@ def test_a_change_saves_only_itself_and_reset_clears_it(client, test_user):
     assert "image_token_budget" not in test_user.settings["llm"]
 
     assert client.delete("/api/llm-settings").json()["is_default"]
+
+
+def test_thinking_is_a_choice_applied_per_feature(client, test_user):
+    from app.services.llm.gateway import ai_gateway
+
+    assert client.get("/api/llm-settings").json()["thinking_mode"] == "helps"
+    params = lambda feature: ai_gateway._get_effective_params(test_user, None, feature).thinking_enabled  # noqa: E731
+    assert params("plot-holes") and params("scene-chat")
+    assert not params("interview") and not params("scene-summary-batch") and not params("unlisted")
+
+    client.patch("/api/llm-settings", json={"thinking_mode": "off"})
+    assert not params("plot-holes")
+    client.patch("/api/llm-settings", json={"thinking_mode": "always"})
+    assert params("interview")
+
+
+def test_switched_on_before_there_was_a_choice_means_always(client, test_user):
+    test_user.settings = {"llm": {"thinking_enabled": True}}
+    assert client.get("/api/llm-settings").json()["thinking_mode"] == "always"
+    test_user.settings = {"llm": {"thinking_enabled": False}}  # what opening Settings used to save
+    assert client.get("/api/llm-settings").json()["thinking_mode"] == "helps"
+
+
+def test_a_conversation_still_decides_for_itself(test_user):
+    from app.schemas.llm_params import LLMParamsOverride
+    from app.services.llm.gateway import ai_gateway
+
+    override = LLMParamsOverride(thinking_enabled=True)
+    assert ai_gateway._get_effective_params(test_user, override, "interview").thinking_enabled

@@ -678,6 +678,7 @@ export interface LLMSettings {
   top_k: number;
   thinking_enabled: boolean;
   image_token_budget: ImageTokenBudget | null;
+  thinking_mode: import("../lib/ai/thinking").ThinkingMode;
   /** Ceiling on the context window, whatever a feature's budget asks for. null = no ceiling. */
   num_ctx_max: number | null;
   is_default: boolean;
