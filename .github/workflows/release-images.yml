@@ -1,0 +1,150 @@
+# Build and publish multi-arch (amd64/arm64) images to GHCR on version tags.
+#
+#   ghcr.io/<owner>/lorestudio           the all-in-one (Dockerfile.aio): what Unraid runs
+#   ghcr.io/<owner>/lorestudio-backend   the API (docker-compose.yml)
+#   ghcr.io/<owner>/lorestudio-frontend  nginx with the built app, proxying /api
+#
+# Cut a release with `just release 2026.10.1 notes.md` (creates the GitHub release, which
+# creates the tag). A bare tag push also works: the release job backfills the GitHub release.
+# Each image gets :2026.10.1, :2026.10 and :latest, and APP_VERSION=2026.10.1 inside.
+#
+# Each platform builds natively (amd64 on ubuntu-latest, arm64 on ubuntu-24.04-arm, no QEMU)
+# and pushes by digest; the merge job assembles the manifest and applies the tags. The arm64
+# runner is free for public repositories; while this one is private it may need a paid runner.
+
+name: Release images
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Ensure a GitHub release exists for this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+                 --verify-tag --generate-notes --latest
+
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [lorestudio, lorestudio-backend, lorestudio-frontend]
+        platform: [linux/amd64, linux/arm64]
+        include:
+          - image: lorestudio
+            dockerfile: Dockerfile.aio
+          - image: lorestudio-backend
+            dockerfile: backend/Dockerfile
+          - image: lorestudio-frontend
+            dockerfile: frontend/Dockerfile
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare platform slug
+        run: echo "PLATFORM_PAIR=${PLATFORM//\//-}" >> "$GITHUB_ENV"
+        env:
+          PLATFORM: ${{ matrix.platform }}
+
+      - name: Version
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          [[ "$ref" == v* ]] && echo "APP_VERSION=${ref#v}" >> "$GITHUB_ENV" || echo "APP_VERSION=dev-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+
+      - id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            APP_VERSION=${{ env.APP_VERSION }}
+          outputs: type=image,name=ghcr.io/${{ github.repository_owner }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ env.PLATFORM_PAIR }}
+          cache-to: type=gha,scope=${{ matrix.image }}-${{ env.PLATFORM_PAIR }},mode=max
+
+      - name: Export digest
+        run: |
+          mkdir -p "${{ runner.temp }}/digests"
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.image }}-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        image: [lorestudio, lorestudio-backend, lorestudio-frontend]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-${{ matrix.image }}-*
+          merge-multiple: true
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          # CalVer (v2026.10.1) is not semver, so match by regex: 2026.10.1 and 2026.10.
+          # A manual run without a tag publishes :edge only.
+          tags: |
+            type=match,pattern=v(.+),group=1
+            type=match,pattern=v(\d+\.\d+),group=1
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=raw,value=edge,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf 'ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}@sha256:%s ' *)

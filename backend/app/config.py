@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     # Environment: "dev" tolerates default secrets; anything else refuses them.
     env: str = "dev"
+    #: The release (CalVer, "2026.10.1"), stamped into the image by the release build; "dev" otherwise.
+    app_version: str = "dev"
     log_level: str = "INFO"
 
     database_url: str = "sqlite:///./data/lorestudio.db"

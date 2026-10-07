@@ -68,7 +68,8 @@ export default function DatabaseBackupCard({ isAdmin }: Props) {
           <div className={styles.fieldRow}>
             <span className={styles.label}>Schema</span>
             <span>
-              v{status.version} · migration {status.database.revision ?? "none"} · foreign keys{" "}
+              {status.version === "dev" ? "Development build" : `LoreStudio ${status.version}`} · migration{" "}
+              {status.database.revision ?? "none"} · foreign keys{" "}
               {status.database.foreign_keys ? "on" : "off"}
             </span>
           </div>

@@ -13,8 +13,6 @@ from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
 
-APP_VERSION = "0.1.0"
-
 
 @router.get("/system/status")
 def system_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -24,7 +22,7 @@ def system_status(db: Session = Depends(get_db), current_user: User = Depends(ge
     except Exception:
         revision = None
     return {
-        "version": APP_VERSION,
+        "version": settings.app_version,
         "env": settings.env,
         "database": {
             "backend": engine.url.get_backend_name(),

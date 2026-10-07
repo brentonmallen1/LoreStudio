@@ -44,7 +44,8 @@ from ..models.world_system import WorldSystem
 from .snapshot_legacy import legacy_notes, legacy_promises
 
 FORMAT_VERSION = 1
-APP_VERSION = "1.0.0"
+#: Which LoreStudio wrote an export (the format is FORMAT_VERSION's to say).
+APP_VERSION = app_settings.app_version
 
 # ---------------------------------------------------------------------------
 # Disk helpers

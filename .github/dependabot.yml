@@ -22,7 +22,8 @@ updates:
       actions:
         patterns: ["*"]
   - package-ecosystem: docker
-    directories: [/backend, /frontend]
+    # / holds Dockerfile.aio.
+    directories: [/, /backend, /frontend]
     schedule:
       interval: weekly
     ignore:

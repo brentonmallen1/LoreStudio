@@ -162,6 +162,32 @@ test-watch:
 test-frontend:
     cd frontend && npm test
 
+# ── Release ────────────────────────────────────
+# Cut a release: `just release 2026.10.1 notes.md`. Creates the GitHub release and its tag;
+# release-images.yml then publishes the images. Notes are written, never generated: feature
+# sections, then Fixes, then Smaller things.
+release VERSION NOTES:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    version="{{VERSION}}"
+    [[ "$version" == v* ]] || version="v$version"
+    if ! [[ "$version" =~ ^v[0-9]{4}\.[0-9]{2}\.[0-9]+$ ]]; then
+        echo "Error: the version is CalVer, YYYY.MM.N (2026.10.1)"; exit 1
+    fi
+    if [ ! -f "{{NOTES}}" ]; then
+        echo "Error: notes file not found: {{NOTES}}. Write the release notes first."; exit 1
+    fi
+    if ! git diff --quiet HEAD; then
+        echo "Error: uncommitted changes. Commit or stash first."; exit 1
+    fi
+    command -v gh >/dev/null || { echo "Error: gh CLI not found (https://cli.github.com)"; exit 1; }
+    git fetch --quiet origin main
+    if [ "$(git rev-parse main)" != "$(git rev-parse origin/main)" ]; then
+        echo "Error: local main and origin/main differ. Push or pull first."; exit 1
+    fi
+    gh release create "$version" --target main --notes-file "{{NOTES}}" --latest
+    echo "✓ Released $version: the images build in Actions › Release images"
+
 # ── Utilities ──────────────────────────────────
 # Copy .env.example to .env if it doesn't exist
 init-env:

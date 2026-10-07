@@ -144,7 +144,7 @@ async def lifespan(app: FastAPI):
     automatic_task.cancel()
 
 
-app = FastAPI(title="LoreStudio API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="LoreStudio API", version=settings.app_version, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

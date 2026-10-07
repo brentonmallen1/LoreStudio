@@ -1,0 +1,90 @@
+# Build every image on changes that could change what lands inside one, and start the
+# all-in-one to see it answer. ci.yml runs the tests but builds no image, so a base-image or
+# lockfile bump could arrive green having exercised none of it (IGAB learned this the hard way).
+#
+# Its own workflow so it can carry path filters without suppressing the test jobs. amd64 only
+# and never pushes: "does it still build and start", not "does the arm64 manifest assemble"
+# (release-images.yml owns that, on a tag).
+
+name: Docker build
+
+on:
+  pull_request:
+    paths:
+      - "**/Dockerfile*"
+      - "aio/**"
+      - "frontend/nginx.conf"
+      - "backend/pyproject.toml"
+      - "backend/uv.lock"
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
+      - "frontend/tsconfig*.json"
+      - "docker-compose*.yml"
+      - ".dockerignore"
+      - ".github/workflows/docker-build.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**/Dockerfile*"
+      - "aio/**"
+      - "frontend/nginx.conf"
+      - "backend/pyproject.toml"
+      - "backend/uv.lock"
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
+      - "frontend/tsconfig*.json"
+      - "docker-compose*.yml"
+      - ".dockerignore"
+      - ".github/workflows/docker-build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: docker-build (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: lorestudio-backend
+            dockerfile: backend/Dockerfile
+          - image: lorestudio-frontend
+            dockerfile: frontend/Dockerfile
+          - image: lorestudio
+            dockerfile: Dockerfile.aio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build ${{ matrix.image }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: false
+          load: ${{ matrix.image == 'lorestudio' }}
+          tags: ${{ matrix.image }}:ci
+          # Shares the cache release-images.yml writes, so this is a check, not a rebuild.
+          cache-from: type=gha,scope=${{ matrix.image }}-linux-amd64
+          build-args: APP_VERSION=ci
+      # The all-in-one must start, migrate, seed and sign in, not just build.
+      - name: Smoke-test the all-in-one
+        if: matrix.image == 'lorestudio'
+        run: |
+          docker run -d --name aio -p 8080:8080 -e ADMIN_PASSWORD=ci-password -e PUID=99 -e PGID=100 lorestudio:ci
+          for _ in $(seq 1 60); do curl -sf http://localhost:8080/api/health && break; sleep 3; done
+          curl -sf http://localhost:8080/api/health
+          curl -sf http://localhost:8080/ | grep -q '<div id="root">'
+          curl -sf -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"admin","password":"ci-password"}' | grep -q access_token
+      - name: Logs on failure
+        if: failure() && matrix.image == 'lorestudio'
+        run: docker logs aio
