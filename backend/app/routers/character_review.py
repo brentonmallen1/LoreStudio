@@ -1,11 +1,13 @@
 """
 The review step (doc 20 P3): changing a character's pronouns or name proposes the sentences that
 should follow, and applies what the author ticks as one change, undone with one Undo, after a
-named version of the story is saved. Quick runs here, on this machine, in both modes.
+named version of the story is saved. Quick runs here, on this machine, in both modes; Careful
+(Studio) asks the Assistant about the scenes Quick was unsure of.
 """
 
 from __future__ import annotations
 
+import re
 import uuid
 from collections import defaultdict
 
@@ -19,8 +21,21 @@ from ..models.location import ScenePresence
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
-from ..schemas.character_review import ApplyOut, ApplyRequest, ReviewItem, ReviewOut, ReviewRequest, ReviewScene
+from ..schemas.ai_responses import PronounIdentificationResponse
+from ..schemas.character_review import (
+    ApplyOut,
+    ApplyRequest,
+    CarefulJudgement,
+    CarefulOut,
+    CarefulRequest,
+    ReviewItem,
+    ReviewOut,
+    ReviewRequest,
+    ReviewScene,
+)
 from ..services import change_log, other_names
+from ..services.llm.gateway import AICallContext, ai_gateway
+from ..services.llm.prompts.pronoun_refactor import build_pronoun_identification_prompt
 from ..services.pronoun_review import SETS, patterns_for, people_on_page, pronoun_set, review_scene
 from ..services.prose_html import Edit, apply_edits, paragraphs
 from ..services.scene_cast import on_the_page
@@ -50,7 +65,11 @@ def review(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    me = _verify_character_access(character_id, db, current_user)
+    return _quick(_verify_character_access(character_id, db, current_user), body, db)
+
+
+def _quick(me: Character, body: ReviewRequest, db: Session) -> ReviewOut:
+    """Quick: every sentence that should follow, read on this machine."""
     story = db.get(Story, me.story_id)
     assert story is not None
     characters = db.query(Character).filter(Character.story_id == story.id).all()
@@ -115,6 +134,77 @@ def review(
         ],
         unsupported=unsupported,
     )
+
+
+@router.post("/{character_id}/review/careful", response_model=CarefulOut)
+async def careful(
+    character_id: str,
+    body: CarefulRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Careful (Studio): the Assistant reads the scenes Quick was unsure of and says which of the
+    pronouns are this character's. It only identifies; the rewrite and the verb that agrees stay
+    Quick's, computed here, so what is applied is the same either way.
+    """
+    me = _verify_character_access(character_id, db, current_user)
+    quick = _quick(me, body, db)
+    old_words = {w for k in SETS for w in SETS[k].values()}
+    judged: list[CarefulJudgement] = []
+    for node_id in body.node_ids:
+        items = [i for i in quick.items if i.node_id == node_id and i.kind == "pronoun"]
+        node = db.get(StructureNode, node_id)
+        if not items or node is None:
+            continue
+        paras = [p.text for p in paragraphs(node.content or "")]
+        result = await ai_gateway.generate_structured(
+            response_model=PronounIdentificationResponse,
+            messages=[{"role": "user", "content": "Please identify the pronouns."}],
+            feature_prompt=build_pronoun_identification_prompt(
+                character_name=me.name, scene_content="\n\n".join(paras)
+            ),
+            context=AICallContext(
+                feature="pronoun-identification",
+                user_id=current_user.id,
+                story_id=me.story_id,
+                character_id=me.id,
+                node_id=node_id,
+                tags=["character", "pronouns", "review", "user-initiated"],
+            ),  # fmt: skip
+            db=db,
+            user=current_user,
+        )
+        if not result.success or not result.data:
+            continue
+        theirs = _located(result.data.get("instances", []), paras)
+        for item in items:
+            pronouns = [(item.para, e.start) for e in item.edits if e.was.lower() in old_words]
+            found = sum(1 for p in pronouns if p in theirs)
+            judged.append(
+                CarefulJudgement(
+                    item_id=item.id, verdict="theirs" if found == len(pronouns) else "partly" if found else "not"
+                )
+            )
+    return CarefulOut(judged=judged)
+
+
+def _located(instances: list[dict], paras: list[str]) -> set[tuple[int, int]]:
+    """Where each pronoun the Assistant named sits: (paragraph, offset), found by its phrase."""
+    out: set[tuple[int, int]] = set()
+    for inst in instances:
+        phrase, word = (inst.get("exact_text") or "").strip(), (inst.get("target_word") or "").strip()
+        if not phrase or not word:
+            continue
+        for pi, text in enumerate(paras):
+            at = text.find(phrase)
+            if at == -1:
+                continue
+            inner = re.search(rf"\b{re.escape(word)}\b", phrase)
+            if inner:
+                out.add((pi, at + inner.start()))
+            break
+    return out
 
 
 @router.post("/{character_id}/review/apply", response_model=ApplyOut)

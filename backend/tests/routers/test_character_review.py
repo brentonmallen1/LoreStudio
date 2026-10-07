@@ -96,3 +96,27 @@ def test_any_pronouns_say_why_nothing_is_proposed(client, db_session, test_user)
         f"/api/characters/{eleanor.id}/review", json={"pronouns_from": "she/her", "pronouns_to": "any pronouns"}
     ).json()
     assert out["unsupported"] and not [i for i in out["items"] if i["kind"] == "pronoun"]
+
+
+def test_careful_asks_only_about_unsure_scenes_and_keeps_the_rewrite_quicks(
+    client, db_session, test_user, mock_ai_gateway
+):
+    story, eleanor, storm = _setup(db_session, test_user)
+    margaret = (
+        db_session.query(Character).filter(Character.story_id == story.id, Character.name == "Margaret Holt").one()
+    )
+    margaret.pronouns = "she/her"
+    storm.content = "<p>@Eleanor Vance held the rail. @Margaret Holt watched. She was cold.</p>"
+    db_session.commit()
+    body = {"pronouns_from": "she/her", "pronouns_to": "they/them"}
+    quick = client.post(f"/api/characters/{eleanor.id}/review", json=body).json()
+    item = next(i for i in quick["items"] if i["node_id"] == storm.id and i["kind"] == "pronoun")
+    assert not item["sure"], "Margaret was named nearer"
+
+    gateway = mock_ai_gateway(
+        structured_data={"instances": [{"exact_text": "watched. She was cold.", "target_word": "She"}]}
+    )
+    out = client.post(f"/api/characters/{eleanor.id}/review/careful", json={**body, "node_ids": [storm.id]}).json()
+    assert out["judged"] == [{"item_id": item["id"], "verdict": "theirs"}]
+    assert len(gateway.structured_calls) == 1
+    assert gateway.structured_calls[0]["context"].feature == "pronoun-identification"

@@ -1,12 +1,22 @@
 import { Fragment, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Info, Pencil } from "lucide-react";
+import { Info, Orbit, Pencil, Square } from "lucide-react";
 import { characterReviewApi, type Review, type ReviewItem } from "../../api/characterReview";
+import { useLLMTransparency } from "../../hooks/useLLMTransparency";
+import { useAIAvailable } from "../../lib/mode";
+import { LLMTransparencyModal, LLMTransparencyTrigger } from "../llm";
 import { QUICK_MISSES, byScene, describeChange, initiallyTicked, marked } from "../../lib/characters/review";
 import { toast } from "../../stores/toastStore";
 import type { Character } from "../../types";
 import { Modal } from "../common";
 import styles from "./ManuscriptReview.module.css";
+
+/** What Careful's verdict means for a sentence, said under it. */
+const CAREFUL_NOTE = {
+  theirs: "The Assistant read these as theirs.",
+  partly: "The Assistant read some of these as theirs: check each word.",
+  not: "The Assistant read these as someone else's.",
+};
 
 export interface ReviewChange {
   pronouns?: [string, string];
@@ -40,6 +50,55 @@ export default function ManuscriptReview({
   const [editing, setEditing] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
   const [about, setAbout] = useState(false);
+  const aiAvailable = useAIAvailable();
+  const transparency = useLLMTransparency();
+  const [asking, setAsking] = useState<AbortController | null>(null);
+  const [asked, setAsked] = useState(false);
+
+  const request = change
+    ? { pronouns_from: change.pronouns?.[0], pronouns_to: change.pronouns?.[1] }
+    : { slips: true };
+
+  /** Careful: ask the Assistant about the scenes Quick was unsure of, and take its word for them. */
+  async function askCareful() {
+    if (!review) return;
+    const nodeIds = [
+      ...new Set(review.items.filter((i) => i.kind === "pronoun" && !i.sure).map((i) => i.node_id)),
+    ];
+    const controller = new AbortController();
+    setAsking(controller);
+    try {
+      const { judged } = await characterReviewApi.careful(
+        character.id,
+        { ...request, node_ids: nodeIds },
+        controller.signal,
+      );
+      const verdicts = new Map(judged.map((j) => [j.item_id, j.verdict]));
+      setReview({
+        ...review,
+        items: review.items.map((i) => {
+          const v = verdicts.get(i.id);
+          if (!v) return i;
+          return { ...i, careful: true, sure: v === "theirs", note: CAREFUL_NOTE[v] };
+        }),
+      });
+      setTicked((t) => {
+        const next = new Set(t);
+        for (const [id, v] of verdicts) {
+          if (v === "theirs") next.add(id);
+          else next.delete(id);
+        }
+        return next;
+      });
+      setAsked(true);
+      transparency.recordInteraction();
+    } catch (e) {
+      if (!(e instanceof Error && e.name === "AbortError"))
+        toast.error("The Assistant could not read the scenes");
+    } finally {
+      setAsking(null);
+    }
+  }
 
   useEffect(() => {
     const body = change
@@ -132,6 +191,11 @@ export default function ManuscriptReview({
         </>
       }
     >
+      <LLMTransparencyModal
+        isOpen={transparency.isOpen}
+        onClose={transparency.close}
+        data={transparency.data}
+      />
       <div className={styles.body}>
         <div className={styles.head}>
           <p className={styles.lede}>
@@ -147,6 +211,37 @@ export default function ManuscriptReview({
               </>
             )}
           </p>
+          {aiAvailable &&
+            review &&
+            (asking || asked || review.items.some((i) => i.kind === "pronoun" && !i.sure)) && (
+              <div className={styles.careful}>
+                {asking ? (
+                  <button type="button" className={styles.carefulBtn} onClick={() => asking.abort()}>
+                    <Square size={12} aria-hidden /> Cancel
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.carefulBtn}
+                    disabled={asked}
+                    title="The Assistant reads the scenes Quick was unsure of and says which pronouns are theirs"
+                    onClick={() => void askCareful()}
+                  >
+                    <Orbit size={13} aria-hidden /> {asked ? "Careful: asked" : "Careful, with the Assistant"}
+                  </button>
+                )}
+                {asked && (
+                  <LLMTransparencyTrigger
+                    onClick={() =>
+                      transparency.open({ context_type: "attributes", character_id: character.id }, "", {
+                        feature: "pronoun-identification",
+                        character_id: character.id,
+                      })
+                    }
+                  />
+                )}
+              </div>
+            )}
           <div className={styles.tier}>
             <span className={styles.tierName}>Quick, on this machine</span>
             <button
@@ -250,6 +345,7 @@ export default function ManuscriptReview({
                       </p>
                     )}
                     <p className={styles.was}>was: {item.before}</p>
+                    {item.careful && <p className={styles.carefulNote}>{item.note}</p>}
                   </div>
                   <span className={styles.tag} data-sure={item.sure || undefined}>
                     {item.kind === "name" ? "Name" : item.sure ? "Sure" : "Unsure"}

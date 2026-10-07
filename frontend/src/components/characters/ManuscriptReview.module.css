@@ -229,3 +229,43 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* Careful (Studio): the Assistant, in AI colour, asked about the unsure scenes only. */
+.careful {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.carefulBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 1.867rem;
+  padding: 0 0.7rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.carefulBtn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.carefulBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.sentence .carefulNote {
+  margin-top: 0.15rem;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  color: var(--color-ai);
+}

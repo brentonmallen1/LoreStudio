@@ -80,3 +80,18 @@ class ApplyOut(BaseModel):
     skipped: list[str]
     #: Sentences whose words now run across formatting, so they were not changed.
     not_placed: int
+
+
+class CarefulRequest(ReviewRequest):
+    #: The scenes to ask about: the ones with unsure sentences.
+    node_ids: list[str] = []
+
+
+class CarefulJudgement(BaseModel):
+    item_id: str
+    #: theirs: every pronoun in the sentence is theirs; partly: some; not: none.
+    verdict: Literal["theirs", "partly", "not"]
+
+
+class CarefulOut(BaseModel):
+    judged: list[CarefulJudgement]

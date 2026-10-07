@@ -59,7 +59,20 @@ export interface Applied {
   not_placed: number;
 }
 
+export interface CarefulJudgement {
+  item_id: string;
+  /** theirs: every pronoun in the sentence is theirs; partly: some; not: none. */
+  verdict: "theirs" | "partly" | "not";
+}
+
 export const characterReviewApi = {
+  /** Careful (Studio): the Assistant says which pronouns in the unsure scenes are theirs. */
+  careful: (characterId: string, body: ReviewRequest & { node_ids: string[] }, signal?: AbortSignal) =>
+    request<{ judged: CarefulJudgement[] }>(`/characters/${characterId}/review/careful`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal,
+    }),
   review: (characterId: string, body: ReviewRequest) =>
     request<Review>(`/characters/${characterId}/review`, { method: "POST", body: JSON.stringify(body) }),
   apply: (
