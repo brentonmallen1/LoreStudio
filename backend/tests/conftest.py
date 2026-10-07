@@ -51,6 +51,17 @@ def _forget_developer_env():
     os.environ.update(saved)
 
 
+@pytest.fixture(autouse=True)
+def _fresh_model_gate():
+    """Every test starts with an idle model gate: a reply in one test must not hold the next
+    test's jobs in its cool-down (doc 21 P3)."""
+    from app.services.llm.gate import model_gate
+
+    model_gate.__init__()
+    yield
+    model_gate.__init__()
+
+
 # ---------------------------------------------------------------------------
 # Simple factory fixture (existing)
 # ---------------------------------------------------------------------------

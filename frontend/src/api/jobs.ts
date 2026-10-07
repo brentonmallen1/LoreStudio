@@ -38,6 +38,10 @@ export interface AIJob {
   cancel_requested?: boolean;
   /** now | between: Stop stops it at once, or after the step in hand. */
   stop?: "now" | "between";
+  /** Why a model job is not running yet: a reply, the cool-down after one, or a pause. */
+  waiting?: string | null;
+  /** The next model job, held by the cool-down or a pause: Start now may start it. */
+  can_start_now?: boolean;
 }
 
 export const ACTIVE_JOB_STATUSES = ["queued", "running"];
@@ -57,6 +61,8 @@ export const jobsApi = {
   cancel: (jobId: string) => request<AIJob>(`/jobs/${jobId}/cancel`, { method: "POST" }),
   runNext: (jobId: string) => request<AIJob>(`/jobs/${jobId}/run-next`, { method: "POST" }),
   retry: (jobId: string) => request<AIJob>(`/jobs/${jobId}/retry`, { method: "POST" }),
+  /** Skip the cool-down after a reply (or a pause) for this job. */
+  startNow: (jobId: string) => request<AIJob>(`/jobs/${jobId}/start-now`, { method: "POST" }),
   /** The Jobs list showed these finished: no longer unseen in any window. */
   seen: (ids: string[]) =>
     request<{ marked: number }>(`/jobs/seen`, { method: "POST", body: JSON.stringify({ ids }) }),

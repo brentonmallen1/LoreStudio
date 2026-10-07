@@ -39,6 +39,7 @@ interface JobsState {
   cancel: (id: string) => Promise<void>;
   runNext: (id: string) => Promise<void>;
   retry: (id: string) => Promise<void>;
+  startNow: (id: string) => Promise<void>;
   markSeen: (ids: string[]) => Promise<void>;
   /** Start polling while something needs the list; returns the matching stop. */
   watch: () => () => void;
@@ -143,6 +144,10 @@ export const useJobsStore = create<JobsState>((set, get) => ({
   },
   retry: async (id) => {
     await jobsApi.retry(id);
+    await get().refresh();
+  },
+  startNow: async (id) => {
+    await jobsApi.startNow(id);
     await get().refresh();
   },
   markSeen: async (ids) => {

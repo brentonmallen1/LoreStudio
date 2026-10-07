@@ -101,12 +101,12 @@ export function jobLine(job: AIJob, nowMs: number): string {
   switch (job.status) {
     case "running": {
       if (job.cancel_requested) return "Stopping after this step";
-      const parts = [job.step_label || "Running", progress, timeLeft(job, nowMs)];
+      const parts = [job.waiting || job.step_label || "Running", progress, timeLeft(job, nowMs)];
       return parts.filter(Boolean).join(" · ");
     }
     case "queued": {
       const place = job.queue_position ? `${ordinal(job.queue_position)} in line` : "";
-      return [job.step_label || "Waiting", place].filter(Boolean).join(" · ");
+      return [job.waiting || job.step_label || "Waiting", place].filter(Boolean).join(" · ");
     }
     case "done":
       return jobOutcome(job).sentence || "Finished";
@@ -117,8 +117,10 @@ export function jobLine(job: AIJob, nowMs: number): string {
   }
 }
 
-export function countLabel(n: number): string {
-  return n === 1 ? "1 job running" : `${n} jobs running`;
+/** "2 jobs running", or "1 job waiting" when none has started (a reply going first, the cool-down). */
+export function countLabel(n: number, waiting = false): string {
+  const word = waiting ? "waiting" : "running";
+  return n === 1 ? `1 job ${word}` : `${n} jobs ${word}`;
 }
 
 /** The list's three parts: running, queued in lane order, and the last day's finished,

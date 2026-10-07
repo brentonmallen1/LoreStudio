@@ -27,7 +27,7 @@ function title(job: AIJob): string {
  * done with it from here (doc 21 P4).
  */
 export default function JobRow({ job, now, onLeave }: { job: AIJob; now: number; onLeave: () => void }) {
-  const { cancel, runNext, retry } = useJobsStore.getState();
+  const { cancel, runNext, retry, startNow } = useJobsStore.getState();
   const open = jobOpen(job);
   const details = jobDetailsPath(job);
   const go = (to: string) => {
@@ -36,6 +36,7 @@ export default function JobRow({ job, now, onLeave }: { job: AIJob; now: number;
   };
   const when = job.started_at ?? job.created_at;
   const lineClass = job.status === "error" ? styles.lineFailed : styles.line;
+  const paused = !!job.waiting && !job.waiting.startsWith("Waiting");
 
   return (
     <li className={`${styles.row} ${isUnseen(job) ? styles.rowUnseen : ""}`}>
@@ -64,6 +65,16 @@ export default function JobRow({ job, now, onLeave }: { job: AIJob; now: number;
             title={job.stop === "now" ? "Stop now" : "Stop after the step in hand"}
           >
             Stop
+          </button>
+        )}
+        {job.can_start_now && (
+          <button
+            type="button"
+            className={styles.action}
+            onClick={() => void startNow(job.id)}
+            title={paused ? "Try the model again now" : "Skip the wait after your last reply"}
+          >
+            {paused ? "Try now" : "Start now"}
           </button>
         )}
         {job.status === "queued" && (job.queue_position ?? 1) > 1 && (

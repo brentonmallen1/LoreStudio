@@ -47,8 +47,10 @@ from ...models.ai_call import AICallPayload
 from ...models.user import User
 from ...schemas.ai_responses import StructuredResult
 from ...schemas.llm_params import LLMParams, LLMParamsOverride
+from ..job_queue import current_job_id, interrupt_reason
 from .base import LLMProvider
 from .features import FEATURES_BY_ID, feature_budget
+from .gate import cooldown_for, model_gate
 from .ollama import StreamMetrics, _strip_json_fencing, extract_thoughts, ollama_provider, strip_thoughts
 from .prompts.core import CORE_SYSTEM_PROMPT, class_contract
 from .prompts.who_they_are import CARE_RULES, MARKER
@@ -165,6 +167,12 @@ class AIGateway:
         (review §1.5). Tests can now hand in a fake without patching a module global.
         """
         self.provider = provider or ollama_provider
+
+    def _turn(self, user: User):
+        """The model gate (doc 21 P3): a job's call waits its turn and gives way to a reply;
+        a reply goes at once, and starts the cool-down when it ends."""
+        job_id = current_job_id.get()
+        return model_gate.job(job_id) if job_id else model_gate.live(cooldown_for(user))
 
     def _refuse_if_disabled(self, user: User) -> None:
         if (user.settings or {}).get("ai", {}).get("enabled") is False:
@@ -283,26 +291,28 @@ class AIGateway:
         _logged = False  # guard against finally running more than once
 
         try:
-            async for chunk in self.provider.chat_stream_with_metrics(
-                messages,
-                system_prompt,
-                temperature=params.temperature,
-                top_p=params.top_p,
-                top_k=params.top_k,
-                thinking_enabled=params.thinking_enabled,
-                num_ctx=params.num_ctx,
-                base_url=user_url,
-                model=user_model,
-            ):
-                if isinstance(chunk, StreamMetrics):
-                    metrics = chunk
-                else:
-                    full_response.append(chunk)
-                    yield chunk
+            async with self._turn(user):
+                async for chunk in self.provider.chat_stream_with_metrics(
+                    messages,
+                    system_prompt,
+                    temperature=params.temperature,
+                    top_p=params.top_p,
+                    top_k=params.top_k,
+                    thinking_enabled=params.thinking_enabled,
+                    num_ctx=params.num_ctx,
+                    base_url=user_url,
+                    model=user_model,
+                ):
+                    if isinstance(chunk, StreamMetrics):
+                        metrics = chunk
+                    else:
+                        full_response.append(chunk)
+                        yield chunk
         except (asyncio.CancelledError, GeneratorExit):
-            # The author hit stop, or the browser went away. Half a response is still a
-            # call that happened, and Chronicle should say so.
+            # The author hit stop, or the browser went away, or a job made way for a reply.
+            # Half a response is still a call that happened, and Chronicle should say so.
             status = "cancelled"
+            error = _why_stopped()
             raise
         except Exception as exc:
             status = "error"
@@ -371,26 +381,29 @@ class AIGateway:
         schema = decoding_schema(response_model)
 
         try:
-            raw_text, metrics = await self.provider.generate_structured(
-                messages,
-                system_prompt,
-                temperature=params.temperature,
-                top_p=params.top_p,
-                top_k=params.top_k,
-                num_ctx=params.num_ctx,
-                base_url=user_url,
-                model=user_model,
-                response_schema=schema,
-                thinking_enabled=params.thinking_enabled,
-            )
+            async with self._turn(user):
+                raw_text, metrics = await self.provider.generate_structured(
+                    messages,
+                    system_prompt,
+                    temperature=params.temperature,
+                    top_p=params.top_p,
+                    top_k=params.top_k,
+                    num_ctx=params.num_ctx,
+                    base_url=user_url,
+                    model=user_model,
+                    response_schema=schema,
+                    thinking_enabled=params.thinking_enabled,
+                )
         except asyncio.CancelledError:
-            # Stopped mid-call (a job's Stop). CancelledError is not an Exception, so without
-            # this the call happened and left no trace in the Chronicle; `stream` logs its own.
+            # Stopped mid-call (a job's Stop, or making way for a reply). CancelledError is
+            # not an Exception, so without this the call happened and left no trace in the
+            # Chronicle; `stream` logs its own.
             stopped = AICallResult(
                 content="",
                 latency_ms=int((time.monotonic() - start_time) * 1000),
                 model=user_model or self.provider.model,
                 status="cancelled",
+                error=_why_stopped(),
             )
             self._log_call(context, stopped, db, params, messages, system_prompt, response_format=schema)
             raise
@@ -551,6 +564,12 @@ class AIGateway:
             # Logging must never break the AI call itself
             logger.exception("failed to record AI call for feature=%s", context.feature)
             db.rollback()
+
+
+def _why_stopped() -> str | None:
+    """A job's call cancelled to make way for a reply says so in the Chronicle."""
+    job_id = current_job_id.get()
+    return "Made way for a reply" if job_id and interrupt_reason(job_id) == "yield" else None
 
 
 ai_gateway = AIGateway()

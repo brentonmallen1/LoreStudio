@@ -69,6 +69,12 @@ describe("jobs", () => {
       "Reading chapter 3 · 3 of 12",
     );
     expect(jobLine(job({ cancel_requested: true }), T0)).toBe("Stopping after this step");
+    expect(
+      jobLine(
+        job({ status: "queued", queue_position: 1, waiting: "Waiting: starts 41 s after your last reply" }),
+        T0,
+      ),
+    ).toBe("Waiting: starts 41 s after your last reply · 1st in line");
     expect(jobLine(job({ status: "queued", queue_position: 2 }), T0)).toBe("Waiting · 2nd in line");
     expect(
       jobLine(job({ status: "queued", queue_position: 1, step_label: "Paused for your reply" }), T0),
@@ -114,6 +120,7 @@ describe("jobs", () => {
   it("words the count and the tab title", () => {
     expect(countLabel(1)).toBe("1 job running");
     expect(countLabel(3)).toBe("3 jobs running");
+    expect(countLabel(1, true)).toBe("1 job waiting");
     expect(ordinal(1)).toBe("1st");
     expect(ordinal(12)).toBe("12th");
     expect(ordinal(23)).toBe("23rd");

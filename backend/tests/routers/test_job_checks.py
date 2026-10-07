@@ -44,11 +44,12 @@ def test_a_check_is_one_job_however_often_it_is_asked_for(client, db_session, te
 
 def test_a_check_that_fails_says_why(client, db_session, test_user, mock_ai_gateway):
     story, _nodes = build_findings_story(db_session, test_user)
-    mock_ai_gateway(should_fail=True, error_message="Error reaching LLM: connection refused")
+    # (A model that is not answering pauses the lane instead: tests/services/test_model_gate.py.)
+    mock_ai_gateway(should_fail=True, error_message="The answer was not JSON")
     client.post(f"/api/stories/{story.id}/checks/themes-is-wrong", headers=H)
     client.post(f"/api/stories/{story.id}/checks/theme-tracker", headers=H)
     job = _run_next(db_session)
-    assert job.status == "error" and "Error reaching LLM" in job.error
+    assert job.status == "error" and "not JSON" in job.error
 
 
 def test_the_pass_runs_as_a_job_and_resumes_where_it_was(client, db_session, test_user, mock_ai_gateway):

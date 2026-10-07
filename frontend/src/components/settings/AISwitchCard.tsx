@@ -11,8 +11,18 @@ const CEILINGS = [
   { value: 65536, label: "64K (large VRAM)" },
 ];
 
+/** How long the model's jobs wait after the author's last reply (doc 21 P3). */
+const COOLDOWNS = [
+  { value: 0, label: "No wait" },
+  { value: 15, label: "15 seconds" },
+  { value: 30, label: "30 seconds" },
+  { value: 60, label: "1 minute" },
+  { value: 120, label: "2 minutes" },
+  { value: 300, label: "5 minutes" },
+];
+
 /**
- * The AI master switch and the context ceiling (doc 06 §7).
+ * The AI master switch, the context ceiling (doc 06 §7) and the jobs' cool-down (doc 21).
  *
  * Off is not cosmetic: every AI surface disappears and the gateway refuses calls, so a
  * stale tab or a keyboard shortcut cannot reach a model after you have said no.
@@ -21,13 +31,18 @@ export default function AISwitchCard() {
   const available = useAIAvailable();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [ceiling, setCeiling] = useState<number>(0);
+  const [cooldown, setCooldown] = useState<number>(60);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     let live = true;
     api
       .getAISettings()
-      .then((s) => live && setEnabled(s.enabled))
+      .then((s) => {
+        if (!live) return;
+        setEnabled(s.enabled);
+        setCooldown(s.jobs_cooldown_seconds ?? 60);
+      })
       .catch(() => live && setEnabled(true));
     api
       .getLLMSettings()
@@ -46,6 +61,11 @@ export default function AISwitchCard() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function saveCooldown(next: number) {
+    setCooldown(next);
+    await api.updateAISettings({ jobs_cooldown_seconds: next });
   }
 
   async function saveCeiling(next: number) {
@@ -92,6 +112,29 @@ export default function AISwitchCard() {
           Each feature asks for the window it needs: a whole-manuscript analysis asks for more than a scene
           chat. This caps every request, whatever the model would allow, for machines where a large window
           does not fit in VRAM.
+        </p>
+      </div>
+
+      <div className={styles.field}>
+        <label className={styles.label}>After a reply, jobs wait</label>
+        <select
+          aria-label="After a reply, jobs wait"
+          className={styles.input}
+          value={COOLDOWNS.some((c) => c.value === cooldown) ? cooldown : 60}
+          disabled={enabled === false}
+          onChange={(e) => void saveCooldown(Number(e.target.value))}
+        >
+          {COOLDOWNS.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+        <p className={styles.sectionHint}>
+          The model answers one thing at a time, and your replies always go first: a reply stops the job that
+          is running, which carries on from where it was. After your last reply, jobs wait this long before
+          starting again, so a conversation is never held up between turns. Start now, in Jobs, skips the
+          wait.
         </p>
       </div>
     </div>

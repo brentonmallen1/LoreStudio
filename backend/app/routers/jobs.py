@@ -27,10 +27,13 @@ from ..services.job_queue import (
     enqueue,
     handler,
     mark_seen,
+    next_queued,
     request_cancel,
     retry,
     run_next,
+    wake,
 )
+from ..services.llm.gate import model_gate
 from ..services.scene_summaries import refresh_scene_summaries
 
 router = APIRouter()
@@ -80,12 +83,23 @@ def _out(jobs: list[AIJob], db: Session) -> list[JobOut]:
             .all()
         )
         places.update({jid: i + 1 for i, (jid,) in enumerate(queued)})
+    next_model = next_queued(db, "model") if any(j.lane == "model" and j.status == "queued" for j in jobs) else None
     return [
         JobOut.model_validate(j).model_copy(
-            update={"queue_position": places.get(j.id), "stop": _stop_mode(j.kind)},
+            update={"queue_position": places.get(j.id), "stop": _stop_mode(j.kind), **_waiting(j, next_model)},
         )
         for j in jobs
     ]
+
+
+def _waiting(job: AIJob, next_model: str | None) -> dict:
+    """The gate's word on a model job: the next one in line says why it waits (doc 21 P3)."""
+    if job.lane != "model" or job.status not in ACTIVE:
+        return {}
+    if job.status == "queued" and job.id != next_model:
+        return {}
+    reason = model_gate.waiting_reason(job.id)
+    return {"waiting": reason, "can_start_now": bool(reason) and "reply goes first" not in reason}
 
 
 def _stop_mode(kind: str) -> str:
@@ -153,6 +167,18 @@ def cancel_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(
 def run_job_next(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """Move a queued job to the front of its lane."""
     return _out([run_next(db, _own_job(job_id, db, user))], db)[0]
+
+
+@router.post("/jobs/{job_id}/start-now", response_model=JobOut)
+def start_job_now(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Skip the cool-down after a reply (or a pause) for this job: it goes to the front and
+    starts. A reply that comes while it runs still goes first."""
+    job = _own_job(job_id, db, user)
+    if job.status in ACTIVE and job.lane == "model":
+        run_next(db, job)
+        model_gate.start_now(job.id)
+        wake("model")
+    return _out([job], db)[0]
 
 
 @router.post("/jobs/{job_id}/retry", response_model=JobOut, status_code=201)

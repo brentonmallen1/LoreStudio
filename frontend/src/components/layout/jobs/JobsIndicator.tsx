@@ -79,6 +79,8 @@ export default function JobsIndicator() {
   const count = jobs.filter((j) => isActive(j) && !j.quiet).length + live.length;
   const unseen = jobs.filter(isUnseen);
   const ai = live.length > 0 || running.some((j) => j.lane !== "local");
+  // Queued and nothing started: a reply going first, or the cool-down after one.
+  const idle = live.length === 0 && running.every((j) => j.quiet);
 
   // D13: "(2) LoreStudio", only when the author asked for it.
   useEffect(() => {
@@ -109,7 +111,7 @@ export default function JobsIndicator() {
 
   const failed = unseen.some((j) => j.status === "error");
   const label =
-    count > 0 ? countLabel(count) : unseen.length ? `${unseen.length} finished, not yet seen` : "Jobs";
+    count > 0 ? countLabel(count, idle) : unseen.length ? `${unseen.length} finished, not yet seen` : "Jobs";
   const close = () => setOpen(false);
   // Finished before this window opened, or while the author watched (and had the toast).
   const awayTitle = finished.some(
@@ -131,12 +133,12 @@ export default function JobsIndicator() {
         aria-label={`Jobs: ${label}`}
         title={`Jobs: ${label}`}
       >
-        {count > 0 ? (
+        {count > 0 && !idle ? (
           <span className={`${styles.ring} ${ai ? styles.ringAi : styles.ringLocal}`} aria-hidden />
         ) : (
           <Activity size={15} aria-hidden />
         )}
-        {count > 0 && <span className={styles.triggerText}>{countLabel(count)}</span>}
+        {count > 0 && <span className={styles.triggerText}>{countLabel(count, idle)}</span>}
         {count === 0 && unseen.length > 0 && (
           <span className={`${styles.dot} ${failed ? styles.dotFailed : ""}`} aria-hidden />
         )}

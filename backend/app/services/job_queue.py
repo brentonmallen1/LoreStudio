@@ -179,6 +179,11 @@ def wake(lane: str) -> None:
         loop.call_soon_threadsafe(event.set)
 
 
+def interrupt_reason(job_id: str) -> str | None:
+    """Why a running job's handler is being interrupted, while it unwinds."""
+    return _INTERRUPTS.get(job_id)
+
+
 def interrupt(job_id: str, reason: Literal["stop", "yield"]) -> bool:
     """Cancel a running handler's task: the author's Stop, or making way for a reply."""
     entry = RUNNING.get(job_id)
@@ -244,6 +249,26 @@ def mark_seen(db: Session, user_id: str, job_ids: list[str]) -> int:
     return n
 
 
+def next_queued(db: Session, lane: str) -> str | None:
+    """The id of the job that runs next in the lane."""
+    return (
+        db.query(AIJob.id)
+        .filter(AIJob.status == "queued", AIJob.lane == lane)
+        .order_by(AIJob.position, AIJob.created_at)
+        .limit(1)
+        .scalar()
+    )
+
+
+def _model_may_start(db: Session) -> bool:
+    """Replies first: nothing new starts on the model while one runs, during the cool-down
+    after it, or while the lane is paused, unless the author said Start now."""
+    from .llm.gate import model_gate
+
+    next_id = next_queued(db, "model")
+    return next_id is None or model_gate.may_start(next_id)
+
+
 def _claim_next(db: Session, lane: str = "model") -> AIJob | None:
     """
     The first queued job in the lane, marked running so a second worker cannot take it.
@@ -252,13 +277,7 @@ def _claim_next(db: Session, lane: str = "model") -> AIJob | None:
     workers (or a cancel landing in between) both act on the same job.
     """
     while True:
-        job_id = (
-            db.query(AIJob.id)
-            .filter(AIJob.status == "queued", AIJob.lane == lane)
-            .order_by(AIJob.position, AIJob.created_at)
-            .limit(1)
-            .scalar()
-        )
+        job_id = next_queued(db, lane)
         if job_id is None:
             return None
         claimed = (
@@ -276,6 +295,21 @@ def _requeue_front(db: Session, job: AIJob, why: str) -> None:
     job.started_at = None
     job.position = _front(db, job.lane)
     job.step_label = why
+
+
+_UNREACHABLE = ("error reaching llm", "connecterror", "connection refused", "all connection attempts failed")
+
+
+def _pause_reason(exc: Exception) -> str | None:
+    """Why the model lane should wait rather than fail the job, or None for a real failure."""
+    from .llm.gateway import AIDisabledError
+
+    if isinstance(exc, AIDisabledError):
+        return "Held: the Assistant is switched off in Settings › AI."
+    text = f"{type(exc).__name__}: {exc}".lower()
+    if any(word in text for word in _UNREACHABLE):
+        return "Paused: the model is not answering."
+    return None
 
 
 async def run_job(job: AIJob, db: Session) -> None:
@@ -326,8 +360,17 @@ async def run_job(job: AIJob, db: Session) -> None:
         # Logging first raised a second error out of here and left the job "running"
         # for good.
         db.rollback()
-        logger.exception("job %s (%s) failed", job.id, job.kind)
         db.refresh(job)
+        if job.lane == "model" and (why := _pause_reason(exc)):
+            # The model is not there, or AI is off: the lane waits instead of failing every
+            # job in turn (doc 21 P3), and this one goes back to the front.
+            from .llm.gate import model_gate
+
+            model_gate.pause(why)
+            _requeue_front(db, job, why)
+            db.commit()
+            return
+        logger.exception("job %s (%s) failed", job.id, job.kind)
         job.status = "error"
         job.error = str(exc)[:2000]
         job.step_label = None
@@ -335,6 +378,10 @@ async def run_job(job: AIJob, db: Session) -> None:
         RUNNING.pop(job.id, None)
         _INTERRUPTS.pop(job.id, None)
         current_job_id.reset(token)
+        if job.lane == "model":
+            from .llm.gate import model_gate
+
+            model_gate.finished(job.id)
     job.finished_at = _now()
     db.commit()
 
@@ -346,9 +393,11 @@ async def worker_loop(engine: Engine, lane: Lane = "model") -> None:
     _WAKE[lane] = (event, asyncio.get_running_loop())
     while True:
         event.clear()  # before looking, so a job queued while we look still wakes the wait
+        gated = False
         try:
             with Session(engine) as db:
-                job = _claim_next(db, lane)
+                gated = lane == "model" and not _model_may_start(db)
+                job = None if gated else _claim_next(db, lane)
                 if job:
                     await run_job(job, db)
                     continue
@@ -357,7 +406,8 @@ async def worker_loop(engine: Engine, lane: Lane = "model") -> None:
         except Exception:
             logger.exception("job worker (%s) hit an error; continuing", lane)
         try:
-            await asyncio.wait_for(event.wait(), IDLE_SECONDS)
+            # A gated model lane looks again soon: the cool-down ends by the clock, not an event.
+            await asyncio.wait_for(event.wait(), 0.5 if gated else IDLE_SECONDS)
         except TimeoutError:
             pass
 
