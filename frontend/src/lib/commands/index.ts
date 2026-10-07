@@ -33,6 +33,7 @@ import "./numbers";
 import "./sessions";
 import "./appearance";
 import "./series";
+import "./jobs";
 import { SHORTCUTS, formatCombo } from "../keyboard/shortcuts";
 import { toolsApi } from "../../api/tools";
 import { STORY_ROUTES, sectionModes, sectionPath, storyPath } from "../routes";

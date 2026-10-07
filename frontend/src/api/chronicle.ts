@@ -2,7 +2,7 @@ import { BASE, getToken, request } from "./request";
 import type { AIJob } from "./jobs";
 import type { ActivityLog } from "../types";
 
-export type TimelineFilter = "all" | "problems" | "results" | "analyses" | "starred";
+export type TimelineFilter = "all" | "running" | "problems" | "results" | "analyses" | "starred";
 
 export interface TimelineQuery {
   story_id?: string;

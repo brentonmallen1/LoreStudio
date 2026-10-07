@@ -7,7 +7,7 @@ export type ChronicleItem = { kind: "job" | "log" | "session"; id: string };
 
 type Key = "item" | "filter" | "q" | "feature";
 
-const FILTERS: TimelineFilter[] = ["all", "problems", "results", "analyses", "starred"];
+const FILTERS: TimelineFilter[] = ["all", "running", "problems", "results", "analyses", "starred"];
 
 export function itemParam(kind: ChronicleItem["kind"], id: string): string {
   return `${kind}:${id}`;

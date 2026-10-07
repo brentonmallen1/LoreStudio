@@ -17,20 +17,10 @@ import {
   noCallsNote,
   plainText,
 } from "./timelineFormat";
-import { sectionPath } from "../../lib/routes";
+import { jobOpen } from "../../lib/jobs/jobs";
 import styles from "./Timeline.module.css";
 
 const BUSY_MS = 2000;
-
-/** Where the author goes to act on what a job produced. */
-function followUp(job: AIJob): { to: string; label: string } | null {
-  if (!job.story_id || job.status !== "done") return null;
-  if (job.kind === "codex-suggest")
-    return { to: `/stories/${job.story_id}/proposals`, label: "Review the proposals" };
-  if (job.kind === "codex-sync")
-    return { to: sectionPath(job.story_id, "lorebook", "connections"), label: "Open the graph" };
-  return null;
-}
 
 /**
  * A job, opened: what it was asked to do, what came of it, and every call it made.
@@ -74,7 +64,7 @@ export default function JobDetail({ jobId }: { jobId: string }) {
   const outcome = jobOutcome(job);
   const params = jobParams(job);
   const duration = jobDuration(job);
-  const next = followUp(job);
+  const next = jobOpen(job);
   const aiCalls = calls.filter((c) => c.category === "ai");
   const otherRows = calls.filter((c) => c.category !== "ai");
 
@@ -95,7 +85,12 @@ export default function JobDetail({ jobId }: { jobId: string }) {
             className={styles.stopBtn}
             onClick={async () => setJob(await jobsApi.cancel(job.id))}
           >
-            <Square size={11} /> {job.status === "running" ? "Stop after this step" : "Cancel"}
+            <Square size={11} />{" "}
+            {job.status !== "running"
+              ? "Remove from the queue"
+              : job.stop === "now"
+                ? "Stop"
+                : "Stop after this step"}
           </button>
         )}
       </p>

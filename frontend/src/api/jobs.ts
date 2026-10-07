@@ -2,7 +2,7 @@ import { request } from "./request";
 import type { ActivityLog } from "../types";
 
 /**
- * Long-running AI work (doc 06 §8). Kept out of client.ts (size budget).
+ * Long-running work, AI or local (doc 06 §8, doc 21 Jobs). Kept out of client.ts (size budget).
  */
 export interface AIJob {
   id: string;
@@ -20,21 +20,46 @@ export interface AIJob {
   created_at: string;
   started_at: string | null;
   finished_at: string | null;
+  /** model | local (doc 21): local work never waits behind the model. */
+  lane?: "model" | "local";
+  /** author | auto, and for automatic work when it ran ("when the story opened"). */
+  origin?: "author" | "auto";
+  origin_note?: string | null;
+  /** Automatic work: in the list and the Chronicle, never a toast. */
+  quiet?: boolean;
+  /** What it is doing now, or why it is waiting. */
+  step_label?: string | null;
+  /** When the Jobs list showed it finished; until then it is unseen. */
+  seen_at?: string | null;
+  retry_of?: string | null;
+  story_title?: string | null;
+  /** 1 for the next to run in its lane. */
+  queue_position?: number | null;
+  cancel_requested?: boolean;
+  /** now | between: Stop stops it at once, or after the step in hand. */
+  stop?: "now" | "between";
 }
 
 export const ACTIVE_JOB_STATUSES = ["queued", "running"];
 
 export const jobsApi = {
-  list: (params: { storyId?: string; activeOnly?: boolean } = {}) => {
+  list: (params: { storyId?: string; activeOnly?: boolean; lane?: string; sinceHours?: number } = {}) => {
     const query = new URLSearchParams();
     if (params.storyId) query.set("story_id", params.storyId);
     if (params.activeOnly) query.set("active_only", "true");
+    if (params.lane) query.set("lane", params.lane);
+    if (params.sinceHours !== undefined) query.set("since_hours", String(params.sinceHours));
     return request<AIJob[]>(`/jobs${query.toString() ? `?${query}` : ""}`);
   },
   get: (jobId: string) => request<AIJob>(`/jobs/${jobId}`),
   /** Every AI call and log row the job wrote, oldest first. */
   activity: (jobId: string) => request<ActivityLog[]>(`/jobs/${jobId}/activity`),
   cancel: (jobId: string) => request<AIJob>(`/jobs/${jobId}/cancel`, { method: "POST" }),
+  runNext: (jobId: string) => request<AIJob>(`/jobs/${jobId}/run-next`, { method: "POST" }),
+  retry: (jobId: string) => request<AIJob>(`/jobs/${jobId}/retry`, { method: "POST" }),
+  /** The Jobs list showed these finished: no longer unseen in any window. */
+  seen: (ids: string[]) =>
+    request<{ marked: number }>(`/jobs/seen`, { method: "POST", body: JSON.stringify({ ids }) }),
   /** Queue a summary refresh for a whole manuscript. */
   sceneSummaries: (storyId: string, forceRefresh = false) =>
     request<AIJob>(`/stories/${storyId}/jobs/scene-summaries`, {

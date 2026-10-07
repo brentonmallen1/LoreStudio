@@ -12,6 +12,7 @@ import styles from "./Timeline.module.css";
 
 const FILTERS: { id: TimelineFilter; label: string; hint: string; ai?: boolean }[] = [
   { id: "all", label: "Everything", hint: "Every call, job and analysis, newest first" },
+  { id: "running", label: "Running and queued", hint: "Jobs still going, as in the header's Jobs list" },
   { id: "problems", label: "Problems", hint: "Calls and jobs that failed or were stopped" },
   { id: "results", label: "Results", hint: "Summaries, analyses and brainstorms worth keeping", ai: true },
   { id: "analyses", label: "Analyses", hint: "Every check and analysis that ran, kept in full" },
@@ -20,6 +21,7 @@ const FILTERS: { id: TimelineFilter; label: string; hint: string; ai?: boolean }
 
 const EMPTY: Record<TimelineFilter, string> = {
   all: "Nothing has happened in this story yet. AI calls, background jobs and analyses will appear here as they run.",
+  running: "Nothing is running or queued.",
   problems: "No problems. Nothing failed and nothing was stopped.",
   results: "No summaries or analyses yet.",
   analyses: "No checks have run yet. Findings runs them, and every run is kept here.",

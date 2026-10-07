@@ -29,6 +29,9 @@ class JobOut(BaseModel):
     story_title: str | None = None
     #: 1 for the next to run in its lane; None unless queued.
     queue_position: int | None = None
+    cancel_requested: bool = False
+    #: now | between: whether Stop stops it at once or after the step in hand.
+    stop: str = "between"
 
     model_config = {"from_attributes": True}
 

@@ -407,7 +407,8 @@ def list_timeline(
     results: bool = Query(False, description="Summaries, analyses and brainstorms"),
     analyses: bool = Query(False, description="Every check and analysis run, kept whole"),
     feature: str | None = Query(None, description="One feature's rows, e.g. pacing-analysis"),
-    exclude_ai: bool = Query(False, description="Writer mode: no AI calls or jobs"),
+    exclude_ai: bool = Query(False, description="Writer mode: no AI calls, only local jobs"),
+    running: bool = Query(False, description="Only the jobs running or queued"),
     q: str | None = Query(None, description="Text in a row's description or a job's label"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=500),
@@ -423,6 +424,7 @@ def list_timeline(
         analyses=analyses,
         feature=feature or None,
         exclude_ai=exclude_ai,
+        running=running,
         text=(q or "").strip() or None,
     )
     entries, total = timeline(db, user.id, filters, page=page, page_size=page_size)

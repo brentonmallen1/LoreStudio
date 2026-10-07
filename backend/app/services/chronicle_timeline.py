@@ -15,7 +15,7 @@ still carrying the id of the job it came from.
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy import func, or_
+from sqlalchemy import false, func, or_
 from sqlalchemy.orm import Query, Session
 
 from ..models.activity_log import ActivityLog
@@ -54,14 +54,16 @@ class TimelineFilters:
     analyses: bool = False
     #: One feature's runs only ("pacing-analysis").
     feature: str | None = None
-    #: Writer mode: nothing AI-made — no AI calls, no jobs.
+    #: Writer mode: nothing AI-made — no AI calls, only local jobs.
     exclude_ai: bool = False
+    #: Running and queued (doc 21 D8): the jobs still going, nothing else.
+    running: bool = False
     text: str | None = None
 
     @property
     def nested(self) -> bool:
         """Calls sit inside their jobs only when nothing narrows the list."""
-        return not (self.problems or self.starred or self.results or self.analyses or self.feature)
+        return not (self.problems or self.starred or self.results or self.analyses or self.feature or self.running)
 
 
 @dataclass
@@ -79,6 +81,8 @@ def _job_id_of():
 
 def _logs(db: Session, user_id: str, f: TimelineFilters) -> Query:
     q = db.query(ActivityLog).filter(ActivityLog.user_id == user_id)
+    if f.running:
+        return q.filter(false())
     if f.story_id:
         q = q.filter(ActivityLog.story_id == f.story_id)
     if f.exclude_ai:
@@ -116,6 +120,8 @@ def _jobs(db: Session, user_id: str, f: TimelineFilters) -> Query | None:
         q = q.filter(AIJob.story_id == f.story_id)
     if f.problems:
         q = q.filter(AIJob.status.in_(PROBLEM_JOB_STATUSES))
+    if f.running:
+        q = q.filter(AIJob.status.in_(("queued", "running")))
     if f.text:
         q = q.filter(or_(AIJob.label.ilike(f"%{f.text}%"), AIJob.error.ilike(f"%{f.text}%")))
     return q

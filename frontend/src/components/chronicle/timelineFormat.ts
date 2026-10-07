@@ -201,6 +201,8 @@ export function jobOutcome(job: AIJob): { sentence: string; details: [string, st
         ].filter(([, v]) => v !== "0") as [string, string][],
       };
     }
+    case "numbers-backfill":
+      return { sentence: `Measured ${plural(n(r, "measured"), "earlier version")}.`, details: [] };
     default:
       return {
         sentence: "",

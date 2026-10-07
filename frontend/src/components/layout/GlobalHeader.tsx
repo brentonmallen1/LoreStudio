@@ -19,6 +19,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useAIAvailable } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
+import JobsIndicator from "./jobs/JobsIndicator";
 import InterfaceSizeButtons from "../settings/InterfaceSizeButtons";
 import HeaderTitle from "./HeaderTitle";
 import { SHORTCUTS, formatCombo, isTypingTarget, matchesCombo } from "../../lib/keyboard/shortcuts";
@@ -278,6 +279,7 @@ export default function GlobalHeader() {
         )}
 
         <div className={styles.right}>
+          <JobsIndicator />
           <UndoRedoButtons undoRedo={undoRedo} />
           {/* AI Assistant — absent in Writer mode */}
           {aiAvailable && (

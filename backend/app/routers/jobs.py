@@ -80,7 +80,17 @@ def _out(jobs: list[AIJob], db: Session) -> list[JobOut]:
             .all()
         )
         places.update({jid: i + 1 for i, (jid,) in enumerate(queued)})
-    return [JobOut.model_validate(j).model_copy(update={"queue_position": places.get(j.id)}) for j in jobs]
+    return [
+        JobOut.model_validate(j).model_copy(
+            update={"queue_position": places.get(j.id), "stop": _stop_mode(j.kind)},
+        )
+        for j in jobs
+    ]
+
+
+def _stop_mode(kind: str) -> str:
+    spec = JOB_HANDLERS.get(kind)
+    return spec.stop if spec else "between"
 
 
 @router.get("/jobs", response_model=list[JobOut])

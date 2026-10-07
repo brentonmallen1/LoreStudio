@@ -177,3 +177,13 @@ def test_the_api_filters_orders_and_retries(client, db_session, test_user, story
     again = client.post(f"/api/jobs/{first.id}/retry")
     assert again.status_code == 201 and again.json()["retry_of"] == first.id
     assert client.post("/api/jobs/seen", json={"ids": [first.id]}).json() == {"marked": 1}
+
+
+def test_the_chronicle_filters_running_and_queued(client, db_session, test_user, story):
+    _job(db_session, test_user, story, "test-model", "waiting")
+    done = _job(db_session, test_user, story, "test-model", "finished")
+    done.status = "done"
+    db_session.commit()
+    entries = client.get(f"/api/chronicle/timeline?story_id={story.id}&running=true").json()["entries"]
+    assert [e["job"]["label"] for e in entries] == ["waiting"]
+    assert client.get(f"/api/jobs/{done.id}").json()["stop"] == "between"
