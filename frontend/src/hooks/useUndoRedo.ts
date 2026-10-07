@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api/client";
-import { ApiError, MUTATION_EVENT } from "../api/request";
+import { ApiError, MUTATION_EVENT, type MutationEventDetail } from "../api/request";
 import { toolsApi, type UndoResult, type UndoState } from "../api/tools";
 import { useStoryStore } from "../stores/storyStore";
+import { toast, useToastStore } from "../stores/toastStore";
 
 /** Components that keep their own copy of story data listen for this and reload. */
 export const UNDO_APPLIED_EVENT = "ls:undo-applied";
@@ -49,12 +50,19 @@ export function useUndoRedo() {
   const state = storyId ? rawState : EMPTY;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A delete just went through: offer its undo in a toast once the log has it (doc 23 P5).
+  const offerUndo = useRef(false);
+  const runRef = useRef<(kind: "undo" | "redo") => Promise<void>>(async () => {});
 
   const refresh = useCallback(async () => {
     if (!storyId) return;
     try {
       const next = await toolsApi.undoState(storyId);
       setState(next);
+      if (offerUndo.current) {
+        offerUndo.current = false;
+        offerToUndo(storyId, next, () => runRef.current("undo"));
+      }
     } catch {
       setState(EMPTY);
     }
@@ -63,7 +71,8 @@ export function useUndoRedo() {
   useEffect(() => {
     if (storyId) toolsApi.undoState(storyId).then(setState, () => setState(EMPTY));
     let timer: ReturnType<typeof setTimeout> | null = null;
-    const onMutation = () => {
+    const onMutation = (e: Event) => {
+      if ((e as CustomEvent<MutationEventDetail>).detail?.method === "DELETE") offerUndo.current = true;
       if (timer) clearTimeout(timer);
       timer = setTimeout(refresh, 400);
     };
@@ -113,6 +122,10 @@ export function useUndoRedo() {
     }
   }
 
+  useEffect(() => {
+    runRef.current = run;
+  });
+
   return {
     canUndo: state.can_undo,
     canRedo: state.can_redo,
@@ -127,3 +140,20 @@ export function useUndoRedo() {
 }
 
 export type UndoRedoState = ReturnType<typeof useUndoRedo>;
+
+/**
+ * "Deleted character Margaret Holt · Undo", after a delete the log can take back. One undo
+ * offer at a time (a page that offers its own, like a note's, wins), and the button declines
+ * when something else has changed since: it would undo that instead.
+ */
+export function offerToUndo(storyId: string, state: UndoState, undo: () => void) {
+  const label = state.undo_label;
+  if (!state.can_undo || !label?.startsWith("Delete")) return;
+  if (useToastStore.getState().toasts.some((t) => t.action)) return;
+  toast.undoable(label.replace(/^Delete\b/, "Deleted"), async () => {
+    const now = await toolsApi.undoState(storyId).catch(() => EMPTY);
+    if (now.undo_label !== label)
+      return toast.info("Something has changed since. Undo from the header instead");
+    undo();
+  });
+}

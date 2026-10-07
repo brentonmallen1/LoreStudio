@@ -22,7 +22,7 @@ export function getClientId(): string {
  */
 export const MUTATION_EVENT = "ls:mutation";
 
-export type MutationEventDetail = { path: string };
+export type MutationEventDetail = { path: string; method: string };
 
 export function getToken() {
   return localStorage.getItem("ls_token");
@@ -70,7 +70,7 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
 
   const method = (init.method ?? "GET").toUpperCase();
   if (method !== "GET")
-    window.dispatchEvent(new CustomEvent<MutationEventDetail>(MUTATION_EVENT, { detail: { path } }));
+    window.dispatchEvent(new CustomEvent<MutationEventDetail>(MUTATION_EVENT, { detail: { path, method } }));
   if (res.status === 204) return undefined as T;
   return res.json();
 }
