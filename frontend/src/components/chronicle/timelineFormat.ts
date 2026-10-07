@@ -218,7 +218,8 @@ export function jobOutcome(job: AIJob): { sentence: string; details: [string, st
       return { sentence: `Measured ${plural(n(r, "measured"), "earlier version")}.`, details: [] };
     default:
       return {
-        sentence: "",
+        // Automatic work's housekeeping says what it did in a sentence (doc 22).
+        sentence: typeof r.summary === "string" ? `${r.summary.replace(/\.$/, "")}.` : "",
         details: Object.entries(r)
           .filter(([, v]) => typeof v === "number" || typeof v === "string")
           .map(([k, v]) => [k.replace(/_/g, " "), String(v)]),

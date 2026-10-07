@@ -73,9 +73,9 @@ export default function PrivacySection() {
         Chronicle › Changes.
       </p>
       <p className={styles.sectionHint}>
-        Prompts and responses are kept for the number of days set by <code>AI_PAYLOAD_RETENTION_DAYS</code>{" "}
-        (90 by default), then pruned automatically. The summary of each call (feature, model, tokens, status)
-        is kept, so the history of what ran stays complete either way.
+        Prompts and responses are kept for the number of days set under{" "}
+        <a href="#automatic">Automatic work</a> (90 by default), then deleted. The summary of each call
+        (feature, model, tokens, status) is kept, so the history of what ran stays complete either way.
       </p>
       <button className={styles.dangerBtn} onClick={purge} disabled={purging}>
         {purging ? "Deleting…" : "Delete stored prompts and responses now"}

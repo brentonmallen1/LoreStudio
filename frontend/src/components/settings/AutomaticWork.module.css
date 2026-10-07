@@ -1,0 +1,109 @@
+/* Settings › Automatic work (doc 22). The cards, fields and switches are Settings.module.css's. */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.description {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--color-text-subtle);
+}
+
+.cadence {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.failed {
+  color: var(--color-danger);
+}
+
+/* A task that is off or paused: still readable, plainly not running. */
+.off .cadence,
+.off .title {
+  color: var(--color-text-muted);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.link {
+  color: var(--color-text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.link:hover {
+  color: var(--color-text);
+}
+
+.runBtn {
+  min-height: 24px;
+  padding: 0.2rem 0.65rem;
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.runBtn:hover {
+  border-color: var(--color-text-muted);
+}
+
+.number {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.numberInput {
+  width: 6.5rem;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  text-align: right;
+}
+
+.unit {
+  min-width: 4.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}

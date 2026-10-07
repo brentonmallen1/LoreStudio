@@ -41,7 +41,9 @@ Writer mode lists local work only: the local checks, measurements, the Codex syn
 
 ## Automatic work
 
-Some jobs you did not ask for: the reading Numbers takes when you open a story after a few hours away, or with a version you save. While one runs, the header shows it like any other job, since it is your computer doing the work. Its finishing is **quiet**: it is listed, marked "automatic" and in the Chronicle, but never a note on screen or a dot in the header.
+Some jobs you did not ask for: the reading Numbers takes when you open a story after a few hours away or with a version you save, the database backup, and the tidying of old records (the undo history, what was sent to the model, old automatic jobs). While one runs, the header shows it like any other job, since it is your computer doing the work. Its finishing is **quiet**: it is listed, marked "automatic" and in the Chronicle, but never a note on screen or a dot in the header.
+
+**Settings › Automatic work** lists all of it: what each does, when it runs, when it last ran and what it did. Each has a switch and its own settings (how often, how many to keep), and one switch pauses them all. Choosing "automatic" on a job opens it.
 
 ## In the Chronicle
 

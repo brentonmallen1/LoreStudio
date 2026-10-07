@@ -9,6 +9,14 @@ export interface SystemStatus {
   version: string;
   env: string;
   database: { backend: string; revision: string | null; foreign_keys: boolean | null };
-  backups: { enabled: boolean; path: string; keep: number; count: number; latest: DbBackupInfo | null };
+  backups: {
+    enabled: boolean;
+    path: string;
+    keep: number;
+    /** How often it runs, from Settings › Automatic work. */
+    every_hours?: number;
+    count: number;
+    latest: DbBackupInfo | null;
+  };
   insecure_defaults: string[];
 }

@@ -18,6 +18,7 @@ import type { ThemeName, ColorMode } from "../stores/uiStore";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
 import type { LLMSettings, ImageTokenBudget } from "../types";
+import AutomaticWorkSection from "../components/settings/AutomaticWorkSection";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
@@ -633,8 +634,7 @@ export default function SettingsPage() {
             <BackupDefaultsCard />
             <DatabaseBackupCard isAdmin={!!user?.is_admin} />
           </section>
-
-          {/* Account */}
+          <AutomaticWorkSection />
           <section className={styles.section} id="privacy">
             <h2 className={styles.sectionLabel}>Privacy</h2>
             <PrivacySection />

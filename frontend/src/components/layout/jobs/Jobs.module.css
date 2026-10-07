@@ -251,6 +251,22 @@
   color: var(--color-text-muted);
 }
 
+/* "automatic": opens Settings › Automatic work, where it is scheduled (doc 22). */
+.autoLink {
+  padding: 0;
+  font: inherit;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.autoLink:hover {
+  color: var(--color-text);
+}
+
 .bar {
   display: block;
   height: 3px;

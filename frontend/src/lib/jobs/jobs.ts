@@ -39,6 +39,8 @@ export function finishedSince(
 export function jobOpen(job: AIJob): { to: string; label: string } | null {
   const id = job.story_id;
   // An import's reading has no story yet: Open goes back to the import.
+  // Housekeeping has no story: Open goes to where it is set (doc 22).
+  if (job.kind.startsWith("auto-")) return { to: "/settings#automatic", label: "Automatic work" };
   if (job.kind === "import-enrich")
     return job.status === "done" ? { to: "/?import=1", label: "Back to the import" } : null;
   if (!id || job.status !== "done") return null;

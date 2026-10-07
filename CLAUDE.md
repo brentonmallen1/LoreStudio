@@ -205,6 +205,13 @@ its window closes (`sse.carry_on`); Stop posts `/streams/{id}/stop`.
 Replies in flight are listed by the gate (`GET /jobs/live`), so every window, a popped-out panel
 included, shows them by name and can stop them (`POST /jobs/live/{id}/stop`, at the next chunk).
 
+### Automatic work (doc 22)
+Everything LoreStudio does by itself is a task in `services/automatic.py` (`TASKS`: what, when,
+options with defaults), and Settings › Automatic work draws itself from it. New background work
+registers there: check `automatic.is_on(db, id)` before it runs and `record_run` after, and if it
+is housekeeping, give it a `job_kind` so the scheduler (`automatic_loop`) queues it as a quiet
+local job. The settings are app-wide (`app_settings`), changed by an admin; one switch pauses all.
+
 ### Writer and Studio modes
 `user.settings.ui.mode` is `"writer"` or `"studio"` (`frontend/src/lib/mode.ts`: `useMode()`,
 `getMode()`, `setMode()`; saved through `PATCH /api/auth/me`). **Writer mode renders no AI

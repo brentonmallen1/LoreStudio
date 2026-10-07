@@ -8,7 +8,7 @@ interface Props {
   isAdmin: boolean;
 }
 
-/** Nightly whole-database backup status, shown inside Settings › Backups. */
+/** Whole-database backup status, shown inside Settings › Backups; its schedule is Automatic work's. */
 export default function DatabaseBackupCard({ isAdmin }: Props) {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [backingUp, setBackingUp] = useState(false);
@@ -36,8 +36,9 @@ export default function DatabaseBackupCard({ isAdmin }: Props) {
     <div className={styles.card}>
       <h3 className={styles.settingGroupLabel}>Database backup</h3>
       <p className={styles.sectionHint}>
-        A nightly copy of the whole database, independent of story snapshots. Restore by replacing the
-        database file (see docs/upgrading.md).
+        A copy of the whole database, independent of story snapshots, on the schedule set under{" "}
+        <a href="#automatic">Automatic work</a>. Restore by replacing the database file (see
+        docs/upgrading.md).
       </p>
       {status ? (
         <div className={styles.backupForm}>
@@ -45,8 +46,8 @@ export default function DatabaseBackupCard({ isAdmin }: Props) {
             <span className={styles.label}>Status</span>
             <span>
               {status.backups.enabled
-                ? `On · keeping ${status.backups.keep} · ${status.backups.count} on disk`
-                : "Off (DB_BACKUP_ENABLED=false)"}
+                ? `Every ${status.backups.every_hours ?? 24} h · keeping ${status.backups.keep} · ${status.backups.count} on disk`
+                : `Off (Automatic work) · ${status.backups.count} on disk`}
             </span>
           </div>
           <div className={styles.fieldRow}>

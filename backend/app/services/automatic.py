@@ -285,21 +285,22 @@ def record_run(db: Session, task_id: str, summary: str, *, ok: bool = True) -> N
 
 
 def last_run(db: Session, task_id: str) -> dict | None:
-    return _read(db, STATE_KEY).get(task_id)
+    run = _read(db, STATE_KEY).get(task_id)
+    if task_id == "db-backup":
+        # A backup on disk newer than the record (Back up now, or one from before this list
+        # existed) is the last run as far as anyone can tell.
+        from .db_backup import list_backups
+
+        files = list_backups()
+        if files and (run is None or files[0]["created_at"][:19] > run["at"][:19]):
+            written = datetime.fromisoformat(files[0]["created_at"]).replace(tzinfo=None)
+            return {"at": written.isoformat(), "summary": f"Wrote {files[0]['filename']}", "ok": True}
+    return run
 
 
 def _last_at(db: Session, task: Task) -> datetime | None:
     run = last_run(db, task.id)
-    at = datetime.fromisoformat(run["at"]) if run else None
-    if task.id == "db-backup":
-        # A backup written before this schedule existed (or by Back up now) counts.
-        from .db_backup import list_backups
-
-        files = list_backups()
-        if files:
-            written = datetime.fromisoformat(files[0]["created_at"]).replace(tzinfo=None)
-            at = max(at, written) if at else written
-    return at
+    return datetime.fromisoformat(run["at"]) if run else None
 
 
 def next_at(db: Session, task: Task, now: datetime | None = None) -> datetime | None:

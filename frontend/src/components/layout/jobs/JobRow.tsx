@@ -48,7 +48,14 @@ export default function JobRow({ job, now, onLeave }: { job: AIJob; now: number;
         <span className={lineClass}>
           {jobLine(job, now)}
           {job.status === "running" && <span className={styles.quiet}> · started {clockTime(when)}</span>}
-          {job.quiet && <span className={styles.quiet}> · automatic</span>}
+          {job.quiet && (
+            <>
+              {" · "}
+              <button type="button" className={styles.autoLink} onClick={() => go("/settings#automatic")}>
+                automatic
+              </button>
+            </>
+          )}
         </span>
         {job.status === "running" && job.total > 0 && (
           <span className={styles.bar} aria-hidden>

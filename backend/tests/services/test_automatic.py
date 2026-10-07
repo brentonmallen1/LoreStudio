@@ -144,3 +144,11 @@ def test_the_page_reads_for_anyone_and_changes_for_an_admin(client, db_session, 
     assert client.patch("/api/automatic", json={"tasks": {"db-backup": {"keep": 0}}}).status_code == 422
     assert client.post("/api/automatic/prune-jobs/run").status_code == 201
     assert client.post("/api/automatic/story-backups/run").status_code == 404
+
+
+def test_a_backup_on_disk_is_the_last_run(db_session, tmp_path):
+    (tmp_path / "lorestudio-20261007-080000-000000.db").write_bytes(b"")
+    run = automatic.last_run(db_session, "db-backup")
+    assert run["summary"] == "Wrote lorestudio-20261007-080000-000000.db" and run["at"].startswith("2026-10-07T08:00")
+    automatic.record_run(db_session, "db-backup", "Wrote a newer one")
+    assert automatic.last_run(db_session, "db-backup")["summary"] == "Wrote a newer one"

@@ -1,5 +1,6 @@
 import {
   Archive,
+  CalendarClock,
   Cpu,
   Keyboard,
   Network,
@@ -73,6 +74,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     icon: Archive,
     modes: BOTH,
     keywords: ["snapshots", "database", "restore"],
+  },
+  {
+    id: "automatic",
+    label: "Automatic work",
+    icon: CalendarClock,
+    modes: BOTH,
+    keywords: ["schedule", "background", "housekeeping", "prune", "retention", "tasks", "cadence"],
   },
   {
     id: "privacy",

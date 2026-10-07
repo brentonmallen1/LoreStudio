@@ -10,9 +10,9 @@ Three layers protect your work.
 
 **Versions** stores whole-story snapshots: manual ones you name, and automatic ones on the schedule in Settings › Backups. Restore always offers a safety snapshot first. Snapshots include every table the story owns and can be exported as a `.lorestudio.zip` and imported elsewhere. A version also keeps the story's numbers as they stood, for **Numbers › Compare** (see _The story in numbers_).
 
-## Database backups (nightly)
+## Database backups
 
-The server copies its whole database every night into the backups folder (Settings › Backups shows the latest). To recover from a corrupted database, stop the server, replace the database file with a backup, start again.
+The server copies its whole database into the backups folder every 24 hours, keeping the last 14 (Settings › Backups shows the latest; Settings › Automatic work sets how often and how many, or turns it off). To recover from a corrupted database, stop the server, replace the database file with a backup, start again.
 
 ## Local drafts
 
