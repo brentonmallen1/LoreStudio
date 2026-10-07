@@ -108,7 +108,7 @@ def measure_now(
     return {"queued": True}
 
 
-@handler(BACKFILL)
+@handler(BACKFILL, lane="local", unique=True)
 async def _run_backfill(job: AIJob, db: Session, user: User, report) -> dict:
     """Measure each earlier version with no reading, newest first, each in a thread so the
     server keeps answering meanwhile, and stopping when asked."""
@@ -133,13 +133,6 @@ def queue_backfill(story_id: str, db: Session = Depends(get_db), user: User = De
     """Measure the earlier versions, on the job queue: progress, Cancel, and it carries on if
     the author closes the page. One at a time: a second ask returns the job already going."""
     story = _story_or_404(story_id, db, user)
-    running = (
-        db.query(AIJob)
-        .filter(AIJob.story_id == story_id, AIJob.kind == BACKFILL, AIJob.status.in_(("queued", "running")))
-        .first()
-    )
-    if running:
-        return running
     return enqueue(
         db, kind=BACKFILL, user_id=user.id, story_id=story_id, label=f"Measuring earlier versions: {story.title}"
     )

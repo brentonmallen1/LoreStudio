@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class AIJob(Base):
     """
-    A piece of AI work too long to hold a request open for (refactor doc 06 §8).
+    Work too long to hold a request open for, AI or local (refactor doc 06 §8, doc 21).
 
     Summarising every scene in a manuscript, or running a whole-story analysis, took
     minutes with the browser waiting on it and no way to see progress or stop. A job is
@@ -49,7 +49,30 @@ class AIJob(Base):
     #: Set by the author; the handler stops at its next step.
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    #: model | local (doc 21 P2): which worker runs it. One model call at a time; local work
+    #: never waits behind the model.
+    lane: Mapped[str] = mapped_column(String, default="model", server_default="model")
+    #: Order within the lane, lowest first. Run next puts a job below the rest.
+    position: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")
+    #: author | auto: who started it, and for automatic work a phrase saying when.
+    origin: Mapped[str] = mapped_column(String, default="author", server_default="author")
+    origin_note: Mapped[str | None] = mapped_column(String, nullable=True)
+    #: Automatic work that never toasts (a reading, a sync after an edit).
+    quiet: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    #: What it is doing now ("Reading chapter 3"), or why it is waiting.
+    step_label: Mapped[str | None] = mapped_column(String, nullable=True)
+    #: When the author's Jobs list showed it finished; until then it is unseen.
+    seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    #: The job this one runs again.
+    retry_of: Mapped[str | None] = mapped_column(String, nullable=True)
+    #: Times a restart interrupted it; the first requeues it, the second fails it (D11).
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
     story: Mapped["Story | None"] = relationship("Story", back_populates="ai_jobs")
+
+    @property
+    def story_title(self) -> str | None:
+        return self.story.title if self.story else None
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), index=True)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

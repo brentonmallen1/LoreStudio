@@ -121,14 +121,31 @@ def test_an_unknown_kind_is_refused_at_enqueue(db_session, test_user):
         enqueue(db_session, kind="not-a-job", user_id=test_user.id, label="?")
 
 
-def test_a_job_interrupted_by_a_restart_says_so(db_session, test_user, story):
+def test_a_job_interrupted_by_a_restart_is_requeued_once(db_session, test_user, story):
+    """D11: the first restart puts it back at the front; the second fails it, offering Retry."""
     job = enqueue(db_session, kind="test-counts", user_id=test_user.id, story_id=story.id, label="Counting")
     job.status = "running"
     db_session.commit()
 
     assert recover_interrupted(db_session) == 1
     db_session.refresh(job)
+    assert job.status == "queued" and job.attempts == 1
+    assert job.step_label == "Requeued after a restart"
+
+    job.status = "running"
+    db_session.commit()
+    recover_interrupted(db_session)
+    db_session.refresh(job)
     assert job.status == "error" and "restart" in job.error.lower()
+
+
+def test_a_job_stopped_before_the_restart_stays_stopped(db_session, test_user, story):
+    job = enqueue(db_session, kind="test-counts", user_id=test_user.id, story_id=story.id, label="Counting")
+    job.status, job.cancel_requested = "running", True
+    db_session.commit()
+    recover_interrupted(db_session)
+    db_session.refresh(job)
+    assert job.status == "cancelled"
 
 
 def test_the_api_lists_queues_and_cancels(client, db_session, test_user, story):

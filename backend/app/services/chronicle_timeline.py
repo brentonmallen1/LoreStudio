@@ -20,7 +20,6 @@ from sqlalchemy.orm import Query, Session
 
 from ..models.activity_log import ActivityLog
 from ..models.ai_job import AIJob
-from .job_queue import LOCAL_KINDS
 
 #: Features whose output is worth keeping: summaries, analyses, brainstorms. The
 #: "Results" filter, which replaced the Summaries tab.
@@ -112,7 +111,7 @@ def _jobs(db: Session, user_id: str, f: TimelineFilters) -> Query | None:
         return None
     q = db.query(AIJob).filter(AIJob.user_id == user_id)
     if f.exclude_ai:
-        q = q.filter(AIJob.kind.in_(LOCAL_KINDS))
+        q = q.filter(AIJob.lane == "local")
     if f.story_id:
         q = q.filter(AIJob.story_id == f.story_id)
     if f.problems:

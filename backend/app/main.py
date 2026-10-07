@@ -78,7 +78,7 @@ from .services.ai_call_log import prune_payloads
 from .services.change_log import prune_all
 from .services.db_backup import backup_loop
 from .services.db_migrate import run_migrations
-from .services.job_queue import recover_interrupted, worker_loop
+from .services.job_queue import LANES, prune_quiet, recover_interrupted, worker_loop
 from .services.llm.gateway import AIDisabledError
 from .services.seed import (
     seed_admin,
@@ -138,13 +138,15 @@ async def lifespan(app: FastAPI):
             logger.info("AI call payloads pruned: %d rows", payloads)
         interrupted = recover_interrupted(db)
         if interrupted:
-            logger.info("AI jobs interrupted by the last shutdown: %d", interrupted)
+            logger.info("jobs interrupted by the last shutdown: %d", interrupted)
+        prune_quiet(db)
     backup_task = asyncio.create_task(backup_loop(engine)) if settings.db_backup_enabled else None
-    # One worker, in this process: a single container stays a single container.
-    job_task = asyncio.create_task(worker_loop(engine))
+    # One worker per lane, in this process: a single container stays a single container.
+    job_tasks = [asyncio.create_task(worker_loop(engine, lane)) for lane in LANES]
     logger.info("startup complete (env=%s)", settings.env)
     yield
-    job_task.cancel()
+    for task in job_tasks:
+        task.cancel()
     if backup_task:
         backup_task.cancel()
 

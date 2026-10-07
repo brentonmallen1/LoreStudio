@@ -6,7 +6,10 @@ place in a list, a progress count and a stop button — and if the server restar
 the job says so rather than disappearing.
 """
 
+from datetime import UTC, datetime, timedelta
+
 from fastapi import APIRouter, Body, Depends, HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -15,15 +18,25 @@ from ..models.ai_job import AIJob
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.chronicle import ActivityLogOut
-from ..schemas.jobs import JobOut
+from ..schemas.jobs import JobIds, JobOut
 from ..services.chronicle_timeline import job_activity
-from ..services.job_queue import enqueue, handler, request_cancel
+from ..services.job_queue import (
+    ACTIVE,
+    FINISHED,
+    JOB_HANDLERS,
+    enqueue,
+    handler,
+    mark_seen,
+    request_cancel,
+    retry,
+    run_next,
+)
 from ..services.scene_summaries import refresh_scene_summaries
 
 router = APIRouter()
 
 
-@handler("scene-summaries")
+@handler("scene-summaries", unique=True)
 async def _run_scene_summaries(job: AIJob, db: Session, user: User, report) -> dict:
     """Summarise every scene that needs it, checking after each one whether to stop."""
 
@@ -49,52 +62,98 @@ def _story_or_404(story_id: str, db: Session, user: User) -> Story:
     return story
 
 
-@router.get("/jobs", response_model=list[JobOut])
-def list_jobs(
-    story_id: str | None = None,
-    active_only: bool = False,
-    limit: int = 50,
-    db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
-):
-    """This user's jobs, newest first."""
-    q = db.query(AIJob).filter(AIJob.user_id == user.id)
-    if story_id:
-        q = q.filter(AIJob.story_id == story_id)
-    if active_only:
-        q = q.filter(AIJob.status.in_(["queued", "running"]))
-    return q.order_by(AIJob.created_at.desc()).limit(min(limit, 200)).all()
-
-
-@router.get("/jobs/{job_id}", response_model=JobOut)
-def get_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def _own_job(job_id: str, db: Session, user: User) -> AIJob:
     job = db.get(AIJob, job_id)
     if not job or job.user_id != user.id:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
 
+def _out(jobs: list[AIJob], db: Session) -> list[JobOut]:
+    """Jobs as the list shows them, each queued one with its place in its lane."""
+    places: dict[str, int] = {}
+    for lane in {j.lane for j in jobs if j.status == "queued"}:
+        queued = (
+            db.query(AIJob.id)
+            .filter(AIJob.lane == lane, AIJob.status == "queued")
+            .order_by(AIJob.position, AIJob.created_at)
+            .all()
+        )
+        places.update({jid: i + 1 for i, (jid,) in enumerate(queued)})
+    return [JobOut.model_validate(j).model_copy(update={"queue_position": places.get(j.id)}) for j in jobs]
+
+
+@router.get("/jobs", response_model=list[JobOut])
+def list_jobs(
+    story_id: str | None = None,
+    active_only: bool = False,
+    lane: str | None = None,
+    since_hours: int | None = None,
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """This user's jobs, newest first. `since_hours` keeps the running and queued ones and
+    those finished within that many hours (the Jobs list); `lane=local` is Writer mode's."""
+    q = db.query(AIJob).filter(AIJob.user_id == user.id)
+    if story_id:
+        q = q.filter(AIJob.story_id == story_id)
+    if lane:
+        q = q.filter(AIJob.lane == lane)
+    if active_only:
+        q = q.filter(AIJob.status.in_(ACTIVE))
+    elif since_hours is not None:
+        since = datetime.now(UTC).replace(tzinfo=None) - timedelta(hours=since_hours)
+        q = q.filter(or_(AIJob.status.in_(ACTIVE), AIJob.finished_at >= since))
+    return _out(q.order_by(AIJob.created_at.desc()).limit(min(limit, 200)).all(), db)
+
+
+@router.get("/jobs/{job_id}", response_model=JobOut)
+def get_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return _out([_own_job(job_id, db, user)], db)[0]
+
+
 @router.get("/jobs/{job_id}/activity", response_model=list[ActivityLogOut])
 def get_job_activity(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """What the job did: every AI call and log row it wrote, in order."""
-    job = db.get(AIJob, job_id)
-    if not job or job.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Job not found")
+    _own_job(job_id, db, user)
     return job_activity(db, job_id)
+
+
+@router.post("/jobs/seen")
+def jobs_seen(body: JobIds, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """The Jobs list showed these finished, so they are no longer unseen anywhere."""
+    return {"marked": mark_seen(db, user.id, body.ids)}
 
 
 @router.post("/jobs/{job_id}/cancel", response_model=JobOut)
 def cancel_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     """
-    Ask a job to stop. A queued job stops now; a running one finishes its current scene
-    first, so nothing is left half-written.
+    Stop a job, or take a queued one out of the queue. A running job stops now if its kind
+    can (one call, written after it returns); otherwise after the step in hand, so nothing
+    is left half-written.
     """
-    job = db.get(AIJob, job_id)
-    if not job or job.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Job not found")
-    if job.status in ("done", "error", "cancelled"):
-        return job
-    return request_cancel(db, job)
+    job = _own_job(job_id, db, user)
+    if job.status in FINISHED:
+        return _out([job], db)[0]
+    return _out([request_cancel(db, job)], db)[0]
+
+
+@router.post("/jobs/{job_id}/run-next", response_model=JobOut)
+def run_job_next(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Move a queued job to the front of its lane."""
+    return _out([run_next(db, _own_job(job_id, db, user))], db)[0]
+
+
+@router.post("/jobs/{job_id}/retry", response_model=JobOut, status_code=201)
+def retry_job(job_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Run a failed or stopped job again, as a new job that says which one it repeats."""
+    job = _own_job(job_id, db, user)
+    if job.status not in ("error", "cancelled"):
+        raise HTTPException(status_code=409, detail="Only a failed or stopped job can be retried")
+    if job.kind not in JOB_HANDLERS:
+        raise HTTPException(status_code=409, detail="This kind of job no longer exists")
+    return _out([retry(db, job)], db)[0]
 
 
 @router.post("/stories/{story_id}/jobs/scene-summaries", response_model=JobOut, status_code=201)

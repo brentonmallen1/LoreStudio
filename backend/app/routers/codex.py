@@ -81,7 +81,7 @@ class PresenceUpdate(BaseModel):
     role: str
 
 
-@handler("codex-sync")
+@handler("codex-sync", lane="local", unique=True)
 async def _run_codex_sync(job, db: Session, user: User, report) -> dict:
     """Rebuild one story's graph. Deterministic, so it can run whenever. In a thread: it is
     seconds of plain Python, and on the event loop it held up every request meanwhile."""
@@ -90,7 +90,7 @@ async def _run_codex_sync(job, db: Session, user: User, report) -> dict:
     return {"nodes": result.nodes, "edges": result.edges, **result.by_kind}
 
 
-@handler("codex-suggest")
+@handler("codex-suggest", unique=True)
 async def _run_codex_suggest(job, db: Session, user: User, report) -> dict:
     """Read the manuscript scene by scene and propose what the derivation cannot see."""
 
@@ -108,7 +108,7 @@ async def _run_codex_suggest(job, db: Session, user: User, report) -> dict:
     )
 
 
-@handler("codex-index")
+@handler("codex-index", unique=True)
 async def _run_codex_index(job, db: Session, user: User, report) -> dict:
     """
     Rebuild the passages and embed the ones that changed.

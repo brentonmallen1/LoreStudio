@@ -74,7 +74,14 @@ def test_the_worker_never_claims_a_cancelled_job(db_session, test_user, story):
 def test_writer_mode_chronicle_lists_local_jobs(client, db_session, test_user, story):
     db_session.add_all(
         [
-            AIJob(kind="numbers-backfill", user_id=test_user.id, story_id=story.id, label="Measuring", status="done"),
+            AIJob(
+                kind="numbers-backfill",
+                lane="local",
+                user_id=test_user.id,
+                story_id=story.id,
+                label="Measuring",
+                status="done",
+            ),
             AIJob(kind="scene-summaries", user_id=test_user.id, story_id=story.id, label="Summaries", status="done"),
         ]
     )
