@@ -383,6 +383,17 @@ class AIGateway:
                 response_schema=schema,
                 thinking_enabled=params.thinking_enabled,
             )
+        except asyncio.CancelledError:
+            # Stopped mid-call (a job's Stop). CancelledError is not an Exception, so without
+            # this the call happened and left no trace in the Chronicle; `stream` logs its own.
+            stopped = AICallResult(
+                content="",
+                latency_ms=int((time.monotonic() - start_time) * 1000),
+                model=user_model or self.provider.model,
+                status="cancelled",
+            )
+            self._log_call(context, stopped, db, params, messages, system_prompt, response_format=schema)
+            raise
         except Exception as e:
             logger.warning("generate_structured Ollama call failed: %s", e)
             failed = AICallResult(

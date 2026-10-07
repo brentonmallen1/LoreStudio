@@ -90,7 +90,7 @@ export default function SummaryOverviewView() {
     setBatchRunning(true);
     setBatchResult(null);
     try {
-      // The job queue rather than one long request: progress in the sidebar and Chronicle.
+      // The job queue rather than one long request: progress here and in the Chronicle.
       const job = await waitForJob((await jobsApi.sceneSummaries(storyId)).id);
       const result = (job.result ?? {}) as { summarized_count?: number; total_scenes?: number };
       setBatchResult(`Generated ${result.summarized_count ?? 0} of ${result.total_scenes ?? 0} scenes.`);

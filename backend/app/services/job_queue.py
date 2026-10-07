@@ -34,6 +34,9 @@ ProgressFn = Callable[[int, int], None]
 
 JOB_HANDLERS: dict[str, JobHandler] = {}
 
+#: Kinds that never call a model, so Writer mode's Chronicle shows them.
+LOCAL_KINDS = ("codex-sync", "numbers-backfill")
+
 #: The job the current task is running, if any. Set by `run_job` around the handler.
 current_job_id: ContextVar[str | None] = ContextVar("current_job_id", default=None)
 
@@ -91,14 +94,27 @@ def request_cancel(db: Session, job: AIJob) -> AIJob:
 
 
 def _claim_next(db: Session) -> AIJob | None:
-    """The oldest queued job, marked running so a second worker cannot take it."""
-    job = db.query(AIJob).filter(AIJob.status == "queued").order_by(AIJob.created_at).first()
-    if not job:
-        return None
-    job.status = "running"
-    job.started_at = datetime.now(UTC).replace(tzinfo=None)
-    db.commit()
-    return job
+    """
+    The oldest queued job, marked running so a second worker cannot take it.
+
+    The claim is one conditional UPDATE: reading the row and then writing it let two
+    workers (or a cancel landing in between) both act on the same job.
+    """
+    while True:
+        job_id = db.query(AIJob.id).filter(AIJob.status == "queued").order_by(AIJob.created_at).limit(1).scalar()
+        if job_id is None:
+            return None
+        claimed = (
+            db.query(AIJob)
+            .filter(AIJob.id == job_id, AIJob.status == "queued")
+            .update(
+                {AIJob.status: "running", AIJob.started_at: datetime.now(UTC).replace(tzinfo=None)},
+                synchronize_session=False,
+            )
+        )
+        db.commit()
+        if claimed:
+            return db.get(AIJob, job_id, populate_existing=True)
 
 
 async def run_job(job: AIJob, db: Session) -> None:

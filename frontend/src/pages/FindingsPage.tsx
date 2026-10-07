@@ -9,14 +9,30 @@ import RunChecksMenu from "../components/findings/RunChecksMenu";
 import PageHeader from "../components/layout/PageHeader";
 import type { MenuItem } from "../components/common/PopoverMenu";
 import { groupByPlace, groupByUrgency, KIND_LABELS, type GroupBy } from "../lib/findings/group";
+import { itemParam } from "../components/chronicle/useChronicleParams";
 import { useAIAvailable } from "../lib/mode";
+import { navigateTo } from "../lib/navigation";
+import { sectionPath } from "../lib/routes";
 import { ago } from "../lib/serverDate";
 import { useFindingsStore, useOpenFindings } from "../stores/findingsStore";
 import { useStoryStore } from "../stores/storyStore";
+import { toast } from "../stores/toastStore";
 import type { FindingKind } from "../types/findings";
 import styles from "../components/findings/Findings.module.css";
 
 const KINDS = Object.keys(KIND_LABELS) as FindingKind[];
+
+/** It used to start the job and say nothing at all. */
+async function refreshSummaries(storyId: string) {
+  try {
+    const job = await jobsApi.sceneSummaries(storyId);
+    toast.withAction("Refreshing scene summaries", "Follow it", () =>
+      navigateTo(`${sectionPath(storyId, "chronicle", "activity")}?item=${itemParam("job", job.id)}`),
+    );
+  } catch {
+    toast.error("The scene summaries could not be started");
+  }
+}
 
 /**
  * Findings (doc 12 P4, D1): one list of what needs the author's eye, from local checks,
@@ -68,7 +84,7 @@ export default function FindingsPage({ storyId }: { storyId: string }) {
         label: "Refresh scene summaries",
         icon: ScrollText,
         ai: true,
-        onSelect: () => void jobsApi.sceneSummaries(storyId),
+        onSelect: () => void refreshSummaries(storyId),
       },
       {
         label: "Clear editorial notes from the prose",

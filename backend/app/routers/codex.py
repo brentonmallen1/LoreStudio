@@ -6,6 +6,8 @@ Lorebook, so the only thing an author edits here is what the derivation cannot k
 was actually in a scene.
 """
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import func, or_
@@ -81,8 +83,9 @@ class PresenceUpdate(BaseModel):
 
 @handler("codex-sync")
 async def _run_codex_sync(job, db: Session, user: User, report) -> dict:
-    """Rebuild one story's graph. Deterministic, so it can run whenever."""
-    result = sync_story(job.story_id or "", db)
+    """Rebuild one story's graph. Deterministic, so it can run whenever. In a thread: it is
+    seconds of plain Python, and on the event loop it held up every request meanwhile."""
+    result = await asyncio.to_thread(sync_story, job.story_id or "", db)
     report(1, 1)
     return {"nodes": result.nodes, "edges": result.edges, **result.by_kind}
 

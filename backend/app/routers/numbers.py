@@ -110,8 +110,8 @@ def measure_now(
 
 @handler(BACKFILL)
 async def _run_backfill(job: AIJob, db: Session, user: User, report) -> dict:
-    """Measure each earlier version with no reading, newest first, yielding between versions
-    so the server keeps answering, and stopping when asked."""
+    """Measure each earlier version with no reading, newest first, each in a thread so the
+    server keeps answering meanwhile, and stopping when asked."""
     story = db.get(Story, job.story_id)
     if story is None:
         return {"measured": 0, "of": 0}
@@ -121,9 +121,8 @@ async def _run_backfill(job: AIJob, db: Session, user: User, report) -> dict:
         db.refresh(job)
         if job.cancel_requested:
             break
-        done += measure_version(story, snap, db)
+        done += await asyncio.to_thread(measure_version, story, snap, db)
         report(i + 1, len(todo))
-        await asyncio.sleep(0)
     thin(story.id, db)
     db.commit()
     return {"measured": done, "of": len(todo)}

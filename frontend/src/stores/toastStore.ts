@@ -49,6 +49,9 @@ export const toast = {
   info: (text: string) => useToastStore.getState().show(text, "info"),
   success: (text: string) => useToastStore.getState().show(text, "success"),
   error: (text: string) => useToastStore.getState().show(text, "error"),
+  /** Something started or done, with somewhere to go: "Refreshing scene summaries · Open". */
+  withAction: (text: string, label: string, run: () => void) =>
+    useToastStore.getState().show(text, "info", 6000, { label, run }),
   /** Something done that can be taken back for a few seconds: "Note deleted · Undo". */
   undoable: (text: string, undo: () => void) =>
     useToastStore.getState().show(text, "info", 7000, { label: "Undo", run: undo }),

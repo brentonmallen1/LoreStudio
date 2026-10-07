@@ -20,6 +20,7 @@ from sqlalchemy.orm import Query, Session
 
 from ..models.activity_log import ActivityLog
 from ..models.ai_job import AIJob
+from .job_queue import LOCAL_KINDS
 
 #: Features whose output is worth keeping: summaries, analyses, brainstorms. The
 #: "Results" filter, which replaced the Summaries tab.
@@ -105,10 +106,13 @@ def _logs(db: Session, user_id: str, f: TimelineFilters) -> Query:
 
 
 def _jobs(db: Session, user_id: str, f: TimelineFilters) -> Query | None:
-    """Jobs appear unfiltered, or as problems when they failed or were stopped."""
-    if f.exclude_ai or f.starred or f.results or f.analyses or f.feature:
+    """Jobs appear unfiltered, or as problems when they failed or were stopped. Without AI
+    (Writer mode) only the local ones: hiding every job hid the author's own measurements."""
+    if f.starred or f.results or f.analyses or f.feature:
         return None
     q = db.query(AIJob).filter(AIJob.user_id == user_id)
+    if f.exclude_ai:
+        q = q.filter(AIJob.kind.in_(LOCAL_KINDS))
     if f.story_id:
         q = q.filter(AIJob.story_id == f.story_id)
     if f.problems:
