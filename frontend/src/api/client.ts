@@ -105,18 +105,6 @@ export const api = {
       signal,
     });
   },
-  analyzeEconomy: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/economy`, {
-      method: "POST",
-      signal,
-    }),
-  analyzeEssentialQuestions: (storyId: string, characterId?: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/essential-questions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ character_id: characterId ?? null }),
-      signal,
-    }),
   suggestRelationships: (storyId: string, characterId?: string) =>
     request<import("../types").RelationshipSuggestionsResult>(`/stories/${storyId}/suggest-relationships`, {
       method: "POST",
@@ -136,48 +124,6 @@ export const api = {
       body: JSON.stringify({ node_id: nodeId ?? null, text: text ?? null }),
     }),
 
-  analyzePacing: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/pacing`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeContinuity: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/continuity`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeThemes: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/themes`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzePlotHoles: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/plot-holes`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeFirstPass: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/first-pass`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeCliches: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/cliches`, {
-      method: "POST",
-      signal,
-    }),
-
-  analyzeCharacterDimensionality: (storyId: string, signal?: AbortSignal) =>
-    request<import("../types").StructuredResult>(`/stories/${storyId}/analyze/character-dimensionality`, {
-      method: "POST",
-      signal,
-    }),
-
   generateDiscoveryQuestions: (storyId: string, focusArea: string, entityId?: string) =>
     request<import("../types").StructuredResult>(`/stories/${storyId}/discovery-questions`, {
       method: "POST",
@@ -191,19 +137,6 @@ export const api = {
     ),
 
   // Editorial pass
-  runEditorialPass: (
-    storyId: string,
-    contextLevel: "full" | "summaries" | "section",
-    scopeType: "story" | "chapters" | "scenes",
-    scopeIds: string[],
-    signal?: AbortSignal,
-  ) =>
-    request<import("../types").ActivityLog>(`/stories/${storyId}/editorial/run`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ context_level: contextLevel, scope_type: scopeType, scope_ids: scopeIds }),
-      signal,
-    }),
 
   deleteEditorialReport: (storyId: string, reportId: string) =>
     request<void>(`/stories/${storyId}/editorial/reports/${reportId}`, { method: "DELETE" }),

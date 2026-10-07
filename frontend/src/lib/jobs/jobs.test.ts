@@ -74,6 +74,7 @@ describe("jobs", () => {
       jobLine(job({ status: "queued", queue_position: 1, step_label: "Paused for your reply" }), T0),
     ).toBe("Paused for your reply · 1st in line");
     expect(jobLine(job({ status: "cancelled", progress: 3, total: 5 }), T0)).toBe("Stopped after 3 of 5");
+    expect(jobLine(job({ status: "cancelled", progress: 0, total: 1 }), T0)).toBe("Stopped");
     expect(jobLine(job({ status: "done", result: { summarized_count: 4 } }), T0)).toBe(
       "Summarised 4 scenes.",
     );
@@ -104,6 +105,10 @@ describe("jobs", () => {
     expect(jobOpen(job({ status: "done", kind: "codex-suggest" }))?.to).toBe("/stories/s1/proposals");
     expect(jobOpen(job({ status: "error", kind: "codex-suggest" }))).toBeNull();
     expect(jobOpen(job({ status: "done", kind: "unknown" }))).toBeNull();
+    expect(jobOpen(job({ status: "done", kind: "editorial-pass", result: { report_id: "r1" } }))?.to).toBe(
+      "/stories/s1/chronicle?item=log:r1",
+    );
+    expect(jobOpen(job({ status: "done", kind: "check" }))?.to).toBe("/stories/s1/findings");
   });
 
   it("words the count and the tab title", () => {

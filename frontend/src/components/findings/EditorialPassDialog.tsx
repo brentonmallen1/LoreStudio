@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
-import { Orbit, Square } from "lucide-react";
-import { api } from "../../api/client";
+import { useState } from "react";
+import { Orbit } from "lucide-react";
+import { jobsApi } from "../../api/jobs";
+import { toast } from "../../stores/toastStore";
 import { useStoryStore } from "../../stores/storyStore";
 import Modal from "../common/Modal";
 import { ContextLevelSelector, type ContextLevel } from "./ContextLevelSelector";
@@ -23,63 +24,53 @@ function explain(msg: string): string {
  * first (doc 12 P4; it was the Story Health "Editor" tab). Its findings join the feed; its
  * notes go into the prose as before; the whole report is in the Chronicle.
  */
-export default function EditorialPassDialog({
-  onClose,
-  onDone,
-}: {
-  onClose: () => void;
-  onDone: () => void;
-}) {
+export default function EditorialPassDialog({ onClose }: { onClose: () => void }) {
   const storyId = useStoryStore((s) => s.activeStory?.id);
   const structure = useStoryStore((s) => s.structure);
   const [contextLevel, setContextLevel] = useState<ContextLevel>("summaries");
   const [scope, setScope] = useState<ScopeSelection>({ type: "story", ids: [] });
-  const [running, setRunning] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const abort = useRef<AbortController | null>(null);
 
+  // Queued as a job (doc 21): the dialog closes and the pass runs while the author writes.
   async function run() {
     if (!storyId) return;
     setError(null);
-    setRunning(true);
-    abort.current = new AbortController();
+    setStarting(true);
     try {
-      await api.runEditorialPass(storyId, contextLevel, scope.type, scope.ids, abort.current.signal);
-      onDone();
+      await jobsApi.editorialPass(storyId, {
+        context_level: contextLevel,
+        scope_type: scope.type,
+        scope_ids: scope.ids,
+      });
+      toast.info("The editorial pass is running. Jobs, at the top of the page, follows it.");
       onClose();
     } catch (e) {
-      if (!(e instanceof Error && e.name === "AbortError"))
-        setError(explain(e instanceof Error ? e.message : ""));
+      setError(explain(e instanceof Error ? e.message : ""));
     } finally {
-      setRunning(false);
-      abort.current = null;
+      setStarting(false);
     }
   }
 
   return (
     <Modal
       isOpen
-      onClose={() => (running ? abort.current?.abort() : onClose())}
+      onClose={onClose}
       title="Editorial pass"
       icon={<Orbit size={16} />}
       footer={
         <div className={styles.dialogFooter}>
           {error && <span className={styles.dialogError}>{error}</span>}
-          {running ? (
-            <button type="button" className={styles.aiButton} onClick={() => abort.current?.abort()}>
-              <Square size={13} aria-hidden /> Cancel
-            </button>
-          ) : (
-            <button type="button" className={styles.aiButton} onClick={run}>
-              <Orbit size={13} aria-hidden /> Run the editorial pass
-            </button>
-          )}
+          <button type="button" className={styles.aiButton} onClick={run} disabled={starting}>
+            <Orbit size={13} aria-hidden /> Run the editorial pass
+          </button>
         </div>
       }
     >
       <p className={styles.dialogLead}>
-        Fresh eyes, revision priorities, intent against execution, voice and margin notes. It takes a while;
-        the findings land in the list, the notes in the prose, the whole report in the Chronicle.
+        Fresh eyes, revision priorities, intent against execution, voice and margin notes. It takes a while,
+        and runs while you write: the findings land in the list, the notes in the prose, the whole report in
+        the Chronicle.
       </p>
       <div className={styles.dialogFields}>
         <ContextLevelSelector value={contextLevel} onChange={setContextLevel} />

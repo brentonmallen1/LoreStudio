@@ -8,13 +8,16 @@ The result is also written back as inline notes on StructureNode.metadata_.
 """
 
 import uuid
+from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
 from ..models.activity_log import ActivityLog
+from ..models.ai_job import AIJob
 from ..models.note import Note
 from ..models.story import Story
 from ..models.structure import StructureNode
@@ -30,6 +33,8 @@ from ..schemas.editorial import (
     PrioritiesResponse,
     VoiceResponse,
 )
+from ..schemas.jobs import JobOut
+from ..services.job_queue import enqueue, handler
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.editorial import (
     build_fresh_eyes_prompt,
@@ -170,274 +175,248 @@ def _apply_editorial_notes(
     db.commit()
 
 
-@router.post("/stories/{story_id}/editorial/run", response_model=ActivityLogOut)
-async def run_editorial_pass(  # noqa: C901, PLR0912, PLR0915
-    story_id: str,
+#: The five analyses, in the order they run: (name, response model, prompt builder).
+_STEPS = ("Fresh Eyes", "Priorities", "Intent vs Execution", "Voice", "Marginal Notes")
+
+
+def _prompts(story: Story, sections: list[dict], context_level: str) -> dict[str, tuple[type[BaseModel], str]]:
+    intent = story.narrative_intent or story.intent or None
+    genre, tone = story.genre or None, story.tone or None
+    return {
+        "Fresh Eyes": (
+            FreshEyesResponse,
+            build_fresh_eyes_prompt(
+                story_title=story.title,
+                story_intent=intent,
+                genre=genre,
+                sections=sections,
+                context_level=context_level,
+            ),
+        ),
+        "Priorities": (
+            PrioritiesResponse,
+            build_priorities_prompt(
+                story_title=story.title, story_intent=intent, sections=sections, context_level=context_level
+            ),
+        ),
+        "Intent vs Execution": (
+            IntentGapResponse,
+            build_intent_gap_prompt(story_title=story.title, story_intent=intent, sections=sections),
+        ),
+        "Voice": (
+            VoiceResponse,
+            build_voice_prompt(
+                story_title=story.title, genre=genre, tone=tone, sections=sections, context_level=context_level
+            ),
+        ),
+        "Marginal Notes": (
+            MarginalNotesResponse,
+            build_marginal_notes_prompt(story_title=story.title, story_intent=intent, sections=sections),
+        ),
+    }
+
+
+def _anchored(
+    fresh: FreshEyesResponse,
+    priorities: PrioritiesResponse,
+    gaps: IntentGapResponse,
+    voice: VoiceResponse,
+    marginal: MarginalNotesResponse,
+) -> list[dict]:
+    """Every note that names a passage, for the margin."""
+
+    def note(section_title: str, anchor: str, text: str, category: str) -> dict:
+        return {"section_title": section_title, "anchor": anchor, "note": text, "category": category}
+
+    out = [note(q.section_title, q.anchor, q.question, "fresh-eyes") for q in fresh.questions if q.anchor]
+    out += [
+        note(p.section_title, p.anchor, f"[Priority {p.rank}] {p.suggestion}", "priority")
+        for p in priorities.priorities
+        if p.anchor
+    ]
+    out += [note(g.section_title, g.anchor, g.suggestion, "intent-gap") for g in gaps.gaps if g.anchor]
+    out += [note(v.section_title, v.anchor, v.observation, "voice") for v in voice.sections if v.anchor and v.deviation]
+    out += [note(m.section_title, m.anchor, m.comment, "marginal") for m in marginal.notes if m.anchor]
+    return out
+
+
+async def run_pass(  # noqa: PLR0913
+    story: Story,
     body: EditorialRunRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
+    db: Session,
+    user: User,
+    *,
+    done: dict | None = None,
+    on_step: Callable[[int, str, dict], None] | None = None,
+    should_stop: Callable[[], bool] | None = None,
+) -> ActivityLog:
     """
-    Run a full editorial pass on the story.
+    The pass: five analyses one after another, then the report and its margin notes.
 
-    Executes 5 LLM analyses sequentially, saves the combined result as an
-    ActivityLog entry, and writes editorial inline notes onto the relevant nodes.
+    `done` holds analyses already finished (a job paused for a reply, or restarted, resumes
+    there); `on_step` is told after each one, and `should_stop` is asked before each. A pass
+    stopped early still saves what it finished, saying so.
     """
-    story = _get_story(story_id, db, current_user)
-
     sections = _gather_sections(
-        story_id=story_id,
-        scope_type=body.scope_type,
-        scope_ids=body.scope_ids,
-        context_level=body.context_level,
-        db=db,
+        story_id=story.id, scope_type=body.scope_type, scope_ids=body.scope_ids, context_level=body.context_level, db=db
     )
-
     if not sections:
         raise HTTPException(
             status_code=422,
             detail="No written content found in the selected scope. Write some scenes before running the editor.",
         )
-
-    ctx_base = AICallContext(
-        feature="editorial-pass",
-        user_id=current_user.id,
-        story_id=story_id,
-        tags=["editorial", "analysis", "user-initiated"],
+    ctx = AICallContext(
+        feature="editorial-pass", user_id=user.id, story_id=story.id, tags=["editorial", "analysis", "user-initiated"]
     )
+    message = [{"role": "user", "content": "Perform the editorial analysis."}]
+    prompts = _prompts(story, sections, body.context_level)
+    results: dict[str, dict] = dict(done or {})
+    errors: list[str] = list(results.pop("_errors", []))
+    stopped_after: int | None = None
+    for i, name in enumerate(_STEPS):
+        if name in results:
+            continue
+        if should_stop and should_stop():
+            stopped_after = i
+            break
+        model, prompt = prompts[name]
+        try:
+            sr = await ai_gateway.generate_structured(
+                response_model=model, messages=message, feature_prompt=prompt, context=ctx, db=db, user=user
+            )
+            if sr.success and sr.data:
+                results[name] = model.model_validate(sr.data).model_dump()
+            else:
+                results[name] = model().model_dump()
+                errors.append(f"{name}: {sr.raw_text or 'model error'}")
+        except Exception as e:  # one analysis failing leaves the rest to run
+            results[name] = model().model_dump()
+            errors.append(f"{name}: {e}")
+        if on_step:
+            on_step(i + 1, name, {**results, "_errors": errors})
 
-    user_message = [{"role": "user", "content": "Perform the editorial analysis."}]
-    story_intent = story.narrative_intent or story.intent or None
-    genre = story.genre or None
-    tone = story.tone or None
+    fresh = FreshEyesResponse.model_validate(results.get("Fresh Eyes", {}))
+    priorities = PrioritiesResponse.model_validate(results.get("Priorities", {}))
+    gaps = IntentGapResponse.model_validate(results.get("Intent vs Execution", {}))
+    voice = VoiceResponse.model_validate(results.get("Voice", {}))
+    marginal = MarginalNotesResponse.model_validate(results.get("Marginal Notes", {}))
+    if stopped_after is not None:
+        errors.append(f"Stopped after {stopped_after} of {len(_STEPS)} analyses.")
 
-    errors: list[str] = []
     report_id = str(uuid.uuid4())
+    anchored = _anchored(fresh, priorities, gaps, voice, marginal)
+    if anchored:
+        _apply_editorial_notes(sections, anchored, report_id, db)
 
-    # ── 1. Fresh Eyes ──────────────────────────────────────────────────────────
-    fresh_eyes_result = FreshEyesResponse()
-    try:
-        fresh_prompt = build_fresh_eyes_prompt(
-            story_title=story.title,
-            story_intent=story_intent,
-            genre=genre,
-            sections=sections,
-            context_level=body.context_level,
-        )
-        sr = await ai_gateway.generate_structured(
-            response_model=FreshEyesResponse,
-            messages=user_message,
-            feature_prompt=fresh_prompt,
-            context=ctx_base,
-            db=db,
-            user=current_user,
-        )
-        if sr.success and sr.data:
-            fresh_eyes_result = FreshEyesResponse.model_validate(sr.data)
-        elif not sr.success:
-            errors.append(f"Fresh Eyes: {sr.raw_text or 'model error'}")
-    except Exception as e:
-        errors.append(f"Fresh Eyes: {e}")
-
-    # ── 2. Priorities ──────────────────────────────────────────────────────────
-    priorities_result = PrioritiesResponse()
-    try:
-        priorities_prompt = build_priorities_prompt(
-            story_title=story.title,
-            story_intent=story_intent,
-            sections=sections,
-            context_level=body.context_level,
-        )
-        sr = await ai_gateway.generate_structured(
-            response_model=PrioritiesResponse,
-            messages=user_message,
-            feature_prompt=priorities_prompt,
-            context=ctx_base,
-            db=db,
-            user=current_user,
-        )
-        if sr.success and sr.data:
-            priorities_result = PrioritiesResponse.model_validate(sr.data)
-        elif not sr.success:
-            errors.append(f"Priorities: {sr.raw_text or 'model error'}")
-    except Exception as e:
-        errors.append(f"Priorities: {e}")
-
-    # ── 3. Intent vs Execution ─────────────────────────────────────────────────
-    intent_gap_result = IntentGapResponse()
-    try:
-        intent_prompt = build_intent_gap_prompt(
-            story_title=story.title,
-            story_intent=story_intent,
-            sections=sections,
-        )
-        sr = await ai_gateway.generate_structured(
-            response_model=IntentGapResponse,
-            messages=user_message,
-            feature_prompt=intent_prompt,
-            context=ctx_base,
-            db=db,
-            user=current_user,
-        )
-        if sr.success and sr.data:
-            intent_gap_result = IntentGapResponse.model_validate(sr.data)
-        elif not sr.success:
-            errors.append(f"Intent vs Execution: {sr.raw_text or 'model error'}")
-    except Exception as e:
-        errors.append(f"Intent vs Execution: {e}")
-
-    # ── 4. Voice ───────────────────────────────────────────────────────────────
-    voice_result = VoiceResponse()
-    try:
-        voice_prompt = build_voice_prompt(
-            story_title=story.title,
-            genre=genre,
-            tone=tone,
-            sections=sections,
-            context_level=body.context_level,
-        )
-        sr = await ai_gateway.generate_structured(
-            response_model=VoiceResponse,
-            messages=user_message,
-            feature_prompt=voice_prompt,
-            context=ctx_base,
-            db=db,
-            user=current_user,
-        )
-        if sr.success and sr.data:
-            voice_result = VoiceResponse.model_validate(sr.data)
-        elif not sr.success:
-            errors.append(f"Voice: {sr.raw_text or 'model error'}")
-    except Exception as e:
-        errors.append(f"Voice: {e}")
-
-    # ── 5. Marginal Notes ──────────────────────────────────────────────────────
-    marginal_result = MarginalNotesResponse()
-    try:
-        marginal_prompt = build_marginal_notes_prompt(
-            story_title=story.title,
-            story_intent=story_intent,
-            sections=sections,
-        )
-        sr = await ai_gateway.generate_structured(
-            response_model=MarginalNotesResponse,
-            messages=user_message,
-            feature_prompt=marginal_prompt,
-            context=ctx_base,
-            db=db,
-            user=current_user,
-        )
-        if sr.success and sr.data:
-            marginal_result = MarginalNotesResponse.model_validate(sr.data)
-        elif not sr.success:
-            errors.append(f"Marginal Notes: {sr.raw_text or 'model error'}")
-    except Exception as e:
-        errors.append(f"Marginal Notes: {e}")
-
-    # ── Build stats ────────────────────────────────────────────────────────────
-    stats = EditorialStats(
-        fresh_eyes_count=len(fresh_eyes_result.questions),
-        priorities_count=len(priorities_result.priorities),
-        intent_gaps_count=len(intent_gap_result.gaps),
-        voice_notes_count=len(voice_result.sections),
-        marginal_notes_count=len(marginal_result.notes),
-    )
-
-    # ── Write inline notes back to nodes ──────────────────────────────────────
-    all_anchored: list[dict] = []
-
-    for q in fresh_eyes_result.questions:
-        if q.anchor:
-            all_anchored.append(
-                {
-                    "section_title": q.section_title,
-                    "anchor": q.anchor,
-                    "note": q.question,
-                    "category": "fresh-eyes",
-                }
-            )
-
-    for p in priorities_result.priorities:
-        if p.anchor:
-            all_anchored.append(
-                {
-                    "section_title": p.section_title,
-                    "anchor": p.anchor,
-                    "note": f"[Priority {p.rank}] {p.suggestion}",
-                    "category": "priority",
-                }
-            )
-
-    for g in intent_gap_result.gaps:
-        if g.anchor:
-            all_anchored.append(
-                {
-                    "section_title": g.section_title,
-                    "anchor": g.anchor,
-                    "note": g.suggestion,
-                    "category": "intent-gap",
-                }
-            )
-
-    for vs in voice_result.sections:
-        if vs.anchor and vs.deviation:
-            all_anchored.append(
-                {
-                    "section_title": vs.section_title,
-                    "anchor": vs.anchor,
-                    "note": vs.observation,
-                    "category": "voice",
-                }
-            )
-
-    for mn in marginal_result.notes:
-        if mn.anchor:
-            all_anchored.append(
-                {
-                    "section_title": mn.section_title,
-                    "anchor": mn.anchor,
-                    "note": mn.comment,
-                    "category": "marginal",
-                }
-            )
-
-    if all_anchored:
-        _apply_editorial_notes(sections, all_anchored, report_id, db)
-
-    # ── Save ActivityLog ───────────────────────────────────────────────────────
     report_meta = EditorialReportMetadata(
         feature="editorial-pass",
         context_level=body.context_level,
         scope_type=body.scope_type,
         scope_ids=body.scope_ids,
-        stats=stats,
-        fresh_eyes=fresh_eyes_result,
-        priorities=priorities_result,
-        intent_gaps=intent_gap_result,
-        voice=voice_result,
-        marginal_notes=marginal_result,
+        stats=EditorialStats(
+            fresh_eyes_count=len(fresh.questions),
+            priorities_count=len(priorities.priorities),
+            intent_gaps_count=len(gaps.gaps),
+            voice_notes_count=len(voice.sections),
+            marginal_notes_count=len(marginal.notes),
+        ),
+        fresh_eyes=fresh,
+        priorities=priorities,
+        intent_gaps=gaps,
+        voice=voice,
+        marginal_notes=marginal,
         error="; ".join(errors) if errors else None,
     )
-
-    scope_label = {
-        "story": "whole story",
-        "chapters": f"{len(body.scope_ids)} chapter(s)",
-        "scenes": count(len(body.scope_ids), "scene"),
-    }.get(body.scope_type, body.scope_type)
-
     log = ActivityLog(
         id=report_id,
-        user_id=current_user.id,
-        story_id=story_id,
+        user_id=user.id,
+        story_id=story.id,
         event_type="editorial_pass",
         category="health",
-        description=f"Editorial pass: {scope_label} ({body.context_level} context)",
+        description=f"Editorial pass: {scope_label(body)} ({body.context_level} context)",
         metadata_=report_meta.model_dump(),
     )
     db.add(log)
     db.commit()
     db.refresh(log)
     return log
+
+
+def scope_label(body: EditorialRunRequest) -> str:
+    return {
+        "story": "whole story",
+        "chapters": f"{len(body.scope_ids)} chapter(s)",
+        "scenes": count(len(body.scope_ids), "scene"),
+    }.get(body.scope_type, body.scope_type)
+
+
+@router.post("/stories/{story_id}/editorial/run", response_model=ActivityLogOut)
+async def run_editorial_pass(
+    story_id: str,
+    body: EditorialRunRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Run the pass inside this request (kept for scripts; the app queues it as a job)."""
+    return await run_pass(_get_story(story_id, db, current_user), body, db, current_user)
+
+
+@handler("editorial-pass", unique=True)
+async def _run_pass_job(job: AIJob, db: Session, user: User, report) -> dict:
+    """The pass as a job: progress per analysis, Stop between them, and what it finished kept
+    on the job so a pause for a reply or a restart resumes rather than starting over."""
+    story = db.get(Story, job.story_id)
+    if story is None:
+        raise RuntimeError("The story no longer exists.")
+    body = EditorialRunRequest.model_validate(job.params)
+    done = (job.result or {}).get("partial") or {}
+
+    def on_step(n: int, name: str, partial: dict) -> None:
+        job.result = {"partial": partial}
+        nxt = _STEPS[n] if n < len(_STEPS) else "Writing the report"
+        report(n, len(_STEPS), nxt)
+
+    def should_stop() -> bool:
+        db.refresh(job)
+        return job.cancel_requested
+
+    report(len([k for k in done if k in _STEPS]), len(_STEPS), "Fresh Eyes")
+    try:
+        log = await run_pass(story, body, db, user, done=done, on_step=on_step, should_stop=should_stop)
+    except HTTPException as exc:
+        raise RuntimeError(str(exc.detail)) from exc
+    return {"report_id": log.id, "summary": log.description, "error": log.metadata_.get("error")}
+
+
+@router.post("/stories/{story_id}/editorial/jobs", response_model=JobOut, status_code=201)
+def queue_editorial_pass(
+    story_id: str,
+    body: EditorialRunRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Queue the pass. It runs while the author writes, and the header's Jobs list follows it.
+    An empty scope is refused here, where the dialog can still say so."""
+    _get_story(story_id, db, current_user)
+    if not _gather_sections(
+        story_id=story_id,
+        scope_type=body.scope_type,
+        scope_ids=body.scope_ids,
+        context_level=body.context_level,
+        db=db,
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="No written content found in the selected scope. Write some scenes before running the editor.",
+        )
+    return enqueue(
+        db,
+        kind="editorial-pass",
+        user_id=current_user.id,
+        story_id=story_id,
+        label=f"Editorial pass, {scope_label(body)}",
+        params=body.model_dump(),
+    )
 
 
 @router.delete("/stories/{story_id}/editorial/reports/{report_id}", status_code=204)

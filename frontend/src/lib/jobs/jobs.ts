@@ -51,8 +51,11 @@ export function jobOpen(job: AIJob): { to: string; label: string } | null {
     case "local-checks":
     case "check":
       return { to: `/stories/${id}/findings`, label: "Open findings" };
-    case "editorial-pass":
-      return { to: `${sectionPath(id, "chronicle", "activity")}?filter=analyses`, label: "Read the report" };
+    case "editorial-pass": {
+      const report = typeof job.result?.report_id === "string" ? job.result.report_id : null;
+      const at = sectionPath(id, "chronicle", "activity");
+      return { to: report ? `${at}?item=log:${report}` : `${at}?filter=analyses`, label: "Read the report" };
+    }
     default:
       return null;
   }
@@ -110,7 +113,7 @@ export function jobLine(job: AIJob, nowMs: number): string {
     case "error":
       return plainError(job.error);
     default:
-      return progress && job.progress < job.total ? `Stopped after ${progress}` : "Stopped";
+      return job.progress > 0 && job.progress < job.total ? `Stopped after ${progress}` : "Stopped";
   }
 }
 

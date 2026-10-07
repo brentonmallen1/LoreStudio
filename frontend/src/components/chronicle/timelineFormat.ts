@@ -201,6 +201,12 @@ export function jobOutcome(job: AIJob): { sentence: string; details: [string, st
         ].filter(([, v]) => v !== "0") as [string, string][],
       };
     }
+    case "check":
+    case "editorial-pass": {
+      // The run's own line ("Pacing analysis: 3 slow spot(s) identified").
+      const summary = typeof r.summary === "string" ? r.summary : "";
+      return { sentence: summary ? `${summary.replace(/\.$/, "")}.` : "", details: [] };
+    }
     case "numbers-backfill":
       return { sentence: `Measured ${plural(n(r, "measured"), "earlier version")}.`, details: [] };
     default:

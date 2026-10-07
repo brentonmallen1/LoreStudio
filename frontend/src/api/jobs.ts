@@ -60,6 +60,14 @@ export const jobsApi = {
   /** The Jobs list showed these finished: no longer unseen in any window. */
   seen: (ids: string[]) =>
     request<{ marked: number }>(`/jobs/seen`, { method: "POST", body: JSON.stringify({ ids }) }),
+  /** Queue one Assistant check from Run checks (an AI_FEATURES id). Asking twice gives one job. */
+  check: (storyId: string, feature: string) =>
+    request<AIJob>(`/stories/${storyId}/checks/${feature}`, { method: "POST" }),
+  /** Queue the editorial pass over a scope. */
+  editorialPass: (
+    storyId: string,
+    body: { context_level: string; scope_type: string; scope_ids: string[] },
+  ) => request<AIJob>(`/stories/${storyId}/editorial/jobs`, { method: "POST", body: JSON.stringify(body) }),
   /** Queue a summary refresh for a whole manuscript. */
   sceneSummaries: (storyId: string, forceRefresh = false) =>
     request<AIJob>(`/stories/${storyId}/jobs/scene-summaries`, {
