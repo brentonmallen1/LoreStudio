@@ -129,10 +129,12 @@ export function counted(jobs: AIJob[]): AIJob[] {
   return jobs.filter((j) => (j.quiet ? j.status === "running" : isActive(j)));
 }
 
-/** "2 jobs running", or "1 job waiting" when none has started (a reply going first, the cool-down). */
-export function countLabel(n: number, waiting = false): string {
-  const word = waiting ? "waiting" : "running";
-  return n === 1 ? `1 job ${word}` : `${n} jobs ${word}`;
+/** "2 jobs running", "1 job waiting" when none has started (a reply going first, the
+ *  cool-down), and "1 running, 1 waiting" when both: a queued job is not running. */
+export function countLabel(running: number, waiting = 0): string {
+  const jobs = (n: number) => (n === 1 ? "1 job" : `${n} jobs`);
+  if (running && waiting) return `${running} running, ${waiting} waiting`;
+  return running ? `${jobs(running)} running` : `${jobs(waiting)} waiting`;
 }
 
 /** The list's three parts: running, queued in lane order, and the last day's finished,

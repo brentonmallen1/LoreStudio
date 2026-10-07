@@ -4,7 +4,7 @@ Some work takes longer than you should have to wait for: a check over the whole 
 
 ## At the top of the page
 
-While a job runs, the header says so: a turning ring and "2 jobs running". The ring is the Assistant's colour while the model is working and teal while the work is local (spaCy, the Codex sync, a measurement), which never needs a model and never leaves your machine. "1 job waiting" with no ring means a job is queued but has not started (see **Replies first**).
+While a job runs, the header says so: a turning ring and "2 jobs running". The ring is the Assistant's colour while the model is working and teal while the work is local (spaCy, the Codex sync, a measurement), which never needs a model and never leaves your machine. "1 job waiting" with no ring means a job is queued but has not started (see **Replies first**), and "1 running, 1 waiting" says both.
 
 When something finishes while you are elsewhere, a small note appears with **Open**, and the header keeps a dot until you look. A red dot means something failed. When nothing is running and nothing is new, the header shows nothing at all.
 

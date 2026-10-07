@@ -131,7 +131,9 @@ describe("jobs", () => {
   it("words the count and the tab title", () => {
     expect(countLabel(1)).toBe("1 job running");
     expect(countLabel(3)).toBe("3 jobs running");
-    expect(countLabel(1, true)).toBe("1 job waiting");
+    expect(countLabel(0, 1)).toBe("1 job waiting");
+    expect(countLabel(1, 1)).toBe("1 running, 1 waiting");
+    expect(countLabel(2, 3)).toBe("2 running, 3 waiting");
     expect(ordinal(1)).toBe("1st");
     expect(ordinal(12)).toBe("12th");
     expect(ordinal(23)).toBe("23rd");

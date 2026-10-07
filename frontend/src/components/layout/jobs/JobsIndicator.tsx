@@ -68,7 +68,11 @@ export default function JobsIndicator() {
   const jobs = useMemo(() => (aiAvailable ? all : all.filter((j) => j.lane === "local")), [all, aiAvailable]);
   const { running, queued, finished } = arrange(jobs);
   const replies = Math.max(live.length, own);
-  const count = counted(jobs).length + replies;
+  const active = counted(jobs);
+  // Running is what is using the machine now (replies included); waiting is queued.
+  const runningCount = active.filter((j) => j.status === "running").length + replies;
+  const waitingCount = active.length - (runningCount - replies);
+  const count = runningCount + waitingCount;
   const unseen = jobs.filter(isUnseen);
   const ai = replies > 0 || running.some((j) => j.lane !== "local");
   // Queued and nothing started: a reply going first, or the cool-down after one.
@@ -103,7 +107,11 @@ export default function JobsIndicator() {
 
   const failed = unseen.some((j) => j.status === "error");
   const label =
-    count > 0 ? countLabel(count, idle) : unseen.length ? `${unseen.length} finished, not yet seen` : "Jobs";
+    count > 0
+      ? countLabel(runningCount, waitingCount)
+      : unseen.length
+        ? `${unseen.length} finished, not yet seen`
+        : "Jobs";
   const close = () => setOpen(false);
   // Finished before this window opened, or while the author watched (and had the toast).
   const awayTitle = finished.some(
@@ -130,7 +138,7 @@ export default function JobsIndicator() {
         ) : (
           <Activity size={15} aria-hidden />
         )}
-        {count > 0 && <span className={styles.triggerText}>{countLabel(count, idle)}</span>}
+        {count > 0 && <span className={styles.triggerText}>{countLabel(runningCount, waitingCount)}</span>}
         {count === 0 && unseen.length > 0 && (
           <span className={`${styles.dot} ${failed ? styles.dotFailed : ""}`} aria-hidden />
         )}
