@@ -3,8 +3,10 @@ When readings are taken and how long they are kept (doc 19, D1–D2).
 
 Automatic, so the author never has to remember: a reading when a writing session starts (the
 story opened after three hours away), at most one more a day if the book changed, one with
-every version (a named snapshot) and one after a restore. By hand: Measure now. All of it runs
-after the request has answered, so saving and walking away never waits on a measurement.
+every version (a named snapshot) and one after a restore. By hand: Measure now. Each is a
+`numbers-reading` job on the local lane (doc 21 R4): it starts as soon as it is asked for, never
+waits behind the model, and saving and walking away never waits on it. The automatic ones are
+quiet: listed with the jobs and in the Chronicle, never a toast.
 
 Thinning keeps every reading for two weeks, then the last of each day to ninety days, then the
 last of each week. A reading taken with a version is never thinned.
@@ -12,16 +14,19 @@ last of each week. A reading taken with a version is never thinned.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import Connection, Engine
 from sqlalchemy.orm import Session
 
+from ..models.ai_job import AIJob
 from ..models.numbers_reading import NumbersReading
 from ..models.snapshot import StorySnapshot
 from ..models.story import Story
+from ..models.user import User
+from .job_queue import enqueue, handler
 from .numbers_reading import READING_VERSION, measure_now, measure_snapshot
 from .snapshot_service import _get_or_create_settings, resolve_snapshot_data
 
@@ -185,14 +190,36 @@ def backfill(story_id: str, db: Session) -> dict[str, int]:
     return {"measured": done, "of": len(todo)}
 
 
-def in_background(engine: Engine | Connection, story_id: str, **kwargs: Any) -> None:
-    """`record`, in a session of its own, for a FastAPI background task: the request has
-    already answered. A failure is logged, never raised: the author did not ask to wait."""
-    try:
-        with Session(engine) as db:
-            record(story_id, db, **kwargs)
-    except Exception:
-        logger.exception("numbers reading for %s failed", story_id)
+#: Why an automatic reading was taken, as its job says it.
+_WHEN = {
+    "session": "when you came back to the story",
+    "daily": "the day's reading",
+    "snapshot": "with a saved version",
+    "restore": "after a restore",
+}
+
+
+def queue_reading(db: Session, story_id: str, user_id: str, *, trigger: str, **kwargs: Any) -> None:
+    """Take a reading as a job. Measure now ("manual") is the author's; the rest are quiet."""
+    by_hand = trigger == "manual"
+    enqueue(
+        db,
+        kind="numbers-reading",
+        user_id=user_id,
+        story_id=story_id,
+        label="Measuring the book",
+        params={"trigger": trigger, **kwargs},
+        origin="author" if by_hand else "auto",
+        origin_note=None if by_hand else _WHEN.get(trigger),
+        quiet=not by_hand,
+    )
+
+
+@handler("numbers-reading", lane="local", quiet=True)
+async def _run_reading(job: AIJob, db: Session, user: User, report) -> dict:
+    """`record`, in a thread: a measurement is seconds of spaCy."""
+    reading = await asyncio.to_thread(record, job.story_id or "", db, **job.params)
+    return {"taken": reading is not None}
 
 
 def adopt(story_id: str, readings: list[dict[str, Any]], db: Session) -> int:

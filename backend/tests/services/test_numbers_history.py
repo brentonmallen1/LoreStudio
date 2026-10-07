@@ -17,6 +17,7 @@ from app.services.numbers_history import backfill, record, thin, visit
 from app.services.snapshot_export import export_snapshot, import_snapshot_file
 from app.services.snapshot_service import _get_or_create_settings, create_snapshot
 from tests.fixtures.findings_story import build_findings_story
+from tests.fixtures.jobs import run_queued
 
 
 @pytest.fixture
@@ -97,6 +98,9 @@ def test_backfill_measures_each_version_once(story: Story, db_session: Session):
 
 def test_check_auto_takes_the_session_reading(client, story: Story, db_session: Session):
     client.post(f"/api/stories/{story.id}/snapshots/check-auto")
+    (job,) = run_queued(db_session)
+    # Automatic, so quiet: in the list and the Chronicle, never a toast (doc 21 D14).
+    assert (job.kind, job.quiet, job.origin, job.status) == ("numbers-reading", True, "auto", "done")
 
     out = client.get(f"/api/stories/{story.id}/numbers/readings").json()
     assert [r["trigger"] for r in out["readings"]] == ["session"]
@@ -105,7 +109,9 @@ def test_check_auto_takes_the_session_reading(client, story: Story, db_session: 
 
 def test_a_version_and_a_restore_each_add_a_reading(client, story: Story, db_session: Session):
     snap = client.post(f"/api/stories/{story.id}/snapshots", json={"name": "Before the storm"}).json()
+    run_queued(db_session)
     client.post(f"/api/stories/{story.id}/snapshots/{snap['id']}/restore", json={"create_safety_backup": False})
+    run_queued(db_session)
 
     readings = client.get(f"/api/stories/{story.id}/numbers/readings").json()["readings"]
     assert [(r["trigger"], r["label"]) for r in readings] == [("snapshot", "Before the storm"), ("restore", None)]
@@ -115,6 +121,8 @@ def test_a_version_and_a_restore_each_add_a_reading(client, story: Story, db_ses
 
 def test_measure_now_and_the_backfill_job(client, story: Story, db_session: Session):
     assert client.post(f"/api/stories/{story.id}/numbers/readings").status_code == 202
+    (job,) = run_queued(db_session)
+    assert (job.quiet, job.origin) == (False, "author")  # Measure now is the author's
     assert [r["trigger"] for r in client.get(f"/api/stories/{story.id}/numbers/readings").json()["readings"]] == [
         "manual"
     ]

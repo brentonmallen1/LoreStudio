@@ -90,3 +90,17 @@ def test_a_stopped_pass_keeps_what_it_finished(client, db_session, test_user, mo
     assert job.status == "cancelled" and (job.progress, job.total) == (2, 5)
     report = db_session.get(ActivityLog, job.result["report_id"])
     assert "Stopped after 2 of 5" in report.metadata_["error"]
+
+
+def test_the_local_checks_run_on_the_local_lane(client, db_session, test_user):
+    from tests.fixtures.jobs import run_queued
+
+    story, _nodes = build_findings_story(db_session, test_user)
+    queued = client.post(f"/api/stories/{story.id}/findings/local-checks", headers=H).json()
+    assert queued["lane"] == "local" and queued["label"] == "Local checks"
+    assert client.post(f"/api/stories/{story.id}/findings/local-checks", headers=H).json()["id"] == queued["id"]
+
+    (job,) = run_queued(db_session)
+    assert job.status == "done" and (job.progress, job.total) == (3, 3)
+    runs = db_session.query(ActivityLog).filter(ActivityLog.story_id == story.id, ActivityLog.category != "ai").all()
+    assert any((r.metadata_ or {}).get("job_id") == job.id for r in runs)

@@ -6,6 +6,7 @@ bulk tools do: logged under Chronicle › Changes, not undoable here, because th
 own history owns prose.
 """
 
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,16 +14,19 @@ from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
+from ..models.ai_job import AIJob
 from ..models.finding_dismissal import FindingDismissal
 from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.findings import Finding, FindingsCount, FindingsOut, FixResult
+from ..schemas.jobs import JobOut
 from ..services import change_log
 from ..services.dialogue_service import sync_story_dialogue
 from ..services.findings import all_findings, collect
 from ..services.findings.fingerprint import content_hash
 from ..services.findings.view import load_view
+from ..services.job_queue import enqueue, handler
 from ..services.nlp_runs import run_editorial_consistency, run_prose_analysis
 from ..services.prose_rewrite import replace_words
 from ..services.series import service as series_service
@@ -57,13 +61,44 @@ def count_findings(story_id: str, db: Session = Depends(get_db), user: User = De
 
 @router.post("/stories/{story_id}/findings/run-local", response_model=FindingsOut)
 def run_local_checks(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    """The spaCy checks over every written scene, logged like any analysis, then the feed."""
+    """The spaCy checks over every written scene, logged like any analysis, then the feed.
+    Inside this request, for scripts; the app queues them (`local-checks` below)."""
     story = _story(story_id, db, user)
     sync_story_dialogue(story_id, db)
     run_prose_analysis(story_id, user.id, db)
     run_editorial_consistency(story_id, user.id, db)
     db.commit()
     return collect(story, db)
+
+
+#: The local checks, a step each: what the job says while it runs, and the work.
+_LOCAL_STEPS = (
+    ("Reading the dialogue", lambda story_id, user_id, db: sync_story_dialogue(story_id, db)),
+    ("Prose habits, tense and point of view", run_prose_analysis),
+    ("Names against the Lorebook", run_editorial_consistency),
+)
+
+
+@handler("local-checks", lane="local", unique=True)
+async def _run_local_checks(job: AIJob, db: Session, user: User, report) -> dict:
+    """The same checks as a job on the local lane, each step in a thread (spaCy over every
+    scene takes seconds), stopping between steps when asked."""
+    for i, (step, work) in enumerate(_LOCAL_STEPS):
+        db.refresh(job)
+        if job.cancel_requested:
+            break
+        report(i, len(_LOCAL_STEPS), step)
+        await asyncio.to_thread(work, job.story_id, user.id, db)
+        db.commit()
+    report(len(_LOCAL_STEPS), len(_LOCAL_STEPS))
+    return {"open": collect(_story(job.story_id or "", db, user), db).open_count}
+
+
+@router.post("/stories/{story_id}/findings/local-checks", response_model=JobOut, status_code=201)
+def queue_local_checks(story_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Queue the local checks. Asking again while they run returns the same job."""
+    _story(story_id, db, user)
+    return enqueue(db, kind="local-checks", user_id=user.id, story_id=story_id, label="Local checks")
 
 
 def _books_sharing(story_id: str, finding: Finding, db: Session) -> list[str]:

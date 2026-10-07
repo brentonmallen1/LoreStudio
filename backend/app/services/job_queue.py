@@ -133,8 +133,10 @@ def enqueue(
     origin: Literal["author", "auto"] = "author",
     origin_note: str | None = None,
     retry_of: str | None = None,
+    quiet: bool | None = None,
 ) -> AIJob:
-    """Put a job at the back of its lane. A worker picks it up within a couple of seconds."""
+    """Put a job at the back of its lane; its worker is woken for it. `quiet` overrides the
+    kind's (Measure now is the author's; the same reading taken on a visit is quiet)."""
     spec = JOB_HANDLERS.get(kind)
     if spec is None:
         raise ValueError(f"unknown job kind: {kind}")
@@ -152,7 +154,7 @@ def enqueue(
         label=label,
         params=params,
         lane=spec.lane,
-        quiet=spec.quiet,
+        quiet=spec.quiet if quiet is None else quiet,
         position=time.time(),
         origin=origin,
         origin_note=origin_note,
@@ -161,7 +163,20 @@ def enqueue(
     db.add(job)
     db.commit()
     db.refresh(job)
+    wake(spec.lane)
     return job
+
+
+#: Each lane's worker waits on its event between jobs, so a job starts as soon as it is queued.
+_WAKE: dict[str, tuple[asyncio.Event, asyncio.AbstractEventLoop]] = {}
+
+
+def wake(lane: str) -> None:
+    """Tell a lane's worker there is work, from a request thread or the loop itself."""
+    entry = _WAKE.get(lane)
+    if entry is not None:
+        event, loop = entry
+        loop.call_soon_threadsafe(event.set)
 
 
 def interrupt(job_id: str, reason: Literal["stop", "yield"]) -> bool:
@@ -325,8 +340,12 @@ async def run_job(job: AIJob, db: Session) -> None:
 
 
 async def worker_loop(engine: Engine, lane: Lane = "model") -> None:
-    """One job at a time in one lane, forever. Started at lifespan, cancelled at shutdown."""
+    """One job at a time in one lane, forever. Started at lifespan, cancelled at shutdown.
+    Between jobs it waits to be woken, or IDLE_SECONDS at most."""
+    event = asyncio.Event()
+    _WAKE[lane] = (event, asyncio.get_running_loop())
     while True:
+        event.clear()  # before looking, so a job queued while we look still wakes the wait
         try:
             with Session(engine) as db:
                 job = _claim_next(db, lane)
@@ -337,7 +356,10 @@ async def worker_loop(engine: Engine, lane: Lane = "model") -> None:
             raise
         except Exception:
             logger.exception("job worker (%s) hit an error; continuing", lane)
-        await asyncio.sleep(IDLE_SECONDS)
+        try:
+            await asyncio.wait_for(event.wait(), IDLE_SECONDS)
+        except TimeoutError:
+            pass
 
 
 def recover_interrupted(db: Session) -> int:

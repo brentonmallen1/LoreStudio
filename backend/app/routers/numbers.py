@@ -1,7 +1,7 @@
 import asyncio
 import re
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_current_user
@@ -27,7 +27,7 @@ from ..services.job_queue import enqueue, handler
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.talk import build_talk_subjects_prompt
 from ..services.numbers import numbers
-from ..services.numbers_history import in_background, measure_version, thin, unmeasured_snapshots
+from ..services.numbers_history import measure_version, queue_reading, thin, unmeasured_snapshots
 
 router = APIRouter()
 
@@ -98,13 +98,12 @@ def get_reading(story_id: str, reading_id: str, db: Session = Depends(get_db), u
 @router.post("/stories/{story_id}/numbers/readings", status_code=202)
 def measure_now(
     story_id: str,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Measure now (D1): taken after this answers, so nobody waits on it."""
+    """Measure now (D1): a job on the local lane, so nobody waits on it."""
     _story_or_404(story_id, db, user)
-    background.add_task(in_background, db.get_bind(), story_id, trigger="manual")
+    queue_reading(db, story_id, user.id, trigger="manual")
     return {"queued": True}
 
 

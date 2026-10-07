@@ -21,7 +21,6 @@ interface FindingsStore {
   data: FindingsOut | null;
   /** Fingerprints hidden before the server confirms, so a dismissed row leaves at once. */
   hidden: string[];
-  runningLocal: boolean;
   load: (storyId: string) => Promise<void>;
   refetch: () => Promise<void>;
   dismiss: (id: string) => Promise<void>;
@@ -34,7 +33,6 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
   storyId: null,
   data: null,
   hidden: [],
-  runningLocal: false,
 
   load: async (storyId) => {
     if (get().storyId !== storyId) set({ storyId, data: null, hidden: [] });
@@ -89,16 +87,12 @@ export const useFindingsStore = create<FindingsStore>((set, get) => ({
     }
   },
 
+  // A job on the local lane (doc 21): Run checks and the header follow it, and the list
+  // reloads when it lands (RunChecksMenu's useOnJobFinished).
   runLocal: async () => {
     const { storyId } = get();
     if (!storyId) return;
-    set({ runningLocal: true });
-    try {
-      const data = await findingsApi.runLocal(storyId);
-      if (get().storyId === storyId) set({ data, hidden: [] });
-    } finally {
-      set({ runningLocal: false });
-    }
+    await findingsApi.queueLocal(storyId);
   },
 }));
 

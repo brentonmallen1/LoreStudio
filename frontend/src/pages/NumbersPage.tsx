@@ -117,7 +117,7 @@ export default function NumbersPage({ storyId }: { storyId: string }) {
             icon: Gauge,
             onSelect: () =>
               void compare.measureNow().then(
-                () => toast.success("Measured: the reading is in Compare"),
+                () => toast.info("Measuring the book. The reading will be in Compare"),
                 () => toast.error("The numbers could not be measured"),
               ),
           },

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { numbersApi } from "../api/numbers";
-import { useJobs } from "./useJobs";
+import { useJobs, useOnJobFinished } from "./useJobs";
+
+const READING_JOBS = ["numbers-reading"] as const;
 import { defaultFrom } from "../lib/numbers/readings";
 import type { Reading, ReadingSummary } from "../types/numbers";
 
@@ -138,11 +140,13 @@ export function useNumbersCompare(storyId: string) {
     [setParams, storyId],
   );
 
+  // A reading is a job on the local lane (doc 21): the list reloads when one lands, whether
+  // Measure now asked for it or a visit or a saved version did.
+  const onReading = useCallback(() => void reload(), [reload]);
+  useOnJobFinished(READING_JOBS, onReading);
   const measureNow = useCallback(async () => {
     await numbersApi.measure(storyId);
-    // Taken on the server just after it answered: look again shortly.
-    window.setTimeout(() => void reload(), 1500);
-  }, [reload, storyId]);
+  }, [storyId]);
 
   return {
     clock,

@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -192,7 +192,6 @@ class UserBackupDefaultsUpdate(BaseModel):
 def create_manual_snapshot(
     story_id: str,
     body: CreateSnapshotBody,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -201,14 +200,9 @@ def create_manual_snapshot(
     snap = create_snapshot(story_id, db, trigger="manual", name=body.name, force=True)
     if snap is None:
         raise HTTPException(status_code=500, detail="Snapshot was not created")
-    # A version carries the Numbers as they stood (doc 19), measured after this answers.
-    background.add_task(
-        numbers_history.in_background,
-        db.get_bind(),
-        story_id,
-        trigger="snapshot",
-        label=snap.name,
-        snapshot_id=snap.id,
+    # A version carries the Numbers as they stood (doc 19), measured as a quiet job.
+    numbers_history.queue_reading(
+        db, story_id, current_user.id, trigger="snapshot", label=snap.name, snapshot_id=snap.id
     )
     return SnapshotOut.from_orm_snap(snap)
 
@@ -242,18 +236,17 @@ def get_status(
 @router.post("/stories/{story_id}/snapshots/check-auto")
 def check_auto_backup(
     story_id: str,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Called on story load and on a timer. Creates an auto-backup if the interval has elapsed,
     and takes the Numbers reading a new session or a new day calls for (doc 19), whether or
-    not auto-backups are on: the reading runs after this answers."""
+    not auto-backups are on: the reading is a quiet job."""
     _verify_story_access(story_id, db, current_user)
     reading = numbers_history.visit(story_id, db)
     if reading:
-        background.add_task(
-            numbers_history.in_background, db.get_bind(), story_id, trigger=reading, only_if_changed=reading == "daily"
+        numbers_history.queue_reading(
+            db, story_id, current_user.id, trigger=reading, only_if_changed=reading == "daily"
         )
     settings = _get_or_create_settings(story_id, db)
 
@@ -336,7 +329,6 @@ def restore_to_snapshot(
     story_id: str,
     snapshot_id: str,
     body: RestoreBody,
-    background: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -347,7 +339,7 @@ def restore_to_snapshot(
     series_sync.after_restore(db, story_id)
     db.commit()
     # Restoring does not rewind the Numbers' history; it adds a reading of the restored book.
-    background.add_task(numbers_history.in_background, db.get_bind(), story_id, trigger="restore")
+    numbers_history.queue_reading(db, story_id, current_user.id, trigger="restore")
     return {"restored": True, "snapshot_id": snapshot_id}
 
 

@@ -207,6 +207,13 @@ export function jobOutcome(job: AIJob): { sentence: string; details: [string, st
       const summary = typeof r.summary === "string" ? r.summary : "";
       return { sentence: summary ? `${summary.replace(/\.$/, "")}.` : "", details: [] };
     }
+    case "local-checks":
+      return { sentence: `Checked every scene; ${plural(n(r, "open"), "finding")} open.`, details: [] };
+    case "numbers-reading":
+      return {
+        sentence: r.taken === false ? "Nothing had changed since the last reading." : "Measured the book.",
+        details: [],
+      };
     case "numbers-backfill":
       return { sentence: `Measured ${plural(n(r, "measured"), "earlier version")}.`, details: [] };
     default:

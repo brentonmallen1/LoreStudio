@@ -15,7 +15,7 @@ import EditorialPassDialog from "./EditorialPassDialog";
 import styles from "./Findings.module.css";
 
 /** Jobs whose result is findings: the list reloads when one finishes. */
-const FINDINGS_JOBS = ["check", "editorial-pass"] as const;
+const FINDINGS_JOBS = ["check", "editorial-pass", "local-checks"] as const;
 
 /**
  * "Run checks" (doc 12 P4): the local checks, which are instant and mostly always current,
@@ -28,7 +28,6 @@ export default function RunChecksMenu() {
   const storyId = useStoryStore((s) => s.activeStory?.id);
   const aiAvailable = useAIAvailable();
   const data = useFindingsStore((s) => s.data);
-  const runningLocal = useFindingsStore((s) => s.runningLocal);
   const runLocal = useFindingsStore((s) => s.runLocal);
   const refetch = useFindingsStore((s) => s.refetch);
   const { jobs } = useJobs(storyId);
@@ -86,6 +85,7 @@ export default function RunChecksMenu() {
     }
   }
   const passRunning = jobs.some((j) => j.kind === "editorial-pass" && isActive(j));
+  const runningLocal = jobs.some((j) => j.kind === "local-checks" && isActive(j));
 
   const busy = runningLocal || passRunning || jobs.some((j) => j.kind === "check" && isActive(j));
   const sizing = data?.sizing;
