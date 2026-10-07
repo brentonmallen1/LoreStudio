@@ -15,3 +15,7 @@ docs
 **/tests
 .claude
 .mcp.json
+**/*.tsbuildinfo
+**/.pytest_cache
+**/.ruff_cache
+**/.DS_Store

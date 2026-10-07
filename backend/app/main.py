@@ -230,5 +230,7 @@ def ai_disabled_handler(request: Request, exc: AIDisabledError) -> JSONResponse:
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health():
+    """Up and answering. `/api/health` is the one a proxy in front of the app can reach."""
     return {"status": "ok"}

@@ -68,3 +68,10 @@ def test_the_dashboard_endpoint_is_gone(client: TestClient, db_session: Session,
     db_session.add(story)
     db_session.commit()
     assert client.get(f"/api/stories/{story.id}/health").status_code == 404
+
+
+def test_the_app_answers_health_at_both_paths(client: TestClient):
+    """The container healthchecks call /api/health (the path nginx proxies); /health stays."""
+    for path in ("/health", "/api/health"):
+        r = client.get(path)
+        assert r.status_code == 200 and r.json() == {"status": "ok"}

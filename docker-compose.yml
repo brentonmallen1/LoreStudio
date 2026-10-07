@@ -1,38 +1,48 @@
+# Two containers: the API and the web front (nginx serving the app and proxying /api).
+# For one container instead, see docker-compose.aio.yml. Configuration: docs/CONFIGURATION.md.
+#
+#   docker compose up -d            # pull the published images (or build them: --build)
+#   open http://localhost:8080
+#
+# Every variable in .env reaches the API (env_file); the ones below are fixed by the image's
+# layout or required.
+
 services:
   backend:
-    build: ./backend
-    ports:
-      - "${PORT:-8000}:8000"
+    image: ghcr.io/brentonmallen1/lorestudio-backend:${LORESTUDIO_TAG:-latest}
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ENV: ${ENV:-prod}
+      DATABASE_URL: sqlite:////app/data/lorestudio.db
+      SNAPSHOTS_PATH: /app/data/snapshots
+      UPLOADS_PATH: /app/data/uploads
+      BACKUPS_PATH: /app/data/backups
+      # Both are required: the backend refuses defaults when ENV=prod.
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env (openssl rand -hex 32)}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      TZ: ${TZ:-UTC}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${DATA_PATH:-./data}:/app/data
-    environment:
-      - ENV=${ENV:-prod}
-      - DATABASE_URL=sqlite:////app/data/lorestudio.db
-      - SNAPSHOTS_PATH=/app/data/snapshots
-      - UPLOADS_PATH=/app/data/uploads
-      - BACKUPS_PATH=/app/data/backups
-      # Both are required: the backend refuses defaults when ENV=prod.
-      - SECRET_KEY=${SECRET_KEY:?set SECRET_KEY in .env (openssl rand -hex 32)}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
-      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-gemma4}
-      - OLLAMA_TEMPERATURE=${OLLAMA_TEMPERATURE:-1.0}
-      - SEED_DEMO=${SEED_DEMO:-true}
-      - TZ=${TZ:-America/Los_Angeles}
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # Not published: the web front proxies /api. Uncomment to reach the API directly.
+    # ports:
+    #   - "${PORT:-8000}:8000"
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
+    image: ghcr.io/brentonmallen1/lorestudio-frontend:${LORESTUDIO_TAG:-latest}
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     ports:
-      - "${FRONTEND_PORT:-5173}:80"
+      - "${WEB_PORT:-8080}:8080"
     depends_on:
       backend:
         condition: service_healthy
