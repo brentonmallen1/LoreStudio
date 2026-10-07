@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -312,8 +313,9 @@ def apply_links(
     body: ApplyLinksBody,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Apply approved entity link proposals to scene content."""
+    """Apply approved entity link proposals to scene content (one undoable change)."""
     node = _verify_node_access(node_id, db, current_user)
     if not body.links:
         return StructureNodeOut.model_validate(node)
@@ -322,7 +324,12 @@ def apply_links(
         node.content or "",
         [link.model_dump() for link in body.links],
     )
-    node.content = updated_content
+    if updated_content != (node.content or ""):
+        label = f"Link names in “{node.title or 'Untitled'}”"
+        write = change_log.prose_writer(
+            db, label=label, batch_id=str(uuid.uuid4()), actor_id=current_user.id, client_id=client_id
+        )
+        write(node, updated_content)
     db.commit()
     db.refresh(node)
     return StructureNodeOut.model_validate(node)

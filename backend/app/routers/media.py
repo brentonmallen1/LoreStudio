@@ -239,8 +239,10 @@ def attach_asset(
     body: AttachmentCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_asset_access(asset_id, db, current_user)
+    asset = _verify_asset_access(asset_id, db, current_user)
+    name = f"“{asset.original_filename}”"
     # Prevent duplicates
     existing = (
         db.query(AssetAttachment)
@@ -252,12 +254,33 @@ def attach_asset(
         .first()
     )
     if existing:
+        change_log.record_update(
+            db,
+            existing,
+            {"role": body.role},
+            entity_type="asset_attachment",
+            story_id=asset.story_id,
+            label=f"Make {name} the {body.role}",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
         existing.role = body.role
         db.commit()
         db.refresh(existing)
         return existing
     attachment = AssetAttachment(asset_id=asset_id, **body.model_dump())
     db.add(attachment)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        attachment,
+        "asset_attachments",
+        entity_type="asset_attachment",
+        story_id=asset.story_id,
+        label=f"Attach {name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(attachment)
     return attachment
@@ -268,11 +291,22 @@ def delete_attachment(
     attachment_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     attachment = db.get(AssetAttachment, attachment_id)
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    _verify_asset_access(attachment.asset_id, db, current_user)
+    asset = _verify_asset_access(attachment.asset_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        attachment,
+        "asset_attachments",
+        entity_type="asset_attachment",
+        story_id=asset.story_id,
+        label=f"Detach “{asset.original_filename}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(attachment)
     db.commit()
 

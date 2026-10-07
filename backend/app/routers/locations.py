@@ -216,26 +216,29 @@ def migrate_settings_to_locations(
     story_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """One-time migration: convert legacy Setting records to Location stubs.
     Safe to call multiple times — skips Settings whose name already exists as a Location.
+    One undoable batch.
     """
     _verify_story_access(story_id, db, current_user)
     old_settings = db.query(Setting).filter(Setting.story_id == story_id).all()
     created = 0
     merged = 0
+    batch, label = str(uuid.uuid4()), "Make places of the old settings"
     for s in old_settings:
         existing = db.query(Location).filter(Location.story_id == story_id, Location.name == s.name).first()
         if existing:
             # Merge any non-empty fields that Location is missing
-            if not existing.description and s.description:
-                existing.description = s.description
-            if not existing.atmosphere and s.atmosphere:
-                existing.atmosphere = s.atmosphere
-            if not existing.history and s.history:
-                existing.history = s.history
-            if not existing.significance and s.significance:
-                existing.significance = s.significance
+            fields = ("description", "atmosphere", "history", "significance")
+            data = {f: getattr(s, f) for f in fields if not getattr(existing, f) and getattr(s, f)}
+            change_log.record_update(
+                db, existing, data, entity_type="location", story_id=story_id, label=label,
+                actor_id=current_user.id, client_id=client_id, batch_id=batch,
+            )  # fmt: skip
+            for key, value in data.items():
+                setattr(existing, key, value)
             merged += 1
         else:
             loc = Location(
@@ -250,6 +253,11 @@ def migrate_settings_to_locations(
                 created_at=s.created_at,
             )
             db.add(loc)
+            db.flush()
+            change_log.record_row_create(
+                db, loc, "locations", entity_type="location", story_id=story_id, label=label,
+                actor_id=current_user.id, client_id=client_id, batch_id=batch,
+            )  # fmt: skip
             created += 1
     db.commit()
     return {"created": created, "merged": merged}
@@ -305,13 +313,22 @@ def get_scene_settings_for_node(
     return settings
 
 
+def _scene_title(node_id: str, db: Session) -> str:
+    node = db.get(StructureNode, node_id)
+    return (node.title if node else None) or "Untitled"
+
+
 @router.post("/scene-settings", response_model=SceneSettingOut, status_code=status.HTTP_201_CREATED)
 def add_scene_setting(
     body: SceneSettingCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_location_access(body.location_id, db, current_user)
+    location = _verify_location_access(body.location_id, db, current_user)
+    node = db.get(StructureNode, body.node_id)
+    if not node or node.story_id != location.story_id:
+        raise HTTPException(status_code=404, detail="Scene not found")
     # Prevent duplicates
     existing = (
         db.query(SceneSetting)
@@ -322,9 +339,24 @@ def add_scene_setting(
         return existing
     scene_setting = SceneSetting(**body.model_dump())
     db.add(scene_setting)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        scene_setting,
+        "scene_settings",
+        entity_type="scene_setting",
+        story_id=location.story_id,
+        label=f"Set “{node.title or 'Untitled'}” in {location.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(scene_setting)
     return scene_setting
+
+
+#: What a scene's setting row lets the author change: its role and its notes.
+SCENE_SETTING_FIELDS = ("role", "notes")
 
 
 @router.patch("/scene-settings/{setting_id}", response_model=SceneSettingOut)
@@ -333,14 +365,25 @@ def update_scene_setting(
     body: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     scene_setting = db.get(SceneSetting, setting_id)
     if not scene_setting:
         raise HTTPException(status_code=404, detail="Scene setting not found")
-    _verify_location_access(scene_setting.location_id, db, current_user)
-    for key, value in body.items():
-        if hasattr(scene_setting, key):
-            setattr(scene_setting, key, value)
+    location = _verify_location_access(scene_setting.location_id, db, current_user)
+    data = {k: v for k, v in body.items() if k in SCENE_SETTING_FIELDS}
+    change_log.record_update(
+        db,
+        scene_setting,
+        data,
+        entity_type="scene_setting",
+        story_id=location.story_id,
+        label=f"Edit {{fields}} of {location.name} in “{_scene_title(scene_setting.node_id, db)}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
+        setattr(scene_setting, key, value)
     db.commit()
     db.refresh(scene_setting)
     return scene_setting
@@ -351,10 +394,21 @@ def remove_scene_setting(
     setting_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     scene_setting = db.get(SceneSetting, setting_id)
     if not scene_setting:
         raise HTTPException(status_code=404, detail="Scene setting not found")
-    _verify_location_access(scene_setting.location_id, db, current_user)
+    location = _verify_location_access(scene_setting.location_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        scene_setting,
+        "scene_settings",
+        entity_type="scene_setting",
+        story_id=location.story_id,
+        label=f"Take “{_scene_title(scene_setting.node_id, db)}” out of {location.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(scene_setting)
     db.commit()

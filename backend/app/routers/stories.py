@@ -689,6 +689,7 @@ def create_character(
     body: CharacterCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     from ..models.character import Character
     from ..schemas.character import CharacterOut
@@ -702,9 +703,46 @@ def create_character(
             slot for (slot,) in db.query(Character.color_slot).filter(Character.story_id == story_id).all()
         )
     db.add(character)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        character,
+        "characters",
+        entity_type="character",
+        story_id=story_id,
+        label=f"Add character {character.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(character)
     return CharacterOut.model_validate(character)
+
+
+def _story_for(story_id: str, db: Session, user: User) -> Story:
+    story = db.query(Story).filter(Story.id == story_id, Story.user_id == user.id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return story
+
+
+def _save_goals(db: Session, story: Story, goals: list[dict], label: str, user: User, client_id: str | None) -> Story:
+    """Write the goals list as one undoable change. ``goals`` must be fresh dicts: editing the
+    loaded JSON in place would leave the column, and the diff, unchanged."""
+    change_log.record_update(
+        db,
+        story,
+        {"goals": goals},
+        entity_type="story",
+        story_id=story.id,
+        label=label,
+        actor_id=user.id,
+        client_id=client_id,
+    )
+    story.goals = goals
+    db.commit()
+    db.refresh(story)
+    return story
 
 
 @router.post("/{story_id}/goals", response_model=StoryOut)
@@ -713,16 +751,12 @@ def add_goal(
     body: StoryGoalCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
-    goals = list(story.goals or [])
+    story = _story_for(story_id, db, current_user)
+    goals = [dict(g) for g in (story.goals or [])]
     goals.append({"id": str(uuid.uuid4()), "text": body.text, "completed": False})
-    story.goals = goals
-    db.commit()
-    db.refresh(story)
-    return story
+    return _save_goals(db, story, goals, f"Add goal “{body.text}”", current_user, client_id)
 
 
 @router.patch("/{story_id}/goals/reorder", response_model=StoryOut)
@@ -731,15 +765,12 @@ def reorder_goals(
     body: list[str] = Body(..., description="Ordered list of goal IDs"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
-    goals_by_id = {g["id"]: g for g in (story.goals or [])}
-    story.goals = [goals_by_id[gid] for gid in body if gid in goals_by_id]
-    db.commit()
-    db.refresh(story)
-    return story
+    story = _story_for(story_id, db, current_user)
+    goals_by_id = {g["id"]: dict(g) for g in (story.goals or [])}
+    goals = [goals_by_id[gid] for gid in body if gid in goals_by_id]
+    return _save_goals(db, story, goals, "Reorder goals", current_user, client_id)
 
 
 @router.patch("/{story_id}/goals/{goal_id}", response_model=StoryOut)
@@ -749,23 +780,20 @@ def update_goal(
     body: StoryGoalUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
-    # Copy the dicts: mutating the loaded JSON in place leaves the column unchanged
-    # from SQLAlchemy's point of view and the edit is never written.
+    story = _story_for(story_id, db, current_user)
     goals = [dict(g) for g in (story.goals or [])]
+    label = "Edit goal"
     for goal in goals:
         if goal["id"] == goal_id:
             if body.text is not None:
                 goal["text"] = body.text
             if body.completed is not None:
                 goal["completed"] = body.completed
-    story.goals = goals
-    db.commit()
-    db.refresh(story)
-    return story
+            verb = "Edit" if body.completed is None else ("Complete" if body.completed else "Reopen")
+            label = f"{verb} goal “{goal['text']}”"
+    return _save_goals(db, story, goals, label, current_user, client_id)
 
 
 @router.delete("/{story_id}/goals/{goal_id}", response_model=StoryOut)
@@ -774,14 +802,13 @@ def delete_goal(
     goal_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    story = db.query(Story).filter(Story.id == story_id, Story.user_id == current_user.id).first()
-    if not story:
-        raise HTTPException(status_code=404, detail="Story not found")
-    story.goals = [g for g in (story.goals or []) if g["id"] != goal_id]
-    db.commit()
-    db.refresh(story)
-    return story
+    story = _story_for(story_id, db, current_user)
+    gone = next((g for g in (story.goals or []) if g["id"] == goal_id), None)
+    goals = [dict(g) for g in (story.goals or []) if g["id"] != goal_id]
+    label = f"Delete goal “{gone['text']}”" if gone else "Delete goal"
+    return _save_goals(db, story, goals, label, current_user, client_id)
 
 
 class IdentityWorkshopRequest(BaseModel):

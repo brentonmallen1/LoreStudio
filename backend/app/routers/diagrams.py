@@ -34,10 +34,22 @@ def create_diagram(
     body: DiagramCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     story = _verify_story_access(story_id, db, current_user)
     diagram = Diagram(story_id=story.id, **body.model_dump())
     db.add(diagram)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        diagram,
+        "diagrams",
+        entity_type="diagram",
+        story_id=story.id,
+        label=f"Add diagram “{diagram.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(diagram)
     return diagram
@@ -96,7 +108,18 @@ def delete_diagram(
     diagram_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     diagram = _verify_diagram_access(diagram_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        diagram,
+        "diagrams",
+        entity_type="diagram",
+        story_id=diagram.story_id,
+        label=f"Delete diagram “{diagram.title}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(diagram)
     db.commit()

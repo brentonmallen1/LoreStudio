@@ -18,7 +18,7 @@ from ..schemas.interview import (
     InterviewSummaryOut,
     InterviewUpdate,
 )
-from ..services import conversations
+from ..services import change_log, conversations
 from ..services.character_journey import (
     build_journey_prompt,
     get_cached_journey,
@@ -283,17 +283,31 @@ def apply_interview_to_character(
     body: InterviewApplyRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
+    """What the interview found, written onto the character's sheet: one undoable change.
+    Only fields the sheet itself can edit (CharacterUpdate), never ids or the story."""
     from ..models.character import Character as CharacterModel
-    from ..schemas.character import CharacterOut
+    from ..schemas.character import CharacterOut, CharacterUpdate
 
     interview = _verify_interview_access(interview_id, db, current_user)
     character = db.get(CharacterModel, interview.character_id)
     if not character:
         raise HTTPException(status_code=404, detail="Character not found")
-    for field in body.fields:
-        if field in body.content and hasattr(character, field):
-            setattr(character, field, body.content[field])
+    editable = CharacterUpdate.model_fields
+    data = {f: body.content[f] for f in body.fields if f in body.content and f in editable}
+    change_log.record_update(
+        db,
+        character,
+        data,
+        entity_type="character",
+        story_id=character.story_id,
+        label=f"Add {{fields}} from the interview to {character.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for field, value in data.items():
+        setattr(character, field, value)
     db.commit()
     db.refresh(character)
     return CharacterOut.model_validate(character)

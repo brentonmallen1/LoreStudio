@@ -34,6 +34,7 @@ from ..schemas.editorial import (
     VoiceResponse,
 )
 from ..schemas.jobs import JobOut
+from ..services import change_log
 from ..services.job_queue import enqueue, handler
 from ..services.llm.gateway import AICallContext, ai_gateway
 from ..services.llm.prompts.editorial import (
@@ -425,9 +426,11 @@ def delete_editorial_report(
     report_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """
     Delete an editorial report and remove all inline notes it created from story nodes.
+    One Undo brings both back.
     """
     _get_story(story_id, db, current_user)
 
@@ -445,10 +448,21 @@ def delete_editorial_report(
         raise HTTPException(status_code=404, detail="Report not found")
 
     # Remove the margin notes this report wrote
-    db.query(Note).filter(Note.story_id == story_id, Note.source == f"editorial-{report_id}").delete(
-        synchronize_session=False
+    notes = db.query(Note).filter(Note.story_id == story_id, Note.source == f"editorial-{report_id}").all()
+    change_log.record(
+        db,
+        story_id=story_id,
+        entity_type="activity_log",
+        entity_id=log.id,
+        action="delete",
+        before={"activity_logs": [change_log._row(log)], "notes": [change_log._row(n) for n in notes]},
+        after=None,
+        label="Delete editorial report",
+        actor_id=current_user.id,
+        client_id=client_id,
     )
-
+    for note in notes:
+        db.delete(note)
     db.delete(log)
     db.commit()
 
@@ -458,10 +472,17 @@ def clear_all_editorial_notes(
     story_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Remove ALL editorial inline notes from every node in the story."""
+    """Remove ALL editorial inline notes from every node in the story (one undoable batch)."""
     _get_story(story_id, db, current_user)
 
-    db.query(Note).filter(Note.story_id == story_id, Note.source.like("editorial-%")).delete(synchronize_session=False)
+    batch = str(uuid.uuid4())
+    for note in db.query(Note).filter(Note.story_id == story_id, Note.source.like("editorial-%")).all():
+        change_log.record_row_delete(
+            db, note, "notes", entity_type="note", story_id=story_id, label="Clear the editor's margin notes",
+            actor_id=current_user.id, client_id=client_id, batch_id=batch,
+        )  # fmt: skip
+        db.delete(note)
 
     db.commit()

@@ -1,10 +1,9 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy.orm.attributes import flag_modified
 
 from ..auth.dependencies import get_current_user
 from ..database import get_db
@@ -20,12 +19,7 @@ from ..schemas.ai_responses import (
     StructuredResult,
     VoiceFidelityResponse,
 )
-from ..schemas.character import (
-    CharacterOut,
-    CharacterUpdate,
-    DiscoveryNoteCreate,
-    DiscoveryNoteUpdate,
-)
+from ..schemas.character import CharacterOut, CharacterUpdate
 from ..schemas.refactoring import (
     ApplyPronounRefactorRequest,
     ApplyRenameRequest,
@@ -687,10 +681,13 @@ def apply_character_mentions(
     body: ApplyMentionsRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Apply selected mention tags to scene content."""
+    """Apply selected mention tags to scene content: one undoable batch across the scenes."""
     character = _verify_character_access(character_id, db, current_user)
     updated_count = 0
+    batch, label = str(uuid.uuid4()), f"Link mentions of {character.name}"
+    write = change_log.prose_writer(db, label=label, batch_id=batch, actor_id=current_user.id, client_id=client_id)
 
     for scene_data in body.scenes:
         node = db.get(StructureNode, scene_data.scene_id)
@@ -706,7 +703,7 @@ def apply_character_mentions(
         ]
         new_content = apply_entity_links(node.content, links)
         if new_content != node.content:
-            node.content = new_content
+            write(node, new_content)
             node.summary_stale = True
             updated_count += 1
 
@@ -760,78 +757,6 @@ def analyze_character_voice(
     result = analyze_voice_distinctness(dialogue_inputs)
     result["focus_character_id"] = character_id
     return result
-
-
-@router.post("/{character_id}/discovery-notes", response_model=CharacterOut)
-def add_discovery_note(
-    character_id: str,
-    body: DiscoveryNoteCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Add a discovery note with optional scene link."""
-    character = _verify_character_access(character_id, db, current_user)
-    notes = list(character.discovery_notes or [])
-    notes.append(
-        {
-            "id": str(uuid.uuid4()),
-            "text": body.text,
-            "scene_id": body.scene_id,
-            "scene_title": body.scene_title,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "confirmed": False,
-        }
-    )
-    character.discovery_notes = notes
-    flag_modified(character, "discovery_notes")
-    db.commit()
-    db.refresh(character)
-    return character
-
-
-@router.patch("/{character_id}/discovery-notes/{note_id}", response_model=CharacterOut)
-def update_discovery_note(
-    character_id: str,
-    note_id: str,
-    body: DiscoveryNoteUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Confirm or edit a discovery note."""
-    character = _verify_character_access(character_id, db, current_user)
-    notes = list(character.discovery_notes or [])
-    for note in notes:
-        if note["id"] == note_id:
-            if body.text is not None:
-                note["text"] = body.text
-            if body.confirmed is not None:
-                note["confirmed"] = body.confirmed
-            if body.scene_id is not None:
-                note["scene_id"] = body.scene_id
-            if body.scene_title is not None:
-                note["scene_title"] = body.scene_title
-            break
-    character.discovery_notes = notes
-    flag_modified(character, "discovery_notes")
-    db.commit()
-    db.refresh(character)
-    return character
-
-
-@router.delete("/{character_id}/discovery-notes/{note_id}", response_model=CharacterOut)
-def delete_discovery_note(
-    character_id: str,
-    note_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Remove a discovery note."""
-    character = _verify_character_access(character_id, db, current_user)
-    character.discovery_notes = [n for n in (character.discovery_notes or []) if n["id"] != note_id]
-    flag_modified(character, "discovery_notes")
-    db.commit()
-    db.refresh(character)
-    return character
 
 
 @router.post("/{character_id}/analyze-dialogue")

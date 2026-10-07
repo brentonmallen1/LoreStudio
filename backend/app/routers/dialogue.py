@@ -25,6 +25,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.user import User
 from ..schemas.ai_responses import DialogueAttributionResponse
+from ..services import change_log
 from ..services.dialogue_service import (
     _html_to_paragraphs,
     sync_scene_dialogue,
@@ -297,8 +298,10 @@ def apply_dialogue_tags(
     body: ApplyTagsBody,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Apply approved dialogue tag proposals by inserting <Name> suffixes into scene HTML."""
+    """Apply approved dialogue tag proposals by inserting <Name> suffixes into scene HTML.
+    One undoable change: the lines are read from the prose, so undoing the tags undoes them."""
     node = _get_scene(scene_id, db, current_user)
     if not body.tags:
         return {"id": scene_id, "content": node.content}
@@ -307,7 +310,12 @@ def apply_dialogue_tags(
     # it is found, and each tag lands once, after the first untagged quote that says it.
     content, _ = tag_lines(node.content or "", [(t.quote_content, t.speaker_name) for t in body.tags])
 
-    node.content = content
+    if content != (node.content or ""):
+        label = f"Tag speakers in “{node.title or 'Untitled'}”"
+        write = change_log.prose_writer(
+            db, label=label, batch_id=str(uuid.uuid4()), actor_id=current_user.id, client_id=client_id
+        )
+        write(node, content)
     db.commit()
     sync_scene_dialogue(node, db)
 
@@ -323,6 +331,7 @@ def patch_dialogue_block(
     body: DialogueBlockPatch,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Manually correct a dialogue block's speaker attribution or subtext."""
     block = db.get(DialogueBlock, block_id)
@@ -341,8 +350,18 @@ def patch_dialogue_block(
     if data:
         # Any manual edit marks this block as manually attributed with full confidence
         if "speaker_name" in data or "character_id" in data:
-            block.attribution_method = "manual"
-            block.confidence = 1.0
+            data.update(attribution_method="manual", confidence=1.0)
+        what = "subtext" if set(data) == {"subtext"} else "speaker"
+        change_log.record_update(
+            db,
+            block,
+            data,
+            entity_type="dialogue_block",
+            story_id=story.id,
+            label=f"Edit {what} of a line in “{node.title or 'Untitled'}”",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
         for key, value in data.items():
             setattr(block, key, value)
         db.commit()
@@ -555,10 +574,14 @@ def apply_dialogue_tags_batch(
     body: ApplyTagsBatchBody,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    """Apply dialogue tags across multiple scenes at once."""
+    """Apply dialogue tags across multiple scenes at once: one undoable batch."""
     _get_story(story_id, db, current_user)
-    updated_count = 0
+    write = change_log.prose_writer(
+        db, label="Tag speakers", batch_id=str(uuid.uuid4()), actor_id=current_user.id, client_id=client_id
+    )
+    tagged: list[StructureNode] = []
 
     for scene_entry in body.scenes:
         node = db.get(StructureNode, scene_entry.scene_id)
@@ -567,9 +590,11 @@ def apply_dialogue_tags_batch(
 
         content, _ = tag_lines(node.content or "", [(t.quote_content, t.speaker_name) for t in scene_entry.tags])
 
-        node.content = content
-        db.commit()
-        sync_scene_dialogue(node, db)
-        updated_count += 1
+        if content != (node.content or ""):
+            write(node, content)
+        tagged.append(node)
 
-    return {"updated_count": updated_count}
+    db.commit()
+    for node in tagged:
+        sync_scene_dialogue(node, db)
+    return {"updated_count": len(tagged)}

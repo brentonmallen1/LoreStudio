@@ -71,6 +71,22 @@ def _build_tree(items: list[OutlineItem]) -> list[OutlineItemOut]:
     return roots
 
 
+def _record_create(db: Session, outline: Outline, user: User, client_id: str | None) -> None:
+    """A new outline, with any items it came with: one Undo takes it away."""
+    change_log.record(
+        db,
+        story_id=outline.story_id,
+        entity_type="outline",
+        entity_id=outline.id,
+        action="create",
+        before=None,
+        after=change_log.capture_outline(outline, db),
+        label=f"Add outline “{outline.name}”",
+        actor_id=user.id,
+        client_id=client_id,
+    )
+
+
 # ── Outline CRUD ───────────────────────────────────────────────────────────────
 
 
@@ -90,11 +106,14 @@ def create_outline(
     body: OutlineCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     _verify_story(story_id, db, current_user)
     position = db.query(Outline).filter(Outline.story_id == story_id).count()
     outline = Outline(story_id=story_id, name=body.name, position=position)
     db.add(outline)
+    db.flush()
+    _record_create(db, outline, current_user, client_id)
     db.commit()
     db.refresh(outline)
     return outline
@@ -108,6 +127,7 @@ def inject_beat_sheet(
     body: InjectBeatSheetPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Create a new outline pre-populated from a beat sheet's beats."""
     _verify_story(story_id, db, current_user)
@@ -145,6 +165,8 @@ def inject_beat_sheet(
         )
         db.add(item)
         items.append(item)
+    db.flush()
+    _record_create(db, outline, current_user, client_id)
 
     db.commit()
     db.refresh(outline)
@@ -175,9 +197,20 @@ def update_outline(
     body: OutlineUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     outline = _verify_outline(outline_id, db, current_user)
     data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        outline,
+        data,
+        entity_type="outline",
+        story_id=outline.story_id,
+        label=f"Edit {{fields}} on outline “{outline.name}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     for key, value in data.items():
         setattr(outline, key, value)
     db.commit()
@@ -190,8 +223,21 @@ def delete_outline(
     outline_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     outline = _verify_outline(outline_id, db, current_user)
+    change_log.record(
+        db,
+        story_id=outline.story_id,
+        entity_type="outline",
+        entity_id=outline.id,
+        action="delete",
+        before=change_log.capture_outline(outline, db),
+        after=None,
+        label=f"Delete outline “{outline.name}”",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(outline)
     db.commit()
 
@@ -347,13 +393,30 @@ def reorder_outline(
     body: ReorderPayload,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     """Reorder siblings under a given parent (or at root level)."""
-    _verify_outline(outline_id, db, current_user)
+    outline = _verify_outline(outline_id, db, current_user)
+    before = change_log.reorder_snapshot(OutlineItem, body.item_ids, db)
     for position, item_id in enumerate(body.item_ids):
         item = db.get(OutlineItem, item_id)
         if item and item.outline_id == outline_id:
             item.position = position
+    db.flush()
+    after = change_log.reorder_snapshot(OutlineItem, body.item_ids, db)
+    if before != after:
+        change_log.record(
+            db,
+            story_id=outline.story_id,
+            entity_type="outline_item",
+            entity_id=outline_id,
+            action="reorder",
+            before=before,
+            after=after,
+            label="Reorder outline",
+            actor_id=current_user.id,
+            client_id=client_id,
+        )
     db.commit()
 
 

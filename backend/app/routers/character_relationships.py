@@ -116,8 +116,9 @@ def create_relationship_from_template(
     template_id: str = Body(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_character_access(character_id, db, current_user)
+    character = _verify_character_access(character_id, db, current_user)
     if character_id == related_character_id:
         raise HTTPException(status_code=400, detail="Cannot relate character to itself")
     template = get_template(template_id)
@@ -136,6 +137,17 @@ def create_relationship_from_template(
         suggestion_source="",
     )
     db.add(rel)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        rel,
+        "character_relationships",
+        entity_type="character_relationship",
+        story_id=character.story_id,
+        label=f"Add relationship from {character.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(rel)
     return rel
@@ -146,13 +158,25 @@ def accept_relationship_suggestion(
     relationship_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     rel = db.get(CharacterRelationship, relationship_id)
     if not rel:
         raise HTTPException(status_code=404, detail="Relationship not found")
-    _verify_character_access(rel.character_id, db, current_user)
-    rel.is_suggested = False
-    rel.suggestion_source = ""
+    character = _verify_character_access(rel.character_id, db, current_user)
+    data = {"is_suggested": False, "suggestion_source": ""}
+    change_log.record_update(
+        db,
+        rel,
+        data,
+        entity_type="character_relationship",
+        story_id=character.story_id,
+        label=f"Accept suggested relationship from {character.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
+        setattr(rel, key, value)
     db.commit()
     db.refresh(rel)
     return rel

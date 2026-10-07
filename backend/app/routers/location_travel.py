@@ -8,6 +8,7 @@ from ..models.location_travel import LocationTravel
 from ..models.story import Story
 from ..models.user import User
 from ..schemas.location_travel import LocationTravelCreate, LocationTravelOut, LocationTravelUpdate
+from ..services import change_log
 
 router = APIRouter()
 
@@ -37,6 +38,10 @@ def _verify_travel_access(travel_id: str, db: Session, user: User) -> LocationTr
     return travel
 
 
+def _route_name(travel: LocationTravel) -> str:
+    return f"{travel.from_location.name} to {travel.to_location.name}"
+
+
 @router.get("/stories/{story_id}/location-travel", response_model=list[LocationTravelOut])
 def list_travel(
     story_id: str,
@@ -54,11 +59,23 @@ def create_travel(
     body: LocationTravelCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
-    _verify_location_access(body.from_location_id, db, current_user)
-    _verify_location_access(body.to_location_id, db, current_user)
+    origin = _verify_location_access(body.from_location_id, db, current_user)
+    destination = _verify_location_access(body.to_location_id, db, current_user)
     travel = LocationTravel(**body.model_dump())
     db.add(travel)
+    db.flush()
+    change_log.record_row_create(
+        db,
+        travel,
+        "location_travel",
+        entity_type="location_travel",
+        story_id=origin.story_id,
+        label=f"Add route {origin.name} to {destination.name}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.commit()
     db.refresh(travel)
     return travel
@@ -70,9 +87,21 @@ def update_travel(
     body: LocationTravelUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     travel = _verify_travel_access(travel_id, db, current_user)
-    for key, value in body.model_dump(exclude_none=True).items():
+    data = body.model_dump(exclude_none=True)
+    change_log.record_update(
+        db,
+        travel,
+        data,
+        entity_type="location_travel",
+        story_id=travel.from_location.story_id,
+        label=f"Edit {{fields}} on route {_route_name(travel)}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
+    for key, value in data.items():
         setattr(travel, key, value)
     db.commit()
     db.refresh(travel)
@@ -84,7 +113,18 @@ def delete_travel(
     travel_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
 ):
     travel = _verify_travel_access(travel_id, db, current_user)
+    change_log.record_row_delete(
+        db,
+        travel,
+        "location_travel",
+        entity_type="location_travel",
+        story_id=travel.from_location.story_id,
+        label=f"Delete route {_route_name(travel)}",
+        actor_id=current_user.id,
+        client_id=client_id,
+    )
     db.delete(travel)
     db.commit()

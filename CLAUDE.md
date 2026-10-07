@@ -188,7 +188,10 @@ Navigate from non-React code with `lib/navigation.ts` (`navigateTo`), never `win
 ### Undo / redo
 Server-side change log (`backend/app/services/change_log.py`, table `changes`). Any route that mutates
 story data records a change in the same transaction (`record`, `record_update`, `record_row_create`,
-`record_row_delete`, `capture_*`). Prose content edits are logged but not undoable (TipTap history).
+`record_row_delete`, `capture_*`). Prose content edits are logged but not undoable (TipTap history);
+a tool that rewrites prose for the author (tags, links, a rename) uses `prose_writer`, which undoes.
+`tests/test_undo_coverage.py` reads every POST/PUT/PATCH/DELETE route: it records, or it is in
+`NOT_UNDOABLE` under the reason it is not (AI calls, conversations, jobs, settings, series, snapshots…).
 Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`
 through `useReloadOnUndo([entity types], reload)` (`reselect` re-points a selected row at the fresh list).
 

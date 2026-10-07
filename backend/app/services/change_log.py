@@ -21,6 +21,7 @@ from fastapi import Header
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..models.activity_log import ActivityLog
 from ..models.calendar import Calendar
 from ..models.change import Change
 from ..models.character import Character, CharacterRelationship
@@ -86,11 +87,16 @@ ENTITY_MODELS: dict[str, type] = {
     "story_asset": StoryAsset,
     "asset_attachment": AssetAttachment,
     "diagram": Diagram,
+    # A spoken line's speaker and subtext, as the author corrected them.
+    "dialogue_block": DialogueBlock,
+    # An editorial report, deleted with the margin notes it wrote.
+    "activity_log": ActivityLog,
 }
 
 #: Tables inside a delete bundle, in insert order (parents first).
 BUNDLE_MODELS: dict[str, type] = {
     "locations": Location,
+    "location_travel": LocationTravel,
     "structure_nodes": StructureNode,
     "scene_settings": SceneSetting,
     "scene_links": SceneLink,
@@ -123,6 +129,7 @@ BUNDLE_MODELS: dict[str, type] = {
     "story_assets": StoryAsset,
     "asset_attachments": AssetAttachment,
     "diagrams": Diagram,
+    "activity_logs": ActivityLog,
 }
 
 RETENTION_ROWS_PER_STORY = 10_000
@@ -340,8 +347,15 @@ def capture_location(location: Location, db: Session) -> dict[str, list[dict]]:
 
     walk(location)
     ids = [r.id for r in rows]
+    # The routes to and from them go with them (a cascade), so undo brings them back too.
+    travel = (
+        db.query(LocationTravel)
+        .filter(LocationTravel.from_location_id.in_(ids) | LocationTravel.to_location_id.in_(ids))
+        .all()
+    )
     return {
         "locations": [_row(r) for r in rows],
+        "location_travel": [_row(t) for t in travel],
         "scene_settings": [_row(s) for s in db.query(SceneSetting).filter(SceneSetting.location_id.in_(ids)).all()],
     }
 
@@ -407,8 +421,18 @@ def record_row_delete(
 
 
 def record_row_create(
-    db: Session, obj, table: str, *, entity_type: str, story_id: str, label: str, actor_id, client_id
+    db: Session,
+    obj,
+    table: str,
+    *,
+    entity_type: str,
+    story_id: str,
+    label: str,
+    actor_id,
+    client_id,
+    batch_id: str | None = None,
 ):
+    """Record the creation of one row (flush first, so it has its id). Undo deletes it."""
     record(
         db,
         story_id=story_id,
@@ -420,6 +444,7 @@ def record_row_create(
         label=label,
         actor_id=actor_id,
         client_id=client_id,
+        batch_id=batch_id,
     )
 
 
