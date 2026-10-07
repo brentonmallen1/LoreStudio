@@ -3,8 +3,9 @@
 ## Versioning
 
 Releases are tagged `vYYYY.MM.N` (calendar version, N counts releases within the
-month). Container images carry the same tag plus `latest`. Breaking changes are
-listed at the bottom of this page under the release that introduced them.
+month). Container images carry the version without the `v` (`2026.10.1`), the month
+(`2026.10`) and `latest`. *Settings › System* shows the version running. Breaking
+changes are listed at the bottom of this page under the release that introduced them.
 
 ## What happens on start
 
@@ -24,35 +25,45 @@ this and run `just db-migrate` yourself.
 
 ## Before upgrading
 
-- Take a snapshot of each story you care about (Versions page), or copy the
-  whole `data/` directory. The nightly database backup in `data/backups/` is
-  also usable: it is a plain SQLite file.
+- Copy the whole data folder, or at least make a database backup (*Settings ›
+  System*): the copies in `backups/` are plain SQLite files. A version of each
+  story you care about (its Versions page) is a second, per-story safety net.
 - Read the breaking changes below for the versions you are skipping.
 
 ## Upgrading with Docker Compose
 
 ```bash
-git pull
-docker compose pull      # or: docker compose build
+docker compose pull      # or, from a checkout: git pull && docker compose build
 docker compose up -d
 docker compose logs -f backend   # watch for "migrations:" and "startup complete"
 ```
 
-## Upgrading on unraid
+For the all-in-one, add `-f docker-compose.aio.yml` and read the `lorestudio` service's log.
 
-Community Applications shows an update when a new image tag is published.
-Click **Update**, wait for the container to restart, and check the log for the
-`migrations:` line. The `/data` volume is untouched by the update.
+## Upgrading on Unraid
+
+*Docker → Check for Updates* shows an update when a new image is published.
+Click **Update**, wait for the container to restart, and check its log for the
+`migrations:` line. The data folder is untouched by the update. See
+[unraid.md](unraid.md).
 
 ## Rolling back
 
 1. Stop the container.
-2. Restore `data/lorestudio.db` from `data/backups/` (or the whole `data/`
-   directory from your copy).
-3. Pin the previous image tag (`ghcr.io/brentonmallen1/lorestudio:v2026.09.1`)
-   and start again. Migrations never downgrade automatically.
+2. Restore `lorestudio.db` from `backups/` (delete `lorestudio.db-wal` and
+   `-shm` beside it), or the whole data folder from your copy.
+3. Pin the previous image (`ghcr.io/brentonmallen1/lorestudio:2026.09.1`, or
+   `LORESTUDIO_TAG=2026.09.1` with the compose files) and start again.
+   Migrations never downgrade automatically.
 
 ## Breaking changes
+
+### 2026.10 (doc 23)
+
+- **The images build from the repository root** and the web front listens on
+  **8080** (it was 80, published as 5173). `docker-compose.yml` serves on
+  `WEB_PORT` (8080) and no longer publishes the API's port.
+- **`CONFIG_PATH` is gone**: nothing read it. Everything is in the data folder.
 
 ### 2026.09 (refactor Stage 0)
 

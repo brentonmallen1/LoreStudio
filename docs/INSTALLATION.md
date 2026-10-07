@@ -1,221 +1,88 @@
-# Installation Guide
+# Installing LoreStudio
 
-This guide covers setting up LoreStudio for local development and self-hosted deployment.
-
----
+To **run** LoreStudio on a server, a NAS or Unraid, use the Docker images:
+[deployment.md](deployment.md) (and [unraid.md](unraid.md)). This page is for running it
+**from source**, to develop it or to try it on your own machine.
 
 ## Prerequisites
 
 | Requirement | Version | Notes |
-|-------------|---------|-------|
-| Python | 3.13+ | For the backend API |
-| Node.js | 20+ | For the frontend |
-| uv | Latest | Python package manager ([install](https://docs.astral.sh/uv/getting-started/installation/)) |
-| just | Latest | Task runner ([install](https://github.com/casey/just#installation)) |
-| Ollama | Latest | **Optional** — only needed for AI features |
+|---|---|---|
+| Python | 3.13 | Managed by uv |
+| Node.js | 22 | The frontend |
+| [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Python packages |
+| [just](https://github.com/casey/just#installation) | latest | Every command (`just` lists them) |
+| Pango, pandoc | | PDF and other exports (see [CONFIGURATION.md](CONFIGURATION.md#running-from-source-system-libraries)) |
+| [Ollama](https://ollama.com) | latest | Optional: only the AI features need it |
 
-### Installing Prerequisites
+On macOS:
 
-**macOS (Homebrew):**
 ```bash
-brew install python@3.13 node uv just
+brew install uv node just pango pandoc
+brew install ollama && ollama serve && ollama pull gemma4   # optional, for AI
 ```
 
-**Ollama** (optional, for AI features):
-```bash
-brew install ollama
-ollama serve  # Start the Ollama server
-ollama pull gemma4  # Download the recommended model
-```
-
----
-
-## Quick Setup
-
-The fastest path from clone to running:
+## Setup
 
 ```bash
-git clone https://github.com/your-username/LoreStudio.git
+git clone https://github.com/brentonmallen1/LoreStudio.git
 cd LoreStudio
-
-# Create your environment file
-just init-env
-
-# Edit .env with your preferred settings (at minimum, change ADMIN_PASSWORD)
-# nano .env
-
-# Install all dependencies
-just setup
-
-# Start both backend and frontend
-just dev
+just init-env     # copies .env.example to .env
+just setup        # backend (uv) and frontend (npm) dependencies
+just dev          # the API on :8000 and the app on :5173
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open <http://localhost:5173> and sign in as `admin` with the `ADMIN_PASSWORD` from `.env`
+(`change-me` until you change it; fine for `ENV=dev`).
 
----
+The first start creates the database in `data/`, runs the migrations and adds the demo story
+"The Last Lighthouse". `SEED_EXTRA_DEMOS=true` adds the other demo stories and the
+Lighthouse's sequel, which makes a series.
 
-## Manual Setup
+`just dev-stop` frees the two ports if something was left running. If another app already uses
+8000 or 5173, set `PORT` and `FRONTEND_PORT` in `.env`; the Vite proxy follows `PORT`.
 
-If you prefer explicit steps or don't have `just` installed:
-
-### Backend
+## Without just
 
 ```bash
-cd backend
-
-# Install Python dependencies
-uv sync
-
-# Download the spaCy English model (for NLP analysis features)
-# (the spaCy model is a declared dependency; `uv sync` installs it)
-
-# Start the API server
-uv run uvicorn app.main:app --reload --port 8000
+cd backend && uv sync && uv run python -m uvicorn app.main:app --reload --port 8000
+cd frontend && npm install && npm run dev
 ```
 
-### Frontend
+On macOS with Homebrew's Pango, start the backend with `DYLD_LIBRARY_PATH=/opt/homebrew/lib`
+(what `just backend` does) or PDF export fails to load.
 
-```bash
-cd frontend
-
-# Install Node dependencies
-npm install
-
-# Start the dev server
-npm run dev
-```
-
----
-
-## Docker Deployment
-
-For self-hosting on a server, NAS, or Unraid:
-
-```bash
-# Copy and configure environment
-cp .env.example .env
-# Edit .env with production values (especially SECRET_KEY and ADMIN_PASSWORD)
-
-# Build and start containers
-docker compose up -d
-
-# View logs
-docker compose logs -f
-```
-
-### Connecting to Ollama
-
-If Ollama runs on the Docker host (not in a container), update your `.env`:
-
-```env
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-```
-
-### Volume Mappings
-
-For persistent data, the default `docker-compose.yml` maps:
-
-| Container Path | Host Path | Purpose |
-|----------------|-----------|---------|
-| `/app/data` | `./data` | Database and snapshots |
-| `/app/config` | `./config` | Configuration files |
-
-**Unraid example:**
-```env
-DATA_PATH=/mnt/user/appdata/lorestudio/data
-CONFIG_PATH=/mnt/user/appdata/lorestudio/config
-```
-
----
-
-## First Run
-
-### Default Login
-
-The initial admin account is created from your `.env` settings:
-
-- **Username:** Value of `ADMIN_USERNAME` (default: `admin`)
-- **Password:** Value of `ADMIN_PASSWORD` (change this!)
-
-### Demo Story
-
-On first startup, LoreStudio seeds a demo story called "The Last Lighthouse" that showcases the platform's features. You can explore it to understand the tools, then delete it when you're ready to start your own work.
-
-### AI Features
-
-AI-powered features (character interviews, story analysis, writing coach, etc.) require Ollama to be running with a model loaded. If Ollama isn't available, these features simply won't appear or will show an error — all non-AI features work normally.
-
----
-
-## Updating
-
-When pulling new versions:
+## Updating a checkout
 
 ```bash
 git pull
-
-# Re-install dependencies (in case they changed)
-just setup
-
-# Run database migrations
-just db-migrate
-
-# Restart the server
-just dev
+just setup        # dependencies may have changed
+just dev          # the database migrates on start
 ```
 
----
+## Commands
 
-## Available Commands
+`just` lists every recipe. The ones you will use:
 
-Run `just` to see all available tasks:
-
-| Command | Description |
-|---------|-------------|
-| `just dev` | Start backend + frontend concurrently |
-| `just setup` | Install all dependencies |
-| `just test` | Run backend tests |
-| `just ci` | Run every quality gate (what GitHub CI runs) |
-| `just db-migrate` | Apply pending database migrations |
-| `just db-reset` | **Destructive:** Reset database to fresh state |
-| `just build` | Build Docker images |
-| `just up` / `just down` | Start/stop Docker containers |
-
----
+| Command | What it does |
+|---|---|
+| `just dev` / `just dev-stop` | Start / free the API and the app |
+| `just setup` | Install dependencies |
+| `just test` | Backend tests |
+| `just ci` | Every check GitHub CI runs (run before pushing) |
+| `just hooks` | Install the pre-commit hook (the fast checks) |
+| `just db-migrate` / `just db-check` | Apply migrations / check models and migrations agree |
+| `just db-reset` | **Destructive**: an empty database on next start |
+| `just build` / `just up` / `just down` | The two-container Docker setup |
+| `just aio-build` / `just aio-run` | The all-in-one image |
 
 ## Troubleshooting
 
-### "Database is locked"
-
-SQLite only supports one writer at a time. Ensure you don't have multiple server instances running.
-
-### PDF export fails
-
-PDF export requires the `pango` system library:
-
-```bash
-# macOS
-brew install pango
-
-# Ubuntu/Debian
-apt-get install libpango-1.0-0 libpangocairo-1.0-0
-```
-
-### Ollama connection refused
-
-1. Ensure Ollama is running: `ollama serve`
-2. Check your `OLLAMA_BASE_URL` in `.env`
-3. For Docker, use `http://host.docker.internal:11434`
-
-### "Model not found" errors
-
-Pull the model specified in your `.env`:
-
-```bash
-ollama pull gemma4  # or whatever OLLAMA_MODEL is set to
-```
-
-### Frontend can't reach backend
-
-The frontend expects the API at `http://localhost:8000`. If you've changed the backend port, update the frontend's API client configuration.
+- **"Database is locked"**: SQLite takes one writer at a time; two backends on the same database
+  (an old `just dev` still running) cause it. `just dev-stop`.
+- **PDF export fails**: Pango is missing, or on macOS the backend was started without
+  `DYLD_LIBRARY_PATH`.
+- **AI features say the model is not answering**: is Ollama running (`ollama serve`), is the
+  model pulled (`ollama list`), and does `OLLAMA_BASE_URL` point at it?
+- **The app cannot reach the API**: the Vite dev server proxies `/api` to `PORT`; check the
+  backend is running on that port.
