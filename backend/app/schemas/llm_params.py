@@ -43,6 +43,8 @@ class LLMSettingsRead(LLMParams):
     ollama_model: str | None = None  # None = use server default
     effective_ollama_url: str = ""  # Resolved value the backend will actually use
     effective_ollama_model: str = ""  # Resolved value the backend will actually use
+    #: This server's defaults (config, `.env`): what a value left unset follows.
+    server_defaults: dict[str, float | int | bool] = {}
 
 
 class LLMSettingsUpdate(BaseModel):

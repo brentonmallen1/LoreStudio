@@ -17,7 +17,8 @@ import { useUIStore, THEME_META } from "../stores/uiStore";
 import type { ThemeName, ColorMode } from "../stores/uiStore";
 import { useAuthStore } from "../stores/authStore";
 import { api } from "../api/client";
-import type { LLMSettings, ImageTokenBudget } from "../types";
+import type { ImageTokenBudget } from "../types";
+import { useModelSettings, type ConnStatus } from "./settings/useModelSettings";
 import AutomaticWorkSection from "../components/settings/AutomaticWorkSection";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
@@ -152,18 +153,6 @@ function ModelPicker({ value, onChange, placeholder = "e.g. gemma4" }: ModelPick
 
 // ── Connection status ─────────────────────────────────────────────────────────
 
-type ConnStatus =
-  | null
-  | "loading"
-  | {
-      connected: boolean;
-      model: string;
-      model_available: boolean;
-      model_in_list: boolean;
-      error: string | null;
-      base_url: string;
-    };
-
 function ConnectionStatus({ status }: { status: ConnStatus }) {
   if (!status || status === "loading") return null;
 
@@ -215,118 +204,21 @@ export default function SettingsPage() {
   const { themeName, colorMode, setThemeName, setColorMode } = useUIStore();
   const studio = useMode() === "studio";
   const { user } = useAuthStore();
-  const [ollamaUrl, setOllamaUrl] = useState("");
-  const [ollamaModel, setOllamaModel] = useState("");
-  const [ollamaSaveState, setOllamaSaveState] = useState<"idle" | "saving" | "saved">("idle");
-  const ollamaInitialized = useRef(false);
-  const [connStatus, setConnStatus] = useState<ConnStatus>(null);
-
-  // LLM parameter settings
-  const [llmSettings, setLlmSettings] = useState<LLMSettings | null>(null);
-  const [llmTemperature, setLlmTemperature] = useState(1.0);
-  const [llmTopP, setLlmTopP] = useState(0.95);
-  const [llmTopK, setLlmTopK] = useState(64);
-  const [llmThinking, setLlmThinking] = useState(false);
-  const [llmTokenBudget, setLlmTokenBudget] = useState<ImageTokenBudget | 0>(0);
-  const [llmSaved, setLlmSaved] = useState(false);
-
-  // Store server defaults so we can show them as placeholders
-  const [serverDefaults, setServerDefaults] = useState<{ url: string; model: string } | null>(null);
-
-  useEffect(() => {
-    api
-      .getLLMSettings()
-      .then((s) => {
-        setLlmSettings(s);
-        setLlmTemperature(s.temperature);
-        setLlmTopP(s.top_p);
-        setLlmTopK(s.top_k);
-        setLlmThinking(s.thinking_enabled);
-        setLlmTokenBudget(s.image_token_budget ?? 0);
-        // Show RAW DB values - empty string if not set
-        setOllamaUrl(s.ollama_url ?? "");
-        setOllamaModel(s.ollama_model ?? "");
-        // Store server defaults for placeholder display
-        setServerDefaults({ url: s.effective_ollama_url, model: s.effective_ollama_model });
-        ollamaInitialized.current = true;
-      })
-      .catch(() => {
-        ollamaInitialized.current = true;
-      });
-  }, []);
-
-  // Debounced auto-save when URL or model changes
-  useEffect(() => {
-    if (!ollamaInitialized.current) return;
-    setConnStatus(null); // prior test result is stale when settings change
-    const timer = setTimeout(async () => {
-      setOllamaSaveState("saving");
-      try {
-        const updated = await api.updateLLMSettings({
-          ollama_url: ollamaUrl.trim() || null,
-          ollama_model: ollamaModel.trim() || null,
-        });
-        setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
-        setOllamaSaveState("saved");
-        setTimeout(() => setOllamaSaveState("idle"), 2000);
-      } catch {
-        setOllamaSaveState("idle");
-      }
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [ollamaUrl, ollamaModel]);
-
-  // Auto-save LLM params on change (debounced)
-  useEffect(() => {
-    if (!llmSettings) return;
-    const timer = setTimeout(async () => {
-      try {
-        await api.updateLLMSettings({
-          temperature: llmTemperature,
-          top_p: llmTopP,
-          top_k: llmTopK,
-          thinking_enabled: llmThinking,
-          image_token_budget: llmTokenBudget || undefined,
-        });
-        setLlmSaved(true);
-        setTimeout(() => setLlmSaved(false), 1500);
-      } catch {
-        /* silent */
-      }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [llmTemperature, llmTopP, llmTopK, llmThinking, llmTokenBudget]);
-
-  async function resetLlmSettings() {
-    const updated = await api.resetLLMSettings();
-    setLlmSettings(updated);
-    setLlmTemperature(updated.temperature);
-    setLlmTopP(updated.top_p);
-    setLlmTopK(updated.top_k);
-    setLlmThinking(updated.thinking_enabled);
-    setLlmTokenBudget(updated.image_token_budget ?? 0);
-    setOllamaUrl(updated.ollama_url ?? "");
-    setOllamaModel(updated.ollama_model ?? "");
-    setServerDefaults({ url: updated.effective_ollama_url, model: updated.effective_ollama_model });
-    setConnStatus(null);
-  }
-
-  async function testConnection() {
-    setConnStatus("loading");
-    try {
-      const status = await api.ollamaStatus();
-      setConnStatus(status);
-    } catch {
-      setConnStatus({
-        connected: false,
-        model: "",
-        model_available: false,
-        model_in_list: false,
-        error: null,
-        base_url: ollamaUrl,
-      });
-    }
-  }
+  const {
+    ollamaUrl,
+    setOllamaUrl,
+    ollamaModel,
+    setOllamaModel,
+    ollamaSaveState,
+    connStatus,
+    testConnection,
+    serverDefaults,
+    params,
+    setParam,
+    paramsSaved,
+    defaultHint,
+    reset: resetLlmSettings,
+  } = useModelSettings();
 
   const customThemeOptions: { value: ThemeName; label: string; Icon: typeof Feather }[] = [
     { value: "zen", label: "Zen", Icon: Feather },
@@ -505,7 +397,6 @@ export default function SettingsPage() {
                 </Link>
               </section>
 
-              {/* LLM Parameters */}
               <section className={styles.section} id="model-parameters">
                 <h2 className={styles.sectionLabel}>Model parameters</h2>
                 <div className={styles.card}>
@@ -519,13 +410,13 @@ export default function SettingsPage() {
                         min={0}
                         max={2}
                         step={0.01}
-                        value={llmTemperature}
-                        onChange={(e) => setLlmTemperature(parseFloat(e.target.value))}
+                        value={params?.temperature ?? 1}
+                        onChange={(e) => setParam("temperature", parseFloat(e.target.value))}
                         className={styles.slider}
                       />
-                      <span className={styles.sliderValue}>{llmTemperature.toFixed(2)}</span>
+                      <span className={styles.sliderValue}>{(params?.temperature ?? 1).toFixed(2)}</span>
                     </div>
-                    <p className={styles.paramHint}>Controls randomness. Gemma 4 default: 1.0</p>
+                    <p className={styles.paramHint}>Controls randomness. {defaultHint("temperature", 1)}</p>
                   </div>
 
                   {/* Top-p */}
@@ -538,13 +429,13 @@ export default function SettingsPage() {
                         min={0}
                         max={1}
                         step={0.01}
-                        value={llmTopP}
-                        onChange={(e) => setLlmTopP(parseFloat(e.target.value))}
+                        value={params?.top_p ?? 0.95}
+                        onChange={(e) => setParam("top_p", parseFloat(e.target.value))}
                         className={styles.slider}
                       />
-                      <span className={styles.sliderValue}>{llmTopP.toFixed(2)}</span>
+                      <span className={styles.sliderValue}>{(params?.top_p ?? 0.95).toFixed(2)}</span>
                     </div>
-                    <p className={styles.paramHint}>Nucleus sampling cutoff. Gemma 4 default: 0.95</p>
+                    <p className={styles.paramHint}>Nucleus sampling cutoff. {defaultHint("top_p", 0.95)}</p>
                   </div>
 
                   {/* Top-k */}
@@ -555,12 +446,12 @@ export default function SettingsPage() {
                       type="number"
                       min={1}
                       max={200}
-                      value={llmTopK}
-                      onChange={(e) => setLlmTopK(parseInt(e.target.value, 10) || 64)}
+                      value={params?.top_k ?? 64}
+                      onChange={(e) => setParam("top_k", parseInt(e.target.value, 10) || 64)}
                       className={styles.numberInput}
                     />
                     <p className={styles.paramHint}>
-                      Limits vocabulary to top-k tokens per step. Gemma 4 default: 64
+                      Limits vocabulary to top-k tokens per step. {defaultHint("top_k", 64)}
                     </p>
                   </div>
 
@@ -569,9 +460,9 @@ export default function SettingsPage() {
                     <label className={styles.label}>Image token budget</label>
                     <select
                       aria-label="Image token budget"
-                      value={llmTokenBudget}
+                      value={params?.image_token_budget ?? 0}
                       onChange={(e) =>
-                        setLlmTokenBudget(parseInt(e.target.value, 10) as ImageTokenBudget | 0)
+                        setParam("image_token_budget", parseInt(e.target.value, 10) as ImageTokenBudget | 0)
                       }
                       className={styles.selectInput}
                     >
@@ -600,8 +491,8 @@ export default function SettingsPage() {
                       <input
                         type="checkbox"
                         aria-label="Thinking mode"
-                        checked={llmThinking}
-                        onChange={(e) => setLlmThinking(e.target.checked)}
+                        checked={params?.thinking_enabled ?? false}
+                        onChange={(e) => setParam("thinking_enabled", e.target.checked)}
                       />
                       <span className={styles.toggleTrack} />
                     </label>
@@ -611,7 +502,7 @@ export default function SettingsPage() {
                     <button onClick={resetLlmSettings} className={styles.resetBtn}>
                       Reset to defaults
                     </button>
-                    {llmSaved && (
+                    {paramsSaved && (
                       <span className={styles.autoSaved}>
                         <Check size={11} /> Saved
                       </span>

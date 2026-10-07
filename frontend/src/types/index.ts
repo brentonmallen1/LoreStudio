@@ -666,7 +666,8 @@ export interface LLMParams {
   top_p?: number;
   top_k?: number;
   thinking_enabled?: boolean;
-  image_token_budget?: ImageTokenBudget;
+  /** null clears a saved budget. */
+  image_token_budget?: ImageTokenBudget | null;
   ollama_url?: string | null;
   ollama_model?: string | null;
 }
@@ -683,6 +684,8 @@ export interface LLMSettings {
   ollama_url: string | null;
   ollama_model: string | null;
   effective_ollama_url: string;
+  /** This server's defaults (config, .env): what a value left unset follows. */
+  server_defaults?: Partial<Record<"temperature" | "top_p" | "top_k" | "thinking_enabled", number | boolean>>;
   effective_ollama_model: string;
 }
 

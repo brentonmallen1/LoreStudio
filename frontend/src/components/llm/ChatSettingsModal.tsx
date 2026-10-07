@@ -114,7 +114,7 @@ export default function ChatSettingsModal({
             />
             <span className={styles.sliderValue}>{temperature.toFixed(2)}</span>
           </div>
-          <p className={styles.hint}>Controls randomness. Gemma 4 default: 1.0</p>
+          <p className={styles.hint}>Controls randomness. Google recommends 1.0 for Gemma 4.</p>
         </div>
 
         {/* Top-p */}
@@ -132,7 +132,7 @@ export default function ChatSettingsModal({
             />
             <span className={styles.sliderValue}>{topP.toFixed(2)}</span>
           </div>
-          <p className={styles.hint}>Nucleus sampling cutoff. Gemma 4 default: 0.95</p>
+          <p className={styles.hint}>Nucleus sampling cutoff. Google recommends 0.95 for Gemma 4.</p>
         </div>
 
         {/* Top-k */}
@@ -146,7 +146,9 @@ export default function ChatSettingsModal({
             onChange={(e) => setTopK(parseInt(e.target.value, 10) || 64)}
             className={styles.numberInput}
           />
-          <p className={styles.hint}>Limits vocabulary to top-k tokens per step. Gemma 4 default: 64</p>
+          <p className={styles.hint}>
+            Limits vocabulary to top-k tokens per step. Google recommends 64 for Gemma 4.
+          </p>
         </div>
 
         {/* Image token budget */}

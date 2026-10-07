@@ -49,6 +49,7 @@ def _build_response(user_llm: dict) -> LLMSettingsRead:
         ollama_model=user_llm.get("ollama_model"),
         effective_ollama_url=user_llm.get("ollama_url") or ollama_provider.base_url,
         effective_ollama_model=user_llm.get("ollama_model") or ollama_provider.model,
+        server_defaults={k: v for k, v in _DEFAULTS.items() if v is not None},
     )
 
 
