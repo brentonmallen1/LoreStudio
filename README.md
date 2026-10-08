@@ -64,18 +64,22 @@ who they are. The words, and every choice behind them, are yours.
 ## Screenshots
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/write-dark.png" />
-    <img src="docs/images/screenshots/write-light.png" alt="The manuscript with the story strip and the This scene panel" width="900" />
-  </picture>
+  <a href="docs/images/screenshots/write-light.png">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/write-dark.png" />
+      <img src="docs/images/screenshots/write-light.png" alt="The manuscript with the story strip and the This scene panel" width="900" />
+    </picture>
+  </a>
   <br/><em>Writing a scene: the story strip on the left, the scene's plan and findings beside the prose.</em>
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/promises-dark.png" />
-    <img src="docs/images/screenshots/promises-light.png" alt="The Promises tapestry: threads, twists and setups across the book" width="900" />
-  </picture>
+  <a href="docs/images/screenshots/promises-light.png">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshots/promises-dark.png" />
+      <img src="docs/images/screenshots/promises-light.png" alt="The Promises tapestry: threads, twists and setups across the book" width="900" />
+    </picture>
+  </a>
   <br/><em>Promises: every thread, twist and setup across the book, scene by scene.</em>
 </p>
 
