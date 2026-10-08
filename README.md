@@ -8,7 +8,7 @@
 <h1 align="center">LoreStudio</h1>
 
 <p align="center">
-  <strong>Where stories take shape.<br/>A self-hosted workspace for novelists. You write; it helps you see what you are building.</strong>
+  <strong>Begin with an idea, forge an adventure.<br/>A self-hosted workspace for writing your story, organising its pieces and building the world it lives in.</strong>
 </p>
 
 <p align="center">
