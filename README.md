@@ -32,26 +32,34 @@
 
 ## Why LoreStudio?
 
-LoreStudio is a writing room you run yourself. It keeps everything a long story accumulates in
-one place: the characters and who they are, the places, the threads and twists you have promised
-the reader, the plan, the research, the manuscript itself, and the history of all of it. It reads
-what you write and tells you what it notices: a name spelled two ways, a thread gone quiet, a
-scene that slips out of its tense. Then it gets out of the way.
+**LoreStudio is a place to write.** A quiet editor for your manuscript, with everything a long
+story gathers kept beside it: who the characters are, where things happen, what you have promised
+the reader, the plan and the research. It comes in three layers, and you use only the ones you
+want:
 
-**It won't write your book for you.** It is not a ghostwriter and it does not generate chapters.
-When you ask for help you get questions, analysis and suggestions, never replacement prose. Your
-voice stays your voice.
+1. **Write.** The editor, the shape of the book, freewriting, versions and export. This is the app.
+2. **See what you are building.** Tools that run on your own machine with no model involved: the
+   Lorebook, dialogue tracking, prose checks, promises and numbers.
+3. **Ask, if you want to.** An optional Assistant on your own Ollama. Switch to Writer mode and
+   every trace of it is gone.
 
-**Your story stays yours.**
+### Not a ghostwriter. Not a co-author. A guide.
 
-- **Local by default.** The optional AI runs on your own [Ollama](https://ollama.com); nothing
-  is sent to anyone else's servers, and there is no telemetry.
-- **Transparent.** Every AI call is logged in the Chronicle with exactly what was sent and what
-  came back. Everything LoreStudio does by itself is listed, scheduled and switchable.
-- **AI is optional.** Writer mode removes every AI surface. Characters, plans, findings,
-  numbers, export and versions all work without a model.
-- **Yours to keep.** One SQLite database in one folder; export to DOCX, EPUB, PDF and more; save
-  and compare versions; undo almost anything.
+LoreStudio does not write your book, and it does not write it with you. It won't draft your
+chapters or rewrite your prose. It helps you see: it notices what slipped, keeps track of what you
+set up, asks the questions a good editor would, and lets you talk to your characters until you know
+who they are. The words, and every choice behind them, are yours.
+
+### Self-hosted, private, yours.
+
+- **Self-hosted.** One container on your own computer or server. No account anywhere else, no
+  subscription, no telemetry.
+- **Private.** The optional AI runs on your own [Ollama](https://ollama.com), so nothing you write
+  is sent to anyone else's servers. Every AI call is logged in the Chronicle with exactly what was
+  sent and what came back, and everything LoreStudio does by itself is listed, scheduled and
+  switchable.
+- **Yours.** One SQLite database in one folder. Export to DOCX, EPUB, PDF and more, save and
+  compare versions, undo almost anything. The code is open under the AGPL.
 
 ## Screenshots
 
@@ -75,56 +83,77 @@ voice stays your voice.
 
 ## Features
 
-### Lorebook: what is true in your story
-
-- **One sheet for every kind of thing**: characters, places, cultures, systems, eras, calendars,
-  each with the fields that matter and nothing else in the way.
-- **Who they are**: identity, body and mind, what formed them, and the three questions (what do
-  they want, why, what stands in the way). Pronoun and name changes reviewed across the manuscript.
-- **Relationships, arcs and milestones**, with a character web and each character's dialogue.
-- **Series**: books that share characters, places and world, each book with its own version of
-  them, planned from the start or grown book by book.
-
-### Manuscript: the prose
+### Write
 
 - **A quiet editor** with focus mode, sprints, notes in the margin and a scratch pad.
 - **`@Character`, `[[Place]]` and `"…"<Speaker>`** in the prose itself: mentions with hover
   cards, dialogue attributed to whoever says it.
 - **The story strip**: the whole book as a line of stops down the side, coloured by status,
   point of view or findings.
-- **Any shape**: acts, chapters and scenes or your own levels; flash fiction to multi-book epics;
-  beat sheets, the Snowflake method and MICE threads as ways to plan.
+- **Any shape**: acts, chapters and scenes or your own levels, from flash fiction to multi-book
+  epics, planned with beat sheets, the Snowflake method or MICE threads if you like.
 - **Freewrite** for loose writing, with any phrase made into a note, a character or a scene.
+- **Versions** you can compare and restore, **undo** for every change to the story, and
+  **export** to DOCX (standard manuscript format too), EPUB, PDF, ODT, Markdown, HTML and text.
 
-### Promises: what the reader is waiting for
+### Tools that help, with no AI involved
+
+Everything here runs on your machine, works the same in Writer mode, and never sends a word
+anywhere.
+
+#### Lorebook: what is true in your story
+
+- **One sheet for every kind of thing**: characters, places, cultures, systems, eras, calendars,
+  each with the fields that matter and nothing else in the way.
+- **Who they are**: identity, body and mind, what formed them, and the three questions (what do
+  they want, why, what stands in the way). Pronoun and name changes reviewed across the manuscript.
+- **Relationships, arcs and milestones**, with a web of who is tied to whom.
+- **Series**: books that share characters, places and world, each book with its own version of
+  them, planned from the start or grown book by book.
+
+#### Dialogue
+
+- **Every line knows its speaker**, explicitly tagged or inferred from who is nearby, and the
+  editor marks which is which. Untagged lines are gathered for you to tag in one pass.
+- **The dialogue view**: a scene's conversation on its own, as alternating speech bubbles.
+- **Each character's lines** on their sheet, scene by scene, with notes on what they mean beneath
+  what they say, prose habits in their speech, and how distinct their voice is from everyone else's.
+- **Thoughts as well as speech** for first-person and close point-of-view narration.
+
+#### Checks and findings
+
+- **Local prose checks** (spaCy): name slips with a one-click fix, passive voice, adverbs,
+  repeated words, said-bookisms, monotonous sentences, tense and point-of-view slips.
+- **One feed** for everything the checks notice, along with quiet threads, absent characters and
+  empty chapters.
+- **Show me the passage**: a finding that quotes your prose opens the scene at those words.
+
+#### Promises: what the reader is waiting for
 
 - **The tapestry**: threads, twists and setups across the book, with what each scene does to them.
-- **Twists** with their truth beside what the reader believes and their clues in reading order.
+- **Twists** with their truth beside what the reader believes, and their clues in reading order.
 - **What the reader knows**, scene by scene.
 
-### Findings: what needs your eye
+#### Numbers, Compendium and Chronicle
 
-- **One feed** for everything the checks notice: name slips (with a one-click fix), prose habits,
-  tense and point-of-view slips, quiet threads, absent characters, empty chapters, and the
-  Assistant's checks when you run them.
-- **Show me the passage**: a finding that quotes your prose opens the scene at those words.
-- **Numbers**: words, pacing, who is on the page, dialogue and prose over the whole book, and how
-  they change over time.
+- **Numbers**: words, pacing, thread lanes, who is on the page, dialogue shares and prose habits
+  over the whole book, and how they change over time.
+- **The Compendium**: research (notes, links, images, diagrams), shared across a series when you
+  want it.
+- **The Chronicle**: every conversation, analysis and change, kept and searchable.
 
-### Compendium and Chronicle
+### The Assistant (optional, local)
 
-- **Research** (notes, links, images, diagrams), shared across a series when you want it.
-- **The Chronicle**: every conversation, analysis, change and AI call, kept and searchable.
-- **Undo** for every change to the story, from any page, and **versions** you can compare and
-  restore.
-
-### Assistant (optional, local)
+It runs on your own Ollama, built around Gemma 4, and it asks and answers rather than writes.
+One switch turns it off, and Writer mode removes it entirely.
 
 - **Interview your characters**, alone or as a panel, with the character's sheet as their mind.
-- **Ask about the story** with `@mentions` for what you mean; get a writing coach on a passage,
-  "what if" explorations, scene planning, pacing, continuity and plot-hole checks.
-- **Codex**: the story's knowledge graph and semantic index, so the Assistant reads the right
+- **Ask about the story** with `@mentions` for what you mean; a writing coach on a passage,
+  "what if" explorations, scene planning, and pacing, continuity and plot-hole checks that land
+  in the same findings feed.
+- **The Codex**: the story's knowledge graph and semantic index, so the Assistant reads the right
   passages, not the whole book.
+- **Nothing hidden**: every call shows what was sent to the model, and the Chronicle keeps it.
 
 ## Getting started
 
