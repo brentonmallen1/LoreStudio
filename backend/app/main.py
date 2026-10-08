@@ -78,6 +78,8 @@ from .routers.whatif import router as whatif_router
 from .routers.world_systems import router as world_systems_router
 from .routers.worldbuilding_ai import router as worldbuilding_ai_router
 from .services.automatic import at_start, automatic_loop
+from .services.change_headers import EXPOSED as CHANGE_HEADERS
+from .services.change_headers import ChangeHeaders
 from .services.db_migrate import run_migrations
 from .services.job_queue import LANES, worker_loop
 from .services.llm.gateway import AIDisabledError
@@ -146,12 +148,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="LoreStudio API", version=settings.app_version, lifespan=lifespan)
 
+# Which change a request recorded, for the client's undo timeline (doc 23 P5b).
+app.add_middleware(ChangeHeaders)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=CHANGE_HEADERS,
 )
 
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])

@@ -23,8 +23,7 @@ from fastapi.routing import APIRoute
 from app.main import app
 from app.services import change_log
 
-#: The change-log writers. Anything that calls one of these is undoable (or, for a prose
-#: rewrite, at least logged as the author's change).
+#: The change-log writers. Anything that calls one of these is undoable.
 RECORDERS = (
     change_log.record,
     change_log.record_update,

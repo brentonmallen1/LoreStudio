@@ -188,12 +188,19 @@ Navigate from non-React code with `lib/navigation.ts` (`navigateTo`), never `win
 ### Undo / redo
 Server-side change log (`backend/app/services/change_log.py`, table `changes`). Any route that mutates
 story data records a change in the same transaction (`record`, `record_update`, `record_row_create`,
-`record_row_delete`, `capture_*`). Prose content edits are logged but not undoable (TipTap history);
-a tool that rewrites prose for the author (tags, links, a rename) uses `prose_writer`, which undoes.
+`record_row_delete`, `capture_*`). Typing (autosave) is logged but undone by the editor's own history;
+every tool that rewrites prose (replace, quotes, a finding's fix, tags, a rename) goes through
+`rewrite_prose` / `prose_writer` and undoes as one batch.
 `tests/test_undo_coverage.py` reads every POST/PUT/PATCH/DELETE route: it records, or it is in
 `NOT_UNDOABLE` under the reason it is not (AI calls, conversations, jobs, settings, series, snapshots…).
-Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`
-through `useReloadOnUndo([entity types], reload)`.
+**One timeline (doc 23 P5b):** ⌘Z / ⇧⌘Z undo the author's last action wherever it was and wherever
+focus is. `stores/undoStore.ts` orders steps from two histories (`lib/undo/timeline.ts`): the open
+scene's typing (`lib/undo/sceneHistory.ts`, the editor's `UnifiedUndoExtension`) and server changes
+(each response that recorded one carries `X-Change-Batch`/`X-Change-Story`, `services/change_headers.py`).
+Text that reaches the open scene from outside never enters its history: `loadScene` for opening one,
+`patchScene` for a rewrite, never `editor.commands.setContent`. The server undoes after the scene's
+pending save is flushed. Components holding their own copies reload on `UNDO_APPLIED_EVENT` through
+`useReloadOnUndo([entity types], reload)`.
 
 ### Jobs (doc 21)
 Long work is a job; a page never holds it. Anything over the whole story, many scenes or many

@@ -15,6 +15,8 @@ export interface UndoResult {
   entity_type: string;
   entity_ids: string[];
   batch_id: string;
+  /** Scenes whose prose this put back or put again: an editor holding one reloads it. */
+  scene_ids: string[];
 }
 
 export interface ChangeRow {

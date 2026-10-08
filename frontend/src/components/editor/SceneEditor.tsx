@@ -45,6 +45,8 @@ import { useInlineNotes } from "./useInlineNotes";
 import { useMentionHoverCard } from "./useMentionHoverCard";
 import { useSceneDialogue } from "./useSceneDialogue";
 import { usePassageJump } from "./usePassageJump";
+import { UnifiedUndoExtension } from "./UnifiedUndoExtension";
+import { loadScene, patchScene, setLiveScene } from "../../lib/undo/sceneHistory";
 import MentionDropdown from "./MentionDropdown";
 import { SlashPicker } from "./SlashPicker";
 import NoteMargin from "./NoteMargin";
@@ -115,6 +117,7 @@ export default function SceneEditor() {
       DialogueExtension,
       SearchAndReplaceExtension,
       PassageFlashExtension,
+      UnifiedUndoExtension,
     ],
     content: activeNode?.content ?? "",
     editorProps: { attributes: { "aria-label": "Scene text" } },
@@ -186,8 +189,15 @@ export default function SceneEditor() {
       });
       return;
     }
-    if (editor.getHTML() !== activeNode.content) editor.commands.setContent(activeNode.content ?? "");
+    loadScene(editor, activeNode.content ?? "");
   }, [activeNode?.id, needsProse, editor]); // eslint-disable-line react-hooks/exhaustive-deps
+  // This editor's typing is a history ⌘Z reaches from anywhere in the story (doc 23 P5b).
+  useEffect(() => {
+    if (!editor || !activeNode) return;
+    const flush = () => autosaveRef.current?.flush() ?? Promise.resolve();
+    setLiveScene({ editor, nodeId: activeNode.id, title: activeNode.title, flush });
+  }, [editor, activeNode?.id, activeNode?.title]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => setLiveScene(null), [editor]);
   // A finding's words, shown once the prose above is in.
   usePassageJump(editor, activeNode?.id, !!activeNode && !needsProse);
 
@@ -267,7 +277,7 @@ export default function SceneEditor() {
   function applyUpdated(updated: Partial<typeof activeNode> & { content?: string }) {
     if (!activeNode) return;
     setActiveNode({ ...activeNode, ...updated });
-    if (editor && updated.content) editor.commands.setContent(updated.content, false);
+    if (editor && updated.content) patchScene(editor, updated.content);
   }
 
   return (

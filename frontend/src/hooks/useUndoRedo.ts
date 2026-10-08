@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "../api/client";
-import { ApiError, MUTATION_EVENT, type MutationEventDetail } from "../api/request";
-import { toolsApi, type UndoResult, type UndoState } from "../api/tools";
+import { useEffect, useRef } from "react";
+import { MUTATION_EVENT, type MutationEventDetail } from "../api/request";
+import { toolsApi, type UndoState } from "../api/tools";
+import { changeChannel, UNDO_APPLIED_EVENT } from "../lib/undo/events";
+import { onSceneHistory } from "../lib/undo/sceneHistory";
 import { useStoryStore } from "../stores/storyStore";
 import { toast, useToastStore } from "../stores/toastStore";
+import {
+  bumpVersion,
+  refreshServer,
+  runUndo,
+  serverActed,
+  setUndoStory,
+  undoView,
+  useUndoStore,
+} from "../stores/undoStore";
 
-/** Components that keep their own copy of story data listen for this and reload. */
-export const UNDO_APPLIED_EVENT = "ls:undo-applied";
+export { UNDO_APPLIED_EVENT };
 
 /**
  * Re-run `reload` after an undo or redo that touched one of `entityTypes`, for components
@@ -32,105 +41,66 @@ export function useReloadOnUndo(entityTypes: readonly string[], reload: () => un
   }, [key]);
 }
 
-const EMPTY: UndoState = { can_undo: false, undo_label: null, can_redo: false, redo_label: null };
-
 /**
- * Server-side undo/redo for the active story (refactor doc 05). The change log lives in the
- * backend; this hook shows its state and refreshes the stores after an undo or redo.
- * Prose keystrokes are handled by TipTap's own history and are not part of this.
+ * The header's view of the story's one undo timeline (doc 23 P5b; `stores/undoStore`). It
+ * follows the active story, hears every change a request records (its response headers, or
+ * another window), and re-reads the labels when the open editor's history moves.
  */
 export function useUndoRedo() {
   const storyId = useStoryStore((s) => s.activeStory?.id ?? null);
-  const [rawState, setState] = useState<UndoState>(EMPTY);
-  const state = storyId ? rawState : EMPTY;
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const busy = useUndoStore((s) => s.busy);
+  const error = useUndoStore((s) => s.error);
+  // Re-render on any move; the view is read from the store and the live editor below.
+  useUndoStore((s) => s.timeline);
+  useUndoStore((s) => s.server);
+  useUndoStore((s) => s.version);
   // A delete just went through: offer its undo in a toast once the log has it (doc 23 P5).
   const offerUndo = useRef(false);
-  const runRef = useRef<(kind: "undo" | "redo") => Promise<void>>(async () => {});
 
-  const refresh = useCallback(async () => {
-    if (!storyId) return;
-    try {
-      const next = await toolsApi.undoState(storyId);
-      setState(next);
-      if (offerUndo.current) {
-        offerUndo.current = false;
-        offerToUndo(storyId, next, () => runRef.current("undo"));
-      }
-    } catch {
-      setState(EMPTY);
-    }
-  }, [storyId]);
+  useEffect(() => setUndoStory(storyId), [storyId]);
 
   useEffect(() => {
-    if (storyId) toolsApi.undoState(storyId).then(setState, () => setState(EMPTY));
     let timer: ReturnType<typeof setTimeout> | null = null;
+    const refresh = async () => {
+      await refreshServer();
+      const id = useUndoStore.getState().storyId;
+      if (offerUndo.current && id) {
+        offerUndo.current = false;
+        offerToUndo(id, useUndoStore.getState().server, () => runUndo("undo", { serverOnly: true }));
+      }
+    };
     const onMutation = (e: Event) => {
-      if ((e as CustomEvent<MutationEventDetail>).detail?.method === "DELETE") offerUndo.current = true;
+      const detail = (e as CustomEvent<MutationEventDetail>).detail;
+      if (detail?.batch && detail.story) serverActed(detail.story, detail.batch);
+      if (detail?.method === "DELETE") offerUndo.current = true;
       if (timer) clearTimeout(timer);
       timer = setTimeout(refresh, 400);
     };
+    const offChannel = changeChannel.subscribe(({ story, batch }) => {
+      serverActed(story, batch);
+      refreshServer();
+    });
+    const offScene = onSceneHistory(bumpVersion);
+    const onFocus = () => void refreshServer();
     window.addEventListener(MUTATION_EVENT, onMutation);
-    window.addEventListener("focus", refresh);
+    window.addEventListener("focus", onFocus);
     return () => {
       window.removeEventListener(MUTATION_EVENT, onMutation);
-      window.removeEventListener("focus", refresh);
+      window.removeEventListener("focus", onFocus);
+      offChannel();
+      offScene();
       if (timer) clearTimeout(timer);
     };
-  }, [refresh, storyId]);
+  }, []);
 
-  async function applyResult(result: UndoResult) {
-    if (!storyId) return;
-    const store = useStoryStore.getState();
-    if (result.entity_type === "structure_node") {
-      store.setStructure(await api.getStructure(storyId));
-      const active = store.activeNode;
-      if (active) {
-        try {
-          store.setActiveNode(await api.getNode(active.id));
-        } catch (e) {
-          if (e instanceof ApiError && e.status === 404) store.setActiveNode(null);
-        }
-      }
-    } else if (result.entity_type === "character" || result.entity_type === "character_relationship") {
-      store.setCharacters(await api.listCharacters(storyId));
-    } else if (result.entity_type === "story") {
-      store.setActiveStory(await api.getStory(storyId));
-    }
-    window.dispatchEvent(new CustomEvent(UNDO_APPLIED_EVENT, { detail: result }));
-  }
-
-  async function run(kind: "undo" | "redo") {
-    if (!storyId || busy) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const result = kind === "undo" ? await toolsApi.undo(storyId) : await toolsApi.redo(storyId);
-      await applyResult(result);
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 409) setError(e.message);
-      else if (!(e instanceof ApiError && e.status === 404)) setError(`Could not ${kind}`);
-    } finally {
-      setBusy(false);
-      refresh();
-    }
-  }
-
-  useEffect(() => {
-    runRef.current = run;
-  });
-
+  const view = storyId ? undoView() : { canUndo: false, undoLabel: null, canRedo: false, redoLabel: null };
   return {
-    canUndo: state.can_undo,
-    canRedo: state.can_redo,
-    undoLabel: state.undo_label,
-    redoLabel: state.redo_label,
+    ...view,
     busy,
     error,
-    clearError: () => setError(null),
-    undo: () => run("undo"),
-    redo: () => run("redo"),
+    clearError: () => useUndoStore.setState({ error: null }),
+    undo: () => runUndo("undo"),
+    redo: () => runUndo("redo"),
   };
 }
 
@@ -146,8 +116,8 @@ export function offerToUndo(storyId: string, state: UndoState, undo: () => void)
   if (!state.can_undo || !label?.startsWith("Delete")) return;
   if (useToastStore.getState().toasts.some((t) => t.action)) return;
   toast.undoable(label.replace(/^Delete\b/, "Deleted"), async () => {
-    const now = await toolsApi.undoState(storyId).catch(() => EMPTY);
-    if (now.undo_label !== label)
+    const now = await toolsApi.undoState(storyId).catch(() => null);
+    if (now?.undo_label !== label)
       return toast.info("Something has changed since. Undo from the header instead");
     undo();
   });

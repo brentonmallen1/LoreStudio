@@ -19,6 +19,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { useAIAvailable } from "../../lib/mode";
 import { useUndoRedo } from "../../hooks/useUndoRedo";
 import UndoRedoButtons from "./UndoRedoButtons";
+import { isUntouchedField } from "../../lib/undo/fieldFocus";
 import JobsIndicator from "./jobs/JobsIndicator";
 import InterfaceSizeButtons from "../settings/InterfaceSizeButtons";
 import HeaderTitle from "./HeaderTitle";
@@ -153,7 +154,9 @@ export default function GlobalHeader() {
       const isUndo = matchesCombo(e, SHORTCUTS.undo.combo);
       const isRedo = matchesCombo(e, SHORTCUTS.redo.combo);
       if (!isUndo && !isRedo) return;
-      if (isTypingTarget(e)) return; // the editor and inputs keep their own history
+      // The prose sends ⌘Z here through its own keymap; other editors and a field with typing
+      // in it keep their own history (doc 23 P5b).
+      if (isTypingTarget(e) && !isUntouchedField(e)) return;
       e.preventDefault();
       if (isRedo) undoRedo.redo();
       else undoRedo.undo();

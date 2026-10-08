@@ -1,5 +1,7 @@
 /** Fetch wrapper shared by every API method: auth header, 401 redirect, typed errors. */
 
+import { changeChannel } from "../lib/undo/events";
+
 export const BASE = "/api";
 
 /** Stable id for this browser tab; the change log uses it so undo reverses *your* edits. */
@@ -19,10 +21,12 @@ export function getClientId(): string {
 /**
  * Fired after every non-GET request completes, so undo state and lists can refresh.
  * `detail.path` is the request path, for listeners that only care about some of them.
+ * `batch` and `story` name the change it recorded, when it recorded one (the server's
+ * X-Change-Batch / X-Change-Story): a step on the undo timeline (doc 23 P5b).
  */
 export const MUTATION_EVENT = "ls:mutation";
 
-export type MutationEventDetail = { path: string; method: string };
+export type MutationEventDetail = { path: string; method: string; batch?: string; story?: string };
 
 export function getToken() {
   return localStorage.getItem("ls_token");
@@ -69,8 +73,14 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   }
 
   const method = (init.method ?? "GET").toUpperCase();
-  if (method !== "GET")
-    window.dispatchEvent(new CustomEvent<MutationEventDetail>(MUTATION_EVENT, { detail: { path, method } }));
+  if (method !== "GET") {
+    const batch = res.headers?.get("X-Change-Batch") ?? undefined;
+    const story = res.headers?.get("X-Change-Story") ?? undefined;
+    if (batch && story) changeChannel.publish({ story, batch });
+    window.dispatchEvent(
+      new CustomEvent<MutationEventDetail>(MUTATION_EVENT, { detail: { path, method, batch, story } }),
+    );
+  }
   if (res.status === 204) return undefined as T;
   return res.json();
 }

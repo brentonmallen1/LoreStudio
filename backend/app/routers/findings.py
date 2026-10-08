@@ -2,8 +2,7 @@
 
 Reading writes nothing. Dismissing is the author's word and goes in the change log, so it
 can be undone. The one fix offered, a misspelt name, rewrites prose the way the other
-bulk tools do: logged under Chronicle › Changes, not undoable here, because the editor's
-own history owns prose.
+bulk tools do: one change in the log, which ⌘Z takes back (doc 23 P5b).
 """
 
 import asyncio

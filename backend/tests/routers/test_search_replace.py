@@ -75,6 +75,70 @@ def test_a_bulk_rewrite_moves_the_scene_on_and_says_so(client):
     changes = client.get(f"/api/stories/{sid}/changes").json()
     rows = changes.get("changes", changes) if isinstance(changes, dict) else changes
     labels = [c["label"] for c in rows]
-    assert any("Replace “Elenor” with “Eleanor”" in label for label in labels)
-    assert any("Curly quotes" in label for label in labels)
-    assert all(not c["undoable"] for c in rows if "Replace" in c["label"] or "quotes" in c["label"])
+    assert "Replace “Elenor” with “Eleanor” in 2 scenes" in labels
+    assert "Curly quotes in “A”" in labels
+    assert all(c["undoable"] for c in rows if "Replace" in c["label"] or "quotes" in c["label"])
+
+
+H = {"X-Client-Id": "tab-1"}
+
+
+def _scene(client, sid, title, content):
+    return client.post(
+        f"/api/stories/{sid}/structure",
+        json={"title": title, "content": content, "level": 0, "level_type": "scene"},
+        headers=H,
+    ).json()
+
+
+def test_replace_and_quotes_undo_and_redo_as_one_step_each(client):
+    """Every rewrite of the prose is a step ⌘Z takes back, whole (doc 23 P5b)."""
+    sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
+    a = _scene(client, sid, "A", '<p>"Elenor," he said.</p>')
+    b = _scene(client, sid, "B", "<p>Elenor waited.</p>")
+    text = lambda n: client.get(f"/api/structure/{n['id']}").json()["content"]  # noqa: E731
+
+    client.post(f"/api/stories/{sid}/replace", json={"query": "Elenor", "replacement": "Eleanor"}, headers=H)
+    client.post(f"/api/stories/{sid}/quotes/normalize", json={"style": "curly"}, headers=H)
+    assert text(a) == "<p>“Eleanor,” he said.</p>"
+
+    undone = client.post(f"/api/stories/{sid}/undo", headers=H).json()
+    assert undone["label"] == "Curly quotes in “A”" and undone["scene_ids"] == [a["id"]]
+    assert text(a) == '<p>"Eleanor," he said.</p>'
+    undone = client.post(f"/api/stories/{sid}/undo", headers=H).json()
+    assert sorted(undone["scene_ids"]) == sorted([a["id"], b["id"]])
+    assert (text(a), text(b)) == ('<p>"Elenor," he said.</p>', "<p>Elenor waited.</p>")
+
+    redone = client.post(f"/api/stories/{sid}/redo", headers=H).json()
+    assert redone["label"].startswith("Replace") and len(redone["scene_ids"]) == 2
+    assert text(b) == "<p>Eleanor waited.</p>"
+
+
+def test_undo_leaves_a_scene_written_in_since(client):
+    """The open editor saved new words after the replace: undo refuses rather than lose them."""
+    sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
+    a = _scene(client, sid, "A", "<p>Elenor waited.</p>")
+    client.post(f"/api/stories/{sid}/replace", json={"query": "Elenor", "replacement": "Eleanor"}, headers=H)
+    client.patch(f"/api/structure/{a['id']}", json={"content": "<p>Eleanor waited. Then left.</p>"}, headers=H)
+    r = client.post(f"/api/stories/{sid}/undo", headers=H)
+    assert r.status_code == 409 and "edited again" in r.json()["detail"]
+    assert client.get(f"/api/structure/{a['id']}").json()["content"] == "<p>Eleanor waited. Then left.</p>"
+
+
+def test_a_response_names_the_change_it_recorded(client):
+    """The client's undo timeline learns of a change the moment it lands: the batch and its
+    story in two headers. Typing (autosave), undo and redo are not new steps, so they carry none."""
+    sid = client.post("/api/stories", json={"title": "T"}).json()["id"]
+    created = client.post(
+        f"/api/stories/{sid}/structure", json={"title": "A", "level": 0, "level_type": "scene"}, headers=H
+    )
+    batch = created.headers["X-Change-Batch"]
+    assert created.headers["X-Change-Story"] == sid
+    rows = client.get(f"/api/stories/{sid}/changes").json()
+    assert rows[0]["batch_id"] == batch
+
+    saved = client.patch(f"/api/structure/{created.json()['id']}", json={"content": "<p>Words</p>"}, headers=H)
+    assert "X-Change-Batch" not in saved.headers
+    assert "X-Change-Batch" not in client.post(f"/api/stories/{sid}/undo", headers=H).headers
+    assert "X-Change-Batch" not in client.post(f"/api/stories/{sid}/redo", headers=H).headers
+    assert "X-Change-Batch" not in client.get(f"/api/stories/{sid}/changes").headers

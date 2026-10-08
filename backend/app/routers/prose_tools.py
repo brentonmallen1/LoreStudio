@@ -65,7 +65,7 @@ def normalize_quotes(
         q = q.filter(StructureNode.id.in_(req.node_ids))
     changed_chars = 0
     scenes: list[dict] = []
-    batch_id = str(uuid.uuid4())
+    rewrites: list[tuple[StructureNode, str]] = []
     for node in q.all():
         if not node.content:
             continue
@@ -73,16 +73,15 @@ def normalize_quotes(
         if n:
             scenes.append({"node_id": node.id, "title": node.title, "changed": n})
             changed_chars += n
-            if not req.dry_run:
-                change_log.rewrite_prose(
-                    db,
-                    node,
-                    new_html,
-                    label=f"{req.style.capitalize()} quotes in “{node.title}”",
-                    batch_id=batch_id,
-                    actor_id=user.id,
-                    client_id=client_id,
-                )
-    if scenes and not req.dry_run:
+            rewrites.append((node, new_html))
+    if rewrites and not req.dry_run:
+        # One batch, one name: ⌘Z takes back the whole conversion.
+        where = f"“{rewrites[0][0].title}”" if len(rewrites) == 1 else f"{len(rewrites)} scenes"
+        label = f"{req.style.capitalize()} quotes in {where}"
+        batch_id = str(uuid.uuid4())
+        for node, new_html in rewrites:
+            change_log.rewrite_prose(
+                db, node, new_html, label=label, batch_id=batch_id, actor_id=user.id, client_id=client_id
+            )
         db.commit()
     return {"style": req.style, "dry_run": req.dry_run, "changed_chars": changed_chars, "scenes": scenes}

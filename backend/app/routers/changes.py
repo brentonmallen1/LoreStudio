@@ -32,7 +32,13 @@ def _keep_in_step(db: Session, res: change_log.UndoResult | None, user: User, cl
 def _result(res: change_log.UndoResult | None, verb: str) -> dict:
     if res is None:
         raise HTTPException(status_code=404, detail=f"Nothing to {verb}")
-    return {"label": res.label, "entity_type": res.entity_type, "entity_ids": res.entity_ids, "batch_id": res.batch_id}
+    return {
+        "label": res.label,
+        "entity_type": res.entity_type,
+        "entity_ids": res.entity_ids,
+        "batch_id": res.batch_id,
+        "scene_ids": res.scene_ids,
+    }
 
 
 @router.get("/stories/{story_id}/undo/state")

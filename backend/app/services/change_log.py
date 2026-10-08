@@ -46,6 +46,7 @@ from ..models.story import Story
 from ..models.structure import StructureNode
 from ..models.twist import Twist, TwistClue
 from ..models.world_system import WorldSystem
+from . import change_headers
 
 #: entity_type -> model. Deletes capture a bundle of rows keyed by table name.
 ENTITY_MODELS: dict[str, type] = {
@@ -160,6 +161,16 @@ class UndoResult:
     entity_type: str
     entity_ids: list[str]
     batch_id: str
+    #: Scenes whose prose this put back or put again, for an editor holding one to reload.
+    scene_ids: list[str]
+
+
+def _scene_ids(batch: list[Change]) -> list[str]:
+    return [
+        c.entity_id
+        for c in batch
+        if c.entity_type == "structure_node" and ("content" in _as_dict(c.before) or "content" in _as_dict(c.after))
+    ]
 
 
 def get_client_id(x_client_id: str | None = Header(default=None)) -> str | None:
@@ -237,6 +248,8 @@ def record(
         redo_of=redo_of,
     )
     db.add(change)
+    if undoable and undo_of is None and redo_of is None:
+        change_headers.note(story_id, change.batch_id)
     return change
 
 
@@ -249,32 +262,26 @@ def rewrite_prose(
     batch_id: str,
     actor_id: str | None,
     client_id: str | None,
-    undoable: bool = False,
 ) -> None:
     """
-    Replace a scene's prose on the author's behalf, and say so.
-
-    For the bulk tools — quote conversion, story-wide replace — that rewrite many scenes
-    in one go. Logged as prose edits are: visible under Chronicle › Changes, one batch per
-    operation, and not undoable here, because the editor's own history owns prose.
-
-    ``undoable`` is for a rewrite that goes with a change to the record, a rename or new
-    pronouns (doc 20): the sheet and the scenes undo together, and an undo leaves alone a
-    scene written in since (the before/after check every update gets).
+    Replace a scene's prose on the author's behalf, and say so: undoably, as one batch per
+    operation (quote conversion, story-wide replace, a finding's fix, a rename). Typing is the
+    editor's own history; a tool's rewrite is the change log's, and ⌘Z reaches both (doc 23
+    P5b). Undo refuses a scene written in since rather than overwrite it (the before/after
+    check every update gets).
     """
     record(
         db,
         story_id=node.story_id,
         entity_type="structure_node",
         entity_id=node.id,
-        action="update" if undoable else "content",
+        action="update",
         before={"content": node.content},
         after={"content": content},
         label=label,
         actor_id=actor_id,
         client_id=client_id,
         batch_id=batch_id,
-        undoable=undoable,
     )
     node.content = content
 
@@ -282,13 +289,11 @@ def rewrite_prose(
 def prose_writer(
     db: Session, *, label: str, batch_id: str, actor_id: str | None, client_id: str | None
 ) -> Callable[[StructureNode, str], None]:
-    """``rewrite_prose`` bound to one undoable batch: for a rename or new pronouns, whose scenes
-    undo together with the record that changed (doc 20)."""
+    """``rewrite_prose`` bound to one batch: for a rename or new pronouns, whose scenes undo
+    together with the record that changed (doc 20)."""
 
     def write(node: StructureNode, content: str) -> None:
-        rewrite_prose(
-            db, node, content, label=label, batch_id=batch_id, actor_id=actor_id, client_id=client_id, undoable=True
-        )
+        rewrite_prose(db, node, content, label=label, batch_id=batch_id, actor_id=actor_id, client_id=client_id)
 
     return write
 
@@ -708,7 +713,9 @@ def _undo(db: Session, story_id: str, batch: list[Change], actor_id: str | None,
             undo_of=change.batch_id,
         )
     db.commit()
-    return UndoResult(batch[0].label, batch[0].entity_type, [c.entity_id for c in batch], undo_batch_id)
+    return UndoResult(
+        batch[0].label, batch[0].entity_type, [c.entity_id for c in batch], undo_batch_id, _scene_ids(batch)
+    )
 
 
 def redo_latest(db: Session, story_id: str, actor_id: str | None, client_id: str | None) -> UndoResult | None:
@@ -735,7 +742,13 @@ def redo_latest(db: Session, story_id: str, actor_id: str | None, client_id: str
             redo_of=undo_batch[0].batch_id,
         )
     db.commit()
-    return UndoResult(original[0].label, original[0].entity_type, [c.entity_id for c in original], redo_batch_id)
+    return UndoResult(
+        original[0].label,
+        original[0].entity_type,
+        [c.entity_id for c in original],
+        redo_batch_id,
+        _scene_ids(original),
+    )
 
 
 def undo_state(db: Session, story_id: str, client_id: str | None) -> dict:

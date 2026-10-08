@@ -310,8 +310,7 @@ async def story_replace(
 
     nodes = q.all()
     total_replaced = 0
-    changed: list[str] = []
-    batch_id = str(uuid.uuid4())
+    rewrites: list[tuple[StructureNode, str]] = []
 
     for node in nodes:
         if not node.content:
@@ -320,18 +319,18 @@ async def story_replace(
             node.content, req.query, req.replacement, case_sensitive=req.case_sensitive, whole_word=req.whole_word
         )
         if n > 0:
-            change_log.rewrite_prose(
-                db,
-                node,
-                new_content,
-                label=f"Replace “{req.query}” with “{req.replacement}” in “{node.title}”",
-                batch_id=batch_id,
-                actor_id=user.id,
-                client_id=client_id,
-            )
+            rewrites.append((node, new_content))
             total_replaced += n
-            changed.append(node.id)
 
+    # One batch, one name: ⌘Z takes back the whole replace, and says what it was.
+    where = f"“{rewrites[0][0].title}”" if len(rewrites) == 1 else f"{len(rewrites)} scenes"
+    label = f"Replace “{req.query}” with “{req.replacement}” in {where}"
+    batch_id = str(uuid.uuid4())
+    for node, new_content in rewrites:
+        change_log.rewrite_prose(
+            db, node, new_content, label=label, batch_id=batch_id, actor_id=user.id, client_id=client_id
+        )
+    changed = [node.id for node, _ in rewrites]
     if changed:
         db.commit()
 

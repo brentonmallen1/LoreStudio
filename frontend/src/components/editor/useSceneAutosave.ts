@@ -8,6 +8,7 @@ import { useProposalsStore } from "../../stores/proposalsStore";
 import { clearDraft, loadDraft, saveDraft, type Draft } from "../../lib/draftBuffer";
 import { countWordsClean } from "./segmentMeta";
 import { SCENES_REWRITTEN_EVENT } from "../../lib/sceneEvents";
+import { loadScene, patchScene } from "../../lib/undo/sceneHistory";
 
 export type SaveState = "idle" | "unsaved" | "saving" | "saved" | "offline" | "conflict";
 
@@ -31,6 +32,11 @@ export function useSceneAutosave(editor: Editor | null) {
   const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCountRef = useRef(0);
   const lastContentRef = useRef<{ nodeId: string; content: string } | null>(null);
+  const saveStateRef = useRef<SaveState>("idle");
+  const inflightRef = useRef<Promise<void> | null>(null);
+  useEffect(() => {
+    saveStateRef.current = saveState;
+  });
 
   // Word count: seeded from the stored value, kept live by handleUpdate.
   const [countedNodeId, setCountedNodeId] = useState<string | null>(null);
@@ -57,31 +63,26 @@ export function useSceneAutosave(editor: Editor | null) {
   }, [activeNode?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A scene rewritten from outside the editor (quote conversion, replace, undo). With
-  // nothing unsaved here, load the new text. With unsaved typing, leave both alone: its
-  // save meets the server's newer copy and asks Keep mine / Take theirs, so neither the
-  // typing nor the rewrite is dropped without the author choosing.
+  // nothing unsaved here, lay the new text in, outside the editor's history, so ⌘Z still
+  // reaches the typing around it. With unsaved typing, leave both alone: its save meets
+  // the server's newer copy and asks Keep mine / Take theirs, so neither the typing nor
+  // the rewrite is dropped without the author choosing. (Undo saves first: see `flush`.)
   useEffect(() => {
     function onRewritten(event: Event) {
       const { nodeIds } = (event as CustomEvent<{ nodeIds: string[] }>).detail;
       const node = useStoryStore.getState().activeNode;
       if (!editor || !node || !nodeIds.includes(node.id)) return;
-      if (
-        saveState === "unsaved" ||
-        saveState === "saving" ||
-        saveState === "offline" ||
-        saveState === "conflict"
-      )
-        return;
+      if (["unsaved", "saving", "offline", "conflict"].includes(saveStateRef.current)) return;
       api.getNode(node.id).then((fresh) => {
         if (useStoryStore.getState().activeNode?.id !== fresh.id) return;
         setActiveNode(fresh);
-        editor.commands.setContent(fresh.content ?? "", false);
+        patchScene(editor, fresh.content ?? "");
         clearDraft(fresh.id);
       });
     }
     window.addEventListener(SCENES_REWRITTEN_EVENT, onRewritten);
     return () => window.removeEventListener(SCENES_REWRITTEN_EVENT, onRewritten);
-  }, [editor, saveState, setActiveNode]);
+  }, [editor, setActiveNode]);
 
   /** Stored HTML as text, for counting a draft the editor is not showing. */
   function htmlText(html: string): string {
@@ -92,10 +93,19 @@ export function useSceneAutosave(editor: Editor | null) {
     return doc.body.textContent ?? "";
   }
 
-  async function persist(nodeId: string, content: string, force: boolean) {
+  function persist(nodeId: string, content: string, force: boolean): Promise<void> {
+    const saving = save(nodeId, content, force).finally(() => {
+      if (inflightRef.current === saving) inflightRef.current = null;
+    });
+    inflightRef.current = saving;
+    return saving;
+  }
+
+  async function save(nodeId: string, content: string, force: boolean) {
     const node = useStoryStore.getState().activeNode;
     if (!node || node.id !== nodeId) return;
     setSaveState("saving");
+    saveStateRef.current = "saving";
     const count = countWordsClean(
       editor && editor.getHTML() === content ? editor.getText() : htmlText(content),
     );
@@ -118,6 +128,7 @@ export function useSceneAutosave(editor: Editor | null) {
       retryCountRef.current = 0;
       setConflict(null);
       setSaveState("saved");
+      saveStateRef.current = "saved";
       if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
       savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), SAVED_FLASH_MS);
       if (activeStory?.discovery_enabled && activeStory?.discovery_auto_analyze) {
@@ -145,10 +156,26 @@ export function useSceneAutosave(editor: Editor | null) {
     setLiveCount(countWordsClean(ed.getText()));
     setCountedNodeId(node.id);
     setSaveState("unsaved");
+    saveStateRef.current = "unsaved";
     saveDraft(node.id, content);
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     retryCountRef.current = 0;
     saveTimeoutRef.current = setTimeout(() => persist(node.id, content, false), SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Save now what is waiting to be saved, and wait for a save under way: the undo timeline
+   * calls this before the server undoes, so the server's copy of this scene is current.
+   */
+  async function flush() {
+    const last = lastContentRef.current;
+    if (saveTimeoutRef.current && last && saveStateRef.current === "unsaved") {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+      await persist(last.nodeId, last.content, false);
+    } else if (inflightRef.current) {
+      await inflightRef.current;
+    }
   }
 
   /** Conflict: overwrite the server with what is in the editor. */
@@ -163,7 +190,7 @@ export function useSceneAutosave(editor: Editor | null) {
   function takeTheirs() {
     if (!conflict) return;
     setActiveNode(conflict);
-    if (editor) editor.commands.setContent(conflict.content ?? "", false);
+    if (editor) loadScene(editor, conflict.content ?? "");
     clearDraft(conflict.id);
     setConflict(null);
     setSaveState("idle");
@@ -172,7 +199,7 @@ export function useSceneAutosave(editor: Editor | null) {
   /** Unsaved draft found for this node: load it into the editor (it saves normally afterwards). */
   function restoreDraft() {
     if (!pendingDraft || !editor) return;
-    editor.commands.setContent(pendingDraft.content, true);
+    loadScene(editor, pendingDraft.content, { emitUpdate: true });
     setPendingDraft(null);
   }
 
@@ -185,6 +212,7 @@ export function useSceneAutosave(editor: Editor | null) {
     saveState,
     wordCount,
     handleUpdate,
+    flush,
     conflict,
     keepMine,
     takeTheirs,

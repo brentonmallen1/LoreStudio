@@ -85,8 +85,14 @@ def test_fix_renames_in_that_scene_and_logs_the_change(client, db_session, test_
     db_session.refresh(nodes["The Lamp"])
     assert "Eleanor lit the lamp" in nodes["The Lamp"].content
     change = db_session.query(Change).filter_by(story_id=story.id, entity_id=nodes["The Lamp"].id).one()
-    assert change.label == "Fix “Elenor” → “Eleanor” in The Lamp" and change.undoable is False
+    assert change.label == "Fix “Elenor” → “Eleanor” in The Lamp" and change.undoable is True
     assert "name_drift" not in {f["check"] for f in _feed(client, story)["findings"]}
+    # ⌘Z takes the fix back, and the finding with it (doc 23 P5b).
+    undone = client.post(f"/api/stories/{story.id}/undo").json()
+    assert undone["scene_ids"] == [nodes["The Lamp"].id]
+    db_session.refresh(nodes["The Lamp"])
+    assert "Elenor lit the lamp" in nodes["The Lamp"].content
+    assert "name_drift" in {f["check"] for f in _feed(client, story)["findings"]}
 
 
 def test_a_finding_without_a_fix_refuses(client, db_session, test_user):

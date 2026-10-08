@@ -3,6 +3,7 @@ import { Redo2, RotateCcw, Undo2 } from "lucide-react";
 import { toolsApi, type ChangeRow } from "../../api/tools";
 import { ApiError, MUTATION_EVENT } from "../../api/request";
 import { UNDO_APPLIED_EVENT } from "../../hooks/useUndoRedo";
+import { applyResult, forgetChange } from "../../stores/undoStore";
 import { formatRelative } from "../../lib/utils";
 import styles from "./ChangesView.module.css";
 
@@ -114,7 +115,7 @@ export default function ChangesView({ storyId }: { storyId: string }) {
     try {
       const result =
         kind === "undo" ? await toolsApi.undo(storyId, true) : await toolsApi.redo(storyId, true);
-      window.dispatchEvent(new CustomEvent(UNDO_APPLIED_EVENT, { detail: result }));
+      await applyResult(storyId, result);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : `Could not ${kind}`);
     }
@@ -124,7 +125,9 @@ export default function ChangesView({ storyId }: { storyId: string }) {
     setError(null);
     try {
       const result = await toolsApi.undoChange(storyId, batchId);
-      window.dispatchEvent(new CustomEvent(UNDO_APPLIED_EVENT, { detail: result }));
+      // Off ⌘Z's timeline too, and the open scene takes back its prose if this held some.
+      forgetChange(batchId);
+      await applyResult(storyId, result);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not undo that change");
     }
@@ -176,7 +179,7 @@ export default function ChangesView({ storyId }: { storyId: string }) {
             <span className={styles.label}>
               {b.label}
               {b.rows.length > 1 && <span className={styles.count}> · {b.rows.length} items</span>}
-              {b.kind === "content" && <span className={styles.count}> · prose edit, not undoable here</span>}
+              {b.kind === "content" && <span className={styles.count}> · typing, undone in the scene</span>}
             </span>
             <span className={styles.meta}>
               {b.client_id && b.client_id === myClient ? "this tab" : b.client_id ? "another tab" : ""}

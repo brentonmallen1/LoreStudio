@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
 import { useAIAvailable } from "../../lib/mode";
 import AttributionChecks from "./AttributionChecks";
+import { patchScene } from "../../lib/undo/sceneHistory";
 import styles from "./SceneEditor.module.css";
 
 interface Props {
@@ -95,7 +96,7 @@ export default function DialogueIsolationView({
         { quote_content: block.content, speaker_name: suggestion.inferred_speaker },
       ]);
       setActiveNode({ ...activeNode, ...updated });
-      if (editor && updated.content) editor.commands.setContent(updated.content, false);
+      if (editor && updated.content) patchScene(editor, updated.content);
       setDismissed((prev) => new Set([...prev, suggestion.id]));
     } catch {
       /* ignore */

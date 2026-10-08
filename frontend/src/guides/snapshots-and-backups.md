@@ -4,7 +4,9 @@ Three layers protect your work.
 
 ## Undo (seconds)
 
-**{{key:undo}} / {{key:redo}}** undo and redo changes to titles, structure, characters, relationships, locations, outlines, notes and story identity. Prose keystrokes use the editor's own history. The header shows what will be undone. Undo is per browser tab; **Chronicle › Changes** can reverse the latest change from any tab and lists everything.
+**{{key:undo}} / {{key:redo}}** take back the last thing you did in the story, wherever you did it and wherever you are when you press them: typing in the scene, a rename, a deleted character, a moved chapter, a find and replace, converted quotes, a finding's fix. They go back in the order things happened, so typing, then a change on a sheet, then more typing, undo in that order. The header's buttons do the same and say what is next. Undo is per browser tab; **Chronicle › Changes** lists everything, can undo any one change that nothing later depends on, and can reverse the latest change from any tab.
+
+A text field you are typing in keeps its own undo until you have typed nothing in it since you clicked in; then {{key:undo}} reaches the story's history too.
 
 ## Snapshots (minutes to days)
 
