@@ -2,7 +2,16 @@
  * Planning commands (refactor doc 10): Freewrite and the Notes tab (doc 15), and the side
  * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
-import { CalendarClock, FileText, MapIcon, NotebookPen, StickyNote } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarClock,
+  FileText,
+  MapIcon,
+  NotebookPen,
+  StickyNote,
+} from "lucide-react";
+import { goToAdjacentScene, openSceneId } from "../story/adjacentScene";
 import { commandRegistry } from "./registry";
 import { navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
@@ -61,6 +70,22 @@ for (const [id, dir, key] of [
     shortcut: SHORTCUTS[key].combo,
     when: () => !!useEditorBridge.getState().notes?.notes.length,
     action: () => useEditorBridge.getState().notes?.step(dir),
+  });
+}
+
+for (const [id, dir, key] of [
+  ["scene-next", 1, "nextScene"],
+  ["scene-previous", -1, "prevScene"],
+] as const) {
+  commandRegistry.register({
+    id,
+    label: SHORTCUTS[key].label,
+    keywords: ["scene", "chapter", "go", dir === 1 ? "next" : "previous", dir === 1 ? "forward" : "back"],
+    icon: dir === 1 ? ArrowRight : ArrowLeft,
+    group: "Navigation",
+    shortcut: SHORTCUTS[key].combo,
+    when: () => !!openSceneId(),
+    action: () => void goToAdjacentScene(dir),
   });
 }
 

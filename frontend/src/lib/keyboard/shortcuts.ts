@@ -33,6 +33,24 @@ export const SHORTCUTS = {
     modes: BOTH,
     commandId: "editor-story-search",
   },
+  // ⌘[ and ⌘], as Back and Forward are in a browser: only while a scene is open, so
+  // everywhere else they still go back and forward through the pages.
+  prevScene: {
+    combo: "mod+[",
+    label: "Previous scene",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "scene-previous",
+  },
+  nextScene: {
+    combo: "mod+]",
+    label: "Next scene",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "scene-next",
+  },
   focusMode: {
     combo: "mod+\\",
     label: "Toggle focus mode",

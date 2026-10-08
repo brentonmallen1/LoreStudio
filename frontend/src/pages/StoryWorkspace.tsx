@@ -13,6 +13,7 @@ import { useSeriesStore } from "../stores/seriesStore";
 import { SERIES_UNDO_TYPES } from "../lib/series/refresh";
 import { useUIStore } from "../stores/uiStore";
 import { SHORTCUTS, matchesCombo } from "../lib/keyboard/shortcuts";
+import { goToAdjacentScene, openSceneId } from "../lib/story/adjacentScene";
 import StoryStrip from "../components/strip/StoryStrip";
 import StoryPanel from "../components/panel/StoryPanel";
 import StorySearchPanel from "../components/story/StorySearchPanel";
@@ -101,12 +102,22 @@ export default function StoryWorkspacePage() {
     return () => clearInterval(interval);
   }, [storyId]);
 
-  // ⌘⇧F — open story-wide search panel
+  // ⌘⇧F — open story-wide search panel; ⌘[ / ⌘] — the scene before or after
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (matchesCombo(e, SHORTCUTS.storySearch.combo)) {
         e.preventDefault();
         openStorySearch();
+      }
+      // ⌘[ / ⌘]: the scene before or after. Off a scene they stay the browser's Back/Forward.
+      const dir = matchesCombo(e, SHORTCUTS.nextScene.combo)
+        ? 1
+        : matchesCombo(e, SHORTCUTS.prevScene.combo)
+          ? -1
+          : 0;
+      if (dir && openSceneId()) {
+        e.preventDefault();
+        goToAdjacentScene(dir);
       }
     }
     window.addEventListener("keydown", onKeyDown);
