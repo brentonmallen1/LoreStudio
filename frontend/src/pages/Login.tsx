@@ -1,6 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
+import LogoMark from "../components/common/LogoMark";
 import styles from "./Login.module.css";
 
 export default function LoginPage() {
@@ -25,6 +26,7 @@ export default function LoginPage() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
+          <LogoMark size={72} className={styles.mark} />
           <h1 className={styles.logo}>LoreStudio</h1>
           <p className={styles.tagline}>Your writing environment</p>
         </div>

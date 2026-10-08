@@ -8,6 +8,9 @@ rest are fixed versions for where a theme cannot be asked:
     docs/images/lorestudio-logo-dark.svg/.png    paper, for dark backgrounds (README)
     docs/images/lorestudio-icon.png              on a parchment tile (Unraid; any unknown ground)
     frontend/public/favicon.svg                  the master: the browser tab follows the theme
+    frontend/src/components/common/lorestudio-mark.svg
+                                                 the master again, for LogoMark (the sign-in
+                                                 page, the header's home), drawn in currentColor
     frontend/public/favicon.ico                  16/32/48, for browsers without SVG favicons
     frontend/public/apple-touch-icon.png         180, full-bleed tile (iOS rounds it, and fills
                                                  transparency with black)
@@ -28,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MASTER = ROOT / "docs/images/lorestudio-logo.svg"
 DOCS = ROOT / "docs/images"
 PUBLIC = ROOT / "frontend/public"
+MARK = ROOT / "frontend/src/components/common/lorestudio-mark.svg"
 
 INK, PAPER, TILE = "#1a1916", "#f0ede6", "#f7f6f3"  # DESIGN.md: ink, dark text, parchment
 
@@ -83,6 +87,8 @@ def main() -> None:
 
     (PUBLIC / "favicon.svg").write_text(MASTER.read_text())
     print("  frontend/public/favicon.svg")
+    MARK.write_text(MASTER.read_text())
+    print(f"  {MARK.relative_to(ROOT)}")
     png(light, 256).save(PUBLIC / "favicon.ico", sizes=[(16, 16), (32, 32), (48, 48)])
     print("  frontend/public/favicon.ico")
     save(png(full, 180), PUBLIC / "apple-touch-icon.png")

@@ -17,6 +17,12 @@
   text-align: center;
 }
 
+.mark {
+  display: block;
+  margin: 0 auto 1rem;
+  color: var(--color-text);
+}
+
 .logo {
   font-size: 1.5rem;
   font-weight: 300;

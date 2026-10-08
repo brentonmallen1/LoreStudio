@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, LibraryBig } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import LogoMark from "../common/LogoMark";
 import { originLabel } from "../../lib/overlay";
 import { sceneToResume } from "../../lib/resumeScene";
 import { useStoryStore } from "../../stores/storyStore";
@@ -24,6 +25,7 @@ export default function HeaderTitle() {
   if (!storyId || activeStory?.id !== storyId) {
     return (
       <Link to="/" className={styles.wordmark}>
+        <LogoMark size={20} />
         LoreStudio
       </Link>
     );
@@ -44,7 +46,7 @@ export default function HeaderTitle() {
   return (
     <div className={styles.storyTitleRow}>
       <button className={styles.backToStories} onClick={() => navigate("/")} title="All stories">
-        <LibraryBig size={16} aria-hidden />
+        <LogoMark size={20} />
         <span className={styles.srOnly}>All stories</span>
       </button>
       <SeriesCrumb storyId={storyId} compact={pathname.includes("/write")} />
