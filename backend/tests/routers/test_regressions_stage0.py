@@ -46,25 +46,32 @@ def test_reorder_goals_route_reachable(client):
 
 # B3 ------------------------------------------------------------------------
 def test_twist_impact_orders_by_position(client, mock_ai_gateway):
-    mock_ai_gateway(structured_data={"affected_threads": [], "summary": "ok"})
+    gw = mock_ai_gateway(structured_data={"affected_threads": [], "summary": "ok"})
     sid = _make_story(client)
-    _make_scene(client, sid)
+    # Made out of reading order: the prompt must follow position, not creation
+    _make_scene(client, sid, title="Later scene", position=1)
+    _make_scene(client, sid, title="Earlier scene", position=0)
     tid = client.post(f"/api/stories/{sid}/twists", json={"name": "Tw"}).json()["id"]
     r = client.post(f"/api/twists/{tid}/analyze-impact")
     assert r.status_code == 200, r.text
+    prompt = gw.structured_calls[0]["feature_prompt"]
+    assert prompt.index("Earlier scene") < prompt.index("Later scene")
 
 
 # B4 ------------------------------------------------------------------------
 def test_reader_knowledge_scan_orders_by_position(client, mock_ai_gateway):
-    mock_ai_gateway(structured_data={"events": []})
+    gw = mock_ai_gateway(structured_data={"events": []})
     sid = _make_story(client)
-    _make_scene(client, sid, synopsis="A storm.")
+    _make_scene(client, sid, title="Later scene", position=1, synopsis="A storm.")
+    _make_scene(client, sid, title="Earlier scene", position=0, synopsis="A calm.")
     r = client.post(f"/api/stories/{sid}/reader-knowledge/scan")
     assert r.status_code == 200, r.text
+    prompt = gw.structured_calls[0]["feature_prompt"]
+    assert prompt.index("Earlier scene") < prompt.index("Later scene")
 
 
 # B5 ------------------------------------------------------------------------
-def test_editorial_summaries_context(client, mock_ai_gateway):
+def test_editorial_run_on_summaries_context_does_not_crash(client, mock_ai_gateway):
     mock_ai_gateway(structured_data={"findings": [], "summary": "ok"})
     sid = _make_story(client)
     _make_scene(client, sid, content_summary="A summary.")

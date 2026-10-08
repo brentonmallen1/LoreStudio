@@ -18,7 +18,6 @@ from app.services.llm.features import (
     FEATURES_BY_ID,
     GROUP_LABELS,
     feature_budget,
-    feature_label,
 )
 
 APP = Path(__file__).resolve().parents[2] / "app"
@@ -68,9 +67,7 @@ def test_feature_labels_mapping_matches_the_table():
     assert FEATURE_LABELS == {f.id: f.label for f in AI_FEATURES}
 
 
-def test_lookup_helpers_fall_back_for_unknown_ids():
-    assert feature_label("interview") == "Character Interview"
-    assert feature_label("not-a-feature") == "Not A Feature"
+def test_budget_falls_back_for_unknown_ids():
     assert feature_budget("not-a-feature") > 0
 
 

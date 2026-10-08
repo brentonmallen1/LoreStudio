@@ -131,12 +131,6 @@ def auth_token(test_user: User) -> str:
     return create_access_token(test_user.id)
 
 
-@pytest.fixture
-def auth_headers(auth_token: str) -> dict:
-    """Authorization header dict for use with TestClient."""
-    return {"Authorization": f"Bearer {auth_token}"}
-
-
 # ---------------------------------------------------------------------------
 # TestClient fixture with dependency overrides
 # ---------------------------------------------------------------------------

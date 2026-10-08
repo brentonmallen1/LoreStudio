@@ -1,17 +1,10 @@
 """Quote normalisation and consistency checks: deterministic, markup-safe."""
 
 from app.services.consistency import levenshtein, name_drift
-from app.services.text_utils import count_quote_styles, normalize_quotes_html, normalize_quotes_text
+from app.services.text_utils import count_quote_styles, normalize_quotes_html
 
 
-def test_curly_conversion_picks_opening_and_closing():
-    assert normalize_quotes_text("\"Hello,\" she said. It's Mara's.", "curly") == "“Hello,” she said. It’s Mara’s."
-    assert normalize_quotes_text("'Quoted' word", "curly") == "‘Quoted’ word"
-
-
-def test_straight_conversion_and_roundtrip_counts():
-    curly = "“Hello,” she said. It’s fine."
-    assert normalize_quotes_text(curly, "straight") == '"Hello," she said. It\'s fine.'
+def test_html_conversion_counts_and_spares_speaker_tags():
     html = '<p>"Hi"<Maya> and <b>"there"</b></p>'
     out, n = normalize_quotes_html(html, "curly")
     assert n == 4

@@ -32,11 +32,6 @@ export function useReloadOnUndo(entityTypes: readonly string[], reload: () => un
   }, [key]);
 }
 
-/** The fresh copy of a selected row after a reload, or null when undo removed it. */
-export function reselect<T extends { id: string }>(prev: T | null, rows: T[]): T | null {
-  return prev ? (rows.find((r) => r.id === prev.id) ?? null) : null;
-}
-
 const EMPTY: UndoState = { can_undo: false, undo_label: null, can_redo: false, redo_label: null };
 
 /**

@@ -63,14 +63,14 @@ describe("api.request (via api methods)", () => {
       await expect(api.me()).rejects.toThrow("Not found");
     });
 
-    it("throws generic message when response has no detail", async () => {
+    it("throws the status text when the response has no detail", async () => {
       server.use(
         http.get("/api/auth/me", () => {
           return new HttpResponse(null, { status: 500 });
         }),
       );
 
-      await expect(api.me()).rejects.toThrow();
+      await expect(api.me()).rejects.toThrow(/^Internal Server Error$/);
     });
 
     it("clears token and redirects on 401", async () => {
@@ -83,6 +83,7 @@ describe("api.request (via api methods)", () => {
 
       await expect(api.me()).rejects.toThrow("Unauthorized");
       expect(localStorage.getItem("ls_token")).toBeNull();
+      expect(window.location.href).toBe("/login");
     });
   });
 
@@ -114,8 +115,8 @@ describe("api.request (via api methods)", () => {
 
     it("streaming response has correct content type", async () => {
       const response = await api.summarizeStory("story-1");
-      // Text streams from the server
-      expect(response.headers.get("Content-Type")).toContain("text/plain");
+      // Typed event frames (SSE), the same as the server sends
+      expect(response.headers.get("Content-Type")).toContain("text/event-stream");
     });
   });
 });

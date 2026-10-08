@@ -93,42 +93,6 @@ def last_paragraphs(html: str, count: int = 2, max_chars: int = 700) -> list[str
 # note. Conversion works on text nodes only (never on markup) and decides
 # opening vs closing from the character before the quote.
 
-_OPENERS_BEFORE = set(" \t\n\r(—–-[{“‘/")
-
-
-def _curly_double(text: str) -> str:
-    out = []
-    for i, ch in enumerate(text):
-        if ch != '"':
-            out.append(ch)
-            continue
-        prev = text[i - 1] if i > 0 else " "
-        out.append("“" if prev in _OPENERS_BEFORE else "”")
-    return "".join(out)
-
-
-def _curly_single(text: str) -> str:
-    out = []
-    for i, ch in enumerate(text):
-        if ch != "'":
-            out.append(ch)
-            continue
-        prev = text[i - 1] if i > 0 else " "
-        nxt = text[i + 1] if i + 1 < len(text) else " "
-        if prev.isalnum() or (prev in _OPENERS_BEFORE and not nxt.isalnum() and nxt not in _OPENERS_BEFORE):
-            out.append("’")  # apostrophe / closing
-        elif prev in _OPENERS_BEFORE:
-            out.append("‘")
-        else:
-            out.append("’")
-    return "".join(out)
-
-
-def normalize_quotes_text(text: str, style: str) -> str:
-    if style == "straight":
-        return text.translate(str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"}))
-    return _curly_single(_curly_double(text))
-
 
 def count_quote_styles(html: str) -> dict[str, int]:
     text = html_to_text(html)

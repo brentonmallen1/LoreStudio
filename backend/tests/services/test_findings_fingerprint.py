@@ -25,3 +25,13 @@ def test_normalise_and_content_hash():
     assert normalise("  It’s   “fine”. ") == 'it\'s "fine".'
     assert content_hash("<p>a</p>") == content_hash("<p>a</p>") != content_hash("<p>b</p>")
     assert content_hash(None) == content_hash("")
+
+
+def test_fingerprints_are_pinned():
+    """Golden values. A finding's dismissal is stored under this id, so a change to how it is
+    built (separators, field order, normalising, hash length) orphans every stored dismissal:
+    every dismissed finding comes back. Change these only with a migration that rewrites them."""
+    anchor = FindingAnchor(node_id="n1", character_id="c1")
+    assert fingerprint("name_drift", anchor, "Elenor") == "f56dca8606bd3bfe"
+    series = FindingAnchor(character_id="c1", series_element_id="s1")
+    assert fingerprint("series_drift", series, "background") == "54dd24828965ad0d"

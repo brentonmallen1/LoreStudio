@@ -20,120 +20,33 @@ export const authHandlers = [
 ];
 
 // ---------------------------------------------------------------------------
-// Streaming helpers
+// Streaming
 // ---------------------------------------------------------------------------
 
-/** Create a ReadableStream that emits text character by character. */
-function textStream(text: string): ReadableStream {
+/** One typed event frame, as the server's SSE streams send them. */
+const frame = (event: string, data: unknown) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
+/** A typed event stream: the text as token deltas a character at a time, then done. */
+function eventStream(text: string): ReadableStream {
   const encoder = new TextEncoder();
   return new ReadableStream({
     start(controller) {
-      for (const char of text) {
-        controller.enqueue(encoder.encode(char));
-      }
+      for (const char of text) controller.enqueue(encoder.encode(frame("token", { delta: char })));
+      controller.enqueue(encoder.encode(frame("done", {})));
       controller.close();
     },
   });
 }
 
-// ---------------------------------------------------------------------------
-// Interview endpoints
-// ---------------------------------------------------------------------------
-export const interviewHandlers = [
-  http.post("/api/interviews/characters/:characterId", () => {
-    return HttpResponse.json({
-      id: "interview-1",
-      character_id: "char-1",
-      title: "Test Interview",
-      messages: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-  }),
-
-  http.get("/api/interviews/:interviewId", () => {
-    return HttpResponse.json({
-      id: "interview-1",
-      character_id: "char-1",
-      title: "Test Interview",
-      messages: [],
-    });
-  }),
-
-  http.post("/api/interviews/:interviewId/messages", () => {
-    return new HttpResponse(textStream("I understand your question. Let me think about that carefully."), {
-      headers: { "Content-Type": "text/plain" },
-    });
-  }),
-
-  http.post("/api/interviews/:interviewId/summarize", () => {
-    return new HttpResponse(textStream("Character summary: thoughtful and reserved."), {
-      headers: { "Content-Type": "text/plain" },
-    });
-  }),
-];
-
-// ---------------------------------------------------------------------------
-// Dialogue endpoints
-// ---------------------------------------------------------------------------
-export const dialogueHandlers = [
-  http.post("/api/scenes/:sceneId/dialogue/ai-suggest", () => {
-    return HttpResponse.json([
-      {
-        id: "proposal-1",
-        quote_content: "Hello there",
-        inferred_speaker: "Maya",
-        character_id: "char-1",
-        confidence: 0.85,
-        source_excerpt: '..."Hello there," she said...',
-      },
-    ]);
-  }),
-
-  http.post("/api/scenes/:sceneId/dialogue/suggest-tags", () => {
-    return HttpResponse.json([]);
-  }),
-];
-
-// ---------------------------------------------------------------------------
-// Analysis endpoints
-// ---------------------------------------------------------------------------
-export const analysisHandlers = [
-  http.post("/api/stories/:storyId/analyze/economy", () => {
-    return HttpResponse.json({
-      success: true,
-      data: {
-        thread_balance: { summary: "Balanced", details: [] },
-        scene_economy: { summary: "Efficient", details: [] },
-        try_fail_cycles: { summary: "Present", details: [] },
-        recommendations: [],
-      },
-    });
-  }),
-
+export const summarizeHandlers = [
   http.post("/api/stories/:storyId/summarize", () => {
-    return new HttpResponse(textStream("Story summary: a tale of resilience."), {
-      headers: { "Content-Type": "text/plain" },
+    return new HttpResponse(eventStream("Story summary: a tale of resilience."), {
+      headers: { "Content-Type": "text/event-stream" },
     });
-  }),
-];
-
-// ---------------------------------------------------------------------------
-// Ollama / LLM status
-// ---------------------------------------------------------------------------
-export const ollamaHandlers = [
-  http.get("/api/ollama/status", () => {
-    return HttpResponse.json({ available: true, model: "gemma4", context_length: 128000 });
   }),
 ];
 
 // ---------------------------------------------------------------------------
 // Default export — all handlers combined
 // ---------------------------------------------------------------------------
-export const handlers = [
-  ...authHandlers,
-  ...interviewHandlers,
-  ...dialogueHandlers,
-  ...analysisHandlers,
-  ...ollamaHandlers,
-];
+export const handlers = [...authHandlers, ...summarizeHandlers];

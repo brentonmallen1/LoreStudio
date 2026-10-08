@@ -56,9 +56,11 @@ class TestAISuggestDialogue:
         response = client.post(f"/api/scenes/{scene.id}/dialogue/ai-suggest")
         assert response.status_code == 200
         proposals = response.json()
-        assert isinstance(proposals, list)
-        # At least the mock suggestion snapped to an actual quote
-        assert len(proposals) >= 0  # may be 0 if quote text doesn't match scene
+        # The model's "Hello there" is snapped to the quote as written, with its comma
+        assert len(proposals) == 1
+        assert proposals[0]["inferred_speaker"] == "Maya"
+        assert proposals[0]["character_id"] == char.id
+        assert proposals[0]["quote_content"] == "Hello there,"
 
     def test_returns_empty_for_empty_scene(self, client: TestClient, db_session: Session, test_user, mock_ai_gateway):
         mock_ai_gateway(structured_data=SAMPLE_DIALOGUE_ATTRIBUTION)
@@ -85,8 +87,8 @@ class TestAISuggestDialogue:
     def test_returns_empty_when_ai_returns_invalid_json(
         self, client: TestClient, db_session: Session, test_user, mock_ai_gateway
     ):
-        # success=False from structured result → returns []
-        mock_ai_gateway(structured_data=None)  # success=True but data=None
+        # The call succeeds but yields no parsed data (success=True, data=None) → returns []
+        mock_ai_gateway(structured_data=None)
         story = _story(test_user.id)
         scene = _scene(story.id, content=SCENE_CONTENT)
         db_session.add_all([story, scene])
@@ -94,6 +96,7 @@ class TestAISuggestDialogue:
 
         response = client.post(f"/api/scenes/{scene.id}/dialogue/ai-suggest")
         assert response.status_code == 200
+        assert response.json() == []
 
     def test_returns_404_for_unknown_scene(self, client: TestClient, mock_ai_gateway):
         mock_ai_gateway()
@@ -141,9 +144,10 @@ class TestAISuggestDialogue:
         response = client.post(f"/api/scenes/{scene.id}/dialogue/ai-suggest")
         assert response.status_code == 200
         proposals = response.json()
-        if proposals:
-            # The returned quote_content should be the actual text from the scene
-            assert proposals[0]["inferred_speaker"] == "Maya"
+        assert len(proposals) == 1
+        assert proposals[0]["inferred_speaker"] == "Maya"
+        # The returned quote_content is the actual text from the scene
+        assert proposals[0]["quote_content"] == "Hello there,"
 
 
 class TestHeuristicSuggestTags:
@@ -156,7 +160,11 @@ class TestHeuristicSuggestTags:
 
         response = client.post(f"/api/scenes/{scene.id}/dialogue/suggest-tags")
         assert response.status_code == 200
-        assert isinstance(response.json(), list)
+        proposals = response.json()
+        assert len(proposals) == 1
+        assert proposals[0]["inferred_speaker"] == "Levi"
+        assert proposals[0]["character_id"] == char.id
+        assert proposals[0]["quote_content"] == "I can't do this,"
 
     def test_returns_empty_for_empty_scene(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
@@ -173,13 +181,18 @@ class TestRefreshDialogue:
     def test_refresh_extracts_blocks(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         char = _character(story.id, name="Maya")
-        scene = _scene(story.id, content='<p>"Hello,"<Maya> she said.</p>')
+        # Stored prose holds the speaker tag HTML-escaped, as the editor saves it
+        scene = _scene(story.id, content='<p>"Hello,"&lt;Maya&gt; she said.</p>')
         db_session.add_all([story, char, scene])
         db_session.commit()
 
         response = client.post(f"/api/scenes/{scene.id}/dialogue/refresh")
         assert response.status_code == 200
-        assert isinstance(response.json(), list)
+        blocks = response.json()
+        assert len(blocks) == 1
+        assert blocks[0]["speaker_name"] == "Maya"
+        assert blocks[0]["character_id"] == char.id
+        assert blocks[0]["content"] == "Hello,"
 
     def test_refresh_returns_empty_for_empty_content(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)

@@ -224,7 +224,7 @@ class TestSummarizeInterview:
         db_session.refresh(interview)
         assert interview.interview_notes == "Character notes: brave."
 
-    def test_empty_interview_returns_plain_text(self, client: TestClient, db_session: Session, test_user):
+    def test_empty_interview_streams_a_no_messages_answer(self, client: TestClient, db_session: Session, test_user):
         story = _story(test_user.id)
         char = _character(story.id)
         interview = _interview(char.id, messages=[])
@@ -233,7 +233,8 @@ class TestSummarizeInterview:
 
         response = client.post(f"/api/interviews/{interview.id}/summarize")
         assert response.status_code == 200
-        assert "No messages" in response.text
+        assert response.headers["content-type"].startswith("text/event-stream")
+        assert answer_of(response) == "No messages to summarize."
 
 
 class TestCompactInterview:

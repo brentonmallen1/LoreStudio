@@ -108,9 +108,8 @@ def test_adverb_threshold_severity(nlp):
         "She quickly ran. He softly spoke. She loudly cried. He slowly walked. She boldly acted. He swiftly moved."
     )
     result = _detect_adverbs(doc, threshold=5.0)
-    # percentage should exceed threshold
-    if result.percentage > 5.0:
-        assert any(f.severity == "warning" for f in result.findings)
+    assert result.percentage > 5.0
+    assert any(f.severity == "warning" for f in result.findings)
 
 
 # ---------------------------------------------------------------------------

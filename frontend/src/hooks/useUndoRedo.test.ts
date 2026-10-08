@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { UNDO_APPLIED_EVENT, offerToUndo, reselect, useReloadOnUndo } from "./useUndoRedo";
+import { UNDO_APPLIED_EVENT, offerToUndo, useReloadOnUndo } from "./useUndoRedo";
 import { toolsApi } from "../api/tools";
 import { useToastStore } from "../stores/toastStore";
 
@@ -32,15 +32,6 @@ describe("useReloadOnUndo", () => {
     await Promise.resolve();
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledOnce();
-  });
-});
-
-describe("reselect", () => {
-  it("swaps in the fresh row, or clears a row undo removed", () => {
-    const rows = [{ id: "a", name: "new" }];
-    expect(reselect({ id: "a", name: "old" }, rows)).toBe(rows[0]);
-    expect(reselect({ id: "b", name: "gone" }, rows)).toBeNull();
-    expect(reselect(null, rows)).toBeNull();
   });
 });
 

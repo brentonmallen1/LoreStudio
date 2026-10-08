@@ -193,7 +193,7 @@ a tool that rewrites prose for the author (tags, links, a rename) uses `prose_wr
 `tests/test_undo_coverage.py` reads every POST/PUT/PATCH/DELETE route: it records, or it is in
 `NOT_UNDOABLE` under the reason it is not (AI calls, conversations, jobs, settings, series, snapshots…).
 Frontend: `hooks/useUndoRedo.ts`; components holding their own copies reload on `UNDO_APPLIED_EVENT`
-through `useReloadOnUndo([entity types], reload)` (`reselect` re-points a selected row at the fresh list).
+through `useReloadOnUndo([entity types], reload)`.
 
 ### Jobs (doc 21)
 Long work is a job; a page never holds it. Anything over the whole story, many scenes or many

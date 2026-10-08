@@ -290,10 +290,11 @@ class TestBuildPreviewTree:
         breaks = detect_structure_heuristic(paragraphs)
         sections = apply_breaks(paragraphs, breaks, THREE_ACT_LEVELS)
         tree = build_preview_tree(sections, paragraphs, "s", "three-act", THREE_ACT_LEVELS, "docx", None)
+        acts = [n for n in tree.nodes if n.level == 0]
         chapter_nodes = [n for n in tree.nodes if n.level == 1]
-        if chapter_nodes:
-            # Chapter should have a parent (the act)
-            assert chapter_nodes[0].parent_id is not None
+        assert len(acts) == 1 and len(chapter_nodes) == 1
+        # The chapter's parent is the act
+        assert chapter_nodes[0].parent_id == acts[0].id
 
     def test_word_count_totals(self):
         paragraphs = [make_para(i, "p", "one two three") for i in range(5)]

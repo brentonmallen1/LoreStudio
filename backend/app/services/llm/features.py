@@ -693,14 +693,6 @@ def get_feature(feature_id: str) -> AIFeature | None:
     return FEATURES_BY_ID.get(feature_id)
 
 
-def feature_label(feature_id: str) -> str:
-    """Human label for a feature id; falls back to a title-cased id so nothing renders raw."""
-    feature = FEATURES_BY_ID.get(feature_id)
-    if feature:
-        return feature.label
-    return feature_id.replace("-", " ").replace("_", " ").title()
-
-
 def feature_budget(feature_id: str) -> int:
     """Context budget in tokens for a feature id (doc 06 §4)."""
     feature = FEATURES_BY_ID.get(feature_id)
