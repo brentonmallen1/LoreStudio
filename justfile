@@ -167,6 +167,10 @@ test-frontend:
 screenshots:
     uv run --no-project --with playwright python scripts/screenshots.py
 
+# Make every logo and icon file (favicons, app icons, README, Unraid) from docs/images/lorestudio-logo.svg
+icons:
+    uv run --no-project --with pillow python scripts/icons.py
+
 # ── Release ────────────────────────────────────
 # Cut a release: `just release 2026.10.1 notes.md`. Creates the GitHub release and its tag;
 # release-images.yml then publishes the images. Notes are written, never generated: feature

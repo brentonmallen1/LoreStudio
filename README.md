@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/images/lorestudio-icon.svg" alt="LoreStudio" width="120" height="120" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/lorestudio-logo-dark.svg" />
+    <img src="docs/images/lorestudio-logo-light.svg" alt="LoreStudio" width="128" height="128" />
+  </picture>
 </p>
 
 <h1 align="center">LoreStudio</h1>
