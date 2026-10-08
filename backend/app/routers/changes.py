@@ -89,6 +89,30 @@ def redo(
     return _result(res, "redo")
 
 
+@router.post("/stories/{story_id}/changes/{batch_id}/undo")
+def undo_one(
+    story_id: str,
+    batch_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+    client_id: str | None = Depends(change_log.get_client_id),
+):
+    """Undo one past change, from the Chronicle's list (doc 23 P5)."""
+    _story(story_id, db, user)
+    try:
+        res = change_log.undo_batch(db, story_id, batch_id, user.id, client_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except change_log.UndoConflict as e:
+        db.rollback()
+        raise HTTPException(status_code=409, detail=str(e)) from e
+    except IntegrityError as e:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="That belongs to something no longer here.") from e
+    _keep_in_step(db, res, user, client_id)
+    return _result(res, "undo")
+
+
 @router.get("/stories/{story_id}/changes")
 def list_changes(
     story_id: str,

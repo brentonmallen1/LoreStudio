@@ -61,7 +61,8 @@ function groupBatches(rows: ChangeRow[]): Batch[] {
 
 /**
  * Chronicle › Changes: the data side of the audit trail (the AI side is the activity log).
- * Every recorded mutation, newest first, grouped by gesture, with undo/redo across all tabs.
+ * Every recorded mutation, newest first, grouped by gesture, with undo/redo across all tabs,
+ * and "Undo" on any one change still standing (refused while a later change stands on it).
  */
 export default function ChangesView({ storyId }: { storyId: string }) {
   const [rows, setRows] = useState<ChangeRow[]>([]);
@@ -119,7 +120,20 @@ export default function ChangesView({ storyId }: { storyId: string }) {
     }
   }
 
+  async function undoOne(batchId: string) {
+    setError(null);
+    try {
+      const result = await toolsApi.undoChange(storyId, batchId);
+      window.dispatchEvent(new CustomEvent(UNDO_APPLIED_EVENT, { detail: result }));
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Could not undo that change");
+    }
+  }
+
   const batches = groupBatches(rows);
+  const undone = new Set(rows.map((r) => r.undo_of).filter(Boolean));
+  const canUndo = (b: Batch) =>
+    (b.kind === "change" || b.kind === "redo") && !undone.has(b.batch_id) && b.rows.every((r) => r.undoable);
   const myClient = (() => {
     try {
       return sessionStorage.getItem("ls_client_id");
@@ -168,6 +182,19 @@ export default function ChangesView({ storyId }: { storyId: string }) {
               {b.client_id && b.client_id === myClient ? "this tab" : b.client_id ? "another tab" : ""}
               {b.created_at ? ` · ${formatRelative(b.created_at)}` : ""}
             </span>
+            {canUndo(b) ? (
+              <button
+                type="button"
+                className={styles.undoOne}
+                onClick={() => undoOne(b.batch_id)}
+                aria-label={`Undo: ${b.label}`}
+                title="Undo this change"
+              >
+                Undo
+              </button>
+            ) : (
+              <span />
+            )}
           </li>
         ))}
       </ul>

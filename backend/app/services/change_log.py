@@ -657,6 +657,39 @@ def undo_latest(db: Session, story_id: str, actor_id: str | None, client_id: str
     batch = _latest_normal_batch(db, story_id, client_id)
     if not batch:
         return None
+    return _undo(db, story_id, batch, actor_id, client_id)
+
+
+def undo_batch(db: Session, story_id: str, batch_id: str, actor_id: str | None, client_id: str | None) -> UndoResult:
+    """Undo one past change from the Chronicle (doc 23 P5), not just the latest. Refused while a
+    later change still stands on something it touched: undoing it would undo that too, unseen."""
+    batch = (
+        db.query(Change)
+        .filter(Change.story_id == story_id, Change.batch_id == batch_id, Change.undo_of.is_(None))
+        .order_by(Change.seq)
+        .all()
+    )
+    if not batch or not all(c.undoable for c in batch):
+        raise LookupError("That change cannot be undone.")
+    undone = {
+        row[0] for row in db.query(Change.undo_of).filter(Change.story_id == story_id, Change.undo_of.isnot(None))
+    }
+    if batch_id in undone:
+        raise UndoConflict("That change has already been undone.")
+    touched = {(c.entity_type, c.entity_id) for c in batch}
+    later = (
+        db.query(Change)
+        .filter(Change.story_id == story_id, Change.seq > batch[-1].seq, Change.undo_of.is_(None))
+        .order_by(Change.seq)
+        .all()
+    )
+    for c in later:
+        if (c.entity_type, c.entity_id) in touched and c.batch_id not in undone:
+            raise UndoConflict(f"“{c.label}” changed it since. Undo that first.")
+    return _undo(db, story_id, batch, actor_id, client_id)
+
+
+def _undo(db: Session, story_id: str, batch: list[Change], actor_id: str | None, client_id: str | None) -> UndoResult:
     undo_batch_id = str(uuid.uuid4())
     for change in reversed(batch):
         removed = _reverse(change, db)

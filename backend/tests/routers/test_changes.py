@@ -227,3 +227,55 @@ def test_a_scene_planned_for_a_beat_carries_it_from_the_start(client):
         headers=H1,
     )
     assert r.status_code == 201 and r.json()["beat_id"] == "midpoint"
+
+
+def _batch(client, sid, label_start):
+    return next(
+        c["batch_id"] for c in client.get(f"/api/stories/{sid}/changes").json() if c["label"].startswith(label_start)
+    )
+
+
+def test_undo_one_past_change_from_the_chronicle(client):
+    """Not just the latest: an older change undoes on its own while nothing later stands on it."""
+    sid = _story(client)
+    a = _scene(client, sid, "Lamp")
+    b = _scene(client, sid, "Storm", position=1)
+    client.patch(f"/api/structure/{a['id']}", json={"title": "Lantern"}, headers=H1)
+    client.patch(f"/api/structure/{b['id']}", json={"title": "Gale"}, headers=H1)
+
+    rename_a = next(
+        c["batch_id"]
+        for c in client.get(f"/api/stories/{sid}/changes").json()
+        if c["entity_id"] == a["id"] and c["action"] == "update"
+    )
+    r = client.post(f"/api/stories/{sid}/changes/{rename_a}/undo", headers=H2)
+    assert r.status_code == 200, r.text
+    assert client.get(f"/api/structure/{a['id']}").json()["title"] == "Lamp"
+    assert client.get(f"/api/structure/{b['id']}").json()["title"] == "Gale"  # the later change stands
+
+    again = client.post(f"/api/stories/{sid}/changes/{rename_a}/undo", headers=H1)
+    assert again.status_code == 409 and "already" in again.json()["detail"]
+
+
+def test_undo_one_refuses_what_a_later_change_stands_on(client):
+    sid = _story(client)
+    a = _scene(client, sid, "Lamp")
+    client.patch(f"/api/structure/{a['id']}", json={"title": "Lantern"}, headers=H1)
+    create = _batch(client, sid, "Add scene")
+    r = client.post(f"/api/stories/{sid}/changes/{create}/undo", headers=H1)
+    assert r.status_code == 409 and "Undo that first" in r.json()["detail"]
+    assert client.get(f"/api/structure/{a['id']}").status_code == 200
+
+    # Once the rename is undone, the create can go.
+    client.post(f"/api/stories/{sid}/undo", headers=H1)
+    assert client.post(f"/api/stories/{sid}/changes/{create}/undo", headers=H1).status_code == 200
+    assert client.get(f"/api/structure/{a['id']}").status_code == 404
+
+
+def test_undo_one_refuses_prose_and_unknown_batches(client):
+    sid = _story(client)
+    a = _scene(client, sid, "Lamp")
+    client.patch(f"/api/structure/{a['id']}", json={"content": "<p>More words</p>"}, headers=H1)
+    prose = next(c["batch_id"] for c in client.get(f"/api/stories/{sid}/changes").json() if not c["undoable"])
+    assert client.post(f"/api/stories/{sid}/changes/{prose}/undo", headers=H1).status_code == 404
+    assert client.post(f"/api/stories/{sid}/changes/nope/undo", headers=H1).status_code == 404

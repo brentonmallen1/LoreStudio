@@ -38,6 +38,9 @@ export const toolsApi = {
     request<UndoResult>(`/stories/${storyId}/undo${anyClient ? "?any_client=true" : ""}`, { method: "POST" }),
   redo: (storyId: string, anyClient = false) =>
     request<UndoResult>(`/stories/${storyId}/redo${anyClient ? "?any_client=true" : ""}`, { method: "POST" }),
+  /** One past change, from the Chronicle (409 when a later change stands on it). */
+  undoChange: (storyId: string, batchId: string) =>
+    request<UndoResult>(`/stories/${storyId}/changes/${batchId}/undo`, { method: "POST" }),
   listChanges: (storyId: string, limit = 100, beforeSeq?: number) =>
     request<ChangeRow[]>(
       `/stories/${storyId}/changes?limit=${limit}${beforeSeq ? `&before_seq=${beforeSeq}` : ""}`,
