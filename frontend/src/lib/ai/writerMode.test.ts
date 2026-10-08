@@ -38,6 +38,8 @@ const INSIDE_THE_PANEL = ["src/components/ai/", "src/components/llm/"];
 
 /** The story routes and sections open in writer mode (lib/routes.ts), as their components. */
 const WRITER_ENTRY_POINTS = [
+  // The prose itself (/write/:nodeId): its panels open from the editor, not from a route.
+  "src/pages/WriteNodePage.tsx",
   "src/pages/StoryOverviewPage.tsx",
   "src/components/firstStory/FirstStoryPage.tsx",
   "src/pages/MediaPage.tsx",

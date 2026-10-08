@@ -357,7 +357,7 @@ export default function SceneEditor() {
         {plannerPanelOpen && activeStory && (
           <ScenePlannerPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}
-        {brainstormPanelOpen && activeStory && (
+        {aiAvailable && brainstormPanelOpen && activeStory && (
           <BrainstormPanel storyId={activeStory.id} nodeId={activeNode.id} />
         )}
       </div>

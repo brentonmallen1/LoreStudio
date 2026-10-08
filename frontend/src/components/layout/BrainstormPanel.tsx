@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useUIStore } from "../../stores/uiStore";
 import type { ChatMessage, BrainstormIntent } from "../../types";
 import { useLLMStream } from "../../hooks/useLLMStream";
+import { useAIAvailable } from "../../lib/mode";
 import ChatImagePicker from "./ChatImagePicker";
 import styles from "./BrainstormPanel.module.css";
 
@@ -137,7 +138,12 @@ function IntentForm({ onStart }: IntentFormProps) {
   );
 }
 
-export default function BrainstormPanel({ storyId, nodeId }: Props) {
+/** An Assistant surface: nothing at all in Writer mode, however it was opened. */
+export default function BrainstormPanel(props: Props) {
+  return useAIAvailable() ? <BrainstormPanelBody {...props} /> : null;
+}
+
+function BrainstormPanelBody({ storyId, nodeId }: Props) {
   const { closeBrainstormPanel } = useUIStore();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
