@@ -39,8 +39,8 @@ want:
 
 1. **Write.** The editor, the shape of the book, freewriting, versions and export. This is the app.
 2. **See what you are building.** Tools that run on your own machine with no model involved: the
-   Lorebook, dialogue tracking, prose checks, promises and numbers.
-3. **Ask, if you want to.** An optional Assistant on your own Ollama. Switch to Writer mode and
+   Lorebook, dialogue tracking, prose and pacing checks, promises and insights.
+3. **Ask, if you want to.** An optional `Studio` mode  Assistant on your own Ollama. Switch to `Writer` mode and
    every trace of it is gone.
 
 ### Not a ghostwriter. Not a co-author. A guide.
