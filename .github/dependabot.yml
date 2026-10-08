@@ -7,6 +7,10 @@ updates:
     groups:
       python-minor-patch:
         update-types: [minor, patch]
+    ignore:
+      # passlib (password hashing) does not work with bcrypt 5; bcrypt is pinned below it.
+      - dependency-name: bcrypt
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /frontend
     schedule:

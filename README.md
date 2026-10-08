@@ -20,6 +20,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/brentonmallen1/LoreStudio/actions/workflows/ci.yml"><img src="https://github.com/brentonmallen1/LoreStudio/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/python-3.13-3a6c49" alt="Python 3.13" />
   <img src="https://img.shields.io/badge/FastAPI-SQLite-3a6c49" alt="FastAPI and SQLite" />
   <img src="https://img.shields.io/badge/React-19-3a6c49" alt="React 19" />
