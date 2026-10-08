@@ -777,5 +777,6 @@ def prune(db: Session, story_id: str, keep: int = RETENTION_ROWS_PER_STORY) -> i
 
 def prune_all(db: Session, keep: int = RETENTION_ROWS_PER_STORY) -> int:
     """Startup housekeeping: cap the log per story. Returns rows removed."""
-    story_ids = [row[0] for row in db.query(Change.story_id).filter(Change.story_id.isnot(None)).distinct().all()]
+    rows = db.query(Change.story_id).filter(Change.story_id.isnot(None)).distinct().all()
+    story_ids = [sid for (sid,) in rows if sid is not None]
     return sum(prune(db, sid, keep) for sid in story_ids)
