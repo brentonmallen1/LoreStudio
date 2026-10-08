@@ -28,7 +28,7 @@ export default function LoginPage() {
         <div className={styles.header}>
           <LogoMark size={72} className={styles.mark} />
           <h1 className={styles.logo}>LoreStudio</h1>
-          <p className={styles.tagline}>Your writing environment</p>
+          <p className={styles.tagline}>Begin with an idea, forge an adventure.</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>
