@@ -218,9 +218,3 @@ runs every check CI does.
 ## License
 
 [AGPL-3.0](LICENSE). If you run a modified LoreStudio for other people, share your changes.
-
----
-
-<p align="center">
-  <em>Built for writers who do the writing.</em>
-</p>
