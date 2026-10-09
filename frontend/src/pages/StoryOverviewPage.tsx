@@ -81,22 +81,23 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
                 </Link>
               </p>
             )}
+            {hasContent && (
+              <div className={styles.heroLinks}>
+                <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
+                  <BookOpen size={13} aria-hidden /> Read it through
+                </Link>
+                <button
+                  type="button"
+                  className={styles.heroAction}
+                  onClick={() => useUIStore.getState().setExportOpen(true)}
+                >
+                  <Download size={13} aria-hidden /> Export
+                </button>
+                {aiAvailable && <RecapTrigger recap={recap} />}
+              </div>
+            )}
           </div>
-          {hasContent && (
-            <div className={styles.heroLinks}>
-              <Link to={`/stories/${storyId}/publish`} className={styles.heroAction}>
-                <BookOpen size={13} aria-hidden /> Read it through
-              </Link>
-              <button
-                type="button"
-                className={styles.heroAction}
-                onClick={() => useUIStore.getState().setExportOpen(true)}
-              >
-                <Download size={13} aria-hidden /> Export
-              </button>
-              {aiAvailable && <RecapTrigger recap={recap} />}
-            </div>
-          )}
+          {ov && hasContent && <Vitals storyId={storyId} ov={ov} />}
         </header>
         {hasContent && aiAvailable && <RecapCard recap={recap} />}
 
@@ -109,18 +110,18 @@ export default function StoryOverviewPage({ storyId }: { storyId: string }) {
           </p>
         )}
         {ov && hasContent ? (
-          // The desk (doc 14 Overview): on the left, the scene to pick up and what to do;
-          // on the right, the figures and who is in it, quieter so the left leads.
+          // The desk (doc 14 Overview, doc 24 board 6b): on the left, the scene to pick up and
+          // what needs your eye; on the right, where the words are, who is in it and lately.
+          // Each part is a tone box, not a rule; the figures sit up by the title.
           <div className={styles.desk}>
             <div className={styles.col} aria-label="What to do next">
               <ResumeCard storyId={storyId} ov={ov} />
               <NeedsYourEye storyId={storyId} />
-              <Lately storyId={storyId} ov={ov} />
             </div>
             <aside className={styles.col} aria-label="The story at a glance">
-              <Vitals storyId={storyId} ov={ov} />
               <WordsByChapter storyId={storyId} ov={ov} />
               <CastAndPlaces storyId={storyId} />
+              <Lately storyId={storyId} ov={ov} />
             </aside>
           </div>
         ) : (
