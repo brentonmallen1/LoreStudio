@@ -3,7 +3,9 @@
  * panel's scene tab. Kept apart from index.ts, which is at its size budget.
  */
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   ArrowRight,
   CalendarClock,
   FileText,
@@ -13,7 +15,7 @@ import {
 } from "lucide-react";
 import { goToAdjacentScene, openSceneId } from "../story/adjacentScene";
 import { commandRegistry } from "./registry";
-import { navigateTo } from "../navigation";
+import { goBack, goForward, navigateTo } from "../navigation";
 import { useStoryStore } from "../../stores/storyStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
@@ -73,6 +75,22 @@ for (const [id, dir, key] of [
   });
 }
 
+// Back and Forward through where you have been (⌘[ / ⌘]), as in a browser, in the app only.
+for (const [id, dir, key] of [
+  ["nav-back", -1, "back"],
+  ["nav-forward", 1, "forward"],
+] as const) {
+  commandRegistry.register({
+    id,
+    label: SHORTCUTS[key].label,
+    keywords: ["back", "forward", "history", "previous page", "where I was", "return"],
+    icon: dir === 1 ? ArrowRight : ArrowLeft,
+    group: "Navigation",
+    shortcut: SHORTCUTS[key].combo,
+    action: dir === 1 ? goForward : goBack,
+  });
+}
+
 for (const [id, dir, key] of [
   ["scene-next", 1, "nextScene"],
   ["scene-previous", -1, "prevScene"],
@@ -81,7 +99,7 @@ for (const [id, dir, key] of [
     id,
     label: SHORTCUTS[key].label,
     keywords: ["scene", "chapter", "go", dir === 1 ? "next" : "previous", dir === 1 ? "forward" : "back"],
-    icon: dir === 1 ? ArrowRight : ArrowLeft,
+    icon: dir === 1 ? ArrowDown : ArrowUp,
     group: "Navigation",
     shortcut: SHORTCUTS[key].combo,
     when: () => !!openSceneId(),

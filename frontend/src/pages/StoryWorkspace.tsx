@@ -102,14 +102,14 @@ export default function StoryWorkspacePage() {
     return () => clearInterval(interval);
   }, [storyId]);
 
-  // ⌘⇧F — open story-wide search panel; ⌘[ / ⌘] — the scene before or after
+  // ⌘⇧F — open story-wide search panel; ⌥⌘↑ / ⌥⌘↓ — the scene before or after
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (matchesCombo(e, SHORTCUTS.storySearch.combo)) {
         e.preventDefault();
         openStorySearch();
       }
-      // ⌘[ / ⌘]: the scene before or after. Off a scene they stay the browser's Back/Forward.
+      // ⌥⌘↑ / ⌥⌘↓: the scene before or after, while one is open.
       const dir = matchesCombo(e, SHORTCUTS.nextScene.combo)
         ? 1
         : matchesCombo(e, SHORTCUTS.prevScene.combo)

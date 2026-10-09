@@ -33,10 +33,26 @@ export const SHORTCUTS = {
     modes: BOTH,
     commandId: "editor-story-search",
   },
-  // ⌘[ and ⌘], as Back and Forward are in a browser: only while a scene is open, so
-  // everywhere else they still go back and forward through the pages.
-  prevScene: {
+  // ⌘[ and ⌘] are Back and Forward through the pages and scenes you have been on, as in a
+  // browser, everywhere; stepping through the book's scenes in order is ⌥⌘↑ / ⌥⌘↓.
+  back: {
     combo: "mod+[",
+    label: "Back",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "nav-back",
+  },
+  forward: {
+    combo: "mod+]",
+    label: "Forward",
+    group: "Navigation",
+    scope: "global",
+    modes: BOTH,
+    commandId: "nav-forward",
+  },
+  prevScene: {
+    combo: "mod+alt+arrowup",
     label: "Previous scene",
     group: "Navigation",
     scope: "global",
@@ -44,7 +60,7 @@ export const SHORTCUTS = {
     commandId: "scene-previous",
   },
   nextScene: {
-    combo: "mod+]",
+    combo: "mod+alt+arrowdown",
     label: "Next scene",
     group: "Navigation",
     scope: "global",
@@ -199,6 +215,8 @@ const KEY_CODES: Record<string, string> = Object.fromEntries([
   ["\\", "Backslash"],
   ["[", "BracketLeft"],
   ["]", "BracketRight"],
+  ["arrowup", "ArrowUp"],
+  ["arrowdown", "ArrowDown"],
 ]);
 
 /** The same combo in TipTap's keymap spelling: "mod+alt+m" → "Mod-Alt-m". */
@@ -221,10 +239,17 @@ export const MODIFIER = {
   shift: IS_MAC ? "\u21e7" : "Shift",
 } as const;
 
+const ARROWS: Record<string, string> = { arrowup: "↑", arrowdown: "↓", arrowleft: "←", arrowright: "→" };
+
 export function formatCombo(combo: string): string {
   const parts = combo.split("+");
   const key = parts[parts.length - 1];
-  const shown = key === "enter" ? (IS_MAC ? "↩" : "Enter") : key.length === 1 ? key.toUpperCase() : key;
+  const shown =
+    key === "enter"
+      ? IS_MAC
+        ? "↩"
+        : "Enter"
+      : (ARROWS[key] ?? (key.length === 1 ? key.toUpperCase() : key));
   if (IS_MAC) {
     return (
       (parts.includes("mod") ? "⌘" : "") +

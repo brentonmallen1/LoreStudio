@@ -13,6 +13,7 @@ import { startAISync } from "../../lib/ai/aiSync";
 import { startPanelSync } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
 import { useFocusExitHost } from "../../lib/focusExit";
+import { goBack, goForward } from "../../lib/navigation";
 import styles from "./GlobalLayout.module.css";
 
 export default function GlobalLayout() {
@@ -43,6 +44,15 @@ export default function GlobalLayout() {
       if (matchesCombo(e, SHORTCUTS.help.combo)) {
         e.preventDefault();
         setShortcutsOpen((v) => !v);
+      }
+      // ⌘[ / ⌘]: Back and Forward through where you have been, everywhere, never out of the app.
+      if (matchesCombo(e, SHORTCUTS.back.combo)) {
+        e.preventDefault();
+        goBack();
+      }
+      if (matchesCombo(e, SHORTCUTS.forward.combo)) {
+        e.preventDefault();
+        goForward();
       }
       // Focus mode (hide chrome, hover-reveal sidebar)
       if (matchesCombo(e, SHORTCUTS.focusMode.combo)) {
