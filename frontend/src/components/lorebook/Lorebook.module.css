@@ -15,7 +15,7 @@
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  background: var(--color-bg);
+  background: var(--color-ground);
   container-type: inline-size;
   container-name: sheet;
 }

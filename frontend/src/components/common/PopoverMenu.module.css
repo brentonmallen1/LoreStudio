@@ -9,17 +9,23 @@
   justify-content: center;
   width: 2.133rem;
   height: 2.133rem;
-  border: 1px solid var(--color-border);
+  /* The ghost tier (DESIGN.md): no fill and no edge at rest, the hover ground under the
+     pointer, deep vellum while open. */
+  border: none;
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
 }
 
-.trigger:hover,
+.trigger:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
 .trigger[aria-expanded="true"] {
   color: var(--color-text);
-  background: var(--color-surface-2);
+  background: var(--color-surface-3);
 }
 
 .trigger:focus-visible,

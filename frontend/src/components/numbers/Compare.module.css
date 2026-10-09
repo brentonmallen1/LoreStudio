@@ -360,14 +360,14 @@
 
 .dotNow {
   background: var(--color-text);
-  box-shadow: 0 0 0 2px var(--color-bg);
+  box-shadow: 0 0 0 2px var(--color-ground);
 }
 
 .dotFrom {
   width: 9px;
   height: 9px;
   border: 2px solid var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-ground);
   box-sizing: border-box;
 }
 
@@ -506,7 +506,7 @@ span.hit {
   left: var(--x);
   z-index: 1;
   padding: 0 0.35rem;
-  background: var(--color-bg);
+  background: var(--color-ground);
   color: var(--color-text);
   font-weight: 600;
   transform: translateX(-50%);
@@ -540,7 +540,7 @@ span.hit {
 
 .keyDot[data-kind="from"] {
   border: 2px solid var(--color-text);
-  background: var(--color-bg);
+  background: var(--color-ground);
   box-sizing: border-box;
 }
 

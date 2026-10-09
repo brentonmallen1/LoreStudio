@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 /* ── Hero Stats ── */

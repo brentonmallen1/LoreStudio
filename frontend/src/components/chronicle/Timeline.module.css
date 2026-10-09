@@ -58,7 +58,7 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-section-title);
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .rows {

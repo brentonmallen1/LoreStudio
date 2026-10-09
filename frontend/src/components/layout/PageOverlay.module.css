@@ -6,7 +6,7 @@
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
+  background: var(--color-ground);
   outline: none;
   animation: rise 140ms ease-out;
 }
