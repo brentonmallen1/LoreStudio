@@ -16,6 +16,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.2",
     "@tiptap/core": "^3.31.4",
     "@tiptap/extension-typography": "^3.31.4",
     "@tiptap/extensions": "^3.31.4",

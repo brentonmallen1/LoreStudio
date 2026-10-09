@@ -3,8 +3,10 @@
 # .deb); to offer one, add its row below (the commented ones are ready, untested).
 #
 # Run it by hand (Actions › Desktop apps › Run workflow) to get the installers as artifacts,
-# or let a published release run it: the installers are then attached to that release.
-# None is signed with an Apple Developer ID or a Windows certificate: see desktop/README.md.
+# or let a published release run it: the installers are then attached to that release, with
+# latest.json, which the installed apps read to offer Install and restart. Updates are signed
+# with the TAURI_SIGNING_PRIVATE_KEY secret (its public key is in desktop/src-tauri/tauri.conf.json).
+# No installer is signed with an Apple Developer ID or a Windows certificate: see desktop/README.md.
 name: Desktop apps
 
 on:
@@ -86,6 +88,8 @@ jobs:
           # A release builds as its version (v2026.10.3 → 2026.10.3); a run by hand as dev.
           LORESTUDIO_VERSION: ${{ github.event_name == 'release' && github.ref_name || 'dev' }}
           LORESTUDIO_LIBS: ${{ runner.os == 'Windows' && format('{0}\ucrt64\bin', steps.msys2.outputs.msys2-location) || '' }}
+          # Signs what the updater installs (a release only: a dev build is never offered).
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: uv run --no-project python desktop/build.py --version "${LORESTUDIO_VERSION#v}"
 
       - uses: actions/upload-artifact@v7
@@ -94,9 +98,54 @@ jobs:
           path: build/desktop/out/*
           if-no-files-found: error
 
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'release'
+        with:
+          name: update-${{ matrix.target }}
+          path: build/desktop/update/*.json
+          if-no-files-found: warn
+
       - name: Attach to the release
         if: github.event_name == 'release'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/desktop/out/* --clobber
+
+  # latest.json: every platform built above, in one file the installed apps read
+  # (releases/latest/download/latest.json). Attached last, so an app is never offered an update
+  # whose installer is not on the release yet.
+  manifest:
+    name: latest.json
+    needs: build
+    if: github.event_name == 'release' && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: update-*
+          merge-multiple: true
+          path: update
+
+      - name: Attach latest.json to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'EOF'
+          import json
+          from datetime import UTC, datetime
+          from pathlib import Path
+
+          entries = [json.loads(p.read_text()) for p in sorted(Path("update").glob("*.json"))]
+          if not entries:
+              raise SystemExit("No signed update was built: is the TAURI_SIGNING_PRIVATE_KEY secret set?")
+          version = entries[0]["version"]
+          Path("latest.json").write_text(json.dumps({
+              "version": version,
+              "notes": f"https://github.com/${{ github.repository }}/releases/tag/v{version}",
+              "pub_date": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "platforms": {e["platform"]: {"url": e["url"], "signature": e["signature"]} for e in entries},
+          }, indent=2))
+          EOF
+          cat latest.json
+          gh release upload "$GITHUB_REF_NAME" latest.json --clobber --repo "$GITHUB_REPOSITORY"

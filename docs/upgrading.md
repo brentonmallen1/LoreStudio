@@ -61,6 +61,13 @@ Click **Update**, wait for the container to restart, and check its log for the
 `migrations:` line. The data folder is untouched by the update. See
 [unraid.md](unraid.md).
 
+## Upgrading the desktop app
+
+*Settings › About and updates* › **Install and restart** downloads the new version, checks
+its signature, replaces the app and opens it again. The data folder is untouched, and the
+database is copied to `backups/` before it is upgraded, as above. Downloading the new `.dmg`
+and dragging it over the old app does the same. See [desktop/README.md](../desktop/README.md).
+
 ## Rolling back
 
 1. Stop the container.

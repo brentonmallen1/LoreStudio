@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { inDesktopApp, installUpdate } from "../../lib/desktop";
 import { toast } from "../../stores/toastStore";
 import { useUpdateStore } from "../../stores/updateStore";
 import { formatRelative } from "../../lib/utils";
@@ -9,6 +10,15 @@ const UPGRADING = "https://github.com/brentonmallen1/LoreStudio/blob/main/docs/u
 
 /** How to update, by how LoreStudio was installed. */
 function HowToUpdate({ status }: { status: UpdateStatus }) {
+  if (status.install === "desktop" && inDesktopApp()) {
+    return (
+      <p className={styles.sectionHint}>
+        <strong>Install and restart</strong> downloads LoreStudio {status.latest}, replaces this app and opens
+        it again. Your stories and settings stay where they are, and the database is copied to{" "}
+        <code>backups/</code> before it is upgraded.
+      </p>
+    );
+  }
   if (status.install === "desktop") {
     return (
       <p className={styles.sectionHint}>
@@ -39,6 +49,37 @@ function HowToUpdate({ status }: { status: UpdateStatus }) {
       </a>
       .
     </p>
+  );
+}
+
+/** The desktop app installs the update itself, showing the download as it goes. */
+function InstallAndRestart({ version }: { version: string | null }) {
+  // undefined: not installing; null: started, size not known yet; else the fraction downloaded.
+  const [progress, setProgress] = useState<number | null | undefined>(undefined);
+
+  async function install() {
+    setProgress(null);
+    try {
+      // On success the app restarts and this never returns.
+      if (!(await installUpdate(setProgress))) {
+        toast.info(
+          `The desktop app for LoreStudio ${version} is still being built. Try again in a few minutes.`,
+        );
+      }
+    } catch (err) {
+      toast.error(`The update did not install: ${String(err)}`);
+    }
+    setProgress(undefined);
+  }
+
+  return (
+    <button className={styles.saveBtn} onClick={() => void install()} disabled={progress !== undefined}>
+      {progress === undefined
+        ? "Install and restart"
+        : progress === null
+          ? "Downloading…"
+          : `Downloading… ${Math.round(progress * 100)}%`}
+    </button>
   );
 }
 
@@ -101,6 +142,9 @@ export default function AboutSection() {
         {status.error && <p className={styles.hint}>{status.error}</p>}
         {status.available && <HowToUpdate status={status} />}
         <div className={styles.cardFooter}>
+          {status.available && status.install === "desktop" && inDesktopApp() && (
+            <InstallAndRestart version={status.latest} />
+          )}
           <button className={styles.saveBtn} onClick={() => void checkNow()} disabled={checking}>
             {checking ? "Checking…" : "Check now"}
           </button>

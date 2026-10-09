@@ -4,6 +4,10 @@ The check asks GitHub for the latest release and keeps the answer in app_setting
 when the author asks (Check now) or, if they switch it on, once a day as automatic work
 (services/automatic.py, "update-check", off by default). It sends nothing about the author or
 their stories: GitHub sees one request, with LoreStudio's version as the user agent.
+
+The desktop app is told only once the release carries latest.json: its installers are built
+after the release is published (.github/workflows/desktop.yml), and Install and restart has
+nothing to install until then.
 """
 
 from __future__ import annotations
@@ -21,6 +25,8 @@ from ..models.app_setting import AppSetting
 REPOSITORY = "brentonmallen1/LoreStudio"
 LATEST_RELEASE = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 STATE_KEY = "update_check"
+#: What the desktop app's updater reads, attached once the release's installers are built.
+DESKTOP_MANIFEST = "latest.json"
 #: How to update, by how LoreStudio was installed (INSTALL_KIND, set by the images).
 INSTALL_KINDS = ("docker", "desktop", "source")
 
@@ -54,7 +60,8 @@ def _write(db: Session, value: dict[str, Any]) -> None:
 
 
 async def fetch_latest() -> dict[str, Any]:
-    """The latest release on GitHub: its version, page and date."""
+    """The latest release on GitHub: its version, page and date, and whether its desktop
+    installers are attached yet."""
     headers = {"Accept": "application/vnd.github+json", "User-Agent": f"LoreStudio/{settings.app_version}"}
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.get(LATEST_RELEASE, headers=headers)
@@ -64,6 +71,7 @@ async def fetch_latest() -> dict[str, Any]:
         "latest": str(data.get("tag_name", "")).removeprefix("v"),
         "url": data.get("html_url"),
         "published_at": data.get("published_at"),
+        "desktop_ready": any(a.get("name") == DESKTOP_MANIFEST for a in data.get("assets") or []),
     }
 
 
@@ -86,10 +94,13 @@ def status(db: Session) -> dict[str, Any]:
     state = _read(db)
     latest = state.get("latest")
     install = settings.install_kind if settings.install_kind in INSTALL_KINDS else "source"
+    available = is_newer(latest, settings.app_version)
+    if install == "desktop":
+        available = available and bool(state.get("desktop_ready"))
     return {
         "current": settings.app_version,
         "latest": latest,
-        "available": is_newer(latest, settings.app_version),
+        "available": available,
         "url": state.get("url"),
         "published_at": state.get("published_at"),
         "checked_at": state.get("checked_at"),
