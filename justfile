@@ -213,8 +213,12 @@ desktop: desktop-backend
     rm -rf "$out/LoreStudio.app/Contents/Resources/backend"
     ditto build/desktop/dist/lorestudio-backend "$out/LoreStudio.app/Contents/Resources/backend"
     codesign --force --deep --sign - "$out/LoreStudio.app"
-    rm -f "$out/LoreStudio.dmg"
-    hdiutil create -quiet -volname LoreStudio -srcfolder "$out/LoreStudio.app" -format UDZO "$out/LoreStudio.dmg"
+    # The disk image holds the app and a shortcut to Applications, to drag it onto.
+    stage=build/desktop/dmg
+    rm -rf "$stage" "$out/LoreStudio.dmg" && mkdir -p "$stage"
+    ditto "$out/LoreStudio.app" "$stage/LoreStudio.app"
+    ln -s /Applications "$stage/Applications"
+    hdiutil create -quiet -volname LoreStudio -srcfolder "$stage" -format UDZO "$out/LoreStudio.dmg"
     echo "✓ $out/LoreStudio.app ($(du -sh "$out/LoreStudio.app" | cut -f1)), LoreStudio.dmg ($(du -sh "$out/LoreStudio.dmg" | cut -f1))"
 
 desktop-backend:

@@ -16,6 +16,20 @@ open desktop/src-tauri/target/release/bundle/macos/LoreStudio.app
 That builds `LoreStudio.app` (about 340 MB) and `LoreStudio.dmg` (about 135 MB) beside it.
 `just desktop-backend` rebuilds only the frozen backend.
 
+## Installing a downloaded build
+
+1. Open `LoreStudio.dmg` and drag **LoreStudio** onto **Applications**.
+2. Open LoreStudio. macOS says it can't verify the app, because LoreStudio isn't signed
+   with an Apple Developer ID. Click **Done**.
+3. Open **System Settings → Privacy & Security**. Scroll down to the Security section, where
+   it says "LoreStudio" was blocked, then click **Open Anyway** and confirm with your password
+   or Touch ID.
+4. LoreStudio opens, and from then on it opens like any other app. A new version downloaded
+   later asks once again.
+
+If you're comfortable in Terminal, `xattr -dr com.apple.quarantine /Applications/LoreStudio.app`
+does the same as step 3.
+
 ## How it fits together
 
 | Piece | Where | What it does |
@@ -58,7 +72,7 @@ python3 desktop/backend/check_exports.py 18091 /tmp/ls-desktop   # exports and s
 
 ## Not done yet
 
-- **Signing and notarisation.** The app is signed ad hoc, which is enough for the Mac that built it. Another Mac needs a Developer ID signature and Apple's notarisation, or Gatekeeper refuses it.
+- **No Developer ID, by choice.** The app is signed ad hoc, so a downloaded copy is approved once in Privacy & Security (above). The signature must stay valid, which is why `just desktop` re-signs after copying the backend in: a broken one reads "damaged", with no Open Anyway. A Developer ID and notarisation can be added in CI later without changing the build.
 - **Exports go straight to Downloads.** A native Save dialog is next.
 - **Fonts for the interface** still come from Google Fonts, so they fall back to system fonts offline. Bundling them is next.
 - **Platforms:** Apple silicon only so far. Intel, Windows and Linux each need their own build of the backend and of WeasyPrint's libraries.
