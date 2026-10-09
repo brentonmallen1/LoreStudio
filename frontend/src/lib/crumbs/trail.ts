@@ -39,6 +39,8 @@ export interface CrumbChild {
   group?: string;
   /** The next crumb in the trail, or the page you are on. */
   current?: boolean;
+  /** Someone or something the node's scenes carry: opens beside the prose, not in place of it. */
+  open?: { kind: "character" | "location" | "thread"; id: string; name: string };
 }
 
 export interface Crumb {
@@ -73,6 +75,8 @@ export interface TrailInput {
 
 /** A chapter shows at most this many pips; the strip's peek card says the rest. */
 const MAX_PIPS = 4;
+/** A node's menu names at most this many of each (people, places, threads), most often first. */
+const MAX_CAST = 6;
 
 const untitled = (title: string | null | undefined) => title?.trim() || "Untitled";
 
@@ -122,6 +126,83 @@ export function nodeMark(
     for (const sw of colourFor(mode, s, ctx)) if (!colors.includes(sw.color)) colors.push(sw.color);
   return colors.length ? { kind: "pips", colors: colors.slice(0, MAX_PIPS) } : undefined;
 }
+
+/** Every scene under a node (or the node itself, when it is one). */
+function scenesUnder(node: StructureNode): Set<string> {
+  const ids = new Set<string>([node.id]);
+  const walk = (n: StructureNode) => (n.children ?? []).forEach((c) => (ids.add(c.id), walk(c)));
+  walk(node);
+  return ids;
+}
+
+/**
+ * Who, where and which threads a node's scenes carry (doc 24: the › is a menu of what is in
+ * a place, the people in it too), from the scene cast the strip reads: each most often first,
+ * then in the order the prose names them. A person or place opens beside the prose.
+ */
+export function castOf(node: StructureNode, input: TrailInput): CrumbChild[] {
+  const base = `/stories/${input.storyId}`;
+  const ids = scenesUnder(node);
+  const stops = input.line.stops.filter((s) => ids.has(s.node.id) && s.cast);
+  const single = stops.length === 1 && stops[0].node.id === node.id;
+  const tally = (pick: (c: NonNullable<(typeof stops)[number]["cast"]>) => string[]) => {
+    const counts = new Map<string, number>();
+    for (const s of stops) for (const id of pick(s.cast!)) counts.set(id, (counts.get(id) ?? 0) + 1);
+    // A Map keeps first-seen order, so equal counts stay in the prose's order.
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, MAX_CAST);
+  };
+  const pov = single ? (stops[0].node.pov_character_id ?? input.ctx.storyPov ?? null) : null;
+  const rows: CrumbChild[] = [];
+  const add = (
+    group: string,
+    kind: "character" | "location" | "thread",
+    entries: [string, number][],
+    find: (id: string) => Entity | undefined,
+    to: string,
+  ) => {
+    for (const [id, n] of entries) {
+      const e = find(id);
+      if (!e) continue;
+      rows.push({
+        key: `${kind}:${id}`,
+        label: untitled(e.name),
+        to: `${base}${to}/${id}`,
+        mark: { kind: "dot", color: slotVar(e.slot) },
+        hint: id === pov ? "POV" : single ? undefined : `${n} ${n === 1 ? "scene" : "scenes"}`,
+        group,
+        open: { kind, id, name: e.name },
+      });
+    }
+  };
+  const asEntity = (x: { id: string; name: string; color_slot?: number | null } | undefined) =>
+    x && { id: x.id, name: x.name, slot: x.color_slot };
+  add(
+    "Who is in it",
+    "character",
+    tally((c) => c.character_ids),
+    (id) => asEntity(input.characters.find((c) => c.id === id)),
+    "/lorebook/characters",
+  );
+  add(
+    "Where",
+    "location",
+    tally((c) => c.location_ids),
+    (id) => asEntity(input.locations.find((l) => l.id === id)),
+    "/lorebook/places",
+  );
+  add(
+    "Threads",
+    "thread",
+    tally((c) => c.thread_ids),
+    (id) => asEntity(input.threads.find((t) => t.id === id)),
+    "/promises/threads",
+  );
+  return rows;
+}
+
+/** "chapter" → "Chapters": the heading over a node's own children when its cast follows. */
+const plural = (levelType: string | undefined) =>
+  levelType ? `${levelType.charAt(0).toUpperCase()}${levelType.slice(1)}s` : "Inside";
 
 interface Entity {
   id: string;
@@ -183,13 +264,17 @@ export function buildTrail(input: TrailInput): Crumb[] {
   if (writing) {
     nodeTrail.forEach((n, i) => {
       const next = nodeTrail[i + 1];
+      const cast = castOf(n, input);
+      const kids = n.children ?? [];
+      // With people and places after them, the node's own children get a heading too.
+      const group = cast.length ? plural(kids[0]?.level_type) : undefined;
       trail.push({
         key: n.id,
         label: untitled(n.title),
         to: `${base}/write/${n.id}`,
         kind: "node",
         mark: nodeMark(n, line, colourMode, ctx),
-        children: (n.children ?? []).map((c) => nodeChild(c, c.id === next?.id)),
+        children: [...kids.map((c) => nodeChild(c, c.id === next?.id, group)), ...cast],
         menuLabel: `In ${untitled(n.title)}`,
       });
     });

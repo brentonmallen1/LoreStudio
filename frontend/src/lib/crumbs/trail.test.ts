@@ -15,7 +15,7 @@ const node = (
     id,
     title,
     level,
-    level_type: "x",
+    level_type: ["act", "chapter", "scene"][level] ?? "x",
     status: "draft",
     word_count: 100,
     children,
@@ -145,7 +145,7 @@ describe("the trail", () => {
       "The Stranger",
       "Knock at the Door",
     ]);
-    expect(trail[1].children.map((c) => [c.label, !!c.current])).toEqual([
+    expect(trail[1].children.filter((c) => !c.open).map((c) => [c.label, !!c.current])).toEqual([
       ["Storm Warning", false],
       ["The Stranger", true],
     ]);
@@ -155,15 +155,37 @@ describe("the trail", () => {
       ["Act II", "In the book", false],
     ]);
     expect(trail[0].children.find((c) => c.group === "Pages" && c.current)?.label).toBe("Write");
-    // A scene has nothing inside it: no ›.
-    expect(trail[3].children).toEqual([]);
+    // A scene holds no nodes, only who is in it (the next test).
+    expect(trail[3].children.every((c) => c.open)).toBe(true);
+  });
+
+  it("names who is in a node's scenes, most often first, to open beside the prose", () => {
+    const trail = buildTrail(input("/write/s2", { nodeId: "s2" }));
+    // The act: Eleanor is in two of its scenes, Calder in one.
+    const act = trail[1].children;
+    expect(act.filter((c) => !c.open).map((c) => c.group)).toEqual(["Chapters", "Chapters"]);
+    expect(act.filter((c) => c.open).map((c) => [c.group, c.label, c.hint])).toEqual([
+      ["Who is in it", "Eleanor Vance", "2 scenes"],
+      ["Who is in it", "Calder", "1 scene"],
+    ]);
+    expect(act.find((c) => c.label === "Calder")?.open).toEqual({
+      kind: "character",
+      id: "v",
+      name: "Calder",
+    });
+    expect(act.find((c) => c.label === "Calder")?.to).toBe("/stories/st/lorebook/characters/v");
+    // The scene: in the prose's order, its point of view marked.
+    expect(trail[3].children.map((c) => [c.label, c.hint])).toEqual([
+      ["Calder", undefined],
+      ["Eleanor Vance", "POV"],
+    ]);
   });
 
   it("marks chapters with the strip's pips and scenes with their status shape", () => {
     const trail = buildTrail(input("/write/s2", { nodeId: "s2" }));
     expect(trail[2].mark).toEqual({ kind: "pips", colors: ["var(--cat-2)"] });
     expect(trail[3].mark).toEqual({ kind: "stop", shape: "hollow", color: "var(--cat-2)" });
-    const scenes = trail[2].children;
+    const scenes = trail[2].children.filter((c) => !c.open);
     expect(scenes.map((c) => c.mark)).toEqual([
       { kind: "stop", shape: "hollow", color: "var(--cat-2)" },
       { kind: "stop", shape: "dashed", color: undefined },
@@ -179,7 +201,12 @@ describe("the trail", () => {
 
   it("lists a chapter's scenes when the chapter is the last crumb", () => {
     const trail = buildTrail(input("/write/c2", { nodeId: "c2" }));
-    expect(trail.at(-1)?.children.map((c) => c.label)).toEqual(["Knock at the Door", "Coming"]);
+    expect(
+      trail
+        .at(-1)
+        ?.children.filter((c) => !c.open)
+        .map((c) => c.label),
+    ).toEqual(["Knock at the Door", "Coming"]);
   });
 
   it("keeps Studio pages out of Writer mode's menu", () => {

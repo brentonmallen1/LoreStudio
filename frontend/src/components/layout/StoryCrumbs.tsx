@@ -7,6 +7,7 @@ import { buildTrail, type CrumbChild, type CrumbMark } from "../../lib/crumbs/tr
 import { useAIAvailable, useMode } from "../../lib/mode";
 import { sceneToResume } from "../../lib/resumeScene";
 import { useColourContext, useStripLine } from "../../lib/strip/useColourContext";
+import { usePanelStore } from "../../stores/panelStore";
 import { bookLabel, useSeriesStore } from "../../stores/seriesStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
@@ -115,7 +116,9 @@ export default function StoryCrumbs({ storyId }: { storyId: string }) {
     // A chapter's pips sit at the row's end, as in the strip's key; a dot or a stop leads.
     marker: c.mark && c.mark.kind !== "pips" ? <Mark mark={c.mark} /> : undefined,
     hint: c.mark?.kind === "pips" ? <Mark mark={c.mark} /> : c.hint,
-    onSelect: () => navigate(c.to),
+    // Someone the scenes carry opens beside the prose; a place in the book goes there.
+    onSelect: () =>
+      c.open ? usePanelStore.getState().openEntity(c.open.kind, c.open.id, c.open.name) : navigate(c.to),
   });
 
   const last = series ? series.books[series.books.length - 1] : null;
