@@ -1,4 +1,13 @@
-import { ChevronsLeft, ChevronsRight, Feather, FileText } from "lucide-react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  ExternalLink,
+  Feather,
+  FileText,
+  PanelRight,
+  PictureInPicture2,
+} from "lucide-react";
+import { AI_WINDOW_PATH } from "../../lib/ai/panelChannel";
 import { useAIAvailable } from "../../lib/mode";
 import { SHORTCUTS, formatCombo } from "../../lib/keyboard/shortcuts";
 import { tabLabel } from "../../lib/panel/tabLabel";
@@ -18,13 +27,24 @@ const TOOLS: ToolId[] = ["characters", "places", "threads", "notes", "freewrite"
  * whether the panel is open or not: everything that opens beside the page starts here. This
  * scene and each tool, then the characters, places and threads opened as tabs (a coloured
  * dot each), then the Assistant. Choosing the one already showing folds the panel away.
+ * While the panel is open its own controls sit at the top under the chevron (float or dock,
+ * pop out), which leaves the tab strip to the tabs.
  */
 export default function PanelRail() {
-  const { tabs, activeTabId, open, activate, openTool, setOpen } = usePanelStore();
+  const { tabs, activeTabId, open, activate, openTool, setOpen, frame, toggleFloating, setFrame } =
+    usePanelStore();
   const aiAvailable = useAIAvailable();
   const sessionCount = useAIStore((s) => s.sessions.length);
+  const storyId = useStoryStore((s) => s.activeStory?.id);
   // Re-render when the open node changes: the scene tab is named for its level.
   useStoryStore((s) => s.activeNode?.id);
+
+  function popOut() {
+    const story = storyId ? `?story=${encodeURIComponent(storyId)}` : "";
+    // A named window means a second click focuses the one that is open, not a third panel.
+    const opened = window.open(`${AI_WINDOW_PATH}${story}`, "lorestudio-panel", "width=520,height=800");
+    if (opened) setFrame("window");
+  }
   const openIds = new Set(tabs.map((t) => t.id));
   const entities = tabs.filter((t) => t.kind === "entity");
   const shortcut = formatCombo(SHORTCUTS.togglePanel.combo);
@@ -53,6 +73,26 @@ export default function PanelRail() {
       >
         {open ? <ChevronsRight size={14} /> : <ChevronsLeft size={14} />}
       </button>
+      {open && (
+        <>
+          <button
+            className={styles.railBtn}
+            onClick={toggleFloating}
+            title={frame === "floating" ? "Dock to the side" : "Float over the page"}
+            aria-label={frame === "floating" ? "Dock the side panel" : "Float the side panel"}
+          >
+            {frame === "floating" ? <PanelRight size={14} /> : <PictureInPicture2 size={14} />}
+          </button>
+          <button
+            className={styles.railBtn}
+            onClick={popOut}
+            title="Open in its own window"
+            aria-label="Open the side panel in its own window"
+          >
+            <ExternalLink size={14} />
+          </button>
+        </>
+      )}
       <div className={styles.railTabs}>
         <button
           className={cls("scene")}

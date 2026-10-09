@@ -9,6 +9,7 @@ import styles from "./Panel.module.css";
  * of the strip, icon-only with a session count, tinted with the AI colour, never folded
  * into the ☰ menu. The one icon-only AI control in the app: it is the panel's own tab,
  * not an action button, and it carries its name for assistive tech and the tooltip.
+ * Drawn only in the pop-out window: beside the page the rail's Feather is the Assistant.
  */
 export default function AssistantTab() {
   const aiAvailable = useAIAvailable();

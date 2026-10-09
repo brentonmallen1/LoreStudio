@@ -5,6 +5,56 @@
  * in. The active tab is always shown, even when it would not fit in order, because a tab
  * you just opened vanishing into a menu is the one thing an overflow must never do.
  */
+/**
+ * The tab strip's measures at the Default interface size, in px; the strip scales them with
+ * `scaledPx`, since its text and controls are rem. Tabs shrink between `tabMin` and `tabMax`
+ * (the label truncates, the full name is the tooltip), so what fits is decided at `tabMin`.
+ */
+export const STRIP_PX = {
+  /** A tab at its narrowest: a dot and a few letters of its name. */
+  tabMin: 64,
+  tabMax: 140,
+  /** The × the active tab carries (This scene never closes). */
+  close: 24,
+  /** Between the strip's items (`gap` on .strip). */
+  gap: 2,
+  /** + Open… after the tabs. */
+  open: 26,
+  /** ☰ n, once something has folded away. */
+  overflow: 44,
+  /** The divider and the Assistant tab with its count: only in the pop-out window, which has
+   *  no rail (beside the page the rail carries the Assistant). */
+  assistant: 70,
+} as const;
+
+/** The narrowest a tab may be drawn, the gap after it not included. */
+export function tabMinWidth(tab: { kind: string }, active: boolean, px: (n: number) => number = (n) => n) {
+  return px(STRIP_PX.tabMin) + (active && tab.kind !== "scene" ? px(STRIP_PX.close) : 0);
+}
+
+/**
+ * What `fitTabs` needs for one strip: each tab's narrowest width plus the gap after it, the
+ * width left for the tabs once + Open… (and the Assistant tab, where it is drawn) are taken
+ * out of the strip's content width, and what the ☰ button takes when it appears.
+ */
+export function stripBudget<T extends { id: string; kind: string }>(
+  tabs: T[],
+  activeId: string,
+  contentWidth: number,
+  { assistant, px = (n: number) => n }: { assistant: boolean; px?: (n: number) => number },
+) {
+  const gap = STRIP_PX.gap;
+  const widths = Object.fromEntries(tabs.map((t) => [t.id, tabMinWidth(t, t.id === activeId, px) + gap]));
+  // + Open… and the gap after it, the spacer's gap, the Assistant; 1px for rounding.
+  const room = contentWidth - (px(STRIP_PX.open) + gap) - gap - (assistant ? px(STRIP_PX.assistant) : 0) - 1;
+  return {
+    widths,
+    room,
+    overflowReserve: px(STRIP_PX.overflow) + gap,
+    defaultWidth: px(STRIP_PX.tabMin) + gap,
+  };
+}
+
 export interface FitResult<T> {
   visible: T[];
   hidden: T[];
