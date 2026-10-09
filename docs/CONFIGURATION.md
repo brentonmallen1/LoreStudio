@@ -64,6 +64,7 @@ start while `SECRET_KEY` or `ADMIN_PASSWORD` is a default value. The all-in-one 
 | Variable | Default | What it does |
 |---|---|---|
 | `APP_VERSION` | `dev` | The release, stamped by the release build and shown in *Settings* |
+| `INSTALL_KIND` | `source` (`docker` in the images) | How LoreStudio was installed, so *Settings › About and updates* shows the right way to update |
 
 ## Docker and deployment
 

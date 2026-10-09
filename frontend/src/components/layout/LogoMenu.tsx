@@ -10,6 +10,7 @@ import { useStoryStore } from "../../stores/storyStore";
 import { useAuthStore } from "../../stores/authStore";
 import { THEME_META, useUIStore, type ColorMode } from "../../stores/uiStore";
 import { toast } from "../../stores/toastStore";
+import { useUpdateStore } from "../../stores/updateStore";
 import { backupNeedsEye, useBackupStatus } from "../../hooks/useBackupStatus";
 import { relativeTime } from "../../utils/relativeTime";
 import LogoMenuPages from "./LogoMenuPages";
@@ -46,6 +47,11 @@ export default function LogoMenu() {
   const waiting = inStory ? findings + proposals : 0;
   const backup = useBackupStatus(inStory ? storyId : undefined);
   const backupAlert = backupNeedsEye(backup);
+  const loadUpdate = useUpdateStore((s) => s.load);
+  // What the last check found, read once a visit (it never asks GitHub itself).
+  useEffect(() => {
+    if (open) void loadUpdate();
+  }, [open, loadUpdate]);
 
   useEffect(() => {
     if (!open) return;
@@ -152,6 +158,7 @@ function Footer({
   const [switching, setSwitching] = useState(false);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const update = useUpdateStore((s) => s.status);
 
   async function switchMode() {
     setSwitching(true);
@@ -174,6 +181,14 @@ function Footer({
 
   return (
     <div className={styles.foot}>
+      {update?.available && (
+        <div className={styles.line}>
+          <Link to="/settings#about" onClick={done} className={styles.word} title="How to update">
+            <span className={`${styles.dot} ${styles.dotOk}`} aria-hidden />
+            LoreStudio {update.latest} is available
+          </Link>
+        </div>
+      )}
       <div className={styles.footRow}>
         <Link to="/guides" className={styles.footLink} onClick={done}>
           <Compass size={14} aria-hidden />

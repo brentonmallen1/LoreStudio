@@ -193,6 +193,7 @@ ACCOUNT_AND_APP = (
     "PATCH /api/llm-settings",
     "POST /api/auth/login",
     "POST /api/system/backups",
+    "POST /api/system/update/check",
     "POST /api/users",
     "PUT /api/auth/me/scratch-pad",
     "PUT /api/user/backup-defaults",

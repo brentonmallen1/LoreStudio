@@ -2,6 +2,7 @@ import {
   Archive,
   CalendarClock,
   Cpu,
+  Info,
   Keyboard,
   Network,
   Palette,
@@ -88,6 +89,13 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
     icon: ShieldCheck,
     modes: BOTH,
     keywords: ["what leaves this machine", "telemetry", "hosts"],
+  },
+  {
+    id: "about",
+    label: "About and updates",
+    icon: Info,
+    modes: BOTH,
+    keywords: ["version", "update", "upgrade", "release", "new version", "check for updates"],
   },
   { id: "account", label: "Account", icon: User, modes: BOTH, keywords: ["user", "logout", "password"] },
 ];

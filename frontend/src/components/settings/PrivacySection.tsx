@@ -64,7 +64,12 @@ export default function PrivacySection() {
           )}
         </li>
         <li>
-          <strong>Telemetry, analytics, update checks</strong>: none. The app makes no other network requests.
+          <strong>GitHub</strong>: asked for the latest release only when you press Check now under{" "}
+          <a href="#about">About and updates</a>, or once a day if you switch that on under{" "}
+          <a href="#automatic">Automatic work</a> (off by default). Nothing about you or your stories is sent.
+        </li>
+        <li>
+          <strong>Telemetry and analytics</strong>: none. The app makes no other network requests.
         </li>
       </ul>
       <p className={styles.sectionHint}>

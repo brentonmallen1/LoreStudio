@@ -21,6 +21,7 @@ import type { ImageTokenBudget } from "../types";
 import { useModelSettings, type ConnStatus } from "./settings/useModelSettings";
 import ThinkingField from "./settings/ThinkingField";
 import AutomaticWorkSection from "../components/settings/AutomaticWorkSection";
+import AboutSection from "../components/settings/AboutSection";
 import DatabaseBackupCard from "../components/settings/DatabaseBackupCard";
 import ModeToggle from "../components/settings/ModeToggle";
 import TypographySection from "../components/settings/TypographySection";
@@ -516,6 +517,10 @@ export default function SettingsPage() {
           <section className={styles.section} id="privacy">
             <h2 className={styles.sectionLabel}>Privacy</h2>
             <PrivacySection />
+          </section>
+          <section className={styles.section} id="about">
+            <h2 className={styles.sectionLabel}>About and updates</h2>
+            <AboutSection />
           </section>
 
           <section className={styles.section} id="account">
