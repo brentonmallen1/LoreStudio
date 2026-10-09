@@ -197,6 +197,42 @@ release VERSION NOTES:
     gh release create "$version" --target main --notes-file "{{NOTES}}" --latest
     echo "✓ Released $version: the images build in Actions › Release images"
 
+# ── Desktop (macOS proof of concept) ───────────
+# The app as a macOS app: the web app, the backend frozen by PyInstaller (with WeasyPrint's
+# libraries from Homebrew, spaCy and pandoc inside), in a Tauri window. Needs Rust and
+# `brew install pango`. Builds build/desktop/…/LoreStudio.app and a .dmg. See desktop/README.md.
+pandoc_version := "3.12.1"
+
+desktop: desktop-backend
+    #!/usr/bin/env bash
+    set -euo pipefail
+    (cd desktop && npm install --silent && npx tauri build)
+    out=desktop/src-tauri/target/release/bundle/macos
+    # The backend goes in with ditto, not as a Tauri resource: Tauri copies a symlink as a
+    # second file, and two copies of one library must never load into one process.
+    rm -rf "$out/LoreStudio.app/Contents/Resources/backend"
+    ditto build/desktop/dist/lorestudio-backend "$out/LoreStudio.app/Contents/Resources/backend"
+    codesign --force --deep --sign - "$out/LoreStudio.app"
+    rm -f "$out/LoreStudio.dmg"
+    hdiutil create -quiet -volname LoreStudio -srcfolder "$out/LoreStudio.app" -format UDZO "$out/LoreStudio.dmg"
+    echo "✓ $out/LoreStudio.app ($(du -sh "$out/LoreStudio.app" | cut -f1)), LoreStudio.dmg ($(du -sh "$out/LoreStudio.dmg" | cut -f1))"
+
+desktop-backend:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p build/desktop
+    pandoc="build/desktop/pandoc-{{pandoc_version}}-arm64/bin/pandoc"
+    if [ ! -x "$pandoc" ]; then
+        curl -fsSL -o build/desktop/pandoc.zip \
+            "https://github.com/jgm/pandoc/releases/download/{{pandoc_version}}/pandoc-{{pandoc_version}}-arm64-macOS.zip"
+        unzip -q -o build/desktop/pandoc.zip -d build/desktop
+    fi
+    (cd frontend && npm run build)
+    cd backend
+    DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib LORESTUDIO_PANDOC="$PWD/../$pandoc" \
+        uv run --group desktop pyinstaller ../desktop/backend/lorestudio-backend.spec --noconfirm \
+        --distpath ../build/desktop/dist --workpath ../build/desktop/work --log-level WARN
+
 # ── Utilities ──────────────────────────────────
 # Copy .env.example to .env if it doesn't exist
 init-env:

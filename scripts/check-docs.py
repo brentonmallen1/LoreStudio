@@ -25,6 +25,7 @@ ROOT = {
     "DESIGN.md",
     "CONTRIBUTING.md",
     "shared/README.md",
+    "desktop/README.md",
 }
 #: Folders whose markdown ships: the docs, the in-app guides, the Unraid notes, GitHub's files.
 FOLDERS = ("docs/", "frontend/src/guides/", "unraid/", ".github/")

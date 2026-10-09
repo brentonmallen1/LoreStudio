@@ -70,3 +70,7 @@ backups/
 /notes/
 coverage/
 .coverage
+
+# Desktop app (desktop/): Rust build output and Tauri's generated schemas
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
