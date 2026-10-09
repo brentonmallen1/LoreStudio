@@ -45,10 +45,10 @@ interface Props {
 type Pane = "menu" | "type" | "sprint";
 
 /**
- * Everything the writing desk needs now and then, behind one ⋯ (doc 14 Q1): the image,
- * the type, the notes in the margin, the dialogue, a sprint, the guides and the scene tools
- * (doc 24 moved Notes and Dialogue here from the bar). The type and the sprint open as
- * panes of the same menu, so nothing else needs its own button in the top bar.
+ * Everything the writing desk needs now and then, behind one ⋯ (doc 14 Q1), in groups by
+ * kind (doc 24): Write (an image, a sprint), This scene (its tools), Show (the notes in the
+ * margin, the dialogue only), Guides, and Settings (the type) last. The type and the sprint
+ * open as panes of the same menu, so nothing else needs its own button in the top bar.
  */
 export default function EditorMoreMenu(p: Props) {
   const [open, setOpen] = useState(false);
@@ -114,7 +114,7 @@ export default function EditorMoreMenu(p: Props) {
         type="button"
         className={`${styles.trigger} ${open ? styles.triggerOpen : ""}`}
         aria-label="More for this scene"
-        title="Image, type, notes, dialogue, sprint, guides and scene tools"
+        title="Image, sprint, scene tools, what the page shows, guides, type"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => (open ? close() : setOpen(true))}
@@ -123,13 +123,30 @@ export default function EditorMoreMenu(p: Props) {
       </button>
       {open && pane === "menu" && (
         <div className={styles.menu} role="menu" aria-label="More for this scene" data-pane>
+          {/* Grouped by what each does (doc 24): things to do, the scene's tools, what the
+              page shows, the guides, and the one setting last. */}
+          <div className={styles.label}>Write</div>
           <Item
             label="Insert image"
             icon={ImageIcon}
             hint={formatCombo(SHORTCUTS.insertImage.combo)}
             onSelect={then(p.onInsertImage)}
           />
-          <Item label="Type and width…" icon={Type} onSelect={() => setPane("type")} />
+          {!p.sprintRunning && <Item label="Start a sprint…" icon={Zap} onSelect={() => setPane("sprint")} />}
+          <div className={styles.label}>This scene</div>
+          <Item
+            label="Tag the dialogue"
+            icon={Tag}
+            title="Find quotes with no speaker"
+            onSelect={then(p.onOpenAutoTag)}
+          />
+          <Item
+            label="Link mentions"
+            icon={Link}
+            title="Find names not yet linked"
+            onSelect={then(p.onOpenAutoLink)}
+          />
+          <div className={styles.label}>Show</div>
           <Item
             label="Notes in the margin"
             icon={StickyNote}
@@ -143,14 +160,13 @@ export default function EditorMoreMenu(p: Props) {
             onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
           />
           <Item
-            label="Show the dialogue"
+            label="Dialogue only"
             icon={MessageSquareQuote}
             checked={p.dialogueIsolation}
             hint={p.dialogueIsolation ? "On" : undefined}
             title="Only the scene's dialogue, line by line"
             onSelect={then(p.onToggleDialogue)}
           />
-          {!p.sprintRunning && <Item label="Start a sprint…" icon={Zap} onSelect={() => setPane("sprint")} />}
           <div className={styles.label}>Guides</div>
           <Item
             label="Dialogue"
@@ -169,29 +185,15 @@ export default function EditorMoreMenu(p: Props) {
             icon={BookMarked}
             onSelect={then(() => p.onOpenGuides("essential"))}
           />
-          <div className={styles.label}>This scene</div>
-          <Item
-            label="Tag the dialogue"
-            icon={Tag}
-            title="Find quotes with no speaker"
-            onSelect={then(p.onOpenAutoTag)}
-          />
-          <Item
-            label="Link mentions"
-            icon={Link}
-            title="Find names not yet linked"
-            onSelect={then(p.onOpenAutoLink)}
-          />
           {hasAbout && (
-            <>
-              <div className={styles.gap} aria-hidden />
-              <Item
-                label={ai ? "About the AI and analysis tools" : "About the analysis tools"}
-                icon={ai ? Cpu : Info}
-                onSelect={then(() => setAbout(true))}
-              />
-            </>
+            <Item
+              label={ai ? "About the AI and analysis tools" : "About the analysis tools"}
+              icon={ai ? Cpu : Info}
+              onSelect={then(() => setAbout(true))}
+            />
           )}
+          <div className={styles.label}>Settings</div>
+          <Item label="Type and width…" icon={Type} onSelect={() => setPane("type")} />
         </div>
       )}
       {open && pane !== "menu" && (
