@@ -24,10 +24,15 @@ export function getSegmentIcon(levelType: string): LucideIcon {
   return SEGMENT_ICONS[levelType.toLowerCase()] ?? Layers;
 }
 
+/**
+ * A level type's colour, for its icon in the tree, the strip and the editor's title (one
+ * helper since doc 24 P5; the editor's copy used the full colour and fell back to the
+ * accent, which is the author's colour, not a level's). Blended 65% with the subtle text:
+ * the types stay apart without a full-saturation rainbow, and an unknown type is plain.
+ */
 export function segmentColor(levelType: string): string {
   const key = levelType.toLowerCase();
   const known = ["act", "chapter", "scene", "section", "beat", "part", "stage"];
-  // Blend 65% segment color with 35% muted text — keeps types distinct without full-saturation rainbow
   return known.includes(key)
     ? `color-mix(in srgb, var(--segment-${key}) 65%, var(--color-text-subtle))`
     : "var(--color-text-subtle)";

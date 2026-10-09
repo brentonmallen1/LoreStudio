@@ -14,6 +14,8 @@ export interface MenuItem {
   checked?: boolean;
   /** A small mark before the label: a palette-slot dot, a status shape. */
   marker?: ReactNode;
+  /** Something quiet at the row's end: a word ("POV"), a chapter's pips. */
+  hint?: ReactNode;
   /** A heading drawn above the first item of each run of items in the same group. */
   group?: string;
   /** Where you are now, in a menu of places: marked, and announced as the current page. */
@@ -143,6 +145,7 @@ export default function PopoverMenu({
                 )}
                 {Icon && <Icon size={14} aria-hidden />}
                 <span className={styles.label}>{item.label}</span>
+                {item.hint && <span className={styles.hint}>{item.hint}</span>}
                 {item.checked && <Check size={13} className={styles.check} aria-hidden />}
               </button>
             );

@@ -1,17 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Book, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
-import { useOpenFindings } from "../../stores/findingsStore";
-import {
-  buildLine,
-  stripPx,
-  toggleStrip,
-  type ColourContext,
-  type Readout,
-  type StripWidth,
-} from "../../lib/strip/stripModel";
-import { useStoryStore } from "../../stores/storyStore";
+import { stripPx, toggleStrip, type Readout, type StripWidth } from "../../lib/strip/stripModel";
+import { useColourContext, useStripLine } from "../../lib/strip/useColourContext";
 import { useUIStore } from "../../stores/uiStore";
 import { scaledPx } from "../../lib/appearance/uiScale";
 import ChapterRows from "./ChapterRows";
@@ -32,8 +24,6 @@ export default function StoryStrip() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { structure, activeTemplate, activeNode, sceneCast, characters, threads, beatSheets, activeStory } =
-    useStoryStore();
   const {
     stripWidth,
     setStripWidth,
@@ -50,20 +40,10 @@ export default function StoryStrip() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [dragPx, setDragPx] = useState<number | null>(null);
 
-  const line = useMemo(
-    () => buildLine(structure, activeTemplate, activeNode?.id, sceneCast),
-    [structure, activeTemplate, activeNode?.id, sceneCast],
-  );
+  const line = useStripLine();
   // A flat outline has no chapters to show: that width falls through to the tree.
   const width: StripWidth = !line.hasStations && stripWidth === "chapters" ? "scenes" : stripWidth;
-  const findings = useOpenFindings();
-  const ctx: ColourContext = {
-    characters,
-    threads,
-    beatSheet: beatSheets.find((b) => b.id === activeStory?.beat_sheet_id) ?? null,
-    findings,
-    storyPov: activeStory?.pov_character_id ?? null,
-  };
+  const ctx = useColourContext();
   const cycle = () => setStripWidth(toggleStrip(width, stripDepth, line.hasStations));
 
   useEffect(() => {

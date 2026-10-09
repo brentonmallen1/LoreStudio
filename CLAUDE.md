@@ -105,7 +105,7 @@ api/client.ts     — Single fetch wrapper + every API method
 stores/           — Zustand: authStore, uiStore, storyStore
 pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
-  layout/         — GlobalHeader, breadcrumb navigator, PageHeader, ModeGate
+  layout/         — GlobalHeader, StoryCrumbs (the trail, lib/crumbs/trail: each › a menu), PageHeader, ModeGate
   strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
