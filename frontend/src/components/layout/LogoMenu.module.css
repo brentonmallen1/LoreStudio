@@ -205,12 +205,17 @@
   cursor: default;
 }
 
-/* ── The footer: one tone box ── */
+/* ── The footer: one tone box, pinned to the menu's foot so Settings, colour mode and the
+   account stay in view on a short window while the pages scroll above it. The ring of
+   surface hides the rows that pass under it. ── */
 .foot {
+  position: sticky;
+  bottom: 0;
   margin-top: 0.55rem;
   padding: 6px;
   border-radius: 9px;
   background: var(--color-tone);
+  box-shadow: 0 0 0 6px var(--color-surface);
 }
 
 .footRow {
