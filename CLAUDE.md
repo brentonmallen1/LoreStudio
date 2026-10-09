@@ -107,8 +107,8 @@ pages/            — Login, Dashboard, StoryWorkspace, Settings
 components/       — Feature components organized by domain
   layout/         — GlobalHeader (floating: jobs, undo/redo, scratch pad, focus, Search or jump),
                     LogoMenu (the logo: every page and section, Guides, Settings, colour mode,
-                    backup, mode, account; hooks/useBackupStatus), breadcrumb navigator,
-                    PageHeader, ModeGate
+                    backup, mode, account; hooks/useBackupStatus), StoryCrumbs (the trail,
+                    lib/crumbs/trail: each › a menu of what is inside), PageHeader, ModeGate
   strip/          — The story strip down the left edge (transit line, chapter rows, full tree)
   panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards

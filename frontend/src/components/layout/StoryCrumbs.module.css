@@ -1,0 +1,189 @@
+/* The trail in the header (doc 24 P5, D15): words that go somewhere, and a › after each
+   that opens what is inside it. Type and space, no outlines; a tone only under the pointer. */
+.trail {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crumb {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* The book keeps its name longest; the crumbs between give way first. */
+.crumb:has(.book) {
+  flex-shrink: 0.4;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 2.5rem;
+  max-width: 14rem;
+  height: 1.733rem;
+  padding: 0 0.4rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.link:hover {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.link:focus-visible,
+.sep:focus-visible,
+.back:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.linkIcon {
+  min-width: 0;
+  justify-content: center;
+  width: 1.6rem;
+  padding: 0;
+}
+
+.book {
+  max-width: 18rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.current {
+  color: var(--color-text);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.seriesIcon {
+  flex-shrink: 0;
+}
+
+/* The › is a button: what is inside the crumb before it. 24px wide, the target floor. */
+.sep {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.733rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-subtle);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sep:hover,
+.sep[aria-expanded="true"] {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+.sepPlain {
+  flex-shrink: 0;
+  padding: 0 0.3rem;
+  color: var(--color-text-subtle);
+}
+
+/* The way back to the prose: a quiet link in the author's colour, at the trail's end. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 1;
+  min-width: 2rem;
+  max-width: 14rem;
+  height: 1.733rem;
+  margin-left: 0.75rem;
+  padding: 0 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.back:hover {
+  background: var(--color-surface-3);
+}
+
+/* ── Colour marks, as the strip draws them ── */
+.dot {
+  flex-shrink: 0;
+  width: 0.533rem;
+  height: 0.533rem;
+  border-radius: 50%;
+}
+
+.pips {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.pip {
+  width: 4px;
+  height: 0.733rem;
+  border-radius: 2px;
+}
+
+.stop {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--stop-color, var(--color-text-muted));
+}
+
+.stop[data-shape="hollow"] {
+  background: transparent;
+  border: 2px solid var(--stop-color, var(--color-text-muted));
+}
+
+.stop[data-shape="dashed"] {
+  background: transparent;
+  border: 1.5px dashed var(--color-text-subtle);
+}
+
+/* Final: a filled dot in a ring, the ground showing between (any ground: header or menu). */
+.stop[data-shape="ringed"] {
+  width: 0.4rem;
+  height: 0.4rem;
+  margin: 0 0.1rem;
+  outline: 1.5px solid var(--stop-color, var(--color-text-muted));
+  outline-offset: 1.5px;
+}
+
+@media (max-width: 720px) {
+  .back .label {
+    display: none;
+  }
+}

@@ -1,13 +1,3 @@
-import {
-  BookMarked,
-  Clapperboard,
-  Flag,
-  Layers,
-  Milestone,
-  Puzzle,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
 import type { StructureNode } from "../../types";
 import { readerText } from "../../lib/prose/syntax";
 
@@ -22,25 +12,8 @@ export function countWordsClean(text: string): number {
   return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
 }
 
-const SEGMENT_ICONS: Record<string, LucideIcon> = {
-  act: Flag,
-  chapter: BookMarked,
-  scene: Clapperboard,
-  section: Layers,
-  beat: Zap,
-  part: Puzzle,
-  stage: Milestone,
-};
-
-export function getSegmentIcon(levelType: string): LucideIcon {
-  return SEGMENT_ICONS[levelType.toLowerCase()] ?? Layers;
-}
-
-export function segmentColor(levelType: string): string {
-  const key = levelType.toLowerCase();
-  const known = ["act", "chapter", "scene", "section", "beat", "part", "stage"];
-  return known.includes(key) ? `var(--segment-${key})` : "var(--color-accent)";
-}
+// One icon and one colour per level type, shared with the outline tree and the strip.
+export { getSegmentIcon, segmentColor } from "../layout/structureTreeMeta";
 
 export const LINK_TYPES = [
   { value: "foreshadowing", forward: "Foreshadows →", reverse: "← Foreshadowed by" },

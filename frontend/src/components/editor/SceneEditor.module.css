@@ -1287,6 +1287,44 @@ button.typeBtn[aria-expanded="true"] {
   font-weight: 700;
 }
 
+/* Who says this line? The "Unknown" or "?" on an untagged or guessed line (doc 24, D17). */
+.speakerPickerBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  margin: -0.3rem;
+  padding: 0 0.3rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.speakerPickerBtn:hover,
+.speakerPickerBtn[aria-expanded="true"] {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.speakerPickerBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.speakerUnknown {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
+
+.speakerDot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+}
+
 .dialogueBubble {
   max-width: 75%;
   padding: 8px 12px;
