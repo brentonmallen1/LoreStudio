@@ -9,7 +9,7 @@ To **run** LoreStudio on a server, a NAS or Unraid, use the Docker images:
 | Requirement | Version | Notes |
 |---|---|---|
 | Python | 3.13 | Managed by uv |
-| Node.js | 22 | The frontend |
+| Node.js | 26 | The frontend |
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Python packages |
 | [just](https://github.com/casey/just#installation) | latest | Every command (`just` lists them) |
 | Pango, pandoc | | PDF and other exports (see [CONFIGURATION.md](CONFIGURATION.md#running-from-source-system-libraries)) |

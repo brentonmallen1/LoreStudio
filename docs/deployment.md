@@ -19,12 +19,18 @@ docker run -d --name lorestudio \
   ghcr.io/brentonmallen1/lorestudio:latest
 ```
 
-Or with compose, from a checkout (or just the file and a `.env`):
+Or with compose. All it needs is the compose file and a `.env` beside it, without a checkout:
 
 ```bash
-cp .env.example .env     # set ADMIN_PASSWORD
-docker compose -f docker-compose.aio.yml up -d
+mkdir lorestudio && cd lorestudio
+curl -fsSL -o compose.yaml \
+  https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/docker-compose.aio.yml
+echo "ADMIN_PASSWORD=a-strong-password" > .env
+docker compose up -d
 ```
+
+Your stories are kept in `./data` beside it. From a checkout, `cp .env.example .env` and
+`docker compose -f docker-compose.aio.yml up -d` do the same.
 
 Open `http://<host>:8080` and sign in as `admin`. The first start migrates the database and adds
 the demo story; give it a minute.
