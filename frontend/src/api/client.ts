@@ -902,6 +902,8 @@ export const api = {
 
   // System (Settings › Backups / System)
   systemStatus: () => request<import("../types/system").SystemStatus>("/system/status"),
+  /** Up, and which version: answers without signing in (the sign-in page shows it). */
+  health: () => request<{ status: string; version: string }>("/health"),
   runDbBackupNow: () =>
     request<import("../types/system").SystemStatus["backups"]>("/system/backups", { method: "POST" }),
 

@@ -20,6 +20,9 @@ from ..config import settings
 logger = logging.getLogger(__name__)
 
 _NAME = re.compile(r"^lorestudio-(\d{8}-\d{6}-\d{6})\.db$")
+#: Copies taken before an upgrade. Named apart from the rotating backups, which never prune them.
+_BEFORE_UPGRADE = "before-upgrade-"
+KEEP_BEFORE_UPGRADE = 3
 
 
 def _is_sqlite(engine: Engine) -> bool:
@@ -58,6 +61,23 @@ def create_backup(engine: Engine, backups_dir: Path | None = None, keep: int | N
     for old in [d / b["filename"] for b in list_backups(d)][keep:]:
         old.unlink(missing_ok=True)
     logger.info("db backup written: %s", target.name)
+    return target
+
+
+def backup_before_upgrade(engine: Engine, revision: str, backups_dir: Path | None = None) -> Path | None:
+    """The database as it was, before an upgrade's migrations change it (docs/upgrading.md).
+    The three newest are kept; the rotating backups' pruning never touches them."""
+    if not _is_sqlite(engine):
+        return None
+    d = Path(backups_dir or settings.backups_path)
+    d.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^A-Za-z0-9_+.-]", "", revision)[:80]
+    target = d / f"{_BEFORE_UPGRADE}{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}-{safe}.db"
+    with engine.connect() as conn:
+        conn.execute(text("VACUUM INTO :path"), {"path": str(target)})
+    for old in sorted(d.glob(f"{_BEFORE_UPGRADE}*.db"), reverse=True)[KEEP_BEFORE_UPGRADE:]:
+        old.unlink(missing_ok=True)
+    logger.info("copy before upgrading written: %s", target.name)
     return target
 
 

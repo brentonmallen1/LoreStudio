@@ -1,5 +1,6 @@
-import { useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api/client";
 import { useAuthStore } from "../stores/authStore";
 import LogoMark from "../components/common/LogoMark";
 import styles from "./Login.module.css";
@@ -10,6 +11,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const [version, setVersion] = useState<string | null>(null);
+
+  // Which LoreStudio this is, before anyone signs in: worth knowing when asking for help.
+  useEffect(() => {
+    api.health().then(
+      (h) => setVersion(h.version),
+      () => setVersion(null),
+    );
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -62,6 +72,11 @@ export default function LoginPage() {
           </button>
         </form>
       </div>
+      {version && (
+        <p className={styles.version}>
+          {version === "dev" ? "LoreStudio · development build" : `LoreStudio ${version}`}
+        </p>
+      )}
     </div>
   );
 }
