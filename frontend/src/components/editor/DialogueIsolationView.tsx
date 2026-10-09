@@ -4,6 +4,7 @@ import { Orbit, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
 import { useAIAvailable } from "../../lib/mode";
+import { assignSides } from "../../lib/dialogue/sides";
 import AttributionChecks from "./AttributionChecks";
 import { patchScene } from "../../lib/undo/sceneHistory";
 import styles from "./SceneEditor.module.css";
@@ -16,20 +17,6 @@ interface Props {
   setActiveNode: (node: StructureNode) => void;
   onExit: () => void;
   onOpenAutoTag: () => void;
-}
-
-/** First speaker left, second right, alternating on change. */
-function assignSides(blocks: DialogueBlock[]): Map<string, "left" | "right"> {
-  const sides = new Map<string, "left" | "right">();
-  let next: "left" | "right" = "left";
-  for (const b of blocks) {
-    const key = b.speaker_name || "__unknown__";
-    if (!sides.has(key)) {
-      sides.set(key, next);
-      next = next === "left" ? "right" : "left";
-    }
-  }
-  return sides;
 }
 
 /** "Dialogue only" view: every quoted line as a chat bubble, with AI speaker suggestions for the untagged ones. */
@@ -109,7 +96,8 @@ export default function DialogueIsolationView({
   const povId = activeNode.pov_character_id || activeStory?.pov_character_id || null;
   const povChar = povId ? characters.find((c) => c.id === povId) : null;
 
-  const sideMap = assignSides(blocks);
+  // The side flips when the speaker changes; a run by one speaker is grouped, named once.
+  const placed = assignSides(blocks.map((b) => b.speaker_name));
 
   return (
     <div className={styles.dialogueIsolationView}>
@@ -148,9 +136,9 @@ export default function DialogueIsolationView({
         </p>
       ) : (
         <div className={styles.dialogueBubbles}>
-          {blocks.map((b) => {
+          {blocks.map((b, i) => {
             const isThought = b.dialogue_type === "thought";
-            const side = sideMap.get(b.speaker_name || "__unknown__")!;
+            const { side, runStart } = placed[i];
             const isInferred = b.attribution_method === "inferred" || b.attribution_method === "alternating";
             const isPovDefault = b.attribution_method === "pov_default";
             const isUnattr = b.attribution_method === "unattributed";
@@ -163,32 +151,46 @@ export default function DialogueIsolationView({
                     s.quote_content.trim().toLowerCase() === b.content.trim().toLowerCase(),
                 )
               : undefined;
+            // The name heads a run only; a line's own marks (thought, a guessed speaker) stay.
+            const name = isPovSpeaker ? (
+              isThought ? null : (
+                <span className={styles.dialogueBubblePovLabel}>I</span>
+              )
+            ) : (
+              b.speaker_name || "Unknown"
+            );
+            const mark = isThought ? (
+              <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
+            ) : isPovSpeaker ? (
+              isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>
+            ) : (
+              isInferred && <span className={styles.dialogueBubbleInferred}>?</span>
+            );
             return (
               <div
                 key={b.id}
-                className={`${styles.dialogueBubbleWrap} ${side === "right" ? styles.dialogueBubbleWrapRight : ""}`}
+                className={[
+                  styles.dialogueBubbleWrap,
+                  side === "right" ? styles.dialogueBubbleWrapRight : "",
+                  side === "centre" ? styles.dialogueBubbleWrapCentre : "",
+                  runStart ? "" : styles.dialogueBubbleWrapCont,
+                ].join(" ")}
               >
-                {isThought ? (
+                {(runStart || mark) && (
                   <div className={styles.dialogueBubbleSpeaker}>
-                    {isPovSpeaker ? null : b.speaker_name || "Unknown"}
-                    <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
-                  </div>
-                ) : isPovSpeaker ? (
-                  <div className={styles.dialogueBubbleSpeaker}>
-                    <span className={styles.dialogueBubblePovLabel}>I</span>
-                    {isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>}
-                  </div>
-                ) : (
-                  <div className={styles.dialogueBubbleSpeaker}>
-                    {b.speaker_name || "Unknown"}
-                    {isInferred && <span className={styles.dialogueBubbleInferred}>?</span>}
+                    {runStart && name}
+                    {mark}
                   </div>
                 )}
                 <div
                   className={[
                     styles.dialogueBubble,
-                    side === "right" ? styles.dialogueBubbleRight : styles.dialogueBubbleLeft,
-                    isUnattr ? styles.dialogueBubbleUnattr : "",
+                    side === "right"
+                      ? styles.dialogueBubbleRight
+                      : side === "centre"
+                        ? styles.dialogueBubbleCentre
+                        : styles.dialogueBubbleLeft,
+                    isUnattr && side !== "centre" ? styles.dialogueBubbleUnattr : "",
                     isThought ? styles.dialogueBubbleThought : "",
                     isPovSpeaker && !isThought ? styles.dialogueBubblePov : "",
                   ].join(" ")}

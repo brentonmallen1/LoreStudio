@@ -1364,6 +1364,16 @@
   align-items: flex-end;
 }
 
+/* A line with no speaker: centred, and it does not take a side (lib/dialogue/sides.ts). */
+.dialogueBubbleWrapCentre {
+  align-items: center;
+}
+
+/* The next line in a run by one speaker sits close under the last, without the name. */
+.dialogueBubbleWrapCont {
+  margin-top: -9px;
+}
+
 .dialogueBubbleSpeaker {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -1396,6 +1406,14 @@
   align-self: flex-end;
   background: color-mix(in srgb, var(--color-accent) 15%, var(--color-surface));
   border-bottom-right-radius: 4px;
+}
+
+.dialogueBubbleCentre {
+  align-self: center;
+  background: var(--color-surface-2);
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  text-align: center;
 }
 
 .dialogueBubbleUnattr {
