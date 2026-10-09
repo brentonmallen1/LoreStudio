@@ -117,6 +117,14 @@
   }
 }
 
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 760px) {
+  .method {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
 /* The steps are a column of their own, ruled off from the step they open (doc 13 P7). */
 .stepList {
   list-style: none;
@@ -672,6 +680,13 @@
 }
 
 @media (max-width: 760px) {
+  .placementRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The same beside the prose (doc 24 D2): there the side panel is the container. */
+@container (max-width: 760px) {
   .placementRow {
     grid-template-columns: minmax(0, 1fr);
   }
