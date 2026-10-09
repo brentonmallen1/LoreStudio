@@ -9,6 +9,10 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  /* A gutter from the window's edge, so the line and the outline sit in from it (doc 24).
+     The collapsed width (COLLAPSED_PX) carries it, so the line itself keeps its room. */
+  box-sizing: border-box;
+  padding-left: 14px;
 }
 
 /* The right edge (doc 13 P2): a drag line, not a button. */

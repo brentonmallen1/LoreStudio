@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  COLLAPSED_PX,
   colourFor,
   stopShape,
   type ColourContext,
@@ -181,7 +182,7 @@ function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: Colo
   if (peek.kind === "station") {
     const st = peek.station;
     return (
-      <div className={styles.peek} style={{ top, left: 72 }} role="tooltip">
+      <div className={styles.peek} style={{ top, left: COLLAPSED_PX + 8 }} role="tooltip">
         <span className={styles.peekKicker}>
           Chapter {st.number} · {st.stops.length} {st.stops.length === 1 ? "scene" : "scenes"} · click for its
           plan
@@ -199,7 +200,7 @@ function PeekCard({ peek, mode, ctx }: { peek: Peek; mode: ColourMode; ctx: Colo
   const s = peek.stop;
   const tags = colourFor(mode === "status" ? "none" : mode, s, ctx);
   return (
-    <div className={styles.peek} style={{ top, left: 72 }} role="tooltip">
+    <div className={styles.peek} style={{ top, left: COLLAPSED_PX + 8 }} role="tooltip">
       <span className={styles.peekKicker}>
         {s.planned ? "Planned" : `${s.words.toLocaleString()} words · ${s.status}`}
       </span>

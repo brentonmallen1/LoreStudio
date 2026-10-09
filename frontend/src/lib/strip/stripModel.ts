@@ -286,7 +286,8 @@ export function legendFor(mode: ColourMode, stops: Stop[], ctx: ColourContext): 
  * the width the author dragged it to. The outline is the one expanded view (doc 24: the
  * chapter rows it once had beside it showed the same book twice).
  */
-export const COLLAPSED_PX = 64;
+/** The collapsed line, with the strip's 14px gutter from the window's edge (Strip.module.css). */
+export const COLLAPSED_PX = 78;
 export const EXPANDED_MIN_PX = 288;
 export const EXPANDED_MAX_PX = 460;
 export const EXPANDED_DEFAULT_PX = 304;
