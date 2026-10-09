@@ -79,93 +79,95 @@ export default function ContainerNodePage({ node }: { node: StructureNode }) {
   }
 
   return (
-    <div className={styles.page}>
-      {back && back.id !== node.id && (
-        <button className={styles.back} onClick={() => navigate(`/stories/${storyId}/write/${back.id}`)}>
-          <ArrowLeft size={13} /> Back to {back.title}
-        </button>
-      )}
-      <div className={styles.kicker}>
-        {parent ? `${parent.title} · ` : ""}
-        {levelName} {index + 1} of {siblings.length}
-      </div>
-      <h1 className={styles.title}>{node.title}</h1>
-
-      <section className={styles.plan}>
-        <div className={styles.planHead}>The plan for this {levelName.toLowerCase()}</div>
-        <AutosaveTextarea
-          key={`${node.id}:synopsis`}
-          label="Synopsis"
-          initial={node.synopsis ?? ""}
-          placeholder={`What happens across this ${levelName.toLowerCase()}…`}
-          rows={2}
-          save={save("synopsis")}
-        />
-        <AutosaveTextarea
-          key={`${node.id}:purpose`}
-          label="Why it's here"
-          initial={node.purpose ?? ""}
-          placeholder="What it does for the story that nothing else does…"
-          rows={3}
-          save={save("purpose")}
-        />
-      </section>
-
-      <div className={styles.sectionHead}>
-        Its {childLevel?.plural?.toLowerCase() ?? `${childName.toLowerCase()}s`}
-      </div>
-      <div className={styles.grid}>
-        {children.map((child) => {
-          const planned = child.status === "planned";
-          const shape = stopShape(child.status);
-          return (
-            <button
-              key={child.id}
-              className={`${styles.card} ${planned ? styles.cardPlanned : ""}`}
-              onClick={() => navigate(`/stories/${storyId}/write/${child.id}`)}
-            >
-              <span className={styles.cardHead}>
-                <span className={`${styles.state} ${styles[`state_${shape}`]}`} />
-                <span className={styles.cardTitle}>{child.title}</span>
-                <span className={styles.cardMeta}>
-                  {child.children?.length
-                    ? `${child.children.length} ${child.children.length === 1 ? "scene" : "scenes"} · ${fmt(words(child))}`
-                    : planned
-                      ? "planned"
-                      : `${fmt(child.word_count ?? 0)} words · ${child.status}`}
-                </span>
-              </span>
-              {child.synopsis && <span className={styles.cardText}>{child.synopsis}</span>}
-            </button>
-          );
-        })}
-        {adding ? (
-          <div className={`${styles.card} ${styles.cardAdd}`}>
-            <input
-              autoFocus
-              className={styles.addInput}
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") addChild();
-                if (e.key === "Escape") setAdding(false);
-              }}
-              placeholder={`${childName} title…`}
-            />
-            <div className={styles.addActions}>
-              <button className={styles.primary} onClick={addChild}>
-                Add
-              </button>
-              <button className={styles.secondary} onClick={() => setAdding(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button className={`${styles.card} ${styles.cardAdd}`} onClick={() => setAdding(true)}>
-            <Plus size={14} /> Add a {childName.toLowerCase()} here
+    <div className={styles.scroller}>
+      <div className={styles.page}>
+        {back && back.id !== node.id && (
+          <button className={styles.back} onClick={() => navigate(`/stories/${storyId}/write/${back.id}`)}>
+            <ArrowLeft size={13} /> Back to {back.title}
           </button>
         )}
+        <div className={styles.kicker}>
+          {parent ? `${parent.title} · ` : ""}
+          {levelName} {index + 1} of {siblings.length}
+        </div>
+        <h1 className={styles.title}>{node.title}</h1>
+
+        <section className={styles.plan}>
+          <div className={styles.planHead}>The plan for this {levelName.toLowerCase()}</div>
+          <AutosaveTextarea
+            key={`${node.id}:synopsis`}
+            label="Synopsis"
+            initial={node.synopsis ?? ""}
+            placeholder={`What happens across this ${levelName.toLowerCase()}…`}
+            rows={2}
+            save={save("synopsis")}
+          />
+          <AutosaveTextarea
+            key={`${node.id}:purpose`}
+            label="Why it's here"
+            initial={node.purpose ?? ""}
+            placeholder="What it does for the story that nothing else does…"
+            rows={3}
+            save={save("purpose")}
+          />
+        </section>
+
+        <div className={styles.sectionHead}>
+          Its {childLevel?.plural?.toLowerCase() ?? `${childName.toLowerCase()}s`}
+        </div>
+        <div className={styles.grid}>
+          {children.map((child) => {
+            const planned = child.status === "planned";
+            const shape = stopShape(child.status);
+            return (
+              <button
+                key={child.id}
+                className={`${styles.card} ${planned ? styles.cardPlanned : ""}`}
+                onClick={() => navigate(`/stories/${storyId}/write/${child.id}`)}
+              >
+                <span className={styles.cardHead}>
+                  <span className={`${styles.state} ${styles[`state_${shape}`]}`} />
+                  <span className={styles.cardTitle}>{child.title}</span>
+                  <span className={styles.cardMeta}>
+                    {child.children?.length
+                      ? `${child.children.length} ${child.children.length === 1 ? "scene" : "scenes"} · ${fmt(words(child))}`
+                      : planned
+                        ? "planned"
+                        : `${fmt(child.word_count ?? 0)} words · ${child.status}`}
+                  </span>
+                </span>
+                {child.synopsis && <span className={styles.cardText}>{child.synopsis}</span>}
+              </button>
+            );
+          })}
+          {adding ? (
+            <div className={`${styles.card} ${styles.cardAdd}`}>
+              <input
+                autoFocus
+                className={styles.addInput}
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addChild();
+                  if (e.key === "Escape") setAdding(false);
+                }}
+                placeholder={`${childName} title…`}
+              />
+              <div className={styles.addActions}>
+                <button className={styles.primary} onClick={addChild}>
+                  Add
+                </button>
+                <button className={styles.secondary} onClick={() => setAdding(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className={`${styles.card} ${styles.cardAdd}`} onClick={() => setAdding(true)}>
+              <Plus size={14} /> Add a {childName.toLowerCase()} here
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
