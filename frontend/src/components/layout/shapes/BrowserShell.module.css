@@ -16,7 +16,7 @@
   box-sizing: border-box;
   padding: 0.9rem 0.55rem;
   border-right: 1px solid var(--color-border);
-  /* The page's own tone, set apart from the vellum strip beside it (doc 13 P7). */
+  /* The page's own tone (doc 13 P7); the strip beside it floats on the same ground (doc 24). */
   background: var(--color-bg);
   display: flex;
   flex-direction: column;

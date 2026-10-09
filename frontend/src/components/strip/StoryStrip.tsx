@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { Book, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { SHORTCUTS, formatCombo, matchesCombo } from "../../lib/keyboard/shortcuts";
 import { useOpenFindings } from "../../stores/findingsStore";
 import {
@@ -8,7 +8,6 @@ import {
   stripPx,
   toggleStrip,
   type ColourContext,
-  type Readout,
   type StripWidth,
 } from "../../lib/strip/stripModel";
 import { useStoryStore } from "../../stores/storyStore";
@@ -29,8 +28,6 @@ import styles from "./Strip.module.css";
  */
 export default function StoryStrip() {
   const { storyId } = useParams<{ storyId: string }>();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const { structure, activeTemplate, activeNode, sceneCast, characters, threads, beatSheets, activeStory } =
     useStoryStore();
   const {
@@ -41,8 +38,6 @@ export default function StoryStrip() {
     stripPx: expandedPx,
     setStripPx,
     stripDepth,
-    stripReadoutPct,
-    toggleStripReadout,
     uiScale,
   } = useUIStore();
   const [hovering, setHovering] = useState(false);
@@ -76,16 +71,16 @@ export default function StoryStrip() {
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const atHome = /\/stories\/[^/]+\/?(overview)?$/.test(pathname);
-  const home = (
-    <button
-      className={`${styles.homeBtn} ${atHome ? styles.homeBtnOn : ""}`}
-      onClick={() => navigate(`/stories/${storyId}`)}
-      title="Story overview"
-      aria-label="Story overview"
-    >
-      <Book size={14} />
-    </button>
+  const picker = (
+    <ColourModePicker
+      mode={stripColourMode}
+      onChange={setStripColourMode}
+      open={pickerOpen}
+      setOpen={setPickerOpen}
+      line={line}
+      ctx={ctx}
+      wide={width !== "strip"}
+    />
   );
 
   return (
@@ -105,30 +100,13 @@ export default function StoryStrip() {
         <StripEdge px={stripPx(width, expandedPx)} onDrag={setDragPx} onCommit={setStripPx} />
       )}
 
+      {/* The colour picker on top, so the line runs the strip's full height (doc 24). The
+          book's name in the trail is the Overview, so the strip has no Book button. */}
       {width === "strip" ? (
-        <div className={`${styles.head} ${styles.headNarrow}`}>
-          {home}
-          <button
-            type="button"
-            className={styles.readout}
-            onClick={toggleStripReadout}
-            title={readoutTitle(line.readout, stripReadoutPct)}
-          >
-            {stripReadoutPct ? `${line.readout.pct}%` : readoutText(line.readout)}
-          </button>
-          <button
-            className={styles.iconBtn}
-            onClick={cycle}
-            aria-label="Expand the story strip"
-            title={`Expand (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
-          >
-            <ChevronsRight size={13} />
-          </button>
-        </div>
+        <div className={`${styles.head} ${styles.headNarrow}`}>{picker}</div>
       ) : (
         <div className={styles.head}>
-          {home}
-          <span className={styles.headTitle}>Manuscript</span>
+          {picker}
           {line.hasStations && (
             <div className={styles.seg} role="group" aria-label="Show down to">
               <button
@@ -147,19 +125,19 @@ export default function StoryStrip() {
               </button>
             </div>
           )}
+          <span className={styles.headSpacer} />
           <button
             className={styles.iconBtn}
             onClick={() => setStripWidth("strip")}
             aria-label="Collapse to the line"
             title={`Collapse to the line (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
           >
-            <ChevronsLeft size={13} />
+            <ChevronsLeft size={16} />
           </button>
         </div>
       )}
 
-      {/* The key shows while the pointer is over the line itself, not the foot: open the
-          More menu there and the key would sit on top of it. */}
+      {/* The key shows while the pointer is over the line itself. */}
       <div
         className={`${styles.body} ${width === "scenes" ? styles.bodyTree : ""}`}
         onMouseEnter={() => setHovering(true)}
@@ -174,31 +152,19 @@ export default function StoryStrip() {
         {width === "scenes" && <FullTree storyId={storyId} />}
       </div>
 
-      <div className={`${styles.foot} ${width !== "strip" ? styles.footWide : ""}`}>
-        <ColourModePicker
-          mode={stripColourMode}
-          onChange={setStripColourMode}
-          open={pickerOpen}
-          setOpen={setPickerOpen}
-          line={line}
-          ctx={ctx}
-        />
-      </div>
+      {width === "strip" && (
+        <div className={styles.expandRow}>
+          <button
+            className={styles.iconBtn}
+            onClick={cycle}
+            aria-label="Expand the story strip"
+            title={`Expand (${formatCombo(SHORTCUTS.cycleStrip.combo)})`}
+          >
+            <ChevronsRight size={16} />
+          </button>
+        </div>
+      )}
       {(hovering || pickerOpen) && <StripKey mode={stripColourMode} line={line} ctx={ctx} />}
     </nav>
   );
-}
-
-/** "1 of 7"; with nothing open, how many there are. */
-function readoutText(r: Readout): string {
-  return r.position === null ? `${r.total}` : `${r.position} of ${r.total}`;
-}
-
-function readoutTitle(r: Readout, pct: boolean): string {
-  const where =
-    r.position === null
-      ? `${r.total} ${r.unit}${r.total === 1 ? "" : "s"}`
-      : `${r.unit === "chapter" ? "Chapter" : "Scene"} ${r.position} of ${r.total}`;
-  const through = `${r.pct}% of the words come before here`;
-  return pct ? `${through} (${where}). Click for the ${r.unit}.` : `${where}. Click for how far through.`;
 }

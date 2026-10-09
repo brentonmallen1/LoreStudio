@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ChevronDown } from "lucide-react";
 import {
   COLOUR_MODES,
   legendFor,
@@ -15,10 +16,14 @@ interface Props {
   setOpen: (open: boolean) => void;
   line: Line;
   ctx: ColourContext;
+  /** Expanded, the picker sits in a row and its menu drops below it; on the line, the menu
+   *  opens out to the right, over the page. */
+  wide?: boolean;
 }
 
-/** What the stops are coloured by: a small button showing the current mode's colours, and a menu of the modes. */
-export default function ColourModePicker({ mode, onChange, open, setOpen, line, ctx }: Props) {
+/** What the stops are coloured by: a small button showing the current mode's colours, and a menu of the modes.
+ *  At the top of the strip since doc 24, so the line runs its full height. */
+export default function ColourModePicker({ mode, onChange, open, setOpen, line, ctx, wide = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -45,7 +50,7 @@ export default function ColourModePicker({ mode, onChange, open, setOpen, line, 
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
-        className={`${styles.modeBtn} ${open ? styles.modeBtnOn : ""}`}
+        className={`${styles.modeBtn} ${wide ? styles.modeBtnWide : ""} ${open ? styles.modeBtnOn : ""}`}
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label={`Colour the stops by: ${current.label}`}
@@ -56,10 +61,17 @@ export default function ColourModePicker({ mode, onChange, open, setOpen, line, 
             <span key={i} className={styles.modeSwatch} style={{ background: c }} />
           ))}
         </span>
-        {current.short}
+        <span className={styles.modeLabel}>
+          {current.short}
+          <ChevronDown size={11} aria-hidden />
+        </span>
       </button>
       {open && (
-        <div className={styles.menu} role="menu" aria-label="Colour the stops by">
+        <div
+          className={`${styles.menu} ${wide ? styles.menuBelow : ""}`}
+          role="menu"
+          aria-label="Colour the stops by"
+        >
           <div className={styles.menuHeader}>Colour the stops by</div>
           {COLOUR_MODES.map((m) => (
             <button

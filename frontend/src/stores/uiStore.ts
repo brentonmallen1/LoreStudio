@@ -164,9 +164,6 @@ interface UIState {
   stripPx: number;
   setStripPx: (px: number) => void;
   stripDepth: StripDepth;
-  /** The strip's readout: "1 of 7", or how far through by words. */
-  stripReadoutPct: boolean;
-  toggleStripReadout: () => void;
   stripColourMode: ColourMode;
   setStripColourMode: (mode: ColourMode) => void;
 
@@ -359,6 +356,8 @@ for (const stale of [
   // Story Health's action toolbar (retired, doc 12 P4).
   "ls_health_actions_collapsed",
   "ls_health_actions_tab",
+  // The strip's "1 of 7 / 5%" readout (retired, doc 24).
+  "ls_strip_readout",
 ]) {
   try {
     localStorage.removeItem(stale);
@@ -367,7 +366,7 @@ for (const stale of [
   }
 }
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>((set) => ({
   themeName: savedThemeName,
   colorMode: savedColorMode,
   setThemeName: (themeName) => {
@@ -453,16 +452,6 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ stripPx: clamped });
   },
   stripDepth: localStorage.getItem("ls_strip_depth") === "scenes" ? "scenes" : "chapters",
-  stripReadoutPct: localStorage.getItem("ls_strip_readout") === "pct",
-  toggleStripReadout: () => {
-    const next = !get().stripReadoutPct;
-    try {
-      localStorage.setItem("ls_strip_readout", next ? "pct" : "count");
-    } catch {
-      // As above.
-    }
-    set({ stripReadoutPct: next });
-  },
   // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
   stripColourMode: (COLOUR_MODES.some((m) => m.id === localStorage.getItem("ls_strip_colour"))
     ? localStorage.getItem("ls_strip_colour")

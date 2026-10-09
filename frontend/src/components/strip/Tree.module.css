@@ -1,89 +1,6 @@
-.panel {
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
-  overflow: hidden;
-  position: relative;
-}
-
-/* Focus mode: panel floats over content, offset by collapsed sidebar rail */
-.panelOverlay {
-  position: fixed;
-  top: var(--header-height);
-  left: 48px;
-  height: calc(100% - var(--header-height));
-  z-index: 40;
-  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Resize handle on right edge */
-.resizeHandle {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 0.333rem;
-  cursor: col-resize;
-  z-index: 10;
-}
-
-.resizeHandle::after {
-  content: "";
-  position: absolute;
-  inset: 0 1px;
-  background: transparent;
-  transition: background var(--transition);
-}
-
-.resizeHandle:hover::after {
-  background: var(--color-accent);
-  opacity: 0.4;
-}
-
-/* Hint that the edge can be dragged, before the pointer finds the exact 5px. */
-.panel:hover .resizeHandle::after {
-  background: var(--color-border);
-}
-
-/* Header */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 0.625rem;
-  height: 2.667rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-
-.title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-section-title);
-}
-
-.dockBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-subtle);
-  cursor: pointer;
-  transition:
-    background var(--transition),
-    color var(--transition);
-}
-
-.dockBtn:hover {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-}
+/* The full tree at the strip's widest (FullTree) and its rows (StructureTreeNode). On the
+   page ground with the strip (doc 24): no rules, no outlined buttons; rows and the + get
+   the hover ground under the pointer. */
 
 /* The full tree's bar: the filter, then the + (doc 24). */
 .fullBar {
@@ -146,7 +63,7 @@
 }
 
 .nodeRowWrap:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .nodeRowWrapActive {
@@ -280,13 +197,6 @@
   color: var(--status-revised);
 }
 
-/* Header right group */
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* Add menu (+ button in header) */
 .addMenuWrap {
   position: relative;
@@ -296,24 +206,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.6rem;
-  height: 1.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
 }
 
 .addBtn:hover,
 .addBtnActive {
-  background: var(--color-surface-2);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.addBtn:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 /* Opens inward from the + at the strip's right end. Opening outward it ran past the strip's
@@ -326,12 +239,11 @@
   min-width: 190px;
   max-width: 280px;
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
   z-index: var(--z-popover);
   overflow: hidden;
-  padding: 3px;
+  padding: 6px;
 }
 
 .addMenuItem {
@@ -345,14 +257,14 @@
   text-align: left;
   background: none;
   border: none;
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: 8px;
   color: var(--color-text);
   cursor: pointer;
   transition: background var(--transition);
 }
 
 .addMenuItem:hover:not(:disabled) {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .addMenuItemDisabled {
