@@ -184,6 +184,20 @@ TASKS: tuple[Task, ...] = (
         every=lambda o: DAY,
     ),
     Task(
+        id="update-check",
+        label="Check for updates",
+        description="Asks GitHub whether a newer LoreStudio has been released, and says so in the "
+        "logo menu and Settings › About. Nothing about you or your stories is sent; GitHub sees "
+        "one request. Off unless you switch it on.",
+        when="schedule",
+        on=False,
+        cadence=lambda o: "Once a day",
+        job_kind="auto-update-check",
+        job_label="Checking for a new LoreStudio",
+        every=lambda o: DAY,
+        link="about",
+    ),
+    Task(
         id="restart-recovery",
         label="Resume after a restart",
         description="A job a restart cut off goes back to the front of the queue, once, and carries "
@@ -411,6 +425,16 @@ async def _run_db_backup(job: AIJob, db: Session, user: User, report) -> dict:
         return f"Wrote {path.name} ({size:.1f} MB), keeping the last {keep}"
 
     return await _recorded(db, "db-backup", work)
+
+
+@handler("auto-update-check", lane="local", quiet=True, unique=True)
+async def _run_update_check(job: AIJob, db: Session, user: User, report) -> dict:
+    from . import updates
+
+    async def work() -> str:
+        return updates.summary(await updates.check(db))
+
+    return await _recorded(db, "update-check", work)
 
 
 @handler("auto-prune-undo", lane="local", quiet=True, unique=True)

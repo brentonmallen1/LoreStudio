@@ -63,6 +63,7 @@ RUN chmod +x /etc/s6-overlay/scripts/* && mkdir -p /data
 
 ARG APP_VERSION=dev
 ENV APP_VERSION=${APP_VERSION} \
+    INSTALL_KIND=docker \
     ENV=prod \
     PATH=/app/.venv/bin:$PATH \
     PYTHONDONTWRITEBYTECODE=1 \

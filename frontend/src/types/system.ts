@@ -20,3 +20,18 @@ export interface SystemStatus {
   };
   insecure_defaults: string[];
 }
+
+/** /api/system/update: the version running and the latest release last seen (Settings › About). */
+export interface UpdateStatus {
+  current: string;
+  latest: string | null;
+  available: boolean;
+  url: string | null;
+  published_at: string | null;
+  checked_at: string | null;
+  error: string | null;
+  /** How this LoreStudio was installed, for how to update it. */
+  install: "docker" | "desktop" | "source";
+  /** Whether the daily check (Settings › Automatic work) is on. */
+  automatic: boolean;
+}

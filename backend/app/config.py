@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     env: str = "dev"
     #: The release (CalVer, "2026.10.1"), stamped into the image by the release build; "dev" otherwise.
     app_version: str = "dev"
+    #: How this LoreStudio was installed, for the update instructions: docker (set by the
+    #: images), desktop (set by the app), or source.
+    install_kind: str = "source"
     log_level: str = "INFO"
 
     database_url: str = "sqlite:///./data/lorestudio.db"

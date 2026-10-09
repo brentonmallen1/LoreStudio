@@ -36,6 +36,7 @@ RUN chmod -R a+rX /app
 FROM base AS runtime
 ARG APP_VERSION=dev
 ENV APP_VERSION=${APP_VERSION} \
+    INSTALL_KIND=docker \
     ENV=prod \
     PATH=/app/.venv/bin:$PATH \
     DATABASE_URL=sqlite:////app/data/lorestudio.db \

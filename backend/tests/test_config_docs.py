@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 #: Read by the compose files, the images or `just dev`, not by the app.
 DEPLOYMENT = {"WEB_PORT", "DATA_PATH", "LORESTUDIO_TAG", "TZ", "PUID", "PGID", "API_UPSTREAM", "PORT", "FRONTEND_PORT"}
 #: Settings the image sets, never the user's .env.
-SET_BY_IMAGE = {"APP_VERSION"}
+SET_BY_IMAGE = {"APP_VERSION", "INSTALL_KIND"}
 
 SETTINGS = {name.upper() for name in Settings.model_fields}
 KNOWN = SETTINGS | DEPLOYMENT

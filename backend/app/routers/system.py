@@ -8,7 +8,7 @@ from ..auth.dependencies import get_current_user
 from ..config import settings
 from ..database import engine, get_db
 from ..models.user import User
-from ..services import automatic
+from ..services import automatic, updates
 from ..services.db_backup import backup_status, create_backup
 
 router = APIRouter()
@@ -40,6 +40,20 @@ def system_status(db: Session = Depends(get_db), current_user: User = Depends(ge
         },
         "insecure_defaults": settings.insecure_defaults() if settings.is_dev else [],
     }
+
+
+@router.get("/system/update")
+def update_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """The version running, the latest release last seen, and how to update (Settings › About)."""
+    return updates.status(db)
+
+
+@router.post("/system/update/check")
+async def check_for_update(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Check now, whether or not the daily check is on: the author asked."""
+    found = await updates.check(db)
+    automatic.record_run(db, "update-check", updates.summary(found), ok=not found["error"])
+    return found
 
 
 @router.post("/system/backups")

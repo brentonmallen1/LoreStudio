@@ -8,6 +8,13 @@ month). Container images carry the version without the `v` (`2026.10.1`), the mo
 changes are listed at the bottom of this page under the release that introduced them.
 The sign-in page shows the version too, at its foot.
 
+## Knowing a new version is out
+
+*Settings › About and updates* shows the version running and, after a check, the latest
+release with its notes and how to update this install. **Check now** asks GitHub once.
+A daily check can be switched on under *Settings › Automatic work*; it is off by default.
+When a newer version is out, the logo menu says so. Nothing about you or your stories is sent.
+
 ## What happens on start
 
 Every backend start runs the database migrations before serving requests:
