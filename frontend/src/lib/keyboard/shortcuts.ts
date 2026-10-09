@@ -67,8 +67,10 @@ export const SHORTCUTS = {
     modes: BOTH,
     commandId: "scene-next",
   },
+  // ⌥⌘F, Scrivener's key for its full-screen Composition mode. ⌘\ was taken before the page
+  // saw it (1Password's extension, some browsers).
   focusMode: {
-    combo: "mod+\\",
+    combo: "mod+alt+f",
     label: "Toggle focus mode",
     group: "Navigation",
     scope: "global",
@@ -227,7 +229,7 @@ export function editorKey(combo: string): string {
     .join("-");
 }
 
-/** "mod+shift+k" → "⌘⇧K" on macOS, "Ctrl+Shift+K" elsewhere. */
+/** "mod+shift+k" → "⇧⌘K" on macOS, "Ctrl+Shift+K" elsewhere. */
 /**
  * Platform-correct modifier names for local interaction hints — "hold ⌥ to merge" in a
  * drag handler, say. Those are not app shortcuts and have no row in SHORTCUTS, but the
@@ -250,11 +252,12 @@ export function formatCombo(combo: string): string {
         ? "↩"
         : "Enter"
       : (ARROWS[key] ?? (key.length === 1 ? key.toUpperCase() : key));
+  // In the Mac's own order, as its menus spell them: ⌥, then ⇧, then ⌘ (⌥⌘F, ⇧⌘Z).
   if (IS_MAC) {
     return (
-      (parts.includes("mod") ? "⌘" : "") +
       (parts.includes("alt") ? "⌥" : "") +
       (parts.includes("shift") ? "⇧" : "") +
+      (parts.includes("mod") ? "⌘" : "") +
       shown
     );
   }
@@ -283,7 +286,7 @@ export function isTypingTarget(e: KeyboardEvent | React.KeyboardEvent): boolean 
  * Whether a global shortcut should stand aside for the author's typing.
  *
  * Only a bare key does: `?` in the editor is a question mark, not the help overlay. A
- * combination with ⌘/Ctrl or ⌥ types nothing, and skipping those too meant ⌘\ (focus
+ * combination with ⌘/Ctrl or ⌥ types nothing, and skipping those too meant ⌥⌘F (focus
  * mode) and ⌘/ (the assistant) did nothing in the prose editor — the one place anyone
  * reaches for them.
  */
