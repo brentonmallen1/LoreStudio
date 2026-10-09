@@ -629,9 +629,11 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 2.4rem;
+  /* The same 14px gutter from the window's edge as the strip on the left (doc 24). */
+  box-sizing: border-box;
+  width: calc(2.4rem + 14px);
   height: 100%;
-  padding: 0.35rem 0;
+  padding: 0.35rem 14px 0.35rem 0;
 }
 
 .railTabs {
@@ -684,20 +686,29 @@
   box-shadow: inset 2px 0 0 var(--color-text);
 }
 
-.railDot {
-  width: 0.667rem;
-  height: 0.667rem;
-  border-radius: 50%;
-  background: var(--color-text-subtle);
+/* The Assistant: the rail's one filled button, in its own colour, so it reads apart from the
+   tools above it (doc 24). Showing, it takes a ring rather than the tools' grey ground. */
+.railAi,
+.railAi:hover {
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
 }
 
-.railAi {
-  color: var(--color-ai);
-  margin-top: 0.7rem;
+.railAi:hover {
+  background: var(--color-ai-hover);
 }
 
 .railAi.railBtnOn {
-  box-shadow: inset 2px 0 0 var(--color-ai);
+  background: var(--color-ai);
+  color: var(--color-ai-fg);
+  box-shadow:
+    0 0 0 2px var(--color-ground),
+    0 0 0 3.5px var(--color-ai);
+}
+
+.railAi:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
 }
 
 .railCount {
@@ -712,8 +723,10 @@
   line-height: 13px;
   text-align: center;
   border-radius: 999px;
-  background: var(--color-ai);
-  color: var(--color-ai-fg);
+  /* On the filled button: the ground with the Assistant's colour, ringed so it sits apart. */
+  background: var(--color-ground);
+  color: var(--color-ai);
+  box-shadow: 0 0 0 1.5px var(--color-ai);
 }
 
 /* A character's who-they-are line on the compact sheet (doc 20 P6). */
