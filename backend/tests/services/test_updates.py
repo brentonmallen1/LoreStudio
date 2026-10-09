@@ -53,6 +53,37 @@ async def test_a_failed_check_keeps_the_last_answer_and_says_why(db_session, mon
     assert found["error"].startswith("GitHub did not answer")
 
 
+@pytest.mark.asyncio
+async def test_the_desktop_app_is_told_once_its_installers_are_on_the_release(db_session, monkeypatch):
+    monkeypatch.setattr(updates.settings, "app_version", "2026.10.3")
+    monkeypatch.setattr(updates.settings, "install_kind", "desktop")
+    release = {"latest": "2026.10.4", "url": None, "published_at": None, "desktop_ready": False}
+
+    async def latest():
+        return release
+
+    monkeypatch.setattr(updates, "fetch_latest", latest)
+    assert not (await updates.check(db_session))["available"]
+    release["desktop_ready"] = True
+    assert (await updates.check(db_session))["available"]
+    # Docker and source installs never wait for the desktop build.
+    monkeypatch.setattr(updates.settings, "install_kind", "docker")
+    release["desktop_ready"] = False
+    assert (await updates.check(db_session))["available"]
+
+
+@pytest.mark.asyncio
+async def test_the_release_says_whether_latest_json_is_attached(monkeypatch):
+    def answer(request):
+        assets = [{"name": "LoreStudio_2026.10.4_macos-arm64.dmg"}, {"name": "latest.json"}]
+        return httpx.Response(200, json={"tag_name": "v2026.10.4", "assets": assets})
+
+    real = httpx.AsyncClient
+    monkeypatch.setattr(updates.httpx, "AsyncClient", lambda **kw: real(transport=httpx.MockTransport(answer), **kw))
+    found = await updates.fetch_latest()
+    assert found["latest"] == "2026.10.4" and found["desktop_ready"]
+
+
 def test_the_status_endpoint_answers_without_asking_github(client, monkeypatch):
     async def never():
         raise AssertionError("status must not call GitHub")

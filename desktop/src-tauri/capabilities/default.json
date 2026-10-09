@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The window shows the app's own pages and calls no Tauri commands.",
+  "description": "The starting page calls no Tauri commands. The app's own pages get theirs at start, once the port is known (main.rs, app_pages).",
   "windows": ["main"],
   "permissions": []
 }

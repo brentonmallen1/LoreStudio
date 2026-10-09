@@ -8,6 +8,10 @@
 4. The Tauri app around it, and this platform's installers, gathered in build/desktop/out/:
    macOS a .dmg (the backend copied in with ditto, which keeps its symlinks), Windows an
    NSIS setup .exe, Linux an AppImage and a .deb.
+5. With TAURI_SIGNING_PRIVATE_KEY set (a release), what the app's updater installs: on macOS
+   LoreStudio.app as a .app.tar.gz, elsewhere the setup .exe or the AppImage, each signed; and
+   build/desktop/update/<target>.json, this platform's entry in the release's latest.json
+   (merged by .github/workflows/desktop.yml).
 
 WeasyPrint's native libraries come from the build machine, wherever LORESTUDIO_LIBS points:
 Homebrew's lib folder on macOS (found by itself), MSYS2's ucrt64\\bin on Windows, and the
@@ -33,11 +37,20 @@ BUILD = ROOT / "build" / "desktop"
 OUT = BUILD / "out"
 BACKEND_DIST = BUILD / "dist" / "lorestudio-backend"
 TAURI = ROOT / "desktop" / "src-tauri"
+#: Cargo's output; set CARGO_TARGET_DIR to build beside an app that is running from the default.
+CARGO_TARGET = Path(os.environ.get("CARGO_TARGET_DIR") or TAURI / "target")
+UPDATE = BUILD / "update"
+RELEASES = "https://github.com/brentonmallen1/LoreStudio/releases/download"
 PANDOC_VERSION = "3.12.1"
 
 MACOS, WINDOWS = sys.platform == "darwin", sys.platform == "win32"
 ARCH = {"arm64": "arm64", "aarch64": "arm64", "x86_64": "x64", "amd64": "x64"}[platform.machine().lower()]
 TARGET = f"{'macos' if MACOS else 'windows' if WINDOWS else 'linux'}-{ARCH}"
+#: The updater's name for this platform, in latest.json.
+UPDATER_PLATFORM = (
+    f"{'darwin' if MACOS else 'windows' if WINDOWS else 'linux'}-{'aarch64' if ARCH == 'arm64' else 'x86_64'}"
+)
+SIGNING = bool(os.environ.get("TAURI_SIGNING_PRIVATE_KEY"))
 
 
 def run(cmd: list[str], cwd: Path = ROOT, env: dict | None = None) -> None:
@@ -114,23 +127,39 @@ def freeze_backend(version: str) -> None:
     )
 
 
+def signed_update(version: str, installer: Path, signature: Path) -> None:
+    """This platform's entry in latest.json: where the release keeps the installer, and its
+    signature (which the app checks against the public key in tauri.conf.json)."""
+    UPDATE.mkdir(parents=True, exist_ok=True)
+    entry = {"url": f"{RELEASES}/v{version}/{installer.name}", "signature": signature.read_text().strip()}
+    (UPDATE / f"{TARGET}.json").write_text(json.dumps({"version": version, "platform": UPDATER_PLATFORM, **entry}))
+    print(f"✓ update entry for {UPDATER_PLATFORM}: {installer.name}")
+
+
 def build_app(version: str) -> None:
     run(["npm", "install", "--no-audit", "--no-fund"], cwd=ROOT / "desktop")
     # Tauri wants semver: a release's CalVer is one (2026.10.3); anything else builds as 0.0.0.
     config: dict = {"version": version if version != "dev" else "0.0.0"}
+    if SIGNING and not MACOS:
+        # Tauri signs the setup .exe and the AppImage itself. (On macOS the app changes after
+        # Tauri is done with it, so the archive is made and signed below.)
+        config.setdefault("bundle", {})["createUpdaterArtifacts"] = True
+    if extra := os.environ.get("LORESTUDIO_TAURI_CONFIG"):
+        # More configuration, for trying an update locally (desktop/README.md).
+        config = merge(config, json.loads(Path(extra).read_text()))
     bundles = "app" if MACOS else "nsis" if WINDOWS else "appimage,deb"
     if not MACOS:
         # Tauri carries the backend as a resource here. (On macOS it goes in afterwards with
         # ditto: Tauri copies a symlink as a second file, and two copies of one library must
         # never load into one process. Windows builds have no symlinks; Linux resolves a
         # library by its soname, so a second copy is never loaded for it.)
-        config["bundle"] = {"resources": {BACKEND_DIST.as_posix() + "/": "backend/"}}
+        config.setdefault("bundle", {})["resources"] = {BACKEND_DIST.as_posix() + "/": "backend/"}
     # A file, not JSON on the command line: on Windows that passes through cmd.exe's quoting.
     override = BUILD / "tauri.override.json"
     override.write_text(json.dumps(config))
     run(["npx", "tauri", "build", "--bundles", bundles, "--config", str(override)], cwd=ROOT / "desktop")
 
-    bundle = TAURI / "target" / "release" / "bundle"
+    bundle = CARGO_TARGET / "release" / "bundle"
     OUT.mkdir(parents=True, exist_ok=True)
     stem = f"LoreStudio_{version}_{TARGET}"
     if MACOS:
@@ -160,16 +189,37 @@ def build_app(version: str) -> None:
                 str(dmg),
             ]
         )
+        if SIGNING and version != "dev":
+            archive = OUT / f"{stem}.app.tar.gz"
+            # No ._ AppleDouble files for extended attributes: the updater will not unpack them.
+            tar = ["tar", "--no-mac-metadata", "--no-xattrs", "-czf", str(archive), "-C", str(app.parent), app.name]
+            run(tar, env={**os.environ, "COPYFILE_DISABLE": "1"})
+            run(["npx", "tauri", "signer", "sign", str(archive)], cwd=ROOT / "desktop")
+            signature = UPDATE / f"{archive.name}.sig"
+            UPDATE.mkdir(parents=True, exist_ok=True)
+            shutil.move(f"{archive}.sig", signature)
+            signed_update(version, archive, signature)
     elif WINDOWS:
         for exe in (bundle / "nsis").glob("*.exe"):
             shutil.copy2(exe, OUT / f"{stem}-setup.exe")
+            if SIGNING and version != "dev":
+                signed_update(version, OUT / f"{stem}-setup.exe", Path(f"{exe}.sig"))
     else:
         for image in (bundle / "appimage").glob("*.AppImage"):
             shutil.copy2(image, OUT / f"{stem}.AppImage")
+            if SIGNING and version != "dev":
+                signed_update(version, OUT / f"{stem}.AppImage", Path(f"{image}.sig"))
         for deb in (bundle / "deb").glob("*.deb"):
             shutil.copy2(deb, OUT / f"{stem}.deb")
     for made in sorted(OUT.glob(f"{stem}*")):
         print(f"✓ {made.relative_to(ROOT)} ({made.stat().st_size / 1e6:.0f} MB)")
+
+
+def merge(base: dict, extra: dict) -> dict:
+    out = dict(base)
+    for key, value in extra.items():
+        out[key] = merge(out[key], value) if isinstance(value, dict) and isinstance(out.get(key), dict) else value
+    return out
 
 
 def main() -> None:

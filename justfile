@@ -171,6 +171,10 @@ screenshots:
 icons:
     uv run --no-project --with pillow python scripts/icons.py
 
+# Refetch the interface and editor fonts into frontend/src/fonts/ (families in scripts/fonts.py)
+fonts:
+    uv run --no-project python scripts/fonts.py
+
 # ── Release ────────────────────────────────────
 # Cut a release: `just release 2026.10.1 notes.md`. Creates the GitHub release and its tag;
 # release-images.yml then publishes the images. Notes are written, never generated: feature

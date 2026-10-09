@@ -5,6 +5,11 @@
 //! one-time launch key, shows a "starting" page until it answers, then signs the window in
 //! through the key. Quitting asks the backend to stop (POST /desktop/quit with the key), so the
 //! database closes cleanly; if it does not stop in time, it is ended.
+//!
+//! Updates: Settings › About and updates offers Install and restart, which calls
+//! `install_update`. It fetches the release's latest.json, downloads the new app, checks its
+//! signature against the public key in tauri.conf.json, replaces this one, stops the backend
+//! and opens the new app. The data folder is not touched.
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -16,9 +21,11 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
+use tauri::ipc::CapabilityBuilder;
 use tauri::webview::{DownloadEvent, NewWindowResponse};
-use tauri::{AppHandle, Manager, RunEvent, Url, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, RunEvent, Url, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_opener::OpenerExt;
+use tauri_plugin_updater::UpdaterExt;
 
 /// How long a first start may take (the database is made and the demo story added).
 const STARTUP_LIMIT: Duration = Duration::from_secs(120);
@@ -171,14 +178,25 @@ fn app_window<'a>(
             }
         })
         .on_download(move |_webview, event| {
-            // Exports land in Downloads under the name the app gave them. A native Save
-            // dialog is the next step past the proof of concept.
-            if let (DownloadEvent::Requested { destination, .. }, Some(dir)) = (event, &downloads) {
-                if let Some(name) = destination.file_name().map(|n| n.to_owned()) {
-                    *destination = dir.join(name);
-                }
+            // An export asks where to save it, starting in Downloads under the name the app
+            // gave it. Cancelling the dialog cancels the download.
+            let DownloadEvent::Requested { destination, .. } = event else {
+                return true;
+            };
+            let mut dialog = rfd::FileDialog::new().set_title("Save");
+            if let Some(name) = destination.file_name() {
+                dialog = dialog.set_file_name(name.to_string_lossy());
             }
-            true
+            if let Some(dir) = &downloads {
+                dialog = dialog.set_directory(dir);
+            }
+            match dialog.save_file() {
+                Some(chosen) => {
+                    *destination = chosen;
+                    true
+                }
+                None => false,
+            }
         })
 }
 
@@ -207,6 +225,41 @@ fn stop_backend(app: &AppHandle) {
     let _ = child.kill();
 }
 
+/// What the app's pages may call: install_update, and the events that report its download.
+/// Only from the backend's own address, so nothing else the window might show can.
+fn app_pages(port: u16) -> CapabilityBuilder {
+    CapabilityBuilder::new("app-pages")
+        .remote(format!("http://127.0.0.1:{port}/*"))
+        .window("main")
+        .permission("allow-install-update")
+        .permission("core:event:default")
+}
+
+/// Install and restart (Settings › About and updates). False when the release has no app for
+/// this platform yet: its installers are still being built, a few minutes after it is out.
+#[tauri::command]
+async fn install_update(app: AppHandle) -> Result<bool, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    let Some(update) = updater.check().await.map_err(|e| e.to_string())? else {
+        return Ok(false);
+    };
+    let mut received = 0u64;
+    let progress = app.clone();
+    update
+        .download_and_install(
+            move |chunk, total| {
+                received += chunk as u64;
+                let _ = progress.emit_to("main", "update-progress", (received, total));
+            },
+            || {},
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+    // The new app is in place: stop this backend (the database closes cleanly), open it.
+    stop_backend(&app);
+    app.restart();
+}
+
 fn main() {
     let app = tauri::Builder::default()
         // One LoreStudio at a time: a second would start a second backend on the same database.
@@ -219,11 +272,14 @@ fn main() {
             }
         }))
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .invoke_handler(tauri::generate_handler![install_update])
         .setup(|app| {
             let handle = app.handle().clone();
             let data_dir = app.path().app_data_dir()?;
             let port = app_port(&data_dir);
             let key = launch_key();
+            app.add_capability(app_pages(port))?;
 
             let child = start_backend(&handle, port, &key, &data_dir);
             app.manage(Backend {
