@@ -81,22 +81,25 @@
   font-family: inherit;
   cursor: pointer;
   transition: all var(--transition);
-  background: var(--color-surface);
+  /* A choice is a tone box you can press (doc 24 P8): no outline, the hover ground under the
+     pointer. */
+  background: var(--color-tone);
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: none;
 }
 
 .themeOption:hover:not(:disabled) {
-  border-color: var(--color-accent);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
-/* Chosen: ringed in the accent, not filled (three solid green blocks on one screen). */
-.themeOption.active {
-  background: var(--color-surface);
+/* Chosen: a tint of the accent and the weight, not a solid block (three solid green blocks
+   on one screen) and not a ring (an outline means a field). */
+.themeOption.active,
+.themeOption.active:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
   color: var(--color-text);
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
+  font-weight: 600;
 }
 
 .themeOption:disabled {
@@ -138,9 +141,9 @@
 }
 
 /* ── Card ── */
+/* A group of settings is a tone box (doc 24 P8). */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-tone);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
   display: flex;
@@ -225,15 +228,14 @@
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-tone);
+  border: none;
   text-decoration: none;
   transition: all var(--transition);
 }
 
 .subpageLink:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-hover);
 }
 
 /* ── LLM parameters ── */
@@ -360,8 +362,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid var(--color-border);
+  padding-top: 0.5rem;
 }
 
 .resetBtn {
@@ -383,9 +384,9 @@
 .dangerBtn {
   font-size: 0.78rem;
   padding: 0.35rem 0.7rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
   font-family: inherit;
@@ -393,7 +394,7 @@
 }
 
 .dangerBtn:hover:not(:disabled) {
-  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
   color: var(--color-danger);
 }
 
@@ -428,15 +429,15 @@
   flex-shrink: 0;
   border-radius: var(--radius);
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
+  border: none;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all var(--transition);
 }
 
 .modelRefreshBtn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .modelRefreshBtn:disabled {
@@ -521,16 +522,16 @@
   border-radius: var(--radius);
   font-size: 0.78rem;
   font-family: inherit;
-  background: transparent;
+  background: var(--color-surface-2);
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: none;
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
 }
 
 .testBtn:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
+  background: var(--color-surface-3);
   color: var(--color-text);
 }
 

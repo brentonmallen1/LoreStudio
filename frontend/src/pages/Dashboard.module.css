@@ -36,21 +36,23 @@
   gap: 0.5rem;
 }
 
-/* Cards or a list: two halves of one control. */
+/* Cards or a list: the pill view switch every page header uses (DESIGN.md), no outline. */
 .layoutToggle {
   display: inline-flex;
+  gap: 2px;
   margin-right: 0.25rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--color-surface-2);
 }
 
 .layoutToggle button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.4rem 0.7rem;
+  padding: 0.3rem 0.75rem;
   border: none;
+  border-radius: 999px;
   background: transparent;
   color: var(--color-text-muted);
   font: inherit;
@@ -58,19 +60,13 @@
   cursor: pointer;
 }
 
-.layoutToggle button + button {
-  border-left: 1px solid var(--color-border);
-}
-
 .layoutToggle button:hover {
-  background: var(--color-surface-2);
   color: var(--color-text);
 }
 
 .layoutToggle button[aria-pressed="true"] {
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  font-weight: 600;
+  background: var(--color-text);
+  color: var(--color-bg);
 }
 
 .layoutToggle button:focus-visible {
@@ -89,19 +85,17 @@
   font-family: inherit;
   background: transparent;
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: none;
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
   letter-spacing: 0.01em;
 }
 
 .importBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
-  border-color: var(--color-border-light);
 }
 
 .createBtn {
@@ -188,24 +182,21 @@
   /* Fill the grid cell, so the Continue link (pinned to the cell's corner) sits on it. */
   height: 100%;
   padding: 1.25rem 1.25rem 2.9rem;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  /* A story is a tone box you can open (doc 24 P8): no edge and no lift, the hover ground
+     under the pointer. */
+  border-radius: var(--radius-xl);
+  background: var(--color-tone);
+  border: none;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   position: relative;
   overflow: hidden;
-  transition:
-    box-shadow var(--transition-md),
-    border-color var(--transition-md),
-    transform 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background var(--transition-md);
 }
 
 .storyCard:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-  border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  background: var(--color-hover);
 }
 
 /* ── Feature card — most recently edited story ── */
@@ -216,8 +207,6 @@
 
   .storyCardWrap:first-child:not(:only-child) .storyCard {
     padding: 1.5rem 1.75rem;
-    border-top-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
-    border-top-width: 2px;
   }
 
   .storyCardWrap:first-child:not(:only-child) .storyTitle {
@@ -301,7 +290,7 @@
   font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
+  border: none;
   background: var(--color-danger-bg);
   color: var(--color-danger);
   cursor: pointer;
@@ -313,7 +302,7 @@
   font-size: var(--text-xs);
   font-weight: 500;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
+  border: none;
   background: var(--color-surface-2);
   color: var(--color-text-muted);
   cursor: pointer;
@@ -407,19 +396,17 @@
   font-family: inherit;
   background: transparent;
   color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
+  border: none;
   cursor: pointer;
   transition:
     background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    color var(--transition);
   letter-spacing: 0.01em;
 }
 
 .emptyImportBtn:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
-  border-color: var(--color-border-light);
 }
 
 /* ── Responsive adaptations ── */
@@ -450,7 +437,6 @@
 
   .storyCardWrap:first-child:not(:only-child) .storyCard {
     padding: 1.25rem;
-    border-top-width: 2px;
   }
 
   .storyCardWrap:first-child:not(:only-child) .storyTitle {
@@ -495,18 +481,20 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.25rem 0.55rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--color-text-muted);
   font: inherit;
   font-size: var(--text-xs);
+  font-weight: 500;
   cursor: pointer;
 }
 
+/* Inside a card already on the hover ground, so it steps once deeper. */
 .continueLink:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 /* ── Series (series doc): groups between the grids, books in order ── */
@@ -524,8 +512,6 @@
 
   .seriesGrid .storyCardWrap:first-child:not(:only-child) .storyCard {
     padding: 1.25rem 1.25rem 2.9rem;
-    border-top-color: var(--color-border);
-    border-top-width: 1px;
   }
 }
 
