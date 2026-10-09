@@ -1,5 +1,6 @@
-# Build the desktop app for each platform with desktop/build.py: macOS (Apple silicon and
-# Intel) as a .dmg, Windows as an NSIS setup .exe, Linux as an AppImage and a .deb.
+# Build the desktop app with desktop/build.py. Offered for now: macOS on Apple silicon (.dmg).
+# desktop/build.py also builds macOS on Intel, Windows (NSIS setup .exe) and Linux (AppImage,
+# .deb); to offer one, add its row below (the commented ones are ready, untested).
 #
 # Run it by hand (Actions › Desktop apps › Run workflow) to get the installers as artifacts,
 # or let a published release run it: the installers are then attached to that release.
@@ -26,10 +27,10 @@ jobs:
       matrix:
         include:
           - { os: macos-15, target: macos-arm64 }
-          - { os: macos-15-intel, target: macos-x64 }
-          - { os: windows-2025, target: windows-x64 }
+          # - { os: macos-15-intel, target: macos-x64 }
+          # - { os: windows-2025, target: windows-x64 }
           # The oldest supported Ubuntu: an AppImage runs on distributions at least as new.
-          - { os: ubuntu-22.04, target: linux-x64 }
+          # - { os: ubuntu-22.04, target: linux-x64 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7

@@ -1,7 +1,9 @@
 # LoreStudio for the desktop
 
-LoreStudio as a desktop app for macOS, Windows and Linux. It's the same web app the Docker
-image serves, in its own window, over its own copy of the backend. Python, WeasyPrint's
+LoreStudio as a desktop app. Releases offer it for **macOS on Apple silicon**; the build also
+makes Intel Macs, Windows and Linux, untested so far and not published until there's demand.
+It's the same web app the Docker image serves, in its own window, over its own copy of the
+backend. Python, WeasyPrint's
 libraries, spaCy and its English model, and pandoc are all inside the app. Only Ollama, for
 the AI features, is installed separately.
 
@@ -14,7 +16,7 @@ The app is built on the platform it's for. Installers land in `build/desktop/out
 | macOS (Apple silicon or Intel) | `just desktop` | Rust, Node, uv, `brew install pango` | `LoreStudio_<version>_macos-<arch>.dmg` (about 140 MB) |
 | Linux, from any machine with Docker | `just desktop-linux` | Docker | `.AppImage` (about 240 MB) and `.deb` (about 190 MB), for the machine's architecture |
 | Windows | `python desktop/build.py` | Rust, Node, uv, MSYS2 with `mingw-w64-ucrt-x86_64-pango`, and `LORESTUDIO_LIBS` set to MSYS2's `ucrt64\bin` | `…_windows-x64-setup.exe` |
-| All four, on GitHub | Actions › Desktop apps › Run workflow, or publish a release | | macOS arm64 and x64, Windows x64, Linux x64, as artifacts or attached to the release |
+| On GitHub | Actions › Desktop apps › Run workflow, or publish a release | | macOS arm64, as an artifact or attached to the release. The Intel, Windows and Linux rows in `desktop.yml` are commented out, ready to switch on |
 
 `just desktop --version 2026.10.3` stamps a release's version. Without one, the build is a
 development build ("dev"). `just desktop-backend` rebuilds only the frozen backend.
