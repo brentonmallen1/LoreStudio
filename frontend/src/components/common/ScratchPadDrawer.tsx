@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
+import { Placeholder } from "@tiptap/extensions";
+import { proseStarterKit } from "../editor/starterKit";
 import { X, ClipboardCopy, NotepadText, Send } from "lucide-react";
 import { api } from "../../api/client";
 import { freewriteApi } from "../../api/freewrite";
@@ -29,9 +29,10 @@ export default function ScratchPadDrawer() {
   const [sending, setSending] = useState(false);
 
   const editor = useEditor({
+    shouldRerenderOnTransaction: true,
     editorProps: { attributes: { "aria-label": "Scratch pad" } },
     extensions: [
-      StarterKit,
+      proseStarterKit(),
       Placeholder.configure({ placeholder: "Anything at all, for any story or none…" }),
     ],
     onUpdate: ({ editor }) => {
@@ -47,7 +48,7 @@ export default function ScratchPadDrawer() {
   // The page comes from the account the first time the drawer opens.
   useEffect(() => {
     if (!scratchPadOpen || !editor) return;
-    const show = () => editor.commands.setContent(useScratchPadStore.getState().html, false);
+    const show = () => editor.commands.setContent(useScratchPadStore.getState().html, { emitUpdate: false });
     if (loaded) show();
     else load().then(show, () => toast.error("The scratch pad did not load."));
   }, [scratchPadOpen, editor]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -25,15 +25,17 @@ export default defineConfig({
     coverage: {
       include: ["src/**/*.{ts,tsx}"],
       thresholds: {
-        // measured 14.4 / 73.4 / 31.1 / 14.4
-        statements: 13.5,
-        branches: 72,
-        functions: 30,
-        lines: 13.5,
-        // measured 78.3 / 85.4 / 60.2 / 78.3
-        "src/lib/**": { statements: 77, branches: 84, functions: 59, lines: 77 },
-        // measured 48.2 / 77.5 / 27.8 / 48.2
-        "src/stores/**": { statements: 47, branches: 76, functions: 27, lines: 47 },
+        // Vitest 4's v8 coverage maps through the source's syntax tree, so the figures were
+        // measured again on 2026-10-09 with the same tests (v3 counted branches far higher).
+        // measured 15.4 / 11.9 / 12.1 / 14.8
+        statements: 14.5,
+        branches: 11,
+        functions: 11.5,
+        lines: 14,
+        // measured 69.8 / 65.3 / 63.5 / 70.6
+        "src/lib/**": { statements: 69, branches: 64.5, functions: 62.5, lines: 70 },
+        // measured 40.3 / 38.0 / 34.5 / 42.0
+        "src/stores/**": { statements: 39.5, branches: 37, functions: 33.5, lines: 41 },
       },
     },
   },

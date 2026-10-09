@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import CharacterCount from "@tiptap/extension-character-count";
+import { CharacterCount, Placeholder } from "@tiptap/extensions";
 import Typography from "@tiptap/extension-typography";
+import { proseStarterKit } from "./starterKit";
 import { X } from "lucide-react";
 import { api } from "../../api/client";
 import { noteWritingActivity } from "../../lib/writingToday";
@@ -104,8 +103,9 @@ export default function SceneEditor() {
   const hoverCardRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
+    shouldRerenderOnTransaction: true,
     extensions: [
-      StarterKit,
+      proseStarterKit(),
       Placeholder.configure({ placeholder: "Begin writing…" }),
       CharacterCount,
       Typography,

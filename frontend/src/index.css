@@ -7,7 +7,7 @@
 @import "./themes/gruvbox.css";
 @import "./themes/catppuccin.css";
 
-@tailwind base;
+@import "./reset.css";
 /* ── AI button utility ─────────────────────────── */
 .btn-ai {
   display: inline-flex;

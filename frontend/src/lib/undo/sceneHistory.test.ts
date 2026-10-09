@@ -1,13 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
+import { proseStarterKit } from "../../components/editor/starterKit";
 import { undoDepth } from "@tiptap/pm/history";
 import { liveScene, loadScene, patchScene, setLiveScene } from "./sceneHistory";
 
 let editor: Editor | null = null;
 
 function make(content: string) {
-  editor = new Editor({ extensions: [StarterKit], content });
+  editor = new Editor({ extensions: [proseStarterKit()], content });
   return editor;
 }
 

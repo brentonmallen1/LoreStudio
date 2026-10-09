@@ -81,7 +81,7 @@ export function loadScene(editor: Editor, html: string, { emitUpdate = false } =
   // editor down, then reconnects the effect with the old instance. Its view is gone, so this
   // threw and took the whole app with it. The new editor's own effect loads the scene.
   if (editor.isDestroyed) return;
-  editor.chain().setMeta("addToHistory", false).setContent(html, emitUpdate).run();
+  editor.chain().setMeta("addToHistory", false).setContent(html, { emitUpdate }).run();
   const { state } = editor;
   editor.view.updateState(
     EditorState.create({ doc: state.doc, plugins: state.plugins, selection: state.selection }),

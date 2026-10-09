@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 
 from ..config import settings
 
@@ -27,5 +27,5 @@ def decode_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
         return payload.get("sub")
-    except JWTError:
+    except jwt.InvalidTokenError:
         return None

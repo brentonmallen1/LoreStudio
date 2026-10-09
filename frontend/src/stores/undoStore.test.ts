@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Editor } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
+import { proseStarterKit } from "../components/editor/starterKit";
 import { api } from "../api/client";
 import { ApiError } from "../api/request";
 import { toolsApi, type UndoResult } from "../api/tools";
@@ -48,7 +48,7 @@ beforeEach(() => {
   vi.spyOn(toolsApi, "redo").mockResolvedValue(result("Add note"));
   useUndoStore.setState({ storyId: null, timeline: EMPTY_TIMELINE, busy: false, error: null });
   setUndoStory("s1");
-  editor = new Editor({ extensions: [StarterKit, UnifiedUndoExtension], content: "<p>Start</p>" });
+  editor = new Editor({ extensions: [proseStarterKit(), UnifiedUndoExtension], content: "<p>Start</p>" });
   setLiveScene({ editor, nodeId: "scene", title: "The Lamp", flush });
 });
 
