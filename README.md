@@ -173,6 +173,15 @@ docker run -d --name lorestudio -p 8080:8080 \
   ghcr.io/brentonmallen1/lorestudio:latest
 ```
 
+Or with Docker Compose, in an empty folder:
+
+```bash
+curl -fsSL -o compose.yaml \
+  https://raw.githubusercontent.com/brentonmallen1/LoreStudio/main/docker-compose.aio.yml
+echo "ADMIN_PASSWORD=a-strong-password" > .env
+docker compose up -d
+```
+
 Open <http://localhost:8080> and sign in as `admin`. The demo story, "The Last Lighthouse", shows
 how everything is meant to be used. For AI, point `OLLAMA_BASE_URL` at your Ollama and
 `ollama pull gemma4`.
