@@ -86,8 +86,8 @@ export default function SceneFacts({
         <SceneSettingsField key={`where:${node.id}`} activeNode={node} locations={locations} />
       </div>
 
-      <div className={`${styles.box} ${styles.factGroup}`}>
-        {beatSheet && (
+      {beatSheet && (
+        <div className={`${styles.box} ${styles.factGroup}`}>
           <label className={styles.fact}>
             <span className={styles.label}>Beat</span>
             <select
@@ -104,7 +104,10 @@ export default function SceneFacts({
             </select>
             {beat?.description && <span className={styles.hint}>{beat.description}</span>}
           </label>
-        )}
+        </div>
+      )}
+
+      <div className={`${styles.box} ${styles.factGroup}`}>
         <SceneWhenField key={`when:${node.id}`} activeNode={node} storyId={story.id} patch={patch} />
       </div>
     </div>

@@ -16,17 +16,18 @@ import {
 import { goToAdjacentScene, openSceneId } from "../story/adjacentScene";
 import { commandRegistry } from "./registry";
 import { goBack, goForward, navigateTo } from "../navigation";
+import { sceneSheetPath } from "../scene/glance";
 import { useStoryStore } from "../../stores/storyStore";
 import { usePanelStore } from "../../stores/panelStore";
 import { useEditorBridge } from "../../stores/editorBridge";
 import { SHORTCUTS } from "../keyboard/shortcuts";
 
 /** Show the scene's notes in the side panel, going to the Write page first if need be. */
-function showSceneTab() {
-  const { activeStory } = useStoryStore.getState();
-  if (!activeStory) return;
-  usePanelStore.getState().activate("scene");
-  if (!window.location.pathname.endsWith("/write")) navigateTo(`/stories/${activeStory.id}/write`);
+/** The open scene's sheet, on one of its pages (doc 24 D19): its notes or its plan. */
+function showSheet(page: "notes" | "plan") {
+  const { activeStory, activeNode } = useStoryStore.getState();
+  if (!activeStory || !activeNode) return;
+  navigateTo(`${sceneSheetPath(activeStory.id, activeNode.id)}${page === "plan" ? "" : `#${page}`}`);
 }
 
 commandRegistry.register({
@@ -52,11 +53,11 @@ commandRegistry.register({
 commandRegistry.register({
   id: "editor-show-scene-notes",
   label: "Show scene notes",
-  keywords: ["notes", "synopsis", "purpose", "entry", "exit", "panel"],
+  keywords: ["notes", "questions", "to-do", "scene", "sheet"],
   icon: FileText,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,
-  action: showSceneTab,
+  action: () => showSheet("notes"),
 });
 
 for (const [id, dir, key] of [
@@ -110,12 +111,12 @@ for (const [id, dir, key] of [
 commandRegistry.register({
   id: "editor-show-story-plan",
   label: "Show story plan",
-  description: "The logline, who is here and what they want, under the scene's notes",
+  description: "The scene's plan, with the logline and what the people in it want folded under it",
   keywords: ["plan", "logline", "goal", "conflict", "who is here", "outline", "panel"],
   icon: MapIcon,
   group: "Editor",
   when: () => !!useStoryStore.getState().activeNode,
-  action: showSceneTab,
+  action: () => showSheet("plan"),
 });
 
 commandRegistry.register({

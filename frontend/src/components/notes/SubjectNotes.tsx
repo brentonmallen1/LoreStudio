@@ -6,8 +6,8 @@ import { useStoryNotes } from "./useStoryNotes";
 import styles from "./Notes.module.css";
 
 /**
- * The notes about one character or place, on their sheet (doc 15 N2), or on one scene, on
- * the Scene sheet (doc 24 D19): what is open first, what is answered or done folded under it.
+ * The notes about one character or place, on their sheet (doc 15 N2): what is open first,
+ * what is answered or done folded under it.
  */
 export default function SubjectNotes({
   storyId,
@@ -16,13 +16,11 @@ export default function SubjectNotes({
   name,
 }: {
   storyId: string;
-  aboutType: "character" | "location" | "scene";
+  aboutType: "character" | "location";
   aboutId: string;
   name: string;
 }) {
-  // A scene's notes are the ones tied to it, in a passage or as a whole.
-  const filter: NoteFilter =
-    aboutType === "scene" ? { node_id: aboutId } : { about_type: aboutType, about_id: aboutId };
+  const filter: NoteFilter = { about_type: aboutType, about_id: aboutId };
   const notes = useStoryNotes(storyId, filter);
   const [showDone, setShowDone] = useState(false);
   const list = notes.notes ?? [];
@@ -40,13 +38,7 @@ export default function SubjectNotes({
       <NoteComposer
         kinds={["note", "question", "todo"]}
         where={`about ${name}`}
-        onAdd={(kind, content) =>
-          void notes.add(
-            aboutType === "scene"
-              ? { kind, content, node_id: aboutId }
-              : { kind, content, about_type: aboutType, about_id: aboutId },
-          )
-        }
+        onAdd={(kind, content) => void notes.add({ kind, content, about_type: aboutType, about_id: aboutId })}
       />
       {done.length > 0 && (
         <>
