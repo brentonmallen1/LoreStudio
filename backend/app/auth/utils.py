@@ -5,13 +5,21 @@ import jwt
 
 from ..config import settings
 
+# bcrypt reads at most 72 bytes. Up to version 4 it dropped the rest silently; 5 refuses a
+# longer password. Cutting it here keeps every hash made before working, and long passwords too.
+BCRYPT_MAX_BYTES = 72
+
+
+def _secret(password: str) -> bytes:
+    return password.encode()[:BCRYPT_MAX_BYTES]
+
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(_secret(password), bcrypt.gensalt()).decode()
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+    return bcrypt.checkpw(_secret(plain), hashed.encode())
 
 
 def create_access_token(subject: str) -> str:
