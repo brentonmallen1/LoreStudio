@@ -60,14 +60,17 @@ export default function StoryWorkspacePage() {
       .finally(() => setLoading(false));
   }, [storyId, setActiveNode]);
 
-  // The panel knows whether it is beside the prose (doc 12 P2). Open or collapsed is the
-  // author's one choice for every page: moving between them never changes it.
+  // The strip and the panel know whether they are beside the prose (doc 12 P2). Off it both
+  // start collapsed so a page has the room (doc 24); back at the prose they are as the author
+  // left them there. A scene's sheet is a page; an act's or a chapter's plan sits with the prose.
   const { pathname } = useLocation();
   const setPanelSide = usePanelStore((s) => s.setSide);
-  const writing = pathname.includes("/write");
+  const setStripOnProse = useUIStore((s) => s.setStripOnProse);
+  const writing = /\/write(\/[^/]+)?\/?$/.test(pathname);
   useEffect(() => {
     setPanelSide(writing ? "writing" : "pages");
-  }, [writing, setPanelSide]);
+    setStripOnProse(writing);
+  }, [writing, setPanelSide, setStripOnProse]);
 
   // Remember the open scene per story, so the Write page reopens it next time.
   const activeNode = useStoryStore((s) => s.activeNode);

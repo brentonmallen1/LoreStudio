@@ -19,10 +19,10 @@ import { DEFAULT_PROSE_AMOUNT, PROSE_AMOUNTS, type ProseAmount } from "../lib/pa
 export type PanelFrameMode = "docked" | "floating" | "window";
 
 /**
- * Which side of the app the author is on (doc 12 P2): the prose, or any other page. It only
+ * Which side of the app the author is on (doc 12 P2): the prose, or any other page. It
  * changes what the panel says (a scene tab names its scene off the prose) and what closing
- * the last tab does. Open or collapsed is one choice for every page: it starts as the
- * collapsed rail and moving between pages never changes it, only the author does.
+ * the last tab does. Off the prose the panel starts collapsed (doc 24): opened there, it stays
+ * open from page to page, and back at the prose it is as the author left it there.
  */
 export type PanelSide = "writing" | "pages";
 
@@ -117,9 +117,9 @@ export const usePanelStore = create<PanelState>((set, get) => {
     return open ? highlightOf(tabs.find((t) => t.id === activeTabId)) : null;
   }
 
-  /** Open or collapse the panel, and remember it for every page. */
+  /** Open or collapse the panel; beside the prose, remember it for the next time there. */
   function openOnSide(open: boolean): Pick<PanelState, "open"> {
-    write(OPEN_KEY, open);
+    if (get().side === "writing") write(OPEN_KEY, open);
     return { open };
   }
 
@@ -171,7 +171,12 @@ export const usePanelStore = create<PanelState>((set, get) => {
     },
 
     setSide: (side) => {
-      if (get().side !== side) set({ side });
+      if (get().side === side) return;
+      // A panel popped out to its own window is not beside any page.
+      if (get().frame === "window") return set({ side });
+      const open = side === "writing" && read<boolean>(OPEN_KEY, false);
+      const { tabs, activeTabId } = get();
+      set({ side, open, highlight: open ? highlightOf(tabs.find((t) => t.id === activeTabId)) : null });
     },
 
     openEntity: (kind, id, label, behind = false) => {

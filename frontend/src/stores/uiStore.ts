@@ -159,6 +159,13 @@ interface UIState {
   // The story strip (doc 11 P3): how wide the book is drawn, and what colours its stops.
   stripWidth: StripWidth;
   setStripWidth: (width: StripWidth) => void;
+  /**
+   * Beside the prose, or on any other page (doc 24): off the prose the strip starts
+   * collapsed, and a width chosen there lasts only until you are back at the prose, which
+   * keeps its own.
+   */
+  stripOnProse: boolean;
+  setStripOnProse: (onProse: boolean) => void;
   /** The expanded strip's width (doc 14 strip). */
   stripPx: number;
   setStripPx: (px: number) => void;
@@ -245,6 +252,18 @@ systemDark?.addEventListener?.("change", () => {
   const { themeName, colorMode } = useUIStore.getState();
   if (colorMode === "system") applyAppearance(themeName, colorMode);
 });
+
+/** The strip's width beside the prose, as the author last left it there. */
+function storedStripWidth(): StripWidth {
+  // "chapters" was the second expanded view (retired, doc 24): it opens as the outline now.
+  let saved: string | null = null;
+  try {
+    saved = localStorage.getItem("ls_strip_width");
+  } catch {
+    // Site data blocked: start collapsed.
+  }
+  return saved === "chapters" || saved === "scenes" ? "scenes" : "strip";
+}
 
 function applyAppearance(themeName: ThemeName, colorMode: ColorMode) {
   const root = document.documentElement;
@@ -365,7 +384,7 @@ for (const stale of [
   }
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   themeName: savedThemeName,
   colorMode: savedColorMode,
   setThemeName: (themeName) => {
@@ -428,17 +447,21 @@ export const useUIStore = create<UIState>((set) => ({
   viewState: "normal",
   setViewState: (state) => set({ viewState: state }),
 
-  // "chapters" was the second expanded view (retired, doc 24): it opens as the outline now.
-  stripWidth: (["chapters", "scenes"].includes(localStorage.getItem("ls_strip_width") ?? "")
-    ? "scenes"
-    : "strip") as StripWidth,
+  stripWidth: storedStripWidth(),
   setStripWidth: (width) => {
-    try {
-      localStorage.setItem("ls_strip_width", width);
-    } catch {
-      // Site data blocked: the strip still works, it just forgets between visits.
+    if (get().stripOnProse) {
+      try {
+        localStorage.setItem("ls_strip_width", width);
+      } catch {
+        // Site data blocked: the strip still works, it just forgets between visits.
+      }
     }
     set({ stripWidth: width });
+  },
+  stripOnProse: true,
+  setStripOnProse: (onProse) => {
+    if (get().stripOnProse === onProse) return;
+    set({ stripOnProse: onProse, stripWidth: onProse ? storedStripWidth() : "strip" });
   },
   stripPx: clampStripPx(Number(localStorage.getItem("ls_strip_px") ?? EXPANDED_DEFAULT_PX)),
   setStripPx: (px) => {

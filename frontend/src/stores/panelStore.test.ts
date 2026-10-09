@@ -1,33 +1,46 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { usePanelStore } from "./panelStore";
 
-/** One choice for every page: moving between the prose and the other pages never changes it. */
+/**
+ * Off the prose the panel starts collapsed (doc 24); beside the prose it is as the author
+ * left it there, whatever happened on the pages in between.
+ */
 describe("panel open across pages", () => {
   beforeEach(() => {
-    usePanelStore.setState({ side: "writing", open: false });
+    localStorage.clear();
+    usePanelStore.setState({ side: "writing", open: false, frame: "docked" });
   });
 
-  it("stays collapsed going back to the prose", () => {
-    const { setSide } = usePanelStore.getState();
-    setSide("pages");
-    setSide("writing");
+  it("collapses on a page and comes back open at the prose", () => {
+    usePanelStore.getState().setOpen(true);
+    usePanelStore.getState().setSide("pages");
+    expect(usePanelStore.getState().open).toBe(false);
+    usePanelStore.getState().setSide("writing");
+    expect(usePanelStore.getState().open).toBe(true);
+  });
+
+  it("opened on a page, stays open from page to page, and the prose keeps its own choice", () => {
+    usePanelStore.getState().setSide("pages");
+    usePanelStore.getState().openTool("characters");
+    expect(usePanelStore.getState().open).toBe(true);
+    usePanelStore.getState().setSide("pages");
+    expect(usePanelStore.getState().open).toBe(true);
+    usePanelStore.getState().setSide("writing");
     expect(usePanelStore.getState().open).toBe(false);
   });
 
-  it("stays open across pages once the author opens it", () => {
-    usePanelStore.getState().setSide("pages");
-    usePanelStore.getState().openTool("characters");
-    usePanelStore.getState().setSide("writing");
-    expect(usePanelStore.getState().open).toBe(true);
-    usePanelStore.getState().setSide("pages");
-    expect(usePanelStore.getState().open).toBe(true);
-  });
-
-  it("a collapse holds everywhere", () => {
+  it("a collapse beside the prose holds there", () => {
     usePanelStore.getState().setOpen(true);
     usePanelStore.getState().toggle();
     usePanelStore.getState().setSide("pages");
+    usePanelStore.getState().setSide("writing");
     expect(usePanelStore.getState().open).toBe(false);
+  });
+
+  it("leaves a panel popped out to its own window alone", () => {
+    usePanelStore.setState({ frame: "window", open: true });
+    usePanelStore.getState().setSide("pages");
+    expect(usePanelStore.getState().open).toBe(true);
   });
 });
 
