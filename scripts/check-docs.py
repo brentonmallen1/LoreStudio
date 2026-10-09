@@ -15,8 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-#: Documents at the repo root a reader is meant to find.
-ROOT = {"README.md", "CLAUDE.md", "DESIGN.md", "CONTRIBUTING.md"}
+#: Documents a reader is meant to find: the root's, and the note on the shared test fixtures.
+ROOT = {"README.md", "CLAUDE.md", "DESIGN.md", "CONTRIBUTING.md", "shared/README.md"}
 #: Folders whose markdown ships: the docs, the in-app guides, the Unraid notes, GitHub's files.
 FOLDERS = ("docs/", "frontend/src/guides/", "unraid/", ".github/")
 
