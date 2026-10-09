@@ -155,8 +155,9 @@ describe("the trail", () => {
       ["Act II", "In the book", false],
     ]);
     expect(trail[0].children.find((c) => c.group === "Pages" && c.current)?.label).toBe("Write");
-    // A scene holds no nodes, only who is in it (the next test).
-    expect(trail[3].children.every((c) => c.open)).toBe(true);
+    // A scene holds no nodes: its sheet first, then who is in it (the next test).
+    expect(trail[3].children[0]).toMatchObject({ label: "Scene sheet", to: "/stories/st/write/s2/sheet" });
+    expect(trail[3].children.slice(1).every((c) => c.open)).toBe(true);
   });
 
   it("names who is in a node's scenes, most often first, to open beside the prose", () => {
@@ -175,10 +176,16 @@ describe("the trail", () => {
     });
     expect(act.find((c) => c.label === "Calder")?.to).toBe("/stories/st/lorebook/characters/v");
     // The scene: in the prose's order, its point of view marked.
-    expect(trail[3].children.map((c) => [c.label, c.hint])).toEqual([
+    expect(trail[3].children.filter((c) => c.open).map((c) => [c.label, c.hint])).toEqual([
       ["Calder", undefined],
       ["Eleanor Vance", "POV"],
     ]);
+  });
+
+  it("on a scene's sheet, the scene's › marks its sheet as the page you are on", () => {
+    const trail = buildTrail(input("/write/s2/sheet", { nodeId: "s2" }));
+    expect(trail.at(-1)?.label).toBe("Knock at the Door");
+    expect(trail.at(-1)?.children[0]).toMatchObject({ label: "Scene sheet", current: true });
   });
 
   it("marks chapters with the strip's pips and scenes with their status shape", () => {

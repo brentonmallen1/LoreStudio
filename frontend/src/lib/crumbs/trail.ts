@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import { ClipboardList, type LucideIcon } from "lucide-react";
 import type { Character, Location, PlotThread, StructureNode } from "../../types";
 import type { UIMode } from "../mode";
 import { slotVar } from "../colorSlots";
@@ -240,6 +240,16 @@ export function buildTrail(input: TrailInput): Crumb[] {
     current,
   });
 
+  // A scene's › starts with its sheet: every field of it on one page (doc 24 D19).
+  const onSheet = /\/sheet\/?$/.test(rest);
+  const sheetChild = (n: StructureNode): CrumbChild => ({
+    key: `sheet:${n.id}`,
+    label: "Scene sheet",
+    to: `${base}/write/${n.id}/sheet`,
+    icon: ClipboardList,
+    current: onSheet && n.id === input.nodeId,
+  });
+
   // The book: its menu is the pages, and on the writing page the book's top level first.
   const pages: CrumbChild[] = storyPages(mode, aiAvailable).map((r) => ({
     key: `page:${r.id}`,
@@ -274,7 +284,11 @@ export function buildTrail(input: TrailInput): Crumb[] {
         to: `${base}/write/${n.id}`,
         kind: "node",
         mark: nodeMark(n, line, colourMode, ctx),
-        children: [...kids.map((c) => nodeChild(c, c.id === next?.id, group)), ...cast],
+        children: [
+          ...(kids.length ? [] : [sheetChild(n)]),
+          ...kids.map((c) => nodeChild(c, c.id === next?.id, group)),
+          ...cast,
+        ],
         menuLabel: `In ${untitled(n.title)}`,
       });
     });
