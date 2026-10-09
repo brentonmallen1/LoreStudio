@@ -25,6 +25,10 @@ command.
 - Tokens are in `src/themes/base.css`, plus one file per palette (`[data-theme="x"]` and `.dark`).
 - `themes/contrast.test.ts` holds every palette to WCAG AA: change a token, run it.
 - `src/reset.css` is the browser reset.
+- A choice the author makes in Settings (theme, type, sizes, the notes margin, the strip's
+  colours) is kept with `rememberPref` (`lib/preferences/accountPrefs.ts`) so it follows the
+  account; add its key to `ACCOUNT_PREFS`. Window layout (widths, open tabs) stays in
+  `localStorage`, per device.
 - Layout and chrome rules (one ground, tone boxes over lines, button tiers, readability floors)
   are in `../DESIGN.md`.
 
