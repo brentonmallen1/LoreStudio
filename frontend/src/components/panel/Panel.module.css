@@ -1,7 +1,7 @@
 /* The side panel (doc 11): one column of tabs beside the page. */
 
-/* Docked, a paper plane on the page ground beside the prose (doc 24, the "planes"
-   ground): a small gutter, no border and no shadow; the change of tone is the edge. */
+/* Docked, a tone box on the ground beside the prose (doc 24, D18 "flat"): a small gutter,
+   no border and no shadow; the faint change of tone is the edge. */
 .panel {
   position: relative;
   flex: 0 0 auto;
@@ -12,7 +12,7 @@
   align-self: stretch;
   margin: 0 0 12px 6px;
   border-radius: var(--radius-xl);
-  background: var(--color-surface);
+  background: var(--color-tone);
 }
 
 /* In the gutter between the page and the panel. */
@@ -61,10 +61,11 @@
   color: var(--color-text);
 }
 
-/* The tab showing sits in a tone box, set apart by weight and tone, not a folder's edge. */
+/* The tab showing is the ground inside the panel's tone box, set apart by weight and tone,
+   not a folder's edge. */
 .tabActive,
 .tabActive:hover {
-  background: var(--color-tone);
+  background: var(--color-ground);
   color: var(--color-text);
   font-weight: 600;
 }

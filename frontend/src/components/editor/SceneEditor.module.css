@@ -1,6 +1,6 @@
-/* The prose page (doc 24, the "planes" ground): a paper plane set on the page ground, a
-   small gutter from the strip and the panel, no border and no shadow. The status corner
-   hangs from its bottom right. */
+/* The prose page (doc 24): on the ground itself (D18 "flat"), so nothing frames the prose;
+   the strip, the header and the panel float around it. The status corner hangs from its
+   bottom right. */
 .container {
   position: relative;
   flex: 1;
@@ -11,7 +11,7 @@
   overflow: hidden;
   margin: 0 6px 12px;
   border-radius: var(--radius-xl);
-  background: var(--color-surface);
+  background: var(--color-ground);
   container-type: inline-size;
 }
 

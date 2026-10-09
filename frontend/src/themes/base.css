@@ -52,6 +52,11 @@
      measured the step toward surface-3 and found no room), so a label never changes colour
      to stay legible. On the page ground, a plane and a tone box alike. ── */
   --color-hover: var(--color-surface-2);
+  /* ── The ground (doc 24, D18 "flat"): one surface under the page, the chrome and the
+     prose alike, so the header, the strip and the rail float on the page rather than frame
+     it. The side panel is a tone box on it. To go back to paper planes on a parchment
+     ground, point this at --color-bg and give the page and panel --color-surface. ── */
+  --color-ground: var(--color-surface);
   /* ── Border under the pointer ── */
   --color-border-hover: color-mix(in srgb, var(--color-border) 60%, var(--color-text-subtle));
   /* ── A line that divides a page into parts (the strip's ends, the Overview's sections):

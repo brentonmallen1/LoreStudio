@@ -28,7 +28,7 @@
 /* Focus mode, called back by the pointer: it now lies over the prose, so it is lifted off
    the desk like anything else that floats over the page. */
 .headerRevealed {
-  background: var(--color-bg);
+  background: var(--color-ground);
   box-shadow: var(--shadow);
 }
 

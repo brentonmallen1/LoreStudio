@@ -228,7 +228,7 @@
 }
 
 .stationPlanned {
-  background: var(--color-bg);
+  background: var(--color-ground);
   border: 1.5px dashed var(--color-text-subtle);
   box-sizing: border-box;
 }
@@ -240,7 +240,7 @@
   width: 1.333rem;
   height: 1.333rem;
   border-radius: 50%;
-  background: var(--color-bg);
+  background: var(--color-ground);
   color: var(--color-text);
   font-size: var(--text-xs);
   font-weight: 700;
@@ -248,7 +248,7 @@
 
 .stationCurrent .stationInner {
   background: var(--color-text);
-  color: var(--color-bg);
+  color: var(--color-ground);
 }
 
 .stationPlanned .stationInner {
@@ -258,7 +258,7 @@
 
 .stationSelected {
   box-shadow:
-    0 0 0 3px var(--color-bg),
+    0 0 0 3px var(--color-ground),
     0 0 0 5px var(--color-warning);
 }
 
@@ -286,12 +286,12 @@
 }
 
 .dotHollow {
-  background: var(--color-bg);
+  background: var(--color-ground);
   border: 2px solid var(--stop-color, var(--color-text-muted));
 }
 
 .dotDashed {
-  background: var(--color-bg);
+  background: var(--color-ground);
   border: 1.5px dashed var(--color-text-subtle);
 }
 
@@ -299,7 +299,7 @@
   width: 0.733rem;
   height: 0.733rem;
   box-shadow:
-    0 0 0 1.5px var(--color-bg),
+    0 0 0 1.5px var(--color-ground),
     0 0 0 3px var(--stop-color, var(--color-text-muted));
 }
 
@@ -308,7 +308,7 @@
   height: 0.933rem;
   opacity: 1;
   box-shadow:
-    0 0 0 2px var(--color-bg),
+    0 0 0 2px var(--color-ground),
     0 0 0 4px var(--color-accent);
 }
 
@@ -718,7 +718,7 @@
 
 .sceneRowCurrent {
   background: var(--color-text);
-  color: var(--color-bg);
+  color: var(--color-ground);
 }
 
 .sceneRowCurrent:hover {
