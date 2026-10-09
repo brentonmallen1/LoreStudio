@@ -35,7 +35,7 @@ export function ChapterBars({
   open: (e: React.MouseEvent, id: string) => void;
 }) {
   return (
-    <div className={styles.bars} style={{ paddingLeft: indent }}>
+    <div className={styles.bars} style={{ paddingLeft: indent }} data-strip-mark>
       {stops.map((s) => (
         <button
           key={s.node.id}

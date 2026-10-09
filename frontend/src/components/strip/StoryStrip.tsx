@@ -97,10 +97,12 @@ export default function StoryStrip() {
         </div>
       )}
 
-      {/* The key shows while the pointer is over the line itself. */}
+      {/* The key shows while the pointer is over something it explains: a stop or a station
+          on the line, a marked row or a chapter's bars in the outline (data-strip-mark), not
+          the empty strip below them. */}
       <div
         className={`${styles.body} ${width === "scenes" ? styles.bodyTree : ""}`}
-        onMouseEnter={() => setHovering(true)}
+        onMouseOver={(e) => setHovering(!!(e.target as Element).closest("[data-strip-mark]"))}
         onMouseLeave={() => setHovering(false)}
       >
         {width === "strip" && (

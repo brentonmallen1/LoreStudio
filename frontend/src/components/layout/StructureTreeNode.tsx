@@ -162,6 +162,7 @@ export default function NodeItem({
           .filter(Boolean)
           .join(" ")}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
+        data-strip-mark={stop ? "" : undefined}
       >
         {/* Drag handle */}
         <span className={styles.dragHandle}>

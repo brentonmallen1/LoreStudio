@@ -83,6 +83,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
               {line.hasStations && (
                 <button
                   className={`${styles.row} ${styles.rowStation}`}
+                  data-strip-mark
                   onClick={() => go(station.node?.id)}
                   onMouseEnter={(e) => peekAt(e, { kind: "station", station })}
                   aria-label={`${station.title || `Chapter ${station.number}`}, ${Math.round(station.done * 100)}% final: open its plan`}
@@ -114,6 +115,7 @@ export default function TransitStrip({ line, mode, ctx, storyId }: Props) {
                   <button
                     key={stop.node.id}
                     className={`${styles.row} ${styles.rowStop}`}
+                    data-strip-mark
                     onClick={(e) => stopClick(e, stop.node.id, go)}
                     onMouseEnter={(e) => peekAt(e, { kind: "stop", stop })}
                     aria-label={`${stop.node.title}${stop.planned ? " (planned)" : ""}${isPresent && highlight ? `, with ${highlight.name}` : ""}`}
