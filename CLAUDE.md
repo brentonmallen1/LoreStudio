@@ -110,7 +110,10 @@ components/       — Feature components organized by domain
                     backup, mode, account; hooks/useBackupStatus), StoryCrumbs (the trail,
                     lib/crumbs/trail: each › a menu of what is inside), PageHeader, ModeGate
   strip/          — The story strip down the left edge: the transit line, or the outline (marked in the line's colours)
-  panel/          — The tabbed side panel beside the page (This scene, entity and tool tabs)
+  panel/          — The side panel beside the page (doc 24 D11): the rail launches This scene, the tools
+                    (dialogue/ is the Dialogue tool) and the Assistant; the tab strip holds only what you
+                    opened, entities and pages beside the prose (PageTab, lib/panel/pages.ts). Saved state
+                    is read back through lib/panel/restore.ts
   scene/          — The Scene sheet (pages/SceneSheetPage, /write/:nodeId/sheet): every field of a scene.
                     The panel's This scene tab is only its glance (panel/scene/SceneGlance, doc 24 D19)
   findings/       — The findings feed: FindingRow, Run checks, the scene and sheet cards
@@ -241,15 +244,15 @@ stay available in both modes.
 `frontend/src/components/editor/` — `SceneEditor.tsx` is a thin shell over hooks
 (`useSceneAutosave`, `useMentionDropdown`, `useSlashCommands`, `useInlineNotes`,
 `useMentionHoverCard`) and components (`EditorTopbar`, the floating sub header whose ⋯ is
-`EditorMoreMenu`; `StatusCorner`, the save light and word count at the page's bottom right;
-`DialogueIsolationView`, `panels/*`).
+`EditorMoreMenu`; `StatusCorner`, the save light and word count at the page's bottom right; `panels/*`). The
+scene's dialogue reads in the side panel's Dialogue tool (`components/panel/dialogue/`).
 Autosave sends `expected_updated_at`; a 409 means the scene changed elsewhere and the status
 corner opens on Keep mine / Take theirs. Every edit is mirrored to an IndexedDB draft buffer
 (`lib/draftBuffer.ts`). `purpose` and `inline_notes` are columns on StructureNode, not
 metadata keys.
 
 ### Unified AI assistant
-All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single place: the **Assistant tab** of the side panel (`components/panel/AssistantTab.tsx`, body in `components/ai/AssistantTabBody.tsx`), icon-only with a session count (doc 11 P5): beside the page it is the Feather at the foot of the panel's rail (`PanelRail`, which also holds the collapse, float/dock and pop-out controls); in the pop-out window, which has no rail, it is a tab docked past a divider at the end of the tab strip. The rail's Feather, ⌘J (⌘/ too) and the palette open that tab; the header has no Assistant button (doc 24). No redundant AI entry points in sub-components (scene editor topbar, etc.). Each session runs as a sub-tab there, preserving conversation history; the whole side panel can dock, float or pop out to its own window (`/panel-window`).
+All AI tools (interview, what-if, panel, writing coach, etc.) are accessed through a single place: the **Assistant** in the side panel (body in `components/ai/AssistantTabBody.tsx`), a launcher on the panel's rail (`PanelRail`: the filled Feather with a session count, which also holds the collapse, float/dock and pop-out controls; the pop-out window draws the rail too). The rail's Feather, ⌘J (⌘/ too) and the palette open that tab; the header has no Assistant button (doc 24). No redundant AI entry points in sub-components (scene editor topbar, etc.). Each session runs as a sub-tab there, preserving conversation history; the whole side panel can dock, float or pop out to its own window (`/panel-window`).
 
 To add a new AI session type: (1) register it in `frontend/src/lib/ai/sessions.ts` via `registerSessionType`, (2) add a `case` in `frontend/src/components/ai/SessionView.tsx`, (3) create a mode component using `AIModeWrapper` as the shell.
 
