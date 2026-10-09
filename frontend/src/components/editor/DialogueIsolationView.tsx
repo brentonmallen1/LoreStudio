@@ -1,10 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { Orbit, Quote, Tag } from "lucide-react";
 import { api } from "../../api/client";
 import type { Character, DialogueBlock, ProposedDialogueTag, Story, StructureNode } from "../../types";
 import { useAIAvailable } from "../../lib/mode";
 import { assignSides } from "../../lib/dialogue/sides";
+import { speakerChoices } from "../../lib/dialogue/speakerChoices";
+import { useStoryStore } from "../../stores/storyStore";
+import { toast } from "../../stores/toastStore";
+import SpeakerPicker from "./SpeakerPicker";
 import AttributionChecks from "./AttributionChecks";
 import { patchScene } from "../../lib/undo/sceneHistory";
 import styles from "./SceneEditor.module.css";
@@ -19,7 +23,10 @@ interface Props {
   onOpenAutoTag: () => void;
 }
 
-/** "Dialogue only" view: every quoted line as a chat bubble, with AI speaker suggestions for the untagged ones. */
+/**
+ * "Dialogue only" view: every quoted line as a chat bubble. An untagged or guessed line's
+ * "Unknown" or "?" picks who says it (doc 24, D17); in Studio the Assistant can suggest too.
+ */
 export default function DialogueIsolationView({
   activeNode,
   activeStory,
@@ -35,6 +42,8 @@ export default function DialogueIsolationView({
   const [loading, setLoading] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
+  const [tagging, setTagging] = useState(false);
+  const sceneCast = useStoryStore((s) => s.sceneCast);
 
   // The server reads the lines from the saved prose, so read again after every save: the
   // view can open while the editor's last keystrokes are still on their way.
@@ -76,18 +85,32 @@ export default function DialogueIsolationView({
     }
   }
 
-  async function accept(block: DialogueBlock, suggestion: ProposedDialogueTag) {
-    if (!suggestion.inferred_speaker) return;
+  /**
+   * Tag one line with its speaker: the server writes `"…"<Name>` into the prose as one
+   * undoable change, and the open scene takes the new text through the undo-safe path. The
+   * new `updated_at` reads the lines again.
+   */
+  async function tagLine(block: DialogueBlock, speaker: string): Promise<boolean> {
+    setTagging(true);
     try {
       const updated = await api.applyDialogueTags(activeNode.id, [
-        { quote_content: block.content, speaker_name: suggestion.inferred_speaker },
+        { quote_content: block.content, speaker_name: speaker },
       ]);
       setActiveNode({ ...activeNode, ...updated });
       if (editor && updated.content) patchScene(editor, updated.content);
-      setDismissed((prev) => new Set([...prev, suggestion.id]));
+      return true;
     } catch {
-      /* ignore */
+      toast.error(`Couldn't tag that line as ${speaker}.`);
+      return false;
+    } finally {
+      setTagging(false);
     }
+  }
+
+  async function accept(block: DialogueBlock, suggestion: ProposedDialogueTag) {
+    if (!suggestion.inferred_speaker) return;
+    if (await tagLine(block, suggestion.inferred_speaker))
+      setDismissed((prev) => new Set([...prev, suggestion.id]));
   }
 
   const isPovMode =
@@ -98,6 +121,23 @@ export default function DialogueIsolationView({
 
   // The side flips when the speaker changes; a run by one speaker is grouped, named once.
   const placed = assignSides(blocks.map((b) => b.speaker_name));
+
+  const choices = useMemo(
+    () =>
+      speakerChoices(characters, {
+        povId: activeNode.pov_character_id || activeStory?.pov_character_id || null,
+        sceneCharacterIds: sceneCast?.scenes.find((s) => s.node_id === activeNode.id)?.character_ids ?? [],
+        speakerNames: blocks.map((b) => b.speaker_name),
+      }),
+    [
+      characters,
+      activeNode.id,
+      activeNode.pov_character_id,
+      activeStory?.pov_character_id,
+      sceneCast,
+      blocks,
+    ],
+  );
 
   return (
     <div className={styles.dialogueIsolationView}>
@@ -152,19 +192,39 @@ export default function DialogueIsolationView({
                 )
               : undefined;
             // The name heads a run only; a line's own marks (thought, a guessed speaker) stay.
+            // An untagged line's "Unknown", or a guessed one's "?", picks who says it.
+            const align = side === "right" ? "end" : "start";
             const name = isPovSpeaker ? (
               isThought ? null : (
                 <span className={styles.dialogueBubblePovLabel}>I</span>
               )
+            ) : isUnattr || !b.speaker_name ? (
+              <SpeakerPicker
+                label="Unknown speaker: choose who says this line"
+                trigger={<span className={styles.speakerUnknown}>Unknown</span>}
+                choices={choices}
+                align={align}
+                disabled={tagging}
+                onPick={(c) => tagLine(b, c.name)}
+              />
             ) : (
-              b.speaker_name || "Unknown"
+              b.speaker_name
             );
             const mark = isThought ? (
               <span className={styles.dialogueBubbleThoughtLabel}>thought</span>
             ) : isPovSpeaker ? (
               isPovDefault && <span className={styles.dialogueBubbleInferred}>pov</span>
             ) : (
-              isInferred && <span className={styles.dialogueBubbleInferred}>?</span>
+              isInferred && (
+                <SpeakerPicker
+                  label={`? ${b.speaker_name} is a guess: choose who says this line`}
+                  trigger={<span className={styles.dialogueBubbleInferred}>?</span>}
+                  choices={choices}
+                  align={align}
+                  disabled={tagging}
+                  onPick={(c) => tagLine(b, c.name)}
+                />
+              )
             );
             return (
               <div
