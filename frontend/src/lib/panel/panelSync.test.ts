@@ -40,7 +40,7 @@ describe("side panel sync", () => {
     expect(sent[0]).toMatchObject({ kind: "hello", role: "main" });
     usePanelStore.getState().openEntity("character", "c1", "Eleanor");
     const last = sent[sent.length - 1];
-    expect(last).toMatchObject({ kind: "state", activeTabId: "entity:character:c1" });
+    expect(last).toMatchObject({ kind: "state", showing: "entity:character:c1" });
   });
 
   it("applies another window's tabs without echoing them", () => {
@@ -50,15 +50,13 @@ describe("side panel sync", () => {
         kind: "state",
         from: "other",
         storyId: "s",
-        tabs: [
-          { id: "scene", kind: "scene" },
-          { id: "tool:ideas", kind: "tool", tool: "ideas" },
-        ],
-        activeTabId: "tool:ideas",
+        tabs: [{ id: "page:storyboard", kind: "page", routeId: "storyboard", path: "/storyboard" }],
+        showing: "tool:dialogue",
         highlight: null,
       },
     });
-    expect(usePanelStore.getState().activeTabId).toBe("tool:ideas");
+    expect(usePanelStore.getState().showing).toBe("tool:dialogue");
+    expect(usePanelStore.getState().tabs.map((t) => t.id)).toEqual(["page:storyboard"]);
     expect(sent.length).toBe(before);
   });
 
@@ -68,5 +66,27 @@ describe("side panel sync", () => {
     expect(sent[sent.length - 1]).toMatchObject({ kind: "state" }); // answered with what we have
     listener?.({ data: { kind: "bye", role: "window", from: "other" } });
     expect(usePanelStore.getState().frame).toBe("docked");
+  });
+
+  it("goes where the pop-out window asks, in the main window", async () => {
+    const { setNavigator } = await import("../navigation");
+    const go = vi.fn();
+    setNavigator(go);
+    listener?.({ data: { kind: "navigate", to: "/stories/s/write/n1", from: "other" } });
+    expect(go).toHaveBeenCalledWith("/stories/s/write/n1", undefined);
+    setNavigator(null);
+  });
+
+  it("from the pop-out window, asks the main window to go instead of going itself", async () => {
+    stop();
+    const { startPanelSync, navigateMain } = await import("./panelSync");
+    const { setNavigator } = await import("../navigation");
+    const go = vi.fn();
+    setNavigator(go);
+    stop = startPanelSync("window");
+    navigateMain("/stories/s/storyboard");
+    expect(go).not.toHaveBeenCalled();
+    expect(sent[sent.length - 1]).toMatchObject({ kind: "navigate", to: "/stories/s/storyboard" });
+    setNavigator(null);
   });
 });

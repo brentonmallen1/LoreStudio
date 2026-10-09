@@ -2,25 +2,28 @@ import { isModClick, modClickLabel } from "../../lib/keyboard/shortcuts";
 import { entityPresence } from "../../lib/panel/presence";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
-import type { PanelTab, ToolId } from "../../types/panel";
+import type { ToolId } from "../../types/panel";
 import { TOOL_LABELS } from "../../types/panel";
 import FreewriteEditor from "../freewrite/FreewriteEditor";
 import NotesBoard from "../notes/NotesBoard";
+import DialogueTool from "./dialogue/DialogueTool";
 import { entityColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
-type ToolPanelTab = Extract<PanelTab, { kind: "tool" }>;
-
-/** The Lorebook lists and the planning scratch tools, as tabs (doc 11). */
-export default function ToolTab({ tab }: { tab: ToolPanelTab }) {
+/**
+ * What a tool on the rail shows (doc 11, doc 24 D11): the Lorebook lists, the planning scratch
+ * tools, and the open scene's dialogue as a thread.
+ */
+export default function ToolTab({ tool }: { tool: ToolId }) {
   const { activeStory } = useStoryStore();
   if (!activeStory) return null;
-  if (tab.tool === "freewrite") return <FreewriteEditor storyId={activeStory.id} compact />;
-  if (tab.tool === "notes") return <NotesBoard compact />;
-  return <EntityList tool={tab.tool} />;
+  if (tool === "freewrite") return <FreewriteEditor storyId={activeStory.id} compact />;
+  if (tool === "notes") return <NotesBoard compact />;
+  if (tool === "dialogue") return <DialogueTool />;
+  return <EntityList tool={tool} />;
 }
 
-function EntityList({ tool }: { tool: Exclude<ToolId, "freewrite" | "notes"> }) {
+function EntityList({ tool }: { tool: "characters" | "places" | "threads" }) {
   const { activeNode, structure, sceneCast, characters, locations, threads } = useStoryStore();
   const { openEntity, setHighlight, tabs } = usePanelStore();
   const openIds = new Set(tabs.filter((t) => t.kind === "entity").map((t) => t.id));

@@ -1,31 +1,30 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
-import { useAIAvailable } from "../../lib/mode";
-import AssistantTab from "./AssistantTab";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { STRIP_PX, fitTabs, stripBudget, tabMinWidth } from "../../lib/panel/overflow";
+import { pageTabLabel } from "../../lib/panel/pages";
+import { tabLabel } from "../../lib/panel/tabLabel";
+import { findRoute } from "../../lib/routes";
+import { navigateMain } from "../../lib/panel/panelSync";
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import { useUIStore } from "../../stores/uiStore";
 import { scaledPx } from "../../lib/appearance/uiScale";
 import type { PanelTab } from "../../types/panel";
-import { tabLabel } from "../../lib/panel/tabLabel";
 import OpenMenu from "./OpenMenu";
 import OverflowMenu from "./OverflowMenu";
-import { tabColor } from "./entityColor";
 import styles from "./Panel.module.css";
 
 /**
- * The tabs across the top of the panel (doc 11). Tabs shrink between a narrowest and a widest
- * width, the name truncating, and what fits is arithmetic at the narrowest
- * (lib/panel/overflow.ts) rather than measurement; the rest fold into ☰. Beside the page the
- * rail owns the panel (its controls and the Assistant); in the pop-out window, which has no
- * rail, the strip carries the Assistant tab.
+ * The tabs across the top of the panel: only what the author opened (doc 24 D11), people,
+ * places and threads and pages beside the prose; This scene and the tools are on the rail.
+ * Tabs shrink between a narrowest and a widest width, the name truncating, and what fits is
+ * arithmetic at the narrowest (lib/panel/overflow.ts) rather than measurement; the rest fold
+ * into ☰. No colour dots: the name is the tab. While a page is showing, "Full page ↗" at the
+ * end goes to the real thing.
  */
-export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
-  const { tabs, activeTabId, activate, close, setHighlight } = usePanelStore();
-  const aiAvailable = useAIAvailable();
-  // Re-render when the open node changes: the first tab is named for its level.
-  useStoryStore((s) => s.activeNode?.id);
+export default function TabStrip() {
+  const { tabs, showing, activate, close, setHighlight } = usePanelStore();
+  const storyId = useStoryStore((s) => s.activeStory?.id);
   const stripRef = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState(600);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -44,13 +43,13 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
   // The tabs' text and controls are rem, so the arithmetic follows the interface size.
   const uiScale = useUIStore((s) => s.uiScale);
   const px = (n: number) => scaledPx(n, uiScale);
-  const showAssistant = inWindow && aiAvailable;
-  const budget = stripBudget(tabs, activeTabId, available, { assistant: showAssistant, px });
+  const page = tabs.find((t) => t.id === showing && t.kind === "page");
+  const budget = stripBudget(tabs, showing, available, { fullPage: !!page, px });
   const { visible, hidden } = fitTabs(
     tabs,
     budget.widths,
     budget.room,
-    activeTabId,
+    showing,
     budget.overflowReserve,
     budget.defaultWidth,
   );
@@ -59,8 +58,9 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
   function hoverTab(tab: PanelTab | null) {
     if (tab?.kind === "entity") setHighlight({ kind: tab.entityKind, id: tab.entityId, name: tab.label });
     else {
-      // Leaving a tab falls back to the selected one, so the highlight follows selection.
-      const active = usePanelStore.getState().tabs.find((t) => t.id === usePanelStore.getState().activeTabId);
+      // Leaving a tab falls back to the one showing, so the highlight follows selection.
+      const { tabs: all, showing: id } = usePanelStore.getState();
+      const active = all.find((t) => t.id === id);
       setHighlight(
         active?.kind === "entity"
           ? { kind: active.entityKind, id: active.entityId, name: active.label }
@@ -74,18 +74,18 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
     // which a tablist may not contain, and there is no tabpanel (doc 17).
     <div ref={stripRef} className={styles.strip} role="group" aria-label="Side panel tabs">
       {visible.map((tab) => {
-        const selected = tab.id === activeTabId;
-        const color = tabColor(tab);
-        const min = tabMinWidth(tab, selected, px);
+        const selected = tab.id === showing;
+        const min = tabMinWidth(selected, px);
+        const Icon = tab.kind === "page" ? findRoute(tab.routeId)?.icon : undefined;
+        const title = tab.kind === "page" ? pageTabLabel(tab.routeId, tab.path).title : tab.label;
         return (
           <div
             key={tab.id}
-            className={`${styles.tab} ${selected ? styles.tabActive : ""} ${tab.kind === "scene" ? styles.tabPinned : ""}`}
+            className={`${styles.tab} ${selected ? styles.tabActive : ""}`}
             style={
               {
                 "--tab-min": `${min}px`,
                 "--tab-max": `${Math.max(min, px(STRIP_PX.tabMax))}px`,
-                "--tab-color": color,
               } as React.CSSProperties
             }
             onMouseEnter={() => hoverTab(tab)}
@@ -94,15 +94,13 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
             <button
               aria-current={selected ? "true" : undefined}
               className={styles.tabLabel}
-              title={tabLabel(tab)}
+              title={title}
               onClick={() => activate(tab.id)}
             >
-              {tab.kind !== "scene" && (
-                <span className={`${styles.tabDot} ${tab.kind === "tool" ? styles.tabDotSquare : ""}`} />
-              )}
+              {Icon && <Icon size={13} aria-hidden className={styles.tabIcon} />}
               <span>{tabLabel(tab)}</span>
             </button>
-            {selected && tab.kind !== "scene" && (
+            {selected && (
               <button
                 className={styles.tabClose}
                 aria-label={`Close ${tabLabel(tab)}`}
@@ -128,7 +126,15 @@ export default function TabStrip({ inWindow = false }: { inWindow?: boolean }) {
           {hidden.length}
         </button>
       )}
-      {showAssistant && <AssistantTab />}
+      {page?.kind === "page" && storyId && (
+        <button
+          className={styles.fullPage}
+          title={`Open ${tabLabel(page)} as the page`}
+          onClick={() => navigateMain(`/stories/${storyId}${page.path}`)}
+        >
+          Full page <ArrowUpRight size={12} aria-hidden />
+        </button>
+      )}
       {menuVisible && (
         <OverflowMenu
           hidden={hidden}

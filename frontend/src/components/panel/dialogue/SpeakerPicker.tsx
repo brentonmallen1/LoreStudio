@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import PopoverMenu, { type MenuItem } from "../common/PopoverMenu";
-import { slotVar } from "../../lib/colorSlots";
-import type { SpeakerChoices } from "../../lib/dialogue/speakerChoices";
-import type { Character } from "../../types";
-import styles from "./SceneEditor.module.css";
+import PopoverMenu, { type MenuItem } from "../../common/PopoverMenu";
+import { slotVar } from "../../../lib/colorSlots";
+import type { SpeakerChoices } from "../../../lib/dialogue/speakerChoices";
+import type { Character } from "../../../types";
+import styles from "./Dialogue.module.css";
 
 /**
  * Who says this line? (doc 24, D17) The "Unknown" or "?" on a line in the Dialogue view

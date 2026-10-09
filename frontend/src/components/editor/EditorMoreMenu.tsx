@@ -8,7 +8,6 @@ import {
   Info,
   Layers,
   Link,
-  MessageSquareQuote,
   MoreHorizontal,
   Quote,
   StickyNote,
@@ -41,9 +40,6 @@ interface Props {
   notesView: NotesView;
   noteCount: number;
   onNotesView: (view: NotesView) => void;
-  /** Only the scene's dialogue, in place of the prose (P7 moves it into the panel). */
-  dialogueIsolation: boolean;
-  onToggleDialogue: () => void;
 }
 
 type Pane = "menu" | "type" | "sprint";
@@ -51,7 +47,7 @@ type Pane = "menu" | "type" | "sprint";
 /**
  * Everything the writing desk needs now and then, behind one ⋯ (doc 14 Q1), in groups by
  * kind (doc 24): Write (an image, a sprint), This scene (its tools), Show (the notes in the
- * margin, the dialogue only), Guides, and Settings (the type) last. The type and the sprint
+ * margin), Guides, and Settings (the type) last. The type and the sprint
  * open as panes of the same menu, so nothing else needs its own button in the top bar.
  */
 export default function EditorMoreMenu(p: Props) {
@@ -171,14 +167,6 @@ export default function EditorMoreMenu(p: Props) {
                 : "Notes show as dots; choose to show them beside the text"
             }
             onSelect={then(() => p.onNotesView(p.notesView === "cards" ? "dots" : "cards"))}
-          />
-          <Item
-            label="Dialogue only"
-            icon={MessageSquareQuote}
-            checked={p.dialogueIsolation}
-            hint={p.dialogueIsolation ? "On" : undefined}
-            title="Only the scene's dialogue, line by line"
-            onSelect={then(p.onToggleDialogue)}
           />
           <div className={styles.label}>Guides</div>
           <Item

@@ -6,24 +6,28 @@ import { filterGroups, type OpenChoice, type OpenGroup } from "../../lib/panel/o
 import { usePanelStore } from "../../stores/panelStore";
 import { useStoryStore } from "../../stores/storyStore";
 import type { CompendiumEntrySummary, Twist } from "../../types";
-import { TOOL_LABELS, type EntityKind, type ToolId } from "../../types/panel";
+import { TOOLS, TOOL_LABELS, type EntityKind } from "../../types/panel";
+import { useAIAvailable, useMode } from "../../lib/mode";
+import { besideRoutes } from "../../lib/panel/pages";
+import { findRoute } from "../../lib/routes";
 import { entityColor } from "./entityColor";
 import { TOOL_ICONS } from "./toolIcons";
 import styles from "./OpenMenu.module.css";
 
-const TOOLS: ToolId[] = ["characters", "places", "threads", "notes", "freewrite"];
-
 /**
  * + Open… after the side panel's tabs: anything that can sit beside the page, found by name.
- * Characters, places, threads, twists and Compendium entries open as their own tab; the lists
- * and tools (Notes, Freewrite) open as theirs. ⌘-click (Ctrl elsewhere), or the same key with
- * Enter, opens one behind and keeps the menu open, so several can be opened at once.
+ * Characters, places, threads, twists, Compendium entries and pages open as their own tab; the
+ * lists and tools show from the rail, as their buttons there do. ⌘-click (Ctrl elsewhere), or
+ * the same key with Enter, opens one behind and keeps the menu open, so several can be opened.
  */
 export default function OpenMenu() {
   const storyId = useStoryStore((s) => s.activeStory?.id);
   const { characters, locations, threads } = useStoryStore();
   const openEntity = usePanelStore((s) => s.openEntity);
   const openTool = usePanelStore((s) => s.openTool);
+  const openPage = usePanelStore((s) => s.openPage);
+  const mode = useMode();
+  const aiAvailable = useAIAvailable();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -86,13 +90,21 @@ export default function OpenMenu() {
           choices: entries.map((e) => entity("compendium", e.id, e.title, e.entry_type)),
         },
         {
+          name: "Pages beside the prose",
+          choices: besideRoutes(mode, aiAvailable).map((r) => ({
+            type: "page" as const,
+            routeId: r.id,
+            label: r.label,
+          })),
+        },
+        {
           name: "Lists and tools",
           choices: TOOLS.map((tool) => ({ type: "tool" as const, tool, label: TOOL_LABELS[tool] })),
         },
       ],
       query,
     );
-  }, [characters, locations, threads, twists, entries, query]);
+  }, [characters, locations, threads, twists, entries, query, mode, aiAvailable]);
   const flat = groups.flatMap((g) => g.choices);
 
   function show() {
@@ -107,8 +119,9 @@ export default function OpenMenu() {
   /** Open a choice; behind keeps the page's tab where it is and the menu open. */
   function choose(c: OpenChoice, behind: boolean) {
     if (c.type === "tool") openTool(c.tool);
+    else if (c.type === "page") openPage(c.routeId);
     else openEntity(c.kind, c.id, c.label, behind);
-    if (!behind || c.type === "tool") close();
+    if (!behind || c.type !== "entity") close();
   }
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") {
@@ -163,10 +176,21 @@ export default function OpenMenu() {
                 <div className={styles.group}>{g.name}</div>
                 {g.choices.map((c, ci) => {
                   const i = starts[gi] + ci;
-                  const Icon = c.type === "tool" ? TOOL_ICONS[c.tool] : null;
+                  const Icon =
+                    c.type === "tool"
+                      ? TOOL_ICONS[c.tool]
+                      : c.type === "page"
+                        ? (findRoute(c.routeId)?.icon ?? null)
+                        : null;
                   return (
                     <div
-                      key={c.type === "tool" ? c.tool : `${c.kind}:${c.id}`}
+                      key={
+                        c.type === "tool"
+                          ? c.tool
+                          : c.type === "page"
+                            ? `page:${c.routeId}`
+                            : `${c.kind}:${c.id}`
+                      }
                       id={`panel-open-${i}`}
                       data-index={i}
                       role="option"
