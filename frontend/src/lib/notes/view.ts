@@ -2,6 +2,8 @@
  * How the scene's notes show beside the prose (doc 15 polish): cards in the margin, or a dot
  * in the note's colour beside each line (the card opens on a click, a preview on hover).
  */
+import { rememberPref } from "../preferences/accountPrefs";
+
 export type NotesView = "cards" | "dots";
 
 const KEY = "ls_notes_margin";
@@ -17,11 +19,7 @@ export function readNotesView(): NotesView {
 }
 
 export function saveNotesView(view: NotesView): NotesView {
-  try {
-    localStorage.setItem(KEY, view);
-  } catch {
-    /* a private window keeps the choice for this visit only */
-  }
+  rememberPref(KEY, view);
   return view;
 }
 

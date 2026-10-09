@@ -7,6 +7,7 @@ import {
 } from "../lib/strip/stripModel";
 import { create } from "zustand";
 import { ROOT_PX, isUiScale, scaleFactor, type UiScale } from "../lib/appearance/uiScale";
+import { PREFS_ADOPTED_EVENT, rememberPref } from "../lib/preferences/accountPrefs";
 
 export type ThemeName = "zen" | "e-ink" | "nord" | "solarized" | "dracula" | "gruvbox" | "catppuccin";
 export type ColorMode = "light" | "dark" | "system";
@@ -302,23 +303,10 @@ function applyEditorLineWidth(lineWidth: EditorLineWidth) {
 // Migrate old format: ls_theme used to store "light" | "dark" | "system"
 const OLD_COLOR_MODES = ["light", "dark", "system"];
 const rawTheme = localStorage.getItem("ls_theme");
-
-let savedThemeName: ThemeName = "zen";
-let savedColorMode: ColorMode = "system";
-
 if (rawTheme && OLD_COLOR_MODES.includes(rawTheme)) {
-  // Old single-field format — migrate
-  savedColorMode = rawTheme as ColorMode;
   localStorage.setItem("ls_theme", "zen");
   localStorage.setItem("ls_color_mode", rawTheme);
-} else {
-  const t = rawTheme as ThemeName;
-  savedThemeName = ALL_THEME_NAMES.includes(t) ? t : "zen";
-  const m = localStorage.getItem("ls_color_mode") as ColorMode;
-  savedColorMode = OLD_COLOR_MODES.includes(m) ? m : "system";
 }
-
-applyAppearance(savedThemeName, savedColorMode);
 
 // Migrate old category-based font names to specific font identifiers
 const FONT_MIGRATION: Record<string, EditorFontFamily> = {
@@ -332,30 +320,46 @@ const VALID_FONT_FAMILIES = FONT_OPTIONS.map((f) => f.value);
 const VALID_FONT_SIZES: EditorFontSize[] = ["small", "medium", "large", "xl"];
 const VALID_LINE_WIDTHS: EditorLineWidth[] = ["narrow", "medium", "wide", "full"];
 
-const rawEditorFont = localStorage.getItem("ls_editor_font") ?? "";
-const migratedFont = FONT_MIGRATION[rawEditorFont] ?? rawEditorFont;
-const savedEditorFont: EditorFontFamily = VALID_FONT_FAMILIES.includes(migratedFont as EditorFontFamily)
-  ? (migratedFont as EditorFontFamily)
-  : "merriweather";
-
-const rawEditorSize = localStorage.getItem("ls_editor_font_size") as EditorFontSize;
-const savedEditorSize: EditorFontSize = VALID_FONT_SIZES.includes(rawEditorSize) ? rawEditorSize : "medium";
-
-const rawLineWidth = localStorage.getItem("ls_editor_line_width") as EditorLineWidth;
-const savedLineWidth: EditorLineWidth = VALID_LINE_WIDTHS.includes(rawLineWidth) ? rawLineWidth : "medium";
-
 // The editor's dialogue tints read this attribute (SceneEditor.module.css).
 function applyHighlightDialogue(on: boolean) {
   document.documentElement.dataset.dialogueHighlight = on ? "on" : "off";
 }
-const savedHighlightDialogue = localStorage.getItem("ls_highlight_dialogue") === "on";
 
-applyEditorFont(savedEditorFont, savedEditorSize);
-applyEditorLineWidth(savedLineWidth);
-const rawUiScale = localStorage.getItem("ls_ui_scale");
-const savedUiScale: UiScale = isUiScale(rawUiScale) ? rawUiScale : "default";
-applyUiScale(savedUiScale);
-applyHighlightDialogue(savedHighlightDialogue);
+/** The author's choices as the browser keeps them (the account's copy, lib/preferences). */
+function readSavedPrefs() {
+  const theme = localStorage.getItem("ls_theme") as ThemeName;
+  const mode = localStorage.getItem("ls_color_mode") as ColorMode;
+  const rawFont = localStorage.getItem("ls_editor_font") ?? "";
+  const font = FONT_MIGRATION[rawFont] ?? rawFont;
+  const size = localStorage.getItem("ls_editor_font_size") as EditorFontSize;
+  const width = localStorage.getItem("ls_editor_line_width") as EditorLineWidth;
+  const scale = localStorage.getItem("ls_ui_scale");
+  const colour = localStorage.getItem("ls_strip_colour");
+  return {
+    themeName: ALL_THEME_NAMES.includes(theme) ? theme : ("zen" as ThemeName),
+    colorMode: OLD_COLOR_MODES.includes(mode) ? mode : ("system" as ColorMode),
+    editorFontFamily: VALID_FONT_FAMILIES.includes(font as EditorFontFamily)
+      ? (font as EditorFontFamily)
+      : ("merriweather" as EditorFontFamily),
+    editorFontSize: VALID_FONT_SIZES.includes(size) ? size : ("medium" as EditorFontSize),
+    editorLineWidth: VALID_LINE_WIDTHS.includes(width) ? width : ("medium" as EditorLineWidth),
+    uiScale: isUiScale(scale) ? scale : ("default" as UiScale),
+    highlightDialogue: localStorage.getItem("ls_highlight_dialogue") === "on",
+    // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
+    stripColourMode: (COLOUR_MODES.some((m) => m.id === colour) ? colour : "none") as ColourMode,
+  };
+}
+
+function applySavedPrefs(prefs: ReturnType<typeof readSavedPrefs>) {
+  applyAppearance(prefs.themeName, prefs.colorMode);
+  applyEditorFont(prefs.editorFontFamily, prefs.editorFontSize);
+  applyEditorLineWidth(prefs.editorLineWidth);
+  applyUiScale(prefs.uiScale);
+  applyHighlightDialogue(prefs.highlightDialogue);
+}
+
+const savedPrefs = readSavedPrefs();
+applySavedPrefs(savedPrefs);
 
 for (const stale of [
   "ls_tree_height",
@@ -385,58 +389,48 @@ for (const stale of [
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  themeName: savedThemeName,
-  colorMode: savedColorMode,
+  ...savedPrefs,
   setThemeName: (themeName) => {
-    localStorage.setItem("ls_theme", themeName);
+    rememberPref("ls_theme", themeName);
     let { colorMode } = useUIStore.getState();
     if (THEME_META[themeName].darkOnly) {
       colorMode = "dark";
-      localStorage.setItem("ls_color_mode", "dark");
+      rememberPref("ls_color_mode", "dark");
     }
     applyAppearance(themeName, colorMode);
     set({ themeName, ...(THEME_META[themeName].darkOnly ? { colorMode: "dark" } : {}) });
   },
   setColorMode: (colorMode) => {
-    localStorage.setItem("ls_color_mode", colorMode);
+    rememberPref("ls_color_mode", colorMode);
     const { themeName } = useUIStore.getState();
     applyAppearance(themeName, colorMode);
     set({ colorMode });
   },
 
-  editorFontFamily: savedEditorFont,
-  editorFontSize: savedEditorSize,
-  editorLineWidth: savedLineWidth,
   setEditorFontFamily: (editorFontFamily) => {
-    localStorage.setItem("ls_editor_font", editorFontFamily);
+    rememberPref("ls_editor_font", editorFontFamily);
     const { editorFontSize } = useUIStore.getState();
     applyEditorFont(editorFontFamily, editorFontSize);
     set({ editorFontFamily });
   },
   setEditorFontSize: (editorFontSize) => {
-    localStorage.setItem("ls_editor_font_size", editorFontSize);
+    rememberPref("ls_editor_font_size", editorFontSize);
     const { editorFontFamily } = useUIStore.getState();
     applyEditorFont(editorFontFamily, editorFontSize);
     set({ editorFontSize });
   },
   setEditorLineWidth: (editorLineWidth) => {
-    localStorage.setItem("ls_editor_line_width", editorLineWidth);
+    rememberPref("ls_editor_line_width", editorLineWidth);
     applyEditorLineWidth(editorLineWidth);
     set({ editorLineWidth });
   },
-  uiScale: savedUiScale,
   setUiScale: (uiScale) => {
-    try {
-      localStorage.setItem("ls_ui_scale", uiScale);
-    } catch {
-      // Site data blocked: the size holds until the page reloads.
-    }
+    rememberPref("ls_ui_scale", uiScale);
     applyUiScale(uiScale);
     set({ uiScale });
   },
-  highlightDialogue: savedHighlightDialogue,
   setHighlightDialogue: (highlightDialogue) => {
-    localStorage.setItem("ls_highlight_dialogue", highlightDialogue ? "on" : "off");
+    rememberPref("ls_highlight_dialogue", highlightDialogue ? "on" : "off");
     applyHighlightDialogue(highlightDialogue);
     set({ highlightDialogue });
   },
@@ -473,12 +467,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     }
     set({ stripPx: clamped });
   },
-  // Read against the mode table, so a mode added there (Findings, doc 12 P4) survives a reload.
-  stripColourMode: (COLOUR_MODES.some((m) => m.id === localStorage.getItem("ls_strip_colour"))
-    ? localStorage.getItem("ls_strip_colour")
-    : "none") as ColourMode,
   setStripColourMode: (mode) => {
-    localStorage.setItem("ls_strip_colour", mode);
+    rememberPref("ls_strip_colour", mode);
     set({ stripColourMode: mode });
   },
 
@@ -534,3 +524,10 @@ export const useUIStore = create<UIState>((set, get) => ({
   toggleScratchPad: () => set((s) => ({ scratchPadOpen: !s.scratchPadOpen })),
   closeScratchPad: () => set({ scratchPadOpen: false }),
 }));
+
+// The account's choices replaced the browser's (another device chose them): show them.
+window.addEventListener(PREFS_ADOPTED_EVENT, () => {
+  const prefs = readSavedPrefs();
+  applySavedPrefs(prefs);
+  useUIStore.setState(prefs);
+});

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { User } from "../types";
 import { api } from "../api/client";
+import { adoptAccountPrefs } from "../lib/preferences/accountPrefs";
 
 interface AuthState {
   user: User | null;
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { access_token } = await api.login(username, password);
       localStorage.setItem("ls_token", access_token);
       const user = await api.me();
+      adoptAccountPrefs(user.settings);
       set({ token: access_token, user, isLoading: false });
     } catch (err) {
       set({ isLoading: false });
@@ -39,6 +41,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (!token) return;
     try {
       const user = await api.me();
+      adoptAccountPrefs(user.settings);
       set({ user, token });
     } catch {
       localStorage.removeItem("ls_token");
