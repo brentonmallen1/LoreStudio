@@ -175,16 +175,16 @@ def _desktop_routes(app, key: str, stop) -> None:
         return {"stopping": True}
 
     index = WEB_DIST / "index.html"
+    # The files the build made (scripts, styles, icons), listed once: a requested path is only
+    # ever looked up here, never joined onto a folder, so no path can reach outside it.
+    built = {f.relative_to(WEB_DIST).as_posix(): f for f in WEB_DIST.rglob("*") if f.is_file()}
 
     @app.get("/{path:path}", include_in_schema=False)
     def web(path: str):
-        # A file the build made (scripts, styles, icons), else the app's page: the client routes.
+        # A file the build made, else the app's page: the client routes the rest.
         if path.startswith("api/"):
             raise HTTPException(status_code=404)
-        target = (WEB_DIST / path).resolve()
-        if path and target.is_file() and WEB_DIST.resolve() in target.parents:
-            return FileResponse(target)
-        return FileResponse(index)
+        return FileResponse(built.get(path, index))
 
 
 def _checkpoint_on_shutdown(app) -> None:
