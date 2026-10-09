@@ -1,7 +1,7 @@
 .page {
   flex: 1;
   overflow-y: auto;
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
 .inner {
@@ -141,7 +141,6 @@
   font-size: var(--text-xs);
   padding: 0.15rem 0.5rem;
   background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
   border-radius: 999px;
   color: var(--color-text-muted);
   text-transform: capitalize;
@@ -157,9 +156,8 @@
 
 /* ── URL block ── */
 .urlBlock {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
   padding: 0.875rem 1rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -195,9 +193,8 @@
 
 /* ── Note content ── */
 .contentBlock {
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  background: var(--color-tone);
+  border-radius: var(--radius-lg);
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -225,13 +222,13 @@
   color: var(--color-accent);
   text-decoration: none;
   padding: 0.45rem 0.875rem;
-  border: 1px solid var(--color-accent);
   border-radius: var(--radius);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
   transition: background var(--transition);
 }
 
 .docLink:hover {
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
 }
 
 /* ── Notes section ── */

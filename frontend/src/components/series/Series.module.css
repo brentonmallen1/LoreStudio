@@ -1,7 +1,7 @@
 /* The Series page and the Canon (series doc). Shared by its parts, as Lorebook.module.css is. */
 
 .page {
-  background: var(--color-bg);
+  background: var(--color-ground);
   min-height: 100%;
 }
 

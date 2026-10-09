@@ -1,6 +1,7 @@
+/* A titled group on a page (doc 24 P8): a tone box, with no edge and no band under its title.
+   The tone is the group's edge; the title's weight and the space under it end the head. */
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
+  background: var(--color-tone);
   border-radius: var(--radius-lg);
   overflow: hidden;
   flex-shrink: 0;
@@ -12,23 +13,23 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.7rem 1.25rem;
-  background: var(--color-surface-2);
+  padding: 0.8rem 1.25rem;
+  background: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   font-family: inherit;
   text-align: left;
   transition: background var(--transition);
 }
 
+/* Pressable, so it takes the hover ground (DESIGN.md, the Press Rule). */
 .head:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
 }
 
-/* No bottom border when collapsed (head is last child) */
-.card > .head:last-child {
-  border-bottom: none;
+.head:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
 /* Non-collapsible: head is a div, not interactive */
@@ -36,9 +37,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.7rem 1.25rem;
-  background: var(--color-surface-2);
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 0.8rem 1.25rem 0;
 }
 
 .titleRow {
@@ -71,26 +70,19 @@
 
 /* ── Body ── */
 .body {
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 0.35rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-/* ── AI variant ── */
+/* ── Variants: a breath of their colour in the tone, never a coloured edge ── */
 .ai {
-  background: color-mix(in srgb, var(--color-ai) 4%, var(--color-surface));
-  border-color: var(--color-ai-border);
-}
-
-.ai .head,
-.ai .headStatic {
-  background: color-mix(in srgb, var(--color-ai) 8%, var(--color-surface-2));
-  border-bottom-color: var(--color-ai-border);
+  background: color-mix(in srgb, var(--color-ai) 6%, var(--color-tone));
 }
 
 .ai .head:hover {
-  background: color-mix(in srgb, var(--color-ai) 14%, var(--color-surface-2));
+  background: color-mix(in srgb, var(--color-ai) 12%, var(--color-tone));
 }
 
 .ai .title {
@@ -102,20 +94,12 @@
   opacity: 0.7;
 }
 
-/* ── Accent variant ── */
 .accent {
-  background: color-mix(in srgb, var(--color-accent) 4%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
-}
-
-.accent .head,
-.accent .headStatic {
-  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface-2));
-  border-bottom-color: color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent) 6%, var(--color-tone));
 }
 
 .accent .head:hover {
-  background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface-2));
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-tone));
 }
 
 .accent .title {
@@ -127,18 +111,10 @@
   opacity: 0.7;
 }
 
-/* ── Intent variant ── */
 .intent {
-  background: color-mix(in srgb, var(--color-warning) 5%, var(--color-surface));
-  border-color: color-mix(in srgb, var(--color-warning) 25%, var(--color-border));
-}
-
-.intent .head,
-.intent .headStatic {
-  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface-2));
-  border-bottom-color: color-mix(in srgb, var(--color-warning) 20%, var(--color-border));
+  background: color-mix(in srgb, var(--color-warning) 6%, var(--color-tone));
 }
 
 .intent .head:hover {
-  background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface-2));
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--color-tone));
 }

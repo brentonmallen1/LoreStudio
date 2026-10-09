@@ -13,17 +13,18 @@
 .filter {
   height: 1.867rem;
   padding: 0 0.75rem;
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: 99px;
-  background: var(--color-surface);
-  color: var(--color-text);
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
   font: inherit;
   font-size: 0.8rem;
   cursor: pointer;
 }
 
 .filter:hover:not(:disabled) {
-  border-color: var(--color-border-hover);
+  background: var(--color-surface-3);
+  color: var(--color-text);
 }
 
 .filter:disabled {
@@ -34,7 +35,6 @@
 .filterOn,
 .filterOn:hover:not(:disabled) {
   background: var(--color-text);
-  border-color: var(--color-text);
   color: var(--color-bg);
 }
 
@@ -58,16 +58,13 @@
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-section-title);
-  background: var(--color-bg);
+  background: var(--color-ground);
 }
 
+/* A feed (DESIGN.md, Lists and feeds): rows divided by a hairline, nothing round them. */
 .rows {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  overflow: hidden;
 }
 
 /* ── A row ── */
@@ -76,8 +73,9 @@
   align-items: center;
   gap: 0.65rem;
   min-height: 2.933rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.75rem;
+  padding: 0.45rem 0.6rem;
   border-bottom: 1px solid var(--color-border-light);
+  border-radius: var(--radius);
   cursor: pointer;
   outline: none;
 }
@@ -87,17 +85,17 @@
 }
 
 .row:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .row:focus-visible {
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
+/* The row whose detail is open: deep vellum, as anything selected (DESIGN.md). */
 .rowSelected,
 .rowSelected:hover {
-  background: color-mix(in srgb, var(--color-accent) 9%, var(--color-surface));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  background: var(--color-surface-3);
 }
 
 .rowIcon {
@@ -143,9 +141,9 @@
 
 .kindTag {
   flex-shrink: 0;
-  padding: 0 0.35rem;
-  border: 1px solid var(--color-border);
+  padding: 0 0.4rem;
   border-radius: 4px;
+  background: var(--color-surface-2);
   font-size: var(--text-xs);
   font-weight: 500;
   color: var(--color-text-muted);
@@ -277,7 +275,7 @@
   width: 100%;
   margin-top: 1rem;
   padding: 0.55rem;
-  border: 1px dashed var(--color-border);
+  border: none;
   border-radius: var(--radius);
   background: none;
   color: var(--color-text-muted);
@@ -287,7 +285,7 @@
 }
 
 .loadMore:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -320,8 +318,8 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.2rem 0.55rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: var(--radius);
   background: none;
   color: var(--color-text-muted);
   font: inherit;
@@ -331,8 +329,8 @@
 
 .stopBtn:hover,
 .linkBtn:hover {
+  background: var(--color-hover);
   color: var(--color-text);
-  border-color: var(--color-text-subtle);
 }
 
 .progress {
@@ -389,8 +387,7 @@
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.2rem 0;
-  border-bottom: 1px dotted var(--color-border);
+  padding: 0.25rem 0;
   font-size: 0.78rem;
 }
 
@@ -426,9 +423,6 @@
 .callList {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius);
-  overflow: hidden;
 }
 
 .call {
@@ -458,7 +452,7 @@
 }
 
 .callHead:hover {
-  background: var(--color-surface-2);
+  background: var(--color-hover);
 }
 
 .callTitle {

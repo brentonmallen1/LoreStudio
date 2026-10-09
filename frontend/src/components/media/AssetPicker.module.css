@@ -1,6 +1,7 @@
+/* A tone box that folds open (doc 24 P8): no edge, the tone is the group. */
 .picker {
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
+  background: var(--color-tone);
   overflow: hidden;
 }
 
@@ -9,8 +10,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
-  background: var(--color-surface-raised);
+  padding: 8px 12px;
+  background: transparent;
   border: none;
   cursor: pointer;
   font-size: var(--text-sm);
@@ -21,7 +22,7 @@
 }
 
 .header:hover {
-  background: var(--color-border);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -43,7 +44,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid var(--color-border);
 }
 
 .hint {
@@ -65,8 +65,7 @@
   align-items: center;
   gap: 7px;
   padding: 4px 6px;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
+  border-radius: var(--radius);
   background: var(--color-surface);
 }
 
@@ -130,16 +129,16 @@
   gap: 4px;
   padding: 4px 9px;
   font-size: var(--text-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border: none;
+  border-radius: var(--radius);
   background: none;
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.1s;
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: var(--color-surface-raised);
+  background: var(--color-hover);
   color: var(--color-text);
 }
 
@@ -150,8 +149,8 @@
 
 /* Browser */
 .browser {
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
   overflow: hidden;
 }
 
@@ -164,7 +163,6 @@
   font-size: var(--text-xs);
   font-weight: 500;
   color: var(--color-text-subtle);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .closeBtn {

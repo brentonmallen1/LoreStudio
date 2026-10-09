@@ -54,8 +54,7 @@
   gap: 0.4rem;
   margin-bottom: 0.75rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 25%, transparent);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
 }
 
@@ -71,9 +70,9 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.3rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
   color: var(--color-text-muted);
   font: inherit;
   font-size: 0.78rem;
@@ -91,7 +90,6 @@
 }
 
 .bulkDanger:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
   background: var(--color-danger-bg);
   color: var(--color-danger);
 }
@@ -125,8 +123,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1.1rem 3rem 0.9rem 1.25rem;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 1.1rem 3rem 0.5rem 1.25rem;
 }
 
 .detailMeta {
@@ -185,14 +182,13 @@
 
 .userMsg {
   align-self: flex-end;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
-  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
 }
 
+/* The detail is a tone box, so a reply sits on the paper inside it, with no edge. */
 .assistantMsg {
   align-self: flex-start;
-  border: 1px solid var(--color-border-light);
-  background: var(--color-bg);
+  background: var(--color-surface);
 }
 
 .msgRole {

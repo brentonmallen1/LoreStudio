@@ -1,9 +1,6 @@
 /* What the reader knows, scene by scene (doc 18 C8). */
 .table {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  background: var(--color-ground);
 }
 
 .row {
@@ -18,7 +15,8 @@
 
 .head {
   border-top: 0;
-  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  background: var(--color-tone);
   font-size: var(--text-xs);
   font-weight: 600;
   color: var(--color-section-title);
@@ -110,7 +108,7 @@
 
 /* What the reader brings from the books before: the first row, set apart from the scenes */
 .comingIn {
-  background: var(--color-bg);
+  background: var(--color-tone);
 }
 
 .comingIn .scene {
