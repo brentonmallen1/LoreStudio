@@ -32,7 +32,7 @@ In the scene list, **Enter** in the last scene's line adds the next scene.
 ## The plan where you write
 
 - **Above an empty scene**, the editor shows its plan: what happens, why it's here, where it starts and ends, and what the point-of-view character wants. The first words tuck it away.
-- **Story plan** is a tab of the editor's side panel (**Notes**, or "Show Story Plan" in the palette): the logline and conflict, where this scene sits and what comes next, and what each character in the scene wants and what stands against them.
+- **The scene's plan** is the first page of its **Scene sheet** ("Show story plan" in the palette): its purpose, its key events as numbered steps, what is on the page so far, and, folded under _The story around it_, the logline and conflict, where the scene sits and what each character in it wants and what stands against them.
 - **Hovering a character's name** in the prose shows their goal and conflict.
 - The **Overview** shows the method's progress and the next step.
 

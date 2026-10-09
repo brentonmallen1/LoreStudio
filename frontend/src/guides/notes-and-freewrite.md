@@ -19,7 +19,7 @@ Select words in the editor and choose **Note**, **Question** or **To-do** in the
 
 **Resolve** a note when you're done with it: it leaves the margin and its highlight goes, and it stays on the Notes page under _Resolved_, where you can reopen it. Ticking a to-do or answering a question resolves it too. Any note can also be deleted; **Undo** in the message that follows brings it back.
 
-The side panel's _This scene_ tab lists every note on the scene, and adds one to the scene as a whole. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
+The Scene sheet's **Notes** page lists every note on the scene, questions and to-dos first, and adds one to the scene as a whole; the _This scene_ tab shows how many are open and the first of them. Editorial notes left by an editorial pass (Studio) can be hidden with one toggle.
 
 ## Every note in one place
 

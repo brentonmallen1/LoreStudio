@@ -59,4 +59,4 @@ Add the rest under **Your entries**: what a character learns, and what **only th
 
 ## In the scene
 
-While you write, the side panel's **This scene** tab has a **Promises** section: the threads still open at this point and where each last moved, what this scene does to each thread it touches, the twists planted or revealed here, and what the reader knows by its end. Attach a thread there, or change what the scene does to it.
+The Scene sheet's **Promises** page is the scene's side of it: on the left, what this scene does to each thread it touches (a card each, with the role and a note) and the twists planted or revealed here; on the right, the threads open coming in and where each last moved, what the reader knows by the end, and the scenes linked to this one. Attach a thread there, or change what the scene does to it. The _This scene_ tab says it in a line while you write.

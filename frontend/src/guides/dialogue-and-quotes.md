@@ -16,7 +16,7 @@ Untagged lines are worked out from the prose: a speech tag (`"…," Maya said`),
 
 ## Quote style
 
-Straight `"…"` and curly `“…”` quotes mixed in one manuscript is the most common copy-edit note. The **Quote style** field in the side panel's _This scene_ tab counts both across the story and converts everything with one click, after showing you how many characters change. Markup, speaker tags and the names in mentions are never touched, and a quote after italics stays a closing one. The same command is in the palette: _Normalize quotes_.
+Straight `"…"` and curly `“…”` quotes mixed in one manuscript is the most common copy-edit note. **Quote style**, under _Tidy-ups_ on the Scene sheet's **Findings** page, counts both across the story and converts everything with one click, after showing you how many characters change. Markup, speaker tags and the names in mentions are never touched, and a quote after italics stays a closing one. The same command is in the palette: _Normalize quotes_.
 
 ## Voice
 
